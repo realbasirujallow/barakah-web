@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useEffect, ReactNode, useState } from 'react';
 
 const navItems = [
-  { href: '/dashboard', icon: '📊', label: 'Dashboard' },
+  { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
+  { href: '/dashboard/analytics', icon: '📊', label: 'Analytics' },
   { href: '/dashboard/assets', icon: '💰', label: 'Assets' },
   { href: '/dashboard/transactions', icon: '📝', label: 'Transactions' },
   { href: '/dashboard/budget', icon: '📈', label: 'Budget' },

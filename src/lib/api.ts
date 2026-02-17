@@ -2,7 +2,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.trybarakah.com';
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -10,7 +9,6 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   };
 
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  if (userId) headers['X-User-Id'] = userId;
 
   const res = await fetch(`${API_URL}${endpoint}`, {
     ...options,
@@ -144,6 +142,10 @@ export const api = {
   // Halal Screening
   checkHalal: (symbol: string) => apiFetch(`/api/halal/check/${symbol}`),
   getHalalStocks: () => apiFetch('/api/halal/list'),
+
+  // Analytics
+  getTransactionSummary: (period: string = 'month') =>
+    apiFetch(`/api/transactions/summary?period=${period}`),
 
   // Live Prices
   getCryptoPrice: (symbol: string) => apiFetch(`/api/prices/crypto/${symbol}`),
