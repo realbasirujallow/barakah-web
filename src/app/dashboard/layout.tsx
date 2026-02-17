@@ -9,6 +9,7 @@ const navItems = [
   { href: '/dashboard/assets', icon: '💰', label: 'Assets' },
   { href: '/dashboard/transactions', icon: '📝', label: 'Transactions' },
   { href: '/dashboard/budget', icon: '📈', label: 'Budget' },
+  { href: '/dashboard/savings', icon: '🎯', label: 'Savings Goals' },
   { href: '/dashboard/debts', icon: '💳', label: 'Debts' },
   { href: '/dashboard/bills', icon: '🔔', label: 'Bills' },
   { href: '/dashboard/zakat', icon: '🕌', label: 'Zakat' },
@@ -18,6 +19,8 @@ const navItems = [
   { href: '/dashboard/waqf', icon: '🏛️', label: 'Waqf' },
   { href: '/dashboard/riba', icon: '🛡️', label: 'Riba Detector' },
   { href: '/dashboard/categorize', icon: '🔄', label: 'Auto-Categorize' },
+  { href: '/dashboard/halal', icon: '✅', label: 'Halal Screener' },
+  { href: '/dashboard/prices', icon: '📉', label: 'Live Prices' },
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
