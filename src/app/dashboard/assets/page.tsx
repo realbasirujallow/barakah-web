@@ -109,7 +109,7 @@ export default function AssetsPage() {
         </div>
       </div>
 
-      {showBreakdown && total?.breakdown && (
+      {showBreakdown && total?.breakdown ? (
         <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-[#1B5E20]">Zakat Calculation Breakdown</h2>
@@ -143,7 +143,7 @@ export default function AssetsPage() {
             ))}
           </div>
         </div>
-      )}
+      ) : null}
 
       {assets.length > 0 ? (
         <div className="space-y-3">
