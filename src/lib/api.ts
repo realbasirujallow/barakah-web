@@ -29,8 +29,8 @@ export const api = {
   // Auth
   login: (email: string, password: string) =>
     apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
-  signup: (name: string, email: string, password: string) =>
-    apiFetch('/auth/signup', { method: 'POST', body: JSON.stringify({ fullName: name, email, password }) }),
+  signup: (name: string, email: string, password: string, state: string) =>
+    apiFetch('/auth/signup', { method: 'POST', body: JSON.stringify({ fullName: name, email, password, state }) }),
 
   // Assets
   getAssets: () => apiFetch('/api/assets/list'),

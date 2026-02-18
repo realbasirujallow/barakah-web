@@ -12,7 +12,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, state: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -43,11 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser({ id: data.userId || data.id, name: data.name || email, email });
   };
 
-  const signup = async (name: string, email: string, password: string) => {
-    const data = await api.signup(name, email, password);
+  const signup = async (name: string, email: string, password: string, state: string) => {
+    const data = await api.signup(name, email, password, state);
     localStorage.setItem('token', data.token);
     localStorage.setItem('userId', data.userId || data.id || email);
-    localStorage.setItem('user', JSON.stringify({ id: data.userId || data.id, name, email }));
+    localStorage.setItem('user', JSON.stringify({ id: data.userId || data.id, name, email, state }));
     setToken(data.token);
     setUser({ id: data.userId || data.id, name, email });
   };

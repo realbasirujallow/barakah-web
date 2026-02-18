@@ -2,7 +2,15 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 
-interface Asset { id: number; name: string; type: string; value: number; }
+interface Asset { id: number; name: string; type: string; value: number; penaltyRate?: number; taxRate?: number; }
+
+interface AssetFormState {
+  name: string;
+  type: string;
+  value: string;
+  penaltyRate: string;
+  taxRate: string;
+}
 const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
   '💵 Cash & Savings': [
     { value: 'cash', label: 'Cash' },
@@ -42,7 +50,7 @@ export default function AssetsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Asset | null>(null);
-  const [form, setForm] = useState({ name: '', type: 'cash', value: '' });
+  const [form, setForm] = useState<AssetFormState>({ name: '', type: 'cash', value: '', penaltyRate: '', taxRate: '' });
   const [saving, setSaving] = useState(false);
   const [showBreakdown, setShowBreakdown] = useState(false);
 
@@ -67,7 +75,17 @@ export default function AssetsPage() {
     return labels[t] || t.replace(/_/g, ' ');
   };
   const openAdd = () => { setEditItem(null); setForm({ name: '', type: 'cash', value: '', penaltyRate: '', taxRate: '' }); setShowForm(true); };
-  const openEdit = (a: Asset) => { setEditItem(a); setForm({ name: a.name, type: a.type, value: String(a.value), penaltyRate: a.penaltyRate ?? '', taxRate: a.taxRate ?? '' }); setShowForm(true); };
+  const openEdit = (a: Asset) => {
+    setEditItem(a);
+    setForm({
+      name: a.name,
+      type: a.type,
+      value: String(a.value),
+      penaltyRate: a.penaltyRate !== undefined && a.penaltyRate !== null ? String(a.penaltyRate) : '',
+      taxRate: a.taxRate !== undefined && a.taxRate !== null ? String(a.taxRate) : ''
+    });
+    setShowForm(true);
+  };
 
   const handleSave = async () => {
     setSaving(true);
