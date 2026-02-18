@@ -30,6 +30,7 @@ import 'package:barakah_app/screens/auto_categorize_screen.dart';
 import 'package:barakah_app/screens/net_worth_screen.dart';
 import 'package:barakah_app/screens/shared_finances_screen.dart';
 import 'package:barakah_app/screens/investments_screen.dart';
+import 'package:barakah_app/credit_score_screen.dart';
 import 'package:barakah_app/services/notification_service.dart';
 
 void main() async {
@@ -95,6 +96,7 @@ class BarakahApp extends StatelessWidget {
               '/net-worth': (context) => const NetWorthScreen(),
               '/shared-finances': (context) => const SharedFinancesScreen(),
               '/investments': (context) => const InvestmentsScreen(),
+              '/credit-score': (context) => const CreditScoreScreen(),
             },
           );
         },

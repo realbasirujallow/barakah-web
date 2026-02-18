@@ -730,4 +730,45 @@ class ApiService {
     final response = await _dio.get('/api/investments/portfolio/summary');
     return response.data as Map<String, dynamic>;
   }
+
+  // ─── Credit Score ────────────────────────────────────
+
+  Future<Map<String, dynamic>> addCreditScore(Map<String, dynamic> data) async {
+    final response = await _dio.post('/api/credit-score/add', data: data);
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getLatestCreditScore() async {
+    final response = await _dio.get('/api/credit-score/latest');
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getCreditScoreHistory() async {
+    final response = await _dio.get('/api/credit-score/history');
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updateCreditScore(int id, Map<String, dynamic> data) async {
+    final response = await _dio.put('/api/credit-score/$id', data: data);
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> deleteCreditScore(int id) async {
+    final response = await _dio.delete('/api/credit-score/$id');
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getCreditScoreTips() async {
+    final response = await _dio.get('/api/credit-score/tips');
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> simulateCreditScore({int? utilization, int? payments, int? inquiries}) async {
+    final params = <String, dynamic>{};
+    if (utilization != null) params['utilization'] = utilization;
+    if (payments != null) params['payments'] = payments;
+    if (inquiries != null) params['inquiries'] = inquiries;
+    final response = await _dio.get('/api/credit-score/simulate', queryParameters: params);
+    return response.data as Map<String, dynamic>;
+  }
 }
