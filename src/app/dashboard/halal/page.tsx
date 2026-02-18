@@ -68,10 +68,10 @@ export default function HalalPage() {
 
       {showList && halalList.length > 0 && (() => {
         const q = listSearch.toLowerCase();
-        const filtered = q ? halalList.filter((s: Record<string, unknown>) =>
-          (s.symbol as string || '').toLowerCase().includes(q) ||
-          (s.name as string || '').toLowerCase().includes(q) ||
-          (s.sector as string || '').toLowerCase().includes(q)
+        const filtered = q ? halalList.filter((s: HalalResult) =>
+          (s.symbol || '').toLowerCase().includes(q) ||
+          (s.name || '').toLowerCase().includes(q) ||
+          (s.sector || '').toLowerCase().includes(q)
         ) : halalList;
         return (
         <div className="mt-6 space-y-2">
