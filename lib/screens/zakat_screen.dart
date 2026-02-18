@@ -474,13 +474,19 @@ class _ZakatScreenState extends State<ZakatScreen> {
       case 'gold':
         return '🥇';
       case 'cash':
+      case 'savings_account':
+      case 'checking_account':
         return '💵';
       case 'real_estate':
       case 'property':
       case 'house':
       case 'home':
       case 'residence':
+      case 'primary_home':
         return '🏠';
+      case 'investment_property':
+      case 'rental_property':
+        return '🏢';
       case 'vehicle':
       case 'car':
         return '🚗';
@@ -490,6 +496,10 @@ class _ZakatScreenState extends State<ZakatScreen> {
       case 'roth_ira':
       case 'pension':
       case 'retirement':
+      case '403b':
+      case 'tsp':
+      case 'sep_ira':
+      case 'hsa':
         return '🏦';
       case 'silver':
         return '🥈';

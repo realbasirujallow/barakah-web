@@ -115,7 +115,38 @@ class _AssetsScreenState extends State<AssetsScreen> {
     final valueController = TextEditingController();
     String selectedType = 'cash';
 
-    final types = ['cash', 'crypto', 'stock', 'gold', 'real_estate', 'other'];
+    final types = {
+      '💵 Cash & Savings': ['cash', 'savings_account', 'checking_account'],
+      '🏠 Real Estate': ['primary_home', 'investment_property'],
+      '📈 Investments': ['stock', 'crypto', 'business'],
+      '🏦 Retirement': ['401k', 'roth_ira', 'ira', 'hsa', '403b', 'pension'],
+      '🥇 Precious Metals': ['gold', 'silver'],
+      '🚗 Other': ['vehicle', 'other'],
+    };
+
+    String _displayName(String type) {
+      const labels = {
+        'cash': 'Cash',
+        'savings_account': 'Savings Account',
+        'checking_account': 'Checking Account',
+        'primary_home': 'Primary Home',
+        'investment_property': 'Investment Property',
+        'stock': 'Stocks / ETFs',
+        'crypto': 'Cryptocurrency',
+        'business': 'Business',
+        '401k': '401(k)',
+        'roth_ira': 'Roth IRA',
+        'ira': 'Traditional IRA',
+        'hsa': 'HSA',
+        '403b': '403(b)',
+        'pension': 'Pension',
+        'gold': 'Gold',
+        'silver': 'Silver',
+        'vehicle': 'Vehicle',
+        'other': 'Other',
+      };
+      return labels[type] ?? type.replaceAll('_', ' ');
+    }
 
     showModalBottomSheet(
       context: context,
@@ -168,7 +199,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                initialValue: selectedType,
+                value: selectedType,
                 decoration: InputDecoration(
                   labelText: 'Asset Type',
                   prefixIcon: const Icon(Icons.category_outlined),
@@ -176,12 +207,28 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   filled: true,
                   fillColor: theme.colorScheme.surfaceContainerLowest,
                 ),
-                items: types.map((type) => DropdownMenuItem(
-                  value: type,
-                  child: Text(type.replaceAll('_', ' ').toUpperCase()),
-                )).toList(),
+                items: types.entries.expand((group) => [
+                  DropdownMenuItem<String>(
+                    enabled: false,
+                    child: Text(
+                      group.key,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.deepGreen.withOpacity(0.7),
+                      ),
+                    ),
+                  ),
+                  ...group.value.map((type) => DropdownMenuItem(
+                    value: type,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: Text(_displayName(type)),
+                    ),
+                  )),
+                ]).toList(),
                 onChanged: (value) {
-                  setModalState(() => selectedType = value!);
+                  if (value != null) setModalState(() => selectedType = value);
                 },
               ),
               const SizedBox(height: 16),
