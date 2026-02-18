@@ -15,7 +15,7 @@ export default function TransactionsPage() {
 
   const load = () => {
     setLoading(true);
-    api.getTransactions(filter === 'all' ? undefined : filter).then(d => setTxs(d || [])).catch(() => {}).finally(() => setLoading(false));
+    api.getTransactions(filter === 'all' ? undefined : filter).then(d => setTxs(d?.transactions || [])).catch(() => {}).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, [filter]);
 

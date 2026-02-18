@@ -20,7 +20,7 @@ export default function CategorizePage() {
   const [applied, setApplied] = useState(false);
 
   useEffect(() => {
-    api.reviewCategories().then(d => setSuggestions(d)).catch(() => {}).finally(() => setLoading(false));
+    api.reviewCategories().then(d => setSuggestions(d?.transactions || [])).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const handleApply = async () => {
@@ -29,7 +29,7 @@ export default function CategorizePage() {
       await api.applyCategories(60);
       setApplied(true);
       const updated = await api.reviewCategories();
-      setSuggestions(updated);
+      setSuggestions(updated?.transactions || []);
     } catch { /* ignore */ }
     setApplying(false);
   };
