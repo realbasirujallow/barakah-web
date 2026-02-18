@@ -36,9 +36,9 @@ export default function DashboardPage() {
       {/* Summary cards */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         <div className="bg-gradient-to-br from-[#1B5E20] to-green-600 rounded-2xl p-6 text-white">
-          <p className="text-green-200 text-sm">Total Wealth</p>
+          <p className="text-green-200 text-sm">Net Worth</p>
           <p className="text-3xl font-bold mt-1">
-            {loading ? '...' : fmt((totals?.totalWealth as number) || 0)}
+            {loading ? '...' : fmt((totals?.netWorth as number) || (totals?.totalWealth as number) || 0)}
           </p>
         </div>
         <div className="bg-gradient-to-br from-amber-600 to-yellow-500 rounded-2xl p-6 text-white">
