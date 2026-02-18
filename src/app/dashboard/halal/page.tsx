@@ -10,20 +10,28 @@ export default function HalalPage() {
   const [halalList, setHalalList] = useState<HalalResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [showList, setShowList] = useState(false);
+  const [listSearch, setListSearch] = useState('');
 
   const handleCheck = async () => {
     if (!symbol.trim()) return;
     setLoading(true); setResult(null);
     try {
       const r = await api.checkHalal(symbol.trim().toUpperCase());
-      setResult(r);
+      setResult({
+        symbol: r.symbol,
+        name: r.name || '',
+        status: !r.found ? 'UNKNOWN' : r.isHalal ? 'HALAL' : 'HARAM',
+        reason: !r.found ? 'Stock not found in our database' : (r.reason || ''),
+        sector: r.sector || '',
+        debtRatio: r.debtRatio,
+      });
     } catch { setResult({ symbol: symbol.toUpperCase(), name: '', status: 'UNKNOWN', reason: 'Could not find stock data', sector: '' }); }
     setLoading(false);
   };
 
   const loadList = async () => {
     setLoading(true);
-    try { const d = await api.getHalalStocks(); setHalalList(d || []); setShowList(true); } catch { /* */ }
+    try { const d = await api.getHalalStocks(); setHalalList(d?.stocks || []); setShowList(true); } catch { /* */ }
     setLoading(false);
   };
 
@@ -58,11 +66,21 @@ export default function HalalPage() {
         <button onClick={loadList} disabled={loading} className="text-[#1B5E20] hover:underline font-medium">{showList ? 'Refresh' : 'View All Halal Stocks →'}</button>
       </div>
 
-      {showList && halalList.length > 0 && (
+      {showList && halalList.length > 0 && (() => {
+        const q = listSearch.toLowerCase();
+        const filtered = q ? halalList.filter((s: Record<string, unknown>) =>
+          (s.symbol as string || '').toLowerCase().includes(q) ||
+          (s.name as string || '').toLowerCase().includes(q) ||
+          (s.sector as string || '').toLowerCase().includes(q)
+        ) : halalList;
+        return (
         <div className="mt-6 space-y-2">
-          <h2 className="text-lg font-semibold text-gray-700 mb-3">Pre-Screened Halal Stocks</h2>
-          <div className="grid md:grid-cols-2 gap-2">
-            {halalList.map((s, i) => (
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-lg font-semibold text-gray-700">Pre-Screened Halal Stocks ({filtered.length})</h2>
+          </div>
+          <input value={listSearch} onChange={e => setListSearch(e.target.value)} className="w-full border rounded-lg px-4 py-2 text-gray-900 mb-3" placeholder="Search by ticker, name, or sector..." />
+          <div className="grid md:grid-cols-2 gap-2 max-h-[600px] overflow-y-auto">
+            {filtered.map((s, i) => (
               <div key={i} className="bg-white rounded-xl p-3 flex items-center gap-3">
                 <span className="text-green-600 text-lg">✅</span>
                 <div>
@@ -73,7 +91,8 @@ export default function HalalPage() {
             ))}
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
