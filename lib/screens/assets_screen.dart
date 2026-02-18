@@ -375,7 +375,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('Total Value',
+                                      Text('Net Worth',
                                           style: TextStyle(color: Colors.green[100], fontSize: 13)),
                                       const SizedBox(height: 4),
                                       Text(

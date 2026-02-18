@@ -168,7 +168,7 @@ class _ZakatScreenState extends State<ZakatScreen> {
                     children: [
                       Expanded(
                         child: _buildSummaryCard(
-                          'Total Wealth',
+                          'Net Worth',
                           currencyFormat.format(_totalValue),
                           Icons.account_balance_wallet,
                           Colors.blue,
@@ -420,7 +420,8 @@ class _ZakatScreenState extends State<ZakatScreen> {
                           '• Zakat is 2.5% of your eligible (zakatable) wealth\n'
                           '• The Nisab threshold is approximately \$5,686.20 (85g of gold)\n'
                           '• Personal residence, vehicles & belongings are NOT zakatable\n'
-                          '• Retirement accounts (401k/IRA) are adjusted for early withdrawal penalties & taxes\n'
+                          '• Investment property itself is NOT zakatable — only the rental income held in your accounts after a lunar year\n'
+                          '• Retirement accounts (401k/IRA/HSA) are adjusted for early withdrawal penalties & taxes\n'
                           '• Cash, gold, silver, stocks, crypto, and business assets ARE zakatable\n'
                           '• Zakat is due when zakatable wealth exceeds Nisab for one lunar year\n'
                           '• Consult a scholar for specific rulings on your situation',
