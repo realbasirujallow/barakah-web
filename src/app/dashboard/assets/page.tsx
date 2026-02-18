@@ -44,6 +44,7 @@ export default function AssetsPage() {
   const [editItem, setEditItem] = useState<Asset | null>(null);
   const [form, setForm] = useState({ name: '', type: 'cash', value: '' });
   const [saving, setSaving] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -94,10 +95,55 @@ export default function AssetsPage() {
       </div>
 
       <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
-        <p className="text-green-100 text-sm">Total Wealth</p>
-        <p className="text-4xl font-bold">{fmt((total?.totalWealth as number) || 0)}</p>
-        <p className="text-green-200 text-sm mt-1">Zakat {(total?.zakatEligible as boolean) ? 'Eligible' : 'Below Nisab'} • Due: {fmt((total?.zakatDue as number) || 0)}</p>
+        <p className="text-green-100 text-sm">Net Worth</p>
+        <p className="text-4xl font-bold">{fmt((total?.netWorth as number) || (total?.totalWealth as number) || 0)}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-green-200 text-sm">Zakat {(total?.zakatEligible as boolean) ? 'Eligible' : 'Below Nisab'}</p>
+          <span className="text-green-200 text-sm">•</span>
+          <button
+            onClick={() => setShowBreakdown(!showBreakdown)}
+            className="text-green-100 text-sm underline hover:text-white font-medium"
+          >
+            Due: {fmt((total?.zakatDue as number) || 0)} ↗
+          </button>
+        </div>
       </div>
+
+      {showBreakdown && total?.breakdown && (
+        <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-[#1B5E20]">Zakat Calculation Breakdown</h2>
+            <button onClick={() => setShowBreakdown(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+          </div>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="bg-blue-50 rounded-xl p-3"><p className="text-xs text-gray-500">Net Worth</p><p className="font-bold text-blue-700">{fmt((total?.netWorth as number) || 0)}</p></div>
+            <div className="bg-green-50 rounded-xl p-3"><p className="text-xs text-gray-500">Zakatable</p><p className="font-bold text-green-700">{fmt((total?.zakatableWealth as number) || 0)}</p></div>
+            <div className="bg-orange-50 rounded-xl p-3"><p className="text-xs text-gray-500">Exempt</p><p className="font-bold text-orange-700">{fmt((total?.nonZakatableWealth as number) || 0)}</p></div>
+          </div>
+          <div className="border-t pt-3 mb-3">
+            <p className="text-xs text-gray-500 mb-1">Nisab Threshold: {fmt((total?.nisab as number) || 5686.20)}</p>
+            <p className="text-xs text-gray-500">Zakat Rate: 2.5% of zakatable wealth</p>
+            <p className="text-sm font-semibold text-[#1B5E20] mt-1">Zakat Due = {fmt((total?.zakatableWealth as number) || 0)} × 2.5% = {fmt((total?.zakatDue as number) || 0)}</p>
+          </div>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {(total.breakdown as Array<Record<string, unknown>>).map((item: Record<string, unknown>, i: number) => (
+              <div key={i} className={`flex justify-between items-start p-3 rounded-lg text-sm ${(item.zakatable as boolean) ? 'bg-green-50' : 'bg-orange-50'}`}>
+                <div>
+                  <p className="font-medium text-gray-900">{item.name as string}</p>
+                  <p className="text-xs text-gray-500 capitalize">{typeLabel(item.type as string)}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{item.reason as string}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-gray-700">{fmt(item.value as number)}</p>
+                  <p className={`text-xs font-medium ${(item.zakatable as boolean) ? 'text-green-600' : 'text-orange-600'}`}>
+                    {(item.zakatable as boolean) ? `Zakatable: ${fmt(item.zakatableValue as number)}` : 'Exempt'}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {assets.length > 0 ? (
         <div className="space-y-3">
