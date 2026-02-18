@@ -66,13 +66,19 @@ export default function AssetsPage() {
     };
     return labels[t] || t.replace(/_/g, ' ');
   };
-  const openAdd = () => { setEditItem(null); setForm({ name: '', type: 'cash', value: '' }); setShowForm(true); };
-  const openEdit = (a: Asset) => { setEditItem(a); setForm({ name: a.name, type: a.type, value: String(a.value) }); setShowForm(true); };
+  const openAdd = () => { setEditItem(null); setForm({ name: '', type: 'cash', value: '', penaltyRate: '', taxRate: '' }); setShowForm(true); };
+  const openEdit = (a: Asset) => { setEditItem(a); setForm({ name: a.name, type: a.type, value: String(a.value), penaltyRate: a.penaltyRate ?? '', taxRate: a.taxRate ?? '' }); setShowForm(true); };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const data = { name: form.name, type: form.type, value: parseFloat(form.value) };
+      const data: Record<string, unknown> = { name: form.name, type: form.type, value: parseFloat(form.value) };
+      // Only send penalty/tax for retirement types
+      const retirementTypes = ["401k","retirement_401k","ira","roth_ira","pension","retirement","403b","tsp","sep_ira","hsa"];
+      if (retirementTypes.includes(form.type)) {
+        if (form.penaltyRate) data.penaltyRate = parseFloat(form.penaltyRate) / 100;
+        if (form.taxRate) data.taxRate = parseFloat(form.taxRate) / 100;
+      }
       if (editItem) await api.updateAsset(editItem.id, data);
       else await api.addAsset(data);
       setShowForm(false); load();
@@ -155,6 +161,16 @@ export default function AssetsPage() {
                 <button onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
                 <button onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
               </div>
+              {/* Penalty/tax fields for retirement accounts */}
+              {['401k','retirement_401k','ira','roth_ira','pension','retirement','403b','tsp','sep_ira','hsa'].includes(form.type) && (
+                <>
+                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Penalty Rate (%)</label>
+                    <input type="number" step="0.1" min="0" max="100" value={form.penaltyRate} onChange={e => setForm({ ...form, penaltyRate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="10" /></div>
+                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
+                    <input type="number" step="0.1" min="0" max="100" value={form.taxRate} onChange={e => setForm({ ...form, taxRate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="25" /></div>
+                  <div className="text-xs text-gray-500 mt-1">Defaults: 10% penalty, 25% tax. Adjust if your state or plan is different.</div>
+                </>
+              )}
             </div>
           ))}
         </div>
