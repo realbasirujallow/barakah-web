@@ -3,7 +3,38 @@ import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 
 interface Asset { id: number; name: string; type: string; value: number; }
-const TYPES = ['cash', 'gold', 'silver', 'crypto', 'stocks', 'property', 'business', 'other'];
+const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
+  '💵 Cash & Savings': [
+    { value: 'cash', label: 'Cash' },
+    { value: 'savings_account', label: 'Savings Account' },
+    { value: 'checking_account', label: 'Checking Account' },
+  ],
+  '🏠 Real Estate': [
+    { value: 'primary_home', label: 'Primary Home' },
+    { value: 'investment_property', label: 'Investment Property' },
+  ],
+  '📈 Investments': [
+    { value: 'stock', label: 'Stocks / ETFs' },
+    { value: 'crypto', label: 'Cryptocurrency' },
+    { value: 'business', label: 'Business' },
+  ],
+  '🏦 Retirement': [
+    { value: '401k', label: '401(k)' },
+    { value: 'roth_ira', label: 'Roth IRA' },
+    { value: 'ira', label: 'Traditional IRA' },
+    { value: 'hsa', label: 'HSA' },
+    { value: '403b', label: '403(b)' },
+    { value: 'pension', label: 'Pension' },
+  ],
+  '🥇 Precious Metals': [
+    { value: 'gold', label: 'Gold' },
+    { value: 'silver', label: 'Silver' },
+  ],
+  '🚗 Other': [
+    { value: 'vehicle', label: 'Vehicle' },
+    { value: 'other', label: 'Other' },
+  ],
+};
 
 export default function AssetsPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -23,6 +54,17 @@ export default function AssetsPage() {
   useEffect(() => { load(); }, []);
 
   const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+  const typeLabel = (t: string) => {
+    const labels: Record<string, string> = {
+      cash: 'Cash', savings_account: 'Savings Account', checking_account: 'Checking Account',
+      primary_home: 'Primary Home', investment_property: 'Investment Property',
+      stock: 'Stocks / ETFs', stocks: 'Stocks', crypto: 'Cryptocurrency', business: 'Business',
+      '401k': '401(k)', roth_ira: 'Roth IRA', ira: 'Traditional IRA', hsa: 'HSA',
+      '403b': '403(b)', pension: 'Pension', gold: 'Gold', silver: 'Silver',
+      vehicle: 'Vehicle', property: 'Property', real_estate: 'Real Estate', other: 'Other',
+    };
+    return labels[t] || t.replace(/_/g, ' ');
+  };
   const openAdd = () => { setEditItem(null); setForm({ name: '', type: 'cash', value: '' }); setShowForm(true); };
   const openEdit = (a: Asset) => { setEditItem(a); setForm({ name: a.name, type: a.type, value: String(a.value) }); setShowForm(true); };
 
@@ -61,7 +103,7 @@ export default function AssetsPage() {
         <div className="space-y-3">
           {assets.map(a => (
             <div key={a.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
-              <div><p className="font-semibold text-[#1B5E20]">{a.name}</p><p className="text-sm text-gray-500 capitalize">{a.type}</p></div>
+              <div><p className="font-semibold text-[#1B5E20]">{a.name}</p><p className="text-sm text-gray-500">{typeLabel(a.type)}</p></div>
               <div className="flex items-center gap-3">
                 <p className="text-lg font-bold text-[#1B5E20]">{fmt(a.value)}</p>
                 <button onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
@@ -83,7 +125,11 @@ export default function AssetsPage() {
                 <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Savings Account" /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                 <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                  {TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                  {Object.entries(TYPE_GROUPS).map(([group, items]) => (
+                    <optgroup key={group} label={group}>
+                      {items.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    </optgroup>
+                  ))}
                 </select></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Value (USD)</label>
                 <input type="number" step="0.01" value={form.value} onChange={e => setForm({ ...form, value: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="0.00" /></div>
