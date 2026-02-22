@@ -39,11 +39,12 @@ class ApiService {
 
   // ─── Auth ────────────────────────────────────────────
 
-  Future<Map<String, dynamic>> signup(String name, String email, String password) async {
+  Future<Map<String, dynamic>> signup(String name, String email, String password, String? state) async {
     final response = await _dio.post('/auth/signup', data: {
       'fullName': name,
       'email': email,
       'password': password,
+      'state': state,
     });
     return response.data as Map<String, dynamic>;
   }

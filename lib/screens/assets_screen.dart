@@ -118,8 +118,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
     final types = {
       '💵 Cash & Savings': ['cash', 'savings_account', 'checking_account'],
       '🏠 Real Estate': ['primary_home', 'investment_property'],
-      '📈 Investments': ['stock', 'crypto', 'business'],
-      '🏦 Retirement': ['401k', 'roth_ira', 'ira', 'hsa', '403b', 'pension', '529'], // Added 529
+      '📈 Investments': ['stock', 'crypto', 'business', 'individual_brokerage'], // Added individual brokerage
+      '🏦 Retirement': ['401k', 'roth_ira', 'ira', 'hsa', '403b', 'pension', '529'],
       '🥇 Precious Metals': ['gold', 'silver'],
       '🚗 Other': ['vehicle', 'other'],
     };
@@ -134,13 +134,14 @@ class _AssetsScreenState extends State<AssetsScreen> {
         'stock': 'Stocks / ETFs',
         'crypto': 'Cryptocurrency',
         'business': 'Business',
+        'individual_brokerage': 'Individual Brokerage Account', // Added label
         '401k': '401(k)',
         'roth_ira': 'Roth IRA',
         'ira': 'Traditional IRA',
         'hsa': 'HSA',
         '403b': '403(b)',
         'pension': 'Pension',
-        '529': '529 Plan', // Added 529 label
+        '529': '529 Plan',
         'gold': 'Gold',
         'silver': 'Silver',
         'vehicle': 'Vehicle',

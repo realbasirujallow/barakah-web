@@ -51,7 +51,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     {'icon': 'show_chart', 'label': 'Net Worth', 'route': '/net-worth'},
     {'icon': 'family_restroom', 'label': 'Shared', 'route': '/shared-finances'},
     {'icon': 'trending_up_2', 'label': 'Investments', 'route': '/investments'},
-    {'icon': 'speed', 'label': 'Credit Score', 'route': '/credit-score'},
   ];
 
   List<Map<String, dynamic>> _quickActions = [];
@@ -80,7 +79,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 'show_chart': return Icons.show_chart;
       case 'family_restroom': return Icons.family_restroom;
       case 'trending_up_2': return Icons.trending_up;
-      case 'speed': return Icons.speed;
       default: return Icons.apps;
     }
   }
@@ -183,6 +181,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+      final prefs = SharedPreferences.getInstance();
+      bool _hideNetWorth = false;
+      prefs.then((p) => _hideNetWorth = p.getBool('hide_net_worth') ?? false);
     final theme = Theme.of(context);
     final authService = context.watch<AuthService>();
     final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
@@ -227,221 +228,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
-                      const SizedBox(height: 16),
-                      Text(_error!, style: TextStyle(color: Colors.red[700])),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _loadData,
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadData,
-                  color: AppTheme.deepGreen,
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      // Total Portfolio Value Card
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [AppTheme.deepGreen, Color(0xFF2E7D32)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.deepGreen.withAlpha(80),
-                              blurRadius: 16,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Total Portfolio',
-                              style: TextStyle(
-                                color: Colors.green[100],
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              currencyFormat.format(_totalValue),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withAlpha(50),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    '${_assets.length} Assets',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                if (_zakatDue)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 4,
+                    body: _isLoading
+                        ? const Center(child: CircularProgressIndicator(color: AppTheme.deepGreen))
+                        : _error != null
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                                    const SizedBox(height: 16),
+                                    Text(_error!, style: TextStyle(color: Colors.red[700])),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _loadData,
+                                      child: const Text('Retry'),
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.gold.withAlpha(60),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.star, color: AppTheme.gold, size: 16),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'Zakat Due',
-                                          style: TextStyle(color: AppTheme.gold),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Zakat Indicator
-                      ZakatIndicator(
-                        totalValue: _totalValue,
-                        zakatAmount: _zakatAmount,
-                        zakatDue: _zakatDue,
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Quick Actions Header
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Quick Actions',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.deepGreen,
-                            ),
-                          ),
-                          TextButton.icon(
-                            icon: Icon(
-                              _isEditingGrid ? Icons.check : Icons.swap_vert,
-                              size: 18,
-                              color: AppTheme.deepGreen,
-                            ),
-                            label: Text(
-                              _isEditingGrid ? 'Done' : 'Reorder',
-                              style: const TextStyle(color: AppTheme.deepGreen, fontSize: 13),
-                            ),
-                            onPressed: () {
-                              setState(() => _isEditingGrid = !_isEditingGrid);
-                              if (!_isEditingGrid) _saveQuickActionOrder();
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Dynamic Quick Actions Grid
-                      if (_isEditingGrid)
-                        _buildReorderableGrid()
-                      else
-                        _buildQuickActionsGrid(),
-
-                      const SizedBox(height: 24),
-
-                      // Recent Assets
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Your Assets',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.deepGreen,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pushNamed(context, '/assets'),
-                            child: const Text('View All'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-
-                      if (_assets.isEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(32),
-                          decoration: BoxDecoration(
-                            color: theme.cardColor,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            children: [
-                              Icon(Icons.account_balance_wallet_outlined,
-                                  size: 64, color: theme.dividerColor),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No assets yet',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Add your first asset to start tracking',
-                                style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: () => Navigator.pushNamed(context, '/assets'),
-                                icon: const Icon(Icons.add),
-                                label: const Text('Add Asset'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.deepGreen,
-                                  foregroundColor: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      else
-                        ...(_assets.take(5).map((asset) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: AssetCard(asset: asset),
-                            ))),
-                    ],
-                  ),
-                ),
+                              )
+                            : RefreshIndicator(
+                                onRefresh: _loadData,
+                                color: AppTheme.deepGreen,
+                                child: ListView(
+                                  padding: const EdgeInsets.all(16),
+                                  children: [
+                                    // ...existing code...
+                                    // ...existing code...
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: AppTheme.deepGreen,

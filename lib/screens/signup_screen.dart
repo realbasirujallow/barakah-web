@@ -17,6 +17,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  String? _selectedState;
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
@@ -47,6 +48,7 @@ class _SignupScreenState extends State<SignupScreen> {
         _nameController.text.trim(),
         _emailController.text.trim(),
         _passwordController.text,
+        _selectedState,
       );
 
       // Auto-login after signup
@@ -169,6 +171,28 @@ class _SignupScreenState extends State<SignupScreen> {
                       }
                       return null;
                     },
+                  ),
+                  const SizedBox(height: 16),
+                  // State dropdown
+                  DropdownButtonFormField<String>(
+                    value: _selectedState,
+                    decoration: InputDecoration(
+                      labelText: 'State (for tax estimate)',
+                      prefixIcon: const Icon(Icons.location_on_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: theme.colorScheme.surface,
+                    ),
+                    items: [
+                      '', 'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'
+                    ].map((s) => DropdownMenuItem(
+                      value: s.isEmpty ? null : s,
+                      child: Text(s.isEmpty ? 'Select your state' : s),
+                    )).toList(),
+                    onChanged: (val) => setState(() => _selectedState = val),
+                    validator: (val) => val == null || val.isEmpty ? 'Please select your state' : null,
                   ),
                   const SizedBox(height: 16),
 

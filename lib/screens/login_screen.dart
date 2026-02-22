@@ -45,8 +45,32 @@ class _LoginScreenState extends State<LoginScreen> {
     final authenticated = await bio.authenticate();
     if (authenticated && mounted) {
       final auth = Provider.of<AuthService>(context, listen: false);
+      // If already logged in, go to dashboard
       if (auth.isLoggedIn) {
         Navigator.pushReplacementNamed(context, '/dashboard');
+        return;
+      }
+      // If not logged in, try to fetch saved session or prompt for email
+      final prefs = await SharedPreferences.getInstance();
+      final email = prefs.getString('userEmail');
+      final token = prefs.getString('token');
+      final userId = prefs.getString('userId');
+      final userName = prefs.getString('userName');
+      if (token != null && userId != null && email != null) {
+        await auth.saveSession(
+          token: token,
+          userId: userId,
+          userName: userName ?? '',
+          userEmail: email,
+        );
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No saved session found. Please login with email/password first.'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

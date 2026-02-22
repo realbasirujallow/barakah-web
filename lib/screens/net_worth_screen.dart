@@ -7,6 +7,8 @@ import 'package:barakah_app/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 
 class NetWorthScreen extends StatefulWidget {
+  // Net Worth display moved from dashboard
+  // Add net worth section here
   const NetWorthScreen({super.key});
 
   @override

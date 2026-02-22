@@ -16,6 +16,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+    bool _hideNetWorth = false;
   String _selectedCurrency = 'USD';
   int _prayerMethod = 4;
   bool _biometricAvailable = false;
@@ -48,6 +49,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadPreferences() async {
+      _hideNetWorth = prefs.getBool('hide_net_worth') ?? false;
     final prefs = await SharedPreferences.getInstance();
     final bio = BiometricService();
     final bioAvailable = await bio.isAvailable();
@@ -84,6 +86,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+              _sectionHeader('Privacy'),
+              _settingsTile(
+                icon: Icons.visibility_off,
+                title: 'Hide Net Worth',
+                subtitle: _hideNetWorth ? 'Hidden on Dashboard' : 'Visible on Dashboard',
+                trailing: Switch(
+                  value: _hideNetWorth,
+                  onChanged: (v) async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('hide_net_worth', v);
+                    setState(() => _hideNetWorth = v);
+                  },
+                  activeTrackColor: AppTheme.deepGreen,
+                ),
+              ),
+              const SizedBox(height: 16),
     final themeProvider = Provider.of<ThemeProvider>(context);
     final authService = Provider.of<AuthService>(context);
     final isDark = themeProvider.isDarkMode;
