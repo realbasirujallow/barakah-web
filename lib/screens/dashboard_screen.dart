@@ -446,7 +446,9 @@ class DisclaimerScreen extends StatelessWidget {
             const SizedBox(height: 32),
             Center(
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('seenDisclaimer', true);
                   Navigator.of(context).pushReplacementNamed('/dashboard');
                 },
                 child: const Text('Continue'),
