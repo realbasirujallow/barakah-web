@@ -5,6 +5,7 @@ import 'package:barakah_app/services/auth_service.dart';
 import 'package:barakah_app/services/api_service.dart';
 import 'package:barakah_app/services/cache_service.dart';
 import 'package:barakah_app/services/notification_service.dart';
+import 'package:barakah_app/services/biometric_service.dart';
 import 'package:barakah_app/models/asset.dart';
 import 'package:barakah_app/theme/app_theme.dart';
 import 'package:barakah_app/widgets/asset_card.dart';
@@ -20,13 +21,14 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+    bool _biometricChecked = false;
   List<Asset> _assets = [];
   double _totalValue = 0;
   double _zakatAmount = 0;
   bool _zakatDue = false;
   bool _isLoading = true;
   String? _error;
-  bool _isEditingGrid = false;
+  final bool _isEditingGrid = false;
 
   // Default quick action order
   static const List<Map<String, dynamic>> _defaultActions = [
@@ -90,9 +92,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _checkDisclaimer();
-    _loadQuickActionOrder();
-    _loadData();
+    _checkBiometricAndProceed();
     _loadNetWorthPref();
+  }
+
+  Future<void> _checkBiometricAndProceed() async {
+    // Only prompt for biometrics if enabled
+    final bio = BiometricService();
+    final enabled = await bio.isEnabled();
+    if (enabled) {
+      final available = await bio.isAvailable();
+      if (available) {
+        final authenticated = await bio.authenticate(reason: 'Authenticate to access Barakah');
+        if (!authenticated) {
+          if (mounted) {
+            // Optionally, show a message or redirect to login
+            Navigator.pushReplacementNamed(context, '/login');
+          }
+          return;
+        }
+      }
+    }
+    // Only load data after biometric check passes or not required
+    if (mounted) {
+      setState(() => _biometricChecked = true);
+      _loadQuickActionOrder();
+      _loadData();
+    }
   }
 
   Future<void> _checkDisclaimer() async {
@@ -209,6 +235,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final authService = context.watch<AuthService>();
     final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
+    if (!_biometricChecked) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: AppTheme.deepGreen)),
+      );
+    }
     return Scaffold(
       backgroundColor: AppTheme.cream,
       appBar: AppBar(
@@ -267,6 +298,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
+                      Center(
+                        child: Text(
+                          'Dashboard Content Placeholder',
+                          style: TextStyle(fontSize: 24, color: Colors.green[900]),
+                        ),
+                      ),
                       // ...existing code...
                     ],
                   ),
@@ -422,7 +459,7 @@ class _QuickActionCard extends StatelessWidget {
 }
 
 class DisclaimerScreen extends StatelessWidget {
-  const DisclaimerScreen({Key? key}) : super(key: key);
+  const DisclaimerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

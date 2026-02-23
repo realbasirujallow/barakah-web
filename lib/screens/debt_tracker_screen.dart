@@ -91,7 +91,7 @@ class _DebtTrackerScreenState extends State<DebtTrackerScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: selectedType,
+                  initialValue: selectedType,
                   decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder()),
                   items: _types.map((t) => DropdownMenuItem(
                     value: t,
