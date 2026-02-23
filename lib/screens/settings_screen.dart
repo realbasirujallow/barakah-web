@@ -49,8 +49,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadPreferences() async {
-      _hideNetWorth = prefs.getBool('hide_net_worth') ?? false;
     final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _hideNetWorth = prefs.getBool('hide_net_worth') ?? false;
+      _selectedCurrency = prefs.getString('currency') ?? 'USD';
+      _prayerMethod = prefs.getInt('prayer_method') ?? 4;
+    });
     final bio = BiometricService();
     final bioAvailable = await bio.isAvailable();
     final bioEnabled = await bio.isEnabled();
@@ -60,8 +64,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final billNotif = await NotificationService.isBillEnabled();
     final budgetNotif = await NotificationService.isBudgetEnabled();
     setState(() {
-      _selectedCurrency = prefs.getString('currency') ?? 'USD';
-      _prayerMethod = prefs.getInt('prayer_method') ?? 4;
       _biometricAvailable = bioAvailable;
       _biometricEnabled = bioEnabled;
       _notificationsEnabled = notifEnabled;
@@ -86,22 +88,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-              _sectionHeader('Privacy'),
-              _settingsTile(
-                icon: Icons.visibility_off,
-                title: 'Hide Net Worth',
-                subtitle: _hideNetWorth ? 'Hidden on Dashboard' : 'Visible on Dashboard',
-                trailing: Switch(
-                  value: _hideNetWorth,
-                  onChanged: (v) async {
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('hide_net_worth', v);
-                    setState(() => _hideNetWorth = v);
-                  },
-                  activeTrackColor: AppTheme.deepGreen,
-                ),
-              ),
-              const SizedBox(height: 16),
     final themeProvider = Provider.of<ThemeProvider>(context);
     final authService = Provider.of<AuthService>(context);
     final isDark = themeProvider.isDarkMode;
@@ -113,6 +99,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Privacy
+          _sectionHeader('Privacy'),
+          _settingsTile(
+            icon: Icons.visibility_off,
+            title: 'Hide Net Worth',
+            subtitle: _hideNetWorth ? 'Hidden on Dashboard' : 'Visible on Dashboard',
+            trailing: Switch(
+              value: _hideNetWorth,
+              onChanged: (v) async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('hide_net_worth', v);
+                setState(() => _hideNetWorth = v);
+              },
+              activeTrackColor: AppTheme.deepGreen,
+            ),
+          ),
+          const SizedBox(height: 16),
           // Profile section
           Container(
             padding: const EdgeInsets.all(20),

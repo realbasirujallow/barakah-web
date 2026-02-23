@@ -83,11 +83,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  bool _hideNetWorth = false;
+
   @override
   void initState() {
     super.initState();
+    _checkDisclaimer();
     _loadQuickActionOrder();
     _loadData();
+    _loadNetWorthPref();
+  }
+
+  Future<void> _checkDisclaimer() async {
+    final prefs = await SharedPreferences.getInstance();
+    final seenDisclaimer = prefs.getBool('seenDisclaimer') ?? false;
+    if (!seenDisclaimer) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const DisclaimerScreen()),
+        );
+      });
+    }
+  }
+
+  Future<void> _loadNetWorthPref() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _hideNetWorth = prefs.getBool('hide_net_worth') ?? false;
+    });
   }
 
   Future<void> _loadQuickActionOrder() async {
@@ -181,9 +204,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-      final prefs = SharedPreferences.getInstance();
-      bool _hideNetWorth = false;
-      prefs.then((p) => _hideNetWorth = p.getBool('hide_net_worth') ?? false);
     final theme = Theme.of(context);
     final authService = context.watch<AuthService>();
     final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
@@ -228,32 +248,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    body: _isLoading
-                        ? const Center(child: CircularProgressIndicator(color: AppTheme.deepGreen))
-                        : _error != null
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
-                                    const SizedBox(height: 16),
-                                    Text(_error!, style: TextStyle(color: Colors.red[700])),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _loadData,
-                                      child: const Text('Retry'),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : RefreshIndicator(
-                                onRefresh: _loadData,
-                                color: AppTheme.deepGreen,
-                                child: ListView(
-                                  padding: const EdgeInsets.all(16),
-                                  children: [
-                                    // ...existing code...
-                                    // ...existing code...
+                    children: [
+                      Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                      const SizedBox(height: 16),
+                      Text(_error!, style: TextStyle(color: Colors.red[700])),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadData,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadData,
+                  color: AppTheme.deepGreen,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      // ...existing code...
+                    ],
+                  ),
+                ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: AppTheme.deepGreen,
@@ -395,6 +411,44 @@ class _QuickActionCard extends StatelessWidget {
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 color: AppTheme.deepGreen,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DisclaimerScreen extends StatelessWidget {
+  const DisclaimerScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Disclaimer')),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Disclaimer',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Calculations are based on AMJA rulings. Consult a qualified scholar for your personal situation. This app is for educational purposes and does not constitute legal or religious advice.',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 32),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacementNamed('/dashboard');
+                },
+                child: const Text('Continue'),
               ),
             ),
           ],
