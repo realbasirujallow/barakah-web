@@ -298,13 +298,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
-                      Center(
-                        child: Text(
-                          'Dashboard Content Placeholder',
-                          style: TextStyle(fontSize: 24, color: Colors.green[900]),
+                      // Dashboard UI widgets
+                      if (!_hideNetWorth)
+                        Card(
+                          color: AppTheme.deepGreen,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Total Wealth', style: TextStyle(color: Colors.white, fontSize: 16)),
+                                const SizedBox(height: 8),
+                                Text(currencyFormat.format(_totalValue), style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
                         ),
+                      const SizedBox(height: 16),
+                      ZakatIndicator(
+                        totalValue: _totalValue,
+                        zakatAmount: _zakatAmount,
+                        zakatDue: _zakatDue,
                       ),
-                      // ...existing code...
+                      const SizedBox(height: 16),
+                      Text('Quick Actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.deepGreen)),
+                      const SizedBox(height: 8),
+                      _buildQuickActionsGrid(),
+                      const SizedBox(height: 16),
+                      Text('Assets', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.deepGreen)),
+                      const SizedBox(height: 8),
+                      ..._assets.map((asset) => AssetCard(asset: asset)).toList(),
                     ],
                   ),
                 ),
