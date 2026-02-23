@@ -10,6 +10,7 @@ import 'package:barakah_app/theme/app_theme.dart';
 import 'package:barakah_app/widgets/asset_card.dart';
 import 'package:barakah_app/widgets/zakat_indicator.dart';
 import 'package:intl/intl.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
