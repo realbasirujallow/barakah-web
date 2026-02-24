@@ -684,6 +684,36 @@ class ApiService {
     return response.data as Map<String, dynamic>;
   }
 
+    // ─── Zakat Payments ────────────────────────────────
+    Future<Map<String, dynamic>> getZakatPayments({int? lunarYear}) async {
+      final params = <String, dynamic>{};
+      if (lunarYear != null) params['lunarYear'] = lunarYear;
+      final response = await _dio.get('/api/zakat/payments', queryParameters: params);
+      return response.data as Map<String, dynamic>;
+    }
+
+    Future<Map<String, dynamic>> addZakatPayment({
+      required double amount,
+      String? recipient,
+      String? notes,
+      int? lunarYear,
+      int? paidAt,
+    }) async {
+      final data = <String, dynamic>{
+        'amount': amount,
+      };
+      if (recipient != null) data['recipient'] = recipient;
+      if (notes != null) data['notes'] = notes;
+      if (lunarYear != null) data['lunarYear'] = lunarYear;
+      if (paidAt != null) data['paidAt'] = paidAt;
+      final response = await _dio.post('/api/zakat/payments', data: data);
+      return response.data as Map<String, dynamic>;
+    }
+
+    Future<void> deleteZakatPayment(int id) async {
+      await _dio.delete('/api/zakat/payments/$id');
+    }
+
   // ─── Investment Accounts ────────────────────────────
 
   Future<Map<String, dynamic>> addInvestmentAccount(Map<String, dynamic> data) async {

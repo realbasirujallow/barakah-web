@@ -32,12 +32,6 @@ class BiometricService {
       await _localAuth.stopAuthentication();
       return await _localAuth.authenticate(
         localizedReason: reason,
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: false,
-          sensitiveTransaction: false,
-          useErrorDialogs: true,
-        ),
       );
     } catch (e) {
       return false;
