@@ -1,9 +1,5 @@
 {
-<<<<<<< HEAD
-  "name": "barakah-frontend",
-=======
   "name": "barakah-web",
->>>>>>> faf68dff651cf5b2319c901df6151bd8ee75d9d2
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -14,16 +10,10 @@
   },
   "dependencies": {
     "next": "16.1.6",
-<<<<<<< HEAD
-    "posthog-js": "^1.352.1",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
-=======
     "posthog-js": "^1.353.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.7.0"
->>>>>>> faf68dff651cf5b2319c901df6151bd8ee75d9d2
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
