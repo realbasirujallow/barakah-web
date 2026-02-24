@@ -1,10 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import posthog from 'posthog-js';
 
 const API_URL = 'https://api.trybarakah.com';
-const USER_ID = 'demo-user';
+
+function authHeaders(token) {
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+}
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -12,11 +19,25 @@ export default function Dashboard() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [token, setToken] = useState(null);
+  const [user, setUser] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
-    posthog.identify(USER_ID, { name: 'Demo User', app: 'barakah-web' });
+    const savedToken = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    if (!savedToken) {
+      router.push('/login');
+      return;
+    }
+    setToken(savedToken);
+    if (savedUser) setUser(JSON.parse(savedUser));
+
+    posthog.identify(savedUser ? JSON.parse(savedUser).id : 'unknown', {
+      app: 'barakah-web',
+    });
     posthog.capture('dashboard_viewed');
-    loadData();
+    loadData(savedToken);
   }, []);
 
   const handleTabChange = (tab) => {
@@ -24,12 +45,20 @@ export default function Dashboard() {
     posthog.capture('tab_viewed', { tab });
   };
 
-  const loadData = async () => {
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('user');
+    router.push('/login');
+  };
+
+  const loadData = async (tkn) => {
     try {
+      const headers = authHeaders(tkn);
       const [statsRes, assetsRes, transactionsRes] = await Promise.all([
-        fetch(`${API_URL}/api/mobile/quick-stats`, { headers: { 'X-User-Id': USER_ID } }),
-        fetch(`${API_URL}/api/assets/list`, { headers: { 'X-User-Id': USER_ID } }),
-        fetch(`${API_URL}/api/transactions/list?limit=5`, { headers: { 'X-User-Id': USER_ID } })
+        fetch(`${API_URL}/api/mobile/quick-stats`, { headers }),
+        fetch(`${API_URL}/api/assets/list`, { headers }),
+        fetch(`${API_URL}/api/transactions/list?limit=5`, { headers })
       ]);
       const statsData = await statsRes.json();
       const assetsData = await assetsRes.json();
@@ -60,8 +89,10 @@ export default function Dashboard() {
           <div className="flex justify-between h-16 items-center">
             <Link href="/" className="text-2xl font-bold text-emerald-600">Barakah</Link>
             <div className="flex items-center gap-4">
-              <button className="text-gray-600 hover:text-gray-900">Settings</button>
-              <div className="w-8 h-8 bg-emerald-600 rounded-full"></div>
+              {user && <span className="text-sm text-gray-600">{user.name || user.email}</span>}
+              <button onClick={handleLogout} className="text-sm text-gray-600 hover:text-red-600 transition">
+                Logout
+              </button>
             </div>
           </div>
         </div>
@@ -91,10 +122,10 @@ export default function Dashboard() {
           </div>
           <div className="p-6">
             {activeTab === 'overview' && <OverviewTab assets={assets} transactions={transactions} />}
-            {activeTab === 'assets' && <AssetsTab assets={assets} onRefresh={loadData} />}
-            {activeTab === 'transactions' && <TransactionsTab transactions={transactions} onRefresh={loadData} />}
+            {activeTab === 'assets' && <AssetsTab assets={assets} token={token} onRefresh={() => loadData(token)} />}
+            {activeTab === 'transactions' && <TransactionsTab transactions={transactions} />}
             {activeTab === 'zakat' && <ZakatTab assets={assets} />}
-            {activeTab === 'halal' && <HalalTab />}
+            {activeTab === 'halal' && <HalalTab token={token} />}
           </div>
         </div>
       </div>
@@ -103,12 +134,7 @@ export default function Dashboard() {
 }
 
 function StatCard({ title, value, color }) {
-  const colors = {
-    emerald: 'bg-emerald-50 text-emerald-600',
-    blue: 'bg-blue-50 text-blue-600',
-    red: 'bg-red-50 text-red-600',
-    green: 'bg-green-50 text-green-600'
-  };
+  const colors = { emerald: 'text-emerald-600', blue: 'text-blue-600', red: 'text-red-600', green: 'text-green-600' };
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <p className="text-sm text-gray-600 mb-1">{title}</p>
@@ -119,10 +145,7 @@ function StatCard({ title, value, color }) {
 
 function TabButton({ active, onClick, children }) {
   return (
-    <button
-      onClick={onClick}
-      className={`px-6 py-3 font-medium ${active ? 'border-b-2 border-emerald-600 text-emerald-600' : 'text-gray-600 hover:text-gray-900'}`}
-    >
+    <button onClick={onClick} className={`px-6 py-3 font-medium ${active ? 'border-b-2 border-emerald-600 text-emerald-600' : 'text-gray-600 hover:text-gray-900'}`}>
       {children}
     </button>
   );
@@ -133,20 +156,22 @@ function OverviewTab({ assets, transactions }) {
     <div className="grid md:grid-cols-2 gap-6">
       <div>
         <h3 className="text-lg font-semibold mb-4">Recent Assets</h3>
+        {assets.length === 0 && <p className="text-gray-500 text-sm">No assets yet.</p>}
         {assets.slice(0, 3).map(asset => (
           <div key={asset.id} className="flex justify-between py-3 border-b">
             <span>{asset.name}</span>
-            <span className="font-semibold">${asset.value.toLocaleString()}</span>
+            <span className="font-semibold">${asset.value?.toLocaleString()}</span>
           </div>
         ))}
       </div>
       <div>
         <h3 className="text-lg font-semibold mb-4">Recent Transactions</h3>
+        {transactions.length === 0 && <p className="text-gray-500 text-sm">No transactions yet.</p>}
         {transactions.slice(0, 3).map(tx => (
           <div key={tx.id} className="flex justify-between py-3 border-b">
             <span>{tx.description}</span>
             <span className={tx.type === 'income' ? 'text-green-600' : 'text-red-600'}>
-              {tx.type === 'income' ? '+' : '-'}${tx.amount.toLocaleString()}
+              {tx.type === 'income' ? '+' : '-'}${tx.amount?.toLocaleString()}
             </span>
           </div>
         ))}
@@ -155,7 +180,7 @@ function OverviewTab({ assets, transactions }) {
   );
 }
 
-function AssetsTab({ assets, onRefresh }) {
+function AssetsTab({ assets, token, onRefresh }) {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', type: 'cash', value: '' });
 
@@ -164,13 +189,10 @@ function AssetsTab({ assets, onRefresh }) {
     try {
       await fetch(`${API_URL}/api/assets/add`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-User-Id': USER_ID },
+        headers: authHeaders(token),
         body: JSON.stringify({ ...formData, value: parseFloat(formData.value) })
       });
-      posthog.capture('asset_added', {
-        asset_type: formData.type,
-        asset_value: parseFloat(formData.value),
-      });
+      posthog.capture('asset_added', { asset_type: formData.type, asset_value: parseFloat(formData.value) });
       setFormData({ name: '', type: 'cash', value: '' });
       setShowForm(false);
       onRefresh();
@@ -183,10 +205,7 @@ function AssetsTab({ assets, onRefresh }) {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-semibold">Your Assets</h3>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
-        >
+        <button onClick={() => setShowForm(!showForm)} className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700">
           Add Asset
         </button>
       </div>
@@ -194,25 +213,16 @@ function AssetsTab({ assets, onRefresh }) {
       {showForm && (
         <form onSubmit={addAsset} className="bg-gray-50 p-4 rounded-lg mb-6">
           <div className="grid md:grid-cols-3 gap-4">
-            <input
-              type="text"
-              placeholder="Asset name"
-              value={formData.name}
+            <input type="text" placeholder="Asset name" value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="px-4 py-2 border rounded-lg"
-              required
-            />
-            <select
-              value={formData.type}
-              onChange={(e) => setFormData({...formData, type: e.target.value})}
-              className="px-4 py-2 border rounded-lg"
-            >
+              className="px-4 py-2 border rounded-lg" required />
+            <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})}
+              className="px-4 py-2 border rounded-lg">
               <option value="cash">Cash</option>
               <option value="gold">Gold</option>
               <option value="investment">Investment</option>
               <option value="business">Business</option>
               <option value="individual_brokerage">Individual Brokerage</option>
-
               <option disabled>── Retirement ──</option>
               <option value="401k">　401(k)</option>
               <option value="ira">　IRA</option>
@@ -220,23 +230,16 @@ function AssetsTab({ assets, onRefresh }) {
               <option value="pension">　Pension</option>
               <option value="403b">　403(b)</option>
               <option value="hsa">　HSA</option>
-
               <option disabled>── Education ──</option>
               <option value="529">　529 Plan</option>
-
               <option disabled>── Real Estate ──</option>
               <option value="primary_home">　Primary Home</option>
               <option value="investment_property">　Investment Property</option>
               <option value="rental_property">　Rental Property</option>
             </select>
-            <input
-              type="number"
-              placeholder="Value"
-              value={formData.value}
+            <input type="number" placeholder="Value" value={formData.value}
               onChange={(e) => setFormData({...formData, value: e.target.value})}
-              className="px-4 py-2 border rounded-lg"
-              required
-            />
+              className="px-4 py-2 border rounded-lg" required />
           </div>
           <button type="submit" className="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700">
             Save Asset
@@ -245,13 +248,14 @@ function AssetsTab({ assets, onRefresh }) {
       )}
 
       <div className="space-y-4">
+        {assets.length === 0 && <p className="text-gray-500 text-sm">No assets yet. Add your first asset above.</p>}
         {assets.map(asset => (
           <div key={asset.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
             <div>
               <p className="font-semibold">{asset.name}</p>
               <p className="text-sm text-gray-600 capitalize">{asset.type}</p>
             </div>
-            <p className="text-xl font-bold text-emerald-600">${asset.value.toLocaleString()}</p>
+            <p className="text-xl font-bold text-emerald-600">${asset.value?.toLocaleString()}</p>
           </div>
         ))}
       </div>
@@ -259,10 +263,11 @@ function AssetsTab({ assets, onRefresh }) {
   );
 }
 
-function TransactionsTab({ transactions, onRefresh }) {
+function TransactionsTab({ transactions }) {
   return (
     <div>
       <h3 className="text-lg font-semibold mb-6">Transaction History</h3>
+      {transactions.length === 0 && <p className="text-gray-500 text-sm">No transactions yet.</p>}
       <div className="space-y-3">
         {transactions.map(tx => (
           <div key={tx.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
@@ -271,7 +276,7 @@ function TransactionsTab({ transactions, onRefresh }) {
               <p className="text-sm text-gray-600">{tx.category}</p>
             </div>
             <p className={`text-xl font-bold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-              {tx.type === 'income' ? '+' : '-'}${tx.amount.toLocaleString()}
+              {tx.type === 'income' ? '+' : '-'}${tx.amount?.toLocaleString()}
             </p>
           </div>
         ))}
@@ -281,7 +286,7 @@ function TransactionsTab({ transactions, onRefresh }) {
 }
 
 function ZakatTab({ assets }) {
-  const totalWealth = assets.reduce((sum, asset) => sum + asset.value, 0);
+  const totalWealth = assets.reduce((sum, asset) => sum + (asset.value || 0), 0);
   const nisab = 5686.2;
   const zakatDue = totalWealth >= nisab ? totalWealth * 0.025 : 0;
 
@@ -325,7 +330,7 @@ function ZakatTab({ assets }) {
   );
 }
 
-function HalalTab() {
+function HalalTab({ token }) {
   const [symbol, setSymbol] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -334,7 +339,9 @@ function HalalTab() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/halal/check/${symbol.toUpperCase()}`);
+      const res = await fetch(`${API_URL}/api/halal/check/${symbol.toUpperCase()}`, {
+        headers: authHeaders(token)
+      });
       const data = await res.json();
       setResult(data);
       posthog.capture('halal_screener_searched', {
@@ -344,7 +351,6 @@ function HalalTab() {
       });
     } catch (error) {
       console.error('Error checking stock:', error);
-      posthog.capture('halal_screener_error', { ticker: symbol, error: error.message });
     }
     setLoading(false);
   };
@@ -354,19 +360,11 @@ function HalalTab() {
       <h3 className="text-lg font-semibold mb-6">Halal Investment Checker</h3>
       <form onSubmit={checkStock} className="mb-6">
         <div className="flex gap-4">
-          <input
-            type="text"
-            placeholder="Enter stock symbol (e.g., AAPL)"
-            value={symbol}
+          <input type="text" placeholder="Enter stock symbol (e.g., AAPL)" value={symbol}
             onChange={(e) => setSymbol(e.target.value)}
-            className="flex-1 px-4 py-2 border rounded-lg"
-            required
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400"
-          >
+            className="flex-1 px-4 py-2 border rounded-lg" required />
+          <button type="submit" disabled={loading}
+            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 disabled:bg-gray-400">
             {loading ? 'Checking...' : 'Check'}
           </button>
         </div>
