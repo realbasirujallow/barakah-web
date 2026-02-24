@@ -4,6 +4,7 @@ class Asset {
   final String type;
   final double value;
   final String? userId;
+  final String? address;
 
   Asset({
     this.id,
@@ -11,6 +12,7 @@ class Asset {
     required this.type,
     required this.value,
     this.userId,
+    this.address,
   });
 
   factory Asset.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class Asset {
       type: json['type'] as String,
       value: (json['value'] as num).toDouble(),
       userId: json['userId'] as String?,
+      address: json['address'] as String?,
     );
   }
 
@@ -30,6 +33,7 @@ class Asset {
       'type': type,
       'value': value,
       if (userId != null) 'userId': userId,
+      if (address != null) 'address': address,
     };
   }
 
@@ -39,6 +43,7 @@ class Asset {
     String? type,
     double? value,
     String? userId,
+    String? address,
   }) {
     return Asset(
       id: id ?? this.id,
@@ -46,25 +51,32 @@ class Asset {
       type: type ?? this.type,
       value: value ?? this.value,
       userId: userId ?? this.userId,
+      address: address ?? this.address,
     );
   }
 
-  /// Returns the icon for the asset type
   String get typeIcon {
     switch (type.toLowerCase()) {
-      case 'crypto':
-        return '₿';
-      case 'stock':
-        return '📈';
-      case 'gold':
-        return '🥇';
-      case 'cash':
-        return '💵';
+      case 'crypto': return '₿';
+      case 'stock': return '📈';
+      case 'gold': return '🥇';
+      case 'cash': return '💵';
       case 'real_estate':
       case 'realestate':
-        return '🏠';
-      default:
-        return '💰';
+      case 'primary_home':
+      case 'investment_property':
+      case 'rental_property': return '🏠';
+      case 'business': return '🏢';
+      case '401k':
+      case 'roth_ira':
+      case 'ira':
+      case 'hsa':
+      case '403b':
+      case 'pension': return '🏦';
+      case '529': return '🎓';
+      case 'silver': return '🥈';
+      case 'vehicle': return '🚗';
+      default: return '💰';
     }
   }
 }

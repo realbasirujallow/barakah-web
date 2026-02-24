@@ -52,6 +52,7 @@ dependencies:
   geolocator: ^14.0.2
   geocoding: ^4.0.0
   posthog_flutter: ^5.15.2
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
