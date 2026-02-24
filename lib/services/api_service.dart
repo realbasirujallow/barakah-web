@@ -524,6 +524,27 @@ class ApiService {
     await _dio.delete('/api/waqf/$id');
   }
 
+  Future<Map<String, dynamic>> updateWaqf(int id, {
+    String? organizationName,
+    double? amount,
+    String? type,
+    String? purpose,
+    String? description,
+    bool? recurring,
+    String? frequency,
+  }) async {
+    final data = <String, dynamic>{};
+    if (organizationName != null) data['organizationName'] = organizationName;
+    if (amount != null) data['amount'] = amount;
+    if (type != null) data['type'] = type;
+    if (purpose != null) data['purpose'] = purpose;
+    if (description != null) data['description'] = description;
+    if (recurring != null) data['recurring'] = recurring;
+    if (frequency != null) data['frequency'] = frequency;
+    final response = await _dio.put('/api/waqf/$id', data: data);
+    return response.data as Map<String, dynamic>;
+  }
+
   // ─── Riba Detector ──────────────────────────────────
 
   Future<Map<String, dynamic>> scanForRiba() async {

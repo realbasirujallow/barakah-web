@@ -13,6 +13,108 @@ class WaqfScreen extends StatefulWidget {
 }
 
 class _WaqfScreenState extends State<WaqfScreen> {
+    void _showEditWaqf(Map<String, dynamic> contrib) {
+      final theme = Theme.of(context);
+      String selectedType = contrib['type'] ?? 'cash';
+      String selectedPurpose = contrib['purpose'] ?? 'general';
+      final orgCtrl = TextEditingController(text: contrib['organizationName'] ?? '');
+      final amountCtrl = TextEditingController(text: contrib['amount']?.toString() ?? '');
+      final descCtrl = TextEditingController(text: contrib['description'] ?? '');
+
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, setSheetState) => Padding(
+            padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(ctx).viewInsets.bottom + 20),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Edit Waqf Contribution', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text('Update your waqf contribution details.',
+                      style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12, fontStyle: FontStyle.italic)),
+                  const SizedBox(height: 16),
+                  TextField(controller: orgCtrl,
+                      decoration: const InputDecoration(labelText: 'Organization Name', border: OutlineInputBorder(), prefixIcon: Icon(Icons.business))),
+                  const SizedBox(height: 12),
+                  TextField(controller: amountCtrl, keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Amount', border: OutlineInputBorder(), prefixIcon: Icon(Icons.attach_money))),
+                  const SizedBox(height: 12),
+                  Row(children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: selectedType,
+                        decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder()),
+                        items: _types.map((t) => DropdownMenuItem(value: t,
+                            child: Text(t[0].toUpperCase() + t.substring(1)))).toList(),
+                        onChanged: (v) => setSheetState(() => selectedType = v!),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: selectedPurpose,
+                        decoration: const InputDecoration(labelText: 'Purpose', border: OutlineInputBorder()),
+                        items: _purposes.map((p) => DropdownMenuItem(
+                          value: p,
+                          child: Row(children: [
+                            Icon(_purposeIcons[p], size: 18, color: _purposeColors[p]),
+                            const SizedBox(width: 6),
+                            Text(p[0].toUpperCase() + p.substring(1)),
+                          ]),
+                        )).toList(),
+                        onChanged: (v) => setSheetState(() => selectedPurpose = v!),
+                      ),
+                    ),
+                  ]),
+                  const SizedBox(height: 12),
+                  TextField(controller: descCtrl,
+                      decoration: const InputDecoration(labelText: 'Description (optional)', border: OutlineInputBorder()),
+                      maxLines: 2),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (orgCtrl.text.isEmpty || amountCtrl.text.isEmpty) return;
+                        try {
+                          final api = ApiService(context.read<AuthService>());
+                          final result = await api.updateWaqf(
+                            contrib['id'] as int,
+                            organizationName: orgCtrl.text,
+                            amount: double.parse(amountCtrl.text),
+                            type: selectedType,
+                            purpose: selectedPurpose,
+                            description: descCtrl.text.isNotEmpty ? descCtrl.text : null,
+                          );
+                          if (mounted) Navigator.pop(ctx);
+                          _loadContributions();
+                          if (mounted && result['message'] != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(result['message'] as String), backgroundColor: AppTheme.deepGreen, duration: const Duration(seconds: 4)),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: AppTheme.deepGreen, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
+                      child: const Text('Save Changes'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
   List<dynamic> _contributions = [];
   double _totalContributed = 0;
   Map<String, dynamic> _byPurpose = {};
@@ -299,13 +401,18 @@ class _WaqfScreenState extends State<WaqfScreen> {
                                 style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 16)),
                             PopupMenuButton<String>(
                               onSelected: (v) async {
-                                if (v == 'delete') {
+                                if (v == 'edit') {
+                                  _showEditWaqf(contrib);
+                                } else if (v == 'delete') {
                                   final api = ApiService(context.read<AuthService>());
                                   await api.deleteWaqf(contrib['id'] as int);
                                   _loadContributions();
                                 }
                               },
-                              itemBuilder: (_) => [const PopupMenuItem(value: 'delete', child: Text('Delete'))],
+                              itemBuilder: (_) => [
+                                const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                              ],
                             ),
                           ],
                         ),
