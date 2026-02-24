@@ -114,6 +114,8 @@ export const api = {
   getWaqf: () => apiFetch('/api/waqf/list'),
   addWaqf: (data: Record<string, unknown>) =>
     apiFetch('/api/waqf/add', { method: 'POST', body: JSON.stringify(data) }),
+  updateWaqf: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/waqf/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteWaqf: (id: number) =>
     apiFetch(`/api/waqf/${id}`, { method: 'DELETE' }),
 

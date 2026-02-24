@@ -11,6 +11,7 @@ export default function WaqfPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ organizationName: '', type: 'cash', purpose: 'education', amount: '', description: '', recurring: false });
+  const [editItem, setEditItem] = useState<WaqfItem | null>(null);
   const [saving, setSaving] = useState(false);
 
   const load = () => {
@@ -21,11 +22,38 @@ export default function WaqfPage() {
 
   const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
+
+  const openAdd = () => {
+    setEditItem(null);
+    setForm({ organizationName: '', type: 'cash', purpose: 'education', amount: '', description: '', recurring: false });
+    setShowForm(true);
+  };
+
+  const openEdit = (item: WaqfItem) => {
+    setEditItem(item);
+    setForm({
+      organizationName: item.organizationName || '',
+      type: item.type || 'cash',
+      purpose: item.purpose || 'education',
+      amount: item.amount?.toString() || '',
+      description: (item as any).description || '',
+      recurring: item.recurring || false,
+    });
+    setShowForm(true);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.addWaqf({ ...form, amount: parseFloat(form.amount) });
-      setShowForm(false); setForm({ organizationName: '', type: 'cash', purpose: 'education', amount: '', description: '', recurring: false }); load();
+      if (editItem) {
+        await api.updateWaqf(editItem.id, { ...form, amount: parseFloat(form.amount) });
+      } else {
+        await api.addWaqf({ ...form, amount: parseFloat(form.amount) });
+      }
+      setShowForm(false);
+      setEditItem(null);
+      setForm({ organizationName: '', type: 'cash', purpose: 'education', amount: '', description: '', recurring: false });
+      load();
     } catch { /* */ }
     setSaving(false);
   };
@@ -44,7 +72,7 @@ export default function WaqfPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Waqf (Endowment)</h1>
-        <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Contribution</button>
+        <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Contribution</button>
       </div>
 
       <div className="bg-gradient-to-r from-cyan-700 to-teal-500 rounded-2xl p-6 text-white mb-6">
@@ -73,6 +101,7 @@ export default function WaqfPage() {
               </div>
               <div className="flex items-center gap-3">
                 <p className="text-lg font-bold text-[#1B5E20]">{fmt(item.amount)}</p>
+                <button onClick={() => openEdit(item)} className="text-gray-400 hover:text-blue-600 text-sm mr-2">Edit</button>
                 <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
               </div>
             </div>
@@ -85,7 +114,7 @@ export default function WaqfPage() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Waqf Contribution</h2>
+            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">{editItem ? 'Edit Waqf Contribution' : 'Add Waqf Contribution'}</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Organization</label>
                 <input value={form.organizationName} onChange={e => setForm({ ...form, organizationName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Islamic Relief" /></div>
@@ -107,7 +136,7 @@ export default function WaqfPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Add'}</button>
+              <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : editItem ? 'Update' : 'Add'}</button>
             </div>
           </div>
         </div>
