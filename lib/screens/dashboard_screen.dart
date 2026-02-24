@@ -20,7 +20,7 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
     bool _biometricChecked = false;
   List<Asset> _assets = [];
   double _totalValue = 0;
@@ -89,12 +89,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _hideNetWorth = false;
 
   @override
-  void initState() {
-    super.initState();
-    _checkDisclaimer();
-    _checkBiometricAndProceed();
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addObserver(this);
+  _loadNetWorthPref();
+
+  @override
+void dispose() {
+  WidgetsBinding.instance.removeObserver(this);
+  super.dispose();
+}
+
+@override
+void didChangeAppLifecycleState(AppLifecycleState state) {
+  if (state == AppLifecycleState.resumed) {
     _loadNetWorthPref();
   }
+}
 
   Future<void> _checkBiometricAndProceed() async {
     // Only prompt for biometrics if enabled
