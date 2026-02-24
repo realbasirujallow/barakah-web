@@ -196,7 +196,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       setState(() {
         _assets = assets;
-        _totalValue = (totals['totalWealth'] as num?)?.toDouble() ?? 0;
+        _totalValue = (totals['netWorth'] as num?)?.toDouble() ?? 0;
         _zakatAmount = (totals['zakatDue'] as num?)?.toDouble() ?? 0;
         _zakatDue = totals['zakatEligible'] as bool? ?? false;
         _isLoading = false;
@@ -214,7 +214,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (cachedAssets.isNotEmpty || cachedTotal != null) {
         setState(() {
           _assets = cachedAssets;
-          _totalValue = (cachedTotal?['totalWealth'] as num?)?.toDouble() ?? 0;
+          _totalValue = (cachedTotal?['netWorth'] as num?)?.toDouble() ?? 0;
           _zakatAmount = (cachedTotal?['zakatDue'] as num?)?.toDouble() ?? 0;
           _zakatDue = cachedTotal?['zakatEligible'] as bool? ?? false;
           _isLoading = false;
@@ -308,7 +308,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Total Wealth', style: TextStyle(color: Colors.white, fontSize: 16)),
+                                Text('Net Worth', style: TextStyle(color: Colors.white, fontSize: 16)),
                                 const SizedBox(height: 8),
                                 Text(currencyFormat.format(_totalValue), style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
                               ],
@@ -328,7 +328,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 16),
                       Text('Assets', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.deepGreen)),
                       const SizedBox(height: 8),
-                      ..._assets.map((asset) => AssetCard(asset: asset)).toList(),
+                      ..._assets.map((asset) => AssetCard(asset: asset)),
                     ],
                   ),
                 ),
