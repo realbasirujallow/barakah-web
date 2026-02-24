@@ -111,7 +111,7 @@ export default function DebtsPage() {
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                 <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Car Loan" /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value, ribaFree: e.target.value === 'islamic_mortgage' ? true : form.ribaFree, interestRate: e.target.value === 'islamic_mortgage' ? '0' : form.interestRate })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {TYPES.map(t => <option key={t} value={t}>{t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>)}
                 </select></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Total Amount</label>
