@@ -118,7 +118,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
     final types = {
       '💵 Cash & Savings': ['cash', 'savings_account', 'checking_account'],
       '🏠 Real Estate': ['primary_home', 'investment_property'],
-      '📈 Investments': ['stock', 'crypto', 'business', 'individual_brokerage'], // Added individual brokerage
+      '📈 Investments': ['stock', 'crypto', 'business', 'individual_brokerage'],
       '🏦 Retirement': ['401k', 'roth_ira', 'ira', 'hsa', '403b', 'pension'],
       '🎓 Education': ['529'],
       '🥇 Precious Metals': ['gold', 'silver'],
@@ -135,7 +135,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
         'stock': 'Stocks / ETFs',
         'crypto': 'Cryptocurrency',
         'business': 'Business',
-        'individual_brokerage': 'Individual Brokerage Account', // Added label
+        'individual_brokerage': 'Individual Brokerage Account',
         '401k': '401(k)',
         'roth_ira': 'Roth IRA',
         'ira': 'Traditional IRA',
@@ -323,7 +323,16 @@ class _AssetsScreenState extends State<AssetsScreen> {
         backgroundColor: AppTheme.deepGreen,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadAssets),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _showAddAssetDialog,
+            tooltip: 'Add Asset',
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadAssets,
+            tooltip: 'Refresh',
+          ),
         ],
       ),
       body: _isLoading
@@ -365,7 +374,6 @@ class _AssetsScreenState extends State<AssetsScreen> {
                       : ListView(
                           padding: const EdgeInsets.all(16),
                           children: [
-                            // Summary bar
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
@@ -406,8 +414,6 @@ class _AssetsScreenState extends State<AssetsScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-
-                            // Asset list
                             ..._assets.map((asset) => Padding(
                                   padding: const EdgeInsets.only(bottom: 8),
                                   child: AssetCard(
@@ -422,12 +428,6 @@ class _AssetsScreenState extends State<AssetsScreen> {
                           ],
                         ),
                 ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddAssetDialog,
-        backgroundColor: AppTheme.deepGreen,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
-      ),
     );
   }
 }
