@@ -39,6 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+<<<<<<< HEAD
 
 # Miscellaneous
 *.class
@@ -85,3 +86,5 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+=======
+>>>>>>> faf68dff651cf5b2319c901df6151bd8ee75d9d2
