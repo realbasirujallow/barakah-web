@@ -65,7 +65,7 @@ export default function AssetsPage() {
   const load = () => {
     setLoading(true);
     Promise.all([api.getAssets(), api.getAssetTotal()])
-      .then(([a, t]) => { setAssets(a || []); setTotal(t); })
+      .then(([a, t]) => { setAssets(a?.assets || a || []); setTotal(t); })
       .catch(() => {}).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
