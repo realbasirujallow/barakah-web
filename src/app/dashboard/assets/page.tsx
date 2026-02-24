@@ -12,21 +12,21 @@ interface AssetFormState {
   taxRate: string;
 }
 const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
-  '💵 Cash & Savings': [
+  '\uD83D\uDCB5 Cash & Savings': [
     { value: 'cash', label: 'Cash' },
     { value: 'savings_account', label: 'Savings Account' },
     { value: 'checking_account', label: 'Checking Account' },
   ],
-  '🏠 Real Estate': [
+  '\uD83C\uDFE0 Real Estate': [
     { value: 'primary_home', label: 'Primary Home' },
     { value: 'investment_property', label: 'Investment Property' },
   ],
-  '📈 Investments': [
+  '\uD83D\uDCC8 Investments': [
     { value: 'stock', label: 'Stocks / ETFs' },
     { value: 'crypto', label: 'Cryptocurrency' },
     { value: 'business', label: 'Business' },
   ],
-  '🏦 Retirement': [
+  '\uD83C\uDFE6 Retirement': [
     { value: '401k', label: '401(k)' },
     { value: 'roth_ira', label: 'Roth IRA' },
     { value: 'ira', label: 'Traditional IRA' },
@@ -34,11 +34,14 @@ const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
     { value: '403b', label: '403(b)' },
     { value: 'pension', label: 'Pension' },
   ],
-  '🥇 Precious Metals': [
+  '\uD83C\uDF93 Education': [
+    { value: '529', label: '529 Plan' },
+  ],
+  '\uD83E\uDD47 Precious Metals': [
     { value: 'gold', label: 'Gold' },
     { value: 'silver', label: 'Silver' },
   ],
-  '🚗 Other': [
+  '\uD83D\uDE97 Other': [
     { value: 'vehicle', label: 'Vehicle' },
     { value: 'other', label: 'Other' },
   ],
@@ -70,6 +73,7 @@ export default function AssetsPage() {
       stock: 'Stocks / ETFs', stocks: 'Stocks', crypto: 'Cryptocurrency', business: 'Business',
       '401k': '401(k)', roth_ira: 'Roth IRA', ira: 'Traditional IRA', hsa: 'HSA',
       '403b': '403(b)', pension: 'Pension', gold: 'Gold', silver: 'Silver',
+      '529': '529 Plan',
       vehicle: 'Vehicle', property: 'Property', real_estate: 'Real Estate', other: 'Other',
     };
     return labels[t] || t.replace(/_/g, ' ');
@@ -91,8 +95,7 @@ export default function AssetsPage() {
     setSaving(true);
     try {
       const data: Record<string, unknown> = { name: form.name, type: form.type, value: parseFloat(form.value) };
-      // Only send penalty/tax for retirement types
-      const retirementTypes = ["401k","retirement_401k","ira","roth_ira","pension","retirement","403b","tsp","sep_ira","hsa"];
+      const retirementTypes = ["401k","retirement_401k","ira","roth_ira","pension","retirement","403b","tsp","sep_ira","hsa","529"];
       if (retirementTypes.includes(form.type)) {
         if (form.penaltyRate) data.penaltyRate = parseFloat(form.penaltyRate) / 100;
         if (form.taxRate) data.taxRate = parseFloat(form.taxRate) / 100;
@@ -179,16 +182,6 @@ export default function AssetsPage() {
                 <button onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
                 <button onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
               </div>
-              {/* Penalty/tax fields for retirement accounts */}
-              {['401k','retirement_401k','ira','roth_ira','pension','retirement','403b','tsp','sep_ira','hsa'].includes(form.type) && (
-                <>
-                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Penalty Rate (%)</label>
-                    <input type="number" step="0.1" min="0" max="100" value={form.penaltyRate} onChange={e => setForm({ ...form, penaltyRate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="10" /></div>
-                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
-                    <input type="number" step="0.1" min="0" max="100" value={form.taxRate} onChange={e => setForm({ ...form, taxRate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="25" /></div>
-                  <div className="text-xs text-gray-500 mt-1">Defaults: 10% penalty, 25% tax. Adjust if your state or plan is different.</div>
-                </>
-              )}
             </div>
           ))}
         </div>
@@ -213,6 +206,15 @@ export default function AssetsPage() {
                 </select></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Value (USD)</label>
                 <input type="number" step="0.01" value={form.value} onChange={e => setForm({ ...form, value: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="0.00" /></div>
+              {["401k","retirement_401k","ira","roth_ira","pension","retirement","403b","tsp","sep_ira","hsa","529"].includes(form.type) && (
+                <>
+                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Penalty Rate (%)</label>
+                    <input type="number" step="0.1" min="0" max="100" value={form.penaltyRate} onChange={e => setForm({ ...form, penaltyRate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="10" /></div>
+                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
+                    <input type="number" step="0.1" min="0" max="100" value={form.taxRate} onChange={e => setForm({ ...form, taxRate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="25" /></div>
+                  <div className="text-xs text-gray-500 mt-1">Defaults: 10% penalty, 25% tax. Adjust if your state or plan is different.</div>
+                </>
+              )}
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
