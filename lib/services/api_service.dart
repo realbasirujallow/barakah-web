@@ -1,3 +1,4 @@
+
 import 'package:dio/dio.dart';
 import 'package:barakah_app/services/auth_service.dart';
 import 'package:barakah_app/models/asset.dart';
@@ -28,27 +29,10 @@ class ApiService {
         }
         return handler.next(options);
       },
-      onError: (error, handler) {
-        if (error.response?.statusCode == 401) {
-          _authService.logout();
-        }
-        return handler.next(error);
-      },
     ));
   }
 
-  // ─── Auth ────────────────────────────────────────────
-
-  Future<Map<String, dynamic>> signup(String name, String email, String password, String? state) async {
-    final response = await _dio.post('/auth/signup', data: {
-      'fullName': name,
-      'email': email,
-      'password': password,
-      'state': state,
-    });
-    return response.data as Map<String, dynamic>;
-  }
-
+  // ─── Auth ──────────────────────────────────────────
   Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await _dio.post('/auth/login', data: {
       'email': email,
@@ -57,8 +41,14 @@ class ApiService {
     return response.data as Map<String, dynamic>;
   }
 
-  // ─── Assets ──────────────────────────────────────────
-
+  Future<Map<String, dynamic>> signup(String email, String password, String fullName) async {
+    final response = await _dio.post('/auth/signup', data: {
+      'email': email,
+      'password': password,
+      'fullName': fullName,
+    });
+    return response.data as Map<String, dynamic>;
+  }
   Future<List<Asset>> getAssets() async {
     final response = await _dio.get('/api/assets/list');
     final data = response.data as Map<String, dynamic>;

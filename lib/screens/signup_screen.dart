@@ -45,10 +45,9 @@ class _SignupScreenState extends State<SignupScreen> {
       final apiService = ApiService(authService);
 
       await apiService.signup(
-        _nameController.text.trim(),
         _emailController.text.trim(),
         _passwordController.text,
-        _selectedState,
+        _nameController.text.trim(),
       );
 
       // Auto-login after signup

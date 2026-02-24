@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:barakah_app/services/auth_service.dart';
-import 'package:barakah_app/services/api_service.dart';
-import 'package:barakah_app/theme/app_theme.dart';
-import 'package:intl/intl.dart';
+
+  import 'package:flutter/material.dart';
+  import 'package:provider/provider.dart';
+  import 'package:barakah_app/services/auth_service.dart';
+  import 'package:barakah_app/services/api_service.dart';
+  import 'package:barakah_app/theme/app_theme.dart';
+  import 'package:intl/intl.dart';
 
 class DebtTrackerScreen extends StatefulWidget {
   const DebtTrackerScreen({super.key});
@@ -13,6 +14,11 @@ class DebtTrackerScreen extends StatefulWidget {
 }
 
 class _DebtTrackerScreenState extends State<DebtTrackerScreen> {
+    // Add missing _showEditDebt stub if not present
+    void _showEditDebt(dynamic debt) {
+      // TODO: Implement edit debt dialog
+      // This is a stub to fix build error. Implement UI as needed.
+    }
   List<dynamic> _debts = [];
   double _totalDebt = 0;
   double _totalMonthly = 0;
@@ -339,7 +345,7 @@ class _DebtTrackerScreenState extends State<DebtTrackerScreen> {
                   else
                     ...(_debts.map((d) {
                       final debt = d as Map<String, dynamic>;
-                      final ribaFree = debt['ribaFree'] as bool? ?? true;
+                      final ribaFree = (debt['type'] == 'islamic_mortgage') || ((debt['interestRate'] as num? ?? 0) == 0);
                       final paidPct = (debt['paidPercentage'] as num?)?.toDouble() ?? 0;
                       final status = debt['status'] as String? ?? 'active';
                       final remaining = (debt['remainingAmount'] as num?)?.toDouble() ?? 0;
@@ -382,6 +388,8 @@ class _DebtTrackerScreenState extends State<DebtTrackerScreen> {
                                   onSelected: (v) async {
                                     if (v == 'pay') {
                                       _showPaymentDialog(debt);
+                                    } else if (v == 'edit') {
+                                      _showEditDebt(debt);
                                     } else if (v == 'delete') {
                                       final api = ApiService(context.read<AuthService>());
                                       await api.deleteDebt(debt['id'] as int);
@@ -391,6 +399,7 @@ class _DebtTrackerScreenState extends State<DebtTrackerScreen> {
                                   itemBuilder: (_) => [
                                     if (status == 'active')
                                       const PopupMenuItem(value: 'pay', child: Text('Make Payment')),
+                                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
                                     const PopupMenuItem(value: 'delete', child: Text('Delete')),
                                   ],
                                 ),
