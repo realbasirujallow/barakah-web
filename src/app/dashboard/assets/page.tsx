@@ -2,14 +2,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 
-interface Asset { id: number; name: string; type: string; value: number; penaltyRate?: number; taxRate?: number; }
+interface Asset { id: number; name: string; type: string; value: number; penaltyRate?: number; taxRate?: number; address?: string; }
 
 interface AssetFormState {
-  name: string;
-  type: string;
-  value: string;
-  penaltyRate: string;
-  taxRate: string;
+  name: string; type: string; value: string;
+  penaltyRate: string; taxRate: string; address: string;
 }
 
 const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
@@ -21,11 +18,13 @@ const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
   '🏠 Real Estate': [
     { value: 'primary_home', label: 'Primary Home' },
     { value: 'investment_property', label: 'Investment Property' },
+    { value: 'rental_property', label: 'Rental Property' },
   ],
   '📈 Investments': [
     { value: 'stock', label: 'Stocks / ETFs' },
     { value: 'crypto', label: 'Cryptocurrency' },
     { value: 'business', label: 'Business' },
+    { value: 'individual_brokerage', label: 'Individual Brokerage Account' },
   ],
   '🏦 Retirement': [
     { value: '401k', label: '401(k)' },
@@ -49,6 +48,9 @@ const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
 };
 
 const RETIREMENT_TYPES = ["401k","retirement_401k","ira","roth_ira","pension","retirement","403b","tsp","sep_ira","hsa","529"];
+const ADDRESS_TYPES = ["primary_home","investment_property","rental_property","business"];
+
+const EMPTY_FORM: AssetFormState = { name: '', type: 'cash', value: '', penaltyRate: '', taxRate: '', address: '' };
 
 export default function AssetsPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -56,7 +58,7 @@ export default function AssetsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Asset | null>(null);
-  const [form, setForm] = useState<AssetFormState>({ name: '', type: 'cash', value: '', penaltyRate: '', taxRate: '' });
+  const [form, setForm] = useState<AssetFormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [showBreakdown, setShowBreakdown] = useState(false);
 
@@ -71,32 +73,21 @@ export default function AssetsPage() {
   const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
   const typeLabel = (t: string) => {
-    const labels: Record<string, string> = {
-      cash: 'Cash', savings_account: 'Savings Account', checking_account: 'Checking Account',
-      primary_home: 'Primary Home', investment_property: 'Investment Property',
-      stock: 'Stocks / ETFs', stocks: 'Stocks', crypto: 'Cryptocurrency', business: 'Business',
-      '401k': '401(k)', roth_ira: 'Roth IRA', ira: 'Traditional IRA', hsa: 'HSA',
-      '403b': '403(b)', pension: 'Pension', gold: 'Gold', silver: 'Silver',
-      '529': '529 Plan',
-      vehicle: 'Vehicle', property: 'Property', real_estate: 'Real Estate', other: 'Other',
-    };
-    return labels[t] || t.replace(/_/g, ' ');
+    for (const items of Object.values(TYPE_GROUPS)) {
+      const found = items.find(i => i.value === t);
+      if (found) return found.label;
+    }
+    return t.replace(/_/g, ' ');
   };
 
-  const openAdd = () => {
-    setEditItem(null);
-    setForm({ name: '', type: 'cash', value: '', penaltyRate: '', taxRate: '' });
-    setShowForm(true);
-  };
-
+  const openAdd = () => { setEditItem(null); setForm(EMPTY_FORM); setShowForm(true); };
   const openEdit = (a: Asset) => {
     setEditItem(a);
     setForm({
-      name: a.name,
-      type: a.type,
-      value: String(a.value),
+      name: a.name, type: a.type, value: String(a.value),
       penaltyRate: a.penaltyRate != null ? String(a.penaltyRate) : '',
-      taxRate: a.taxRate != null ? String(a.taxRate) : ''
+      taxRate: a.taxRate != null ? String(a.taxRate) : '',
+      address: a.address || '',
     });
     setShowForm(true);
   };
@@ -104,24 +95,31 @@ export default function AssetsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const data: Record<string, unknown> = { name: form.name, type: form.type, value: parseFloat(form.value) };
+      const data: Record<string, unknown> = {
+        name: form.name, type: form.type, value: parseFloat(form.value),
+        address: form.address || null,
+      };
       if (RETIREMENT_TYPES.includes(form.type)) {
         if (form.penaltyRate) data.penaltyRate = parseFloat(form.penaltyRate) / 100;
         if (form.taxRate) data.taxRate = parseFloat(form.taxRate) / 100;
       }
       if (editItem) await api.updateAsset(editItem.id, data);
       else await api.addAsset(data);
-      setShowForm(false);
-      load();
+      setShowForm(false); load();
     } catch { /* */ }
     setSaving(false);
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this asset?')) return;
-    await api.deleteAsset(id).catch(() => {});
-    load();
+    await api.deleteAsset(id).catch(() => {}); load();
   };
+
+  const mapsUrl = (address: string) =>
+    `https://www.google.com/maps/embed/v1/place?key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY&q=${encodeURIComponent(address)}`;
+
+  const mapsLink = (address: string) =>
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
   if (loading) return (
     <div className="flex justify-center py-20">
@@ -133,9 +131,7 @@ export default function AssetsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Assets</h1>
-        <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">
-          + Add Asset
-        </button>
+        <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Asset</button>
       </div>
 
       <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
@@ -186,38 +182,58 @@ export default function AssetsPage() {
         </div>
       ) : null}
 
-      {assets.length > 0 ? (
-        <div className="space-y-3">
-          {assets.map(a => (
-            <div key={a.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
-              <div>
-                <p className="font-semibold text-[#1B5E20]">{a.name}</p>
-                <p className="text-sm text-gray-500">{typeLabel(a.type)}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <p className="text-lg font-bold text-[#1B5E20]">{fmt(a.value)}</p>
-                <button onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
-                <button onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
+      {assets.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <p className="text-4xl mb-3">💰</p>
           <p>No assets yet. Add your first asset.</p>
         </div>
+      ) : (
+        <div className="space-y-4">
+          {assets.map(a => (
+            <div key={a.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="p-4 flex justify-between items-center">
+                <div>
+                  <p className="font-semibold text-[#1B5E20]">{a.name}</p>
+                  <p className="text-sm text-gray-500">{typeLabel(a.type)}</p>
+                  {a.address && (
+                    <a href={mapsLink(a.address)} target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline mt-0.5 block">
+                      📍 {a.address}
+                    </a>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <p className="text-lg font-bold text-[#1B5E20]">{fmt(a.value)}</p>
+                  <button onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
+                  <button onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                </div>
+              </div>
+              {a.address && ADDRESS_TYPES.includes(a.type) && (
+                <div className="border-t">
+                  <iframe
+                    width="100%"
+                    height="200"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    allowFullScreen
+                    src={mapsUrl(a.address)}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       )}
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md my-4">
             <h2 className="text-xl font-bold text-[#1B5E20] mb-4">{editItem ? 'Edit Asset' : 'Add Asset'}</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                 <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Savings Account" />
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. My Home" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
@@ -235,6 +251,25 @@ export default function AssetsPage() {
                 <input type="number" step="0.01" value={form.value} onChange={e => setForm({ ...form, value: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="0.00" />
               </div>
+
+              {ADDRESS_TYPES.includes(form.type) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                  <input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                    placeholder="e.g. 123 Main St, Austin, TX 78701" />
+                  {form.address && (
+                    <div className="mt-2 rounded-lg overflow-hidden border">
+                      <iframe
+                        width="100%" height="180" style={{ border: 0 }} loading="lazy" allowFullScreen
+                        src={mapsUrl(form.address)}
+                      />
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400 mt-1">Address is used for map display only. Enter your estimated value above.</p>
+                </div>
+              )}
+
               {RETIREMENT_TYPES.includes(form.type) && (
                 <>
                   <div>
