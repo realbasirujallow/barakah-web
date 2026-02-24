@@ -6,13 +6,21 @@ import Link from 'next/link';
 export default function DashboardPage() {
   const [totals, setTotals] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hideNetWorth, setHideNetWorth] = useState(false);
 
   useEffect(() => {
+    setHideNetWorth(localStorage.getItem('hideNetWorth') === 'true');
     api.getAssetTotal()
       .then(data => setTotals(data))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const toggleHideNetWorth = () => {
+    const newValue = !hideNetWorth;
+    setHideNetWorth(newValue);
+    localStorage.setItem('hideNetWorth', newValue ? 'true' : 'false');
+  };
 
   const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
@@ -35,10 +43,13 @@ export default function DashboardPage() {
     <div>
       {/* Summary cards */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-[#1B5E20] to-green-600 rounded-2xl p-6 text-white">
-          <p className="text-green-200 text-sm">Net Worth</p>
+        <div className="bg-gradient-to-br from-[#1B5E20] to-green-600 rounded-2xl p-6 text-white relative">
+          <p className="text-green-200 text-sm flex items-center justify-between">
+            Net Worth
+            <button onClick={toggleHideNetWorth} className="ml-2 text-xs underline text-green-100 hover:text-white">{hideNetWorth ? 'Show' : 'Hide'}</button>
+          </p>
           <p className="text-3xl font-bold mt-1">
-            {loading ? '...' : fmt((totals?.netWorth as number) || (totals?.totalWealth as number) || 0)}
+            {hideNetWorth ? '••••••' : (loading ? '...' : fmt((totals?.netWorth as number) || (totals?.totalWealth as number) || 0))}
           </p>
         </div>
         <div className="bg-gradient-to-br from-amber-600 to-yellow-500 rounded-2xl p-6 text-white">
