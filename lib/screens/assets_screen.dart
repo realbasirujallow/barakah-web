@@ -119,7 +119,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
       '💵 Cash & Savings': ['cash', 'savings_account', 'checking_account'],
       '🏠 Real Estate': ['primary_home', 'investment_property'],
       '📈 Investments': ['stock', 'crypto', 'business', 'individual_brokerage'], // Added individual brokerage
-      '🏦 Retirement': ['401k', 'roth_ira', 'ira', 'hsa', '403b', 'pension', '529'],
+      '🏦 Retirement': ['401k', 'roth_ira', 'ira', 'hsa', '403b', 'pension'],
+      '🎓 Education': ['529'],
       '🥇 Precious Metals': ['gold', 'silver'],
       '🚗 Other': ['vehicle', 'other'],
     };
