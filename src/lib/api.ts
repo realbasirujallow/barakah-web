@@ -1,5 +1,6 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.trybarakah.com';
 
+
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -10,10 +11,23 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (err: any) {
+    if (err.name === 'AbortError') {
+      throw new Error('Server unavailable, please try again later.');
+    }
+    throw new Error('No connection to server.');
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!res.ok) {
     const text = await res.text();
