@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "prebuild": "rimraf .next",
+    "build": "npm run prebuild && next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -16,6 +17,7 @@
     "recharts": "^3.7.0"
   },
   "devDependencies": {
+    "rimraf": "^5.0.5",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
