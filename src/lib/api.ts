@@ -72,6 +72,8 @@ export const api = {
   getDebts: () => apiFetch('/api/debts/list'),
   addDebt: (data: Record<string, unknown>) =>
     apiFetch('/api/debts/add', { method: 'POST', body: JSON.stringify(data) }),
+  updateDebt: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/debts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   makeDebtPayment: (id: number, amount: number) =>
     apiFetch(`/api/debts/${id}/payment`, { method: 'POST', body: JSON.stringify({ amount }) }),
   deleteDebt: (id: number) =>
@@ -129,6 +131,12 @@ export const api = {
 
   // Zakat
   getZakat: () => apiFetch('/api/assets/total'),
+    getZakatPayments: (lunarYear?: number) =>
+      apiFetch(`/api/zakat/payments${lunarYear ? `?lunarYear=${lunarYear}` : ''}`),
+    addZakatPayment: (data: Record<string, unknown>) =>
+      apiFetch('/api/zakat/payments', { method: 'POST', body: JSON.stringify(data) }),
+    deleteZakatPayment: (id: number) =>
+      apiFetch(`/api/zakat/payments/${id}`, { method: 'DELETE' }),
   calculateZakat: (data: Record<string, unknown>) =>
     apiFetch('/api/zakat/calculate', { method: 'POST', body: JSON.stringify(data) }),
 

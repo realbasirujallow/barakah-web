@@ -74,6 +74,11 @@ export default function DebtsPage() {
           {debts.map(d => {
             const pct = d.totalAmount > 0 ? ((d.totalAmount - d.remainingAmount) / d.totalAmount) * 100 : 0;
             return (
+        interface DebtItem { id: number; name: string; type: string; totalAmount: number; remainingAmount: number; monthlyPayment: number; interestRate: number; ribaFree: boolean; lender: string; status: string; }
+        const TYPES = ['islamic_mortgage', 'personal_loan', 'student_loan', 'car_loan', 'qard_hasan', 'credit_card', 'business_loan', 'other'];
+
+        const emptyForm = { name: '', type: 'qard_hasan', totalAmount: '', remainingAmount: '', monthlyPayment: '', interestRate: '0', lender: '', ribaFree: true };
+
               <div key={d.id} className="bg-white rounded-xl p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div>
