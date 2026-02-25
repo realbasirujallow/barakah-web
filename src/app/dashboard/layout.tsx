@@ -21,7 +21,6 @@ const navItems = [
   { href: '/dashboard/riba', icon: '🛡️', label: 'Riba Detector' },
   { href: '/dashboard/categorize', icon: '🔄', label: 'Auto-Categorize' },
   { href: '/dashboard/halal', icon: '✅', label: 'Halal Screener' },
-  { href: '/dashboard/prices', icon: '📉', label: 'Live Prices' },
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
