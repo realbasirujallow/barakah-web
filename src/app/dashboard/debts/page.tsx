@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 
 interface DebtItem { id: number; name: string; type: string; totalAmount: number; remainingAmount: number; monthlyPayment: number; interestRate: number; ribaFree: boolean; lender: string; status: string; }
 const TYPES = ['islamic_mortgage', 'personal_loan', 'student_loan', 'car_loan', 'qard_hasan', 'credit_card', 'business_loan', 'other'];
+const ISLAMIC_TYPES = ['islamic_mortgage', 'qard_hasan'];
 
 export default function DebtsPage() {
   const [debts, setDebts] = useState<DebtItem[]>([]);
@@ -49,7 +50,7 @@ export default function DebtsPage() {
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
 
   const totalDebt = debts.reduce((s, d) => s + d.remainingAmount, 0);
-  const ribaDebts = debts.filter(d => !d.ribaFree);
+  const ribaDebts = debts.filter(d => !d.ribaFree && !ISLAMIC_TYPES.includes(d.type));
 
   return (
     <div>
@@ -79,7 +80,9 @@ export default function DebtsPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-gray-900">{d.name}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${d.ribaFree ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{d.ribaFree ? 'Halal' : 'Riba'}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${(d.ribaFree || ISLAMIC_TYPES.includes(d.type)) ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {(d.ribaFree || ISLAMIC_TYPES.includes(d.type)) ? 'Halal' : 'Riba'}
+                      </span>
                     </div>
                     <p className="text-sm text-gray-500">{d.lender || d.type} • {fmt(d.monthlyPayment)}/mo</p>
                   </div>
