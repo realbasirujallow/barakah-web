@@ -218,4 +218,9 @@ export const api = {
     apiFetch(`/api/shared/groups/${groupId}/transactions/${txId}`, { method: 'DELETE' }),
   getGroupSummary: (groupId: number) =>
     apiFetch(`/api/shared/groups/${groupId}/summary`),
+
+  // Profile
+  getProfile: () => apiFetch('/auth/profile'),
+  updateProfile: (data: Record<string, unknown>) =>
+    apiFetch('/auth/update-profile', { method: 'PUT', body: JSON.stringify(data) }),
 };
