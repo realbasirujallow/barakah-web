@@ -122,7 +122,14 @@ export default function AssetsPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this asset?')) return;
-    await api.deleteAsset(id).catch((err) => { console.error(err); }); load();
+    try {
+      const result = await api.deleteAsset(id);
+      if (result?.error) throw new Error(result.error);
+      load();
+    } catch (err: any) {
+      console.error('Failed to delete asset:', err);
+      alert(err?.message || 'Failed to delete asset. Please try again.');
+    }
   };
 
   const mapsUrl = (address: string) =>

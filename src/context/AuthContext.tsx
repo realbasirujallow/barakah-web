@@ -32,9 +32,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
+
+    // Check if token is expired before restoring session
     if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+      try {
+        const payload = JSON.parse(atob(savedToken.split('.')[1]));
+        const expMs = (payload.exp || 0) * 1000;
+        if (Date.now() >= expMs) {
+          // Token expired — clear stale session
+          localStorage.removeItem('token');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('user');
+        } else {
+          setToken(savedToken);
+          setUser(JSON.parse(savedUser));
+        }
+      } catch {
+        // Malformed token — clear it
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('user');
+      }
     }
     setIsLoading(false);
 
