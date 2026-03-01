@@ -126,7 +126,7 @@ export default function AssetsPage() {
   };
 
   const mapsUrl = (address: string) =>
-    `https://www.google.com/maps/embed/v1/place?key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY&q=${encodeURIComponent(address)}`;
+    `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}&q=${encodeURIComponent(address)}`;
 
   const mapsLink = (address: string) =>
     `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
