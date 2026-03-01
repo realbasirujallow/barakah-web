@@ -175,4 +175,47 @@ export const api = {
   getCryptoPrice: (symbol: string) => apiFetch(`/api/prices/crypto/${symbol}`),
   getStockPrice: (symbol: string) => apiFetch(`/api/prices/stock/${symbol}`),
   getSupportedCryptos: () => apiFetch('/api/prices/crypto'),
+
+  // Investments
+  getInvestmentAccounts: () => apiFetch('/api/investments/accounts/list'),
+  addInvestmentAccount: (data: Record<string, unknown>) =>
+    apiFetch('/api/investments/accounts/add', { method: 'POST', body: JSON.stringify(data) }),
+  updateInvestmentAccount: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/investments/accounts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteInvestmentAccount: (id: number) =>
+    apiFetch(`/api/investments/accounts/${id}`, { method: 'DELETE' }),
+  getHoldings: (accountId: number) =>
+    apiFetch(`/api/investments/accounts/${accountId}/holdings`),
+  addHolding: (accountId: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/investments/accounts/${accountId}/holdings/add`, { method: 'POST', body: JSON.stringify(data) }),
+  updateHolding: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/investments/holdings/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteHolding: (id: number) =>
+    apiFetch(`/api/investments/holdings/${id}`, { method: 'DELETE' }),
+  getPortfolioSummary: () => apiFetch('/api/investments/portfolio/summary'),
+
+  // Net Worth
+  takeNetWorthSnapshot: () => apiFetch('/api/net-worth/snapshot', { method: 'POST' }),
+  getNetWorthHistory: () => apiFetch('/api/net-worth/history'),
+
+  // Shared Finances
+  getSharedGroups: () => apiFetch('/api/shared/groups/list'),
+  createSharedGroup: (data: Record<string, unknown>) =>
+    apiFetch('/api/shared/groups/create', { method: 'POST', body: JSON.stringify(data) }),
+  joinSharedGroup: (inviteCode: string) =>
+    apiFetch('/api/shared/groups/join', { method: 'POST', body: JSON.stringify({ inviteCode }) }),
+  updateSharedGroup: (groupId: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/shared/groups/${groupId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  leaveSharedGroup: (groupId: number) =>
+    apiFetch(`/api/shared/groups/${groupId}/leave`, { method: 'POST' }),
+  deleteSharedGroup: (groupId: number) =>
+    apiFetch(`/api/shared/groups/${groupId}`, { method: 'DELETE' }),
+  getGroupTransactions: (groupId: number) =>
+    apiFetch(`/api/shared/groups/${groupId}/transactions`),
+  addGroupTransaction: (groupId: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/shared/groups/${groupId}/transactions/add`, { method: 'POST', body: JSON.stringify(data) }),
+  deleteGroupTransaction: (groupId: number, txId: number) =>
+    apiFetch(`/api/shared/groups/${groupId}/transactions/${txId}`, { method: 'DELETE' }),
+  getGroupSummary: (groupId: number) =>
+    apiFetch(`/api/shared/groups/${groupId}/summary`),
 };
