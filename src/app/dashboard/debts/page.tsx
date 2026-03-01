@@ -22,6 +22,8 @@ export default function DebtsPage() {
   const [form, setForm] = useState(emptyForm);
   const [payAmount, setPayAmount] = useState('');
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [payError, setPayError] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -31,7 +33,7 @@ export default function DebtsPage() {
 
   const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
-  const openAdd = () => { setEditDebt(null); setForm(emptyForm); setShowForm(true); };
+  const openAdd = () => { setEditDebt(null); setForm(emptyForm); setSaveError(null); setShowForm(true); };
   const openEdit = (d: DebtItem) => {
     setEditDebt(d);
     setForm({
@@ -39,6 +41,7 @@ export default function DebtsPage() {
       remainingAmount: String(d.remainingAmount), monthlyPayment: String(d.monthlyPayment),
       interestRate: String(d.interestRate), lender: d.lender || '', ribaFree: d.ribaFree,
     });
+    setSaveError(null);
     setShowForm(true);
   };
 
@@ -47,6 +50,7 @@ export default function DebtsPage() {
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError(null);
     try {
       const payload = {
         ...form,
@@ -56,23 +60,30 @@ export default function DebtsPage() {
         interestRate: parseFloat(form.interestRate),
         ribaFree: isHalal,
       };
-      if (editDebt) {
-        await api.updateDebt(editDebt.id, payload);
-      } else {
-        await api.addDebt(payload);
-      }
+      let result;
+      if (editDebt) result = await api.updateDebt(editDebt.id, payload);
+      else result = await api.addDebt(payload);
+      if (result?.error) throw new Error(result.error);
       setShowForm(false); load();
-    } catch (err: any) { console.error(err); }
+    } catch (err: any) {
+      console.error('Failed to save debt:', err);
+      setSaveError(err?.message || 'Failed to save debt. Please try again.');
+    }
     setSaving(false);
   };
 
   const handlePay = async () => {
     if (!payModal) return;
     setSaving(true);
+    setPayError(null);
     try {
-      await api.makeDebtPayment(payModal.id, parseFloat(payAmount));
+      const result = await api.makeDebtPayment(payModal.id, parseFloat(payAmount));
+      if (result?.error) throw new Error(result.error);
       setPayModal(null); setPayAmount(''); load();
-    } catch (err: any) { console.error(err); }
+    } catch (err: any) {
+      console.error('Failed to record payment:', err);
+      setPayError(err?.message || 'Failed to record payment. Please try again.');
+    }
     setSaving(false);
   };
 
@@ -185,7 +196,10 @@ export default function DebtsPage() {
                 </div>
               )}
             </div>
-            <div className="flex gap-3 mt-6">
+            {saveError && (
+              <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{saveError}</div>
+            )}
+            <div className="flex gap-3 mt-4">
               <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.name || !form.totalAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : editDebt ? 'Update' : 'Add'}</button>
             </div>
@@ -200,8 +214,11 @@ export default function DebtsPage() {
             <p className="text-gray-500 text-sm mb-4">{payModal.name} • Remaining: {fmt(payModal.remainingAmount)}</p>
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
               <input type="number" step="0.01" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setPayModal(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+            {payError && (
+              <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{payError}</div>
+            )}
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => { setPayModal(null); setPayError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handlePay} disabled={saving || !payAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Processing...' : 'Pay'}</button>
             </div>
           </div>

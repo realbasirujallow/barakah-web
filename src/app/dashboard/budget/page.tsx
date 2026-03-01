@@ -14,6 +14,7 @@ export default function BudgetPage() {
   const [editItem, setEditItem] = useState<BudgetItem | null>(null);
   const [form, setForm] = useState({ category: 'food', monthlyLimit: '', month: String(now.getMonth() + 1), year: String(now.getFullYear()) });
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -22,17 +23,23 @@ export default function BudgetPage() {
   useEffect(() => { load(); }, []);
 
   const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-  const openAdd = () => { setEditItem(null); setForm({ category: 'food', monthlyLimit: '', month: String(now.getMonth() + 1), year: String(now.getFullYear()) }); setShowForm(true); };
-  const openEdit = (b: BudgetItem) => { setEditItem(b); setForm({ category: b.category, monthlyLimit: String(b.monthlyLimit), month: String(b.month), year: String(b.year) }); setShowForm(true); };
+  const openAdd = () => { setEditItem(null); setForm({ category: 'food', monthlyLimit: '', month: String(now.getMonth() + 1), year: String(now.getFullYear()) }); setSaveError(null); setShowForm(true); };
+  const openEdit = (b: BudgetItem) => { setEditItem(b); setForm({ category: b.category, monthlyLimit: String(b.monthlyLimit), month: String(b.month), year: String(b.year) }); setSaveError(null); setShowForm(true); };
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError(null);
     try {
       const data = { category: form.category, monthlyLimit: parseFloat(form.monthlyLimit), month: parseInt(form.month), year: parseInt(form.year) };
-      if (editItem) await api.updateBudget(editItem.id, data);
-      else await api.addBudget(data);
+      let result;
+      if (editItem) result = await api.updateBudget(editItem.id, data);
+      else result = await api.addBudget(data);
+      if (result?.error) throw new Error(result.error);
       setShowForm(false); load();
-    } catch (err: any) { console.error(err); }
+    } catch (err: any) {
+      console.error('Failed to save budget:', err);
+      setSaveError(err?.message || 'Failed to save budget. Please try again.');
+    }
     setSaving(false);
   };
 
@@ -108,7 +115,10 @@ export default function BudgetPage() {
                   <input type="number" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
               </div>
             </div>
-            <div className="flex gap-3 mt-6">
+            {saveError && (
+              <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{saveError}</div>
+            )}
+            <div className="flex gap-3 mt-4">
               <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.monthlyLimit} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : editItem ? 'Update' : 'Add'}</button>
             </div>
