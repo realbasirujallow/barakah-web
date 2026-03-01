@@ -62,7 +62,7 @@ export default function DebtsPage() {
         await api.addDebt(payload);
       }
       setShowForm(false); load();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSaving(false);
   };
 
@@ -72,7 +72,7 @@ export default function DebtsPage() {
     try {
       await api.makeDebtPayment(payModal.id, parseFloat(payAmount));
       setPayModal(null); setPayAmount(''); load();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSaving(false);
   };
 

@@ -82,7 +82,7 @@ export default function InvestmentsPage() {
       setShowAccountForm(false);
       setAccountForm(emptyAccountForm);
       load();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSavingAccount(false);
   };
 
@@ -106,7 +106,7 @@ export default function InvestmentsPage() {
       setAddHoldingFor(null);
       setHoldingForm(emptyHoldingForm);
       load();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSavingHolding(false);
   };
 

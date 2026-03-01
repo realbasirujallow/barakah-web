@@ -32,7 +32,7 @@ export default function BudgetPage() {
       if (editItem) await api.updateBudget(editItem.id, data);
       else await api.addBudget(data);
       setShowForm(false); load();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSaving(false);
   };
 

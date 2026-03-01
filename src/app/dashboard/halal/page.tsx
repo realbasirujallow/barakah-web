@@ -31,7 +31,7 @@ export default function HalalPage() {
 
   const loadList = async () => {
     setLoading(true);
-    try { const d = await api.getHalalStocks(); setHalalList(d?.stocks || []); setShowList(true); } catch { /* */ }
+    try { const d = await api.getHalalStocks(); setHalalList(d?.stocks || []); setShowList(true); } catch (err: any) { console.error(err); }
     setLoading(false);
   };
 

@@ -22,7 +22,7 @@ export default function WasiyyahPage() {
     try {
       await api.addWasiyyah({ ...form, sharePercentage: parseFloat(form.sharePercentage) });
       setShowForm(false); setForm({ beneficiaryName: '', relationship: '', sharePercentage: '', shareType: 'percentage', notes: '' }); load();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSaving(false);
   };
 

@@ -60,6 +60,7 @@ export default function AssetsPage() {
   const [editItem, setEditItem] = useState<Asset | null>(null);
   const [form, setForm] = useState<AssetFormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
 
   const load = () => {
@@ -80,7 +81,7 @@ export default function AssetsPage() {
     return t.replace(/_/g, ' ');
   };
 
-  const openAdd = () => { setEditItem(null); setForm(EMPTY_FORM); setShowForm(true); };
+  const openAdd = () => { setEditItem(null); setForm(EMPTY_FORM); setSaveError(null); setShowForm(true); };
   const openEdit = (a: Asset) => {
     setEditItem(a);
     setForm({
@@ -89,11 +90,13 @@ export default function AssetsPage() {
       taxRate: a.taxRate != null ? String(a.taxRate) : '',
       address: a.address || '',
     });
+    setSaveError(null);
     setShowForm(true);
   };
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError(null);
     try {
       const data: Record<string, unknown> = {
         name: form.name, type: form.type, value: parseFloat(form.value),
@@ -103,10 +106,17 @@ export default function AssetsPage() {
         if (form.penaltyRate) data.penaltyRate = parseFloat(form.penaltyRate) / 100;
         if (form.taxRate) data.taxRate = parseFloat(form.taxRate) / 100;
       }
-      if (editItem) await api.updateAsset(editItem.id, data);
-      else await api.addAsset(data);
-      setShowForm(false); load();
-    } catch { /* */ }
+      let result;
+      if (editItem) result = await api.updateAsset(editItem.id, data);
+      else result = await api.addAsset(data);
+      // Backend returns HTTP 200 even on error — check the body
+      if (result?.error) throw new Error(result.error);
+      setShowForm(false);
+      load();
+    } catch (err: any) {
+      console.error('Failed to save asset:', err);
+      setSaveError(err?.message || 'Failed to save asset. Please try again.');
+    }
     setSaving(false);
   };
 
@@ -288,7 +298,12 @@ export default function AssetsPage() {
                 </>
               )}
             </div>
-            <div className="flex gap-3 mt-6">
+            {saveError && (
+              <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">
+                {saveError}
+              </div>
+            )}
+            <div className="flex gap-3 mt-4">
               <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.name || !form.value}
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">

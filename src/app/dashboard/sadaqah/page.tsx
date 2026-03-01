@@ -29,7 +29,7 @@ export default function SadaqahPage() {
     try {
       await api.addSadaqah({ ...form, amount: parseFloat(form.amount) });
       setShowForm(false); setForm({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false }); load();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSaving(false);
   };
 
