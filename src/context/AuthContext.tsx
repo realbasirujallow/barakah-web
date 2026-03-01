@@ -1,6 +1,7 @@
 'use client';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { api } from '../lib/api';
+import { useRouter } from 'next/navigation';
+import { api, setUnauthorizedHandler } from '../lib/api';
 
 interface User {
   id: string;
@@ -23,7 +24,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
+  // Restore session from localStorage on mount, and register a global 401
+  // handler so any expired-JWT response automatically clears the session and
+  // redirects to the login page.
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
@@ -32,7 +37,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(JSON.parse(savedUser));
     }
     setIsLoading(false);
-  }, []);
+
+    // Register 401 handler — fires whenever apiFetch / apiDownload gets a 401
+    setUnauthorizedHandler(() => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('user');
+      setToken(null);
+      setUser(null);
+      router.push('/login');
+    });
+  }, [router]);
 
   const login = async (email: string, password: string) => {
     const data = await api.login(email, password);

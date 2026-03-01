@@ -88,7 +88,7 @@ export default function InvestmentsPage() {
 
   const handleDeleteAccount = async (id: number) => {
     if (!confirm('Delete this account and all its holdings?')) return;
-    await api.deleteInvestmentAccount(id).catch(() => {});
+    await api.deleteInvestmentAccount(id).catch((err) => { console.error(err); });
     load();
   };
 
@@ -112,7 +112,7 @@ export default function InvestmentsPage() {
 
   const handleDeleteHolding = async (id: number) => {
     if (!confirm('Remove this holding?')) return;
-    await api.deleteHolding(id).catch(() => {});
+    await api.deleteHolding(id).catch((err) => { console.error(err); });
     load();
   };
 

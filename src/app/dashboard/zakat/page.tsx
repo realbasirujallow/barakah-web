@@ -7,7 +7,7 @@ export default function ZakatPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.getZakat().then(d => setData(d)).catch(() => {}).finally(() => setLoading(false));
+    api.getZakat().then(d => setData(d)).catch((err) => { console.error(err); }).finally(() => setLoading(false));
   }, []);
 
   const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);

@@ -14,7 +14,7 @@ export default function BillsPage() {
 
   const load = () => {
     setLoading(true);
-    api.getBills().then(d => setBills(d?.bills || d || [])).catch(() => {}).finally(() => setLoading(false));
+    api.getBills().then(d => setBills(d?.bills || d || [])).catch((err) => { console.error(err); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
@@ -30,12 +30,12 @@ export default function BillsPage() {
   };
 
   const handlePaid = async (id: number) => {
-    await api.markBillPaid(id).catch(() => {}); load();
+    await api.markBillPaid(id).catch((err) => { console.error(err); }); load();
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this bill?')) return;
-    await api.deleteBill(id).catch(() => {}); load();
+    await api.deleteBill(id).catch((err) => { console.error(err); }); load();
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;

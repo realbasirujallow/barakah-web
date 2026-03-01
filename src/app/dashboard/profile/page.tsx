@@ -36,7 +36,7 @@ export default function ProfilePage() {
         setProfile(d);
         setNameForm({ fullName: d.fullName || '', email: d.email || '' });
       })
-      .catch(() => {})
+      .catch((err) => { console.error(err); })
       .finally(() => setLoading(false));
   };
 

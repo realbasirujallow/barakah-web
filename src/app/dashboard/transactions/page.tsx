@@ -8,14 +8,25 @@ const CATEGORIES = ['food', 'transportation', 'shopping', 'utilities', 'housing'
 export default function TransactionsPage() {
   const [txs, setTxs] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ type: 'expense', category: 'food', amount: '', description: '' });
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [exportingCsv, setExportingCsv] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
-    api.getTransactions(filter === 'all' ? undefined : filter).then(d => setTxs(d?.transactions || [])).catch(() => {}).finally(() => setLoading(false));
+    setError(null);
+    api.getTransactions(filter === 'all' ? undefined : filter)
+      .then(d => setTxs(d?.transactions || []))
+      .catch((err) => {
+        console.error('Failed to load transactions:', err);
+        setError('Failed to load transactions. Please try again.');
+      })
+      .finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, [filter]);
 
@@ -26,16 +37,53 @@ export default function TransactionsPage() {
     try {
       await api.addTransaction({ ...form, amount: parseFloat(form.amount) });
       setShowForm(false); setForm({ type: 'expense', category: 'food', amount: '', description: '' }); load();
-    } catch { /* */ }
+    } catch (err) {
+      console.error('Failed to add transaction:', err);
+    }
     setSaving(false);
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this transaction?')) return;
-    await api.deleteTransaction(id).catch(() => {}); load();
+    await api.deleteTransaction(id).catch((err) => console.error('Failed to delete transaction:', err));
+    load();
+  };
+
+  const handleExportCsv = async () => {
+    setExportingCsv(true);
+    setExportError(null);
+    try {
+      await api.downloadTransactionsCsv();
+    } catch (err: any) {
+      console.error('CSV export failed:', err);
+      setExportError('CSV export failed. Please try again.');
+    }
+    setExportingCsv(false);
+  };
+
+  const handleExportPdf = async () => {
+    setExportingPdf(true);
+    setExportError(null);
+    try {
+      await api.downloadTransactionsPdf();
+    } catch (err: any) {
+      console.error('PDF export failed:', err);
+      setExportError('PDF export failed. Please try again.');
+    }
+    setExportingPdf(false);
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
+
+  if (error) return (
+    <div className="text-center py-20">
+      <p className="text-4xl mb-3">⚠️</p>
+      <p className="text-red-600 font-medium mb-4">{error}</p>
+      <button onClick={load} className="bg-[#1B5E20] text-white px-5 py-2 rounded-lg hover:bg-[#2E7D32] text-sm font-medium">
+        Retry
+      </button>
+    </div>
+  );
 
   const income = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expense = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
@@ -44,8 +92,35 @@ export default function TransactionsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Transactions</h1>
-        <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add</button>
+        <div className="flex gap-2">
+          {/* Export buttons */}
+          <button
+            onClick={handleExportCsv}
+            disabled={exportingCsv}
+            className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1"
+          >
+            {exportingCsv ? (
+              <span className="animate-spin w-3 h-3 border-2 border-[#1B5E20] border-t-transparent rounded-full inline-block" />
+            ) : '📥'} CSV
+          </button>
+          <button
+            onClick={handleExportPdf}
+            disabled={exportingPdf}
+            className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1"
+          >
+            {exportingPdf ? (
+              <span className="animate-spin w-3 h-3 border-2 border-[#1B5E20] border-t-transparent rounded-full inline-block" />
+            ) : '📄'} PDF
+          </button>
+          <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add</button>
+        </div>
       </div>
+
+      {exportError && (
+        <div className="mb-4 bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">
+          {exportError}
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Income</p><p className="text-xl font-bold text-green-600">{fmt(income)}</p></div>

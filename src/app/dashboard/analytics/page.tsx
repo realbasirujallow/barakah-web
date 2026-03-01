@@ -47,7 +47,7 @@ export default function AnalyticsPage() {
         setAllPeriods({ week, month, year });
         setSummary(month);
       })
-      .catch(() => {})
+      .catch((err) => { console.error(err); })
       .finally(() => setLoading(false));
   }, []);
 

@@ -70,7 +70,7 @@ export default function SharedPage() {
     setLoading(true);
     api.getSharedGroups()
       .then(d => setGroups(d?.groups || d || []))
-      .catch(() => {})
+      .catch((err) => { console.error(err); })
       .finally(() => setLoading(false));
   };
 
@@ -85,7 +85,7 @@ export default function SharedPage() {
         setSummary(s);
         setTransactions(t?.transactions || t || []);
       })
-      .catch(() => {})
+      .catch((err) => { console.error(err); })
       .finally(() => setLoadingDetail(false));
   };
 
@@ -132,7 +132,7 @@ export default function SharedPage() {
 
   const handleDeleteTx = async (txId: number) => {
     if (!activeGroup || !confirm('Delete this transaction?')) return;
-    await api.deleteGroupTransaction(activeGroup.id, txId).catch(() => {});
+    await api.deleteGroupTransaction(activeGroup.id, txId).catch((err) => { console.error(err); });
     loadGroupDetail(activeGroup);
   };
 

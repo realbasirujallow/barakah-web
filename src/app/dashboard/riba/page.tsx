@@ -27,7 +27,7 @@ export default function RibaPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.scanRiba().then(d => setResult(d)).catch(() => {}).finally(() => setLoading(false));
+    api.scanRiba().then(d => setResult(d)).catch((err) => { console.error(err); }).finally(() => setLoading(false));
   }, []);
 
   const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);

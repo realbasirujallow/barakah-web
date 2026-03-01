@@ -1,6 +1,15 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.trybarakah.com';
 
+// ── 401 global handler ────────────────────────────────────────────────────────
+// Register a callback (e.g. logout + redirect) that fires whenever any API
+// call receives a 401 Unauthorized response (expired / invalid JWT).
+let onUnauthorizedCallback: (() => void) | null = null;
 
+export function setUnauthorizedHandler(fn: () => void) {
+  onUnauthorizedCallback = fn;
+}
+
+// ── JSON fetch helper ─────────────────────────────────────────────────────────
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -30,6 +39,9 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   }
 
   if (!res.ok) {
+    if (res.status === 401 && onUnauthorizedCallback) {
+      onUnauthorizedCallback();
+    }
     const text = await res.text();
     throw new Error(text || `API error ${res.status}`);
   }
@@ -37,6 +49,42 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const text = await res.text();
   if (!text) return null;
   return JSON.parse(text);
+}
+
+// ── Binary download helper ────────────────────────────────────────────────────
+// Triggers a browser file download for endpoints that return binary data
+// (CSV, PDF, etc.) rather than JSON.
+export async function apiDownload(endpoint: string, filename: string): Promise<void> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000); // 30s for downloads
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${endpoint}`, { headers, signal: controller.signal });
+  } catch (err: any) {
+    if (err.name === 'AbortError') throw new Error('Download timed out.');
+    throw new Error('No connection to server.');
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!res.ok) {
+    if (res.status === 401 && onUnauthorizedCallback) onUnauthorizedCallback();
+    throw new Error(`Download failed (${res.status})`);
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 export const api = {
@@ -223,4 +271,10 @@ export const api = {
   getProfile: () => apiFetch('/auth/profile'),
   updateProfile: (data: Record<string, unknown>) =>
     apiFetch('/auth/update-profile', { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Exports
+  downloadTransactionsCsv: () =>
+    apiDownload('/api/transactions/export/csv', 'transactions.csv'),
+  downloadTransactionsPdf: () =>
+    apiDownload('/api/transactions/export/pdf', 'transactions.pdf'),
 };
