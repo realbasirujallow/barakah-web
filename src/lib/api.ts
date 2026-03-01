@@ -1,4 +1,8 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.trybarakah.com';
+// When empty (default), requests use same-origin and are proxied to the
+// backend by Next.js rewrites in next.config.ts — no CORS required.
+// Set NEXT_PUBLIC_API_URL to a full URL to call the backend directly
+// (requires the backend ALLOWED_ORIGINS to include this app's domain).
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 // ── 401 global handler ────────────────────────────────────────────────────────
 // Register a callback (e.g. logout + redirect) that fires whenever any API
