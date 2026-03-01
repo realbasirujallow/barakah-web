@@ -12,7 +12,7 @@ export default function DashboardPage() {
     setHideNetWorth(localStorage.getItem('hideNetWorth') === 'true');
     api.getAssetTotal()
       .then(data => setTotals(data))
-      .catch(() => {})
+      .catch((err) => { console.error(err); })
       .finally(() => setLoading(false));
   }, []);
 

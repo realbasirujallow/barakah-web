@@ -18,7 +18,7 @@ export default function SadaqahPage() {
     setLoading(true);
     Promise.all([api.getSadaqah(), api.getSadaqahStats()])
       .then(([d, s]) => { setItems(d?.donations || d || []); setStats(s); })
-      .catch(() => {}).finally(() => setLoading(false));
+      .catch((err) => { console.error(err); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
@@ -35,7 +35,7 @@ export default function SadaqahPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this record?')) return;
-    await api.deleteSadaqah(id).catch(() => {}); load();
+    await api.deleteSadaqah(id).catch((err) => { console.error(err); }); load();
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;

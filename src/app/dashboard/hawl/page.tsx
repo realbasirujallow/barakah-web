@@ -14,7 +14,7 @@ export default function HawlPage() {
 
   const load = () => {
     setLoading(true);
-    api.getHawl().then(d => setItems(d?.trackers || d || [])).catch(() => {}).finally(() => setLoading(false));
+    api.getHawl().then(d => setItems(d?.trackers || d || [])).catch((err) => { console.error(err); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
@@ -30,12 +30,12 @@ export default function HawlPage() {
   };
 
   const handleMarkPaid = async (id: number) => {
-    await api.markHawlPaid(id).catch(() => {}); load();
+    await api.markHawlPaid(id).catch((err) => { console.error(err); }); load();
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this tracker?')) return;
-    await api.deleteHawl(id).catch(() => {}); load();
+    await api.deleteHawl(id).catch((err) => { console.error(err); }); load();
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;

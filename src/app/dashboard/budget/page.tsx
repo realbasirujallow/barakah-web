@@ -17,7 +17,7 @@ export default function BudgetPage() {
 
   const load = () => {
     setLoading(true);
-    api.getBudgets().then(d => setBudgets(d?.budgets || d || [])).catch(() => {}).finally(() => setLoading(false));
+    api.getBudgets().then(d => setBudgets(d?.budgets || d || [])).catch((err) => { console.error(err); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
@@ -38,7 +38,7 @@ export default function BudgetPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this budget?')) return;
-    await api.deleteBudget(id).catch(() => {}); load();
+    await api.deleteBudget(id).catch((err) => { console.error(err); }); load();
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;

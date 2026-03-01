@@ -66,7 +66,7 @@ export default function AssetsPage() {
     setLoading(true);
     Promise.all([api.getAssets(), api.getAssetTotal()])
       .then(([a, t]) => { setAssets(a?.assets || a || []); setTotal(t); })
-      .catch(() => {}).finally(() => setLoading(false));
+      .catch((err) => { console.error(err); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
@@ -112,7 +112,7 @@ export default function AssetsPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this asset?')) return;
-    await api.deleteAsset(id).catch(() => {}); load();
+    await api.deleteAsset(id).catch((err) => { console.error(err); }); load();
   };
 
   const mapsUrl = (address: string) =>

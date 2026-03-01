@@ -16,7 +16,7 @@ export default function WaqfPage() {
 
   const load = () => {
     setLoading(true);
-    api.getWaqf().then(d => setItems(d?.contributions || d || [])).catch(() => {}).finally(() => setLoading(false));
+    api.getWaqf().then(d => setItems(d?.contributions || d || [])).catch((err) => { console.error(err); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
@@ -60,7 +60,7 @@ export default function WaqfPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this contribution?')) return;
-    await api.deleteWaqf(id).catch(() => {}); load();
+    await api.deleteWaqf(id).catch((err) => { console.error(err); }); load();
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
