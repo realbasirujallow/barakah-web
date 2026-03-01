@@ -25,7 +25,7 @@ export default function HawlPage() {
     try {
       await api.addHawl({ assetName: form.assetName, assetType: form.assetType, amount: parseFloat(form.amount), nisabThreshold: parseFloat(form.nisabThreshold) });
       setShowForm(false); setForm({ assetName: '', assetType: 'cash', amount: '', nisabThreshold: '5000' }); load();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSaving(false);
   };
 

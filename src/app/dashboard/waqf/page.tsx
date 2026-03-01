@@ -54,7 +54,7 @@ export default function WaqfPage() {
       setEditItem(null);
       setForm({ organizationName: '', type: 'cash', purpose: 'education', amount: '', description: '', recurring: false });
       load();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSaving(false);
   };
 

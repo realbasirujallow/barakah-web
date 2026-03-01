@@ -98,7 +98,7 @@ export default function SharedPage() {
       setShowCreateForm(false);
       setGroupForm(emptyGroupForm);
       loadGroups();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSavingGroup(false);
   };
 
@@ -109,7 +109,7 @@ export default function SharedPage() {
       setShowJoinForm(false);
       setJoinCode('');
       loadGroups();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setJoiningGroup(false);
   };
 
@@ -126,7 +126,7 @@ export default function SharedPage() {
       setShowAddTx(false);
       setTxForm(emptyTxForm);
       loadGroupDetail(activeGroup);
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSavingTx(false);
   };
 

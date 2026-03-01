@@ -27,7 +27,7 @@ export default function SavingsPage() {
     try {
       await api.addSavingsGoal({ ...form, targetAmount: parseFloat(form.targetAmount) });
       setShowForm(false); setForm({ name: '', category: 'emergency', targetAmount: '', description: '' }); load();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSaving(false);
   };
 
@@ -37,7 +37,7 @@ export default function SavingsPage() {
     try {
       await api.contributeSavingsGoal(contModal.id, parseFloat(contAmount));
       setContModal(null); setContAmount(''); load();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSaving(false);
   };
 

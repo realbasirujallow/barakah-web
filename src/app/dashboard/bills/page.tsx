@@ -25,7 +25,7 @@ export default function BillsPage() {
     try {
       await api.addBill({ ...form, amount: parseFloat(form.amount), dueDay: parseInt(form.dueDay) });
       setShowForm(false); setForm({ name: '', category: 'utilities', amount: '', frequency: 'monthly', dueDay: '1' }); load();
-    } catch { /* */ }
+    } catch (err: any) { console.error(err); }
     setSaving(false);
   };
 
