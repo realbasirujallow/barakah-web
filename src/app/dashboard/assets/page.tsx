@@ -61,13 +61,22 @@ export default function AssetsPage() {
   const [form, setForm] = useState<AssetFormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
 
   const load = () => {
     setLoading(true);
+    setLoadError(null);
     Promise.all([api.getAssets(), api.getAssetTotal()])
-      .then(([a, t]) => { setAssets(a?.assets || a || []); setTotal(t); })
-      .catch((err) => { console.error(err); }).finally(() => setLoading(false));
+      .then(([a, t]) => {
+        setAssets(Array.isArray(a?.assets) ? a.assets : Array.isArray(a) ? a : []);
+        setTotal(t);
+      })
+      .catch((err) => {
+        console.error('Failed to load assets:', err);
+        setLoadError(err?.message || 'Failed to load assets. Please refresh.');
+      })
+      .finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
@@ -98,9 +107,15 @@ export default function AssetsPage() {
     setSaving(true);
     setSaveError(null);
     try {
+      const val = parseFloat(form.value);
+      if (isNaN(val) || val < 0) {
+        setSaveError('Please enter a valid positive number for value.');
+        setSaving(false);
+        return;
+      }
       const data: Record<string, unknown> = {
-        name: form.name, type: form.type, value: parseFloat(form.value),
-        address: form.address || null,
+        name: form.name.trim(), type: form.type, value: val,
+        address: form.address?.trim() || null,
       };
       if (RETIREMENT_TYPES.includes(form.type)) {
         if (form.penaltyRate) data.penaltyRate = parseFloat(form.penaltyRate) / 100;
@@ -116,8 +131,9 @@ export default function AssetsPage() {
     } catch (err: any) {
       console.error('Failed to save asset:', err);
       setSaveError(err?.message || 'Failed to save asset. Please try again.');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleDelete = async (id: number) => {
@@ -199,7 +215,15 @@ export default function AssetsPage() {
         </div>
       ) : null}
 
-      {assets.length === 0 ? (
+      {loadError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">
+          <p className="font-medium">Failed to load assets</p>
+          <p className="text-red-500 mt-1">{loadError}</p>
+          <button onClick={load} className="mt-2 text-red-700 underline hover:text-red-900 text-xs">Retry</button>
+        </div>
+      )}
+
+      {assets.length === 0 && !loadError ? (
         <div className="text-center py-16 text-gray-400">
           <p className="text-4xl mb-3">💰</p>
           <p>No assets yet. Add your first asset.</p>
