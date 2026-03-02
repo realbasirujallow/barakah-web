@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { fmt } from '../../../lib/format';
+import { useToast } from '../../../lib/toast';
 
 interface Group {
   id: number;
@@ -60,9 +62,8 @@ export default function SharedPage() {
   const [savingTx, setSavingTx] = useState(false);
 
   const [copiedCode, setCopiedCode] = useState(false);
+  const { toast } = useToast();
 
-  const fmt = (n: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
@@ -70,7 +71,7 @@ export default function SharedPage() {
     setLoading(true);
     api.getSharedGroups()
       .then(d => setGroups(d?.groups || d || []))
-      .catch((err) => { console.error(err); })
+      .catch(() => { toast('Failed to load groups', 'error'); })
       .finally(() => setLoading(false));
   };
 
@@ -85,7 +86,7 @@ export default function SharedPage() {
         setSummary(s);
         setTransactions(t?.transactions || t || []);
       })
-      .catch((err) => { console.error(err); })
+      .catch(() => { toast('Failed to load group details', 'error'); })
       .finally(() => setLoadingDetail(false));
   };
 
@@ -98,7 +99,8 @@ export default function SharedPage() {
       setShowCreateForm(false);
       setGroupForm(emptyGroupForm);
       loadGroups();
-    } catch (err: any) { console.error(err); }
+      toast('Group created', 'success');
+    } catch { toast('Failed to create group', 'error'); }
     setSavingGroup(false);
   };
 
@@ -109,7 +111,8 @@ export default function SharedPage() {
       setShowJoinForm(false);
       setJoinCode('');
       loadGroups();
-    } catch (err: any) { console.error(err); }
+      toast('Joined group', 'success');
+    } catch { toast('Failed to join group', 'error'); }
     setJoiningGroup(false);
   };
 
@@ -126,13 +129,14 @@ export default function SharedPage() {
       setShowAddTx(false);
       setTxForm(emptyTxForm);
       loadGroupDetail(activeGroup);
-    } catch (err: any) { console.error(err); }
+      toast('Transaction added', 'success');
+    } catch { toast('Failed to add transaction', 'error'); }
     setSavingTx(false);
   };
 
   const handleDeleteTx = async (txId: number) => {
     if (!activeGroup || !confirm('Delete this transaction?')) return;
-    await api.deleteGroupTransaction(activeGroup.id, txId).catch((err) => { console.error(err); });
+    await api.deleteGroupTransaction(activeGroup.id, txId).catch(() => { toast('Failed to delete transaction', 'error'); });
     loadGroupDetail(activeGroup);
   };
 

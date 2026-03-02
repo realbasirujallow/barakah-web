@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { fmt } from '../../../lib/format';
+import { useToast } from '../../../lib/toast';
 
 interface SadaqahItem { id: number; amount: number; recipientName: string; category: string; date: number; description: string; recurring: boolean; anonymous: boolean; }
 interface Stats { totalDonated: number; donationCount: number; thisMonthTotal: number; topCategory: string; }
@@ -13,29 +15,29 @@ export default function SadaqahPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false });
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   const load = () => {
     setLoading(true);
     Promise.all([api.getSadaqah(), api.getSadaqahStats()])
       .then(([d, s]) => { setItems(d?.donations || d || []); setStats(s); })
-      .catch((err) => { console.error(err); }).finally(() => setLoading(false));
+      .catch(() => { toast('Failed to load sadaqah records', 'error'); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
-
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
   const handleSave = async () => {
     setSaving(true);
     try {
       await api.addSadaqah({ ...form, amount: parseFloat(form.amount) });
       setShowForm(false); setForm({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false }); load();
-    } catch (err: any) { console.error(err); }
+      toast('Sadaqah recorded', 'success');
+    } catch (err: any) { toast(err?.message || 'Failed to save sadaqah', 'error'); }
     setSaving(false);
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this record?')) return;
-    await api.deleteSadaqah(id).catch((err) => { console.error(err); }); load();
+    await api.deleteSadaqah(id).catch(() => { toast('Failed to delete record', 'error'); }); load();
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;

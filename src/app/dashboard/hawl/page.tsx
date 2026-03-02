@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { fmt } from '../../../lib/format';
+import { useToast } from '../../../lib/toast';
 
 interface HawlItem { id: number; assetName: string; assetType: string; amount: number; nisabThreshold: number; zakatAmount: number; hawlStartDate: number; hawlEndDate: number; zakatPaid: boolean; active: boolean; }
 const TYPES = ['cash', 'gold', 'silver', 'crypto', 'stocks', 'business', 'other'];
@@ -11,31 +13,31 @@ export default function HawlPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ assetName: '', assetType: 'cash', amount: '', nisabThreshold: '5000' });
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   const load = () => {
     setLoading(true);
-    api.getHawl().then(d => setItems(d?.trackers || d || [])).catch((err) => { console.error(err); }).finally(() => setLoading(false));
+    api.getHawl().then(d => setItems(d?.trackers || d || [])).catch(() => { toast('Failed to load hawl trackers', 'error'); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
-
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
   const handleSave = async () => {
     setSaving(true);
     try {
       await api.addHawl({ assetName: form.assetName, assetType: form.assetType, amount: parseFloat(form.amount), nisabThreshold: parseFloat(form.nisabThreshold) });
       setShowForm(false); setForm({ assetName: '', assetType: 'cash', amount: '', nisabThreshold: '5000' }); load();
-    } catch (err: any) { console.error(err); }
+      toast('Asset tracker added', 'success');
+    } catch { toast('Failed to save tracker', 'error'); }
     setSaving(false);
   };
 
   const handleMarkPaid = async (id: number) => {
-    await api.markHawlPaid(id).catch((err) => { console.error(err); }); load();
+    await api.markHawlPaid(id).catch(() => { toast('Failed to mark as paid', 'error'); }); load();
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this tracker?')) return;
-    await api.deleteHawl(id).catch((err) => { console.error(err); }); load();
+    await api.deleteHawl(id).catch(() => { toast('Failed to delete tracker', 'error'); }); load();
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;

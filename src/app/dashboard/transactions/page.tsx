@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { fmt } from '../../../lib/format';
+import { useToast } from '../../../lib/toast';
 
 interface Tx { id: number; type: string; category: string; amount: number; description: string; currency: string; timestamp: number; }
 const CATEGORIES = ['food', 'transportation', 'shopping', 'utilities', 'housing', 'healthcare', 'education', 'entertainment', 'charity', 'income', 'investment', 'other'];
@@ -16,36 +18,36 @@ export default function TransactionsPage() {
   const [exportingCsv, setExportingCsv] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const load = () => {
     setLoading(true);
     setError(null);
     api.getTransactions(filter === 'all' ? undefined : filter)
       .then(d => setTxs(d?.transactions || []))
-      .catch((err) => {
-        console.error('Failed to load transactions:', err);
+      .catch(() => {
+        toast('Failed to load transactions', 'error');
         setError('Failed to load transactions. Please try again.');
       })
       .finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, [filter]);
 
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-
   const handleSave = async () => {
     setSaving(true);
     try {
       await api.addTransaction({ ...form, amount: parseFloat(form.amount) });
       setShowForm(false); setForm({ type: 'expense', category: 'food', amount: '', description: '' }); load();
-    } catch (err) {
-      console.error('Failed to add transaction:', err);
+      toast('Transaction added', 'success');
+    } catch {
+      toast('Failed to add transaction', 'error');
     }
     setSaving(false);
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this transaction?')) return;
-    await api.deleteTransaction(id).catch((err) => console.error('Failed to delete transaction:', err));
+    await api.deleteTransaction(id).catch(() => toast('Failed to delete transaction', 'error'));
     load();
   };
 
@@ -54,8 +56,8 @@ export default function TransactionsPage() {
     setExportError(null);
     try {
       await api.downloadTransactionsCsv();
-    } catch (err: any) {
-      console.error('CSV export failed:', err);
+    } catch {
+      toast('CSV export failed', 'error');
       setExportError('CSV export failed. Please try again.');
     }
     setExportingCsv(false);
@@ -66,8 +68,8 @@ export default function TransactionsPage() {
     setExportError(null);
     try {
       await api.downloadTransactionsPdf();
-    } catch (err: any) {
-      console.error('PDF export failed:', err);
+    } catch {
+      toast('PDF export failed', 'error');
       setExportError('PDF export failed. Please try again.');
     }
     setExportingPdf(false);

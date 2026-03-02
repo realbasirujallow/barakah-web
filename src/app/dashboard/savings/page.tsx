@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { fmt } from '../../../lib/format';
+import { useToast } from '../../../lib/toast';
 
 interface Goal { id: number; name: string; category: string; targetAmount: number; currentAmount: number; description: string; deadline: number | null; }
 const CATS = ['hajj', 'umrah', 'emergency', 'education', 'wedding', 'home', 'vehicle', 'business', 'retirement', 'other'];
@@ -13,21 +15,21 @@ export default function SavingsPage() {
   const [form, setForm] = useState({ name: '', category: 'emergency', targetAmount: '', description: '' });
   const [contAmount, setContAmount] = useState('');
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   const load = () => {
     setLoading(true);
-    api.getSavingsGoals().then(d => setGoals(d?.goals || d || [])).catch((err) => { console.error(err); }).finally(() => setLoading(false));
+    api.getSavingsGoals().then(d => setGoals(d?.goals || d || [])).catch(() => { toast('Failed to load savings goals', 'error'); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
-
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
   const handleSave = async () => {
     setSaving(true);
     try {
       await api.addSavingsGoal({ ...form, targetAmount: parseFloat(form.targetAmount) });
       setShowForm(false); setForm({ name: '', category: 'emergency', targetAmount: '', description: '' }); load();
-    } catch (err: any) { console.error(err); }
+      toast('Savings goal created', 'success');
+    } catch { toast('Failed to create savings goal', 'error'); }
     setSaving(false);
   };
 
@@ -37,13 +39,14 @@ export default function SavingsPage() {
     try {
       await api.contributeSavingsGoal(contModal.id, parseFloat(contAmount));
       setContModal(null); setContAmount(''); load();
-    } catch (err: any) { console.error(err); }
+      toast('Contribution added', 'success');
+    } catch { toast('Failed to add contribution', 'error'); }
     setSaving(false);
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this savings goal?')) return;
-    await api.deleteSavingsGoal(id).catch((err) => { console.error(err); }); load();
+    await api.deleteSavingsGoal(id).catch(() => { toast('Failed to delete savings goal', 'error'); }); load();
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;

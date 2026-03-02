@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { fmt } from '../../../lib/format';
+import { useToast } from '../../../lib/toast';
 
 interface DebtItem { id: number; name: string; type: string; totalAmount: number; remainingAmount: number; monthlyPayment: number; interestRate: number; ribaFree: boolean; lender: string; status: string; }
 
@@ -24,14 +26,13 @@ export default function DebtsPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const load = () => {
     setLoading(true);
-    api.getDebts().then(d => setDebts(d?.debts || d || [])).catch((err) => { console.error(err); }).finally(() => setLoading(false));
+    api.getDebts().then(d => setDebts(d?.debts || d || [])).catch(() => { toast('Failed to load debts', 'error'); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
-
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
   const openAdd = () => { setEditDebt(null); setForm(emptyForm); setSaveError(null); setShowForm(true); };
   const openEdit = (d: DebtItem) => {

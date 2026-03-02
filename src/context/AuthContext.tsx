@@ -77,12 +77,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signup = async (name: string, email: string, password: string, state: string) => {
-    const data = await api.signup(name, email, password, state);
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('userId', data.userId || data.id || email);
-    localStorage.setItem('user', JSON.stringify({ id: data.userId || data.id, name, email, state }));
-    setToken(data.token);
-    setUser({ id: data.userId || data.id, name, email });
+    // Backend does not return a token on signup (email verification required first).
+    // We call the API but don't store a session.
+    await api.signup(name, email, password, state);
   };
 
   const logout = () => {
@@ -91,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('user');
     setToken(null);
     setUser(null);
+    router.push('/login');
   };
 
   return (
