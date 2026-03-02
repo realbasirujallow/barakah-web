@@ -111,6 +111,10 @@ export const api = {
     apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   signup: (name: string, email: string, password: string, state: string) =>
     apiFetch('/auth/signup', { method: 'POST', body: JSON.stringify({ fullName: name, email, password, state }) }),
+  verifyEmail: (token: string) =>
+    apiFetch(`/auth/verify-email?token=${encodeURIComponent(token)}`),
+  resendVerification: (email: string) =>
+    apiFetch('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) }),
 
   // Assets
   getAssets: () => apiFetch('/api/assets/list'),
