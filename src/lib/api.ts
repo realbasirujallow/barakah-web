@@ -47,12 +47,26 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
       onUnauthorizedCallback();
     }
     const text = await res.text();
-    throw new Error(text || `API error ${res.status}`);
+    // Try to extract a user-friendly message from the JSON error body
+    let msg = `API error ${res.status}`;
+    if (text) {
+      try {
+        const json = JSON.parse(text);
+        msg = json.error || json.message || msg;
+      } catch {
+        msg = text.length < 200 ? text : msg;
+      }
+    }
+    throw new Error(msg);
   }
 
   const text = await res.text();
   if (!text) return null;
-  return JSON.parse(text);
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error('Unexpected server response. Please try again.');
+  }
 }
 
 // ── Binary download helper ────────────────────────────────────────────────────
