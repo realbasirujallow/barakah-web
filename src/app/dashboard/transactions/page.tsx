@@ -18,20 +18,28 @@ export default function TransactionsPage() {
   const [exportingCsv, setExportingCsv] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const pageSize = 20;
   const { toast } = useToast();
 
   const load = () => {
     setLoading(true);
     setError(null);
-    api.getTransactions(filter === 'all' ? undefined : filter)
-      .then(d => setTxs(d?.transactions || []))
+    api.getTransactions(filter === 'all' ? undefined : filter, page, pageSize)
+      .then(d => {
+        setTxs(d?.transactions || []);
+        setTotalPages(d?.totalPages || 0);
+        setTotalElements(d?.totalElements || 0);
+      })
       .catch(() => {
         toast('Failed to load transactions', 'error');
         setError('Failed to load transactions. Please try again.');
       })
       .finally(() => setLoading(false));
   };
-  useEffect(() => { load(); }, [filter]);
+  useEffect(() => { load(); }, [filter, page]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -132,8 +140,9 @@ export default function TransactionsPage() {
 
       <div className="flex gap-2 mb-4">
         {['all', 'income', 'expense'].map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${filter === f ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>{f}</button>
+          <button key={f} onClick={() => { setFilter(f); setPage(0); }} className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${filter === f ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>{f}</button>
         ))}
+        {totalElements > 0 && <span className="ml-auto text-sm text-gray-500 self-center">{totalElements} total</span>}
       </div>
 
       {txs.length > 0 ? (
@@ -155,6 +164,29 @@ export default function TransactionsPage() {
         </div>
       ) : (
         <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-3">📊</p><p>No transactions yet.</p></div>
+      )}
+
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-6">
+          <button
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="px-3 py-1 rounded-lg text-sm font-medium bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            ← Prev
+          </button>
+          <span className="text-sm text-gray-600">
+            Page {page + 1} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="px-3 py-1 rounded-lg text-sm font-medium bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Next →
+          </button>
+        </div>
       )}
 
       {showForm && (

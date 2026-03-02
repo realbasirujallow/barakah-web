@@ -127,10 +127,11 @@ export const api = {
     apiFetch(`/api/assets/${id}`, { method: 'DELETE' }),
 
   // Transactions
-  getTransactions: (type?: string, limit?: number) => {
+  getTransactions: (type?: string, page?: number, size?: number) => {
     const params = new URLSearchParams();
     if (type) params.set('type', type);
-    if (limit) params.set('limit', String(limit));
+    if (page !== undefined) params.set('page', String(page));
+    if (size !== undefined) params.set('size', String(size));
     return apiFetch(`/api/transactions/list?${params}`);
   },
   addTransaction: (data: Record<string, unknown>) =>
