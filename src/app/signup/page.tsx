@@ -30,6 +30,18 @@ export default function SignupPage() {
     }
   };
 
+  const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+
+  const handleResend = async () => {
+    setResendStatus('sending');
+    try {
+      await api.resendVerification(email);
+      setResendStatus('sent');
+    } catch {
+      setResendStatus('idle');
+    }
+  };
+
   if (signupSuccess) {
     return (
       <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center px-4">
@@ -47,6 +59,20 @@ export default function SignupPage() {
               Click the link in the email to verify your account, then you can sign in.
               Don&apos;t forget to check your spam folder!
             </p>
+
+            {resendStatus === 'sent' ? (
+              <p className="text-green-700 text-sm mb-4">✅ Verification email resent!</p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendStatus === 'sending'}
+                className="w-full mb-3 border border-[#1B5E20] text-[#1B5E20] py-2.5 rounded-lg text-sm font-semibold hover:bg-green-50 transition disabled:opacity-50"
+              >
+                {resendStatus === 'sending' ? 'Sending...' : 'Resend Verification Email'}
+              </button>
+            )}
+
             <Link
               href="/login"
               className="inline-block w-full bg-[#1B5E20] text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition"
