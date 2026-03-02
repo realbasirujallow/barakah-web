@@ -1,9 +1,8 @@
 
 'use client';
 import { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { api } from '../../lib/api';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -12,8 +11,7 @@ export default function SignupPage() {
   const [state, setState] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
-  const router = useRouter();
+  const [signupSuccess, setSignupSuccess] = useState(false);
   const US_STATES = [
     '', 'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'
   ];
@@ -23,14 +21,43 @@ export default function SignupPage() {
     setError('');
     setLoading(true);
     try {
-      await signup(name, email, password, state);
-      router.push('/dashboard');
+      await api.signup(name, email, password, state);
+      setSignupSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
     } finally {
       setLoading(false);
     }
   };
+
+  if (signupSuccess) {
+    return (
+      <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center px-4">
+        <div className="w-full max-w-md text-center">
+          <div className="mb-8">
+            <Link href="/" className="text-3xl font-bold text-[#1B5E20]">&#127769; Barakah</Link>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm p-8">
+            <div className="text-5xl mb-4">📧</div>
+            <h2 className="text-xl font-bold text-[#1B5E20] mb-2">Check Your Email!</h2>
+            <p className="text-gray-600 mb-2">
+              We sent a verification link to <strong>{email}</strong>.
+            </p>
+            <p className="text-gray-500 text-sm mb-6">
+              Click the link in the email to verify your account, then you can sign in.
+              Don&apos;t forget to check your spam folder!
+            </p>
+            <Link
+              href="/login"
+              className="inline-block w-full bg-[#1B5E20] text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition"
+            >
+              Go to Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center px-4">
