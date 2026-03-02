@@ -1,18 +1,21 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { fmt } from '../../lib/format';
+import { useToast } from '../../lib/toast';
 import Link from 'next/link';
 
 export default function DashboardPage() {
   const [totals, setTotals] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [hideNetWorth, setHideNetWorth] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     setHideNetWorth(localStorage.getItem('hideNetWorth') === 'true');
     api.getAssetTotal()
       .then(data => setTotals(data))
-      .catch((err) => { console.error(err); })
+      .catch(() => { toast('Failed to load dashboard data. Please refresh.', 'error'); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -21,8 +24,6 @@ export default function DashboardPage() {
     setHideNetWorth(newValue);
     localStorage.setItem('hideNetWorth', newValue ? 'true' : 'false');
   };
-
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
   const cards = [
     { href: '/dashboard/assets', icon: '💰', label: 'Assets', desc: 'View & manage wealth' },

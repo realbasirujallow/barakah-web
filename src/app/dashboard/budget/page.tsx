@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { fmt } from '../../../lib/format';
+import { useToast } from '../../../lib/toast';
 
 interface BudgetItem { id: number; category: string; monthlyLimit: number; spent: number; month: number; year: number; color: string; }
 const CATEGORIES = ['food', 'transportation', 'shopping', 'utilities', 'housing', 'healthcare', 'education', 'entertainment', 'charity', 'other'];
@@ -15,14 +17,14 @@ export default function BudgetPage() {
   const [form, setForm] = useState({ category: 'food', monthlyLimit: '', month: String(now.getMonth() + 1), year: String(now.getFullYear()) });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const load = () => {
     setLoading(true);
-    api.getBudgets().then(d => setBudgets(d?.budgets || d || [])).catch((err) => { console.error(err); }).finally(() => setLoading(false));
+    api.getBudgets().then(d => setBudgets(d?.budgets || d || [])).catch(() => { toast('Failed to load budgets', 'error'); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
   const openAdd = () => { setEditItem(null); setForm({ category: 'food', monthlyLimit: '', month: String(now.getMonth() + 1), year: String(now.getFullYear()) }); setSaveError(null); setShowForm(true); };
   const openEdit = (b: BudgetItem) => { setEditItem(b); setForm({ category: b.category, monthlyLimit: String(b.monthlyLimit), month: String(b.month), year: String(b.year) }); setSaveError(null); setShowForm(true); };
 
@@ -45,7 +47,7 @@ export default function BudgetPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this budget?')) return;
-    await api.deleteBudget(id).catch((err) => { console.error(err); }); load();
+    await api.deleteBudget(id).catch(() => { toast('Failed to delete budget', 'error'); }); load();
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;

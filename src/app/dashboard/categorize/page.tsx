@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { useToast } from '../../../lib/toast';
 
 interface CategorySuggestion {
   transactionId: number;
@@ -18,9 +19,10 @@ export default function CategorizePage() {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    api.reviewCategories().then(d => setSuggestions(d?.transactions || [])).catch((err) => { console.error(err); }).finally(() => setLoading(false));
+    api.reviewCategories().then(d => setSuggestions(d?.transactions || [])).catch(() => { toast('Failed to load categories', 'error'); }).finally(() => setLoading(false));
   }, []);
 
   const handleApply = async () => {
@@ -30,7 +32,8 @@ export default function CategorizePage() {
       setApplied(true);
       const updated = await api.reviewCategories();
       setSuggestions(updated?.transactions || []);
-    } catch { /* ignore */ }
+      toast('Categories applied', 'success');
+    } catch { toast('Failed to apply categories', 'error'); }
     setApplying(false);
   };
 

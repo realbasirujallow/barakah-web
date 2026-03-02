@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { fmt } from '../../../lib/format';
+import { useToast } from '../../../lib/toast';
 
 interface BillItem { id: number; name: string; category: string; amount: number; frequency: string; dueDay: number; paid: boolean; nextDueDate: number; }
 const FREQS = ['monthly', 'quarterly', 'yearly', 'weekly'];
@@ -11,31 +13,31 @@ export default function BillsPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', category: 'utilities', amount: '', frequency: 'monthly', dueDay: '1' });
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   const load = () => {
     setLoading(true);
-    api.getBills().then(d => setBills(d?.bills || d || [])).catch((err) => { console.error(err); }).finally(() => setLoading(false));
+    api.getBills().then(d => setBills(d?.bills || d || [])).catch(() => { toast('Failed to load bills', 'error'); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
-
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
   const handleSave = async () => {
     setSaving(true);
     try {
       await api.addBill({ ...form, amount: parseFloat(form.amount), dueDay: parseInt(form.dueDay) });
       setShowForm(false); setForm({ name: '', category: 'utilities', amount: '', frequency: 'monthly', dueDay: '1' }); load();
-    } catch (err: any) { console.error(err); }
+      toast('Bill added successfully', 'success');
+    } catch (err: any) { toast(err?.message || 'Failed to save bill', 'error'); }
     setSaving(false);
   };
 
   const handlePaid = async (id: number) => {
-    await api.markBillPaid(id).catch((err) => { console.error(err); }); load();
+    await api.markBillPaid(id).catch(() => { toast('Failed to mark bill as paid', 'error'); }); load();
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this bill?')) return;
-    await api.deleteBill(id).catch((err) => { console.error(err); }); load();
+    await api.deleteBill(id).catch(() => { toast('Failed to delete bill', 'error'); }); load();
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;

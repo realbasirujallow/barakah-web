@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { useToast } from '../../../lib/toast';
 import { useAuth } from '../../../context/AuthContext';
 
 interface ProfileData {
@@ -28,6 +29,7 @@ export default function ProfilePage() {
 
   const [showCurrentPw, setShowCurrentPw] = useState(false);
   const [showNewPw, setShowNewPw] = useState(false);
+  const { toast } = useToast();
 
   const loadProfile = () => {
     setLoading(true);
@@ -36,7 +38,7 @@ export default function ProfilePage() {
         setProfile(d);
         setNameForm({ fullName: d.fullName || '', email: d.email || '' });
       })
-      .catch((err) => { console.error(err); })
+      .catch(() => { toast('Failed to load profile', 'error'); })
       .finally(() => setLoading(false));
   };
 

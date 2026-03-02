@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { fmt } from '../../../lib/format';
+import { useToast } from '../../../lib/toast';
 
 interface WaqfItem { id: number; organizationName: string; type: string; purpose: string; amount: number; date: number; recurring: boolean; status: string; }
 const PURPOSES = ['education', 'healthcare', 'masjid', 'water', 'housing', 'general', 'other'];
@@ -13,15 +15,13 @@ export default function WaqfPage() {
   const [form, setForm] = useState({ organizationName: '', type: 'cash', purpose: 'education', amount: '', description: '', recurring: false });
   const [editItem, setEditItem] = useState<WaqfItem | null>(null);
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   const load = () => {
     setLoading(true);
-    api.getWaqf().then(d => setItems(d?.contributions || d || [])).catch((err) => { console.error(err); }).finally(() => setLoading(false));
+    api.getWaqf().then(d => setItems(d?.contributions || d || [])).catch(() => { toast('Failed to load waqf data', 'error'); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
-
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-
 
   const openAdd = () => {
     setEditItem(null);
@@ -54,13 +54,14 @@ export default function WaqfPage() {
       setEditItem(null);
       setForm({ organizationName: '', type: 'cash', purpose: 'education', amount: '', description: '', recurring: false });
       load();
-    } catch (err: any) { console.error(err); }
+      toast('Waqf contribution saved', 'success');
+    } catch { toast('Failed to save contribution', 'error'); }
     setSaving(false);
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this contribution?')) return;
-    await api.deleteWaqf(id).catch((err) => { console.error(err); }); load();
+    await api.deleteWaqf(id).catch(() => { toast('Failed to delete contribution', 'error'); }); load();
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;

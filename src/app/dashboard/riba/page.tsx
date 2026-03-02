@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { fmt } from '../../../lib/format';
+import { useToast } from '../../../lib/toast';
 
 interface RibaFlag {
   transactionId: number;
@@ -25,12 +27,11 @@ interface RibaResult {
 export default function RibaPage() {
   const [result, setResult] = useState<RibaResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    api.scanRiba().then(d => setResult(d)).catch((err) => { console.error(err); }).finally(() => setLoading(false));
+    api.scanRiba().then(d => setResult(d)).catch(() => { toast('Failed to scan for riba', 'error'); }).finally(() => setLoading(false));
   }, []);
-
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
 

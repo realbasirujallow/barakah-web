@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { useToast } from '../../../lib/toast';
 
 interface Beneficiary { id: number; beneficiaryName: string; relationship: string; sharePercentage: number; shareType: string; notes: string; }
 
@@ -10,10 +11,11 @@ export default function WasiyyahPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ beneficiaryName: '', relationship: '', sharePercentage: '', shareType: 'percentage', notes: '' });
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   const load = () => {
     setLoading(true);
-    api.getWasiyyah().then(d => setItems(d?.beneficiaries || d || [])).catch((err) => { console.error(err); }).finally(() => setLoading(false));
+    api.getWasiyyah().then(d => setItems(d?.beneficiaries || d || [])).catch(() => { toast('Failed to load beneficiaries', 'error'); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
@@ -22,13 +24,14 @@ export default function WasiyyahPage() {
     try {
       await api.addWasiyyah({ ...form, sharePercentage: parseFloat(form.sharePercentage) });
       setShowForm(false); setForm({ beneficiaryName: '', relationship: '', sharePercentage: '', shareType: 'percentage', notes: '' }); load();
-    } catch (err: any) { console.error(err); }
+      toast('Beneficiary added', 'success');
+    } catch { toast('Failed to add beneficiary', 'error'); }
     setSaving(false);
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Remove this beneficiary?')) return;
-    await api.deleteWasiyyah(id).catch((err) => { console.error(err); }); load();
+    await api.deleteWasiyyah(id).catch(() => { toast('Failed to remove beneficiary', 'error'); }); load();
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;

@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, ReactNode, useState } from 'react';
+import { ToastProvider } from '../../lib/toast';
 
 const navItems = [
   { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
@@ -88,7 +89,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-[#1B5E20]">{user.name}</span></p>
         </header>
         <main className="flex-1 p-6 overflow-auto">
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </main>
       </div>
     </div>
