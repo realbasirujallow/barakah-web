@@ -121,9 +121,9 @@ export default function ImportPage() {
   /* ── Render ────────────────────────────────────────────────────────────── */
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-[#1B5E20]">📥 Import from Monarch Money</h1>
+      <h1 className="text-2xl font-bold text-[#1B5E20]">📥 Import Data</h1>
       <p className="text-gray-600">
-        Upload a <strong>Balances</strong> CSV export from Monarch Money to import your accounts as Barakah assets &amp; debts.
+        Upload a <strong>Balances</strong> CSV export (Monarch Money, Chase, Wells Fargo, Bank of America, etc.) to import your accounts as Barakah assets &amp; debts.
       </p>
 
       {error && (
@@ -147,7 +147,7 @@ export default function ImportPage() {
           ) : (
             <>
               <p className="text-5xl mb-4">📄</p>
-              <p className="text-lg font-medium text-gray-700">Drag &amp; drop your Monarch <code>Balances</code> CSV here</p>
+              <p className="text-lg font-medium text-gray-700">Drag &amp; drop your <code>Balances</code> CSV here</p>
               <p className="text-gray-400 mt-2">or click to browse</p>
             </>
           )}
