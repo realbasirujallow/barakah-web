@@ -275,6 +275,7 @@ export const api = {
 
   // Shared Finances
   getSharedGroups: () => apiFetch('/api/shared/groups/list'),
+  getGroupDetails: (groupId: number) => apiFetch(`/api/shared/groups/${groupId}`),
   createSharedGroup: (data: Record<string, unknown>) =>
     apiFetch('/api/shared/groups/create', { method: 'POST', body: JSON.stringify(data) }),
   joinSharedGroup: (inviteCode: string) =>
