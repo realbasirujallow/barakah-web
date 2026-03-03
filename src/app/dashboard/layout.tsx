@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, ReactNode, useState } from 'react';
 import { ToastProvider } from '../../lib/toast';
+import { NotificationBell } from './NotificationBell';
 
 const navItems = [
   { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
@@ -86,7 +87,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-[#1B5E20]">{user.name}</span></p>
+          <div className="flex items-center gap-4">
+            <NotificationBell />
+            <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-[#1B5E20]">{user.name}</span></p>
+          </div>
         </header>
         <main className="flex-1 p-6 overflow-auto">
           <ToastProvider>
