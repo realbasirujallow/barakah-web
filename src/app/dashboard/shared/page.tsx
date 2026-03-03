@@ -10,6 +10,7 @@ interface Group {
   description?: string;
   inviteCode: string;
   members: Member[];
+  memberCount?: number;
   totalTransactions?: number;
 }
 
@@ -79,10 +80,14 @@ export default function SharedPage() {
     setActiveGroup(group);
     setLoadingDetail(true);
     Promise.all([
+      api.getGroupDetails(group.id),
       api.getGroupSummary(group.id),
       api.getGroupTransactions(group.id),
     ])
-      .then(([s, t]) => {
+      .then(([detail, s, t]) => {
+        // Merge full group details (including inviteCode and members)
+        const fullGroup = detail?.group || detail || {};
+        setActiveGroup({ ...group, ...fullGroup, members: fullGroup.members || group.members || [] });
         setSummary(s);
         setTransactions(t?.transactions || t || []);
       })
@@ -371,7 +376,7 @@ export default function SharedPage() {
                     <p className="text-sm text-gray-500 mt-0.5">{group.description}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
-                    {group.members?.length || 0} members · Code: <span className="font-mono">{group.inviteCode}</span>
+                    {group.memberCount || group.members?.length || 0} members · Code: <span className="font-mono">{group.inviteCode || '—'}</span>
                   </p>
                 </div>
                 <span className="text-gray-400 text-sm">→</span>
