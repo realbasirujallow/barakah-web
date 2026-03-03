@@ -13,6 +13,7 @@ const ASSET_TYPES = [
   { value: 'roth_ira', label: 'Roth IRA' },
   { value: 'ira', label: 'Traditional IRA' },
   { value: 'hsa', label: 'HSA' },
+  { value: '529', label: '529 Education' },
   { value: 'crypto', label: 'Crypto' },
   { value: 'gold', label: 'Gold' },
   { value: 'other', label: 'Other' },
