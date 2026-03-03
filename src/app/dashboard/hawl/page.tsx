@@ -9,6 +9,10 @@ const TYPES = ['cash', 'gold', 'silver', 'crypto', 'stocks', 'business', 'other'
 
 export default function HawlPage() {
   const [items, setItems] = useState<HawlItem[]>([]);
+  const [nextDueDate, setNextDueDate] = useState<number | null>(null);
+  const [nextDueAsset, setNextDueAsset] = useState<string>('');
+  const [nextDueDays, setNextDueDays] = useState<number>(0);
+  const [nextDueAmount, setNextDueAmount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ assetName: '', assetType: 'cash', amount: '', nisabThreshold: '5000' });
@@ -17,7 +21,13 @@ export default function HawlPage() {
 
   const load = () => {
     setLoading(true);
-    api.getHawl().then(d => setItems(d?.trackers || d || [])).catch(() => { toast('Failed to load hawl trackers', 'error'); }).finally(() => setLoading(false));
+    api.getHawl().then(d => {
+      setItems(d?.trackers || d || []);
+      setNextDueDate(d?.nextZakatDueDate || null);
+      setNextDueAsset(d?.nextZakatDueAsset || '');
+      setNextDueDays(d?.nextZakatDueDays || 0);
+      setNextDueAmount(d?.nextZakatDueAmount || 0);
+    }).catch(() => { toast('Failed to load hawl trackers', 'error'); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
@@ -57,6 +67,25 @@ export default function HawlPage() {
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Zakat Due</p><p className="text-2xl font-bold text-amber-600">{zakatDue.length}</p></div>
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Zakat</p><p className="text-2xl font-bold text-red-600">{fmt(zakatDue.reduce((s, i) => s + i.zakatAmount, 0))}</p></div>
       </div>
+
+      {nextDueDate && (
+        <div className="bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl p-5 text-white mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-2xl">⏳</span>
+            <p className="font-bold text-lg">Next Zakat Due</p>
+          </div>
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-white/90 font-semibold">{nextDueAsset}</p>
+              <p className="text-white/60 text-sm">{new Date(nextDueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold">{nextDueDays}<span className="text-lg ml-1">days</span></p>
+              <p className="text-white/60 text-sm">Zakat: {fmt(nextDueAmount)}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {zakatDue.length > 0 && (
         <div className="mb-6">
