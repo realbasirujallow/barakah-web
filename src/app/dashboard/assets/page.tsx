@@ -47,7 +47,9 @@ const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
   ],
 };
 
-const RETIREMENT_TYPES = ["401k","retirement_401k","ira","roth_ira","pension","retirement","403b","tsp","sep_ira","hsa","529"];
+const RETIREMENT_TYPES = ["401k","retirement_401k","ira","roth_ira","pension","retirement","403b","tsp","sep_ira","hsa"];
+const EDUCATION_TYPES = ["529","529_plan","education_savings"];
+const PENALTY_TAX_TYPES = [...RETIREMENT_TYPES, ...EDUCATION_TYPES];
 const IRA_TYPES = ["ira"];
 const ADDRESS_TYPES = ["primary_home","investment_property","rental_property","business"];
 
@@ -118,7 +120,7 @@ export default function AssetsPage() {
         name: form.name.trim(), type: form.type, value: val,
         address: form.address?.trim() || null,
       };
-      if (RETIREMENT_TYPES.includes(form.type)) {
+      if (PENALTY_TAX_TYPES.includes(form.type)) {
         if (form.penaltyRate) data.penaltyRate = parseFloat(form.penaltyRate) / 100;
         if (form.taxRate) data.taxRate = parseFloat(form.taxRate) / 100;
       }
@@ -312,27 +314,31 @@ export default function AssetsPage() {
                 </div>
               )}
 
-              {RETIREMENT_TYPES.includes(form.type) && (
+              {PENALTY_TAX_TYPES.includes(form.type) && (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {IRA_TYPES.includes(form.type) ? 'Early Withdrawal Penalty (%)' : 'Penalty Rate (%)'}
+                      {IRA_TYPES.includes(form.type) || EDUCATION_TYPES.includes(form.type) ? 'Early Withdrawal Penalty (%)' : 'Penalty Rate (%)'}
                     </label>
                     <input type="number" step="0.1" min="0" max="100" value={form.penaltyRate}
                       onChange={e => setForm({ ...form, penaltyRate: e.target.value })}
                       className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                      placeholder={IRA_TYPES.includes(form.type) ? '0' : '10'} />
+                      placeholder={IRA_TYPES.includes(form.type) || EDUCATION_TYPES.includes(form.type) ? '0' : '10'} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {IRA_TYPES.includes(form.type) ? 'State Tax Rate (%)' : 'Tax Rate (%)'}
+                      {IRA_TYPES.includes(form.type) || EDUCATION_TYPES.includes(form.type) ? 'Tax Rate (%)' : 'Tax Rate (%)'}
                     </label>
                     <input type="number" step="0.1" min="0" max="100" value={form.taxRate}
                       onChange={e => setForm({ ...form, taxRate: e.target.value })}
                       className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                      placeholder={IRA_TYPES.includes(form.type) ? '0' : '25'} />
+                      placeholder={IRA_TYPES.includes(form.type) || EDUCATION_TYPES.includes(form.type) ? '0' : '25'} />
                   </div>
-                  {IRA_TYPES.includes(form.type) ? (
+                  {EDUCATION_TYPES.includes(form.type) ? (
+                    <p className="text-xs text-gray-500">
+                      529 education accounts: qualified withdrawals are tax-free &amp; penalty-free. Fully zakatable by default (0% penalty, 0% tax).
+                    </p>
+                  ) : IRA_TYPES.includes(form.type) ? (
                     <p className="text-xs text-gray-500">
                       IRAs are tax-exempt by default (0% penalty, 0% tax). If your state charges income tax, add your state tax rate above.
                       States like TX, FL, NV, WA, WY, SD, AK, TN, NH have no state income tax.
