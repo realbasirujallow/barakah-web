@@ -17,7 +17,8 @@ const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
   ],
   '🏠 Real Estate': [
     { value: 'primary_home', label: 'Primary Home' },
-    { value: 'investment_property', label: 'Investment Property' },
+    { value: 'investment_property', label: 'Investment Property (Rental)' },
+    { value: 'investment_property_resale', label: 'Investment Property (For Resale)' },
     { value: 'rental_property', label: 'Rental Property' },
   ],
   '📈 Investments': [
@@ -51,7 +52,7 @@ const RETIREMENT_TYPES = ["401k","retirement_401k","ira","roth_ira","pension","r
 const EDUCATION_TYPES = ["529","529_plan","education_savings"];
 const PENALTY_TAX_TYPES = [...RETIREMENT_TYPES, ...EDUCATION_TYPES];
 const IRA_TYPES = ["ira"];
-const ADDRESS_TYPES = ["primary_home","investment_property","rental_property","business"];
+const ADDRESS_TYPES = ["primary_home","investment_property","investment_property_resale","rental_property","business"];
 
 const EMPTY_FORM: AssetFormState = { name: '', type: 'cash', value: '', penaltyRate: '', taxRate: '', address: '' };
 
