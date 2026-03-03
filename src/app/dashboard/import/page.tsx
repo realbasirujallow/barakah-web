@@ -29,6 +29,23 @@ const DEBT_TYPES = [
   { value: 'other', label: 'Other' },
 ];
 
+interface ExistingAccount {
+  id: number;
+  name: string;
+  type: string;
+  value?: number;
+  remainingAmount?: number;
+}
+
+interface SuggestedMatch {
+  id: number;
+  name: string;
+  type: string;
+  value?: number;
+  remainingAmount?: number;
+  score: number;
+}
+
 interface PreviewAccount {
   accountName: string;
   latestBalance: number;
@@ -37,8 +54,11 @@ interface PreviewAccount {
   suggestedType: string;
   isDebt: boolean;
   skip: boolean;
+  suggestedMatch?: SuggestedMatch | null;
   // user overrides
   type: string;
+  action: 'create' | 'update';
+  existingId: number | null;
 }
 
 type Step = 'upload' | 'preview' | 'done';
@@ -49,9 +69,15 @@ export default function ImportPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [accounts, setAccounts] = useState<PreviewAccount[]>([]);
+  const [existingAssets, setExistingAssets] = useState<ExistingAccount[]>([]);
+  const [existingDebts, setExistingDebts] = useState<ExistingAccount[]>([]);
   const [meta, setMeta] = useState({ totalAccounts: 0, totalRecords: 0 });
   const [importing, setImporting] = useState(false);
-  const [result, setResult] = useState<{ assetsCreated: number; debtsCreated: number; errors?: string[] } | null>(null);
+  const [result, setResult] = useState<{
+    assetsCreated: number; assetsUpdated: number;
+    debtsCreated: number; debtsUpdated: number;
+    errors?: string[];
+  } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   /* ── Upload & preview ──────────────────────────────────────────────────── */
@@ -62,9 +88,17 @@ export default function ImportPage() {
     try {
       const data = await api.monarchPreview(file);
       if (data.error) { setError(data.error); setUploading(false); return; }
+
+      const assets: ExistingAccount[] = data.existingAssets || [];
+      const debts: ExistingAccount[] = data.existingDebts || [];
+      setExistingAssets(assets);
+      setExistingDebts(debts);
+
       const parsed: PreviewAccount[] = (data.accounts as PreviewAccount[]).map(a => ({
         ...a,
         type: a.suggestedType,
+        action: a.suggestedMatch ? 'update' as const : 'create' as const,
+        existingId: a.suggestedMatch?.id ?? null,
       }));
       setAccounts(parsed);
       setMeta({ totalAccounts: data.totalAccounts, totalRecords: data.totalRecords });
@@ -97,6 +131,8 @@ export default function ImportPage() {
         isDebt: a.isDebt,
         latestBalance: a.latestBalance,
         skip: a.skip,
+        action: a.action,
+        existingId: a.existingId,
       }));
       const data = await api.monarchExecute(payload);
       if (data.error) { setError(data.error); setImporting(false); return; }
@@ -117,6 +153,8 @@ export default function ImportPage() {
   const activeCount = accounts.filter(a => !a.skip).length;
   const assetCount  = accounts.filter(a => !a.skip && !a.isDebt).length;
   const debtCount   = accounts.filter(a => !a.skip && a.isDebt).length;
+  const updateCount = accounts.filter(a => !a.skip && a.action === 'update').length;
+  const createCount = accounts.filter(a => !a.skip && a.action === 'create').length;
   const fmt = (v: number) => v.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
   /* ── Render ────────────────────────────────────────────────────────────── */
@@ -159,16 +197,24 @@ export default function ImportPage() {
       {step === 'preview' && (
         <>
           {/* Summary bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
             <Stat label="Balance Records" value={meta.totalRecords.toLocaleString()} />
             <Stat label="Accounts Found" value={String(meta.totalAccounts)} />
             <Stat label="Assets" value={String(assetCount)} color="text-green-700" />
             <Stat label="Debts" value={String(debtCount)} color="text-red-600" />
+            {updateCount > 0 && (
+              <Stat label="Updates" value={String(updateCount)} color="text-blue-600" />
+            )}
           </div>
 
           {/* Toggle all skip */}
           <div className="flex items-center gap-4 text-sm">
             <span className="text-gray-500">{activeCount} of {accounts.length} accounts selected</span>
+            {updateCount > 0 && (
+              <span className="text-blue-600 font-medium">
+                ({updateCount} updating existing, {createCount} new)
+              </span>
+            )}
             <button
               onClick={() => setAccounts(prev => prev.map(a => ({ ...a, skip: false })))}
               className="text-[#1B5E20] hover:underline"
@@ -187,60 +233,102 @@ export default function ImportPage() {
                   <th className="p-3 w-10">Import</th>
                   <th className="p-3">Account</th>
                   <th className="p-3 text-right">Latest Balance</th>
-                  <th className="p-3">Date</th>
                   <th className="p-3">Category</th>
                   <th className="p-3">Type</th>
+                  <th className="p-3">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {accounts.map((a, i) => (
-                  <tr key={i} className={`border-t ${a.skip ? 'opacity-40' : ''}`}>
-                    <td className="p-3">
-                      <input
-                        type="checkbox"
-                        checked={!a.skip}
-                        onChange={() => updateAccount(i, { skip: !a.skip })}
-                        className="accent-[#1B5E20] w-4 h-4"
-                      />
-                    </td>
-                    <td className="p-3 font-medium max-w-xs truncate" title={a.accountName}>
-                      {a.accountName}
-                    </td>
-                    <td className={`p-3 text-right font-mono ${a.isDebt ? 'text-red-600' : 'text-green-700'}`}>
-                      {fmt(a.latestBalance)}
-                    </td>
-                    <td className="p-3 text-gray-500">{a.latestDate}</td>
-                    <td className="p-3">
-                      <select
-                        value={a.isDebt ? 'debt' : 'asset'}
-                        disabled={a.skip}
-                        onChange={e => {
-                          const isDebt = e.target.value === 'debt';
-                          updateAccount(i, {
-                            isDebt,
-                            type: isDebt ? 'other' : 'other',
-                          });
-                        }}
-                        className="px-2 py-1 border rounded text-sm bg-white"
-                      >
-                        <option value="asset">Asset</option>
-                        <option value="debt">Debt</option>
-                      </select>
-                    </td>
-                    <td className="p-3">
-                      <select
-                        value={a.type}
-                        disabled={a.skip}
-                        onChange={e => updateAccount(i, { type: e.target.value })}
-                        className="px-2 py-1 border rounded text-sm bg-white"
-                      >
-                        {(a.isDebt ? DEBT_TYPES : ASSET_TYPES).map(t => (
-                          <option key={t.value} value={t.value}>{t.label}</option>
-                        ))}
-                      </select>
-                    </td>
-                  </tr>
-                ))}
+                {accounts.map((a, i) => {
+                  const existingList = a.isDebt ? existingDebts : existingAssets;
+                  const matchedExisting = a.action === 'update' && a.existingId
+                    ? existingList.find(e => e.id === a.existingId) : null;
+                  return (
+                    <tr key={i} className={`border-t ${a.skip ? 'opacity-40' : ''}`}>
+                      <td className="p-3">
+                        <input
+                          type="checkbox"
+                          checked={!a.skip}
+                          onChange={() => updateAccount(i, { skip: !a.skip })}
+                          className="accent-[#1B5E20] w-4 h-4"
+                        />
+                      </td>
+                      <td className="p-3 max-w-xs">
+                        <div className="font-medium truncate" title={a.accountName}>
+                          {a.accountName}
+                        </div>
+                        {matchedExisting && (
+                          <div className="text-xs text-blue-600 mt-0.5">
+                            ↳ Merging with: {matchedExisting.name} ({fmt(matchedExisting.value ?? matchedExisting.remainingAmount ?? 0)})
+                          </div>
+                        )}
+                      </td>
+                      <td className={`p-3 text-right font-mono ${a.isDebt ? 'text-red-600' : 'text-green-700'}`}>
+                        {fmt(a.latestBalance)}
+                      </td>
+                      <td className="p-3">
+                        <select
+                          value={a.isDebt ? 'debt' : 'asset'}
+                          disabled={a.skip}
+                          onChange={e => {
+                            const isDebt = e.target.value === 'debt';
+                            updateAccount(i, {
+                              isDebt,
+                              type: 'other',
+                              action: 'create',
+                              existingId: null,
+                            });
+                          }}
+                          className="px-2 py-1 border rounded text-sm bg-white"
+                        >
+                          <option value="asset">Asset</option>
+                          <option value="debt">Debt</option>
+                        </select>
+                      </td>
+                      <td className="p-3">
+                        <select
+                          value={a.type}
+                          disabled={a.skip}
+                          onChange={e => updateAccount(i, { type: e.target.value })}
+                          className="px-2 py-1 border rounded text-sm bg-white"
+                        >
+                          {(a.isDebt ? DEBT_TYPES : ASSET_TYPES).map(t => (
+                            <option key={t.value} value={t.value}>{t.label}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="p-3">
+                        <select
+                          value={a.action === 'update' && a.existingId ? `update-${a.existingId}` : 'create'}
+                          disabled={a.skip}
+                          onChange={e => {
+                            const val = e.target.value;
+                            if (val === 'create') {
+                              updateAccount(i, { action: 'create', existingId: null });
+                            } else {
+                              const id = parseInt(val.replace('update-', ''));
+                              updateAccount(i, { action: 'update', existingId: id });
+                            }
+                          }}
+                          className={`px-2 py-1 border rounded text-sm bg-white ${
+                            a.action === 'update' ? 'border-blue-400 text-blue-700' : ''
+                          }`}
+                        >
+                          <option value="create">+ Create New</option>
+                          {existingList.length > 0 && (
+                            <optgroup label="Update Existing">
+                              {existingList.map(ex => (
+                                <option key={ex.id} value={`update-${ex.id}`}>
+                                  ↳ {ex.name} ({fmt(ex.value ?? ex.remainingAmount ?? 0)})
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </select>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -273,9 +361,22 @@ export default function ImportPage() {
         <div className="bg-white rounded-xl border shadow-sm p-8 text-center space-y-4">
           <p className="text-5xl">🎉</p>
           <h2 className="text-xl font-bold text-[#1B5E20]">Import Complete!</h2>
-          <div className="flex justify-center gap-8 text-lg">
-            <span className="text-green-700">{result.assetsCreated} asset{result.assetsCreated !== 1 ? 's' : ''}</span>
-            <span className="text-red-600">{result.debtsCreated} debt{result.debtsCreated !== 1 ? 's' : ''}</span>
+          <div className="flex justify-center gap-6 text-lg flex-wrap">
+            {result.assetsCreated > 0 && (
+              <span className="text-green-700">{result.assetsCreated} asset{result.assetsCreated !== 1 ? 's' : ''} created</span>
+            )}
+            {result.assetsUpdated > 0 && (
+              <span className="text-blue-600">{result.assetsUpdated} asset{result.assetsUpdated !== 1 ? 's' : ''} updated</span>
+            )}
+            {result.debtsCreated > 0 && (
+              <span className="text-red-600">{result.debtsCreated} debt{result.debtsCreated !== 1 ? 's' : ''} created</span>
+            )}
+            {result.debtsUpdated > 0 && (
+              <span className="text-orange-600">{result.debtsUpdated} debt{result.debtsUpdated !== 1 ? 's' : ''} updated</span>
+            )}
+            {result.assetsCreated === 0 && result.assetsUpdated === 0 && result.debtsCreated === 0 && result.debtsUpdated === 0 && (
+              <span className="text-gray-500">No changes made</span>
+            )}
           </div>
           {result.errors && result.errors.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-left text-sm text-red-700">
