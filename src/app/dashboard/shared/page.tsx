@@ -95,11 +95,12 @@ export default function SharedPage() {
   const handleCreateGroup = async () => {
     setSavingGroup(true);
     try {
-      await api.createSharedGroup(groupForm);
+      const res = await api.createSharedGroup(groupForm);
       setShowCreateForm(false);
       setGroupForm(emptyGroupForm);
       loadGroups();
-      toast('Group created', 'success');
+      const code = res?.inviteCode || res?.group?.inviteCode;
+      toast(code ? `Group created! Invite code: ${code}` : 'Group created', 'success');
     } catch { toast('Failed to create group', 'error'); }
     setSavingGroup(false);
   };
