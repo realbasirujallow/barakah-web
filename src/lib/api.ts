@@ -271,7 +271,7 @@ export const api = {
 
   // Net Worth
   takeNetWorthSnapshot: () => apiFetch('/api/net-worth/snapshot', { method: 'POST' }),
-  getNetWorthHistory: () => apiFetch('/api/net-worth/history'),
+  getNetWorthHistory: (period: string = '6m') => apiFetch(`/api/net-worth/history?period=${period}`),
 
   // Shared Finances
   getSharedGroups: () => apiFetch('/api/shared/groups/list'),
