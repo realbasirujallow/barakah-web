@@ -69,6 +69,47 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   }
 }
 
+// ── Multipart upload helper ──────────────────────────────────────────────────
+// Sends a file as multipart/form-data (no Content-Type header — browser sets it
+// with the correct boundary).
+export async function apiUpload(endpoint: string, file: File, fieldName = 'file') {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const formData = new FormData();
+  formData.append(fieldName, file);
+
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000); // 60s for uploads
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      signal: controller.signal,
+    });
+  } catch (err: any) {
+    if (err.name === 'AbortError') throw new Error('Upload timed out.');
+    throw new Error('No connection to server.');
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!res.ok) {
+    if (res.status === 401 && onUnauthorizedCallback) onUnauthorizedCallback();
+    const text = await res.text();
+    let msg = `Upload error ${res.status}`;
+    if (text) { try { const j = JSON.parse(text); msg = j.error || j.message || msg; } catch { /* ignore */ } }
+    throw new Error(msg);
+  }
+
+  const text = await res.text();
+  if (!text) return null;
+  try { return JSON.parse(text); } catch { throw new Error('Unexpected server response.'); }
+}
+
 // ── Binary download helper ────────────────────────────────────────────────────
 // Triggers a browser file download for endpoints that return binary data
 // (CSV, PDF, etc.) rather than JSON.
@@ -307,4 +348,10 @@ export const api = {
     apiDownload('/api/transactions/export/csv', 'transactions.csv'),
   downloadTransactionsPdf: () =>
     apiDownload('/api/transactions/export/pdf', 'transactions.pdf'),
+
+  // Import (Monarch Money)
+  monarchPreview: (file: File) =>
+    apiUpload('/api/import/monarch/preview', file),
+  monarchExecute: (accounts: Record<string, unknown>[]) =>
+    apiFetch('/api/import/monarch/execute', { method: 'POST', body: JSON.stringify({ accounts }) }),
 };
