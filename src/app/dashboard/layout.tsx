@@ -98,6 +98,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             {children}
           </ToastProvider>
         </main>
+        <footer className="px-6 py-3 text-center text-xs text-gray-400 border-t bg-white">
+          <Link href="/disclaimer" className="hover:text-[#1B5E20] hover:underline transition">
+            ⚠️ Disclaimer &amp; Islamic Guidance Notice
+          </Link>
+          <span className="mx-2">·</span>
+          <span>Not a fatwa — consult a qualified scholar for your specific situation</span>
+        </footer>
       </div>
     </div>
   );
