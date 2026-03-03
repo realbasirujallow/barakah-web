@@ -48,6 +48,7 @@ const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
 };
 
 const RETIREMENT_TYPES = ["401k","retirement_401k","ira","roth_ira","pension","retirement","403b","tsp","sep_ira","hsa","529"];
+const IRA_TYPES = ["ira"];
 const ADDRESS_TYPES = ["primary_home","investment_property","rental_property","business"];
 
 const EMPTY_FORM: AssetFormState = { name: '', type: 'cash', value: '', penaltyRate: '', taxRate: '', address: '' };
@@ -314,18 +315,31 @@ export default function AssetsPage() {
               {RETIREMENT_TYPES.includes(form.type) && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Penalty Rate (%)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {IRA_TYPES.includes(form.type) ? 'Early Withdrawal Penalty (%)' : 'Penalty Rate (%)'}
+                    </label>
                     <input type="number" step="0.1" min="0" max="100" value={form.penaltyRate}
                       onChange={e => setForm({ ...form, penaltyRate: e.target.value })}
-                      className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="10" />
+                      className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                      placeholder={IRA_TYPES.includes(form.type) ? '0' : '10'} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {IRA_TYPES.includes(form.type) ? 'State Tax Rate (%)' : 'Tax Rate (%)'}
+                    </label>
                     <input type="number" step="0.1" min="0" max="100" value={form.taxRate}
                       onChange={e => setForm({ ...form, taxRate: e.target.value })}
-                      className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="25" />
+                      className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                      placeholder={IRA_TYPES.includes(form.type) ? '0' : '25'} />
                   </div>
-                  <p className="text-xs text-gray-500">Defaults: 10% penalty, 25% tax. Adjust if your state or plan is different.</p>
+                  {IRA_TYPES.includes(form.type) ? (
+                    <p className="text-xs text-gray-500">
+                      IRAs are tax-exempt by default (0% penalty, 0% tax). If your state charges income tax, add your state tax rate above.
+                      States like TX, FL, NV, WA, WY, SD, AK, TN, NH have no state income tax.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500">Defaults: 10% penalty, 22% federal tax + state tax. Adjust if your state or plan is different.</p>
+                  )}
                 </>
               )}
             </div>
