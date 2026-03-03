@@ -13,7 +13,7 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -30,6 +30,12 @@ export default function ProfilePage() {
   const [showCurrentPw, setShowCurrentPw] = useState(false);
   const [showNewPw, setShowNewPw] = useState(false);
   const { toast } = useToast();
+
+  // Delete account
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteMsg, setDeleteMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const loadProfile = () => {
     setLoading(true);
@@ -84,6 +90,23 @@ export default function ProfilePage() {
       setPwMsg({ type: 'error', text: msg });
     }
     setSavingPw(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      setDeleteMsg({ type: 'error', text: 'Please enter your password.' });
+      return;
+    }
+    setDeleting(true);
+    setDeleteMsg(null);
+    try {
+      await api.deleteAccount(deletePassword);
+      logout();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Failed to delete account.';
+      setDeleteMsg({ type: 'error', text: msg });
+    }
+    setDeleting(false);
   };
 
   const formatDate = (ts?: number) => {
@@ -252,6 +275,58 @@ export default function ProfilePage() {
             <span className="text-gray-700">{profile?.preferredCurrency || 'USD'}</span>
           </div>
         </div>
+      </div>
+
+      {/* Danger Zone — Delete Account */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 mt-4 border border-red-100">
+        <h2 className="text-lg font-bold text-red-600 mb-2">Danger Zone</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Permanently delete your account and all associated data. This action cannot be undone.
+        </p>
+
+        {!showDeleteConfirm ? (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="text-red-600 border border-red-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition"
+          >
+            Delete My Account
+          </button>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-red-600 font-medium">
+              Enter your password to confirm account deletion:
+            </p>
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={e => setDeletePassword(e.target.value)}
+              className="w-full border border-red-200 rounded-lg px-3 py-2 text-gray-900 focus:ring-red-500 focus:border-red-500"
+              placeholder="Your current password"
+            />
+            {deleteMsg && (
+              <div className={`text-sm px-3 py-2 rounded-lg ${
+                deleteMsg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+              }`}>
+                {deleteMsg.text}
+              </div>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleting || !deletePassword}
+                className="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm font-medium"
+              >
+                {deleting ? 'Deleting...' : 'Permanently Delete'}
+              </button>
+              <button
+                onClick={() => { setShowDeleteConfirm(false); setDeletePassword(''); setDeleteMsg(null); }}
+                className="text-gray-600 border border-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

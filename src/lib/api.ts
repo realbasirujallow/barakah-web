@@ -298,6 +298,8 @@ export const api = {
   getProfile: () => apiFetch('/auth/profile'),
   updateProfile: (data: Record<string, unknown>) =>
     apiFetch('/auth/update-profile', { method: 'PUT', body: JSON.stringify(data) }),
+  deleteAccount: (password: string) =>
+    apiFetch('/auth/delete-account', { method: 'DELETE', body: JSON.stringify({ password }) }),
 
   // Exports
   downloadTransactionsCsv: () =>
