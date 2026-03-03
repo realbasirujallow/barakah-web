@@ -110,7 +110,7 @@ export default function ZakatPage() {
             </div>
             <div className="bg-white rounded-xl p-5">
               <p className="text-gray-500 text-sm">Nisab Threshold</p>
-              <p className="text-2xl font-bold text-amber-600">{fmt((data?.nisabThreshold as number) || 5000)}</p>
+              <p className="text-2xl font-bold text-amber-600">{fmt((data?.nisab as number) || 5686.20)}</p>
             </div>
           </div>
 
