@@ -161,8 +161,8 @@ export default function ZakatPage() {
                     <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center text-xl">🕌</div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-[#1B5E20]">{fmt(p.amount as number)}</p>
-                      {p.recipient && <p className="text-gray-500 text-sm truncate">{p.recipient as string}</p>}
-                      {p.notes && <p className="text-gray-400 text-xs truncate">{p.notes as string}</p>}
+                      {p.recipient && <p className="text-gray-500 text-sm truncate">{String(p.recipient)}</p>}
+                      {p.notes && <p className="text-gray-400 text-xs truncate">{String(p.notes)}</p>}
                       <p className="text-gray-400 text-xs">{date.toLocaleDateString()}</p>
                     </div>
                     <button onClick={() => handleDeletePayment(p.id as number)} className="text-gray-300 hover:text-red-500 transition">
