@@ -84,7 +84,17 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     // Guard against recursive refresh calls (the /auth/refresh call itself
     // never gets a 401 — it's unauthenticated — so isRefreshing will be false
     // whenever we enter this block from a real API call).
-    if (res.status === 401) {
+    //
+    // SKIP refresh for auth endpoints — a 401 on /auth/login means "wrong
+    // password", not "expired token". Let it fall through to the normal
+    // error-message extraction below.
+    const isAuthEndpoint = endpoint.startsWith('/auth/login') ||
+                           endpoint.startsWith('/auth/signup') ||
+                           endpoint.startsWith('/auth/forgot-password') ||
+                           endpoint.startsWith('/auth/reset-password') ||
+                           endpoint.startsWith('/auth/verify-email') ||
+                           endpoint.startsWith('/auth/resend-verification');
+    if (res.status === 401 && !isAuthEndpoint) {
       let refreshOk: boolean;
       if (!isRefreshing) {
         isRefreshing = true;
