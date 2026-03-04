@@ -48,7 +48,7 @@ async function attemptSilentRefresh(): Promise<boolean> {
 }
 
 // ── JSON fetch helper ─────────────────────────────────────────────────────────
-export async function apiFetch(endpoint: string, options: RequestInit = {}) {
+export async function apiFetch(endpoint: string, options: RequestInit = {}, timeoutMs = 30000) {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> || {}),
@@ -59,7 +59,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   // the server on login and cleared on logout. This eliminates the localStorage
   // XSS risk that exists when storing tokens in client-accessible storage.
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   let res: Response;
   try {
     res = await fetch(`${API_URL}${endpoint}`, {
@@ -469,5 +469,5 @@ export const api = {
   monarchPreview: (file: File) =>
     apiUpload('/api/import/monarch/preview', file),
   monarchExecute: (payload: Record<string, unknown>) =>
-    apiFetch('/api/import/monarch/execute', { method: 'POST', body: JSON.stringify(payload) }),
+    apiFetch('/api/import/monarch/execute', { method: 'POST', body: JSON.stringify(payload) }, 120000),
 };
