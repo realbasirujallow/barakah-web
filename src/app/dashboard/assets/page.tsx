@@ -178,7 +178,7 @@ export default function AssetsPage() {
           <p className="text-green-200 text-sm">Zakat {(total?.zakatEligible as boolean) ? 'Eligible' : 'Below Nisab'}</p>
           <span className="text-green-200 text-sm">•</span>
           {(total?.zakatFullyPaid as boolean) ? (
-            <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">PAID {total?.currentLunarYear} AH ✓</span>
+            <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">PAID {String(total?.currentLunarYear ?? '')} AH ✓</span>
           ) : (
             <button onClick={() => setShowBreakdown(!showBreakdown)} className="text-green-100 text-sm underline hover:text-white font-medium">
               {((total?.zakatPaid as number) || 0) > 0
