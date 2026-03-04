@@ -7,7 +7,83 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   "https://api.trybarakah.com";
 
+const isDev = process.env.NODE_ENV === "development";
+
+// ── Content Security Policy ────────────────────────────────────────────────
+// Protects against XSS, clickjacking, and data-injection attacks.
+//
+// Why each directive:
+//   script-src  'unsafe-inline'  — required by Next.js App Router hydration
+//   script-src  'unsafe-eval'    — dev only (webpack HMR); stripped in production
+//   style-src   'unsafe-inline'  — required by Tailwind CSS & Recharts
+//   connect-src /ingest/**       — PostHog reverse-proxied through Next.js
+//   frame-ancestors 'none'       — equivalent to X-Frame-Options: DENY
+//   upgrade-insecure-requests    — forces all sub-resources to HTTPS
+const csp = [
+  "default-src 'self'",
+  // Scripts: self + inline (hydration) + PostHog loader + dev eval
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://us-assets.i.posthog.com`,
+  // Styles: inline allowed (Tailwind + Recharts inject styles at runtime)
+  "style-src 'self' 'unsafe-inline'",
+  // Images: self + data URIs (chart gradients/icons) + blobs (PDF previews)
+  "img-src 'self' data: blob:",
+  // Fonts: self only (no external font CDN used)
+  "font-src 'self'",
+  // Connections: backend proxy + PostHog analytics (proxied through /ingest)
+  "connect-src 'self' https://us.i.posthog.com https://us-assets.i.posthog.com",
+  // No plugins (Flash, Silverlight, etc.)
+  "object-src 'none'",
+  // Prevent base-tag injection attacks
+  "base-uri 'self'",
+  // Forms must submit to same origin
+  "form-action 'self'",
+  // Disallow embedding in iframes anywhere — clickjacking protection
+  "frame-ancestors 'none'",
+  // Force all sub-resource requests to HTTPS
+  "upgrade-insecure-requests",
+]
+  .join("; ");
+
+const securityHeaders = [
+  {
+    key: "Content-Security-Policy",
+    value: csp,
+  },
+  // Belt-and-suspenders clickjacking protection (respected by older browsers
+  // that don't support frame-ancestors)
+  {
+    key: "X-Frame-Options",
+    value: "DENY",
+  },
+  // Prevent MIME-type sniffing (already set by Spring Boot for API responses)
+  {
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
+  // Only send origin when navigating to HTTPS, nothing on HTTP downgrade
+  {
+    key: "Referrer-Policy",
+    value: "strict-origin-when-cross-origin",
+  },
+  // Allow camera/mic only if the user explicitly grants permission;
+  // disable geolocation (not needed by Barakah)
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=()",
+  },
+];
+
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        // Apply security headers to every route served by Next.js
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
+    ];
+  },
+
   async rewrites() {
     return {
       // Proxy backend routes BEFORE Next.js page matching — eliminates CORS.

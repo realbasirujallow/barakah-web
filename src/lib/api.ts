@@ -5,25 +5,59 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 // ── 401 global handler ────────────────────────────────────────────────────────
-// Register a callback (e.g. logout + redirect) that fires whenever any API
-// call receives a 401 Unauthorized response (expired / invalid JWT).
+// Register a callback (e.g. logout + redirect) that fires whenever a 401
+// cannot be recovered by the silent refresh flow below.
 let onUnauthorizedCallback: (() => void) | null = null;
 
 export function setUnauthorizedHandler(fn: () => void) {
   onUnauthorizedCallback = fn;
 }
 
+// ── Silent refresh ─────────────────────────────────────────────────────────────
+// When a request gets a 401 (expired access token), we attempt one silent
+// refresh via POST /auth/refresh. The refresh_token httpOnly cookie is sent
+// automatically by the browser (path=/auth). If it succeeds, the server sets
+// a new auth_token cookie and we replay the original request transparently.
+//
+// Concurrent 401s are deduplicated: all callers wait for the same refresh
+// promise, then each re-tries their own request once.
+
+let isRefreshing = false;
+let refreshSubscribers: Array<(ok: boolean) => void> = [];
+
+function subscribeToRefresh(cb: (ok: boolean) => void) {
+  refreshSubscribers.push(cb);
+}
+
+function notifySubscribers(ok: boolean) {
+  refreshSubscribers.forEach(cb => cb(ok));
+  refreshSubscribers = [];
+}
+
+/** Calls POST /auth/refresh directly (bypasses apiFetch to avoid recursion). */
+async function attemptSilentRefresh(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 // ── JSON fetch helper ─────────────────────────────────────────────────────────
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> || {}),
   };
 
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-
+  // credentials: 'include' ensures the auth_token httpOnly cookie is sent on
+  // every request. The cookie is never readable by JavaScript — it is set by
+  // the server on login and cleared on logout. This eliminates the localStorage
+  // XSS risk that exists when storing tokens in client-accessible storage.
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
   let res: Response;
@@ -31,6 +65,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     res = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,
+      credentials: 'include',
       signal: controller.signal,
     });
   } catch (err: any) {
@@ -43,9 +78,53 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   }
 
   if (!res.ok) {
-    if (res.status === 401 && onUnauthorizedCallback) {
-      onUnauthorizedCallback();
+    // ── Silent refresh on 401 ──────────────────────────────────────────────
+    // Before giving up and redirecting to login, try to silently refresh the
+    // access token using the long-lived refresh_token httpOnly cookie.
+    // Guard against recursive refresh calls (the /auth/refresh call itself
+    // never gets a 401 — it's unauthenticated — so isRefreshing will be false
+    // whenever we enter this block from a real API call).
+    if (res.status === 401) {
+      let refreshOk: boolean;
+      if (!isRefreshing) {
+        isRefreshing = true;
+        refreshOk = await attemptSilentRefresh();
+        isRefreshing = false;
+        notifySubscribers(refreshOk);
+      } else {
+        // Another request is already refreshing — wait for it
+        refreshOk = await new Promise<boolean>(resolve => subscribeToRefresh(resolve));
+      }
+
+      if (refreshOk) {
+        // Retry the original request — the new auth_token cookie is now set
+        const retryController = new AbortController();
+        const retryTimeout = setTimeout(() => retryController.abort(), 30000);
+        try {
+          const retryRes = await fetch(`${API_URL}${endpoint}`, {
+            ...options,
+            headers,
+            credentials: 'include',
+            signal: retryController.signal,
+          });
+          clearTimeout(retryTimeout);
+          if (retryRes.ok) {
+            const retryText = await retryRes.text();
+            if (!retryText) return null;
+            try { return JSON.parse(retryText); } catch { throw new Error('Unexpected server response.'); }
+          }
+          // Retry also failed — fall through to the unauthorized handler
+        } catch {
+          clearTimeout(retryTimeout);
+        }
+      }
+
+      // Refresh failed or retry failed — the session is gone
+      if (onUnauthorizedCallback) onUnauthorizedCallback();
+      throw new Error('Your session has expired. Please log in again.');
     }
+    // ── End silent refresh ─────────────────────────────────────────────────
+
     const text = await res.text();
     // Try to extract a user-friendly message from the JSON error body
     let msg = `API error ${res.status}`;
@@ -73,12 +152,8 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 // Sends a file as multipart/form-data (no Content-Type header — browser sets it
 // with the correct boundary).
 export async function apiUpload(endpoint: string, file: File, fieldName = 'file') {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const formData = new FormData();
   formData.append(fieldName, file);
-
-  const headers: Record<string, string> = {};
-  if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 60000); // 60s for uploads
@@ -86,8 +161,8 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
   try {
     res = await fetch(`${API_URL}${endpoint}`, {
       method: 'POST',
-      headers,
       body: formData,
+      credentials: 'include',
       signal: controller.signal,
     });
   } catch (err: any) {
@@ -98,7 +173,17 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
   }
 
   if (!res.ok) {
-    if (res.status === 401 && onUnauthorizedCallback) onUnauthorizedCallback();
+    if (res.status === 401) {
+      const refreshOk = isRefreshing
+        ? await new Promise<boolean>(r => subscribeToRefresh(r))
+        : (isRefreshing = true, await attemptSilentRefresh().finally(() => { isRefreshing = false; notifySubscribers(false); }));
+      if (refreshOk) {
+        const r2 = await fetch(`${API_URL}${endpoint}`, { method: 'POST', body: formData, credentials: 'include' });
+        if (r2.ok) { const t = await r2.text(); if (!t) return null; try { return JSON.parse(t); } catch { throw new Error('Unexpected server response.'); } }
+      }
+      if (onUnauthorizedCallback) onUnauthorizedCallback();
+      throw new Error('Your session has expired. Please log in again.');
+    }
     const text = await res.text();
     let msg = `Upload error ${res.status}`;
     if (text) { try { const j = JSON.parse(text); msg = j.error || j.message || msg; } catch { /* ignore */ } }
@@ -114,15 +199,14 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
 // Triggers a browser file download for endpoints that return binary data
 // (CSV, PDF, etc.) rather than JSON.
 export async function apiDownload(endpoint: string, filename: string): Promise<void> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  const headers: Record<string, string> = {};
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000); // 30s for downloads
   let res: Response;
   try {
-    res = await fetch(`${API_URL}${endpoint}`, { headers, signal: controller.signal });
+    res = await fetch(`${API_URL}${endpoint}`, {
+      credentials: 'include',
+      signal: controller.signal,
+    });
   } catch (err: any) {
     if (err.name === 'AbortError') throw new Error('Download timed out.');
     throw new Error('No connection to server.');
@@ -131,7 +215,23 @@ export async function apiDownload(endpoint: string, filename: string): Promise<v
   }
 
   if (!res.ok) {
-    if (res.status === 401 && onUnauthorizedCallback) onUnauthorizedCallback();
+    if (res.status === 401) {
+      const refreshOk = isRefreshing
+        ? await new Promise<boolean>(r => subscribeToRefresh(r))
+        : (isRefreshing = true, await attemptSilentRefresh().finally(() => { isRefreshing = false; notifySubscribers(false); }));
+      if (refreshOk) {
+        const r2 = await fetch(`${API_URL}${endpoint}`, { credentials: 'include' });
+        if (r2.ok) {
+          const blob2 = await r2.blob();
+          const url2 = URL.createObjectURL(blob2);
+          const a2 = document.createElement('a'); a2.href = url2; a2.download = filename;
+          document.body.appendChild(a2); a2.click(); document.body.removeChild(a2); URL.revokeObjectURL(url2);
+          return;
+        }
+      }
+      if (onUnauthorizedCallback) onUnauthorizedCallback();
+      throw new Error('Your session has expired. Please log in again.');
+    }
     throw new Error(`Download failed (${res.status})`);
   }
 
@@ -152,6 +252,12 @@ export const api = {
     apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   signup: (name: string, email: string, password: string, state: string) =>
     apiFetch('/auth/signup', { method: 'POST', body: JSON.stringify({ fullName: name, email, password, state }) }),
+  // Clears the auth_token httpOnly cookie on the server side.
+  logout: () =>
+    apiFetch('/auth/logout', { method: 'POST' }),
+  // Silently renews the access token using the refresh_token cookie.
+  // Returns true if successful (new auth_token cookie has been set by the server).
+  refresh: () => attemptSilentRefresh(),
   verifyEmail: (token: string) =>
     apiFetch(`/auth/verify-email?token=${encodeURIComponent(token)}`),
   resendVerification: (email: string) =>
