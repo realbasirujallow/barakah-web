@@ -56,12 +56,12 @@ export default function DashboardPage() {
         <div className={`bg-gradient-to-br ${totals?.zakatFullyPaid ? 'from-green-600 to-emerald-500' : 'from-amber-600 to-yellow-500'} rounded-2xl p-6 text-white`}>
           <p className={`${totals?.zakatFullyPaid ? 'text-green-100' : 'text-amber-100'} text-sm flex items-center justify-between`}>
             <span>Zakat Due {totals?.currentLunarYear ? `(${totals.currentLunarYear} AH)` : ''}</span>
-            {totals?.zakatFullyPaid && <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">PAID ✓</span>}
+            {Boolean(totals?.zakatFullyPaid) && <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">PAID ✓</span>}
           </p>
           <p className="text-3xl font-bold mt-1">
             {loading ? '...' : fmt((totals?.zakatRemaining as number) ?? (totals?.zakatDue as number) ?? 0)}
           </p>
-          {!loading && (totals?.zakatPaid as number) > 0 && !totals?.zakatFullyPaid && (
+          {!loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid) && (
             <p className={`${totals?.zakatFullyPaid ? 'text-green-200' : 'text-amber-200'} text-xs mt-1`}>
               Paid: {fmt((totals?.zakatPaid as number) || 0)} of {fmt((totals?.zakatDue as number) || 0)}
             </p>
