@@ -11,7 +11,6 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string, state: string) => Promise<void>;
   logout: () => void;
@@ -20,79 +19,102 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// localStorage key for the non-sensitive user profile (name, email, id).
+// The JWT itself is stored exclusively in an httpOnly cookie — never in
+// localStorage — so JavaScript (including any XSS payload) cannot read it.
+const USER_KEY = 'user';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Restore session from localStorage on mount, and register a global 401
-  // handler so any expired-JWT response automatically clears the session and
-  // redirects to the login page.
+  // Restore user profile from localStorage on mount so the sidebar can show
+  // the user's name without a round-trip. The JWT is in the httpOnly cookie
+  // and is sent automatically by the browser — we never read it here.
+  //
+  // If the stored profile exists but the access cookie has expired (e.g. the
+  // user left the tab open overnight), we silently attempt a token refresh
+  // before deciding whether to keep the session or redirect to login.
   useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
+    const savedUser = localStorage.getItem(USER_KEY);
 
-    // Check if token is expired before restoring session
-    if (savedToken && savedUser) {
-      try {
-        const payload = JSON.parse(atob(savedToken.split('.')[1]));
-        const expMs = (payload.exp || 0) * 1000;
-        if (Date.now() >= expMs) {
-          // Token expired — clear stale session
-          localStorage.removeItem('token');
-          localStorage.removeItem('userId');
-          localStorage.removeItem('user');
-        } else {
-          setToken(savedToken);
-          setUser(JSON.parse(savedUser));
-        }
-      } catch {
-        // Malformed token — clear it
-        localStorage.removeItem('token');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('user');
-      }
-    }
-    setIsLoading(false);
-
-    // Register 401 handler — fires whenever apiFetch / apiDownload gets a 401
+    // Register a global 401 handler. When any API call receives 401 AND the
+    // silent refresh inside api.ts also fails, clear local state and redirect.
+    // (The refresh retry in api.ts runs first — this only fires as a last resort.)
     setUnauthorizedHandler(() => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('user');
-      setToken(null);
+      localStorage.removeItem(USER_KEY);
       setUser(null);
       router.push('/login');
+    });
+
+    if (!savedUser) {
+      // No saved profile → definitely not logged in
+      setIsLoading(false);
+      return;
+    }
+
+    // We have a saved profile. Validate the session by proactively refreshing
+    // the access token. This handles the "page reloaded after the 24h JWT
+    // expired but the 30-day refresh token is still valid" case.
+    let parsed: typeof user | null = null;
+    try {
+      parsed = JSON.parse(savedUser);
+    } catch {
+      localStorage.removeItem(USER_KEY);
+      setIsLoading(false);
+      return;
+    }
+
+    // Try a silent refresh. If it succeeds the server has rotated both cookies.
+    // If it fails (refresh token also expired) we clear the stale profile.
+    api.refresh().then((ok: boolean) => {
+      if (ok) {
+        setUser(parsed);
+      } else {
+        // Both tokens expired — clean up and let the guard redirect to /login
+        localStorage.removeItem(USER_KEY);
+        setUser(null);
+      }
+      setIsLoading(false);
+    }).catch(() => {
+      // Network error on mount — keep the stale profile so offline mode still
+      // shows the dashboard; the 401 handler will fire on the next real API call.
+      setUser(parsed);
+      setIsLoading(false);
     });
   }, [router]);
 
   const login = async (email: string, password: string) => {
     const data = await api.login(email, password);
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('userId', data.userId || data.id || email);
-    localStorage.setItem('user', JSON.stringify({ id: data.userId || data.id, name: data.name || email, email }));
-    setToken(data.token);
-    setUser({ id: data.userId || data.id, name: data.name || email, email });
+    // The server sets the auth_token httpOnly cookie automatically in the
+    // Set-Cookie response header. We only store the non-sensitive profile
+    // here for UI display (sidebar name, greeting).
+    const profile: User = {
+      id: String(data.userId ?? data.id ?? email),
+      name: data.fullName ?? data.name ?? email,
+      email,
+    };
+    localStorage.setItem(USER_KEY, JSON.stringify(profile));
+    setUser(profile);
   };
 
   const signup = async (name: string, email: string, password: string, state: string) => {
-    // Backend does not return a token on signup (email verification required first).
-    // We call the API but don't store a session.
+    // Backend requires email verification before login — no session created here.
     await api.signup(name, email, password, state);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('user');
-    setToken(null);
+    // Tell the server to clear the httpOnly cookie. Fire-and-forget — we
+    // navigate away immediately regardless of the server response.
+    api.logout().catch(() => { /* ignore network errors on logout */ });
+    localStorage.removeItem(USER_KEY);
     setUser(null);
     router.push('/login');
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, signup, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
