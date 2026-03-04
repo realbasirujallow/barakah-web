@@ -299,6 +299,8 @@ export const api = {
     apiFetch('/api/transactions/add', { method: 'POST', body: JSON.stringify(data) }),
   deleteTransaction: (id: number) =>
     apiFetch(`/api/transactions/${id}`, { method: 'DELETE' }),
+  bulkDeleteTransactions: (ids: number[]) =>
+    apiFetch('/api/transactions/bulk', { method: 'DELETE', body: JSON.stringify({ ids }) }),
 
   // Budgets
   getBudgets: (month?: number, year?: number) => {
@@ -469,5 +471,52 @@ export const api = {
   monarchPreview: (file: File) =>
     apiUpload('/api/import/monarch/preview', file),
   monarchExecute: (payload: Record<string, unknown>) =>
-    apiFetch('/api/import/monarch/execute', { method: 'POST', body: JSON.stringify(payload) }, 120000),
+    apiFetch('/api/import/monarch/execute', { method: 'POST', body: JSON.stringify(payload) }, 300000),
+
+  /**
+   * Chunked execute — splits large transaction imports into batches to avoid
+   * gateway/proxy timeouts. Results are aggregated across all chunks.
+   */
+  monarchExecuteChunked: async (payload: Record<string, unknown>, chunkSize = 100) => {
+    const format = payload.format as string;
+
+    // Balances imports are small; send in one shot
+    if (format !== 'transactions') {
+      return apiFetch('/api/import/monarch/execute', {
+        method: 'POST', body: JSON.stringify(payload),
+      }, 300000);
+    }
+
+    // Split transactions into chunks
+    const allTxns = (payload.transactions as unknown[]) || [];
+    if (allTxns.length <= chunkSize) {
+      return apiFetch('/api/import/monarch/execute', {
+        method: 'POST', body: JSON.stringify(payload),
+      }, 300000);
+    }
+
+    let totalCreated = 0;
+    let totalSkipped = 0;
+    const allErrors: string[] = [];
+
+    for (let i = 0; i < allTxns.length; i += chunkSize) {
+      const chunk = allTxns.slice(i, i + chunkSize);
+      const chunkPayload = { format: 'transactions', transactions: chunk };
+      const data = await apiFetch('/api/import/monarch/execute', {
+        method: 'POST', body: JSON.stringify(chunkPayload),
+      }, 300000);
+      if (data.error) allErrors.push(data.error);
+      totalCreated += data.transactionsCreated || 0;
+      totalSkipped += data.skipped || 0;
+      if (data.errors) allErrors.push(...data.errors);
+    }
+
+    return {
+      format: 'transactions',
+      success: allErrors.length === 0,
+      transactionsCreated: totalCreated,
+      skipped: totalSkipped,
+      ...(allErrors.length > 0 ? { errors: allErrors } : {}),
+    };
+  },
 };
