@@ -177,9 +177,15 @@ export default function AssetsPage() {
         <div className="flex items-center gap-2 mt-1">
           <p className="text-green-200 text-sm">Zakat {(total?.zakatEligible as boolean) ? 'Eligible' : 'Below Nisab'}</p>
           <span className="text-green-200 text-sm">•</span>
-          <button onClick={() => setShowBreakdown(!showBreakdown)} className="text-green-100 text-sm underline hover:text-white font-medium">
-            Due: {fmt((total?.zakatDue as number) || 0)} ↗
-          </button>
+          {(total?.zakatFullyPaid as boolean) ? (
+            <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">PAID {total?.currentLunarYear} AH ✓</span>
+          ) : (
+            <button onClick={() => setShowBreakdown(!showBreakdown)} className="text-green-100 text-sm underline hover:text-white font-medium">
+              {((total?.zakatPaid as number) || 0) > 0
+                ? `Remaining: ${fmt((total?.zakatRemaining as number) || 0)} (paid ${fmt((total?.zakatPaid as number) || 0)}) ↗`
+                : `Due: ${fmt((total?.zakatDue as number) || 0)} ↗`}
+            </button>
+          )}
         </div>
       </div>
 
