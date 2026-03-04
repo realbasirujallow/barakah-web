@@ -10,7 +10,15 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Unhandled error:', error);
+    // In production, send errors to your monitoring service (e.g. Sentry, PostHog).
+    // For now, log to console — replace with a proper error tracker when available.
+    if (process.env.NODE_ENV === 'production') {
+      // TODO: Replace with Sentry.captureException(error) or similar
+      // Avoid logging full stack traces in production console
+      console.error('Unhandled error:', error.message, error.digest ?? '');
+    } else {
+      console.error('Unhandled error:', error);
+    }
   }, [error]);
 
   return (

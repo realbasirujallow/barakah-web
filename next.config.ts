@@ -49,6 +49,11 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: csp,
   },
+  // HSTS: force HTTPS for 1 year, including subdomains
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=31536000; includeSubDomains",
+  },
   // Belt-and-suspenders clickjacking protection (respected by older browsers
   // that don't support frame-ancestors)
   {
