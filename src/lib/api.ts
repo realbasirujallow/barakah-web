@@ -465,9 +465,9 @@ export const api = {
   downloadTransactionsPdf: () =>
     apiDownload('/api/transactions/export/pdf', 'transactions.pdf'),
 
-  // Import (Monarch Money)
+  // Import (Monarch Money — Balances or Transactions CSV)
   monarchPreview: (file: File) =>
     apiUpload('/api/import/monarch/preview', file),
-  monarchExecute: (accounts: Record<string, unknown>[]) =>
-    apiFetch('/api/import/monarch/execute', { method: 'POST', body: JSON.stringify({ accounts }) }),
+  monarchExecute: (payload: Record<string, unknown>) =>
+    apiFetch('/api/import/monarch/execute', { method: 'POST', body: JSON.stringify(payload) }),
 };
