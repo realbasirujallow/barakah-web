@@ -210,7 +210,7 @@ export default function ImportPage() {
           generateTransactions,
         };
       }
-      const data = await api.monarchExecute(payload);
+      const data = await api.monarchExecuteChunked(payload);
       if (data.error) { setError(data.error); setImporting(false); return; }
       setResult(data as ImportResult);
       setStep('done');

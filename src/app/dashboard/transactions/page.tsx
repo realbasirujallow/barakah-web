@@ -21,6 +21,9 @@ export default function TransactionsPage() {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [selectMode, setSelectMode] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const pageSize = 20;
   const { toast } = useToast();
 
@@ -57,6 +60,43 @@ export default function TransactionsPage() {
     if (!confirm('Delete this transaction?')) return;
     await api.deleteTransaction(id).catch(() => toast('Failed to delete transaction', 'error'));
     load();
+  };
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === txs.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(txs.map(t => t.id)));
+    }
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} transaction${selectedIds.size > 1 ? 's' : ''}?`)) return;
+    setBulkDeleting(true);
+    try {
+      const result = await api.bulkDeleteTransactions(Array.from(selectedIds));
+      toast(`${result.deleted ?? selectedIds.size} transaction${(result.deleted ?? selectedIds.size) > 1 ? 's' : ''} deleted`, 'success');
+      exitSelectMode();
+      load();
+    } catch {
+      toast('Failed to delete transactions', 'error');
+    } finally {
+      setBulkDeleting(false);
+    }
   };
 
   const handleExportCsv = async () => {
@@ -122,6 +162,17 @@ export default function TransactionsPage() {
               <span className="animate-spin w-3 h-3 border-2 border-[#1B5E20] border-t-transparent rounded-full inline-block" />
             ) : '📄'} PDF
           </button>
+          {txs.length > 0 && (
+            selectMode ? (
+              <button onClick={exitSelectMode} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">
+                Cancel
+              </button>
+            ) : (
+              <button onClick={() => setSelectMode(true)} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">
+                Select
+              </button>
+            )
+          )}
           <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add</button>
         </div>
       </div>
@@ -145,19 +196,65 @@ export default function TransactionsPage() {
         {totalElements > 0 && <span className="ml-auto text-sm text-gray-500 self-center">{totalElements} total</span>}
       </div>
 
+      {/* Bulk-select action bar */}
+      {selectMode && (
+        <div className="flex items-center gap-3 mb-4 bg-white rounded-xl p-3 border border-gray-200">
+          <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={txs.length > 0 && selectedIds.size === txs.length}
+              onChange={toggleSelectAll}
+              className="w-4 h-4 accent-[#1B5E20] rounded"
+            />
+            Select all on page
+          </label>
+          <span className="text-sm text-gray-500">{selectedIds.size} selected</span>
+          <button
+            onClick={handleBulkDelete}
+            disabled={selectedIds.size === 0 || bulkDeleting}
+            className="ml-auto bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+          >
+            {bulkDeleting ? (
+              <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" />
+            ) : '🗑️'}
+            Delete {selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
+          </button>
+        </div>
+      )}
+
       {txs.length > 0 ? (
         <div className="space-y-2">
           {txs.map(tx => (
-            <div key={tx.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
-              <div>
-                <p className="font-semibold text-gray-900">{tx.description || tx.category}</p>
-                <p className="text-sm text-gray-500 capitalize">{tx.category} • {new Date(tx.timestamp).toLocaleDateString()}</p>
+            <div
+              key={tx.id}
+              onClick={selectMode ? () => toggleSelect(tx.id) : undefined}
+              className={`bg-white rounded-xl p-4 flex justify-between items-center transition ${selectMode ? 'cursor-pointer' : ''} ${
+                selectMode && selectedIds.has(tx.id) ? 'ring-2 ring-[#1B5E20] bg-green-50/30' : ''
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                {selectMode && (
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(tx.id)}
+                    onChange={() => toggleSelect(tx.id)}
+                    onClick={e => e.stopPropagation()}
+                    aria-label={`Select ${tx.description || tx.category}`}
+                    className="w-4 h-4 accent-[#1B5E20] rounded flex-shrink-0"
+                  />
+                )}
+                <div>
+                  <p className="font-semibold text-gray-900">{tx.description || tx.category}</p>
+                  <p className="text-sm text-gray-500 capitalize">{tx.category} • {new Date(tx.timestamp).toLocaleDateString()}</p>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <p className={`text-lg font-bold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                   {tx.type === 'income' ? '+' : '-'}{fmt(tx.amount)}
                 </p>
-                <button onClick={() => handleDelete(tx.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                {!selectMode && (
+                  <button onClick={() => handleDelete(tx.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                )}
               </div>
             </div>
           ))}
