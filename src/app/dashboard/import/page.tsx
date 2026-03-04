@@ -119,8 +119,6 @@ export default function ImportPage() {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [generateTransactions, setGenerateTransactions] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [rawBalanceRows, setRawBalanceRows] = useState<any[]>([]);
   const [deltaStats, setDeltaStats] = useState<DeltaStats>({
     derivedTransactionCount: 0, derivedIncomeCount: 0, derivedExpenseCount: 0,
     derivedTotalIncome: 0, derivedTotalExpense: 0,
@@ -162,7 +160,6 @@ export default function ImportPage() {
         }));
         setAccounts(parsed);
         setMeta({ totalAccounts: data.totalAccounts, totalRecords: data.totalRecords });
-        setRawBalanceRows(data.rawBalanceRows || []);
         setDeltaStats({
           derivedTransactionCount: data.derivedTransactionCount || 0,
           derivedIncomeCount: data.derivedIncomeCount || 0,
@@ -211,7 +208,6 @@ export default function ImportPage() {
             action: a.action, existingId: a.existingId,
           })),
           generateTransactions,
-          rawBalanceRows: generateTransactions ? rawBalanceRows : undefined,
         };
       }
       const data = await api.monarchExecute(payload);
@@ -244,7 +240,7 @@ export default function ImportPage() {
   const resetAll = () => {
     setStep('upload'); setCsvFormat('balances');
     setAccounts([]); setTransactions([]); setResult(null); setError('');
-    setGenerateTransactions(true); setRawBalanceRows([]);
+    setGenerateTransactions(true);
     setDeltaStats({ derivedTransactionCount: 0, derivedIncomeCount: 0, derivedExpenseCount: 0, derivedTotalIncome: 0, derivedTotalExpense: 0 });
   };
 
