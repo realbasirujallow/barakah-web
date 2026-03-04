@@ -80,7 +80,16 @@ interface BalancesResult {
   debtsCreated: number;
   debtsUpdated: number;
   investmentAccountsCreated: number;
+  transactionsCreated: number;
   errors?: string[];
+}
+
+interface DeltaStats {
+  derivedTransactionCount: number;
+  derivedIncomeCount: number;
+  derivedExpenseCount: number;
+  derivedTotalIncome: number;
+  derivedTotalExpense: number;
 }
 
 interface TransactionsResult {
@@ -109,6 +118,13 @@ export default function ImportPage() {
   });
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
+  const [generateTransactions, setGenerateTransactions] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [rawBalanceRows, setRawBalanceRows] = useState<any[]>([]);
+  const [deltaStats, setDeltaStats] = useState<DeltaStats>({
+    derivedTransactionCount: 0, derivedIncomeCount: 0, derivedExpenseCount: 0,
+    derivedTotalIncome: 0, derivedTotalExpense: 0,
+  });
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
@@ -146,6 +162,14 @@ export default function ImportPage() {
         }));
         setAccounts(parsed);
         setMeta({ totalAccounts: data.totalAccounts, totalRecords: data.totalRecords });
+        setRawBalanceRows(data.rawBalanceRows || []);
+        setDeltaStats({
+          derivedTransactionCount: data.derivedTransactionCount || 0,
+          derivedIncomeCount: data.derivedIncomeCount || 0,
+          derivedExpenseCount: data.derivedExpenseCount || 0,
+          derivedTotalIncome: data.derivedTotalIncome || 0,
+          derivedTotalExpense: data.derivedTotalExpense || 0,
+        });
       }
       setStep('preview');
     } catch (e: unknown) {
@@ -186,6 +210,8 @@ export default function ImportPage() {
             latestBalance: a.latestBalance, skip: a.skip,
             action: a.action, existingId: a.existingId,
           })),
+          generateTransactions,
+          rawBalanceRows: generateTransactions ? rawBalanceRows : undefined,
         };
       }
       const data = await api.monarchExecute(payload);
@@ -218,6 +244,8 @@ export default function ImportPage() {
   const resetAll = () => {
     setStep('upload'); setCsvFormat('balances');
     setAccounts([]); setTransactions([]); setResult(null); setError('');
+    setGenerateTransactions(true); setRawBalanceRows([]);
+    setDeltaStats({ derivedTransactionCount: 0, derivedIncomeCount: 0, derivedExpenseCount: 0, derivedTotalIncome: 0, derivedTotalExpense: 0 });
   };
 
   return (
@@ -272,6 +300,30 @@ export default function ImportPage() {
             <Stat label="Debts" value={String(debtCount)} color="text-red-600" />
             {updateCount > 0 && <Stat label="Updates" value={String(updateCount)} color="text-blue-600" />}
           </div>
+
+          {deltaStats.derivedTransactionCount > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={generateTransactions}
+                  onChange={() => setGenerateTransactions(prev => !prev)}
+                  className="accent-[#1B5E20] w-5 h-5"
+                />
+                <span className="text-sm font-medium text-amber-900">
+                  Also generate transactions from daily balance changes
+                </span>
+              </label>
+              {generateTransactions && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 ml-8">
+                  <Stat label="Transactions" value={deltaStats.derivedTransactionCount.toLocaleString()} />
+                  <Stat label="Income" value={String(deltaStats.derivedIncomeCount)} color="text-green-700" />
+                  <Stat label="Expenses" value={String(deltaStats.derivedExpenseCount)} color="text-red-600" />
+                  <Stat label="Net Flow" value={fmt(deltaStats.derivedTotalIncome - deltaStats.derivedTotalExpense)} color={deltaStats.derivedTotalIncome >= deltaStats.derivedTotalExpense ? 'text-green-700' : 'text-red-600'} />
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center gap-4 text-sm">
             <span className="text-gray-500">{activeCount} of {accounts.length} accounts selected</span>
@@ -433,7 +485,8 @@ export default function ImportPage() {
               {r.debtsCreated > 0 && <span className="text-red-600">{r.debtsCreated} debt{r.debtsCreated !== 1 ? 's' : ''} created</span>}
               {r.debtsUpdated > 0 && <span className="text-orange-600">{r.debtsUpdated} debt{r.debtsUpdated !== 1 ? 's' : ''} updated</span>}
               {r.investmentAccountsCreated > 0 && <span className="text-purple-600">{r.investmentAccountsCreated} investment account{r.investmentAccountsCreated !== 1 ? 's' : ''} created</span>}
-              {r.assetsCreated === 0 && r.assetsUpdated === 0 && r.debtsCreated === 0 && r.debtsUpdated === 0 && <span className="text-gray-500">No changes made</span>}
+              {r.transactionsCreated > 0 && <span className="text-indigo-600">{r.transactionsCreated} transaction{r.transactionsCreated !== 1 ? 's' : ''} generated</span>}
+              {r.assetsCreated === 0 && r.assetsUpdated === 0 && r.debtsCreated === 0 && r.debtsUpdated === 0 && r.transactionsCreated === 0 && <span className="text-gray-500">No changes made</span>}
             </div>
           ); })()}
 
@@ -461,6 +514,9 @@ export default function ImportPage() {
                 <a href="/dashboard/debts" className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-50">View Debts</a>
                 {(result as BalancesResult).investmentAccountsCreated > 0 && (
                   <a href="/dashboard/investments" className="px-5 py-2.5 border border-purple-300 rounded-lg text-purple-700 hover:bg-purple-50">View Investments</a>
+                )}
+                {(result as BalancesResult).transactionsCreated > 0 && (
+                  <a href="/dashboard/transactions" className="px-5 py-2.5 border border-indigo-300 rounded-lg text-indigo-700 hover:bg-indigo-50">View Transactions</a>
                 )}
               </>
             )}
