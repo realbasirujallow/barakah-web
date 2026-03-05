@@ -2,7 +2,17 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 
-const CURRENT_LUNAR_YEAR = 1446; // Update yearly
+/** Compute current Hijri year from today's date using the same formula as the backend. */
+function computeHijriYear(): number {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now.getTime() - start.getTime();
+  const dayOfYear = Math.floor(diff / 86400000);
+  const isLeap = (now.getFullYear() % 4 === 0 && now.getFullYear() % 100 !== 0) || now.getFullYear() % 400 === 0;
+  const yearFraction = (dayOfYear - 1) / (isLeap ? 366 : 365);
+  const gregorianDecimal = now.getFullYear() + yearFraction;
+  return Math.floor((gregorianDecimal - 621.5) * (365.25 / 354.367));
+}
 
 export default function ZakatPage() {
   const [data, setData] = useState<Record<string, unknown> | null>(null);
@@ -14,17 +24,36 @@ export default function ZakatPage() {
   const [saving, setSaving] = useState(false);
   const [showMabrook, setShowMabrook] = useState(false);
   const [form, setForm] = useState({ amount: '', recipient: '', notes: '' });
+  const [hideZakat, setHideZakat] = useState(false);
+
+  // Use the lunar year from the API if available; fall back to JS-computed value
+  const lunarYear: number = (data?.currentLunarYear as number) || computeHijriYear();
+
+  useEffect(() => {
+    setHideZakat(localStorage.getItem('hideZakat') === 'true');
+  }, []);
+
+  const toggleHideZakat = () => {
+    const next = !hideZakat;
+    setHideZakat(next);
+    localStorage.setItem('hideZakat', next ? 'true' : 'false');
+  };
 
   const load = async () => {
     setLoading(true);
     try {
       const [zakatData, paymentsData] = await Promise.all([
         api.getZakat(),
-        api.getZakatPayments(CURRENT_LUNAR_YEAR),
+        api.getZakatPayments(), // load all years; filter by lunarYear after we know it
       ]);
       setData(zakatData);
-      setPayments(paymentsData?.payments || []);
-      setTotalPaid(paymentsData?.totalPaid || 0);
+      // Filter payments to current lunar year (use API year once we have it)
+      const year = (zakatData?.currentLunarYear as number) || computeHijriYear();
+      const filtered = (paymentsData?.payments || []).filter(
+        (p: Record<string, unknown>) => !p.lunarYear || p.lunarYear === year
+      );
+      setPayments(filtered);
+      setTotalPaid(filtered.reduce((s: number, p: Record<string, unknown>) => s + (p.amount as number || 0), 0));
     } catch (err) {
       console.error(err);
     }
@@ -49,12 +78,11 @@ export default function ZakatPage() {
         amount,
         recipient: form.recipient || undefined,
         notes: form.notes || undefined,
-        lunarYear: CURRENT_LUNAR_YEAR,
+        lunarYear,
       });
       setForm({ amount: '', recipient: '', notes: '' });
       setShowForm(false);
       await load();
-      // Check if fulfilled after reload
       const newTotalPaid = totalPaid + amount;
       if (zakatEligible && newTotalPaid >= zakatDue) {
         setShowMabrook(true);
@@ -74,10 +102,21 @@ export default function ZakatPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Zakat Calculator</h1>
-        <div className="flex bg-gray-100 rounded-lg p-1">
-          <button onClick={() => setTab('calculator')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'calculator' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Calculator</button>
-          <button onClick={() => setTab('payments')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'payments' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Payments</button>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-[#1B5E20]">Zakat Calculator</h1>
+          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{lunarYear} AH</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleHideZakat}
+            className="text-sm text-gray-500 hover:text-gray-700 underline"
+          >
+            {hideZakat ? 'Show' : 'Hide'}
+          </button>
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button onClick={() => setTab('calculator')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'calculator' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Calculator</button>
+            <button onClick={() => setTab('payments')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'payments' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Payments</button>
+          </div>
         </div>
       </div>
 
@@ -87,11 +126,13 @@ export default function ZakatPage() {
           <div className={`rounded-2xl p-8 text-white mb-6 text-center ${fulfilled ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gradient-to-r from-amber-600 to-yellow-500'}`}>
             <p className="text-4xl mb-2">{fulfilled ? '🌟' : zakatEligible ? '✅' : 'ℹ️'}</p>
             <p className="text-amber-100 mb-2">{fulfilled ? 'Zakat Fulfilled!' : 'Zakat Due (2.5%)'}</p>
-            <p className="text-5xl font-bold">{fmt(zakatDue)}</p>
+            <p className="text-5xl font-bold">
+              {hideZakat ? '••••••' : fmt(zakatDue)}
+            </p>
             <p className="text-amber-200 mt-4 text-sm">
               {fulfilled ? 'Mabrook! May Allah accept your Zakat. تقبل الله منك' : zakatEligible ? 'Your wealth exceeds Nisab — Zakat is obligatory' : 'Your wealth is below Nisab threshold'}
             </p>
-            {totalPaid > 0 && zakatDue > 0 && (
+            {totalPaid > 0 && zakatDue > 0 && !hideZakat && (
               <div className="mt-4 max-w-md mx-auto">
                 <div className="w-full bg-white/20 rounded-full h-3">
                   <div className={`h-3 rounded-full transition-all ${fulfilled ? 'bg-blue-300' : 'bg-white'}`} style={{ width: `${fulfillmentPct * 100}%` }} />
@@ -106,7 +147,9 @@ export default function ZakatPage() {
           <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-white rounded-xl p-5">
               <p className="text-gray-500 text-sm">Total Wealth</p>
-              <p className="text-2xl font-bold text-[#1B5E20]">{fmt((data?.totalWealth as number) || 0)}</p>
+              <p className="text-2xl font-bold text-[#1B5E20]">
+                {hideZakat ? '••••••' : fmt((data?.totalWealth as number) || 0)}
+              </p>
             </div>
             <div className="bg-white rounded-xl p-5">
               <p className="text-gray-500 text-sm">Nisab Threshold</p>
@@ -123,18 +166,27 @@ export default function ZakatPage() {
         <>
           {/* Payment Progress Summary */}
           <div className={`rounded-2xl p-6 text-white mb-6 ${fulfilled ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gradient-to-r from-[#1B5E20] to-[#2E7D32]'}`}>
-            <p className="text-lg font-bold mb-4">{fulfilled ? '🌟 Zakat Fulfilled' : '📊 Zakat Progress'} — {CURRENT_LUNAR_YEAR} AH</p>
+            <p className="text-lg font-bold mb-4">{fulfilled ? '🌟 Zakat Fulfilled' : '📊 Zakat Progress'} — {lunarYear} AH</p>
             <div className="grid grid-cols-3 gap-4 text-center">
-              <div><p className="text-2xl font-bold">{fmt(zakatDue)}</p><p className="text-white/60 text-xs">Due</p></div>
-              <div><p className="text-2xl font-bold text-amber-300">{fmt(totalPaid)}</p><p className="text-white/60 text-xs">Paid</p></div>
-              <div><p className="text-2xl font-bold text-white/70">{fmt(remaining)}</p><p className="text-white/60 text-xs">Remaining</p></div>
+              <div>
+                <p className="text-2xl font-bold">{hideZakat ? '••••' : fmt(zakatDue)}</p>
+                <p className="text-white/60 text-xs">Due</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-amber-300">{hideZakat ? '••••' : fmt(totalPaid)}</p>
+                <p className="text-white/60 text-xs">Paid</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-white/70">{hideZakat ? '••••' : fmt(remaining)}</p>
+                <p className="text-white/60 text-xs">Remaining</p>
+              </div>
             </div>
-            {zakatDue > 0 && (
+            {zakatDue > 0 && !hideZakat && (
               <div className="mt-4">
                 <div className="w-full bg-white/20 rounded-full h-3">
                   <div className={`h-3 rounded-full ${fulfilled ? 'bg-blue-300' : 'bg-amber-400'}`} style={{ width: `${fulfillmentPct * 100}%` }} />
                 </div>
-                <p className="text-white/60 text-xs mt-2 text-center">{(fulfillmentPct * 100).toFixed(0)}% of zakat paid for {CURRENT_LUNAR_YEAR} AH</p>
+                <p className="text-white/60 text-xs mt-2 text-center">{(fulfillmentPct * 100).toFixed(0)}% of zakat paid for {lunarYear} AH</p>
               </div>
             )}
           </div>
@@ -148,7 +200,7 @@ export default function ZakatPage() {
           {payments.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
               <p className="text-4xl mb-3">🕌</p>
-              <p>No payments recorded for {CURRENT_LUNAR_YEAR} AH</p>
+              <p>No payments recorded for {lunarYear} AH</p>
               <p className="text-sm mt-1">Tap &quot;Record Payment&quot; to log your Zakat</p>
             </div>
           ) : (
@@ -160,7 +212,7 @@ export default function ZakatPage() {
                   <div key={p.id as number} className="bg-white rounded-xl p-4 flex items-center gap-4">
                     <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center text-xl">🕌</div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-[#1B5E20]">{fmt(p.amount as number)}</p>
+                      <p className="font-bold text-[#1B5E20]">{hideZakat ? '••••' : fmt(p.amount as number)}</p>
                       {p.recipient ? <p className="text-gray-500 text-sm truncate">{String(p.recipient)}</p> : null}
                       {p.notes ? <p className="text-gray-400 text-xs truncate">{String(p.notes)}</p> : null}
                       <p className="text-gray-400 text-xs">{date.toLocaleDateString()}</p>
@@ -180,7 +232,7 @@ export default function ZakatPage() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Record Zakat Payment</h2>
+            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Record Zakat Payment — {lunarYear} AH</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Amount (USD)</label>
@@ -210,7 +262,7 @@ export default function ZakatPage() {
             <p className="text-6xl mb-4">🌟</p>
             <h2 className="text-2xl font-bold text-[#1B5E20] mb-2">Mabrook!</h2>
             <p className="text-xl text-amber-600 font-bold mb-4">مبروك</p>
-            <p className="text-gray-600 mb-2">You have fulfilled your Zakat obligation for {CURRENT_LUNAR_YEAR} AH. May Allah accept it from you and bless your wealth.</p>
+            <p className="text-gray-600 mb-2">You have fulfilled your Zakat obligation for {lunarYear} AH. May Allah accept it from you and bless your wealth.</p>
             <p className="text-gray-400 italic mb-6">تقبل الله منك</p>
             <button onClick={() => setShowMabrook(false)} className="w-full bg-[#1B5E20] text-white rounded-lg py-3 hover:bg-[#2E7D32] font-medium">Jazakallah Khayran</button>
           </div>
