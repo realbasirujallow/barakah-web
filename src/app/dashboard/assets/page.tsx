@@ -52,6 +52,8 @@ const RETIREMENT_TYPES = ["401k","retirement_401k","ira","roth_ira","pension","r
 const EDUCATION_TYPES = ["529","529_plan","education_savings"];
 const PENALTY_TAX_TYPES = [...RETIREMENT_TYPES, ...EDUCATION_TYPES];
 const IRA_TYPES = ["ira"];
+// Investment types: show capital gains tax rate field only (no early withdrawal penalty)
+const INVESTMENT_TYPES = ["stock","individual_brokerage","crypto","etf"];
 const ADDRESS_TYPES = ["primary_home","investment_property","investment_property_resale","rental_property","business"];
 
 const EMPTY_FORM: AssetFormState = { name: '', type: 'cash', value: '', penaltyRate: '', taxRate: '', address: '' };
@@ -124,6 +126,11 @@ export default function AssetsPage() {
       if (PENALTY_TAX_TYPES.includes(form.type)) {
         if (form.penaltyRate) data.penaltyRate = parseFloat(form.penaltyRate) / 100;
         if (form.taxRate) data.taxRate = parseFloat(form.taxRate) / 100;
+      }
+      // Investment types: only capital gains tax (no penalty)
+      if (INVESTMENT_TYPES.includes(form.type)) {
+        // Send 0 explicitly if blank (resets to default full-value zakat), or user-set rate
+        data.taxRate = form.taxRate ? parseFloat(form.taxRate) / 100 : 0;
       }
       let result;
       if (editItem) result = await api.updateAsset(editItem.id, data);
@@ -325,34 +332,50 @@ export default function AssetsPage() {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {IRA_TYPES.includes(form.type) || EDUCATION_TYPES.includes(form.type) ? 'Early Withdrawal Penalty (%)' : 'Penalty Rate (%)'}
+                      Early Withdrawal Penalty (%)
                     </label>
                     <input type="number" step="0.1" min="0" max="100" value={form.penaltyRate}
                       onChange={e => setForm({ ...form, penaltyRate: e.target.value })}
                       className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                      placeholder={IRA_TYPES.includes(form.type) || EDUCATION_TYPES.includes(form.type) ? '0' : '10'} />
+                      placeholder={EDUCATION_TYPES.includes(form.type) || IRA_TYPES.includes(form.type) ? '0' : '10'} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {IRA_TYPES.includes(form.type) || EDUCATION_TYPES.includes(form.type) ? 'Tax Rate (%)' : 'Tax Rate (%)'}
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
                     <input type="number" step="0.1" min="0" max="100" value={form.taxRate}
                       onChange={e => setForm({ ...form, taxRate: e.target.value })}
                       className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                      placeholder={IRA_TYPES.includes(form.type) || EDUCATION_TYPES.includes(form.type) ? '0' : '25'} />
+                      placeholder={EDUCATION_TYPES.includes(form.type) || IRA_TYPES.includes(form.type) ? '0' : '25'} />
                   </div>
                   {EDUCATION_TYPES.includes(form.type) ? (
                     <p className="text-xs text-gray-500">
-                      529 education accounts: qualified withdrawals are tax-free &amp; penalty-free. Fully zakatable by default (0% penalty, 0% tax).
+                      529 plans: <strong>qualified</strong> withdrawals (for education) are tax-free &amp; penalty-free — leave both at 0%.
+                      For <strong>non-qualified</strong> withdrawals, set 10% penalty + your income tax rate to zakat only on what you'd actually keep.
                     </p>
                   ) : IRA_TYPES.includes(form.type) ? (
                     <p className="text-xs text-gray-500">
-                      IRAs are tax-exempt by default (0% penalty, 0% tax). If your state charges income tax, add your state tax rate above.
+                      IRAs are tax-exempt by default (0% penalty, 0% tax). If your state charges income tax, add your state rate above.
                       States like TX, FL, NV, WA, WY, SD, AK, TN, NH have no state income tax.
                     </p>
                   ) : (
-                    <p className="text-xs text-gray-500">Defaults: 10% penalty, 22% federal tax + state tax. Adjust if your state or plan is different.</p>
+                    <p className="text-xs text-gray-500">Defaults: 10% penalty + 22% federal tax + state tax. Adjust if your state or plan differs.</p>
                   )}
+                </>
+              )}
+
+              {INVESTMENT_TYPES.includes(form.type) && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Capital Gains Tax Rate (%)</label>
+                    <input type="number" step="0.1" min="0" max="100" value={form.taxRate}
+                      onChange={e => setForm({ ...form, taxRate: e.target.value })}
+                      className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                      placeholder="0" />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    <strong>Optional:</strong> Set your estimated capital gains tax rate to zakat only on what you&apos;d keep after selling.
+                    Common rates: <strong>15%</strong> long-term, <strong>22–37%</strong> short-term (depends on income).
+                    Leave at 0% to zakat on the full market value (default — some scholars prefer this).
+                  </p>
                 </>
               )}
             </div>
