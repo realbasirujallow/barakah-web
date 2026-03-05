@@ -15,6 +15,7 @@ export default function SavingsPage() {
   const [form, setForm] = useState({ name: '', category: 'emergency', targetAmount: '', description: '' });
   const [contAmount, setContAmount] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showHajjPrompt, setShowHajjPrompt] = useState(true);
   const { toast } = useToast();
 
   const load = () => {
@@ -71,6 +72,26 @@ export default function SavingsPage() {
           </div>
         )}
       </div>
+
+      {/* Hajj Savings Prompt */}
+      {showHajjPrompt && !goals.some(g => g.category === 'hajj') && (
+        <div className="bg-gradient-to-r from-amber-600 to-yellow-500 rounded-2xl p-5 text-white mb-6 relative">
+          <button onClick={() => setShowHajjPrompt(false)} className="absolute top-3 right-3 text-white/70 hover:text-white text-lg leading-none">✕</button>
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-3xl">🕋</span>
+            <div>
+              <p className="font-bold text-lg">Save for Hajj</p>
+              <p className="text-amber-100 text-sm">Hajj is obligatory once in a lifetime for those who are able. Start saving today.</p>
+            </div>
+          </div>
+          <button onClick={() => {
+            setForm({ name: 'Hajj Savings', category: 'hajj', targetAmount: '10000', description: 'Saving for the obligatory pilgrimage to Makkah — may Allah accept it.' });
+            setShowForm(true);
+          }} className="bg-white text-amber-700 font-bold px-4 py-2 rounded-lg text-sm hover:bg-amber-50 transition">
+            🕋 Start Hajj Savings Goal
+          </button>
+        </div>
+      )}
 
       {goals.length > 0 ? (
         <div className="space-y-3">

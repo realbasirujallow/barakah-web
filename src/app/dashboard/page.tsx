@@ -5,11 +5,20 @@ import { fmt } from '../../lib/format';
 import { useToast } from '../../lib/toast';
 import Link from 'next/link';
 
+/** Returns true if today is in Ramadan (Hijri month 9). Approximate — within ~1 day. */
+function isRamadan(): boolean {
+  const jd = Math.floor(Date.now() / 86400000) + 2440587;
+  const z = jd - 1948439;
+  const hijriMonth = Math.floor(((z % 10631) % 354.367) / 29.5) + 1;
+  return hijriMonth === 9;
+}
+
 export default function DashboardPage() {
   const [totals, setTotals] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [hideNetWorth, setHideNetWorth] = useState(false);
   const { toast } = useToast();
+  const ramadan = isRamadan();
 
   useEffect(() => {
     setHideNetWorth(localStorage.getItem('hideNetWorth') === 'true');
@@ -38,10 +47,31 @@ export default function DashboardPage() {
     { href: '/dashboard/waqf', icon: '🏛️', label: 'Waqf', desc: 'Endowment tracker' },
     { href: '/dashboard/riba', icon: '🛡️', label: 'Riba Detector', desc: 'Scan for interest' },
     { href: '/dashboard/categorize', icon: '🔄', label: 'Auto-Categorize', desc: 'Smart categories' },
+    { href: '/dashboard/barakah-score', icon: '⭐', label: 'Barakah Score', desc: 'Islamic finance health' },
+    { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times', desc: 'Daily salah schedule' },
+    { href: '/dashboard/notifications', icon: '🔔', label: 'Reminders', desc: 'Bills, Zakat & Hawl alerts' },
   ];
 
   return (
     <div>
+      {/* Ramadan Banner */}
+      {ramadan && (
+        <div className="bg-gradient-to-r from-purple-700 to-indigo-600 rounded-2xl p-5 text-white mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-3xl">🌙</span>
+            <div>
+              <p className="font-bold text-lg">Ramadan Mubarak!</p>
+              <p className="text-purple-200 text-sm">May this blessed month bring you barakah and acceptance.</p>
+            </div>
+          </div>
+          <div className="flex gap-3 flex-wrap mt-3">
+            <a href="/dashboard/sadaqah" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition">🤲 Track Sadaqah</a>
+            <a href="/dashboard/zakat" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition">🕌 Pay Zakat</a>
+            <a href="/dashboard/prayer-times" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition">🕌 Prayer Times</a>
+          </div>
+        </div>
+      )}
+
       {/* Summary cards */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         <div className="bg-gradient-to-br from-[#1B5E20] to-green-600 rounded-2xl p-6 text-white relative">
