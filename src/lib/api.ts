@@ -406,6 +406,7 @@ export const api = {
       apiFetch('/api/zakat/payments', { method: 'POST', body: JSON.stringify(data) }),
     deleteZakatPayment: (id: number) =>
       apiFetch(`/api/zakat/payments/${id}`, { method: 'DELETE' }),
+  getNisabInfo: () => apiFetch("/api/zakat/info"),
   calculateZakat: (data: Record<string, unknown>) =>
     apiFetch('/api/zakat/calculate', { method: 'POST', body: JSON.stringify(data) }),
 

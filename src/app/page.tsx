@@ -8,14 +8,18 @@ import Link from 'next/link';
 // ── Data ────────────────────────────────────────────────────────────────────
 
 const features = [
-  { icon: '🕌', title: 'Zakat Calculator', desc: 'AMJA-compliant nisab (85g gold), Hawl tracker, and auto-categorized asset breakdown.' },
+  { icon: '🕌', title: 'Zakat Calculator', desc: 'AMJA-compliant nisab (85g gold, live price), Hawl tracker, and auto-categorized asset breakdown.' },
   { icon: '🛡️', title: 'Riba Detector', desc: 'Scan transactions to flag interest-bearing activity and stay halal.' },
   { icon: '✅', title: 'Halal Screener', desc: 'Screen stocks and investments for Shariah compliance before you invest.' },
   { icon: '📊', title: 'Budgets & Analytics', desc: 'Track spending by category and see where every dollar goes at a glance.' },
   { icon: '💎', title: 'Net Worth Tracker', desc: 'Real-time net worth with assets, debts, and investments in one place.' },
   { icon: '🤲', title: 'Sadaqah & Waqf', desc: 'Log charitable giving and endowments alongside everyday finances.' },
-  { icon: '📜', title: 'Wasiyyah Planning', desc: 'Record Islamic will directives and keep them updated over time.' },
-  { icon: '🎯', title: 'Savings Goals', desc: 'Set goals for Hajj, emergency funds, or anything else and track progress.' },
+  { icon: '📜', title: 'Wasiyyah & Obligations', desc: 'Record your Islamic will, beneficiaries, and outstanding obligations (Zakat, Kaffarah, loans) for your family.' },
+  { icon: '🎯', title: 'Savings Goals', desc: 'Set goals for Hajj, emergency funds, or anything else — with an automatic Hajj savings template.' },
+  { icon: '⭐', title: 'Barakah Score', desc: 'Your Islamic financial health score (0–100) across Zakat, Riba-free living, Sadaqah, Hawl, and debt.' },
+  { icon: '🕌', title: 'Prayer Times', desc: 'Daily salah schedule for any city worldwide, with next prayer countdown — built in.' },
+  { icon: '🔔', title: 'Smart Reminders', desc: 'Bill due alerts, Hawl anniversaries, Zakat nisab threshold alerts, and savings milestones.' },
+  { icon: '👥', title: 'Shared Family Finances', desc: 'Family plan lets up to 5 members track shared expenses, group transactions, and family Zakat.' },
 ];
 
 const plans = [
@@ -28,8 +32,9 @@ const plans = [
     badge: null,
     features: [
       'Up to 100 transactions/month',
-      'Zakat calculator',
+      'Zakat calculator (live nisab)',
       'Hawl tracker',
+      'Prayer times (any city)',
       'Basic budgeting (3 categories)',
       '1 savings goal',
       'Mobile app',
@@ -62,6 +67,9 @@ const plans = [
       'Auto-categorize',
       'Investments & net worth',
       'Wasiyyah & Waqf planning',
+      'Barakah Score & analytics',
+      'Prayer times (any city)',
+      'Smart Islamic reminders',
       'Export CSV/PDF',
       'Unlimited savings goals & budgets',
     ],
@@ -92,16 +100,20 @@ const plans = [
 
 // Comparison: rows = features, cols = [Barakah, YNAB, Mint/Copilot, Zoya]
 const comparisonRows = [
-  { feature: 'Budgeting & analytics',   b: true,  ynab: true,  mint: true,  zoya: false },
-  { feature: 'Zakat calculator',         b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Halal stock screener',     b: true,  ynab: false, mint: false, zoya: true  },
-  { feature: 'Riba detector',            b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Net worth tracking',       b: true,  ynab: false, mint: true,  zoya: false },
-  { feature: 'Investment tracking',      b: true,  ynab: false, mint: true,  zoya: true  },
-  { feature: 'Sadaqah & Waqf logging',  b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Wasiyyah planning',        b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Shared family finances',   b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Mobile app',              b: true,  ynab: true,  mint: true,  zoya: true  },
+  { feature: 'Budgeting & analytics',         b: true,  ynab: true,  mint: true,  zoya: false },
+  { feature: 'Zakat calculator (live nisab)', b: true,  ynab: false, mint: false, zoya: false },
+  { feature: 'Hawl lunar year tracker',       b: true,  ynab: false, mint: false, zoya: false },
+  { feature: 'Halal stock screener',          b: true,  ynab: false, mint: false, zoya: true  },
+  { feature: 'Riba detector',                 b: true,  ynab: false, mint: false, zoya: false },
+  { feature: 'Net worth tracking',            b: true,  ynab: false, mint: true,  zoya: false },
+  { feature: 'Investment tracking',           b: true,  ynab: false, mint: true,  zoya: true  },
+  { feature: 'Sadaqah & Waqf logging',       b: true,  ynab: false, mint: false, zoya: false },
+  { feature: 'Wasiyyah & estate obligations', b: true,  ynab: false, mint: false, zoya: false },
+  { feature: 'Barakah Score',                 b: true,  ynab: false, mint: false, zoya: false },
+  { feature: 'Prayer times built-in',         b: true,  ynab: false, mint: false, zoya: false },
+  { feature: 'Smart Islamic reminders',       b: true,  ynab: false, mint: false, zoya: false },
+  { feature: 'Shared family finances',        b: true,  ynab: false, mint: false, zoya: false },
+  { feature: 'Mobile app',                    b: true,  ynab: true,  mint: true,  zoya: true  },
   { feature: 'Starting price',
     bText: 'Free',   ynabText: '$14.99/mo', mintText: 'Free*', zoyaText: 'Free' },
 ];
@@ -156,7 +168,7 @@ export default function Home() {
           Halal Money Management,<br className="hidden sm:block" /> Made Simple
         </h1>
         <p className="text-gray-600 text-lg max-w-xl mx-auto mb-8">
-          Barakah brings your entire financial life together — budgets, zakat, investments, and Islamic giving — in one clean, Shariah-aware dashboard.
+          Barakah brings your entire financial life together — budgets, Zakat, investments, Barakah Score, and Islamic giving — in one clean, Shariah-aware dashboard.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold text-base hover:bg-[#2E7D32] transition shadow">
@@ -216,7 +228,14 @@ export default function Home() {
               <p className="text-4xl mb-3">📜</p>
               <h3 className="font-bold text-gray-900 mb-2">Sadaqah, Waqf & Wasiyyah</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Track your charitable giving, endowments, and Islamic will in the same place as your budget. No other finance app covers all three.
+                Track your charitable giving, endowments, and Islamic will — including estate obligations like unpaid Zakat. No other finance app covers all three.
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 text-center mt-6 md:mt-0 md:col-start-2">
+              <p className="text-4xl mb-3">⭐</p>
+              <h3 className="font-bold text-gray-900 mb-2">Barakah Score</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Your Islamic financial health at a glance — scored across Zakat, riba-free living, Sadaqah, Hawl, and halal debt. Improve your score, improve your deen.
               </p>
             </div>
           </div>
@@ -224,7 +243,7 @@ export default function Home() {
           {/* Ranked stats */}
           <div className="mt-10 bg-[#1B5E20] rounded-2xl p-8 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-white">
             <div>
-              <p className="text-4xl font-extrabold mb-1">20+</p>
+              <p className="text-4xl font-extrabold mb-1">30+</p>
               <p className="text-green-200 text-sm">Islamic finance features — more than any other app</p>
             </div>
             <div>
@@ -326,7 +345,7 @@ export default function Home() {
               </table>
             </div>
             <p className="px-5 py-3 text-xs text-gray-400 border-t">
-              * Mint discontinued Jan 2024; Copilot is US-only at $8.99/mo. Data based on publicly available feature sets as of 2025.
+              * Mint discontinued Jan 2024; Copilot is US-only at $8.99/mo. Data based on publicly available feature sets as of March 2026.
             </p>
           </div>
         </div>

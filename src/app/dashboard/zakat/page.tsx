@@ -25,6 +25,7 @@ export default function ZakatPage() {
   const [showMabrook, setShowMabrook] = useState(false);
   const [form, setForm] = useState({ amount: '', recipient: '', notes: '' });
   const [hideZakat, setHideZakat] = useState(false);
+  const [nisabInfo, setNisabInfo] = useState<Record<string, unknown> | null>(null);
 
   // Use the lunar year from the API if available; fall back to JS-computed value
   const lunarYear: number = (data?.currentLunarYear as number) || computeHijriYear();
@@ -42,11 +43,13 @@ export default function ZakatPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const [zakatData, paymentsData] = await Promise.all([
+      const [zakatData, paymentsData, nisabData] = await Promise.all([
         api.getZakat(),
         api.getZakatPayments(), // load all years; filter by lunarYear after we know it
+        api.getNisabInfo().catch(() => null),  // non-critical — live gold price display
       ]);
       setData(zakatData);
+      if (nisabData) setNisabInfo(nisabData);
       // Filter payments to current lunar year (use API year once we have it)
       const year = (zakatData?.currentLunarYear as number) || computeHijriYear();
       const filtered = (paymentsData?.payments || []).filter(
@@ -152,13 +155,24 @@ export default function ZakatPage() {
               </p>
             </div>
             <div className="bg-white rounded-xl p-5">
-              <p className="text-gray-500 text-sm">Nisab Threshold</p>
-              <p className="text-2xl font-bold text-amber-600">{fmt((data?.nisab as number) || 5686.20)}</p>
+              <p className="text-gray-500 text-sm flex items-center gap-1">
+                Nisab Threshold
+                <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" title="Live gold price" />
+              </p>
+              <p className="text-2xl font-bold text-amber-600">
+                {data?.nisab ? fmt(data.nisab as number) : '—'}
+              </p>
+              {nisabInfo?.goldPricePerGram && (
+                <p className="text-xs text-gray-400 mt-1">
+                  Gold: ${(nisabInfo.goldPricePerGram as number).toFixed(2)}/g · 85g standard · refreshed hourly
+                </p>
+              )}
             </div>
           </div>
 
           <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
             <strong>Reminder:</strong> Zakat is 2.5% of wealth held for one Islamic lunar year (Hawl) above the Nisab threshold.
+            The Nisab is based on the live gold price (85g, AMJA standard) and updates hourly — small changes are normal.
             Use the Hawl Tracker to track when each asset becomes eligible.
           </div>
         </>
