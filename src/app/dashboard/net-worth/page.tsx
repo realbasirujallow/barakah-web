@@ -156,6 +156,13 @@ export default function NetWorthPage() {
         ))}
       </div>
 
+      {/* How net worth is calculated */}
+      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-sm text-blue-800">
+        <p className="font-semibold mb-1">📌 How net worth is calculated</p>
+        <p>Net Worth = <span className="font-medium">Assets</span> + <span className="font-medium">Savings Goals</span> − <span className="font-medium">Active Debts</span></p>
+        <p className="mt-1 text-blue-700">Importing Monarch <em>transactions</em> does not update this figure. To reflect your account balances, go to <a href="/dashboard/import" className="underline font-medium">Import</a> and upload your Monarch <em>Balances</em> CSV — positive accounts map to Assets, negative (credit cards / loans) map to Debts automatically.</p>
+      </div>
+
       {/* Breakdown card */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
         <h2 className="font-bold text-[#1B5E20] mb-4">Breakdown</h2>
@@ -165,21 +172,21 @@ export default function NetWorthPage() {
               <span className="w-3 h-3 rounded-full bg-green-500 inline-block" />
               <span className="text-gray-600">Assets</span>
             </div>
-            <span className="font-semibold">{fmt(totalAssets)}</span>
+            <span className="font-semibold text-green-700">+ {fmt(totalAssets)}</span>
           </div>
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-blue-500 inline-block" />
               <span className="text-gray-600">Savings Goals</span>
             </div>
-            <span className="font-semibold">{fmt(totalSavings)}</span>
+            <span className="font-semibold text-blue-700">+ {fmt(totalSavings)}</span>
           </div>
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-red-500 inline-block" />
-              <span className="text-gray-600">Debts</span>
+              <span className="text-gray-600">Active Debts</span>
             </div>
-            <span className="font-semibold">{fmt(totalDebts)}</span>
+            <span className="font-semibold text-red-600">− {fmt(totalDebts)}</span>
           </div>
           <hr />
           <div className="flex justify-between items-center">
