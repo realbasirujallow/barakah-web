@@ -465,6 +465,11 @@ export const api = {
   deleteAccount: (password: string) =>
     apiFetch('/auth/delete-account', { method: 'DELETE', body: JSON.stringify({ password }) }),
 
+  // Admin
+  getAdminUserCount: () => apiFetch('/admin/user-count'),
+  getAdminUsers: (page = 0, size = 50) =>
+    apiFetch(`/admin/active-users?page=${page}&size=${size}`),
+
   // Exports
   downloadTransactionsCsv: () =>
     apiDownload('/api/transactions/export/csv', 'transactions.csv'),

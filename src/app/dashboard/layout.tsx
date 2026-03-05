@@ -28,6 +28,7 @@ const navItems = [
   { href: '/dashboard/halal', icon: '✅', label: 'Halal Screener' },
   { href: '/dashboard/import', icon: '📥', label: 'Import Data' },
   { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
+  { href: '/dashboard/admin', icon: '🛠️', label: 'Admin' },
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {

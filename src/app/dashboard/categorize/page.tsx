@@ -19,6 +19,7 @@ export default function CategorizePage() {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [minConfidence, setMinConfidence] = useState(60);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export default function CategorizePage() {
   const handleApply = async () => {
     setApplying(true);
     try {
-      await api.applyCategories(60);
+      await api.applyCategories(minConfidence);
       setApplied(true);
       const updated = await api.reviewCategories();
       setSuggestions(updated?.transactions || []);
@@ -51,26 +52,47 @@ export default function CategorizePage() {
       <h1 className="text-2xl font-bold text-[#1B5E20] mb-6">Auto-Categorize</h1>
 
       <div className="bg-gradient-to-r from-indigo-600 to-purple-500 rounded-2xl p-8 text-white mb-6">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start gap-4">
           <div>
             <p className="text-indigo-200 mb-1">Transactions Scanned</p>
             <p className="text-4xl font-bold">{suggestions.length}</p>
-            <p className="text-indigo-200 text-sm mt-1">{changeable.length} can be auto-categorized</p>
+            <p className="text-indigo-200 text-sm mt-1">
+              {suggestions.filter(s => s.wouldChange && s.confidence >= minConfidence).length} will be auto-categorized at {minConfidence}%+ confidence
+            </p>
           </div>
-          {changeable.length > 0 && !applied && (
-            <button
-              onClick={handleApply}
-              disabled={applying}
-              className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-semibold hover:bg-indigo-50 disabled:opacity-50"
-            >
-              {applying ? 'Applying...' : `Apply ${changeable.length} Changes`}
-            </button>
-          )}
-          {applied && (
-            <span className="bg-green-100 text-green-700 px-4 py-2 rounded-xl font-medium">
-              ✅ Applied!
-            </span>
-          )}
+          <div className="flex flex-col items-end gap-3">
+            {!applied && (
+              <div className="bg-white/10 rounded-xl p-3 text-sm min-w-[200px]">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-indigo-100 text-xs">Min confidence</span>
+                  <span className="font-bold text-white">{minConfidence}%</span>
+                </div>
+                <input
+                  type="range" min={50} max={95} step={5}
+                  value={minConfidence}
+                  onChange={e => { setMinConfidence(Number(e.target.value)); setApplied(false); }}
+                  className="w-full accent-white cursor-pointer"
+                />
+                <div className="flex justify-between text-indigo-300 text-xs mt-0.5">
+                  <span>Broader (50%)</span><span>Stricter (95%)</span>
+                </div>
+              </div>
+            )}
+            {changeable.filter(s => s.confidence >= minConfidence).length > 0 && !applied && (
+              <button
+                onClick={handleApply}
+                disabled={applying}
+                className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-semibold hover:bg-indigo-50 disabled:opacity-50"
+              >
+                {applying ? 'Applying...' : `Apply ${changeable.filter(s => s.confidence >= minConfidence).length} Changes`}
+              </button>
+            )}
+            {applied && (
+              <span className="bg-green-100 text-green-700 px-4 py-2 rounded-xl font-medium">
+                ✅ Applied!
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
