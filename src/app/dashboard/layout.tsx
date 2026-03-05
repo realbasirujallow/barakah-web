@@ -28,7 +28,8 @@ const navItems = [
   { href: '/dashboard/halal', icon: '✅', label: 'Halal Screener' },
   { href: '/dashboard/import', icon: '📥', label: 'Import Data' },
   { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
-  { href: '/dashboard/admin', icon: '🛠️', label: 'Admin' },
+  // Admin page is intentionally NOT listed here — access via direct URL only.
+  // URL: /dashboard/admin (non-admins see a "not authorized" screen)
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
