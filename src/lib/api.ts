@@ -469,6 +469,10 @@ export const api = {
   getAdminUserCount: () => apiFetch('/admin/user-count'),
   getAdminUsers: (page = 0, size = 50) =>
     apiFetch(`/admin/active-users?page=${page}&size=${size}`),
+  adminResetPassword: (userId: number) =>
+    apiFetch(`/admin/users/${userId}/reset-password`, { method: 'POST' }),
+  adminUpdatePlan: (userId: number, plan: string) =>
+    apiFetch(`/admin/users/${userId}/plan`, { method: 'PUT', body: JSON.stringify({ plan }) }),
 
   // Exports
   downloadTransactionsCsv: () =>

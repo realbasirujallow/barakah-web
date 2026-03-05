@@ -8,6 +8,8 @@ interface AdminUser {
   id: number;
   email: string;
   name: string;
+  plan: string;
+  createdAt: number; // unix seconds
 }
 
 interface UsersResponse {
@@ -19,13 +21,30 @@ interface UsersResponse {
   totalPages: number;
 }
 
+const PLAN_LABELS: Record<string, { label: string; color: string }> = {
+  free:   { label: 'Free',   color: 'bg-gray-100 text-gray-600' },
+  plus:   { label: 'Plus',   color: 'bg-blue-100 text-blue-700' },
+  family: { label: 'Family', color: 'bg-purple-100 text-purple-700' },
+};
+
+function fmtDate(unixSec: number | undefined) {
+  if (!unixSec) return '—';
+  return new Date(unixSec * 1000).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+  });
+}
+
 export default function AdminPage() {
-  const [userCount, setUserCount] = useState<number | null>(null);
-  const [usersData, setUsersData] = useState<UsersResponse | null>(null);
-  const [page, setPage] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [forbidden, setForbidden] = useState(false);
-  const [search, setSearch] = useState('');
+  const [userCount, setUserCount]   = useState<number | null>(null);
+  const [usersData, setUsersData]   = useState<UsersResponse | null>(null);
+  const [page, setPage]             = useState(0);
+  const [loading, setLoading]       = useState(true);
+  const [forbidden, setForbidden]   = useState(false);
+  const [search, setSearch]         = useState('');
+  const [selected, setSelected]     = useState<AdminUser | null>(null);
+  const [resetting, setResetting]   = useState(false);
+  const [planSaving, setPlanSaving] = useState(false);
+  const [draftPlan, setDraftPlan]   = useState('');
   const { toast } = useToast();
 
   const loadData = useCallback(async (p: number) => {
@@ -51,9 +70,46 @@ export default function AdminPage() {
 
   useEffect(() => { loadData(0); }, [loadData]);
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-    loadData(newPage);
+  const openUser = (u: AdminUser) => {
+    setSelected(u);
+    setDraftPlan(u.plan || 'free');
+  };
+
+  const closeModal = () => setSelected(null);
+
+  const handleResetPassword = async () => {
+    if (!selected) return;
+    setResetting(true);
+    try {
+      await api.adminResetPassword(selected.id);
+      toast(`Password reset email sent to ${selected.email}`, 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to send reset email', 'error');
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  const handleSavePlan = async () => {
+    if (!selected) return;
+    setPlanSaving(true);
+    try {
+      await api.adminUpdatePlan(selected.id, draftPlan);
+      // Update local state so the table reflects the change immediately
+      setUsersData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          users: prev.users.map(u => u.id === selected.id ? { ...u, plan: draftPlan } : u),
+        };
+      });
+      setSelected(prev => prev ? { ...prev, plan: draftPlan } : null);
+      toast(`Plan updated to ${draftPlan}`, 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to update plan', 'error');
+    } finally {
+      setPlanSaving(false);
+    }
   };
 
   const filteredUsers = (usersData?.users ?? []).filter(u => {
@@ -98,7 +154,7 @@ export default function AdminPage() {
           <p className="text-4xl font-bold text-gray-800">{usersData?.count ?? 0}</p>
         </div>
         <div className="bg-white rounded-2xl p-6">
-          <p className="text-gray-400 text-sm mb-1">Pages</p>
+          <p className="text-gray-400 text-sm mb-1">Total Pages</p>
           <p className="text-4xl font-bold text-gray-800">{usersData?.totalPages ?? 1}</p>
         </div>
       </div>
@@ -127,23 +183,38 @@ export default function AdminPage() {
                 <th className="px-5 py-3">ID</th>
                 <th className="px-5 py-3">Name</th>
                 <th className="px-5 py-3">Email</th>
+                <th className="px-5 py-3">Plan</th>
+                <th className="px-5 py-3">Joined</th>
+                <th className="px-5 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="text-center py-10 text-gray-400">
+                  <td colSpan={6} className="text-center py-10 text-gray-400">
                     {search ? 'No users match your search.' : 'No users found.'}
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map(u => (
-                  <tr key={u.id} className="hover:bg-gray-50 transition">
-                    <td className="px-5 py-3 text-gray-400 font-mono">{u.id}</td>
-                    <td className="px-5 py-3 font-medium text-gray-900">{u.name || '—'}</td>
-                    <td className="px-5 py-3 text-gray-600">{u.email}</td>
-                  </tr>
-                ))
+                filteredUsers.map(u => {
+                  const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
+                  return (
+                    <tr key={u.id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => openUser(u)}>
+                      <td className="px-5 py-3 text-gray-400 font-mono">{u.id}</td>
+                      <td className="px-5 py-3 font-medium text-gray-900">{u.name || '—'}</td>
+                      <td className="px-5 py-3 text-gray-600">{u.email}</td>
+                      <td className="px-5 py-3">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${planInfo.color}`}>
+                          {planInfo.label}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-gray-400">{fmtDate(u.createdAt)}</td>
+                      <td className="px-5 py-3 text-right">
+                        <span className="text-[#1B5E20] text-xs font-medium">View →</span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -157,14 +228,14 @@ export default function AdminPage() {
             </span>
             <div className="flex gap-2">
               <button
-                onClick={() => handlePageChange(page - 1)}
+                onClick={() => { const p = page - 1; setPage(p); loadData(p); }}
                 disabled={page === 0}
                 className="px-3 py-1 rounded-lg border hover:bg-gray-50 disabled:opacity-40 transition"
               >
                 ← Prev
               </button>
               <button
-                onClick={() => handlePageChange(page + 1)}
+                onClick={() => { const p = page + 1; setPage(p); loadData(p); }}
                 disabled={page + 1 >= usersData!.totalPages}
                 className="px-3 py-1 rounded-lg border hover:bg-gray-50 disabled:opacity-40 transition"
               >
@@ -174,6 +245,68 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* ── User Detail Modal ── */}
+      {selected && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeModal}>
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="p-6 border-b flex items-start justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">{selected.name || 'Unnamed User'}</h2>
+                <p className="text-sm text-gray-500">{selected.email}</p>
+                <p className="text-xs text-gray-400 mt-1">ID: {selected.id} · Joined {fmtDate(selected.createdAt)}</p>
+              </div>
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Plan management */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Subscription Plan</label>
+                <div className="flex gap-2">
+                  <select
+                    value={draftPlan}
+                    onChange={e => setDraftPlan(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
+                  >
+                    <option value="free">Free</option>
+                    <option value="plus">Plus — $7.99/mo</option>
+                    <option value="family">Family — $14.99/mo</option>
+                  </select>
+                  <button
+                    onClick={handleSavePlan}
+                    disabled={planSaving || draftPlan === selected.plan}
+                    className="px-4 py-2 bg-[#1B5E20] text-white text-sm rounded-lg font-semibold hover:bg-[#2E7D32] transition disabled:opacity-40"
+                  >
+                    {planSaving ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
+                {draftPlan !== selected.plan && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    ⚠ Unsaved — click Save to apply the plan change.
+                  </p>
+                )}
+              </div>
+
+              {/* Password reset */}
+              <div className="border-t pt-5">
+                <p className="text-sm font-medium text-gray-700 mb-1">Password Reset</p>
+                <p className="text-xs text-gray-500 mb-3">
+                  Sends a password reset email to <strong>{selected.email}</strong>. The link expires in 30 minutes.
+                </p>
+                <button
+                  onClick={handleResetPassword}
+                  disabled={resetting}
+                  className="w-full py-2.5 border-2 border-[#1B5E20] text-[#1B5E20] rounded-lg text-sm font-semibold hover:bg-green-50 transition disabled:opacity-40"
+                >
+                  {resetting ? 'Sending…' : '📧 Send Password Reset Email'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
