@@ -1,0 +1,44 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+const CURRENCY_KEY = 'barakah_preferred_currency';
+
+/**
+ * Returns a currency formatter bound to the user's preferred currency.
+ *
+ * Usage in any dashboard page/component:
+ *   const { fmt, currency } = useCurrency();
+ *   <p>{fmt(1234.56)}</p>   // → "$1,234.56" (or "€1,234.56", etc.)
+ *
+ * The currency preference is read from localStorage (key: barakah_preferred_currency).
+ * It gets saved there by the profile page whenever the user's profile is loaded.
+ * Defaults to 'USD' if no preference is stored.
+ */
+export function useCurrency(): { fmt: (n: number) => string; currency: string } {
+  const [currency, setCurrency] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'USD';
+    return localStorage.getItem(CURRENCY_KEY) ?? 'USD';
+  });
+
+  useEffect(() => {
+    // Sync in case localStorage was updated by the profile page after this component mounted
+    const stored = localStorage.getItem(CURRENCY_KEY);
+    if (stored && stored !== currency) setCurrency(stored);
+  }, [currency]);
+
+  const fmt = (n: number) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);
+
+  return { fmt, currency };
+}
+
+/**
+ * Save the user's preferred currency to localStorage.
+ * Call this after loading/updating the user profile.
+ */
+export function saveCurrencyPreference(currency: string): void {
+  if (typeof window !== 'undefined' && currency) {
+    localStorage.setItem(CURRENCY_KEY, currency);
+  }
+}

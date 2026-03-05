@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { useAuth } from '../../../context/AuthContext';
+import { saveCurrencyPreference } from '../../../lib/useCurrency';
 
 interface ProfileData {
   userId: number;
@@ -43,6 +44,8 @@ export default function ProfilePage() {
       .then((d: ProfileData) => {
         setProfile(d);
         setNameForm({ fullName: d.fullName || '', email: d.email || '' });
+        // Sync currency preference to localStorage so useCurrency() hook picks it up app-wide
+        if (d.preferredCurrency) saveCurrencyPreference(d.preferredCurrency);
       })
       .catch(() => { toast('Failed to load profile', 'error'); })
       .finally(() => setLoading(false));
