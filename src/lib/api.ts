@@ -48,7 +48,12 @@ async function attemptSilentRefresh(): Promise<boolean> {
 }
 
 // ── JSON fetch helper ─────────────────────────────────────────────────────────
-export async function apiFetch(endpoint: string, options: RequestInit = {}, timeoutMs = 30000) {
+// suppressUnauthorized: when true, a 401 that cannot be recovered by silent
+// refresh throws an error but does NOT fire the global onUnauthorizedCallback
+// (i.e., does not auto-logout). Use this for pages like /admin where a 401
+// should be handled locally (show "session expired" UI) rather than
+// silently logging the user out.
+export async function apiFetch(endpoint: string, options: RequestInit = {}, timeoutMs = 30000, suppressUnauthorized = false) {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> || {}),
@@ -129,8 +134,9 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
         }
       }
 
-      // Refresh failed or retry failed — the session is gone
-      if (onUnauthorizedCallback) onUnauthorizedCallback();
+      // Refresh failed or retry failed — the session is gone.
+      // Only fire the global logout if the caller hasn't opted out.
+      if (!suppressUnauthorized && onUnauthorizedCallback) onUnauthorizedCallback();
       throw new Error('Your session has expired. Please log in again.');
     }
     // ── End silent refresh ─────────────────────────────────────────────────
@@ -465,14 +471,16 @@ export const api = {
   deleteAccount: (password: string) =>
     apiFetch('/auth/delete-account', { method: 'DELETE', body: JSON.stringify({ password }) }),
 
-  // Admin
-  getAdminUserCount: () => apiFetch('/admin/user-count'),
+  // Admin — all admin calls suppress the global logout so that a 401
+  // (e.g. expired token) shows a "session expired" prompt on the admin page
+  // instead of silently logging the user out site-wide.
+  getAdminUserCount: () => apiFetch('/admin/user-count', {}, 30000, true),
   getAdminUsers: (page = 0, size = 50) =>
-    apiFetch(`/admin/active-users?page=${page}&size=${size}`),
+    apiFetch(`/admin/active-users?page=${page}&size=${size}`, {}, 30000, true),
   adminResetPassword: (userId: number) =>
-    apiFetch(`/admin/users/${userId}/reset-password`, { method: 'POST' }),
+    apiFetch(`/admin/users/${userId}/reset-password`, { method: 'POST' }, 30000, true),
   adminUpdatePlan: (userId: number, plan: string) =>
-    apiFetch(`/admin/users/${userId}/plan`, { method: 'PUT', body: JSON.stringify({ plan }) }),
+    apiFetch(`/admin/users/${userId}/plan`, { method: 'PUT', body: JSON.stringify({ plan }) }, 30000, true),
 
   // Exports
   downloadTransactionsCsv: () =>
