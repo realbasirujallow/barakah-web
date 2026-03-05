@@ -301,6 +301,10 @@ export const api = {
     apiFetch(`/api/transactions/${id}`, { method: 'DELETE' }),
   bulkDeleteTransactions: (ids: number[]) =>
     apiFetch('/api/transactions/bulk', { method: 'DELETE', body: JSON.stringify({ ids }) }),
+  deleteAllTransactions: (type?: string) => {
+    const params = type ? `?type=${encodeURIComponent(type)}` : '';
+    return apiFetch(`/api/transactions/all${params}`, { method: 'DELETE' });
+  },
 
   // Budgets
   getBudgets: (month?: number, year?: number) => {

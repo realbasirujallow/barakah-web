@@ -6,6 +6,7 @@ import { useToast } from '../../../lib/toast';
 
 interface Tx { id: number; type: string; category: string; amount: number; description: string; currency: string; timestamp: number; }
 const CATEGORIES = ['food', 'transportation', 'shopping', 'utilities', 'housing', 'healthcare', 'education', 'entertainment', 'charity', 'income', 'investment', 'other'];
+const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
 export default function TransactionsPage() {
   const [txs, setTxs] = useState<Tx[]>([]);
@@ -19,12 +20,13 @@ export default function TransactionsPage() {
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
+  const [selectAllPages, setSelectAllPages] = useState(false); // Gmail-style "select all N"
   const [bulkDeleting, setBulkDeleting] = useState(false);
-  const pageSize = 20;
   const { toast } = useToast();
 
   const load = () => {
@@ -42,7 +44,7 @@ export default function TransactionsPage() {
       })
       .finally(() => setLoading(false));
   };
-  useEffect(() => { load(); }, [filter, page]);
+  useEffect(() => { load(); }, [filter, page, pageSize]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -63,6 +65,7 @@ export default function TransactionsPage() {
   };
 
   const toggleSelect = (id: number) => {
+    setSelectAllPages(false);
     setSelectedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -73,24 +76,51 @@ export default function TransactionsPage() {
   const toggleSelectAll = () => {
     if (selectedIds.size === txs.length) {
       setSelectedIds(new Set());
+      setSelectAllPages(false);
     } else {
       setSelectedIds(new Set(txs.map(t => t.id)));
+      setSelectAllPages(false);
     }
   };
 
   const exitSelectMode = () => {
     setSelectMode(false);
     setSelectedIds(new Set());
+    setSelectAllPages(false);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(0);
+    exitSelectMode();
   };
 
   const handleBulkDelete = async () => {
-    if (selectedIds.size === 0) return;
-    if (!confirm(`Delete ${selectedIds.size} transaction${selectedIds.size > 1 ? 's' : ''}?`)) return;
+    const allPageCount = selectedIds.size === txs.length && totalPages > 1;
+    const count = selectAllPages ? totalElements : selectedIds.size;
+    if (count === 0) return;
+
+    const noun = count === 1 ? 'transaction' : 'transactions';
+    const scope = selectAllPages
+      ? `ALL ${totalElements} transaction${totalElements !== 1 ? 's' : ''} (across all pages)`
+      : `${count} selected ${noun}`;
+
+    if (!confirm(`Delete ${scope}? This cannot be undone.`)) return;
+    void allPageCount; // suppress unused-var warning
+
     setBulkDeleting(true);
     try {
-      const result = await api.bulkDeleteTransactions(Array.from(selectedIds));
-      toast(`${result.deleted ?? selectedIds.size} transaction${(result.deleted ?? selectedIds.size) > 1 ? 's' : ''} deleted`, 'success');
+      if (selectAllPages) {
+        // Delete everything matching the current filter in one backend call
+        const typeParam = filter === 'all' ? undefined : filter;
+        const result = await api.deleteAllTransactions(typeParam);
+        toast(`${result?.deleted ?? count} ${noun} deleted`, 'success');
+      } else {
+        const result = await api.bulkDeleteTransactions(Array.from(selectedIds));
+        toast(`${result?.deleted ?? count} ${noun} deleted`, 'success');
+      }
       exitSelectMode();
+      setPage(0);
       load();
     } catch {
       toast('Failed to delete transactions', 'error');
@@ -138,11 +168,16 @@ export default function TransactionsPage() {
   const income = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expense = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
 
+  // Whether every transaction on the current page is selected
+  const allPageSelected = txs.length > 0 && selectedIds.size === txs.length;
+  // Whether there are more pages beyond this one
+  const hasMorePages = totalPages > 1;
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Transactions</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-end">
           {/* Export buttons */}
           <button
             onClick={handleExportCsv}
@@ -189,36 +224,79 @@ export default function TransactionsPage() {
         <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Net</p><p className={`text-xl font-bold ${income - expense >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(income - expense)}</p></div>
       </div>
 
-      <div className="flex gap-2 mb-4">
+      {/* Filter + page-size row */}
+      <div className="flex flex-wrap gap-2 mb-4 items-center">
         {['all', 'income', 'expense'].map(f => (
-          <button key={f} onClick={() => { setFilter(f); setPage(0); }} className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${filter === f ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>{f}</button>
+          <button key={f} onClick={() => { setFilter(f); setPage(0); exitSelectMode(); }} className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${filter === f ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>{f}</button>
         ))}
-        {totalElements > 0 && <span className="ml-auto text-sm text-gray-500 self-center">{totalElements} total</span>}
+        {totalElements > 0 && <span className="text-sm text-gray-500">{totalElements} total</span>}
+        {/* Page-size picker */}
+        <div className="ml-auto flex items-center gap-1.5">
+          <span className="text-xs text-gray-500">Show:</span>
+          {PAGE_SIZE_OPTIONS.map(n => (
+            <button
+              key={n}
+              onClick={() => handlePageSizeChange(n)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition ${pageSize === n ? 'bg-[#1B5E20] text-white border-[#1B5E20]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Bulk-select action bar */}
       {selectMode && (
-        <div className="flex items-center gap-3 mb-4 bg-white rounded-xl p-3 border border-gray-200">
-          <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={txs.length > 0 && selectedIds.size === txs.length}
-              onChange={toggleSelectAll}
-              className="w-4 h-4 accent-[#1B5E20] rounded"
-            />
-            Select all on page
-          </label>
-          <span className="text-sm text-gray-500">{selectedIds.size} selected</span>
-          <button
-            onClick={handleBulkDelete}
-            disabled={selectedIds.size === 0 || bulkDeleting}
-            className="ml-auto bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
-          >
-            {bulkDeleting ? (
-              <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" />
-            ) : '🗑️'}
-            Delete {selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
-          </button>
+        <div className="mb-3 bg-white rounded-xl border border-gray-200 overflow-hidden">
+          {/* Main select row */}
+          <div className="flex items-center gap-3 p-3">
+            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={allPageSelected}
+                onChange={toggleSelectAll}
+                className="w-4 h-4 accent-[#1B5E20] rounded"
+              />
+              {allPageSelected ? 'Deselect page' : 'Select page'}
+            </label>
+            <span className="text-sm text-gray-500">
+              {selectAllPages ? `All ${totalElements} selected` : `${selectedIds.size} selected`}
+            </span>
+            <button
+              onClick={handleBulkDelete}
+              disabled={(selectAllPages ? totalElements : selectedIds.size) === 0 || bulkDeleting}
+              className="ml-auto bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+            >
+              {bulkDeleting ? (
+                <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" />
+              ) : '🗑️'}
+              Delete {selectAllPages ? `all ${totalElements}` : selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
+            </button>
+          </div>
+
+          {/* Gmail-style "select all N" banner — appears when whole page is ticked and more pages exist */}
+          {allPageSelected && hasMorePages && !selectAllPages && (
+            <div className="bg-blue-50 border-t border-blue-100 px-3 py-2 flex items-center gap-2 text-sm text-blue-800">
+              <span>All {txs.length} transactions on this page are selected.</span>
+              <button
+                onClick={() => setSelectAllPages(true)}
+                className="font-semibold underline hover:no-underline"
+              >
+                Select all {totalElements} transactions
+              </button>
+            </div>
+          )}
+          {selectAllPages && (
+            <div className="bg-blue-50 border-t border-blue-100 px-3 py-2 flex items-center gap-2 text-sm text-blue-800">
+              <span>All {totalElements} transactions are selected.</span>
+              <button
+                onClick={() => { setSelectAllPages(false); setSelectedIds(new Set(txs.map(t => t.id))); }}
+                className="font-semibold underline hover:no-underline"
+              >
+                Select only this page
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -229,14 +307,14 @@ export default function TransactionsPage() {
               key={tx.id}
               onClick={selectMode ? () => toggleSelect(tx.id) : undefined}
               className={`bg-white rounded-xl p-4 flex justify-between items-center transition ${selectMode ? 'cursor-pointer' : ''} ${
-                selectMode && selectedIds.has(tx.id) ? 'ring-2 ring-[#1B5E20] bg-green-50/30' : ''
+                selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-[#1B5E20] bg-green-50/30' : ''
               }`}
             >
               <div className="flex items-center gap-3">
                 {selectMode && (
                   <input
                     type="checkbox"
-                    checked={selectedIds.has(tx.id)}
+                    checked={selectedIds.has(tx.id) || selectAllPages}
                     onChange={() => toggleSelect(tx.id)}
                     onClick={e => e.stopPropagation()}
                     aria-label={`Select ${tx.description || tx.category}`}
