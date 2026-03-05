@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api } from '../../../lib/api';
 
 interface Account {
@@ -130,6 +131,11 @@ export default function InvestmentsPage() {
 
   return (
     <div>
+      <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-800 flex items-center justify-between">
+        <span>💰 Investment assets (stocks, crypto, retirement accounts) added in <strong>Assets</strong> also count toward your net worth &amp; Zakat.</span>
+        <Link href="/dashboard/assets" className="ml-3 text-amber-700 font-semibold underline hover:no-underline whitespace-nowrap">View Assets →</Link>
+      </div>
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Investments</h1>
         <button

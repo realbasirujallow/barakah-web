@@ -5,7 +5,18 @@ import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
 
 interface BudgetItem { id: number; category: string; monthlyLimit: number; spent: number; month: number; year: number; color: string; }
-const CATEGORIES = ['food', 'transportation', 'shopping', 'utilities', 'housing', 'healthcare', 'education', 'entertainment', 'charity', 'other'];
+const CATEGORIES = [
+  'food', 'dining', 'groceries', 'coffee',
+  'transportation', 'fuel', 'parking',
+  'housing', 'rent', 'utilities', 'home_maintenance', 'insurance',
+  'shopping', 'clothing', 'electronics',
+  'healthcare', 'fitness', 'pharmacy',
+  'education', 'kids', 'childcare',
+  'entertainment', 'subscriptions', 'travel', 'gifts', 'personal_care', 'pets',
+  'savings', 'debt_payment', 'taxes',
+  'charity', 'zakat', 'sadaqah',
+  'business', 'other',
+];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function BudgetPage() {
@@ -58,9 +69,13 @@ export default function BudgetPage() {
     if (!confirm(`Copy all budgets from ${MONTHS[prev.month - 1]} ${prev.year} to ${MONTHS[now.getMonth()]} ${now.getFullYear()}?`)) return;
     setCopyingMonth(true);
     try {
-      await api.copyBudget(prev.month, prev.year, now.getMonth() + 1, now.getFullYear());
-      load();
-      toast('Last month\'s budgets copied', 'success');
+      const result = await api.copyBudget(prev.month, prev.year, now.getMonth() + 1, now.getFullYear());
+      if (result?.copied === 0) {
+        toast(`No budget found for ${MONTHS[prev.month - 1]} ${prev.year}. Add a budget first, then copy it next month.`, 'error');
+      } else {
+        load();
+        toast(`${result?.copied ?? 'All'} budget(s) copied from ${MONTHS[prev.month - 1]}`, 'success');
+      }
     } catch { toast('Failed to copy budgets', 'error'); }
     setCopyingMonth(false);
   };
@@ -124,7 +139,7 @@ export default function BudgetPage() {
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase())}</option>)}
                 </select></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Monthly Limit</label>
                 <input type="number" step="0.01" value={form.monthlyLimit} onChange={e => setForm({ ...form, monthlyLimit: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="500.00" /></div>

@@ -17,11 +17,13 @@ export default function DashboardPage() {
   const [totals, setTotals] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [hideNetWorth, setHideNetWorth] = useState(false);
+  const [hideZakat, setHideZakat] = useState(false);
   const { toast } = useToast();
   const ramadan = isRamadan();
 
   useEffect(() => {
     setHideNetWorth(localStorage.getItem('hideNetWorth') === 'true');
+    setHideZakat(localStorage.getItem('hideZakatDashboard') === 'true');
     api.getAssetTotal()
       .then(data => setTotals(data))
       .catch(() => { toast('Failed to load dashboard data. Please refresh.', 'error'); })
@@ -32,6 +34,12 @@ export default function DashboardPage() {
     const newValue = !hideNetWorth;
     setHideNetWorth(newValue);
     localStorage.setItem('hideNetWorth', newValue ? 'true' : 'false');
+  };
+
+  const toggleHideZakat = () => {
+    const newValue = !hideZakat;
+    setHideZakat(newValue);
+    localStorage.setItem('hideZakatDashboard', newValue ? 'true' : 'false');
   };
 
   const cards = [
@@ -86,12 +94,15 @@ export default function DashboardPage() {
         <div className={`bg-gradient-to-br ${totals?.zakatFullyPaid ? 'from-green-600 to-emerald-500' : 'from-amber-600 to-yellow-500'} rounded-2xl p-6 text-white`}>
           <p className={`${totals?.zakatFullyPaid ? 'text-green-100' : 'text-amber-100'} text-sm flex items-center justify-between`}>
             <span>Zakat Due {totals?.currentLunarYear ? `(${totals.currentLunarYear} AH)` : ''}</span>
-            {Boolean(totals?.zakatFullyPaid) && <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">PAID ✓</span>}
+            <span className="flex items-center gap-2">
+              {Boolean(totals?.zakatFullyPaid) && <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">PAID ✓</span>}
+              <button onClick={toggleHideZakat} className="text-xs underline opacity-70 hover:opacity-100">{hideZakat ? 'Show' : 'Hide'}</button>
+            </span>
           </p>
           <p className="text-3xl font-bold mt-1">
-            {loading ? '...' : fmt((totals?.zakatRemaining as number) ?? (totals?.zakatDue as number) ?? 0)}
+            {hideZakat ? '••••••' : (loading ? '...' : fmt((totals?.zakatRemaining as number) ?? (totals?.zakatDue as number) ?? 0))}
           </p>
-          {!loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid) && (
+          {!hideZakat && !loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid) && (
             <p className={`${totals?.zakatFullyPaid ? 'text-green-200' : 'text-amber-200'} text-xs mt-1`}>
               Paid: {fmt((totals?.zakatPaid as number) || 0)} of {fmt((totals?.zakatDue as number) || 0)}
             </p>
