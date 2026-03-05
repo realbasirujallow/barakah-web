@@ -38,8 +38,9 @@ export default function AdminPage() {
   const [userCount, setUserCount]   = useState<number | null>(null);
   const [usersData, setUsersData]   = useState<UsersResponse | null>(null);
   const [page, setPage]             = useState(0);
-  const [loading, setLoading]       = useState(true);
-  const [forbidden, setForbidden]   = useState(false);
+  const [loading, setLoading]           = useState(true);
+  const [forbidden, setForbidden]       = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [search, setSearch]         = useState('');
   const [selected, setSelected]     = useState<AdminUser | null>(null);
   const [resetting, setResetting]   = useState(false);
@@ -60,6 +61,15 @@ export default function AdminPage() {
       const msg = err instanceof Error ? err.message : 'Failed to load admin data';
       if (msg.toLowerCase().includes('admin access') || msg.includes('403')) {
         setForbidden(true);
+      } else if (
+        msg.toLowerCase().includes('session') ||
+        msg.toLowerCase().includes('expired') ||
+        msg.toLowerCase().includes('authentication') ||
+        msg.toLowerCase().includes('unauthorized')
+      ) {
+        // Token expired or silent refresh failed — don't auto-logout, show a
+        // friendly prompt so the user can sign in again from this page.
+        setSessionExpired(true);
       } else {
         toast(msg, 'error');
       }
@@ -122,6 +132,24 @@ export default function AdminPage() {
     return (
       <div className="flex justify-center py-20">
         <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (sessionExpired) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <p className="text-5xl mb-4">⏱️</p>
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">Session Expired</h1>
+        <p className="text-gray-500 max-w-sm mb-6">
+          Your session has expired. Please sign in again to access the admin dashboard.
+        </p>
+        <a
+          href="/login"
+          className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition"
+        >
+          Sign In Again
+        </a>
       </div>
     );
   }
