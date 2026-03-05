@@ -25,7 +25,7 @@ export default function ZakatPage() {
   const [showMabrook, setShowMabrook] = useState(false);
   const [form, setForm] = useState({ amount: '', recipient: '', notes: '' });
   const [hideZakat, setHideZakat] = useState(false);
-  const [nisabInfo, setNisabInfo] = useState<Record<string, unknown> | null>(null);
+  const [nisabInfo, setNisabInfo] = useState<{ goldPricePerGram?: number } | null>(null);
 
   // Use the lunar year from the API if available; fall back to JS-computed value
   const lunarYear: number = (data?.currentLunarYear as number) || computeHijriYear();
@@ -49,7 +49,7 @@ export default function ZakatPage() {
         api.getNisabInfo().catch(() => null),  // non-critical — live gold price display
       ]);
       setData(zakatData);
-      if (nisabData) setNisabInfo(nisabData);
+      if (nisabData) setNisabInfo(nisabData as { goldPricePerGram?: number });
       // Filter payments to current lunar year (use API year once we have it)
       const year = (zakatData?.currentLunarYear as number) || computeHijriYear();
       const filtered = (paymentsData?.payments || []).filter(
@@ -164,7 +164,7 @@ export default function ZakatPage() {
               </p>
               {nisabInfo?.goldPricePerGram && (
                 <p className="text-xs text-gray-400 mt-1">
-                  Gold: ${(nisabInfo.goldPricePerGram as number).toFixed(2)}/g · 85g standard · refreshed hourly
+                  Gold: ${nisabInfo.goldPricePerGram!.toFixed(2)}/g · 85g standard · refreshed hourly
                 </p>
               )}
             </div>
