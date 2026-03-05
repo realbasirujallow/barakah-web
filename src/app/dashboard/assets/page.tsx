@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api } from '../../../lib/api';
 
 interface Asset { id: number; name: string; type: string; value: number; penaltyRate?: number; taxRate?: number; address?: string; }
@@ -47,6 +48,8 @@ const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
     { value: 'other', label: 'Other' },
   ],
 };
+
+const INVESTMENT_ASSET_TYPES = ['stock', 'crypto', 'individual_brokerage', 'etf', '401k', 'roth_ira', 'ira', '403b', 'pension', 'hsa', '529'];
 
 const RETIREMENT_TYPES = ["401k","retirement_401k","ira","roth_ira","pension","retirement","403b","tsp","sep_ira","hsa"];
 const EDUCATION_TYPES = ["529","529_plan","education_savings"];
@@ -177,6 +180,13 @@ export default function AssetsPage() {
         <h1 className="text-2xl font-bold text-[#1B5E20]">Assets</h1>
         <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Asset</button>
       </div>
+
+      {assets.some(a => INVESTMENT_ASSET_TYPES.includes(a.type)) && (
+        <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-800 flex items-center justify-between">
+          <span>📈 You have investment-type assets. Track detailed holdings, stock prices &amp; Halal screening in <strong>Investments</strong>.</span>
+          <Link href="/dashboard/investments" className="ml-3 text-blue-700 font-semibold underline hover:no-underline whitespace-nowrap">Go to Investments →</Link>
+        </div>
+      )}
 
       <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
         <p className="text-green-100 text-sm">Net Worth</p>

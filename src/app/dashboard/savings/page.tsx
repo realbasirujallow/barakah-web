@@ -16,6 +16,7 @@ export default function SavingsPage() {
   const [contAmount, setContAmount] = useState('');
   const [saving, setSaving] = useState(false);
   const [showHajjPrompt, setShowHajjPrompt] = useState(true);
+  const [showUmrahPrompt, setShowUmrahPrompt] = useState(true);
   const { toast } = useToast();
 
   const load = () => {
@@ -89,6 +90,26 @@ export default function SavingsPage() {
             setShowForm(true);
           }} className="bg-white text-amber-700 font-bold px-4 py-2 rounded-lg text-sm hover:bg-amber-50 transition">
             🕋 Start Hajj Savings Goal
+          </button>
+        </div>
+      )}
+
+      {/* Umrah Savings Prompt */}
+      {showUmrahPrompt && !goals.some(g => g.category === 'umrah') && (
+        <div className="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-2xl p-5 text-white mb-6 relative">
+          <button onClick={() => setShowUmrahPrompt(false)} className="absolute top-3 right-3 text-white/70 hover:text-white text-lg leading-none">✕</button>
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-3xl">🕌</span>
+            <div>
+              <p className="font-bold text-lg">Save for Umrah</p>
+              <p className="text-teal-100 text-sm">Umrah is a blessed Sunnah you can perform any time of year. Start saving today.</p>
+            </div>
+          </div>
+          <button onClick={() => {
+            setForm({ name: 'Umrah Savings', category: 'umrah', targetAmount: '3000', description: 'Saving for the blessed journey to Makkah and Madinah — may Allah grant acceptance.' });
+            setShowForm(true);
+          }} className="bg-white text-teal-700 font-bold px-4 py-2 rounded-lg text-sm hover:bg-teal-50 transition">
+            🕌 Start Umrah Savings Goal
           </button>
         </div>
       )}

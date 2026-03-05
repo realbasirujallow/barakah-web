@@ -19,6 +19,7 @@ export default function CategorizePage() {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [confirming, setConfirming] = useState<number | null>(null);
   const [minConfidence, setMinConfidence] = useState(60);
   const { toast } = useToast();
 
@@ -36,6 +37,16 @@ export default function CategorizePage() {
       toast('Categories applied', 'success');
     } catch { toast('Failed to apply categories', 'error'); }
     setApplying(false);
+  };
+
+  const handleConfirmOne = async (txId: number, category: string) => {
+    setConfirming(txId);
+    try {
+      await api.updateTransaction(txId, { category });
+      setSuggestions(prev => prev.map(s => s.transactionId === txId ? { ...s, currentCategory: category, wouldChange: false } : s));
+      toast('Category confirmed', 'success');
+    } catch { toast('Failed to confirm category', 'error'); }
+    setConfirming(null);
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
@@ -129,11 +140,23 @@ export default function CategorizePage() {
                     )}
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex flex-col items-end gap-1">
                   <p className="font-medium text-gray-700">${Math.abs(s.amount).toFixed(2)}</p>
                   <span className={`text-xs ${s.confidence >= 80 ? 'text-green-600' : s.confidence >= 60 ? 'text-amber-600' : 'text-gray-400'}`}>
                     {s.confidence}% confident
                   </span>
+                  {s.wouldChange && (
+                    <button
+                      onClick={() => handleConfirmOne(s.transactionId, s.suggestedCategory)}
+                      disabled={confirming === s.transactionId}
+                      className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      {confirming === s.transactionId ? '...' : 'Confirm'}
+                    </button>
+                  )}
+                  {!s.wouldChange && (
+                    <span className="text-xs text-green-600">✓ Confirmed</span>
+                  )}
                 </div>
               </div>
             </div>

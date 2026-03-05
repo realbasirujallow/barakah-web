@@ -303,6 +303,8 @@ export const api = {
   },
   addTransaction: (data: Record<string, unknown>) =>
     apiFetch('/api/transactions/add', { method: 'POST', body: JSON.stringify(data) }),
+  updateTransaction: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteTransaction: (id: number) =>
     apiFetch(`/api/transactions/${id}`, { method: 'DELETE' }),
   bulkDeleteTransactions: (ids: number[]) =>

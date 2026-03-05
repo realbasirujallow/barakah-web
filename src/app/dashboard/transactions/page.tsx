@@ -5,7 +5,28 @@ import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
 
 interface Tx { id: number; type: string; category: string; amount: number; description: string; currency: string; timestamp: number; }
-const CATEGORIES = ['food', 'transportation', 'shopping', 'utilities', 'housing', 'healthcare', 'education', 'entertainment', 'charity', 'income', 'investment', 'other'];
+const CATEGORIES = [
+  // 🍽️ Food
+  'food', 'dining', 'groceries', 'coffee',
+  // 🚗 Transport
+  'transportation', 'fuel', 'parking', 'public_transit',
+  // 🏠 Home & Life
+  'housing', 'utilities', 'rent', 'home_maintenance', 'insurance',
+  // 🛍️ Shopping
+  'shopping', 'clothing', 'electronics',
+  // 💊 Health
+  'healthcare', 'fitness', 'pharmacy',
+  // 📚 Learning & Kids
+  'education', 'kids', 'childcare',
+  // 🎉 Lifestyle
+  'entertainment', 'subscriptions', 'travel', 'gifts', 'personal_care', 'pets',
+  // 💰 Finance
+  'income', 'investment', 'savings', 'debt_payment', 'taxes', 'transfer',
+  // 🤲 Islamic
+  'charity', 'zakat', 'sadaqah',
+  // 📦 Other
+  'business', 'other',
+];
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
 export default function TransactionsPage() {
@@ -375,7 +396,7 @@ export default function TransactionsPage() {
                 </select></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase())}</option>)}
                 </select></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
                 <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="0.00" /></div>
