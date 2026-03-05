@@ -17,6 +17,7 @@ export default function BudgetPage() {
   const [form, setForm] = useState({ category: 'food', monthlyLimit: '', month: String(now.getMonth() + 1), year: String(now.getFullYear()) });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [copyingMonth, setCopyingMonth] = useState(false);
   const { toast } = useToast();
 
   const load = () => {
@@ -50,6 +51,20 @@ export default function BudgetPage() {
     await api.deleteBudget(id).catch(() => { toast('Failed to delete budget', 'error'); }); load();
   };
 
+  const handleCopyMonth = async () => {
+    const prev = now.getMonth() === 0
+      ? { month: 12, year: now.getFullYear() - 1 }
+      : { month: now.getMonth(), year: now.getFullYear() };
+    if (!confirm(`Copy all budgets from ${MONTHS[prev.month - 1]} ${prev.year} to ${MONTHS[now.getMonth()]} ${now.getFullYear()}?`)) return;
+    setCopyingMonth(true);
+    try {
+      await api.copyBudget(prev.month, prev.year, now.getMonth() + 1, now.getFullYear());
+      load();
+      toast('Last month\'s budgets copied', 'success');
+    } catch { toast('Failed to copy budgets', 'error'); }
+    setCopyingMonth(false);
+  };
+
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
 
   const totalBudget = budgets.reduce((s, b) => s + b.monthlyLimit, 0);
@@ -59,7 +74,12 @@ export default function BudgetPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Budget Planning</h1>
-        <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Budget</button>
+        <div className="flex gap-2">
+          <button onClick={handleCopyMonth} disabled={copyingMonth} className="px-3 py-2 text-sm border border-[#1B5E20] text-[#1B5E20] rounded-lg hover:bg-green-50 transition disabled:opacity-50">
+            {copyingMonth ? 'Copying...' : '📋 Copy Last Month'}
+          </button>
+          <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Budget</button>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-4 mb-6">

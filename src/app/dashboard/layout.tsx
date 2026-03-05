@@ -27,6 +27,9 @@ const navItems = [
   { href: '/dashboard/categorize', icon: '🔄', label: 'Auto-Categorize' },
   { href: '/dashboard/halal', icon: '✅', label: 'Halal Screener' },
   { href: '/dashboard/import', icon: '📥', label: 'Import Data' },
+  { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times' },
+  { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications' },
+  { href: '/dashboard/barakah-score', icon: '⭐', label: 'Barakah Score' },
   { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
   // Admin page is intentionally NOT listed here — access via direct URL only.
   // URL: /dashboard/admin (non-admins see a "not authorized" screen)

@@ -325,6 +325,8 @@ export const api = {
     apiFetch(`/api/budgets/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteBudget: (id: number) =>
     apiFetch(`/api/budgets/${id}`, { method: 'DELETE' }),
+  copyBudget: (fromMonth: number, fromYear: number, toMonth: number, toYear: number) =>
+    apiFetch('/api/budgets/copy-month', { method: 'POST', body: JSON.stringify({ fromMonth, fromYear, toMonth, toYear }) }),
 
   // Debts
   getDebts: () => apiFetch('/api/debts/list'),
@@ -369,6 +371,15 @@ export const api = {
     apiFetch('/api/wasiyyah/add', { method: 'POST', body: JSON.stringify(data) }),
   deleteWasiyyah: (id: number) =>
     apiFetch(`/api/wasiyyah/${id}`, { method: 'DELETE' }),
+
+  // Wasiyyah Obligations (Islamic duties to settle from estate)
+  getWasiyyahObligations: () => apiFetch('/api/wasiyyah/obligations/list'),
+  addWasiyyahObligation: (data: Record<string, unknown>) =>
+    apiFetch('/api/wasiyyah/obligations/add', { method: 'POST', body: JSON.stringify(data) }),
+  updateWasiyyahObligation: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/wasiyyah/obligations/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteWasiyyahObligation: (id: number) =>
+    apiFetch(`/api/wasiyyah/obligations/${id}`, { method: 'DELETE' }),
 
   // Waqf
   getWaqf: () => apiFetch('/api/waqf/list'),
