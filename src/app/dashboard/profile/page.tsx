@@ -11,7 +11,14 @@ interface ProfileData {
   email: string;
   preferredCurrency?: string;
   createdAt?: number;
+  plan?: string;
 }
+
+const PLAN_INFO: Record<string, { label: string; color: string; bg: string; desc: string }> = {
+  free:   { label: 'Free',   color: 'text-gray-600',   bg: 'bg-gray-100',    desc: 'Basic features, up to 100 transactions/month.' },
+  plus:   { label: 'Plus',   color: 'text-blue-700',   bg: 'bg-blue-100',    desc: 'Unlimited transactions, all Islamic finance tools.' },
+  family: { label: 'Family', color: 'text-purple-700', bg: 'bg-purple-100',  desc: 'Everything in Plus, shared finances for up to 5 members.' },
+};
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
@@ -140,6 +147,46 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Subscription Plan */}
+      {(() => {
+        const planKey = profile?.plan ?? 'free';
+        const info = PLAN_INFO[planKey] ?? PLAN_INFO.free;
+        return (
+          <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
+            <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Subscription Plan</h2>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className={`px-3 py-1 rounded-full text-sm font-bold ${info.bg} ${info.color}`}>
+                  {info.label}
+                </span>
+                <span className="text-sm text-gray-500">{info.desc}</span>
+              </div>
+              {planKey === 'free' && (
+                <a
+                  href="/#pricing"
+                  className="text-sm font-semibold text-[#1B5E20] border border-[#1B5E20] px-4 py-1.5 rounded-lg hover:bg-green-50 transition whitespace-nowrap"
+                >
+                  Upgrade ↗
+                </a>
+              )}
+              {planKey === 'plus' && (
+                <a
+                  href="/#pricing"
+                  className="text-sm font-semibold text-purple-600 border border-purple-300 px-4 py-1.5 rounded-lg hover:bg-purple-50 transition whitespace-nowrap"
+                >
+                  Go Family ↗
+                </a>
+              )}
+            </div>
+            {planKey === 'free' && (
+              <p className="text-xs text-gray-400 mt-3">
+                Contact support or ask your admin to upgrade your account once Stripe is live.
+              </p>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Personal Info */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
