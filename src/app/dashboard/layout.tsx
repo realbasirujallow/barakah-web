@@ -33,6 +33,7 @@ const navItems = [
   { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications' },
   { href: '/dashboard/summary', icon: '📋', label: 'Financial Summary' },
   { href: '/dashboard/barakah-score', icon: '⭐', label: 'Barakah Score' },
+  { href: '/dashboard/billing', icon: '💳', label: 'Billing & Plans' },
   { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
   // Admin page is intentionally NOT listed here — access via direct URL only.
   // URL: /dashboard/admin (non-admins see a "not authorized" screen)
