@@ -600,9 +600,20 @@ export const api = {
   },
 
   // ── Stripe Billing ──────────────────────────────────────────────────────────
-  /** Create a Stripe Checkout session. Returns { url } to redirect to. */
+  /** Create a Stripe Checkout session (new subscriber). Returns { url }. */
   createCheckout: (plan: 'plus' | 'family') =>
     apiFetch('/api/stripe/create-checkout', {
+      method: 'POST',
+      body: JSON.stringify({ plan }),
+    }),
+
+  /**
+   * Upgrade/downgrade an existing subscription in-place (no redirect needed).
+   * Falls back to createCheckout for free users with no subscription.
+   * Returns { success, plan, status } OR { url } if redirect is needed.
+   */
+  upgradeSubscription: (plan: 'plus' | 'family') =>
+    apiFetch('/api/stripe/upgrade', {
       method: 'POST',
       body: JSON.stringify({ plan }),
     }),
