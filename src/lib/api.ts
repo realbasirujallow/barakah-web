@@ -112,6 +112,12 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
       }
 
       if (refreshOk) {
+        // Stamp the refresh time so AuthContext's mount guard (and other tabs)
+        // know the cookies are fresh. This prevents AuthContext from firing a
+        // redundant proactive refresh when the user navigates between pages,
+        // which would race with this refresh and could sign the user out.
+        try { localStorage.setItem('last_refresh_ts', String(Date.now())); } catch { /* SSR safety */ }
+
         // Retry the original request — the new auth_token cookie is now set
         const retryController = new AbortController();
         const retryTimeout = setTimeout(() => retryController.abort(), 30000);

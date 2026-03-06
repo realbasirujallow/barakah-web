@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, setUnauthorizedHandler } from '../lib/api';
 
@@ -24,28 +24,38 @@ const AuthContext = createContext<AuthContextType | null>(null);
 // localStorage — so JavaScript (including any XSS payload) cannot read it.
 const USER_KEY = 'user';
 
+// How long after a successful refresh before we allow another proactive refresh.
+// Extended to 5 minutes to prevent multiple navigations from triggering
+// redundant refresh calls that race with each other.
+export const REFRESH_TS_KEY = 'last_refresh_ts';
+const REFRESH_GUARD_SECONDS = 300; // 5 minutes
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Restore user profile from localStorage on mount so the sidebar can show
-  // the user's name without a round-trip. The JWT is in the httpOnly cookie
-  // and is sent automatically by the browser — we never read it here.
-  //
-  // If the stored profile exists but the access cookie has expired (e.g. the
-  // user left the tab open overnight), we silently attempt a token refresh
-  // before deciding whether to keep the session or redirect to login.
+  // Keep a ref to router so the unauthorized handler always has the latest
+  // reference without needing to be in the effect's dependency array.
+  // This is important: the effect must only run ONCE on mount to avoid
+  // triggering redundant refresh calls on every in-app navigation.
+  const routerRef = useRef(router);
+  useEffect(() => {
+    routerRef.current = router;
+  }, [router]);
+
   useEffect(() => {
     const savedUser = localStorage.getItem(USER_KEY);
 
     // Register a global 401 handler. When any API call receives 401 AND the
     // silent refresh inside api.ts also fails, clear local state and redirect.
-    // (The refresh retry in api.ts runs first — this only fires as a last resort.)
+    // Uses routerRef so we always have the latest router without re-running
+    // this effect on every navigation.
     setUnauthorizedHandler(() => {
       localStorage.removeItem(USER_KEY);
+      localStorage.removeItem(REFRESH_TS_KEY);
       setUser(null);
-      router.push('/login');
+      routerRef.current.push('/login');
     });
 
     if (!savedUser) {
@@ -66,22 +76,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Detect recently-refreshed tabs to prevent duplicate-tab race conditions.
-    // When two tabs open at the same time (e.g. browser restore or Ctrl+D),
-    // both would call /auth/refresh simultaneously. If the server uses
-    // single-use refresh token rotation, the second call fails and incorrectly
-    // signs the user out.
+    // Guard against duplicate refresh calls.
     //
-    // Fix: after a successful refresh, stamp the timestamp in localStorage.
-    // Any tab that mounts within 45 s of that stamp skips the proactive refresh
-    // (the cookies are already fresh from the other tab's refresh).
-    const REFRESH_TS_KEY = 'last_refresh_ts';
+    // Two scenarios this protects against:
+    //  1. Duplicate tabs: two tabs opening simultaneously both call /auth/refresh.
+    //     If the server uses single-use rotation the second call fails → sign-out.
+    //  2. In-app navigation: navigating between dashboard pages should NOT
+    //     trigger repeated proactive refreshes. apiFetch handles 401s itself
+    //     (silent refresh + retry), and it updates last_refresh_ts when it
+    //     does so. This guard prevents AuthContext from racing with apiFetch.
+    //
+    // Window is 5 minutes — long enough to cover normal browsing sessions
+    // and short enough that a real re-mount (new tab, F5) still validates.
     const lastRefreshTs = parseInt(localStorage.getItem(REFRESH_TS_KEY) || '0', 10);
     const secondsSinceRefresh = (Date.now() - lastRefreshTs) / 1000;
 
-    if (secondsSinceRefresh < 45) {
-      // Another tab refreshed very recently — trust the shared httpOnly cookie
-      // and skip the proactive refresh to avoid a rotation race condition.
+    if (secondsSinceRefresh < REFRESH_GUARD_SECONDS) {
+      // A refresh happened recently (either on mount or via apiFetch silent
+      // refresh). Trust the existing httpOnly cookie and skip the round-trip.
       setUser(parsed);
       setIsLoading(false);
       return;
@@ -91,7 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // If it fails (refresh token also expired) we clear the stale profile.
     api.refresh().then((ok: boolean) => {
       if (ok) {
-        // Stamp the refresh time so other tabs opening within 45s skip refresh
+        // Stamp the refresh time so other tabs / apiFetch skip redundant
+        // refreshes within the guard window.
         localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
         setUser(parsed);
       } else {
@@ -107,7 +120,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(parsed);
       setIsLoading(false);
     });
-  }, [router]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run ONCE on mount only. routerRef keeps the redirect callback fresh.
+          // Adding router here would re-run auth checks on every navigation,
+          // causing refresh token rotation races and spurious sign-outs.
 
   const login = async (email: string, password: string) => {
     const data = await api.login(email, password);
@@ -120,6 +137,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
     };
     localStorage.setItem(USER_KEY, JSON.stringify(profile));
+    // Stamp the refresh time on login so the mount guard is satisfied
+    // for any tabs opened shortly after.
+    localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
     setUser(profile);
   };
 
@@ -133,8 +153,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // navigate away immediately regardless of the server response.
     api.logout().catch(() => { /* ignore network errors on logout */ });
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(REFRESH_TS_KEY);
     setUser(null);
-    router.push('/login');
+    routerRef.current.push('/login');
   };
 
   return (
