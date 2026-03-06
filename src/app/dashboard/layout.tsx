@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, ReactNode, useState } from 'react';
 import { ToastProvider } from '../../lib/toast';
 import { NotificationBell } from './NotificationBell';
+import { FeedbackWidget } from './FeedbackWidget';
 
 const navItems = [
   { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
@@ -115,6 +116,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <span>Not a fatwa — consult a qualified scholar for your specific situation</span>
         </footer>
       </div>
+
+      {/* Floating feedback widget — visible on all dashboard pages */}
+      <FeedbackWidget />
     </div>
   );
 }

@@ -625,4 +625,15 @@ export const api = {
   /** Current subscription status for the logged-in user. */
   subscriptionStatus: () =>
     apiFetch('/api/stripe/status'),
+
+  // ── Contact / Feedback ──────────────────────────────────────────────────────
+  /**
+   * Send a feedback or contact message from a logged-in user.
+   * name/email are auto-filled by the backend from the JWT.
+   */
+  contact: (subject: string, message: string) =>
+    apiFetch('/api/contact', {
+      method: 'POST',
+      body: JSON.stringify({ subject, message }),
+    }),
 };
