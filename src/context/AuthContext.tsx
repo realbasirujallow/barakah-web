@@ -66,14 +66,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Detect recently-refreshed tabs to prevent duplicate-tab race conditions.
+    // When two tabs open at the same time (e.g. browser restore or Ctrl+D),
+    // both would call /auth/refresh simultaneously. If the server uses
+    // single-use refresh token rotation, the second call fails and incorrectly
+    // signs the user out.
+    //
+    // Fix: after a successful refresh, stamp the timestamp in localStorage.
+    // Any tab that mounts within 45 s of that stamp skips the proactive refresh
+    // (the cookies are already fresh from the other tab's refresh).
+    const REFRESH_TS_KEY = 'last_refresh_ts';
+    const lastRefreshTs = parseInt(localStorage.getItem(REFRESH_TS_KEY) || '0', 10);
+    const secondsSinceRefresh = (Date.now() - lastRefreshTs) / 1000;
+
+    if (secondsSinceRefresh < 45) {
+      // Another tab refreshed very recently — trust the shared httpOnly cookie
+      // and skip the proactive refresh to avoid a rotation race condition.
+      setUser(parsed);
+      setIsLoading(false);
+      return;
+    }
+
     // Try a silent refresh. If it succeeds the server has rotated both cookies.
     // If it fails (refresh token also expired) we clear the stale profile.
     api.refresh().then((ok: boolean) => {
       if (ok) {
+        // Stamp the refresh time so other tabs opening within 45s skip refresh
+        localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
         setUser(parsed);
       } else {
         // Both tokens expired — clean up and let the guard redirect to /login
         localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(REFRESH_TS_KEY);
         setUser(null);
       }
       setIsLoading(false);

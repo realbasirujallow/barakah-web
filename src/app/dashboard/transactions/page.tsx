@@ -55,6 +55,7 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editTx, setEditTx]     = useState<Tx | null>(null);
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState('all');
   const [exportingCsv, setExportingCsv] = useState(false);
@@ -99,16 +100,34 @@ export default function TransactionsPage() {
   };
   useEffect(() => { load(); }, [filter, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const openAdd = () => {
+    setEditTx(null);
+    setForm({ type: 'expense', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD' });
+    setShowForm(true);
+  };
+
+  const openEdit = (tx: Tx) => {
+    setEditTx(tx);
+    setForm({ type: tx.type, category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD' });
+    setShowForm(true);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.addTransaction({ ...form, amount: parseFloat(form.amount) });
+      if (editTx) {
+        await api.updateTransaction(editTx.id, { ...form, amount: parseFloat(form.amount) });
+        toast('Transaction updated', 'success');
+      } else {
+        await api.addTransaction({ ...form, amount: parseFloat(form.amount) });
+        toast('Transaction added', 'success');
+      }
       setShowForm(false);
+      setEditTx(null);
       setForm({ type: 'expense', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD' });
       load();
-      toast('Transaction added', 'success');
     } catch {
-      toast('Failed to add transaction', 'error');
+      toast(editTx ? 'Failed to update transaction' : 'Failed to add transaction', 'error');
     }
     setSaving(false);
   };
@@ -322,7 +341,10 @@ export default function TransactionsPage() {
                   {tx.type === 'income' ? '+' : '−'}{txAmount(tx)}
                 </p>
                 {!selectMode && (
-                  <button onClick={() => handleDelete(tx.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => openEdit(tx)} className="text-gray-400 hover:text-[#1B5E20] text-sm px-1" title="Edit">✏️</button>
+                    <button onClick={() => handleDelete(tx.id)} className="text-gray-400 hover:text-red-600 text-sm" title="Delete">🗑️</button>
+                  </div>
                 )}
               </div>
             </div>
@@ -333,7 +355,7 @@ export default function TransactionsPage() {
           <p className="text-5xl mb-4">📊</p>
           <p className="text-gray-600 font-semibold text-lg mb-1">No transactions yet</p>
           <p className="text-gray-400 text-sm mb-6">Add your first income or expense to get started.</p>
-          <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-xl hover:bg-[#2E7D32] font-medium text-sm">
+          <button onClick={openAdd} className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-xl hover:bg-[#2E7D32] font-medium text-sm">
             + Add Transaction
           </button>
         </div>
@@ -354,7 +376,7 @@ export default function TransactionsPage() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Transaction</h2>
+            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">{editTx ? 'Edit Transaction' : 'Add Transaction'}</h2>
             <div className="space-y-4">
               {/* Type */}
               <div>
@@ -395,10 +417,10 @@ export default function TransactionsPage() {
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button onClick={() => { setShowForm(false); setEditTx(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.amount}
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
-                {saving ? 'Saving...' : 'Add'}
+                {saving ? 'Saving...' : (editTx ? 'Save Changes' : 'Add')}
               </button>
             </div>
           </div>

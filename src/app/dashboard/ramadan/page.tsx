@@ -64,7 +64,7 @@ function getRamadanStatus(now: Date): {
 }
 
 /* ── Zakat al-Fitr 2025 approximate rate ──────────────────────────── */
-const ZAKAT_FITR_PER_PERSON_USD = 10; // approximate; varies by school
+const ZAKAT_FITR_DEFAULT = 10; // default; user can edit per their mosque
 
 const OPTIONAL_CATEGORIES = [
   { key: 'quran',       label: 'Quran / Islamic Books',   icon: '📖', suggested: 50 },
@@ -90,7 +90,9 @@ export default function RamadanPage() {
   const [budget, setBudget]             = useState<BudgetItem[]>(
     OPTIONAL_CATEGORIES.map(c => ({ ...c, allocated: c.suggested }))
   );
-  const [customGoal, setCustomGoal]     = useState('');
+  const [fitrahPerPerson, setFitrahPerPerson] = useState(ZAKAT_FITR_DEFAULT);
+  const [customGoal, setCustomGoal]     = useState({ label: '', amount: 0 });
+  const [customGoalDraft, setCustomGoalDraft] = useState({ label: '', amount: '' });
   const [dailyNafila, setDailyNafila]   = useState<boolean[]>(Array(30).fill(false));
   const [expandDua, setExpandDua]       = useState<number | null>(null);
 
@@ -103,8 +105,8 @@ export default function RamadanPage() {
   const hijri = toHijri(now);
   const ramadan = getRamadanStatus(now);
   const totalBudget = budget.reduce((s, b) => s + b.allocated, 0);
-  const fitrahTotal = members * ZAKAT_FITR_PER_PERSON_USD;
-  const grandTotal  = totalBudget + (fitrahPaid ? 0 : fitrahTotal);
+  const fitrahTotal = members * fitrahPerPerson;
+  const grandTotal  = totalBudget + customGoal.amount + (fitrahPaid ? 0 : fitrahTotal);
 
   const updateBudget = (key: string, val: number) => {
     setBudget(prev => prev.map(b => b.key === key ? { ...b, allocated: val } : b));
@@ -167,21 +169,30 @@ export default function RamadanPage() {
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
         <h2 className="font-bold text-[#1B5E20] mb-3">🕌 Zakat al-Fitr</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Obligatory charity paid before Eid al-Fitr prayer. Approximately <strong>${ZAKAT_FITR_PER_PERSON_USD}</strong> per person (based on staple food equivalent; verify with your local mosque).
+          Obligatory charity paid before Eid al-Fitr prayer. Enter the amount your mosque specifies — typically $10–$15 per person based on staple food equivalent.
         </p>
-        <div className="flex items-center gap-4 mb-4">
-          <div className="flex-1">
-            <label className="text-sm font-medium text-gray-700 block mb-1">Number of family members</label>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">Amount per person ($)</label>
+            <input
+              type="number" min="1" step="1" value={fitrahPerPerson}
+              onChange={e => setFitrahPerPerson(Math.max(1, parseFloat(e.target.value) || ZAKAT_FITR_DEFAULT))}
+              className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+            />
+            <p className="text-xs text-gray-400 mt-0.5">Default $10 — edit per your mosque</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">Family members</label>
             <input
               type="number" min="1" max="20" value={members}
               onChange={e => setMembers(Math.max(1, parseInt(e.target.value) || 1))}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
             />
           </div>
-          <div className="text-right">
-            <p className="text-xs text-gray-500">Total due</p>
-            <p className="text-2xl font-bold text-[#1B5E20]">{fmt(fitrahTotal)}</p>
-          </div>
+        </div>
+        <div className="flex justify-between items-center bg-amber-50 rounded-xl px-4 py-3 mb-4">
+          <span className="text-sm text-amber-800">{members} person{members > 1 ? 's' : ''} × ${fitrahPerPerson}</span>
+          <span className="text-xl font-bold text-[#1B5E20]">{fmt(fitrahTotal)}</span>
         </div>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
@@ -217,23 +228,60 @@ export default function RamadanPage() {
         </div>
         {/* Custom goal */}
         <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-400 text-sm">Custom goal:</span>
+          <p className="text-sm font-medium text-gray-700 mb-2">+ Custom Goal</p>
+          <div className="flex gap-2">
             <input
               type="text" placeholder="e.g. Night of Power donation"
-              value={customGoal}
-              onChange={e => setCustomGoal(e.target.value)}
+              value={customGoalDraft.label}
+              onChange={e => setCustomGoalDraft(d => ({ ...d, label: e.target.value }))}
               className="flex-1 border rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:border-[#1B5E20]"
             />
+            <div className="flex items-center gap-1 border rounded-lg px-2 py-1.5 bg-white">
+              <span className="text-gray-400 text-sm">$</span>
+              <input
+                type="number" min="0" step="10" placeholder="0"
+                value={customGoalDraft.amount}
+                onChange={e => setCustomGoalDraft(d => ({ ...d, amount: e.target.value }))}
+                className="w-16 text-sm text-gray-900 text-right focus:outline-none"
+              />
+            </div>
+            <button
+              onClick={() => {
+                if (!customGoalDraft.label) return;
+                setCustomGoal({ label: customGoalDraft.label, amount: parseFloat(customGoalDraft.amount) || 0 });
+                setCustomGoalDraft({ label: '', amount: '' });
+              }}
+              className="bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#2E7D32] font-medium whitespace-nowrap"
+            >
+              Add
+            </button>
           </div>
+          {customGoal.label && (
+            <div className="flex items-center justify-between mt-2 bg-green-50 rounded-lg px-3 py-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">✨</span>
+                <span className="text-sm font-medium text-gray-700">{customGoal.label}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-[#1B5E20]">{fmt(customGoal.amount)}</span>
+                <button onClick={() => setCustomGoal({ label: '', amount: 0 })} className="text-gray-300 hover:text-red-500 text-xs">✕</button>
+              </div>
+            </div>
+          )}
         </div>
         <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
           <span className="text-sm font-semibold text-gray-700">Total (excl. Fitrah)</span>
           <span className="text-lg font-bold text-gray-900">{fmt(totalBudget)}</span>
         </div>
+        {customGoal.label && (
+          <div className="flex justify-between items-center mt-1 text-sm text-gray-600">
+            <span>✨ {customGoal.label}</span>
+            <span className="font-semibold">{fmt(customGoal.amount)}</span>
+          </div>
+        )}
         {!fitrahPaid && (
           <div className="flex justify-between items-center mt-1 text-sm text-[#1B5E20]">
-            <span>+ Zakat al-Fitr ({members} person{members > 1 ? 's' : ''})</span>
+            <span>🕌 Zakat al-Fitr ({members} × ${fitrahPerPerson})</span>
             <span className="font-semibold">{fmt(fitrahTotal)}</span>
           </div>
         )}
