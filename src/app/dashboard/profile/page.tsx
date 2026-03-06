@@ -25,9 +25,29 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const handleUpgrade = async (plan: 'plus' | 'family') => {
+    setUpgradingPlan(plan);
+    try {
+      const result = await api.upgradeSubscription(plan);
+      if (result?.url) {
+        window.location.href = result.url; // Free → Stripe Checkout
+      } else if (result?.success) {
+        toast('Plan updated successfully!', 'success');
+        window.location.reload(); // Existing subscriber — plan switched
+      } else {
+        toast('Something went wrong. Please try again.', 'error');
+      }
+    } catch {
+      toast('Something went wrong. Please try again.', 'error');
+    } finally {
+      setUpgradingPlan(null);
+    }
+  };
+
   // Name / email form
   const [nameForm, setNameForm] = useState({ fullName: '', email: '' });
   const [savingName, setSavingName] = useState(false);
+  const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null);
   const [nameMsg, setNameMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Password form
@@ -177,27 +197,25 @@ export default function ProfilePage() {
                 <span className="text-sm text-gray-500">{info.desc}</span>
               </div>
               {planKey === 'free' && (
-                <a
-                  href="/#pricing"
-                  className="text-sm font-semibold text-[#1B5E20] border border-[#1B5E20] px-4 py-1.5 rounded-lg hover:bg-green-50 transition whitespace-nowrap"
+                <button
+                  onClick={() => handleUpgrade('plus')}
+                  disabled={upgradingPlan !== null}
+                  className="text-sm font-semibold text-[#1B5E20] border border-[#1B5E20] px-4 py-1.5 rounded-lg hover:bg-green-50 transition whitespace-nowrap disabled:opacity-60"
                 >
-                  Upgrade ↗
-                </a>
+                  {upgradingPlan === 'plus' ? 'Redirecting...' : 'Upgrade to Plus ↗'}
+                </button>
               )}
               {planKey === 'plus' && (
-                <a
-                  href="/#pricing"
-                  className="text-sm font-semibold text-purple-600 border border-purple-300 px-4 py-1.5 rounded-lg hover:bg-purple-50 transition whitespace-nowrap"
+                <button
+                  onClick={() => handleUpgrade('family')}
+                  disabled={upgradingPlan !== null}
+                  className="text-sm font-semibold text-purple-600 border border-purple-300 px-4 py-1.5 rounded-lg hover:bg-purple-50 transition whitespace-nowrap disabled:opacity-60"
                 >
-                  Go Family ↗
-                </a>
+                  {upgradingPlan === 'family' ? 'Redirecting...' : 'Go Family ↗'}
+                </button>
               )}
             </div>
-            {planKey === 'free' && (
-              <p className="text-xs text-gray-400 mt-3">
-                Contact support or ask your admin to upgrade your account once Stripe is live.
-              </p>
-            )}
+
           </div>
         );
       })()}

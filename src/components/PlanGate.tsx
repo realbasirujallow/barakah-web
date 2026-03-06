@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
+import { useState } from 'react';
 import { useAuth, hasAccess } from '../context/AuthContext';
+import { api } from '../lib/api';
 import { ReactNode } from 'react';
 
 interface PlanGateProps {
@@ -21,6 +22,7 @@ interface PlanGateProps {
  */
 export function PlanGate({ required, featureName, description, children }: PlanGateProps) {
   const { user } = useAuth();
+  const [upgrading, setUpgrading] = useState(false);
 
   // Still loading or no user (layout guard handles redirect)
   if (!user) return null;
@@ -36,6 +38,24 @@ export function PlanGate({ required, featureName, description, children }: PlanG
   const colorClasses = planColor === 'purple'
     ? { bg: 'bg-purple-600', hover: 'hover:bg-purple-700', ring: 'ring-purple-200', badge: 'bg-purple-100 text-purple-800' }
     : { bg: 'bg-[#1B5E20]', hover: 'hover:bg-[#2E7D32]', ring: 'ring-green-200', badge: 'bg-green-100 text-[#1B5E20]' };
+
+  const handleUpgrade = async () => {
+    setUpgrading(true);
+    try {
+      const result = await api.upgradeSubscription(required);
+      if (result?.url) {
+        window.location.href = result.url;
+      } else if (result?.success) {
+        window.location.reload();
+      } else {
+        alert('Something went wrong. Please try via the Billing page.');
+        setUpgrading(false);
+      }
+    } catch {
+      alert('Something went wrong. Please try via the Billing page.');
+      setUpgrading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
@@ -53,12 +73,13 @@ export function PlanGate({ required, featureName, description, children }: PlanG
         <p className="font-bold text-gray-800 text-lg">{planLabel} Plan</p>
         <p className="text-3xl font-bold text-gray-900 mt-1">{planPrice}</p>
         <p className="text-gray-400 text-xs mt-0.5">billed monthly</p>
-        <Link
-          href="/dashboard/billing"
-          className={`mt-5 block w-full ${colorClasses.bg} ${colorClasses.hover} text-white py-2.5 rounded-xl font-semibold text-sm transition`}
+        <button
+          onClick={handleUpgrade}
+          disabled={upgrading}
+          className={`mt-5 block w-full ${colorClasses.bg} ${colorClasses.hover} text-white py-2.5 rounded-xl font-semibold text-sm transition disabled:opacity-60`}
         >
-          Upgrade Now
-        </Link>
+          {upgrading ? 'Redirecting to Stripe...' : 'Upgrade Now'}
+        </button>
       </div>
 
       <p className="text-xs text-gray-400">
