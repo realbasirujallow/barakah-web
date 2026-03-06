@@ -18,6 +18,7 @@ const navItems = [
   { href: '/dashboard/shared', icon: '👥', label: 'Shared Finances' },
   { href: '/dashboard/debts', icon: '💳', label: 'Debts' },
   { href: '/dashboard/bills', icon: '🔔', label: 'Bills' },
+  { href: '/dashboard/recurring', icon: '🔁', label: 'Recurring' },
   { href: '/dashboard/zakat', icon: '🕌', label: 'Zakat' },
   { href: '/dashboard/hawl', icon: '⏰', label: 'Hawl Tracker' },
   { href: '/dashboard/sadaqah', icon: '🤲', label: 'Sadaqah' },
