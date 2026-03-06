@@ -151,6 +151,7 @@ export default function Home() {
             <a href="#features" className="hover:text-[#1B5E20] transition">Features</a>
             <a href="#pricing" className="hover:text-[#1B5E20] transition">Pricing</a>
             <a href="#compare" className="hover:text-[#1B5E20] transition">Compare</a>
+            <Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link>
           </nav>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm text-[#1B5E20] font-medium hover:underline">Sign In</Link>
@@ -376,6 +377,8 @@ export default function Home() {
         <Link href="/disclaimer" className="hover:text-[#1B5E20] hover:underline transition">
           ⚠️ Disclaimer &amp; Islamic Guidance Notice
         </Link>
+        <span className="mx-2">·</span>
+        <Link href="/contact" className="hover:text-[#1B5E20] hover:underline transition">Contact Us</Link>
         <span className="mx-2">·</span>
         <span>Not a fatwa — consult a qualified scholar for your specific situation</span>
         <span className="mx-2">·</span>
