@@ -596,16 +596,16 @@ export const api = {
   // ── Stripe Billing ──────────────────────────────────────────────────────────
   /** Create a Stripe Checkout session. Returns { url } to redirect to. */
   createCheckout: (plan: 'plus' | 'family') =>
-    apiFetch<{ url: string }>('/api/stripe/create-checkout', {
+    apiFetch('/api/stripe/create-checkout', {
       method: 'POST',
       body: JSON.stringify({ plan }),
     }),
 
   /** Open Stripe Customer Portal (manage/cancel/update card). Returns { url }. */
   openPortal: () =>
-    apiFetch<{ url: string }>('/api/stripe/portal', { method: 'POST' }),
+    apiFetch('/api/stripe/portal', { method: 'POST' }),
 
   /** Current subscription status for the logged-in user. */
   subscriptionStatus: () =>
-    apiFetch<{ plan: string; status: string; hasSubscription: boolean }>('/api/stripe/status'),
+    apiFetch('/api/stripe/status'),
 };
