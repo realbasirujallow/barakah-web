@@ -31,6 +31,7 @@ const navItems = [
   { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times' },
   { href: '/dashboard/ramadan', icon: '🌙', label: 'Ramadan Mode' },
   { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications' },
+  { href: '/dashboard/summary', icon: '📋', label: 'Financial Summary' },
   { href: '/dashboard/barakah-score', icon: '⭐', label: 'Barakah Score' },
   { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
   // Admin page is intentionally NOT listed here — access via direct URL only.
