@@ -352,6 +352,13 @@ export const api = {
   deleteBill: (id: number) =>
     apiFetch(`/api/bills/${id}`, { method: 'DELETE' }),
 
+  // Recurring transactions
+  getRecurringTransactions: () => apiFetch('/api/transactions/recurring'),
+  toggleRecurring: (id: number) =>
+    apiFetch(`/api/transactions/${id}/toggle-recurring`, { method: 'PUT' }),
+  processRecurring: () =>
+    apiFetch('/api/transactions/process-recurring', { method: 'POST' }),
+
   // Hawl
   getHawl: () => apiFetch('/api/hawl/list'),
   addHawl: (data: Record<string, unknown>) =>
