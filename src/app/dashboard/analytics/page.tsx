@@ -122,6 +122,19 @@ export default function AnalyticsPage() {
     ...d,
     label: fmtMonth(d.month),
   }));
+  // Year-over-Year: group monthly data by calendar year
+  const yoyData = (() => {
+    const byYear: Record<string, { income: number; expenses: number; net: number; months: number }> = {};
+    for (const d of monthlyData) {
+      const yr = d.month.split('-')[0];
+      if (!byYear[yr]) byYear[yr] = { income: 0, expenses: 0, net: 0, months: 0 };
+      byYear[yr].income   += d.income;
+      byYear[yr].expenses += d.expenses;
+      byYear[yr].net      += d.net;
+      byYear[yr].months++;
+    }
+    return Object.entries(byYear).sort(([a], [b]) => a.localeCompare(b)).map(([year, v]) => ({ year, ...v }));
+  })();
 
   return (
     <div>
@@ -332,6 +345,56 @@ export default function AnalyticsPage() {
           )}
         </div>
       </div>
+
+
+      {/* Year-over-Year Comparison */}
+      {yoyData.length >= 2 && (
+        <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+          <h2 className="text-lg font-semibold text-[#1B5E20] mb-1">📆 Year-over-Year</h2>
+          <p className="text-xs text-gray-500 mb-4">Annual income vs spending — based on imported data</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 px-3 text-gray-500 font-medium">Year</th>
+                  <th className="text-right py-2 px-3 text-gray-500 font-medium">Income</th>
+                  <th className="text-right py-2 px-3 text-gray-500 font-medium">Expenses</th>
+                  <th className="text-right py-2 px-3 text-gray-500 font-medium">Net</th>
+                  <th className="text-right py-2 px-3 text-gray-500 font-medium">vs Prior Year</th>
+                </tr>
+              </thead>
+              <tbody>
+                {yoyData.map((yr, i) => {
+                  const prev = yoyData[i - 1];
+                  const expChange = prev ? ((yr.expenses - prev.expenses) / Math.abs(prev.expenses) * 100) : null;
+                  const isCurrentYear = yr.year === String(new Date().getFullYear());
+                  return (
+                    <tr key={yr.year} className={`border-b border-gray-100 ${isCurrentYear ? 'bg-green-50' : ''}`}>
+                      <td className="py-3 px-3 font-semibold text-gray-800">
+                        {yr.year} {isCurrentYear && <span className="text-xs text-[#1B5E20] font-normal ml-1">(YTD)</span>}
+                      </td>
+                      <td className="py-3 px-3 text-right text-green-700 font-medium">{fmt(yr.income)}</td>
+                      <td className="py-3 px-3 text-right text-red-600 font-medium">{fmt(yr.expenses)}</td>
+                      <td className={`py-3 px-3 text-right font-semibold ${yr.net >= 0 ? 'text-teal-600' : 'text-orange-600'}`}>
+                        {fmt(yr.net)}
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        {expChange !== null ? (
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            expChange <= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {expChange <= 0 ? '↓' : '↑'} {Math.abs(expChange).toFixed(1)}% spend
+                          </span>
+                        ) : <span className="text-gray-300 text-xs">—</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Charts Row 2: Pie Charts */}
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
