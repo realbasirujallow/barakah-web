@@ -346,6 +346,10 @@ export const api = {
     apiFetch(`/api/debts/${id}/payment`, { method: 'POST', body: JSON.stringify({ amount }) }),
   deleteDebt: (id: number) =>
     apiFetch(`/api/debts/${id}`, { method: 'DELETE' }),
+  bulkDeleteDebts: (ids: number[]) =>
+    apiFetch('/api/debts/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
+  deleteAllDebts: () =>
+    apiFetch('/api/debts/bulk-delete', { method: 'POST', body: JSON.stringify({ deleteAll: true }) }),
   getDebtProjections: () => apiFetch('/api/debts/projections'),
 
   // Bills

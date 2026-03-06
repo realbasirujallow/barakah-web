@@ -84,6 +84,8 @@ export default function DebtsPage() {
   const [payError, setPayError] = useState<string | null>(null);
   const [tab, setTab] = useState<'debts' | 'projector'>('debts');
   const [extra, setExtra] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const { toast } = useToast();
 
   const load = () => {
@@ -127,6 +129,42 @@ export default function DebtsPage() {
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this debt?')) return;
     await api.deleteDebt(id).catch((err) => { console.error(err); }); load();
+  };
+
+  const toggleSelect = (id: number) => setSelectedIds(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === debts.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(debts.map(d => d.id)));
+  };
+
+  const handleBulkDelete = async () => {
+    const count = selectedIds.size;
+    if (!confirm(`Delete ${count} debt${count !== 1 ? 's' : ''}? This cannot be undone.`)) return;
+    setBulkDeleting(true);
+    try {
+      await api.bulkDeleteDebts(Array.from(selectedIds));
+      setSelectedIds(new Set());
+      load();
+      toast(`${count} debt${count !== 1 ? 's' : ''} deleted`, 'success');
+    } catch { toast('Failed to delete debts', 'error'); }
+    setBulkDeleting(false);
+  };
+
+  const handleDeleteAll = async () => {
+    if (!confirm(`Delete ALL ${debts.length} debts? This cannot be undone.`)) return;
+    setBulkDeleting(true);
+    try {
+      await api.deleteAllDebts();
+      setSelectedIds(new Set());
+      load();
+      toast('All debts deleted', 'success');
+    } catch { toast('Failed to delete all debts', 'error'); }
+    setBulkDeleting(false);
   };
 
   // Projector calculations
@@ -175,13 +213,35 @@ export default function DebtsPage() {
             <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Monthly Payments</p><p className="text-2xl font-bold text-orange-600">{fmt(totalMinPayment)}</p></div>
           </div>
 
+          {debts.length > 0 && (
+            <div className="flex items-center gap-3 mb-3 flex-wrap">
+              <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+                <input type="checkbox" checked={selectedIds.size === debts.length && debts.length > 0} onChange={toggleSelectAll} className="w-4 h-4 accent-[#1B5E20] rounded" />
+                {selectedIds.size === debts.length && debts.length > 0 ? 'Deselect all' : 'Select all'}
+              </label>
+              {selectedIds.size > 0 && (
+                <>
+                  <span className="text-sm text-gray-500">{selectedIds.size} selected</span>
+                  <button onClick={handleBulkDelete} disabled={bulkDeleting} className="bg-red-600 text-white text-sm px-3 py-1 rounded-lg hover:bg-red-700 disabled:opacity-50">
+                    {bulkDeleting ? 'Deleting...' : `Delete ${selectedIds.size}`}
+                  </button>
+                  <button onClick={() => setSelectedIds(new Set())} className="text-sm text-gray-500 hover:text-gray-700 border border-gray-300 px-3 py-1 rounded-lg">Clear</button>
+                </>
+              )}
+              {selectedIds.size === 0 && debts.length > 1 && (
+                <button onClick={handleDeleteAll} disabled={bulkDeleting} className="ml-auto text-xs text-red-500 hover:text-red-700 disabled:opacity-50">Delete all</button>
+              )}
+            </div>
+          )}
           {debts.length > 0 ? (
             <div className="space-y-3">
               {debts.map((d: DebtItem) => {
                 const pct = d.totalAmount > 0 ? ((d.totalAmount - d.remainingAmount) / d.totalAmount) * 100 : 0;
                 const halal = d.ribaFree || ISLAMIC_TYPES.includes(d.type);
                 return (
-                  <div key={d.id} className={`bg-white rounded-xl p-4 border ${halal ? 'border-transparent' : 'border-red-200'}`}>
+                  <div key={d.id} className="flex items-start gap-3">
+                    <input type="checkbox" checked={selectedIds.has(d.id)} onChange={() => toggleSelect(d.id)} className="mt-4 w-4 h-4 accent-[#1B5E20] rounded flex-shrink-0" />
+                    <div className={`flex-1 bg-white rounded-xl p-4 border ${halal ? 'border-transparent' : 'border-red-200'}`}>
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
@@ -208,6 +268,7 @@ export default function DebtsPage() {
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div className="bg-[#1B5E20] h-2 rounded-full" style={{ width: `${pct}%` }} />
                     </div>
+                  </div>
                   </div>
                 );
               })}
