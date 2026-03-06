@@ -270,10 +270,10 @@ export default function PrayerTimesPage() {
               <div className="flex items-center justify-between mt-1">
                 <div>
                   <p className="text-3xl font-bold">{PRAYER_ICONS[nextPrayer]} {PRAYER_LABELS[nextPrayer]}</p>
-                  <p className="text-green-200 text-sm mt-1">at {(timings as Record<string, string>)[nextPrayer]}</p>
+                  <p className="text-green-200 text-sm mt-1">at {(timings as unknown as Record<string, string>)[nextPrayer]}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold">{getCountdown((timings as Record<string, string>)[nextPrayer])}</p>
+                  <p className="text-2xl font-bold">{getCountdown((timings as unknown as Record<string, string>)[nextPrayer])}</p>
                   <p className="text-green-200 text-xs">remaining</p>
                 </div>
               </div>
@@ -301,11 +301,11 @@ export default function PrayerTimesPage() {
                   </div>
                   <div className="text-right">
                     <p className={`text-lg font-bold ${isNext ? 'text-[#1B5E20]' : isSunrise ? 'text-gray-400' : 'text-gray-700'}`}>
-                      {(timings as Record<string, string>)[prayer]}
+                      {(timings as unknown as Record<string, string>)[prayer]}
                     </p>
                     {isNext && (
                       <p className="text-xs text-[#1B5E20] font-medium">
-                        {getCountdown((timings as Record<string, string>)[prayer])} away
+                        {getCountdown((timings as unknown as Record<string, string>)[prayer])} away
                       </p>
                     )}
                   </div>
