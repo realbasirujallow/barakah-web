@@ -3,18 +3,22 @@ import { createContext, useContext, useState, useEffect, useRef, ReactNode } fro
 import { useRouter } from 'next/navigation';
 import { api, setUnauthorizedHandler } from '../lib/api';
 
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
+  plan: 'free' | 'plus' | 'family';
+  referralCode?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, state: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, state: string, referralCode?: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
+  /** Call after a plan change to refresh plan from /auth/profile */
+  refreshPlan: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -67,9 +71,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // We have a saved profile. Validate the session by proactively refreshing
     // the access token. This handles the "page reloaded after the 24h JWT
     // expired but the 30-day refresh token is still valid" case.
-    let parsed: typeof user | null = null;
+    let parsed: User | null = null;
     try {
       parsed = JSON.parse(savedUser);
+      // Ensure plan has a default for profiles saved before plan was added
+      if (parsed && !parsed.plan) parsed.plan = 'free';
     } catch {
       localStorage.removeItem(USER_KEY);
       setIsLoading(false);
@@ -135,6 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: String(data.userId ?? data.id ?? email),
       name: data.fullName ?? data.name ?? email,
       email,
+      plan: (data.plan as User['plan']) ?? 'free',
+      referralCode: data.referralCode,
     };
     localStorage.setItem(USER_KEY, JSON.stringify(profile));
     // Stamp the refresh time on login so the mount guard is satisfied
@@ -143,9 +151,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(profile);
   };
 
-  const signup = async (name: string, email: string, password: string, state: string) => {
+  const signup = async (name: string, email: string, password: string, state: string, referralCode?: string) => {
     // Backend requires email verification before login — no session created here.
-    await api.signup(name, email, password, state);
+    await api.signup(name, email, password, state, referralCode);
   };
 
   const logout = () => {
@@ -158,8 +166,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     routerRef.current.push('/login');
   };
 
+  /** Refresh plan info from the server (call after a Stripe payment or upgrade). */
+  const refreshPlan = async () => {
+    try {
+      const data = await api.getProfile();
+      if (data?.plan && user) {
+        const updated: User = { ...user, plan: data.plan as User['plan'] };
+        localStorage.setItem(USER_KEY, JSON.stringify(updated));
+        setUser(updated);
+      }
+    } catch { /* silent */ }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, isLoading, refreshPlan }}>
       {children}
     </AuthContext.Provider>
   );
@@ -169,4 +189,12 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be inside AuthProvider');
   return ctx;
+}
+
+/** Returns true if the user's plan meets the minimum required plan. */
+export function hasAccess(userPlan: string | undefined, required: 'plus' | 'family'): boolean {
+  if (!userPlan || userPlan === 'free') return false;
+  if (required === 'plus') return userPlan === 'plus' || userPlan === 'family';
+  if (required === 'family') return userPlan === 'family';
+  return false;
 }

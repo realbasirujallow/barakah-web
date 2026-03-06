@@ -1,5 +1,5 @@
 'use client';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, hasAccess } from '../../context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, ReactNode, useState } from 'react';
@@ -7,33 +7,34 @@ import { ToastProvider } from '../../lib/toast';
 import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
 
-const navItems = [
+// 'plus' = Plus or Family plan required | 'family' = Family plan only
+const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'family' }[] = [
   { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
-  { href: '/dashboard/analytics', icon: '📊', label: 'Analytics' },
+  { href: '/dashboard/analytics', icon: '📊', label: 'Analytics', gate: 'plus' },
   { href: '/dashboard/assets', icon: '💰', label: 'Assets' },
   { href: '/dashboard/transactions', icon: '📝', label: 'Transactions' },
   { href: '/dashboard/budget', icon: '📊', label: 'Budget' },
   { href: '/dashboard/savings', icon: '🎯', label: 'Savings Goals' },
-  { href: '/dashboard/investments', icon: '📈', label: 'Investments' },
-  { href: '/dashboard/net-worth', icon: '💎', label: 'Net Worth' },
-  { href: '/dashboard/shared', icon: '👥', label: 'Shared Finances' },
+  { href: '/dashboard/investments', icon: '📈', label: 'Investments', gate: 'plus' },
+  { href: '/dashboard/net-worth', icon: '💎', label: 'Net Worth', gate: 'plus' },
+  { href: '/dashboard/shared', icon: '👥', label: 'Shared Finances', gate: 'family' },
   { href: '/dashboard/debts', icon: '💳', label: 'Debts' },
   { href: '/dashboard/bills', icon: '🔔', label: 'Bills' },
   { href: '/dashboard/recurring', icon: '🔁', label: 'Recurring' },
   { href: '/dashboard/zakat', icon: '🕌', label: 'Zakat' },
   { href: '/dashboard/hawl', icon: '⏰', label: 'Hawl Tracker' },
   { href: '/dashboard/sadaqah', icon: '🤲', label: 'Sadaqah' },
-  { href: '/dashboard/wasiyyah', icon: '📜', label: 'Wasiyyah' },
-  { href: '/dashboard/waqf', icon: '🏛️', label: 'Waqf' },
-  { href: '/dashboard/riba', icon: '🛡️', label: 'Riba Detector' },
-  { href: '/dashboard/categorize', icon: '🔄', label: 'Auto-Categorize' },
-  { href: '/dashboard/halal', icon: '✅', label: 'Halal Screener' },
+  { href: '/dashboard/wasiyyah', icon: '📜', label: 'Wasiyyah', gate: 'plus' },
+  { href: '/dashboard/waqf', icon: '🏛️', label: 'Waqf', gate: 'plus' },
+  { href: '/dashboard/riba', icon: '🛡️', label: 'Riba Detector', gate: 'plus' },
+  { href: '/dashboard/categorize', icon: '🔄', label: 'Auto-Categorize', gate: 'plus' },
+  { href: '/dashboard/halal', icon: '✅', label: 'Halal Screener', gate: 'plus' },
   { href: '/dashboard/import', icon: '📥', label: 'Import Data' },
   { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times' },
   { href: '/dashboard/ramadan', icon: '🌙', label: 'Ramadan Mode' },
   { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications' },
-  { href: '/dashboard/summary', icon: '📋', label: 'Financial Summary' },
-  { href: '/dashboard/barakah-score', icon: '⭐', label: 'Barakah Score' },
+  { href: '/dashboard/summary', icon: '📋', label: 'Financial Summary', gate: 'plus' },
+  { href: '/dashboard/barakah-score', icon: '⭐', label: 'Barakah Score', gate: 'plus' },
   { href: '/dashboard/billing', icon: '💳', label: 'Billing & Plans' },
   { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
   // Admin page is intentionally NOT listed here — access via direct URL only.
@@ -62,21 +63,27 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <p className="text-green-300 text-sm mt-1">{user.name}</p>
         </div>
         <nav className="p-4 space-y-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 140px)' }}>
-          {navItems.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition ${
-                pathname === item.href
-                  ? 'bg-green-800 text-white font-semibold'
-                  : 'text-green-200 hover:bg-green-800/50'
-              }`}
-            >
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
-            </Link>
-          ))}
+          {navItems.map(item => {
+            const locked = item.gate ? !hasAccess(user.plan, item.gate) : false;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition ${
+                  pathname === item.href
+                    ? 'bg-green-800 text-white font-semibold'
+                    : locked
+                      ? 'text-green-600 hover:bg-green-800/30'
+                      : 'text-green-200 hover:bg-green-800/50'
+                }`}
+              >
+                <span>{item.icon}</span>
+                <span className="flex-1">{item.label}</span>
+                {locked && <span className="text-xs opacity-60">🔒</span>}
+              </Link>
+            );
+          })}
         </nav>
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-green-800">
           <button onClick={logout} className="w-full text-left px-4 py-2 text-green-300 hover:text-white text-sm transition">
