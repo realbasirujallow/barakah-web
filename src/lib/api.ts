@@ -347,6 +347,8 @@ export const api = {
     apiFetch('/api/bills/add', { method: 'POST', body: JSON.stringify(data) }),
   markBillPaid: (id: number) =>
     apiFetch(`/api/bills/${id}/mark-paid`, { method: 'POST' }),
+  updateBill: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/bills/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteBill: (id: number) =>
     apiFetch(`/api/bills/${id}`, { method: 'DELETE' }),
 
