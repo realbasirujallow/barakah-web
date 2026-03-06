@@ -208,7 +208,7 @@ export default function AnalyticsPage() {
               <XAxis dataKey="label" tick={{ fill: '#374151', fontSize: 11 }} />
               <YAxis tickFormatter={fmtShort} tick={{ fill: '#374151', fontSize: 11 }} />
               <Tooltip
-                formatter={(value: number) => fmt(value)}
+                formatter={(value: number | undefined) => fmt(value ?? 0)}
                 contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
               />
               <Legend />
@@ -223,7 +223,7 @@ export default function AnalyticsPage() {
               <XAxis dataKey="label" tick={{ fill: '#374151', fontSize: 11 }} />
               <YAxis tickFormatter={fmtShort} tick={{ fill: '#374151', fontSize: 11 }} />
               <Tooltip
-                formatter={(value: number) => fmt(value)}
+                formatter={(value: number | undefined) => fmt(value ?? 0)}
                 contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
               />
               <Legend />
