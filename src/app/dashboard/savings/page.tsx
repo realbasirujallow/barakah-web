@@ -1,11 +1,20 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
+import { SkeletonPage } from '../SkeletonCard';
 
 interface Goal { id: number; name: string; category: string; targetAmount: number; currentAmount: number; description: string; deadline: number | null; }
 const CATS = ['hajj', 'umrah', 'emergency', 'education', 'wedding', 'home', 'vehicle', 'business', 'retirement', 'other'];
+
+// Milestone buckets that trigger toasts (50%, 75%, 100%)
+function getMilestone(pct: number): '50' | '75' | '100' | null {
+  if (pct >= 100) return '100';
+  if (pct >= 75)  return '75';
+  if (pct >= 50)  return '50';
+  return null;
+}
 
 export default function SavingsPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -19,11 +28,39 @@ export default function SavingsPage() {
   const [showUmrahPrompt, setShowUmrahPrompt] = useState(true);
   const { toast } = useToast();
 
+  // Once-per-session milestone guard
+  const milestonesRef = useRef<Set<string>>(new Set());
+
+  const checkMilestones = (items: Goal[]) => {
+    items.forEach(g => {
+      const pct = g.targetAmount > 0 ? (g.currentAmount / g.targetAmount) * 100 : 0;
+      const milestone = getMilestone(pct);
+      if (!milestone) return;
+      const key = `${g.id}_${milestone}`;
+      if (milestonesRef.current.has(key)) return;
+      milestonesRef.current.add(key);
+      if (milestone === '100') {
+        toast(`🎉 "${g.name}" goal achieved! Alhamdulillah! 🕌`, 'success');
+      } else if (milestone === '75') {
+        toast(`🎯 "${g.name}" is 75% complete — almost there!`, 'info');
+      } else {
+        toast(`💪 "${g.name}" is halfway to your goal!`, 'info');
+      }
+    });
+  };
+
   const load = () => {
     setLoading(true);
-    api.getSavingsGoals().then(d => setGoals(d?.goals || d || [])).catch(() => { toast('Failed to load savings goals', 'error'); }).finally(() => setLoading(false));
+    api.getSavingsGoals()
+      .then(d => {
+        const items: Goal[] = d?.goals || d || [];
+        setGoals(items);
+        checkMilestones(items);
+      })
+      .catch(() => { toast('Failed to load savings goals', 'error'); })
+      .finally(() => setLoading(false));
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = async () => {
     setSaving(true);
@@ -40,7 +77,8 @@ export default function SavingsPage() {
     setSaving(true);
     try {
       await api.contributeSavingsGoal(contModal.id, parseFloat(contAmount));
-      setContModal(null); setContAmount(''); load();
+      setContModal(null); setContAmount('');
+      load(); // re-check milestones after contribution
       toast('Contribution added', 'success');
     } catch { toast('Failed to add contribution', 'error'); }
     setSaving(false);
@@ -48,33 +86,37 @@ export default function SavingsPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this savings goal?')) return;
-    await api.deleteSavingsGoal(id).catch(() => { toast('Failed to delete savings goal', 'error'); }); load();
+    await api.deleteSavingsGoal(id).catch(() => { toast('Failed to delete savings goal', 'error'); });
+    load();
   };
 
-  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
+  // ── Skeleton loading ────────────────────────────────────────────────────────
+  if (loading) return <SkeletonPage summaryCount={1} listCount={3} />;
 
-  const totalSaved = goals.reduce((s, g) => s + g.currentAmount, 0);
+  const totalSaved  = goals.reduce((s, g) => s + g.currentAmount, 0);
   const totalTarget = goals.reduce((s, g) => s + g.targetAmount, 0);
 
   return (
     <div>
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Savings Goals</h1>
         <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ New Goal</button>
       </div>
 
+      {/* ── Aggregate banner ───────────────────────────────────────────────── */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-500 rounded-2xl p-6 text-white mb-6">
         <p className="text-blue-100 text-sm">Total Saved</p>
         <p className="text-4xl font-bold">{fmt(totalSaved)}</p>
-        <p className="text-blue-200 text-sm mt-1">of {fmt(totalTarget)} target across {goals.length} goals</p>
+        <p className="text-blue-200 text-sm mt-1">of {fmt(totalTarget)} target across {goals.length} goal{goals.length !== 1 ? 's' : ''}</p>
         {totalTarget > 0 && (
           <div className="w-full bg-blue-900/40 rounded-full h-3 mt-3">
-            <div className="bg-white h-3 rounded-full" style={{ width: `${Math.min((totalSaved / totalTarget) * 100, 100)}%` }} />
+            <div className="bg-white h-3 rounded-full transition-all" style={{ width: `${Math.min((totalSaved / totalTarget) * 100, 100)}%` }} />
           </div>
         )}
       </div>
 
-      {/* Hajj Savings Prompt */}
+      {/* ── Hajj prompt ────────────────────────────────────────────────────── */}
       {showHajjPrompt && !goals.some(g => g.category === 'hajj') && (
         <div className="bg-gradient-to-r from-amber-600 to-yellow-500 rounded-2xl p-5 text-white mb-6 relative">
           <button onClick={() => setShowHajjPrompt(false)} className="absolute top-3 right-3 text-white/70 hover:text-white text-lg leading-none">✕</button>
@@ -94,7 +136,7 @@ export default function SavingsPage() {
         </div>
       )}
 
-      {/* Umrah Savings Prompt */}
+      {/* ── Umrah prompt ───────────────────────────────────────────────────── */}
       {showUmrahPrompt && !goals.some(g => g.category === 'umrah') && (
         <div className="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-2xl p-5 text-white mb-6 relative">
           <button onClick={() => setShowUmrahPrompt(false)} className="absolute top-3 right-3 text-white/70 hover:text-white text-lg leading-none">✕</button>
@@ -114,15 +156,19 @@ export default function SavingsPage() {
         </div>
       )}
 
+      {/* ── Goals list or empty state ───────────────────────────────────────── */}
       {goals.length > 0 ? (
         <div className="space-y-3">
           {goals.map(g => {
             const pct = g.targetAmount > 0 ? Math.min((g.currentAmount / g.targetAmount) * 100, 100) : 0;
+            const done = pct >= 100;
             return (
-              <div key={g.id} className="bg-white rounded-xl p-4">
+              <div key={g.id} className={`bg-white rounded-xl p-4 ${done ? 'border-l-4 border-green-500' : ''}`}>
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="font-semibold text-[#1B5E20]">{g.name}</p>
+                    <p className="font-semibold text-[#1B5E20] flex items-center gap-1.5">
+                      {g.name}{done && <span className="text-green-600 text-sm">✅</span>}
+                    </p>
                     <p className="text-sm text-gray-500 capitalize">{g.category}{g.description ? ` • ${g.description}` : ''}</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -135,7 +181,7 @@ export default function SavingsPage() {
                   <span className="text-gray-700 font-medium">{fmt(g.targetAmount)}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${pct}%` }} />
+                  <div className={`h-2 rounded-full transition-all ${done ? 'bg-green-500' : 'bg-blue-600'}`} style={{ width: `${pct}%` }} />
                 </div>
                 <p className="text-xs text-gray-400 mt-1 text-right">{pct.toFixed(0)}% complete</p>
               </div>
@@ -143,9 +189,17 @@ export default function SavingsPage() {
           })}
         </div>
       ) : (
-        <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-3">🎯</p><p>No savings goals yet. Set your first goal!</p></div>
+        <div className="text-center py-20 bg-white rounded-2xl">
+          <p className="text-5xl mb-4">🎯</p>
+          <p className="text-gray-600 font-semibold text-lg mb-1">No savings goals yet</p>
+          <p className="text-gray-400 text-sm mb-6">Set a goal for Hajj, Umrah, an emergency fund, or anything that matters to you.</p>
+          <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-xl hover:bg-[#2E7D32] font-medium text-sm">
+            + New Goal
+          </button>
+        </div>
       )}
 
+      {/* ── New goal modal ─────────────────────────────────────────────────── */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
@@ -170,6 +224,7 @@ export default function SavingsPage() {
         </div>
       )}
 
+      {/* ── Contribute modal ───────────────────────────────────────────────── */}
       {contModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
