@@ -248,7 +248,7 @@ export default function ImportPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold text-[#1B5E20]">Import Data</h1>
       <p className="text-gray-600">
-        Upload a <strong>Monarch Money</strong> CSV export to import your data.
+        Upload a <strong>CSV export</strong> from your bank or budgeting app (Monarch Money, YNAB, Mint, and others).
         Supports both <strong>Balances</strong> (creates assets, debts &amp; investment accounts)
         and <strong>Transactions</strong> (creates income &amp; expense records) formats.
       </p>
@@ -273,11 +273,12 @@ export default function ImportPage() {
           ) : (
             <>
               <p className="text-5xl mb-4">&#128196;</p>
-              <p className="text-lg font-medium text-gray-700">Drag &amp; drop your Monarch CSV here</p>
+              <p className="text-lg font-medium text-gray-700">Drag &amp; drop your CSV here</p>
               <p className="text-gray-400 mt-2">or click to browse</p>
               <p className="text-gray-400 text-sm mt-3">
-                Supports: Balances CSV (accounts &amp; net worth) and Transactions CSV (income &amp; expenses)
+                Supports: Balances CSV (accounts &amp; net worth) · Transactions CSV (income &amp; expenses)
               </p>
+              <p className="text-gray-400 text-xs mt-1">Compatible with Monarch Money, YNAB, Mint, and bank statement exports</p>
             </>
           )}
         </div>
