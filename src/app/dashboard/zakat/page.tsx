@@ -295,7 +295,7 @@ export default function ZakatPage() {
         </>
       ) : (
         <>
-          {/* Payment Progress Summary */
+          {/* Payment Progress Summary */}
           <div className={`rounded-2xl p-6 text-white mb-6 ${fulfilled ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gradient-to-r from-[#1B5E20] to-[#2E7D32]'}`}>
             <p className="text-lg font-bold mb-4">{fulfilled ? '🌟 Zakat Fulfilled' : '📊 Zakat Progress'} — {lunarYear} AH</p>
             <div className="grid grid-cols-3 gap-4 text-center">
