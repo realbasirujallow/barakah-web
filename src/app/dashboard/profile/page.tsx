@@ -39,6 +39,20 @@ export default function ProfilePage() {
   const [showNewPw, setShowNewPw] = useState(false);
   const { toast } = useToast();
 
+  // Dark mode
+  const [darkMode, setDarkMode] = useState(false);
+  useEffect(() => {
+    const stored = localStorage.getItem('barakah_dark_mode') === 'true';
+    setDarkMode(stored);
+    document.documentElement.classList.toggle('dark', stored);
+  }, []);
+  const toggleDarkMode = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    localStorage.setItem('barakah_dark_mode', String(next));
+    document.documentElement.classList.toggle('dark', next);
+  };
+
   // Delete account
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
@@ -325,6 +339,46 @@ export default function ProfilePage() {
             <span className="text-gray-700">{profile?.preferredCurrency || 'USD'}</span>
           </div>
         </div>
+      </div>
+
+      {/* Appearance */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 mt-4">
+        <h2 className="text-lg font-bold text-gray-800 mb-4">Appearance</h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-gray-700 text-sm">Dark Mode</p>
+            <p className="text-xs text-gray-500 mt-0.5">Switch to a dark theme for low-light environments</p>
+          </div>
+          <button
+            onClick={toggleDarkMode}
+            className={`relative w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-[#1B5E20]' : 'bg-gray-200'}`}
+          >
+            <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0'}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* Data Privacy — GDPR Export */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 mt-4 border border-gray-100">
+        <h2 className="text-lg font-bold text-gray-800 mb-2">Your Data</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Download a complete copy of all your Barakah data (transactions, budgets, savings goals, zakat, sadaqah and more) as a JSON file.
+        </p>
+        <button
+          onClick={async () => {
+            try {
+              const data = await api.exportData();
+              const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url; a.download = 'barakah-data-export.json'; a.click();
+              URL.revokeObjectURL(url);
+            } catch { alert('Failed to export data. Please try again.'); }
+          }}
+          className="text-[#1B5E20] border border-[#1B5E20] px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition"
+        >
+          📥 Download My Data
+        </button>
       </div>
 
       {/* Danger Zone — Delete Account */}

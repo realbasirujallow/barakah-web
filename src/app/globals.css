@@ -7,6 +7,20 @@
   --light-green: #4CAF50;
   --cream: #FFF8E1;
   --gold: #FFD54F;
+  --card-bg: #ffffff;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+}
+
+/* Dark mode — activated by adding class="dark" to <html> */
+.dark {
+  --background: #0f1a12;
+  --foreground: #4ade80;
+  --card-bg: #1a2e1d;
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --border-color: #2d4a32;
 }
 
 @theme inline {
@@ -18,6 +32,26 @@
 
 body {
   background: var(--background);
-  color: #333;
+  color: var(--text-primary);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* Dark mode overrides for common patterns */
+.dark .bg-white { background-color: var(--card-bg) !important; }
+.dark .bg-\[#FFF8E1\] { background-color: var(--background) !important; }
+.dark .text-gray-900 { color: var(--text-primary) !important; }
+.dark .text-gray-700 { color: #d1d5db !important; }
+.dark .text-gray-600 { color: #9ca3af !important; }
+.dark .text-gray-500 { color: #6b7280 !important; }
+.dark .text-gray-400 { color: #4b5563 !important; }
+.dark .border-gray-200 { border-color: var(--border-color) !important; }
+.dark .border-gray-100 { border-color: #1f3024 !important; }
+.dark .bg-gray-50 { background-color: #152018 !important; }
+.dark .bg-gray-100 { background-color: #1a2e1d !important; }
+.dark .bg-gray-200 { background-color: #243628 !important; }
+.dark input, .dark select, .dark textarea {
+  background-color: #1a2e1d !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
 }
