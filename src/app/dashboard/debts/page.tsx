@@ -139,8 +139,10 @@ export default function DebtsPage() {
 
   const totalDebt  = debts.reduce((s, d) => s + d.remainingAmount, 0);
   const ribaDebts  = debts.filter(d => !d.ribaFree && !ISLAMIC_TYPES.includes(d.type));
-  const monthsSaved = projBase.months - projAvalanche.months;
-  const interestSaved = projBase.totalInterest - projAvalanche.totalInterest;
+  const monthsSavedAvalanche  = projBase.months - projAvalanche.months;
+  const interestSavedAvalanche = projBase.totalInterest - projAvalanche.totalInterest;
+  const monthsSavedSnowball   = projBase.months - projSnowball.months;
+  const interestSavedSnowball  = projBase.totalInterest - projSnowball.totalInterest;
 
   return (
     <div>
@@ -273,11 +275,11 @@ export default function DebtsPage() {
                       <div className="bg-green-50 rounded-xl p-3 mt-2 space-y-1">
                         <div className="flex justify-between text-sm">
                           <span className="text-green-700">Months saved</span>
-                          <span className="font-bold text-green-700">{monthsSaved > 0 ? `${monthsSaved} months` : '—'}</span>
+                          <span className="font-bold text-green-700">{monthsSavedAvalanche > 0 ? `${monthsSavedAvalanche} months` : '—'}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-green-700">Interest saved</span>
-                          <span className="font-bold text-green-700">{interestSaved > 0 ? fmt(interestSaved) : '—'}</span>
+                          <span className="font-bold text-green-700">{interestSavedAvalanche > 0 ? fmt(interestSavedAvalanche) : '—'}</span>
                         </div>
                       </div>
                     )}
@@ -306,10 +308,21 @@ export default function DebtsPage() {
                       <span className="text-sm text-gray-600">Total interest</span>
                       <span className="font-bold text-red-600">{fmt(projSnowball.totalInterest)}</span>
                     </div>
-                    {projAvalanche.months < projSnowball.months && (
-                      <div className="bg-blue-50 rounded-xl p-3 mt-2 text-sm text-blue-700">
-                        ℹ️ Avalanche saves {fmt(projSnowball.totalInterest - projAvalanche.totalInterest)} more in interest
-                        and finishes {projSnowball.months - projAvalanche.months} month(s) sooner.
+                    {extra > 0 && (
+                      <div className="bg-blue-50 rounded-xl p-3 mt-2 space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-blue-700">Months saved</span>
+                          <span className="font-bold text-blue-700">{monthsSavedSnowball > 0 ? `${monthsSavedSnowball} months` : '—'}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-blue-700">Interest saved</span>
+                          <span className="font-bold text-blue-700">{interestSavedSnowball > 0 ? fmt(interestSavedSnowball) : '—'}</span>
+                        </div>
+                      </div>
+                    )}
+                    {extra > 0 && projAvalanche.months < projSnowball.months && (
+                      <div className="mt-2 text-xs text-gray-400">
+                        ℹ️ Avalanche finishes {projSnowball.months - projAvalanche.months} month(s) sooner and saves {fmt(projSnowball.totalInterest - projAvalanche.totalInterest)} more interest
                       </div>
                     )}
                   </div>
