@@ -142,7 +142,7 @@ function BillingContent() {
       <div className="grid md:grid-cols-3 gap-4 mb-8">
         {PLANS.map(plan => {
           const isCurrent   = currentPlan === plan.id;
-          const isHighlight = plan.highlight;
+          const isHighlight = 'highlight' in plan && plan.highlight;
 
           return (
             <div
