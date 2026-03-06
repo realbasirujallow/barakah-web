@@ -407,6 +407,13 @@ export const api = {
     apiFetch(`/api/waqf/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteWaqf: (id: number) =>
     apiFetch(`/api/waqf/${id}`, { method: 'DELETE' }),
+  getWaqfDistribution: () => apiFetch('/api/waqf/distribution'),
+  addWaqfBeneficiary: (data: Record<string, unknown>) =>
+    apiFetch('/api/waqf/distribution/beneficiary', { method: 'POST', body: JSON.stringify(data) }),
+  updateWaqfBeneficiary: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/waqf/distribution/beneficiary/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteWaqfBeneficiary: (id: number) =>
+    apiFetch(`/api/waqf/distribution/beneficiary/${id}`, { method: 'DELETE' }),
 
   // Riba
   scanRiba: () => apiFetch('/api/riba/scan'),
