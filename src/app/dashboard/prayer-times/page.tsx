@@ -32,7 +32,7 @@ function getNextPrayer(timings: PrayerTimings): string {
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
   const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'] as const;
   for (const p of prayers) {
-    const t = parseTime((timings as Record<string, string>)[p]);
+    const t = parseTime((timings as unknown as Record<string, string>)[p]);
     const [h, m] = t.split(':').map(Number);
     if (h * 60 + m > nowMinutes) return p;
   }
