@@ -1,14 +1,23 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { api } from '../../lib/api';
 
-export default function SignupPage() {
+function SignupContent() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [state, setState] = useState('');
+  const [referralCode, setReferralCode] = useState('');
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) setReferralCode(ref.toUpperCase());
+  }, [searchParams]);
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
@@ -21,7 +30,7 @@ export default function SignupPage() {
     setError('');
     setLoading(true);
     try {
-      await api.signup(name, email, password, state);
+      await api.signup(name, email, password, state, referralCode.trim().toUpperCase() || undefined);
       setSignupSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
@@ -141,6 +150,21 @@ export default function SignupPage() {
             </select>
           </div>
 
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Referral code <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. ABCD1234"
+              value={referralCode}
+              onChange={e => setReferralCode(e.target.value.toUpperCase())}
+              maxLength={8}
+              className="w-full border rounded-lg px-3 py-2 text-gray-900 font-mono uppercase placeholder:normal-case placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
+            />
+            <p className="text-xs text-gray-400 mt-1">Have a friend&apos;s code? Both of you get 1 free month of Plus. 🎁</p>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
@@ -156,5 +180,13 @@ export default function SignupPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div />}>
+      <SignupContent />
+    </Suspense>
   );
 }

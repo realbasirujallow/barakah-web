@@ -272,8 +272,8 @@ export const api = {
   // Auth
   login: (email: string, password: string) =>
     apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
-  signup: (name: string, email: string, password: string, state: string) =>
-    apiFetch('/auth/signup', { method: 'POST', body: JSON.stringify({ fullName: name, email, password, state }) }),
+  signup: (name: string, email: string, password: string, state: string, referralCode?: string) =>
+    apiFetch('/auth/signup', { method: 'POST', body: JSON.stringify({ fullName: name, email, password, state, referralCode }) }),
   // Clears the auth_token httpOnly cookie on the server side.
   logout: () =>
     apiFetch('/auth/logout', { method: 'POST' }),
@@ -636,4 +636,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ subject, message }),
     }),
+
+  // ── Referral ────────────────────────────────────────────────────────────────
+  getReferralCode: () => apiFetch('/api/referral/code'),
+
+  // ── Assets bulk delete ───────────────────────────────────────────────────────
+  bulkDeleteAssets: (ids: number[]) =>
+    apiFetch('/api/assets/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
 };

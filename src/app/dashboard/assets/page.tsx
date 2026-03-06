@@ -72,6 +72,9 @@ export default function AssetsPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -162,6 +165,39 @@ export default function AssetsPage() {
     }
   };
 
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === assets.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(assets.map(a => a.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} asset${selectedIds.size === 1 ? '' : 's'}? This cannot be undone.`)) return;
+    setBulkDeleting(true);
+    try {
+      const result = await api.bulkDeleteAssets(Array.from(selectedIds));
+      if (result?.error) throw new Error(result.error);
+      setSelectedIds(new Set());
+      setSelectMode(false);
+      load();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete assets.');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   const mapsUrl = (address: string) =>
     `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}&q=${encodeURIComponent(address)}`;
 
@@ -176,10 +212,39 @@ export default function AssetsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Assets</h1>
-        <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Asset</button>
+        <div className="flex items-center gap-2">
+          {assets.length > 0 && (
+            <button
+              onClick={() => { setSelectMode(s => !s); setSelectedIds(new Set()); }}
+              className={`px-3 py-2 rounded-lg text-sm font-medium border transition ${selectMode ? 'bg-red-50 border-red-200 text-red-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+            >
+              {selectMode ? 'Cancel' : 'Select'}
+            </button>
+          )}
+          <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm">+ Add Asset</button>
+        </div>
       </div>
+
+      {/* Bulk action bar */}
+      {selectMode && (
+        <div className="flex items-center gap-3 mb-4 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+          <input type="checkbox" checked={selectedIds.size === assets.length && assets.length > 0} onChange={toggleSelectAll} className="w-4 h-4 cursor-pointer" />
+          <span className="text-sm text-gray-600 flex-1">
+            {selectedIds.size === 0 ? 'Select assets to delete' : `${selectedIds.size} selected`}
+          </span>
+          {selectedIds.size > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting}
+              className="px-4 py-1.5 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+            >
+              {bulkDeleting ? 'Deleting...' : `Delete ${selectedIds.size}`}
+            </button>
+          )}
+        </div>
+      )}
 
       {assets.some(a => INVESTMENT_ASSET_TYPES.includes(a.type)) && (
         <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-800 flex items-center justify-between">
@@ -258,22 +323,37 @@ export default function AssetsPage() {
       ) : (
         <div className="space-y-4">
           {assets.map(a => (
-            <div key={a.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div key={a.id} className={`bg-white rounded-xl shadow-sm overflow-hidden transition ${selectMode && selectedIds.has(a.id) ? 'ring-2 ring-[#1B5E20]/40' : ''}`}>
               <div className="p-4 flex justify-between items-center">
-                <div>
-                  <p className="font-semibold text-[#1B5E20]">{a.name}</p>
-                  <p className="text-sm text-gray-500">{typeLabel(a.type)}</p>
-                  {a.address && (
-                    <a href={mapsLink(a.address)} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline mt-0.5 block">
-                      📍 {a.address}
-                    </a>
+                <div className="flex items-center gap-3">
+                  {selectMode && (
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(a.id)}
+                      onChange={() => toggleSelect(a.id)}
+                      className="w-4 h-4 cursor-pointer"
+                      onClick={e => e.stopPropagation()}
+                    />
                   )}
+                  <div>
+                    <p className="font-semibold text-[#1B5E20]">{a.name}</p>
+                    <p className="text-sm text-gray-500">{typeLabel(a.type)}</p>
+                    {a.address && (
+                      <a href={mapsLink(a.address)} target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline mt-0.5 block">
+                        📍 {a.address}
+                      </a>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <p className="text-lg font-bold text-[#1B5E20]">{fmt(a.value)}</p>
-                  <button onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
-                  <button onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                  {!selectMode && (
+                    <>
+                      <button onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
+                      <button onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                    </>
+                  )}
                 </div>
               </div>
               {a.address && ADDRESS_TYPES.includes(a.type) && (

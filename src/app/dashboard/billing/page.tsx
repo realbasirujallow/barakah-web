@@ -59,13 +59,27 @@ function BillingContent() {
   const [status, setStatus] = useState<{ plan: string; status: string; hasSubscription: boolean } | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
+  const [referral, setReferral] = useState<{ referralCode: string; shareUrl: string; referralCount: number } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     api.subscriptionStatus()
       .then(setStatus)
       .catch(() => setStatus({ plan: 'free', status: 'inactive', hasSubscription: false }))
       .finally(() => setStatusLoading(false));
+
+    api.getReferralCode()
+      .then(setReferral)
+      .catch(() => null);
   }, []);
+
+  const copyCode = () => {
+    if (!referral) return;
+    navigator.clipboard.writeText(referral.shareUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const handleUpgrade = async (plan: 'plus' | 'family') => {
     setLoading(plan);
@@ -235,6 +249,39 @@ function BillingContent() {
           >
             {loading === 'portal' ? 'Opening portal...' : '→ Open billing portal'}
           </button>
+        </div>
+      )}
+
+      {/* ── Referral Program ── */}
+      {referral && (
+        <div className="mt-8 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xl">🎁</span>
+            <h3 className="font-bold text-gray-800">Refer a Friend — Get 1 Month Free</h3>
+          </div>
+          <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+            Share your referral link. When a friend signs up and verifies their email, you <strong>both</strong> get 1 free month of Barakah Plus. No credit card needed.
+          </p>
+
+          <div className="flex gap-2 mb-3">
+            <input
+              readOnly
+              value={referral.shareUrl}
+              className="flex-1 text-xs bg-white border border-green-200 rounded-lg px-3 py-2 text-gray-600 font-mono truncate"
+            />
+            <button
+              onClick={copyCode}
+              className="px-4 py-2 bg-[#1B5E20] text-white text-xs font-semibold rounded-lg hover:bg-[#2E7D32] transition whitespace-nowrap"
+            >
+              {copied ? '✓ Copied!' : 'Copy Link'}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-4 text-xs text-gray-500">
+            <span>Your code: <strong className="text-[#1B5E20] font-mono text-sm">{referral.referralCode}</strong></span>
+            <span>·</span>
+            <span>Friends referred: <strong>{referral.referralCount}</strong></span>
+          </div>
         </div>
       )}
 
