@@ -356,6 +356,43 @@ export default function ZakatPage() {
               })}
             </div>
           )}
+
+          {/* Pay Your Zakat Card */}
+          <div className="mt-6 bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] rounded-2xl p-6 text-white">
+            <div className="mb-4">
+              <h3 className="text-xl font-bold mb-1">Ready to Pay Your Zakat?</h3>
+              <p className="text-green-100 text-sm">Pay directly to trusted platforms</p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-3 mb-4">
+              <a
+                href="https://www.zakatfoundation.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-4 rounded-lg text-center transition"
+              >
+                Zakat Foundation
+              </a>
+              <a
+                href="https://www.launchgood.com/zakat"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-4 rounded-lg text-center transition"
+              >
+                LaunchGood
+              </a>
+              <a
+                href="https://www.islamicrelief.org/zakat/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-4 rounded-lg text-center transition"
+              >
+                Islamic Relief
+              </a>
+            </div>
+            <p className="text-xs text-green-100">
+              Barakah is not affiliated with these organizations. Verify zakat eligibility with a qualified scholar.
+            </p>
+          </div>
         </>
       )}
 

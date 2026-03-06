@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { fmt } from '../../../lib/format';
+import { api } from '../../../lib/api';
+import { useToast } from '../../../lib/toast';
 
 /* ── Hijri date calculation (simple approximation) ──────────────────
    Uses the Kuwaiti algorithm which is accurate to ±1 day.
@@ -95,6 +97,105 @@ export default function RamadanPage() {
   const [customGoalDraft, setCustomGoalDraft] = useState({ label: '', amount: '' });
   const [dailyNafila, setDailyNafila]   = useState<boolean[]>(Array(30).fill(false));
   const [expandDua, setExpandDua]       = useState<number | null>(null);
+  const [syncStatus, setSyncStatus]     = useState<'idle' | 'saving' | 'synced' | 'error'>('idle');
+  const [isLoading, setIsLoading]       = useState(true);
+  const { toast } = useToast();
+
+  // Load goals from server on mount
+  useEffect(() => {
+    const loadGoals = async () => {
+      setIsLoading(true);
+      try {
+        const data = await api.getRamadanGoals();
+        if (data) {
+          // Populate from server data
+          if (data.members) setMembers(data.members);
+          if (data.fitrahPaid !== undefined) setFitrahPaid(data.fitrahPaid);
+          if (data.fitrahPerPerson) setFitrahPerPerson(data.fitrahPerPerson);
+          if (data.quranPages !== undefined) {
+            setBudget(prev => prev.map(b =>
+              b.key === 'quran' ? { ...b, allocated: data.quranPages } : b
+            ));
+          }
+          if (data.fastingDays !== undefined) {
+            setBudget(prev => prev.map(b =>
+              b.key === 'iftarguest' ? { ...b, allocated: data.fastingDays } : b
+            ));
+          }
+          if (data.sadaqahTarget) {
+            setBudget(prev => prev.map(b =>
+              b.key === 'charity' ? { ...b, allocated: data.sadaqahTarget } : b
+            ));
+          }
+          if (data.extraPrayers) {
+            setBudget(prev => prev.map(b =>
+              b.key === 'itikaaf' ? { ...b, allocated: data.extraPrayers } : b
+            ));
+          }
+          if (data.notes) {
+            setCustomGoal({ label: 'Notes', amount: 0 });
+            setCustomGoalDraft({ label: 'Notes', amount: '' });
+          }
+        }
+      } catch (err) {
+        // Fall back to localStorage if offline
+        try {
+          const cached = localStorage.getItem('ramadan_goals');
+          if (cached) {
+            const data = JSON.parse(cached);
+            if (data.members) setMembers(data.members);
+            if (data.fitrahPaid !== undefined) setFitrahPaid(data.fitrahPaid);
+            if (data.fitrahPerPerson) setFitrahPerPerson(data.fitrahPerPerson);
+          }
+        } catch {
+          // Silent fail on localStorage parse error
+        }
+      }
+      setIsLoading(false);
+    };
+    loadGoals();
+  }, []);
+
+  // Save to localStorage as cache
+  useEffect(() => {
+    try {
+      localStorage.setItem('ramadan_goals', JSON.stringify({
+        members,
+        fitrahPaid,
+        fitrahPerPerson,
+        quranPages: budget.find(b => b.key === 'quran')?.allocated || 0,
+        fastingDays: budget.find(b => b.key === 'iftarguest')?.allocated || 0,
+        sadaqahTarget: budget.find(b => b.key === 'charity')?.allocated || 0,
+        extraPrayers: budget.find(b => b.key === 'itikaaf')?.allocated || 0,
+        notes: customGoal.label,
+      }));
+    } catch {
+      // Silent fail on localStorage write error
+    }
+  }, [members, fitrahPaid, fitrahPerPerson, budget, customGoal]);
+
+  // Save to server
+  const saveToServer = async () => {
+    setSyncStatus('saving');
+    try {
+      await api.saveRamadanGoals({
+        members,
+        fitrahPaid,
+        fitrahPerPerson,
+        quranPages: budget.find(b => b.key === 'quran')?.allocated || 0,
+        fastingDays: budget.find(b => b.key === 'iftarguest')?.allocated || 0,
+        sadaqahTarget: budget.find(b => b.key === 'charity')?.allocated || 0,
+        extraPrayers: budget.find(b => b.key === 'itikaaf')?.allocated || 0,
+        notes: customGoal.label,
+      });
+      setSyncStatus('synced');
+      setTimeout(() => setSyncStatus('idle'), 3000);
+    } catch (err) {
+      setSyncStatus('error');
+      toast('Failed to sync goals', 'error');
+      setTimeout(() => setSyncStatus('idle'), 3000);
+    }
+  };
 
   // Clock tick
   useEffect(() => {
@@ -272,6 +373,25 @@ export default function RamadanPage() {
         <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
           <span className="text-sm font-semibold text-gray-700">Total (excl. Fitrah)</span>
           <span className="text-lg font-bold text-gray-900">{fmt(totalBudget)}</span>
+        </div>
+        <div className="mt-4 flex gap-3">
+          <button
+            onClick={saveToServer}
+            disabled={syncStatus === 'saving'}
+            className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50 font-medium text-sm"
+          >
+            {syncStatus === 'saving' ? 'Saving...' : 'Save & Sync'}
+          </button>
+          {syncStatus === 'synced' && (
+            <div className="flex-1 bg-green-50 text-green-700 rounded-lg py-2 text-center text-sm font-medium">
+              ✓ Synced
+            </div>
+          )}
+          {syncStatus === 'error' && (
+            <div className="flex-1 bg-red-50 text-red-700 rounded-lg py-2 text-center text-sm font-medium">
+              ✕ Sync failed
+            </div>
+          )}
         </div>
         {customGoal.label && (
           <div className="flex justify-between items-center mt-1 text-sm text-gray-600">

@@ -41,8 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Keep a ref to router so the unauthorized handler always has the latest
   // reference without needing to be in the effect's dependency array.
-  // This is important: the effect must only run ONCE on mount to avoid
-  // triggering redundant refresh calls on every in-app navigation.
   const routerRef = useRef(router);
   useEffect(() => {
     routerRef.current = router;
@@ -51,10 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedUser = localStorage.getItem(USER_KEY);
 
-    // Register a global 401 handler. When any API call receives 401 AND the
-    // silent refresh inside api.ts also fails, clear local state and redirect.
-    // Uses routerRef so we always have the latest router without re-running
-    // this effect on every navigation.
+    // Register a global 401 handler.
     setUnauthorizedHandler(() => {
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(REFRESH_TS_KEY);
@@ -63,80 +58,88 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!savedUser) {
-      // No saved profile → definitely not logged in
       setIsLoading(false);
       return;
     }
 
-    // We have a saved profile. Validate the session by proactively refreshing
-    // the access token. This handles the "page reloaded after the 24h JWT
-    // expired but the 30-day refresh token is still valid" case.
     let parsed: User | null = null;
     try {
       parsed = JSON.parse(savedUser);
-      // Ensure plan has a default for profiles saved before plan was added
-      if (parsed && !parsed.plan) parsed.plan = 'free';
     } catch {
       localStorage.removeItem(USER_KEY);
       setIsLoading(false);
       return;
     }
 
-    // Guard against duplicate refresh calls.
-    //
-    // Two scenarios this protects against:
-    //  1. Duplicate tabs: two tabs opening simultaneously both call /auth/refresh.
-    //     If the server uses single-use rotation the second call fails → sign-out.
-    //  2. In-app navigation: navigating between dashboard pages should NOT
-    //     trigger repeated proactive refreshes. apiFetch handles 401s itself
-    //     (silent refresh + retry), and it updates last_refresh_ts when it
-    //     does so. This guard prevents AuthContext from racing with apiFetch.
-    //
-    // Window is 5 minutes — long enough to cover normal browsing sessions
-    // and short enough that a real re-mount (new tab, F5) still validates.
+    // Detect stale cached profiles that are missing the plan field.
+    // This happens when a user logged in before `plan` was added to the
+    // login response. We MUST NOT default to 'free' here — doing so would
+    // block plus/family users from accessing their paid features. Instead,
+    // we fetch the real plan from /auth/profile after session validation.
+    const planMissing = parsed != null && !parsed.plan;
+    if (planMissing) {
+      // Temporary safe placeholder (type-safe) — overwritten below immediately.
+      parsed!.plan = 'free';
+    }
+
+    /**
+     * Fetch the authoritative plan from the server and persist it to
+     * localStorage so future mounts don't need to re-fetch.
+     */
+    const syncPlan = async (u: User): Promise<User> => {
+      try {
+        const data = await api.getProfile();
+        if (data?.plan) {
+          const updated: User = { ...u, plan: data.plan as User['plan'] };
+          localStorage.setItem(USER_KEY, JSON.stringify(updated));
+          return updated;
+        }
+      } catch { /* silent — if offline keep whatever we have */ }
+      return u;
+    };
+
     const lastRefreshTs = parseInt(localStorage.getItem(REFRESH_TS_KEY) || '0', 10);
     const secondsSinceRefresh = (Date.now() - lastRefreshTs) / 1000;
 
     if (secondsSinceRefresh < REFRESH_GUARD_SECONDS) {
-      // A refresh happened recently (either on mount or via apiFetch silent
-      // refresh). Trust the existing httpOnly cookie and skip the round-trip.
-      setUser(parsed);
-      setIsLoading(false);
+      // Session cookies are fresh. If the plan was missing, fetch it now so
+      // plus/family users aren't incorrectly locked out.
+      if (planMissing) {
+        syncPlan(parsed!).then(u => {
+          setUser(u);
+          setIsLoading(false);
+        });
+      } else {
+        setUser(parsed);
+        setIsLoading(false);
+      }
       return;
     }
 
     // Try a silent refresh. If it succeeds the server has rotated both cookies.
-    // If it fails (refresh token also expired) we clear the stale profile.
-    api.refresh().then((ok: boolean) => {
+    api.refresh().then(async (ok: boolean) => {
       if (ok) {
-        // Stamp the refresh time so other tabs / apiFetch skip redundant
-        // refreshes within the guard window.
         localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
-        setUser(parsed);
+        // If plan was missing, fetch the real one now that the session is fresh.
+        const finalUser = planMissing ? await syncPlan(parsed!) : parsed!;
+        setUser(finalUser);
       } else {
-        // Both tokens expired — clean up and let the guard redirect to /login
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(REFRESH_TS_KEY);
         setUser(null);
       }
       setIsLoading(false);
     }).catch(() => {
-      // Network error on mount — keep the stale profile so offline mode still
-      // shows the dashboard; the 401 handler will fire on the next real API call.
+      // Network error on mount — keep stale profile for offline mode.
       setUser(parsed);
       setIsLoading(false);
     });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run ONCE on mount only. routerRef keeps the redirect callback fresh.
-          // Adding router here would re-run auth checks on every navigation,
-          // causing refresh token rotation races and spurious sign-outs.
+  }, []); // Run ONCE on mount only.
 
   const login = async (email: string, password: string) => {
     const data = await api.login(email, password);
-    // The server sets the auth_token httpOnly cookie automatically in the
-    // Set-Cookie response header. We only store the non-sensitive profile
-    // here for UI display (sidebar name, greeting).
     const profile: User = {
       id: String(data.userId ?? data.id ?? email),
       name: data.fullName ?? data.name ?? email,
@@ -145,20 +148,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       referralCode: data.referralCode,
     };
     localStorage.setItem(USER_KEY, JSON.stringify(profile));
-    // Stamp the refresh time on login so the mount guard is satisfied
-    // for any tabs opened shortly after.
     localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
     setUser(profile);
   };
 
   const signup = async (name: string, email: string, password: string, state: string, referralCode?: string) => {
-    // Backend requires email verification before login — no session created here.
     await api.signup(name, email, password, state, referralCode);
   };
 
   const logout = () => {
-    // Tell the server to clear the httpOnly cookie. Fire-and-forget — we
-    // navigate away immediately regardless of the server response.
     api.logout().catch(() => { /* ignore network errors on logout */ });
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(REFRESH_TS_KEY);

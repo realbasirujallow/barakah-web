@@ -346,6 +346,7 @@ export const api = {
     apiFetch(`/api/debts/${id}/payment`, { method: 'POST', body: JSON.stringify({ amount }) }),
   deleteDebt: (id: number) =>
     apiFetch(`/api/debts/${id}`, { method: 'DELETE' }),
+  getDebtProjections: () => apiFetch('/api/debts/projections'),
 
   // Bills
   getBills: () => apiFetch('/api/bills/list'),
@@ -504,6 +505,25 @@ export const api = {
     apiFetch(`/api/shared/groups/${groupId}/transactions/${txId}`, { method: 'DELETE' }),
   getGroupSummary: (groupId: number) =>
     apiFetch(`/api/shared/groups/${groupId}/summary`),
+  getSharedBudgets: (groupId: number) =>
+    apiFetch(`/api/shared/groups/${groupId}/budgets`),
+  addSharedBudget: (groupId: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/shared/groups/${groupId}/budgets`, { method: 'POST', body: JSON.stringify(data) }),
+  deleteSharedBudget: (groupId: number, budgetId: number) =>
+    apiFetch(`/api/shared/groups/${groupId}/budgets/${budgetId}`, { method: 'DELETE' }),
+  getSharedGoals: (groupId: number) =>
+    apiFetch(`/api/shared/groups/${groupId}/goals`),
+  addSharedGoal: (groupId: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/shared/groups/${groupId}/goals`, { method: 'POST', body: JSON.stringify(data) }),
+  contributeSharedGoal: (groupId: number, goalId: number, amount: number) =>
+    apiFetch(`/api/shared/groups/${groupId}/goals/${goalId}/contribute`, { method: 'POST', body: JSON.stringify({ amount }) }),
+  deleteSharedGoal: (groupId: number, goalId: number) =>
+    apiFetch(`/api/shared/groups/${groupId}/goals/${goalId}`, { method: 'DELETE' }),
+
+  // Ramadan
+  getRamadanGoals: () => apiFetch('/api/ramadan/goals'),
+  saveRamadanGoals: (data: Record<string, unknown>) =>
+    apiFetch('/api/ramadan/goals', { method: 'PUT', body: JSON.stringify(data) }),
 
   // Profile
   getProfile: () => apiFetch('/auth/profile'),
@@ -639,8 +659,21 @@ export const api = {
 
   // ── Referral ────────────────────────────────────────────────────────────────
   getReferralCode: () => apiFetch('/api/referral/code'),
+  trackReferralClick: (code: string) => apiFetch(`/api/referrals/click/${encodeURIComponent(code)}`, { method: 'POST' }),
 
   // ── Assets bulk delete ───────────────────────────────────────────────────────
   bulkDeleteAssets: (ids: number[]) =>
     apiFetch('/api/assets/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
+
+  // ── Sadaqah / Donation to Barakah ────────────────────────────────────────────
+  /**
+   * Create a one-time Stripe Checkout session for a Sadaqah donation.
+   * Barakah collects and distributes the funds to verified causes.
+   * Returns { url } — redirect the user to this URL.
+   */
+  donateToBarak: (amountCents: number, description: string) =>
+    apiFetch('/api/stripe/donate', {
+      method: 'POST',
+      body: JSON.stringify({ amountCents, description }),
+    }),
 };
