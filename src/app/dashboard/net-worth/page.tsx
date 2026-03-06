@@ -160,7 +160,7 @@ export default function NetWorthPage() {
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-sm text-blue-800">
         <p className="font-semibold mb-1">📌 How net worth is calculated</p>
         <p>Net Worth = <span className="font-medium">Assets</span> + <span className="font-medium">Savings Goals</span> − <span className="font-medium">Active Debts</span></p>
-        <p className="mt-1 text-blue-700">Importing Monarch <em>transactions</em> does not update this figure. To reflect your account balances, go to <a href="/dashboard/import" className="underline font-medium">Import</a> and upload your Monarch <em>Balances</em> CSV — positive accounts map to Assets, negative (credit cards / loans) map to Debts automatically.</p>
+        <p className="mt-1 text-blue-700">Importing <em>transactions</em> does not update this figure. To reflect your account balances, go to <a href="/dashboard/import" className="underline font-medium">Import</a> and upload a <em>Balances CSV</em> from your bank or budgeting app (Monarch Money, YNAB, Mint, etc.) — positive accounts map to Assets, negative (credit cards / loans) map to Debts automatically.</p>
       </div>
 
       {/* Breakdown card */}

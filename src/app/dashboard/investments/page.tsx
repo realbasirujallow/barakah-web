@@ -36,6 +36,16 @@ interface Portfolio {
   accounts: Account[];
 }
 
+// Investment-type assets from the Assets page
+interface AssetAccount {
+  id: number;
+  name: string;
+  type: string;
+  value: number;
+  institution?: string;
+  notes?: string;
+}
+
 const ACCOUNT_TYPES = [
   { value: 'brokerage', label: 'Brokerage' },
   { value: 'ira', label: 'IRA' },
@@ -45,11 +55,24 @@ const ACCOUNT_TYPES = [
   { value: 'other', label: 'Other' },
 ];
 
+// Asset types that are investment-related and should surface on this page
+const INVESTMENT_ASSET_TYPES = ['investment', '401k', 'roth_ira', 'ira', 'hsa', '529', 'crypto'];
+const INVESTMENT_ASSET_LABELS: Record<string, string> = {
+  investment: 'Investment',
+  '401k': '401(k)',
+  roth_ira: 'Roth IRA',
+  ira: 'Traditional IRA',
+  hsa: 'HSA',
+  '529': '529 Education',
+  crypto: 'Crypto',
+};
+
 const emptyAccountForm = { name: '', type: 'brokerage', broker: '' };
 const emptyHoldingForm = { symbol: '', name: '', quantity: '', averageCost: '', currentPrice: '' };
 
 export default function InvestmentsPage() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [assetAccounts, setAssetAccounts] = useState<AssetAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedAccount, setExpandedAccount] = useState<number | null>(null);
@@ -69,11 +92,20 @@ export default function InvestmentsPage() {
   const load = () => {
     setLoading(true);
     setError('');
-    api.getPortfolioSummary()
-      .then(d => setPortfolio(d))
-      .catch(() => setError('Could not load portfolio. Make sure you have investment accounts set up.'))
-      .finally(() => setLoading(false));
+    Promise.all([
+      api.getPortfolioSummary().then(d => setPortfolio(d)).catch(() => {
+        setError('Could not load portfolio. Make sure you have investment accounts set up.');
+      }),
+      // Pull investment-type assets (401k, IRA, HSA, 529 etc.) tracked via the Assets page
+      api.getAssets().then((assets: AssetAccount[]) => {
+        const investmentAssets = (assets || []).filter((a: AssetAccount) =>
+          INVESTMENT_ASSET_TYPES.includes(a.type)
+        );
+        setAssetAccounts(investmentAssets);
+      }).catch(() => { /* graceful — don't block portfolio load */ }),
+    ]).finally(() => setLoading(false));
   };
+
   useEffect(() => { load(); }, []);
 
   const handleAddAccount = async () => {
@@ -83,7 +115,7 @@ export default function InvestmentsPage() {
       setShowAccountForm(false);
       setAccountForm(emptyAccountForm);
       load();
-    } catch (err: any) { console.error(err); }
+    } catch (err: unknown) { console.error(err); }
     setSavingAccount(false);
   };
 
@@ -107,7 +139,7 @@ export default function InvestmentsPage() {
       setAddHoldingFor(null);
       setHoldingForm(emptyHoldingForm);
       load();
-    } catch (err: any) { console.error(err); }
+    } catch (err: unknown) { console.error(err); }
     setSavingHolding(false);
   };
 
@@ -124,10 +156,14 @@ export default function InvestmentsPage() {
   );
 
   const accounts: Account[] = portfolio?.accounts || [];
-  const totalValue = portfolio?.totalValue || 0;
-  const totalGainLoss = portfolio?.totalGainLoss || 0;
+  const totalValue       = portfolio?.totalValue || 0;
+  const totalGainLoss    = portfolio?.totalGainLoss || 0;
   const totalGainLossPct = portfolio?.totalGainLossPct || 0;
   const isGain = totalGainLoss >= 0;
+
+  // Combined total includes asset-backed investment accounts
+  const assetTotal    = assetAccounts.reduce((sum, a) => sum + (a.value || 0), 0);
+  const combinedTotal = totalValue + assetTotal;
 
   return (
     <div>
@@ -149,7 +185,12 @@ export default function InvestmentsPage() {
       {/* Portfolio summary banner */}
       <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
         <p className="text-green-100 text-sm">Total Portfolio Value</p>
-        <p className="text-4xl font-bold">{fmt(totalValue)}</p>
+        <p className="text-4xl font-bold">{fmt(combinedTotal)}</p>
+        {assetTotal > 0 && totalValue > 0 && (
+          <p className="text-green-200 text-xs mt-0.5">
+            {fmt(totalValue)} tracked holdings + {fmt(assetTotal)} retirement &amp; asset accounts
+          </p>
+        )}
         <p className={`text-sm mt-1 ${isGain ? 'text-green-200' : 'text-red-300'}`}>
           {isGain ? '▲' : '▼'} {fmt(Math.abs(totalGainLoss))} ({fmtPct(totalGainLossPct)}) all time
         </p>
@@ -161,13 +202,10 @@ export default function InvestmentsPage() {
         </div>
       )}
 
-      {accounts.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-4xl mb-3">📈</p>
-          <p>No investment accounts yet. Add your first account to get started.</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
+      {/* ── Tracked Investment Accounts (with holdings) ────────────────────── */}
+      {accounts.length > 0 && (
+        <div className="space-y-4 mb-6">
+          <h2 className="text-base font-semibold text-gray-700">Brokerage &amp; Tracked Accounts</h2>
           {accounts.map(account => {
             const accGain = account.gainLoss || 0;
             const accGainPositive = accGain >= 0;
@@ -268,6 +306,59 @@ export default function InvestmentsPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── Asset-Backed Accounts (401k, IRA, HSA, 529 from Assets page or CSV import) ── */}
+      {assetAccounts.length > 0 && (
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold text-gray-700">Retirement &amp; Savings Accounts</h2>
+            <Link href="/dashboard/assets" className="text-sm text-[#1B5E20] hover:underline">
+              Manage in Assets →
+            </Link>
+          </div>
+          <p className="text-xs text-gray-500 -mt-1">
+            Added via Assets or CSV import. To update balances, edit them in Assets.
+          </p>
+          {assetAccounts.map(asset => (
+            <div key={asset.id} className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center">
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-gray-900">{asset.name}</p>
+                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                    {INVESTMENT_ASSET_LABELS[asset.type] || asset.type}
+                  </span>
+                </div>
+                {asset.institution && (
+                  <p className="text-sm text-gray-500 mt-0.5">{asset.institution}</p>
+                )}
+                {asset.notes && (
+                  <p className="text-xs text-gray-400 mt-0.5 max-w-xs truncate">{asset.notes}</p>
+                )}
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-gray-900 text-lg">{fmt(asset.value || 0)}</p>
+                <Link href="/dashboard/assets" className="text-xs text-[#1B5E20] hover:underline">
+                  Edit →
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Empty state — shown only when both sections are empty */}
+      {accounts.length === 0 && assetAccounts.length === 0 && (
+        <div className="text-center py-16 text-gray-400">
+          <p className="text-4xl mb-3">📈</p>
+          <p className="font-medium text-gray-600">No investment accounts yet.</p>
+          <p className="text-sm mt-2 max-w-sm mx-auto text-gray-400">
+            Click <strong>+ Add Account</strong> to track a brokerage account with holdings,
+            or go to{' '}
+            <Link href="/dashboard/assets" className="text-[#1B5E20] underline hover:no-underline">Assets</Link>
+            {' '}and add a 401(k), IRA, HSA, 529, or other investment asset — it will appear here automatically.
+          </p>
         </div>
       )}
 
