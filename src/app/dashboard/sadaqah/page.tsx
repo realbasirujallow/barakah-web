@@ -1,5 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
@@ -8,7 +10,10 @@ interface SadaqahItem { id: number; amount: number; recipientName: string; categ
 interface Stats { totalDonated: number; donationCount: number; thisMonthTotal: number; topCategory: string; }
 const CATS = ['food', 'education', 'healthcare', 'orphans', 'masjid', 'disaster_relief', 'water', 'dawah', 'general', 'other'];
 
-export default function SadaqahPage() {
+// Preset donation amounts in dollars
+const PRESET_AMOUNTS = [5, 10, 25, 50, 100];
+
+function SadaqahContent() {
   const [items, setItems] = useState<SadaqahItem[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,6 +22,14 @@ export default function SadaqahPage() {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
+  // Donate-to-Barakah state
+  const [donateAmount, setDonateAmount] = useState<number | null>(25);
+  const [donateCustom, setDonateCustom] = useState('');
+  const [donatePurpose, setDonatePurpose] = useState('general');
+  const [donating, setDonating] = useState(false);
+
+  const searchParams = useSearchParams();
+
   const load = () => {
     setLoading(true);
     Promise.all([api.getSadaqah(), api.getSadaqahStats()])
@@ -24,6 +37,13 @@ export default function SadaqahPage() {
       .catch(() => { toast('Failed to load sadaqah records', 'error'); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
+
+  // Show success toast if redirected back from Stripe
+  useEffect(() => {
+    if (searchParams.get('donated') === 'true') {
+      toast('JazakAllahu Khayran! Your sadaqah has been received. May Allah accept it.', 'success');
+    }
+  }, [searchParams]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -40,7 +60,26 @@ export default function SadaqahPage() {
     await api.deleteSadaqah(id).catch(() => { toast('Failed to delete record', 'error'); }); load();
   };
 
+  const handleDonate = async () => {
+    const dollars = donateAmount ?? parseFloat(donateCustom);
+    if (!dollars || dollars <= 0) { toast('Please enter a valid amount', 'error'); return; }
+    const cents = Math.round(dollars * 100);
+    setDonating(true);
+    try {
+      const purposeLabel = donatePurpose.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
+      const res = await api.donateToBarak(cents, `Sadaqah – ${purposeLabel}`);
+      if (res?.url) {
+        window.location.href = res.url;
+      } else {
+        toast('Could not initiate donation. Please try again.', 'error');
+      }
+    } catch (err: any) { toast(err?.message || 'Failed to process donation', 'error'); }
+    setDonating(false);
+  };
+
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
+
+  const effectiveAmount = donateAmount ?? (donateCustom ? parseFloat(donateCustom) : 0);
 
   return (
     <div>
@@ -49,6 +88,7 @@ export default function SadaqahPage() {
         <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Give Sadaqah</button>
       </div>
 
+      {/* Stats banner */}
       <div className="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-2xl p-6 text-white mb-6">
         <p className="text-teal-100 text-sm">Total Donated</p>
         <p className="text-4xl font-bold">{fmt(stats?.totalDonated || 0)}</p>
@@ -59,6 +99,85 @@ export default function SadaqahPage() {
         </div>
       </div>
 
+      {/* ── Donate via Barakah ────────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-6 mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-3xl">🌿</span>
+          <div>
+            <h2 className="text-lg font-bold text-[#1B5E20]">Give Sadaqah via Barakah</h2>
+            <p className="text-sm text-gray-500">We collect your donation and distribute it to verified causes on your behalf. Secure payment via Stripe.</p>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Cause</label>
+          <select
+            value={donatePurpose}
+            onChange={e => setDonatePurpose(e.target.value)}
+            className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm"
+          >
+            {CATS.map(c => <option key={c} value={c}>{c.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase())}</option>)}
+          </select>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {PRESET_AMOUNTS.map(amt => (
+              <button
+                key={amt}
+                onClick={() => { setDonateAmount(amt); setDonateCustom(''); }}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold border transition ${
+                  donateAmount === amt
+                    ? 'bg-[#1B5E20] text-white border-[#1B5E20]'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-[#1B5E20]'
+                }`}
+              >
+                ${amt}
+              </button>
+            ))}
+            <button
+              onClick={() => setDonateAmount(null)}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold border transition ${
+                donateAmount === null
+                  ? 'bg-[#1B5E20] text-white border-[#1B5E20]'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-[#1B5E20]'
+              }`}
+            >
+              Custom
+            </button>
+          </div>
+          {donateAmount === null && (
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+              <input
+                type="number"
+                step="1"
+                min="1"
+                placeholder="Enter amount"
+                value={donateCustom}
+                onChange={e => setDonateCustom(e.target.value)}
+                className="w-full border rounded-lg pl-8 pr-3 py-2 text-gray-900"
+              />
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={handleDonate}
+          disabled={donating || effectiveAmount <= 0}
+          className="w-full bg-[#1B5E20] hover:bg-[#2E7D32] text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-50"
+        >
+          {donating ? 'Redirecting to payment…' : `Donate ${effectiveAmount > 0 ? `$${effectiveAmount}` : ''} via Barakah`}
+        </button>
+
+        <p className="text-xs text-gray-400 text-center mt-2">
+          Processed securely by Stripe · Barakah distributes to verified Islamic causes
+        </p>
+      </div>
+
+      {/* ── My Sadaqah records ────────────────────────────────────────────── */}
+      <h3 className="text-lg font-semibold text-gray-700 mb-3">My Sadaqah Records</h3>
       {items.length > 0 ? (
         <div className="space-y-2">
           {items.map(item => (
@@ -78,9 +197,10 @@ export default function SadaqahPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-3">💝</p><p>No sadaqah recorded. Every act of kindness is sadaqah.</p></div>
+        <div className="text-center py-12 text-gray-400"><p className="text-4xl mb-3">💝</p><p>No sadaqah recorded. Every act of kindness is sadaqah.</p></div>
       )}
 
+      {/* Add Sadaqah modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
@@ -109,5 +229,13 @@ export default function SadaqahPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SadaqahPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>}>
+      <SadaqahContent />
+    </Suspense>
   );
 }

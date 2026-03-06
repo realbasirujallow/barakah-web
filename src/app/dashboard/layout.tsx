@@ -2,7 +2,7 @@
 import { useAuth, hasAccess } from '../../context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, ReactNode, useState } from 'react';
+import { useEffect, ReactNode, useState, useMemo } from 'react';
 import { ToastProvider } from '../../lib/toast';
 import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
@@ -10,35 +10,35 @@ import { FeedbackWidget } from './FeedbackWidget';
 // 'plus' = Plus or Family plan required | 'family' = Family plan only
 const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'family' }[] = [
   { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
-  { href: '/dashboard/analytics', icon: '📊', label: 'Analytics', gate: 'plus' },
   { href: '/dashboard/assets', icon: '💰', label: 'Assets' },
   { href: '/dashboard/transactions', icon: '📝', label: 'Transactions' },
   { href: '/dashboard/budget', icon: '📊', label: 'Budget' },
   { href: '/dashboard/savings', icon: '🎯', label: 'Savings Goals' },
-  { href: '/dashboard/investments', icon: '📈', label: 'Investments', gate: 'plus' },
-  { href: '/dashboard/net-worth', icon: '💎', label: 'Net Worth', gate: 'plus' },
-  { href: '/dashboard/shared', icon: '👥', label: 'Shared Finances', gate: 'family' },
   { href: '/dashboard/debts', icon: '💳', label: 'Debts' },
   { href: '/dashboard/bills', icon: '🔔', label: 'Bills' },
   { href: '/dashboard/recurring', icon: '🔁', label: 'Recurring' },
   { href: '/dashboard/zakat', icon: '🕌', label: 'Zakat' },
   { href: '/dashboard/hawl', icon: '⏰', label: 'Hawl Tracker' },
   { href: '/dashboard/sadaqah', icon: '🤲', label: 'Sadaqah' },
+  { href: '/dashboard/import', icon: '📥', label: 'Import Data' },
+  { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times' },
+  { href: '/dashboard/ramadan', icon: '🌙', label: 'Ramadan Mode' },
+  { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications' },
+  { href: '/dashboard/billing', icon: '💳', label: 'Billing & Plans' },
+  { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
+  // ── Premium features ──────────────────────────────────────────────────────
+  { href: '/dashboard/analytics', icon: '📊', label: 'Analytics', gate: 'plus' },
+  { href: '/dashboard/investments', icon: '📈', label: 'Investments', gate: 'plus' },
+  { href: '/dashboard/net-worth', icon: '💎', label: 'Net Worth', gate: 'plus' },
+  { href: '/dashboard/barakah-score', icon: '⭐', label: 'Barakah Score', gate: 'plus' },
+  { href: '/dashboard/summary', icon: '📋', label: 'Financial Summary', gate: 'plus' },
   { href: '/dashboard/wasiyyah', icon: '📜', label: 'Wasiyyah', gate: 'plus' },
   { href: '/dashboard/waqf', icon: '🏛️', label: 'Waqf', gate: 'plus' },
   { href: '/dashboard/riba', icon: '🛡️', label: 'Riba Detector', gate: 'plus' },
   { href: '/dashboard/categorize', icon: '🔄', label: 'Auto-Categorize', gate: 'plus' },
   { href: '/dashboard/halal', icon: '✅', label: 'Halal Screener', gate: 'plus' },
-  { href: '/dashboard/import', icon: '📥', label: 'Import Data' },
-  { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times' },
-  { href: '/dashboard/ramadan', icon: '🌙', label: 'Ramadan Mode' },
-  { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications' },
-  { href: '/dashboard/summary', icon: '📋', label: 'Financial Summary', gate: 'plus' },
-  { href: '/dashboard/barakah-score', icon: '⭐', label: 'Barakah Score', gate: 'plus' },
-  { href: '/dashboard/billing', icon: '💳', label: 'Billing & Plans' },
-  { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
+  { href: '/dashboard/shared', icon: '👥', label: 'Shared Finances', gate: 'family' },
   // Admin page is intentionally NOT listed here — access via direct URL only.
-  // URL: /dashboard/admin (non-admins see a "not authorized" screen)
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -47,12 +47,44 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const hijriDate = useMemo(() => {
+    try {
+      return new Intl.DateTimeFormat('en-u-ca-islamic', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+    } catch {
+      return '';
+    }
+  }, []);
+
   useEffect(() => {
     if (!isLoading && !user) router.push('/login');
   }, [user, isLoading, router]);
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-[#FFF8E1]">Loading...</div>;
   if (!user) return null;
+
+  // Split nav into accessible and locked groups so users see what they can
+  // use right away, without having to scroll past locked premium items.
+  const accessibleItems = navItems.filter(item => !item.gate || hasAccess(user.plan, item.gate));
+  const lockedItems     = navItems.filter(item => item.gate && !hasAccess(user.plan, item.gate));
+
+  const renderNavLink = (item: typeof navItems[0], locked: boolean) => (
+    <Link
+      key={item.href}
+      href={item.href}
+      onClick={() => setSidebarOpen(false)}
+      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition ${
+        pathname === item.href
+          ? 'bg-green-800 text-white font-semibold'
+          : locked
+            ? 'text-green-600 hover:bg-green-800/30'
+            : 'text-green-200 hover:bg-green-800/50'
+      }`}
+    >
+      <span>{item.icon}</span>
+      <span className="flex-1">{item.label}</span>
+      {locked && <span className="text-xs opacity-60">🔒</span>}
+    </Link>
+  );
 
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex">
@@ -63,27 +95,21 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <p className="text-green-300 text-sm mt-1">{user.name}</p>
         </div>
         <nav className="p-4 space-y-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 140px)' }}>
-          {navItems.map(item => {
-            const locked = item.gate ? !hasAccess(user.plan, item.gate) : false;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition ${
-                  pathname === item.href
-                    ? 'bg-green-800 text-white font-semibold'
-                    : locked
-                      ? 'text-green-600 hover:bg-green-800/30'
-                      : 'text-green-200 hover:bg-green-800/50'
-                }`}
-              >
-                <span>{item.icon}</span>
-                <span className="flex-1">{item.label}</span>
-                {locked && <span className="text-xs opacity-60">🔒</span>}
-              </Link>
-            );
-          })}
+          {/* Accessible items — shown at the top */}
+          {accessibleItems.map(item => renderNavLink(item, false))}
+
+          {/* Locked premium items — shown at the bottom with a divider */}
+          {lockedItems.length > 0 && (
+            <>
+              <div className="pt-3 pb-1">
+                <div className="border-t border-green-700" />
+                <p className="text-green-600 text-xs px-4 mt-2 mb-1 uppercase tracking-wide font-medium">
+                  Premium Features
+                </p>
+              </div>
+              {lockedItems.map(item => renderNavLink(item, true))}
+            </>
+          )}
         </nav>
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-green-800">
           <button onClick={logout} className="w-full text-left px-4 py-2 text-green-300 hover:text-white text-sm transition">
@@ -106,6 +132,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </svg>
           </button>
           <div className="flex items-center gap-4">
+            {hijriDate && <span className="text-xs text-green-600 hidden md:block">🌙 {hijriDate}</span>}
             <NotificationBell />
             <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-[#1B5E20]">{user.name}</span></p>
           </div>

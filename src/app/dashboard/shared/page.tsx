@@ -39,6 +39,21 @@ interface GroupSummary {
   recentTransactions: SharedTransaction[];
 }
 
+interface SharedBudget {
+  id: number;
+  category: string;
+  monthlyLimit: number;
+}
+
+interface SharedGoal {
+  id: number;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate?: string;
+  description?: string;
+}
+
 const emptyGroupForm = { name: '', description: '' };
 const emptyTxForm = { description: '', amount: '', category: '' };
 
@@ -47,8 +62,11 @@ export default function SharedPage() {
   const [activeGroup, setActiveGroup] = useState<Group | null>(null);
   const [summary, setSummary] = useState<GroupSummary | null>(null);
   const [transactions, setTransactions] = useState<SharedTransaction[]>([]);
+  const [budgets, setBudgets] = useState<SharedBudget[]>([]);
+  const [goals, setGoals] = useState<SharedGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [activeTab, setActiveTab] = useState<'expenses' | 'budgets' | 'goals'>('expenses');
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [groupForm, setGroupForm] = useState(emptyGroupForm);
@@ -61,6 +79,18 @@ export default function SharedPage() {
   const [showAddTx, setShowAddTx] = useState(false);
   const [txForm, setTxForm] = useState(emptyTxForm);
   const [savingTx, setSavingTx] = useState(false);
+
+  const [showAddBudget, setShowAddBudget] = useState(false);
+  const [budgetForm, setBudgetForm] = useState({ category: '', monthlyLimit: '' });
+  const [savingBudget, setSavingBudget] = useState(false);
+
+  const [showAddGoal, setShowAddGoal] = useState(false);
+  const [goalForm, setGoalForm] = useState({ name: '', targetAmount: '', targetDate: '', description: '' });
+  const [savingGoal, setSavingGoal] = useState(false);
+
+  const [showContributeGoal, setShowContributeGoal] = useState<number | null>(null);
+  const [contributeAmount, setContributeAmount] = useState('');
+  const [contributingGoal, setContributingGoal] = useState(false);
 
   const [copiedCode, setCopiedCode] = useState(false);
   const { toast } = useToast();
@@ -79,17 +109,22 @@ export default function SharedPage() {
   const loadGroupDetail = (group: Group) => {
     setActiveGroup(group);
     setLoadingDetail(true);
+    setActiveTab('expenses');
     Promise.all([
       api.getGroupDetails(group.id),
       api.getGroupSummary(group.id),
       api.getGroupTransactions(group.id),
+      api.getSharedBudgets(group.id),
+      api.getSharedGoals(group.id),
     ])
-      .then(([detail, s, t]) => {
+      .then(([detail, s, t, b, g]) => {
         // Merge full group details (including inviteCode and members)
         const fullGroup = detail?.group || detail || {};
         setActiveGroup({ ...group, ...fullGroup, members: fullGroup.members || group.members || [] });
         setSummary(s);
         setTransactions(t?.transactions || t || []);
+        setBudgets(b?.budgets || b || []);
+        setGoals(g?.goals || g || []);
       })
       .catch(() => { toast('Failed to load group details', 'error'); })
       .finally(() => setLoadingDetail(false));
@@ -143,6 +178,65 @@ export default function SharedPage() {
   const handleDeleteTx = async (txId: number) => {
     if (!activeGroup || !confirm('Delete this transaction?')) return;
     await api.deleteGroupTransaction(activeGroup.id, txId).catch(() => { toast('Failed to delete transaction', 'error'); });
+    loadGroupDetail(activeGroup);
+  };
+
+  const handleAddBudget = async () => {
+    if (!activeGroup) return;
+    setSavingBudget(true);
+    try {
+      await api.addSharedBudget(activeGroup.id, {
+        category: budgetForm.category,
+        monthlyLimit: parseFloat(budgetForm.monthlyLimit),
+      });
+      setShowAddBudget(false);
+      setBudgetForm({ category: '', monthlyLimit: '' });
+      loadGroupDetail(activeGroup);
+      toast('Budget added', 'success');
+    } catch { toast('Failed to add budget', 'error'); }
+    setSavingBudget(false);
+  };
+
+  const handleDeleteBudget = async (budgetId: number) => {
+    if (!activeGroup || !confirm('Delete this budget?')) return;
+    await api.deleteSharedBudget(activeGroup.id, budgetId).catch(() => { toast('Failed to delete budget', 'error'); });
+    loadGroupDetail(activeGroup);
+  };
+
+  const handleAddGoal = async () => {
+    if (!activeGroup) return;
+    setSavingGoal(true);
+    try {
+      await api.addSharedGoal(activeGroup.id, {
+        name: goalForm.name,
+        targetAmount: parseFloat(goalForm.targetAmount),
+        targetDate: goalForm.targetDate || null,
+        description: goalForm.description || null,
+      });
+      setShowAddGoal(false);
+      setGoalForm({ name: '', targetAmount: '', targetDate: '', description: '' });
+      loadGroupDetail(activeGroup);
+      toast('Goal added', 'success');
+    } catch { toast('Failed to add goal', 'error'); }
+    setSavingGoal(false);
+  };
+
+  const handleContributeGoal = async () => {
+    if (!activeGroup || showContributeGoal === null) return;
+    setContributingGoal(true);
+    try {
+      await api.contributeSharedGoal(activeGroup.id, showContributeGoal, parseFloat(contributeAmount));
+      setShowContributeGoal(null);
+      setContributeAmount('');
+      loadGroupDetail(activeGroup);
+      toast('Contribution added', 'success');
+    } catch { toast('Failed to contribute to goal', 'error'); }
+    setContributingGoal(false);
+  };
+
+  const handleDeleteGoal = async (goalId: number) => {
+    if (!activeGroup || !confirm('Delete this goal?')) return;
+    await api.deleteSharedGoal(activeGroup.id, goalId).catch(() => { toast('Failed to delete goal', 'error'); });
     loadGroupDetail(activeGroup);
   };
 
@@ -232,41 +326,176 @@ export default function SharedPage() {
               </div>
             )}
 
-            {/* Transactions */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b flex justify-between items-center">
-                <h2 className="font-bold text-[#1B5E20]">Transactions</h2>
+            {/* Tab bar */}
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
+              <div className="flex border-b">
                 <button
-                  onClick={() => { setShowAddTx(true); setTxForm(emptyTxForm); }}
-                  className="text-sm bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg hover:bg-[#2E7D32]"
+                  onClick={() => setActiveTab('expenses')}
+                  className={`flex-1 px-4 py-3 font-medium text-sm transition ${
+                    activeTab === 'expenses'
+                      ? 'text-[#1B5E20] border-b-2 border-[#1B5E20]'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
-                  + Add
+                  Expenses
+                </button>
+                <button
+                  onClick={() => setActiveTab('budgets')}
+                  className={`flex-1 px-4 py-3 font-medium text-sm transition ${
+                    activeTab === 'budgets'
+                      ? 'text-[#1B5E20] border-b-2 border-[#1B5E20]'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Budgets
+                </button>
+                <button
+                  onClick={() => setActiveTab('goals')}
+                  className={`flex-1 px-4 py-3 font-medium text-sm transition ${
+                    activeTab === 'goals'
+                      ? 'text-[#1B5E20] border-b-2 border-[#1B5E20]'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Goals
                 </button>
               </div>
-              {transactions.length === 0 ? (
-                <div className="text-center py-10 text-gray-400 text-sm">No transactions yet.</div>
-              ) : (
-                <div className="divide-y">
-                  {transactions.map(tx => (
-                    <div key={tx.id} className="px-5 py-4 flex justify-between items-center">
-                      <div>
-                        <p className="font-medium text-gray-900">{tx.description}</p>
-                        <p className="text-xs text-gray-500">
-                          Paid by {tx.paidByName} · {formatDate(tx.date)}
-                          {tx.category && ` · ${tx.category}`}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <p className="font-bold text-gray-900">{fmt(tx.amount)}</p>
-                        <button
-                          onClick={() => handleDeleteTx(tx.id)}
-                          className="text-gray-300 hover:text-red-500 text-sm"
-                        >
-                          ✕
-                        </button>
-                      </div>
+
+              {/* Expenses Tab */}
+              {activeTab === 'expenses' && (
+                <div>
+                  <div className="px-5 py-4 border-b flex justify-between items-center">
+                    <h2 className="font-bold text-[#1B5E20]">Transactions</h2>
+                    <button
+                      onClick={() => { setShowAddTx(true); setTxForm(emptyTxForm); }}
+                      className="text-sm bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg hover:bg-[#2E7D32]"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                  {transactions.length === 0 ? (
+                    <div className="text-center py-10 text-gray-400 text-sm">No transactions yet.</div>
+                  ) : (
+                    <div className="divide-y">
+                      {transactions.map(tx => (
+                        <div key={tx.id} className="px-5 py-4 flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-gray-900">{tx.description}</p>
+                            <p className="text-xs text-gray-500">
+                              Paid by {tx.paidByName} · {formatDate(tx.date)}
+                              {tx.category && ` · ${tx.category}`}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <p className="font-bold text-gray-900">{fmt(tx.amount)}</p>
+                            <button
+                              onClick={() => handleDeleteTx(tx.id)}
+                              className="text-gray-300 hover:text-red-500 text-sm"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                </div>
+              )}
+
+              {/* Budgets Tab */}
+              {activeTab === 'budgets' && (
+                <div>
+                  <div className="px-5 py-4 border-b flex justify-between items-center">
+                    <h2 className="font-bold text-[#1B5E20]">Budgets</h2>
+                    <button
+                      onClick={() => { setShowAddBudget(true); setBudgetForm({ category: '', monthlyLimit: '' }); }}
+                      className="text-sm bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg hover:bg-[#2E7D32]"
+                    >
+                      + Add Budget
+                    </button>
+                  </div>
+                  {budgets.length === 0 ? (
+                    <div className="text-center py-10 text-gray-400 text-sm">No budgets yet.</div>
+                  ) : (
+                    <div className="divide-y">
+                      {budgets.map(budget => (
+                        <div key={budget.id} className="px-5 py-4 flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-gray-900">{budget.category}</p>
+                            <p className="text-xs text-gray-500">Monthly limit</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <p className="font-bold text-gray-900">{fmt(budget.monthlyLimit)}</p>
+                            <button
+                              onClick={() => handleDeleteBudget(budget.id)}
+                              className="text-gray-300 hover:text-red-500 text-sm"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Goals Tab */}
+              {activeTab === 'goals' && (
+                <div>
+                  <div className="px-5 py-4 border-b flex justify-between items-center">
+                    <h2 className="font-bold text-[#1B5E20]">Goals</h2>
+                    <button
+                      onClick={() => { setShowAddGoal(true); setGoalForm({ name: '', targetAmount: '', targetDate: '', description: '' }); }}
+                      className="text-sm bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg hover:bg-[#2E7D32]"
+                    >
+                      + Add Goal
+                    </button>
+                  </div>
+                  {goals.length === 0 ? (
+                    <div className="text-center py-10 text-gray-400 text-sm">No goals yet.</div>
+                  ) : (
+                    <div className="space-y-3 p-5">
+                      {goals.map(goal => {
+                        const progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0;
+                        return (
+                          <div key={goal.id} className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <p className="font-medium text-gray-900">{goal.name}</p>
+                                {goal.targetDate && (
+                                  <p className="text-xs text-gray-500">Target: {new Date(goal.targetDate).toLocaleDateString()}</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => handleDeleteGoal(goal.id)}
+                                className="text-gray-300 hover:text-red-500 text-sm"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <div className="mb-2">
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="bg-[#1B5E20] h-2 rounded-full transition-all"
+                                  style={{ width: `${Math.min(progress, 100)}%` }}
+                                />
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {fmt(goal.currentAmount)} of {fmt(goal.targetAmount)}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => setShowContributeGoal(goal.id)}
+                              className="text-sm bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg hover:bg-[#2E7D32] w-full"
+                            >
+                              Contribute
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -322,6 +551,149 @@ export default function SharedPage() {
                   className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
                 >
                   {savingTx ? 'Saving...' : 'Add'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Budget Modal */}
+        {showAddBudget && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+              <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Budget</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <input
+                    value={budgetForm.category}
+                    onChange={e => setBudgetForm({ ...budgetForm, category: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                    placeholder="e.g. groceries, dining"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Limit (USD)</label>
+                  <input
+                    type="number" step="0.01"
+                    value={budgetForm.monthlyLimit}
+                    onChange={e => setBudgetForm({ ...budgetForm, monthlyLimit: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowAddBudget(false)}
+                  className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddBudget}
+                  disabled={savingBudget || !budgetForm.category || !budgetForm.monthlyLimit}
+                  className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                >
+                  {savingBudget ? 'Saving...' : 'Add'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Goal Modal */}
+        {showAddGoal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+              <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Goal</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Goal Name</label>
+                  <input
+                    value={goalForm.name}
+                    onChange={e => setGoalForm({ ...goalForm, name: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                    placeholder="e.g. Weekend trip"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Amount (USD)</label>
+                  <input
+                    type="number" step="0.01"
+                    value={goalForm.targetAmount}
+                    onChange={e => setGoalForm({ ...goalForm, targetAmount: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Date (optional)</label>
+                  <input
+                    type="date"
+                    value={goalForm.targetDate}
+                    onChange={e => setGoalForm({ ...goalForm, targetDate: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                  <textarea
+                    value={goalForm.description}
+                    onChange={e => setGoalForm({ ...goalForm, description: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                    placeholder="What is this goal for?"
+                    rows={2}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowAddGoal(false)}
+                  className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddGoal}
+                  disabled={savingGoal || !goalForm.name || !goalForm.targetAmount}
+                  className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                >
+                  {savingGoal ? 'Saving...' : 'Add'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Contribute to Goal Modal */}
+        {showContributeGoal !== null && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+              <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Contribute to Goal</h2>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Amount (USD)</label>
+                <input
+                  type="number" step="0.01"
+                  value={contributeAmount}
+                  onChange={e => setContributeAmount(e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => { setShowContributeGoal(null); setContributeAmount(''); }}
+                  className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleContributeGoal}
+                  disabled={contributingGoal || !contributeAmount}
+                  className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                >
+                  {contributingGoal ? 'Contributing...' : 'Contribute'}
                 </button>
               </div>
             </div>

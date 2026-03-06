@@ -15,7 +15,11 @@ function SignupContent() {
 
   useEffect(() => {
     const ref = searchParams.get('ref');
-    if (ref) setReferralCode(ref.toUpperCase());
+    if (ref) {
+      setReferralCode(ref.toUpperCase());
+      // Fire-and-forget referral click tracking
+      fetch(`/api/referrals/click/${encodeURIComponent(ref)}`, { method: 'POST' }).catch(() => {});
+    }
   }, [searchParams]);
 
   const [error, setError] = useState('');
