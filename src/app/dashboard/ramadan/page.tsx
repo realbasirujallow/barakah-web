@@ -1,0 +1,342 @@
+'use client';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { fmt } from '../../../lib/format';
+
+/* ── Hijri date calculation (simple approximation) ──────────────────
+   Uses the Kuwaiti algorithm which is accurate to ±1 day.
+   For production a library like hijri-date-new is preferable,
+   but this keeps the bundle zero-dependency.                         */
+function toHijri(date: Date): { year: number; month: number; day: number; monthName: string } {
+  const HIJRI_MONTHS = [
+    'Muharram', 'Safar', "Rabi' al-Awwal", "Rabi' al-Thani",
+    'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', "Sha'ban",
+    'Ramadan', 'Shawwal', "Dhu al-Qi'dah", 'Dhu al-Hijjah',
+  ];
+  // JD number
+  const jd = Math.floor((date.getTime() / 86400000) + 2440587.5);
+  const l  = jd - 1948440 + 10632;
+  const n  = Math.floor((l - 1) / 10631);
+  const ll = l - 10631 * n + 354;
+  const j  = Math.floor((10985 - ll) / 5316) * Math.floor((50 * ll) / 17719)
+           + Math.floor(ll / 5670) * Math.floor((43 * ll) / 15238);
+  const ll2 = ll - Math.floor((30 - j) / 15) * Math.floor((17719 * j) / 50)
+            - Math.floor(j / 16) * Math.floor((15238 * j) / 43) + 29;
+  const month = Math.floor((24 * ll2) / 709);
+  const day   = ll2 - Math.floor((709 * month) / 24);
+  const year  = 30 * n + j - 30;
+  return { year, month: month + 1, day, monthName: HIJRI_MONTHS[month] ?? '' };
+}
+
+/* ── Ramadan dates (Gregorian approximations for 2024–2030) ─────── */
+const RAMADAN_DATES: Record<number, { start: string; end: string }> = {
+  2024: { start: '2024-03-11', end: '2024-04-09' },
+  2025: { start: '2025-03-01', end: '2025-03-30' },
+  2026: { start: '2026-02-18', end: '2026-03-19' },
+  2027: { start: '2027-02-07', end: '2027-03-08' },
+  2028: { start: '2028-01-28', end: '2028-02-25' },
+  2029: { start: '2029-01-17', end: '2029-02-14' },
+  2030: { start: '2030-01-06', end: '2030-02-04' },
+};
+
+function getRamadanStatus(now: Date): {
+  inRamadan: boolean; day: number; total: number;
+  start: Date | null; end: Date | null; daysUntil: number | null;
+} {
+  const yr = now.getFullYear();
+  const rd = RAMADAN_DATES[yr] || RAMADAN_DATES[yr + 1];
+  if (!rd) return { inRamadan: false, day: 0, total: 0, start: null, end: null, daysUntil: null };
+
+  const start = new Date(rd.start);
+  const end   = new Date(rd.end);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  if (today >= start && today <= end) {
+    const day   = Math.floor((today.getTime() - start.getTime()) / 86400000) + 1;
+    const total = Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
+    return { inRamadan: true, day, total, start, end, daysUntil: 0 };
+  }
+
+  // Days until next Ramadan
+  const nextStart = today < start ? start : new Date(RAMADAN_DATES[yr + 1]?.start || rd.start);
+  const daysUntil = Math.ceil((nextStart.getTime() - today.getTime()) / 86400000);
+  return { inRamadan: false, day: 0, total: 0, start: nextStart, end, daysUntil };
+}
+
+/* ── Zakat al-Fitr 2025 approximate rate ──────────────────────────── */
+const ZAKAT_FITR_PER_PERSON_USD = 10; // approximate; varies by school
+
+const OPTIONAL_CATEGORIES = [
+  { key: 'quran',       label: 'Quran / Islamic Books',   icon: '📖', suggested: 50 },
+  { key: 'iftarguest',  label: "Iftar for Guests",         icon: '🍽️', suggested: 200 },
+  { key: 'itikaaf',     label: "I'tikaaf Expenses",        icon: '🕌', suggested: 100 },
+  { key: 'charity',     label: 'Extra Sadaqah',            icon: '🤲', suggested: 300 },
+  { key: 'clothing',    label: 'Eid Clothing',             icon: '👗', suggested: 150 },
+  { key: 'gifts',       label: 'Eid Gifts',                icon: '🎁', suggested: 100 },
+];
+
+interface BudgetItem { key: string; label: string; icon: string; suggested: number; allocated: number; }
+
+const DUAS = [
+  { arabic: 'اللَّهُمَّ بَلِّغْنَا رَمَضَانَ', transliteration: 'Allahumma ballighna Ramadan', meaning: 'O Allah, let us reach Ramadan' },
+  { arabic: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي', transliteration: "Allahumma innaka 'afuwwun tuhibbul 'afwa fa'fu 'anni", meaning: 'O Allah, You are the Pardoner, You love to pardon, so pardon me' },
+  { arabic: 'رَبَّنَا تَقَبَّلْ مِنَّا إِنَّكَ أَنتَ السَّمِيعُ الْعَلِيمُ', transliteration: 'Rabbana taqabbal minna innaka antas-Sami\'ul-\'Aleem', meaning: 'Our Lord, accept from us; indeed You are the All-Hearing, the All-Knowing' },
+];
+
+export default function RamadanPage() {
+  const [now, setNow]                   = useState(new Date());
+  const [members, setMembers]           = useState(1);
+  const [fitrahPaid, setFitrahPaid]     = useState(false);
+  const [budget, setBudget]             = useState<BudgetItem[]>(
+    OPTIONAL_CATEGORIES.map(c => ({ ...c, allocated: c.suggested }))
+  );
+  const [customGoal, setCustomGoal]     = useState('');
+  const [dailyNafila, setDailyNafila]   = useState<boolean[]>(Array(30).fill(false));
+  const [expandDua, setExpandDua]       = useState<number | null>(null);
+
+  // Clock tick
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(t);
+  }, []);
+
+  const hijri = toHijri(now);
+  const ramadan = getRamadanStatus(now);
+  const totalBudget = budget.reduce((s, b) => s + b.allocated, 0);
+  const fitrahTotal = members * ZAKAT_FITR_PER_PERSON_USD;
+  const grandTotal  = totalBudget + (fitrahPaid ? 0 : fitrahTotal);
+
+  const updateBudget = (key: string, val: number) => {
+    setBudget(prev => prev.map(b => b.key === key ? { ...b, allocated: val } : b));
+  };
+
+  const toggleNafila = (i: number) => {
+    setDailyNafila(prev => { const n = [...prev]; n[i] = !n[i]; return n; });
+  };
+
+  const nafilaCount   = dailyNafila.filter(Boolean).length;
+  const nafilaDaysSet = ramadan.inRamadan ? ramadan.day : 0;
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-[#1B5E20]">🌙 Ramadan Mode</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {hijri.day} {hijri.monthName} {hijri.year} AH
+          {' · '}
+          {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+        </p>
+      </div>
+
+      {/* Ramadan status card */}
+      {ramadan.inRamadan ? (
+        <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
+          <p className="text-green-200 text-sm">Ramadan Mubarak 🌙</p>
+          <p className="text-4xl font-bold mt-1">Day {ramadan.day}</p>
+          <div className="mt-3">
+            <div className="w-full bg-white/20 rounded-full h-2">
+              <div
+                className="bg-white h-2 rounded-full transition-all"
+                style={{ width: `${(ramadan.day / ramadan.total) * 100}%` }}
+              />
+            </div>
+            <p className="text-green-200 text-xs mt-1">{ramadan.day} of {ramadan.total} days · {ramadan.total - ramadan.day} remaining</p>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl p-6 shadow-sm mb-6 text-center">
+          <p className="text-4xl mb-2">🌙</p>
+          <p className="text-lg font-semibold text-[#1B5E20]">
+            {ramadan.daysUntil !== null
+              ? ramadan.daysUntil === 0
+                ? 'Ramadan starts today!'
+                : `${ramadan.daysUntil} days until Ramadan`
+              : 'Ramadan date not available'}
+          </p>
+          {ramadan.start && (
+            <p className="text-gray-500 text-sm mt-1">
+              Expected to begin {ramadan.start.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              <span className="text-xs text-gray-400 ml-1">(subject to moon sighting)</span>
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Zakat al-Fitr Calculator */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
+        <h2 className="font-bold text-[#1B5E20] mb-3">🕌 Zakat al-Fitr</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          Obligatory charity paid before Eid al-Fitr prayer. Approximately <strong>${ZAKAT_FITR_PER_PERSON_USD}</strong> per person (based on staple food equivalent; verify with your local mosque).
+        </p>
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex-1">
+            <label className="text-sm font-medium text-gray-700 block mb-1">Number of family members</label>
+            <input
+              type="number" min="1" max="20" value={members}
+              onChange={e => setMembers(Math.max(1, parseInt(e.target.value) || 1))}
+              className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+            />
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-gray-500">Total due</p>
+            <p className="text-2xl font-bold text-[#1B5E20]">{fmt(fitrahTotal)}</p>
+          </div>
+        </div>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox" checked={fitrahPaid}
+            onChange={e => setFitrahPaid(e.target.checked)}
+            className="w-4 h-4 accent-[#1B5E20]"
+          />
+          <span className={fitrahPaid ? 'line-through text-gray-400' : 'text-gray-700'}>
+            Zakat al-Fitr paid ✓
+          </span>
+        </label>
+      </div>
+
+      {/* Ramadan Budget Planner */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
+        <h2 className="font-bold text-[#1B5E20] mb-1">💰 Ramadan Budget Planner</h2>
+        <p className="text-xs text-gray-500 mb-4">Plan extra Ramadan spending. Adjust amounts for your situation.</p>
+        <div className="space-y-3">
+          {budget.map(b => (
+            <div key={b.key} className="flex items-center gap-3">
+              <span className="text-xl w-8 text-center">{b.icon}</span>
+              <span className="flex-1 text-sm text-gray-700">{b.label}</span>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-400 text-sm">$</span>
+                <input
+                  type="number" min="0" step="10" value={b.allocated}
+                  onChange={e => updateBudget(b.key, Math.max(0, parseInt(e.target.value) || 0))}
+                  className="w-24 border rounded-lg px-2 py-1.5 text-sm text-gray-900 text-right focus:outline-none focus:border-[#1B5E20]"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Custom goal */}
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 text-sm">Custom goal:</span>
+            <input
+              type="text" placeholder="e.g. Night of Power donation"
+              value={customGoal}
+              onChange={e => setCustomGoal(e.target.value)}
+              className="flex-1 border rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+            />
+          </div>
+        </div>
+        <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
+          <span className="text-sm font-semibold text-gray-700">Total (excl. Fitrah)</span>
+          <span className="text-lg font-bold text-gray-900">{fmt(totalBudget)}</span>
+        </div>
+        {!fitrahPaid && (
+          <div className="flex justify-between items-center mt-1 text-sm text-[#1B5E20]">
+            <span>+ Zakat al-Fitr ({members} person{members > 1 ? 's' : ''})</span>
+            <span className="font-semibold">{fmt(fitrahTotal)}</span>
+          </div>
+        )}
+        <div className="flex justify-between items-center mt-2 pt-2 border-t border-[#1B5E20]/20">
+          <span className="font-bold text-[#1B5E20]">Grand Total</span>
+          <span className="text-xl font-bold text-[#1B5E20]">{fmt(grandTotal)}</span>
+        </div>
+      </div>
+
+      {/* Daily Nafila Tracker */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="font-bold text-[#1B5E20]">🌟 Daily Nawafil Tracker</h2>
+          <span className="text-sm text-gray-500">{nafilaCount}/{ramadan.inRamadan ? ramadan.day : 30} days</span>
+        </div>
+        <p className="text-xs text-gray-500 mb-4">Track your extra voluntary prayers and worship during Ramadan</p>
+        <div className="grid grid-cols-10 gap-1.5">
+          {Array.from({ length: 30 }, (_, i) => {
+            const isToday = ramadan.inRamadan && i + 1 === ramadan.day;
+            const isFuture = ramadan.inRamadan && i + 1 > ramadan.day;
+            return (
+              <button
+                key={i}
+                onClick={() => !isFuture && toggleNafila(i)}
+                title={`Day ${i + 1}`}
+                disabled={isFuture}
+                className={`aspect-square rounded-md text-xs font-medium transition ${
+                  isFuture ? 'bg-gray-100 text-gray-300 cursor-not-allowed' :
+                  dailyNafila[i] ? 'bg-[#1B5E20] text-white' :
+                  isToday ? 'bg-green-100 text-[#1B5E20] border-2 border-[#1B5E20]' :
+                  'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {i + 1}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-xs text-gray-400 mt-3 text-center">
+          Tap a day to mark your nawafil complete
+        </p>
+      </div>
+
+      {/* Duas for Ramadan */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
+        <h2 className="font-bold text-[#1B5E20] mb-3">🤲 Ramadan Du&apos;as</h2>
+        <div className="space-y-2">
+          {DUAS.map((dua, i) => (
+            <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
+              <button
+                className="w-full text-left px-4 py-3 hover:bg-gray-50 transition flex justify-between items-center"
+                onClick={() => setExpandDua(expandDua === i ? null : i)}
+              >
+                <span className="text-sm font-medium text-gray-800">{dua.meaning}</span>
+                <span className="text-gray-400 text-sm ml-2">{expandDua === i ? '▲' : '▼'}</span>
+              </button>
+              {expandDua === i && (
+                <div className="px-4 pb-4 pt-1 bg-green-50">
+                  <p className="text-right text-xl text-gray-800 font-arabic leading-relaxed mb-2">{dua.arabic}</p>
+                  <p className="text-sm text-gray-600 italic mb-1">{dua.transliteration}</p>
+                  <p className="text-xs text-gray-500">{dua.meaning}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Quick links */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <Link href="/dashboard/zakat" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
+          <span className="text-2xl">🕌</span>
+          <div>
+            <p className="font-semibold text-gray-800 text-sm">Zakat Calculator</p>
+            <p className="text-xs text-gray-500">Compute your full Zakat</p>
+          </div>
+        </Link>
+        <Link href="/dashboard/sadaqah" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
+          <span className="text-2xl">🤲</span>
+          <div>
+            <p className="font-semibold text-gray-800 text-sm">Sadaqah Log</p>
+            <p className="text-xs text-gray-500">Track your charity</p>
+          </div>
+        </Link>
+        <Link href="/dashboard/prayer-times" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
+          <span className="text-2xl">🕌</span>
+          <div>
+            <p className="font-semibold text-gray-800 text-sm">Prayer Times</p>
+            <p className="text-xs text-gray-500">Suhoor &amp; Iftar times</p>
+          </div>
+        </Link>
+        <Link href="/dashboard/budget" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
+          <span className="text-2xl">📊</span>
+          <div>
+            <p className="font-semibold text-gray-800 text-sm">Budget</p>
+            <p className="text-xs text-gray-500">Manage Ramadan spending</p>
+          </div>
+        </Link>
+      </div>
+
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800">
+        ⚠️ Ramadan dates are approximations based on astronomical calculation. Actual start date may differ by 1 day depending on moon sighting in your region. Always confirm with your local mosque or Islamic authority.
+      </div>
+    </div>
+  );
+}

@@ -29,6 +29,7 @@ const navItems = [
   { href: '/dashboard/halal', icon: '✅', label: 'Halal Screener' },
   { href: '/dashboard/import', icon: '📥', label: 'Import Data' },
   { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times' },
+  { href: '/dashboard/ramadan', icon: '🌙', label: 'Ramadan Mode' },
   { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications' },
   { href: '/dashboard/barakah-score', icon: '⭐', label: 'Barakah Score' },
   { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
