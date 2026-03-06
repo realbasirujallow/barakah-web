@@ -118,7 +118,7 @@ export default function ImportPage() {
   });
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
-  const [generateTransactions, setGenerateTransactions] = useState(true);
+  const [generateTransactions, setGenerateTransactions] = useState(false);
   const [deltaStats, setDeltaStats] = useState<DeltaStats>({
     derivedTransactionCount: 0, derivedIncomeCount: 0, derivedExpenseCount: 0,
     derivedTotalIncome: 0, derivedTotalExpense: 0,
@@ -240,7 +240,7 @@ export default function ImportPage() {
   const resetAll = () => {
     setStep('upload'); setCsvFormat('balances');
     setAccounts([]); setTransactions([]); setResult(null); setError('');
-    setGenerateTransactions(true);
+    setGenerateTransactions(false);
     setDeltaStats({ derivedTransactionCount: 0, derivedIncomeCount: 0, derivedExpenseCount: 0, derivedTotalIncome: 0, derivedTotalExpense: 0 });
   };
 
@@ -307,9 +307,14 @@ export default function ImportPage() {
                   onChange={() => setGenerateTransactions(prev => !prev)}
                   className="accent-[#1B5E20] w-5 h-5"
                 />
-                <span className="text-sm font-medium text-amber-900">
-                  Also generate transactions from daily balance changes
-                </span>
+                <div>
+                  <span className="text-sm font-medium text-amber-900">
+                    Also estimate transactions from daily balance changes
+                  </span>
+                  <p className="text-xs text-amber-700 mt-0.5">
+                    ⚠️ These are <strong>estimated</strong> — not real transactions. Only enable if you don&apos;t have a separate Transactions CSV. Real transactions imported from a Transactions CSV are always more accurate.
+                  </p>
+                </div>
               </label>
               {generateTransactions && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 ml-8">

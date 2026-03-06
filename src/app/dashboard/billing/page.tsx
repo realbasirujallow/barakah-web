@@ -70,8 +70,20 @@ function BillingContent() {
   const handleUpgrade = async (plan: 'plus' | 'family') => {
     setLoading(plan);
     try {
-      const { url } = await api.createCheckout(plan);
-      window.location.href = url;
+      // Existing subscribers: upgrade/downgrade in-place (no redirect needed).
+      // New subscribers (free plan): get redirected to Stripe Checkout.
+      const result = await api.upgradeSubscription(plan);
+      if (result?.url) {
+        // Free user — redirect to Stripe Checkout
+        window.location.href = result.url;
+      } else if (result?.success) {
+        // Existing subscriber — plan switched immediately, refresh status
+        setStatus(prev => prev ? { ...prev, plan: result.plan, status: result.status } : prev);
+        setLoading(null);
+      } else {
+        alert('Something went wrong. Please try again.');
+        setLoading(null);
+      }
     } catch {
       alert('Something went wrong. Please try again.');
       setLoading(null);
@@ -185,7 +197,7 @@ function BillingContent() {
                 </div>
               ) : plan.id === 'free' ? (
                 <div className="text-center text-sm text-gray-400 py-2">
-                  Always free
+                  Always free — cancel anytime to return here
                 </div>
               ) : (
                 <button
@@ -196,10 +208,11 @@ function BillingContent() {
                   {loading === plan.id ? (
                     <span className="flex items-center justify-center gap-2">
                       <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Redirecting to Stripe...
+                      {status?.hasSubscription ? 'Switching plan...' : 'Redirecting to Stripe...'}
                     </span>
                   ) : (
-                    `Upgrade to ${plan.name}`
+                    // Show "Switch to" when already subscribed, "Upgrade to" for new subscribers
+                    status?.hasSubscription ? `Switch to ${plan.name}` : `Upgrade to ${plan.name}`
                   )}
                 </button>
               )}
