@@ -19,13 +19,28 @@ export default function ZakatPage() {
   const [payments, setPayments] = useState<Record<string, unknown>[]>([]);
   const [totalPaid, setTotalPaid] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'calculator' | 'payments'>('calculator');
+  const [tab, setTab] = useState<'calculator' | 'assets' | 'payments'>('calculator');
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showMabrook, setShowMabrook] = useState(false);
   const [form, setForm] = useState({ amount: '', recipient: '', notes: '' });
   const [hideZakat, setHideZakat] = useState(false);
   const [nisabInfo, setNisabInfo] = useState<{ goldPricePerGram?: number } | null>(null);
+
+  // Manual asset breakdown calculator
+  const [manualAssets, setManualAssets] = useState({
+    cash:           0,
+    gold:           0,
+    silver:         0,
+    stocks:         0,
+    businessGoods:  0,
+    receivables:    0,
+    rentalIncome:   0,
+    otherAssets:    0,
+    // Deductions
+    debts:          0,
+    expenses:       0,
+  });
 
   // Use the lunar year from the API if available; fall back to JS-computed value
   const lunarYear: number = (data?.currentLunarYear as number) || computeHijriYear();
@@ -117,7 +132,8 @@ export default function ZakatPage() {
             {hideZakat ? 'Show' : 'Hide'}
           </button>
           <div className="flex bg-gray-100 rounded-lg p-1">
-            <button onClick={() => setTab('calculator')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'calculator' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Calculator</button>
+            <button onClick={() => setTab('calculator')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'calculator' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Overview</button>
+            <button onClick={() => setTab('assets')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'assets' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Asset Calc</button>
             <button onClick={() => setTab('payments')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'payments' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Payments</button>
           </div>
         </div>
@@ -176,9 +192,110 @@ export default function ZakatPage() {
             Use the Hawl Tracker to track when each asset becomes eligible.
           </div>
         </>
+
+      ) : tab === 'assets' ? (
+        <>
+          {/* Manual Zakat Asset Calculator */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-sm text-amber-800">
+            <p className="font-semibold mb-1">📌 Manual Asset Breakdown</p>
+            <p>Enter each zakatable asset below. This calculator is independent of your connected accounts and uses the Nisab ({data?.nisab ? fmt(data.nisab as number) : '…'}) from live gold prices.</p>
+          </div>
+
+          {(() => {
+            const totalIn = manualAssets.cash + manualAssets.gold + manualAssets.silver +
+              manualAssets.stocks + manualAssets.businessGoods + manualAssets.receivables +
+              manualAssets.rentalIncome + manualAssets.otherAssets;
+            const totalOut = manualAssets.debts + manualAssets.expenses;
+            const netWealth = Math.max(0, totalIn - totalOut);
+            const nisab = (data?.nisab as number) || 0;
+            const isEligible = nisab > 0 && netWealth >= nisab;
+            const zakatAmt = isEligible ? netWealth * 0.025 : 0;
+
+            const setAsset = (key: string, val: number) =>
+              setManualAssets(prev => ({ ...prev, [key]: Math.max(0, val) }));
+
+            const AssetRow = ({ label, icon, fieldKey, hint }: { label: string; icon: string; fieldKey: string; hint?: string }) => (
+              <div className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-b-0">
+                <span className="text-xl w-7 text-center shrink-0">{icon}</span>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-800">{label}</p>
+                  {hint && <p className="text-xs text-gray-400">{hint}</p>}
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-400 text-sm">$</span>
+                  <input
+                    type="number" min="0" step="100"
+                    value={manualAssets[fieldKey as keyof typeof manualAssets] || ''}
+                    onChange={e => setAsset(fieldKey, parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    className="w-28 border rounded-lg px-2 py-1.5 text-sm text-right text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+                  />
+                </div>
+              </div>
+            );
+
+            return (
+              <>
+                <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
+                  <h3 className="font-semibold text-[#1B5E20] mb-3">Assets (Zakatable)</h3>
+                  <AssetRow label="Cash & Bank Accounts" icon="💵" fieldKey="cash" hint="Checking, savings, and cash on hand" />
+                  <AssetRow label="Gold" icon="🥇" fieldKey="gold" hint="Market value of gold owned" />
+                  <AssetRow label="Silver" icon="🥈" fieldKey="silver" hint="Market value of silver owned" />
+                  <AssetRow label="Stocks & Investments" icon="📈" fieldKey="stocks" hint="Halal stocks, ETFs, mutual funds (market value)" />
+                  <AssetRow label="Business Inventory" icon="📦" fieldKey="businessGoods" hint="Stock / goods held for trade" />
+                  <AssetRow label="Money Owed to You" icon="🤝" fieldKey="receivables" hint="Loans given that are likely to be returned" />
+                  <AssetRow label="Rental Income Saved" icon="🏠" fieldKey="rentalIncome" hint="Net rental income received this hawl" />
+                  <AssetRow label="Other Assets" icon="💼" fieldKey="otherAssets" hint="Any other zakatable wealth" />
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
+                  <h3 className="font-semibold text-red-600 mb-3">Deductions</h3>
+                  <AssetRow label="Outstanding Debts Due" icon="💳" fieldKey="debts" hint="Debts that are immediately due" />
+                  <AssetRow label="Essential Expenses" icon="📋" fieldKey="expenses" hint="Unavoidable expenses due within this month" />
+                </div>
+
+                {/* Result */}
+                <div className={`rounded-2xl p-6 text-white text-center mb-4 ${isEligible ? 'bg-gradient-to-r from-amber-600 to-yellow-500' : 'bg-gradient-to-r from-gray-500 to-gray-400'}`}>
+                  <p className="text-amber-100 text-sm mb-1">Net Zakatable Wealth</p>
+                  <p className="text-4xl font-bold">{fmt(netWealth)}</p>
+                  <p className="text-amber-200 text-sm mt-2">
+                    {isEligible
+                      ? `Above nisab (${fmt(nisab)}) — Zakat is obligatory`
+                      : nisab > 0 ? `Below nisab (${fmt(nisab)}) — Zakat not obligatory` : 'Loading nisab…'}
+                  </p>
+                  {isEligible && (
+                    <div className="mt-4 bg-white/20 rounded-xl p-4">
+                      <p className="text-xs text-amber-100 mb-1">Zakat Due (2.5%)</p>
+                      <p className="text-3xl font-bold">{fmt(zakatAmt)}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="bg-white rounded-xl p-3 shadow-sm">
+                    <p className="text-xs text-gray-500">Total Assets</p>
+                    <p className="font-bold text-green-600">{fmt(totalIn)}</p>
+                  </div>
+                  <div className="bg-white rounded-xl p-3 shadow-sm">
+                    <p className="text-xs text-gray-500">Deductions</p>
+                    <p className="font-bold text-red-500">−{fmt(totalOut)}</p>
+                  </div>
+                  <div className="bg-white rounded-xl p-3 shadow-sm">
+                    <p className="text-xs text-gray-500">Net Wealth</p>
+                    <p className="font-bold text-[#1B5E20]">{fmt(netWealth)}</p>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-4 text-xs text-blue-800">
+                  <strong>Note:</strong> Stocks: many scholars say to use the market value of shares in companies whose primary business is halal. For mixed companies, apply the purification ratio. Consult a scholar for your specific situation.
+                </div>
+              </>
+            );
+          })()}
+        </>
       ) : (
         <>
-          {/* Payment Progress Summary */}
+          {/* Payment Progress Summary */
           <div className={`rounded-2xl p-6 text-white mb-6 ${fulfilled ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gradient-to-r from-[#1B5E20] to-[#2E7D32]'}`}>
             <p className="text-lg font-bold mb-4">{fulfilled ? '🌟 Zakat Fulfilled' : '📊 Zakat Progress'} — {lunarYear} AH</p>
             <div className="grid grid-cols-3 gap-4 text-center">
