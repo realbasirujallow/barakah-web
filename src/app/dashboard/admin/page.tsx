@@ -46,17 +46,23 @@ export default function AdminPage() {
   const [resetting, setResetting]   = useState(false);
   const [planSaving, setPlanSaving] = useState(false);
   const [draftPlan, setDraftPlan]   = useState('');
+  const [analytics, setAnalytics]   = useState<{ totalUsers: number; freeUsers: number; plusUsers: number; familyUsers: number; growthByMonth: { month: string; signups: number }[] } | null>(null);
+  const [featureUsage, setFeatureUsage] = useState<Record<string, number> | null>(null);
   const { toast } = useToast();
 
   const loadData = useCallback(async (p: number) => {
     setLoading(true);
     try {
-      const [countRes, usersRes] = await Promise.all([
+      const [countRes, usersRes, analyticsRes, featureRes] = await Promise.all([
         api.getAdminUserCount(),
         api.getAdminUsers(p, 50),
+        api.getAdminAnalytics().catch(() => null),
+        api.getAdminFeatureUsage().catch(() => null),
       ]);
       setUserCount(countRes?.count ?? null);
       setUsersData(usersRes);
+      if (analyticsRes) setAnalytics(analyticsRes);
+      if (featureRes) setFeatureUsage(featureRes);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load admin data';
       if (msg.toLowerCase().includes('admin access') || msg.includes('403')) {
@@ -186,6 +192,64 @@ export default function AdminPage() {
           <p className="text-4xl font-bold text-gray-800">{usersData?.totalPages ?? 1}</p>
         </div>
       </div>
+
+      {/* Analytics Row */}
+      {analytics && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-xl p-4">
+            <p className="text-xs text-gray-400 mb-1">Free Users</p>
+            <p className="text-2xl font-bold text-gray-800">{analytics.freeUsers}</p>
+          </div>
+          <div className="bg-white rounded-xl p-4">
+            <p className="text-xs text-gray-400 mb-1">Plus Users</p>
+            <p className="text-2xl font-bold text-blue-600">{analytics.plusUsers}</p>
+          </div>
+          <div className="bg-white rounded-xl p-4">
+            <p className="text-xs text-gray-400 mb-1">Family Users</p>
+            <p className="text-2xl font-bold text-purple-600">{analytics.familyUsers}</p>
+          </div>
+          <div className="bg-white rounded-xl p-4">
+            <p className="text-xs text-gray-400 mb-1">Signups (Last 12mo)</p>
+            <p className="text-2xl font-bold text-[#1B5E20]">
+              {analytics.growthByMonth.reduce((s, m) => s + m.signups, 0)}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Feature Usage */}
+      {featureUsage && (
+        <div className="bg-white rounded-2xl p-5 mb-8">
+          <h2 className="font-semibold text-gray-700 mb-4">Feature Usage (All Users)</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {Object.entries(featureUsage).map(([key, count]) => (
+              <div key={key} className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs text-gray-400 capitalize">{key.replace('total', '').replace(/([A-Z])/g, ' $1').trim()}</p>
+                <p className="text-xl font-bold text-gray-800">{count.toLocaleString()}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Monthly Signups Mini-Chart */}
+      {analytics && analytics.growthByMonth.length > 0 && (
+        <div className="bg-white rounded-2xl p-5 mb-8">
+          <h2 className="font-semibold text-gray-700 mb-4">Monthly Signups (Last 12 months)</h2>
+          <div className="flex items-end gap-1 h-24">
+            {analytics.growthByMonth.map((m) => {
+              const max = Math.max(...analytics.growthByMonth.map(x => x.signups), 1);
+              const pct = (m.signups / max) * 100;
+              return (
+                <div key={m.month} className="flex-1 flex flex-col items-center gap-1" title={`${m.month}: ${m.signups} signups`}>
+                  <div className="w-full bg-[#1B5E20] rounded-t-sm" style={{ height: `${Math.max(pct, 4)}%`, minHeight: 3 }} />
+                  <p className="text-[9px] text-gray-400 rotate-45 origin-left" style={{ fontSize: 8 }}>{m.month.slice(5)}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Search + table */}
       <div className="bg-white rounded-2xl overflow-hidden">

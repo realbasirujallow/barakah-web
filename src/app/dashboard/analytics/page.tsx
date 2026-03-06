@@ -16,6 +16,13 @@ interface Summary {
   transactionCount: number;
 }
 
+interface MonthlyPoint {
+  month: string;    // "2025-12"
+  income: number;
+  expenses: number;
+  net: number;
+}
+
 const COLORS = [
   '#1B5E20', '#388E3C', '#4CAF50', '#81C784', '#A5D6A7',
   '#C8E6C9', '#2E7D32', '#43A047', '#66BB6A', '#E8F5E9',
@@ -34,7 +41,9 @@ export default function AnalyticsPage() {
   const [allPeriods, setAllPeriods] = useState<{ week: Summary | null; month: Summary | null; year: Summary | null }>({
     week: null, month: null, year: null,
   });
+  const [monthlyData, setMonthlyData] = useState<MonthlyPoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeChart, setActiveChart] = useState<'mom' | 'trend'>('mom');
 
   useEffect(() => {
     setLoading(true);
@@ -42,10 +51,12 @@ export default function AnalyticsPage() {
       api.getTransactionSummary('week'),
       api.getTransactionSummary('month'),
       api.getTransactionSummary('year'),
+      api.getMonthlySummary(13),
     ])
-      .then(([week, month, year]) => {
+      .then(([week, month, year, monthly]) => {
         setAllPeriods({ week, month, year });
         setSummary(month);
+        setMonthlyData(monthly?.months || []);
       })
       .catch((err) => { console.error(err); })
       .finally(() => setLoading(false));
@@ -59,6 +70,11 @@ export default function AnalyticsPage() {
 
   const fmt = (n: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+
+  const fmtShort = (n: number) => {
+    if (Math.abs(n) >= 1000) return '$' + (n / 1000).toFixed(1) + 'k';
+    return fmt(n);
+  };
 
   if (loading) {
     return (
@@ -81,29 +97,31 @@ export default function AnalyticsPage() {
     { name: 'Net', amount: summary?.netIncome || 0 },
   ];
 
-  const trendData = [
-    {
-      name: 'Week',
-      income: allPeriods.week?.totalIncome || 0,
-      expenses: allPeriods.week?.totalExpenses || 0,
-    },
-    {
-      name: 'Month',
-      income: allPeriods.month?.totalIncome || 0,
-      expenses: allPeriods.month?.totalExpenses || 0,
-    },
-    {
-      name: 'Year',
-      income: allPeriods.year?.totalIncome || 0,
-      expenses: allPeriods.year?.totalExpenses || 0,
-    },
-  ];
-
   const netIncome = summary?.netIncome || 0;
   const savingsRate =
     summary && summary.totalIncome > 0
       ? ((summary.netIncome / summary.totalIncome) * 100).toFixed(1)
       : '0.0';
+
+  // Month-over-month change (last 2 months)
+  const momChange = monthlyData.length >= 2
+    ? monthlyData[monthlyData.length - 1].expenses - monthlyData[monthlyData.length - 2].expenses
+    : 0;
+  const momPct = monthlyData.length >= 2 && monthlyData[monthlyData.length - 2].expenses > 0
+    ? ((momChange / monthlyData[monthlyData.length - 2].expenses) * 100).toFixed(1)
+    : '0.0';
+
+  // Format month label: "2025-12" → "Dec '25"
+  const fmtMonth = (m: string) => {
+    const [y, mo] = m.split('-');
+    const d = new Date(parseInt(y), parseInt(mo) - 1, 1);
+    return d.toLocaleDateString('en-US', { month: 'short' }) + " '" + y.slice(2);
+  };
+
+  const momDisplayData = monthlyData.map(d => ({
+    ...d,
+    label: fmtMonth(d.month),
+  }));
 
   return (
     <div>
@@ -149,7 +167,115 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Charts Row 1: Overview Bar + Income vs Expense Trend */}
+      {/* Month-over-Month section */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-[#1B5E20]">📅 Month-over-Month</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Last 13 months — income vs spending trends</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveChart('mom')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'mom' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            >
+              Bar
+            </button>
+            <button
+              onClick={() => setActiveChart('trend')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'trend' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            >
+              Line
+            </button>
+          </div>
+        </div>
+
+        {/* MoM change badge */}
+        {monthlyData.length >= 2 && (
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium mb-4 ${
+            momChange <= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+          }`}>
+            {momChange <= 0 ? '↓' : '↑'} Expenses {momChange <= 0 ? 'down' : 'up'} {Math.abs(parseFloat(momPct))}% vs last month
+          </div>
+        )}
+
+        {momDisplayData.length === 0 ? (
+          <p className="text-gray-400 text-center py-12">No monthly data available yet</p>
+        ) : activeChart === 'mom' ? (
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart data={momDisplayData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="label" tick={{ fill: '#374151', fontSize: 11 }} />
+              <YAxis tickFormatter={fmtShort} tick={{ fill: '#374151', fontSize: 11 }} />
+              <Tooltip
+                formatter={(value: number) => fmt(value)}
+                contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
+              />
+              <Legend />
+              <Bar dataKey="income"   name="Income"   fill="#1B5E20" radius={[4,4,0,0]} />
+              <Bar dataKey="expenses" name="Expenses" fill="#EF4444" radius={[4,4,0,0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={momDisplayData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="label" tick={{ fill: '#374151', fontSize: 11 }} />
+              <YAxis tickFormatter={fmtShort} tick={{ fill: '#374151', fontSize: 11 }} />
+              <Tooltip
+                formatter={(value: number) => fmt(value)}
+                contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
+              />
+              <Legend />
+              <Line type="monotone" dataKey="income"   name="Income"   stroke="#1B5E20" strokeWidth={3} dot={{ r: 4 }} />
+              <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#EF4444" strokeWidth={3} dot={{ r: 4 }} />
+              <Line type="monotone" dataKey="net"      name="Net"      stroke="#0D9488" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+
+        {/* Monthly breakdown table (last 6 months) */}
+        {monthlyData.length > 0 && (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left py-2 px-2 text-gray-500">Month</th>
+                  <th className="text-right py-2 px-2 text-gray-500">Income</th>
+                  <th className="text-right py-2 px-2 text-gray-500">Expenses</th>
+                  <th className="text-right py-2 px-2 text-gray-500">Net</th>
+                  <th className="text-right py-2 px-2 text-gray-500">vs Prior</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...monthlyData].reverse().slice(0, 6).map((row, i, arr) => {
+                  const prior = arr[i + 1];
+                  const expChange = prior && prior.expenses > 0
+                    ? ((row.expenses - prior.expenses) / prior.expenses * 100).toFixed(0)
+                    : null;
+                  return (
+                    <tr key={row.month} className="border-b border-gray-50 hover:bg-gray-50">
+                      <td className="py-2 px-2 font-medium text-gray-700">{fmtMonth(row.month)}</td>
+                      <td className="py-2 px-2 text-right text-green-700">{fmtShort(row.income)}</td>
+                      <td className="py-2 px-2 text-right text-red-600">{fmtShort(row.expenses)}</td>
+                      <td className={`py-2 px-2 text-right font-semibold ${row.net >= 0 ? 'text-teal-700' : 'text-orange-600'}`}>{fmtShort(row.net)}</td>
+                      <td className="py-2 px-2 text-right">
+                        {expChange !== null && (
+                          <span className={`text-xs font-medium ${parseFloat(expChange) <= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                            {parseFloat(expChange) <= 0 ? '↓' : '↑'}{Math.abs(parseFloat(expChange))}%
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Charts Row 1: Overview Bar + Period Comparison */}
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         {/* Income vs Expense Bar */}
         <div className="bg-white rounded-2xl p-6 shadow-sm">
@@ -179,39 +305,29 @@ export default function AnalyticsPage() {
           )}
         </div>
 
-        {/* Trend Line */}
+        {/* Period Comparison Trend */}
         <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Trend Overview</h2>
-          {trendData.every((d) => d.income === 0 && d.expenses === 0) ? (
+          <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Period Comparison</h2>
+          {[allPeriods.week, allPeriods.month, allPeriods.year].every(p => !p || (p.totalIncome === 0 && p.totalExpenses === 0)) ? (
             <p className="text-gray-400 text-center py-12">No transaction data available</p>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData}>
+              <BarChart data={[
+                { name: 'Week', income: allPeriods.week?.totalIncome || 0, expenses: allPeriods.week?.totalExpenses || 0 },
+                { name: 'Month', income: allPeriods.month?.totalIncome || 0, expenses: allPeriods.month?.totalExpenses || 0 },
+                { name: 'Year', income: allPeriods.year?.totalIncome || 0, expenses: allPeriods.year?.totalExpenses || 0 },
+              ]}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="name" tick={{ fill: '#374151', fontSize: 13 }} />
-                <YAxis tick={{ fill: '#374151', fontSize: 12 }} />
+                <YAxis tickFormatter={fmtShort} tick={{ fill: '#374151', fontSize: 12 }} />
                 <Tooltip
                   formatter={(value) => fmt(Number(value))}
                   contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
                 />
                 <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="income"
-                  stroke="#1B5E20"
-                  strokeWidth={3}
-                  dot={{ fill: '#1B5E20', r: 5 }}
-                  name="Income"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="expenses"
-                  stroke="#EF4444"
-                  strokeWidth={3}
-                  dot={{ fill: '#EF4444', r: 5 }}
-                  name="Expenses"
-                />
-              </LineChart>
+                <Bar dataKey="income"   name="Income"   fill="#1B5E20" radius={[4,4,0,0]} />
+                <Bar dataKey="expenses" name="Expenses" fill="#EF4444" radius={[4,4,0,0]} />
+              </BarChart>
             </ResponsiveContainer>
           )}
         </div>

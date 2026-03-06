@@ -79,12 +79,29 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Compress responses (gzip/brotli) — reduces payload by ~70%
+  compress: true,
+
   async headers() {
     return [
       {
         // Apply security headers to every route served by Next.js
         source: "/(.*)",
         headers: securityHeaders,
+      },
+      {
+        // Cache static assets (JS, CSS, fonts, images) for 1 year
+        source: "/_next/static/(.*)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      {
+        // Cache API price/nisab calls at CDN level for 5 minutes to reduce backend load
+        source: "/api/prices/(.*)",
+        headers: [
+          { key: "Cache-Control", value: "public, s-maxage=300, stale-while-revalidate=60" },
+        ],
       },
     ];
   },

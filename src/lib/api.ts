@@ -429,6 +429,18 @@ export const api = {
   getTransactionSummary: (period: string = 'month') =>
     apiFetch(`/api/transactions/summary?period=${period}`),
 
+  getMonthlySummary: (months: number = 13) =>
+    apiFetch(`/api/transactions/monthly-summary?months=${months}`),
+
+  // Multi-currency
+  getCurrencyRates: () => apiFetch('/api/currency/rates'),
+  convertCurrency: (from: string, to: string, amount: number) =>
+    apiFetch(`/api/currency/convert?from=${from}&to=${to}&amount=${amount}`),
+
+  // Push notifications — register FCM device token
+  registerFcmToken: (token: string) =>
+    apiFetch('/api/notifications/fcm-token', { method: 'POST', body: JSON.stringify({ token }) }),
+
   // Live Prices
   getCryptoPrice: (symbol: string) => apiFetch(`/api/prices/crypto/${symbol}`),
   getStockPrice: (symbol: string) => apiFetch(`/api/prices/stock/${symbol}`),
@@ -485,6 +497,21 @@ export const api = {
   deleteAccount: (password: string) =>
     apiFetch('/auth/delete-account', { method: 'DELETE', body: JSON.stringify({ password }) }),
 
+  exportData: () => apiFetch('/auth/export-data'),
+
+  // Barakah Score
+  getBarakahScore: () => apiFetch('/api/barakah-score'),
+
+  // Notifications
+  getNotifications: (page = 0) => apiFetch(`/api/notifications?page=${page}`),
+  getUnreadNotifications: () => apiFetch('/api/notifications/unread'),
+  markNotificationRead: (id: number) =>
+    apiFetch(`/api/notifications/${id}/read`, { method: 'PUT' }),
+  markAllNotificationsRead: () =>
+    apiFetch('/api/notifications/read-all', { method: 'PUT' }),
+  deleteNotification: (id: number) =>
+    apiFetch(`/api/notifications/${id}`, { method: 'DELETE' }),
+
   // Admin — all admin calls suppress the global logout so that a 401
   // (e.g. expired token) shows a "session expired" prompt on the admin page
   // instead of silently logging the user out site-wide.
@@ -495,6 +522,8 @@ export const api = {
     apiFetch(`/admin/users/${userId}/reset-password`, { method: 'POST' }, 30000, true),
   adminUpdatePlan: (userId: number, plan: string) =>
     apiFetch(`/admin/users/${userId}/plan`, { method: 'PUT', body: JSON.stringify({ plan }) }, 30000, true),
+  getAdminAnalytics: () => apiFetch('/admin/analytics', {}, 30000, true),
+  getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, 30000, true),
 
   // Exports
   downloadTransactionsCsv: () =>
