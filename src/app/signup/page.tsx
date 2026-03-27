@@ -9,6 +9,7 @@ function SignupContent() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [state, setState] = useState('');
   const [referralCode, setReferralCode] = useState('');
   const searchParams = useSearchParams();
@@ -29,9 +30,36 @@ function SignupContent() {
     '', 'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'
   ];
 
+  const getPasswordStrength = (pwd: string): 'weak' | 'medium' | 'strong' => {
+    if (pwd.length < 8) return 'weak';
+    const hasUpperCase = /[A-Z]/.test(pwd);
+    const hasLowerCase = /[a-z]/.test(pwd);
+    const hasNumbers = /\d/.test(pwd);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd);
+
+    const characterTypeCount = [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar].filter(Boolean).length;
+
+    if (pwd.length >= 12 && characterTypeCount >= 3) return 'strong';
+    if (pwd.length >= 8 && characterTypeCount >= 2) return 'medium';
+    return 'weak';
+  };
+
+  const passwordStrength = getPasswordStrength(password);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
     setLoading(true);
     try {
       await api.signup(name, email, password, state, referralCode.trim().toUpperCase() || undefined);
@@ -143,10 +171,41 @@ function SignupContent() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none transition"
-              placeholder="Min 6 characters"
-              minLength={6}
+              placeholder="At least 8 characters"
+              minLength={8}
               required
             />
+            <div className="flex items-center gap-2 mt-2">
+              <p className="text-xs text-gray-500">At least 8 characters</p>
+              {password && (
+                <div className="flex items-center gap-1">
+                  <div className="flex gap-1">
+                    <div className={`w-1 h-1 rounded-full ${passwordStrength === 'weak' || passwordStrength === 'medium' || passwordStrength === 'strong' ? 'bg-red-500' : 'bg-gray-300'}`} />
+                    <div className={`w-1 h-1 rounded-full ${passwordStrength === 'medium' || passwordStrength === 'strong' ? 'bg-yellow-500' : 'bg-gray-300'}`} />
+                    <div className={`w-1 h-1 rounded-full ${passwordStrength === 'strong' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  </div>
+                  <span className={`text-xs font-medium ${passwordStrength === 'weak' ? 'text-red-500' : passwordStrength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}>
+                    {passwordStrength === 'weak' ? 'Weak' : passwordStrength === 'medium' ? 'Medium' : 'Strong'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              className={`w-full px-4 py-3 rounded-lg border outline-none transition focus:ring-1 ${confirmPassword && password !== confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : 'border-gray-200 focus:border-[#1B5E20] focus:ring-[#1B5E20]'}`}
+              placeholder="Re-enter your password"
+              minLength={8}
+              required
+            />
+            {confirmPassword && password !== confirmPassword && (
+              <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
+            )}
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">State (for tax estimate)</label>
@@ -169,6 +228,13 @@ function SignupContent() {
             />
             <p className="text-xs text-gray-400 mt-1">Have a friend&apos;s code? Both of you get 1 free month of Plus. 🎁</p>
           </div>
+
+          <p className="text-center text-xs text-gray-600 mb-6">
+            By creating an account, you agree to our{' '}
+            <Link href="/terms" className="text-[#1B5E20] hover:underline font-medium">Terms of Service</Link>
+            {' '}and{' '}
+            <Link href="/privacy" className="text-[#1B5E20] hover:underline font-medium">Privacy Policy</Link>.
+          </p>
 
           <button
             type="submit"

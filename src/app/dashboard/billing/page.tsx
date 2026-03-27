@@ -3,6 +3,9 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 
+// ── Plan tier ranking ────────────────────────────────────────────────────────
+const PLAN_TIER: Record<string, number> = { free: 0, plus: 1, family: 2 };
+
 // ── Plan definitions ─────────────────────────────────────────────────────────
 const PLANS = [
   {
@@ -224,10 +227,18 @@ function BillingContent() {
                       <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       {status?.hasSubscription ? 'Switching plan...' : 'Redirecting to Stripe...'}
                     </span>
-                  ) : (
-                    // Show "Switch to" when already subscribed, "Upgrade to" for new subscribers
-                    status?.hasSubscription ? `Switch to ${plan.name}` : `Upgrade to ${plan.name}`
-                  )}
+                  ) : (() => {
+                    if (!status?.hasSubscription) {
+                      return `Upgrade to ${plan.name}`;
+                    }
+                    const currentTier = PLAN_TIER[currentPlan] || 0;
+                    const planTier = PLAN_TIER[plan.id] || 0;
+                    if (planTier > currentTier) {
+                      return `Upgrade to ${plan.name}`;
+                    } else {
+                      return `Switch to ${plan.name}`;
+                    }
+                  })()}
                 </button>
               )}
             </div>

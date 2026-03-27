@@ -214,6 +214,13 @@ export default function DebtsPage() {
             <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Monthly Payments</p><p className="text-2xl font-bold text-orange-600">{fmt(totalMinPayment)}</p></div>
           </div>
 
+          {totalMinPayment === 0 && debts.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-700 flex items-start gap-2">
+              <span className="mt-0.5">💡</span>
+              <span>Add monthly payment amounts to your debts to unlock the <strong>Payoff Projector</strong> and see when you&apos;ll be debt-free.</span>
+            </div>
+          )}
+
           {debts.length > 0 && (
             <div className="flex items-center gap-3 mb-3 flex-wrap">
               <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">

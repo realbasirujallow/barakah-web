@@ -183,19 +183,21 @@ export default function InvestmentsPage() {
         </button>
       </div>
 
-      {/* Portfolio summary banner */}
-      <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
-        <p className="text-green-100 text-sm">Total Portfolio Value</p>
-        <p className="text-4xl font-bold">{fmt(combinedTotal)}</p>
-        {assetTotal > 0 && totalValue > 0 && (
-          <p className="text-green-200 text-xs mt-0.5">
-            {fmt(totalValue)} tracked holdings + {fmt(assetTotal)} retirement &amp; asset accounts
+      {/* Portfolio summary banner — only show if there's meaningful data */}
+      {combinedTotal > 0 && (
+        <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
+          <p className="text-green-100 text-sm">Total Portfolio Value</p>
+          <p className="text-4xl font-bold">{fmt(combinedTotal)}</p>
+          {assetTotal > 0 && totalValue > 0 && (
+            <p className="text-green-200 text-xs mt-0.5">
+              {fmt(totalValue)} tracked holdings + {fmt(assetTotal)} retirement &amp; asset accounts
+            </p>
+          )}
+          <p className={`text-sm mt-1 ${isGain ? 'text-green-200' : 'text-red-300'}`}>
+            {isGain ? '▲' : '▼'} {fmt(Math.abs(totalGainLoss))} ({fmtPct(totalGainLossPct)}) all time
           </p>
-        )}
-        <p className={`text-sm mt-1 ${isGain ? 'text-green-200' : 'text-red-300'}`}>
-          {isGain ? '▲' : '▼'} {fmt(Math.abs(totalGainLoss))} ({fmtPct(totalGainLossPct)}) all time
-        </p>
-      </div>
+        </div>
+      )}
 
       {error && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4 text-sm text-yellow-800">
