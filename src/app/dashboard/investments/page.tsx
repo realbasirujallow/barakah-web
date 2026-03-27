@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
+import { logError } from '../../../lib/logError';
 
 interface Account {
   id: number;
@@ -115,13 +116,13 @@ export default function InvestmentsPage() {
       setShowAccountForm(false);
       setAccountForm(emptyAccountForm);
       load();
-    } catch (err: unknown) { console.error(err); }
+    } catch (err: unknown) { logError(err); }
     setSavingAccount(false);
   };
 
   const handleDeleteAccount = async (id: number) => {
     if (!confirm('Delete this account and all its holdings?')) return;
-    await api.deleteInvestmentAccount(id).catch((err) => { console.error(err); });
+    await api.deleteInvestmentAccount(id).catch((err) => { logError(err); });
     load();
   };
 
@@ -139,13 +140,13 @@ export default function InvestmentsPage() {
       setAddHoldingFor(null);
       setHoldingForm(emptyHoldingForm);
       load();
-    } catch (err: unknown) { console.error(err); }
+    } catch (err: unknown) { logError(err); }
     setSavingHolding(false);
   };
 
   const handleDeleteHolding = async (id: number) => {
     if (!confirm('Remove this holding?')) return;
-    await api.deleteHolding(id).catch((err) => { console.error(err); });
+    await api.deleteHolding(id).catch((err) => { logError(err); });
     load();
   };
 

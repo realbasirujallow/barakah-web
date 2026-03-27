@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { logError } from '../../../lib/logError';
 
 /** Compute current Hijri year from today's date using the same formula as the backend. */
 function computeHijriYear(): number {
@@ -73,7 +74,7 @@ export default function ZakatPage() {
       setPayments(filtered);
       setTotalPaid(filtered.reduce((s: number, p: Record<string, unknown>) => s + (p.amount as number || 0), 0));
     } catch (err) {
-      console.error(err);
+      logError(err, { context: 'Failed to load zakat data' });
     }
     setLoading(false);
   };

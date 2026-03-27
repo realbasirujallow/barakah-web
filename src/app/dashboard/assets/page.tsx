@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
+import { logError } from '../../../lib/logError';
 
 interface Asset { id: number; name: string; type: string; value: number; penaltyRate?: number; taxRate?: number; address?: string; }
 
@@ -85,7 +86,7 @@ export default function AssetsPage() {
         setTotal(t);
       })
       .catch((err) => {
-        console.error('Failed to load assets:', err);
+        logError(err, { context: 'Failed to load assets' });
         setLoadError(err?.message || 'Failed to load assets. Please refresh.');
       })
       .finally(() => setLoading(false));
@@ -146,7 +147,7 @@ export default function AssetsPage() {
       setShowForm(false);
       load();
     } catch (err: any) {
-      console.error('Failed to save asset:', err);
+      logError(err, { context: 'Failed to save asset' });
       setSaveError(err?.message || 'Failed to save asset. Please try again.');
     } finally {
       setSaving(false);
@@ -160,7 +161,7 @@ export default function AssetsPage() {
       if (result?.error) throw new Error(result.error);
       load();
     } catch (err: any) {
-      console.error('Failed to delete asset:', err);
+      logError(err, { context: 'Failed to delete asset' });
       alert(err?.message || 'Failed to delete asset. Please try again.');
     }
   };
