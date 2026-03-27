@@ -179,6 +179,8 @@ export default function PrayerTimesPage() {
 
   const handleSearch = () => {
     setShowSuggestions(false);
+    if (!city.trim()) { setError('Please enter a city name.'); return; }
+    if (!country.trim()) { setError('Please enter a country code (e.g., US, GB, SA).'); return; }
     localStorage.setItem('prayerTimesLocation', JSON.stringify({ city, country, method }));
     fetchTimes(city, country, method);
   };

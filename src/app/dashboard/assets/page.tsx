@@ -338,7 +338,9 @@ export default function AssetsPage() {
                   )}
                   <div>
                     <p className="font-semibold text-[#1B5E20]">{a.name}</p>
-                    <p className="text-sm text-gray-500">{typeLabel(a.type)}</p>
+                    {a.name.toLowerCase() !== typeLabel(a.type).toLowerCase() && (
+                      <p className="text-sm text-gray-500">{typeLabel(a.type)}</p>
+                    )}
                     {a.address && (
                       <a href={mapsLink(a.address)} target="_blank" rel="noopener noreferrer"
                         className="text-xs text-blue-600 hover:underline mt-0.5 block">
