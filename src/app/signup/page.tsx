@@ -18,7 +18,7 @@ function SignupContent() {
     if (ref) {
       setReferralCode(ref.toUpperCase());
       // Fire-and-forget referral click tracking
-      fetch(`/api/referrals/click/${encodeURIComponent(ref)}`, { method: 'POST' }).catch(() => {});
+      fetch(`/api/referrals/click/${encodeURIComponent(ref)}`, { method: 'POST' }).catch((e) => console.error('Referral tracking error:', e));
     }
   }, [searchParams]);
 
@@ -50,7 +50,8 @@ function SignupContent() {
     try {
       await api.resendVerification(email);
       setResendStatus('sent');
-    } catch {
+    } catch (e) {
+      console.error('Resend verification error:', e);
       setResendStatus('idle');
     }
   };

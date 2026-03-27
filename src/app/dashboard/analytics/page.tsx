@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { logError } from '../../../lib/logError';
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -58,7 +59,7 @@ export default function AnalyticsPage() {
         setSummary(month);
         setMonthlyData(monthly?.months || []);
       })
-      .catch((err) => { console.error(err); })
+      .catch((err) => { logError(err, { context: 'Failed to load analytics data' }); })
       .finally(() => setLoading(false));
   }, []);
 

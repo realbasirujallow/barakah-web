@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { api } from '../../../lib/api';
+import { logError } from '../../../lib/logError';
 
 interface HalalResult { symbol: string; name: string; status: string; reason: string; sector: string; debtRatio?: number; }
 
@@ -31,7 +32,7 @@ export default function HalalPage() {
 
   const loadList = async () => {
     setLoading(true);
-    try { const d = await api.getHalalStocks(); setHalalList(d?.stocks || []); setShowList(true); } catch (err: any) { console.error(err); }
+    try { const d = await api.getHalalStocks(); setHalalList(d?.stocks || []); setShowList(true); } catch (err: any) { logError(err, { context: 'Failed to load halal stocks' }); }
     setLoading(false);
   };
 

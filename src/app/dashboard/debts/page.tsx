@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
+import { logError } from '../../../lib/logError';
 
 interface DebtItem { id: number; name: string; type: string; totalAmount: number; remainingAmount: number; monthlyPayment: number; interestRate: number; ribaFree: boolean; lender: string; status: string; }
 
@@ -128,7 +129,7 @@ export default function DebtsPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this debt?')) return;
-    await api.deleteDebt(id).catch((err) => { console.error(err); }); load();
+    await api.deleteDebt(id).catch((err) => { logError(err, { context: 'Failed to delete debt' }); }); load();
   };
 
   const toggleSelect = (id: number) => setSelectedIds(prev => {
