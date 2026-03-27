@@ -54,9 +54,9 @@ const plans = [
   },
   {
     name: 'Plus',
-    price: '$7.99',
+    price: '$9.99',
     period: '/mo',
-    annual: '$69/yr · save 28%',
+    annual: '$99/yr · save 17%',
     color: 'border-[#1B5E20] ring-2 ring-[#1B5E20]',
     badge: 'Most Popular',
     features: [

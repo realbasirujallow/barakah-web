@@ -68,6 +68,7 @@ export default function PrayerTimesPage() {
   const [method, setMethod]         = useState(2);
   const [searched, setSearched]     = useState(false);
   const [now, setNow]               = useState(new Date());
+  const [geoLoading, setGeoLoading] = useState(false);
 
   // Autocomplete state
   const [suggestions, setSuggestions]     = useState<CitySuggestion[]>([]);
@@ -182,6 +183,45 @@ export default function PrayerTimesPage() {
     fetchTimes(city, country, method);
   };
 
+  const handleUseMyLocation = () => {
+    setGeoLoading(true);
+    setError(null);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const today = new Date();
+          const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+          const url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${latitude}&longitude=${longitude}&method=${method}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.code === 200 && data.data?.timings) {
+            setTimings(data.data.timings as PrayerTimings);
+            setSearched(true);
+            // Optionally, you could reverse-geocode to show city name, but for now just use coords
+            setCity(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+            setCountry('GPS');
+            localStorage.setItem('prayerTimesLocation', JSON.stringify({
+              city: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+              country: 'GPS',
+              method
+            }));
+          } else {
+            setError('Could not fetch prayer times for your location.');
+          }
+        } catch {
+          setError('Could not fetch prayer times for your location.');
+        } finally {
+          setGeoLoading(false);
+        }
+      },
+      () => {
+        setError('Unable to access your location. Please check your browser permissions.');
+        setGeoLoading(false);
+      }
+    );
+  };
+
   const nextPrayer = timings ? getNextPrayer(timings) : null;
 
   const today   = new Date();
@@ -245,6 +285,23 @@ export default function PrayerTimesPage() {
             className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50 transition"
           >
             {loading ? '...' : 'Get Times'}
+          </button>
+          <button
+            onClick={handleUseMyLocation}
+            disabled={geoLoading || loading}
+            title="Use browser geolocation to auto-detect your location"
+            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition flex items-center gap-2"
+          >
+            {geoLoading ? (
+              <>
+                <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Detecting...
+              </>
+            ) : (
+              <>
+                📍 Use My Location
+              </>
+            )}
           </button>
         </div>
         <div className="mt-3">

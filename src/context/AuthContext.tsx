@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(REFRESH_TS_KEY);
       setUser(null);
-      routerRef.current.push('/login');
+      routerRef.current.push('/login?expired=true');
     });
 
     if (!savedUser) {
