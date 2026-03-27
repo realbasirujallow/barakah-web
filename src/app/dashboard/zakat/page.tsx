@@ -106,7 +106,7 @@ export default function ZakatPage() {
       if (zakatEligible && newTotalPaid >= zakatDue) {
         setShowMabrook(true);
       }
-    } catch { /* error */ }
+    } catch { toast('Failed to save payment. Please try again.', 'error'); }
     setSaving(false);
   };
 
