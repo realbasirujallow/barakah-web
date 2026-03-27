@@ -35,22 +35,33 @@ export default function RibaPage() {
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
 
+  const noTransactions = !result || result.totalScanned === 0;
   const isClean = !result || result.flaggedCount === 0;
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-[#1B5E20] mb-6">Riba Detector</h1>
 
-      <div className={`rounded-2xl p-8 text-white mb-6 ${isClean ? 'bg-gradient-to-r from-green-600 to-emerald-500' : 'bg-gradient-to-r from-red-600 to-orange-500'}`}>
+      <div className={`rounded-2xl p-8 text-white mb-6 ${
+        noTransactions
+          ? 'bg-gradient-to-r from-gray-500 to-gray-400'
+          : isClean
+            ? 'bg-gradient-to-r from-green-600 to-emerald-500'
+            : 'bg-gradient-to-r from-red-600 to-orange-500'
+      }`}>
         <div className="text-center">
-          <p className="text-6xl mb-3">{isClean ? '✅' : '⚠️'}</p>
-          <p className="text-2xl font-bold">{isClean ? 'Riba-Free!' : 'Riba Detected'}</p>
+          <p className="text-6xl mb-3">{noTransactions ? '🔍' : isClean ? '✅' : '⚠️'}</p>
+          <p className="text-2xl font-bold">
+            {noTransactions ? 'No Transactions to Scan' : isClean ? 'Riba-Free!' : 'Riba Detected'}
+          </p>
           <p className="text-white/80 mt-1">
-            {result?.totalScanned || 0} transactions scanned
+            {noTransactions
+              ? 'Add transactions to scan for riba (interest)'
+              : `${result?.totalScanned || 0} transactions scanned`}
           </p>
         </div>
 
-        {!isClean && result && (
+        {!isClean && !noTransactions && result && (
           <div className="grid grid-cols-3 gap-4 mt-6">
             <div className="text-center">
               <p className="text-white/70 text-xs">Flagged</p>
@@ -68,7 +79,7 @@ export default function RibaPage() {
         )}
       </div>
 
-      {isClean && (
+      {isClean && !noTransactions && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-800 mb-6">
           <strong>Alhamdulillah!</strong> No riba-related transactions were detected in your records.
           Continue to avoid interest-based dealings as commanded in the Quran (2:275).
