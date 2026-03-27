@@ -22,6 +22,7 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
   { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times' },
   { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
   { href: '/dashboard/ramadan', icon: '🌙', label: 'Ramadan Mode' },
+  { href: '/dashboard/referral', icon: '🎁', label: 'Refer a Friend' },
   { href: '/dashboard/recurring', icon: '🔁', label: 'Recurring' },
   { href: '/dashboard/sadaqah', icon: '🤲', label: 'Sadaqah' },
   { href: '/dashboard/savings', icon: '🎯', label: 'Savings Goals' },
@@ -59,7 +60,7 @@ const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> 
   },
   account: {
     label: 'Account',
-    items: ['Billing & Plans', 'Import Data', 'Notifications', 'Profile & Settings'],
+    items: ['Billing & Plans', 'Import Data', 'Notifications', 'Profile & Settings', 'Refer a Friend'],
   },
 };
 
@@ -88,7 +89,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && !user) router.push('/login');
+    if (!isLoading && !user) router.push('/login?expired=true');
   }, [user, isLoading, router]);
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-[#FFF8E1]">Loading...</div>;

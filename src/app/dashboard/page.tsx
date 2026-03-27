@@ -52,6 +52,7 @@ export default function DashboardPage() {
     { href: '/dashboard/hawl', icon: '⏰', label: 'Hawl', desc: 'Lunar year tracker' },
     { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times', desc: 'Daily salah schedule' },
     { href: '/dashboard/notifications', icon: '🔔', label: 'Reminders', desc: 'Bills, Zakat & Hawl alerts' },
+    { href: '/dashboard/referral', icon: '🎁', label: 'Refer a Friend', desc: 'Share & earn rewards' },
     { href: '/dashboard/riba', icon: '🛡️', label: 'Riba Detector', desc: 'Scan for interest' },
     { href: '/dashboard/sadaqah', icon: '🤲', label: 'Sadaqah', desc: 'Charity tracker' },
     { href: '/dashboard/transactions', icon: '📝', label: 'Transactions', desc: 'Income & expenses' },
