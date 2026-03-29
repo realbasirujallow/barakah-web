@@ -15,11 +15,16 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string, state: string, referralCode?: string) => Promise<void>;
-  logout: () => void;
+  logout: (reason?: 'logout' | 'deleted') => void;
   isLoading: boolean;
   /** Call after a plan change to refresh plan from /auth/profile */
   refreshPlan: () => Promise<void>;
 }
+
+// Module-level flag: when true the dashboard layout should NOT override
+// the redirect with its own /login?expired=true push.
+let _intentionalLogout = false;
+export function isIntentionalLogout() { return _intentionalLogout; }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -54,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(REFRESH_TS_KEY);
       setUser(null);
-      routerRef.current.push('/login?expired=true');
+      routerRef.current.push('/login?reason=expired');
     });
 
     if (!savedUser) {
@@ -156,12 +161,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await api.signup(name, email, password, state, referralCode);
   };
 
-  const logout = () => {
+  const logout = (reason?: 'logout' | 'deleted') => {
+    _intentionalLogout = true;
     api.logout().catch(() => { /* ignore network errors on logout */ });
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(REFRESH_TS_KEY);
     setUser(null);
-    routerRef.current.push('/login');
+    const query = reason ? `?reason=${reason}` : '';
+    routerRef.current.push(`/login${query}`);
   };
 
   /** Refresh plan info from the server (call after a Stripe payment or upgrade). */

@@ -73,7 +73,8 @@ export default function ProfilePage() {
     document.documentElement.classList.toggle('dark', next);
   };
 
-  // Delete account
+  // Delete account — two-step: retention modal → password confirmation
+  const [showRetentionModal, setShowRetentionModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -145,7 +146,7 @@ export default function ProfilePage() {
     setDeleteMsg(null);
     try {
       await api.deleteAccount(deletePassword);
-      logout();
+      logout('deleted');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Failed to delete account.';
       setDeleteMsg({ type: 'error', text: msg });
@@ -406,50 +407,94 @@ export default function ProfilePage() {
           Permanently delete your account and all associated data. This action cannot be undone.
         </p>
 
-        {!showDeleteConfirm ? (
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="text-red-600 border border-red-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition"
-          >
-            Delete My Account
-          </button>
-        ) : (
-          <div className="space-y-3">
-            <p className="text-sm text-red-600 font-medium">
-              Enter your password to confirm account deletion:
-            </p>
-            <input
-              type="password"
-              value={deletePassword}
-              onChange={e => setDeletePassword(e.target.value)}
-              className="w-full border border-red-200 rounded-lg px-3 py-2 text-gray-900 focus:ring-red-500 focus:border-red-500"
-              placeholder="Your current password"
-            />
-            {deleteMsg && (
-              <div className={`text-sm px-3 py-2 rounded-lg ${
-                deleteMsg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-              }`}>
-                {deleteMsg.text}
+        <button
+          onClick={() => setShowRetentionModal(true)}
+          className="text-red-600 border border-red-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition"
+        >
+          Delete My Account
+        </button>
+      </div>
+
+      {/* Retention Modal — asks the user to reconsider before showing password form */}
+      {showRetentionModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            {!showDeleteConfirm ? (
+              /* Step 1: Retention — give them a reason to stay */
+              <div className="p-6">
+                <div className="text-center mb-4">
+                  <p className="text-4xl mb-3">&#128546;</p>
+                  <h3 className="text-xl font-bold text-gray-800">We&apos;re sad to see you go</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-4 text-center">
+                  Deleting your account will permanently remove all your data, including:
+                </p>
+                <ul className="text-sm text-gray-600 space-y-2 mb-6">
+                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> Your zakat calculations and payment history</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> Debt tracking and payment progress</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> Budgets, savings goals, and financial data</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> Sadaqah records and waqf contributions</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> Your Wasiyyah (Islamic will)</li>
+                </ul>
+                <p className="text-xs text-gray-500 mb-6 text-center">
+                  This cannot be undone. If you&apos;re having issues, we&apos;d love to help — reach out to us before leaving.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setShowRetentionModal(false); setShowDeleteConfirm(false); setDeletePassword(''); setDeleteMsg(null); }}
+                    className="flex-1 bg-[#1B5E20] text-white py-2.5 rounded-lg font-semibold hover:bg-green-800 transition text-sm"
+                  >
+                    I&apos;ll Stay
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="flex-1 text-red-600 border border-red-300 py-2.5 rounded-lg font-medium hover:bg-red-50 transition text-sm"
+                  >
+                    Continue Deleting
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Step 2: Password confirmation */
+              <div className="p-6">
+                <h3 className="text-lg font-bold text-red-600 mb-4">Confirm Account Deletion</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Enter your password to permanently delete your account:
+                </p>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={e => setDeletePassword(e.target.value)}
+                  className="w-full border border-red-200 rounded-lg px-3 py-2 text-gray-900 focus:ring-red-500 focus:border-red-500 mb-3"
+                  placeholder="Your current password"
+                />
+                {deleteMsg && (
+                  <div className={`text-sm px-3 py-2 rounded-lg mb-3 ${
+                    deleteMsg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                  }`}>
+                    {deleteMsg.text}
+                  </div>
+                )}
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting || !deletePassword}
+                    className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 text-sm"
+                  >
+                    {deleting ? 'Deleting...' : 'Permanently Delete'}
+                  </button>
+                  <button
+                    onClick={() => { setShowRetentionModal(false); setShowDeleteConfirm(false); setDeletePassword(''); setDeleteMsg(null); }}
+                    className="flex-1 text-gray-600 border border-gray-300 py-2.5 rounded-lg text-sm hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
-            <div className="flex gap-3">
-              <button
-                onClick={handleDeleteAccount}
-                disabled={deleting || !deletePassword}
-                className="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm font-medium"
-              >
-                {deleting ? 'Deleting...' : 'Permanently Delete'}
-              </button>
-              <button
-                onClick={() => { setShowDeleteConfirm(false); setDeletePassword(''); setDeleteMsg(null); }}
-                className="text-gray-600 border border-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

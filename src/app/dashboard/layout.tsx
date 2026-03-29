@@ -1,5 +1,5 @@
 'use client';
-import { useAuth, hasAccess } from '../../context/AuthContext';
+import { useAuth, hasAccess, isIntentionalLogout } from '../../context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, ReactNode, useState, useMemo } from 'react';
@@ -89,7 +89,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && !user) router.push('/login?expired=true');
+    // Only redirect with ?reason=expired if this wasn't an intentional
+    // logout or account deletion — those flows handle their own redirect.
+    if (!isLoading && !user && !isIntentionalLogout()) {
+      router.push('/login?reason=expired');
+    }
   }, [user, isLoading, router]);
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-[#FFF8E1]">Loading...</div>;
@@ -164,7 +168,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           {renderSection('account')}
         </nav>
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-green-800">
-          <button onClick={logout} className="w-full text-left px-4 py-2 text-green-300 hover:text-white text-sm transition">
+          <button onClick={() => logout('logout')} className="w-full text-left px-4 py-2 text-green-300 hover:text-white text-sm transition">
             &#x2192; Sign Out
           </button>
         </div>

@@ -12,14 +12,18 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
-  const [showExpiredBanner, setShowExpiredBanner] = useState(false);
+  const [bannerReason, setBannerReason] = useState<'expired' | 'logout' | 'deleted' | null>(null);
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (searchParams.get('expired') === 'true') {
-      setShowExpiredBanner(true);
+    const reason = searchParams.get('reason') as 'expired' | 'logout' | 'deleted' | null;
+    // Support the legacy ?expired=true param as well
+    if (reason) {
+      setBannerReason(reason);
+    } else if (searchParams.get('expired') === 'true') {
+      setBannerReason('expired');
     }
   }, [searchParams]);
 
@@ -67,9 +71,22 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-8">
-          {showExpiredBanner && (
+          {bannerReason === 'expired' && (
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 p-3 rounded-lg mb-4 text-sm">
               Your session has expired. Please sign in again.
+            </div>
+          )}
+
+          {bannerReason === 'logout' && (
+            <div className="bg-green-50 border border-green-200 text-green-700 p-3 rounded-lg mb-4 text-sm">
+              You have been signed out successfully. See you next time!
+            </div>
+          )}
+
+          {bannerReason === 'deleted' && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-lg mb-4 text-sm">
+              <p className="font-semibold mb-1">Your account has been deleted.</p>
+              <p>May Allah bless your journey. You&apos;re always welcome back — just sign up anytime.</p>
             </div>
           )}
 
