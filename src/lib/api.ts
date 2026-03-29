@@ -4,6 +4,12 @@
 // (requires the backend ALLOWED_ORIGINS to include this app's domain).
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
+// ── Timeout Constants ──────────────────────────────────────────────────────
+const API_TIMEOUT = 30_000;      // 30s for standard API calls
+const UPLOAD_TIMEOUT = 60_000;   // 60s for file uploads
+const DOWNLOAD_TIMEOUT = 30_000; // 30s for file downloads
+const IMPORT_TIMEOUT = 300_000;  // 5min for large imports (chunked)
+
 // ── 401 global handler ────────────────────────────────────────────────────────
 // Register a callback (e.g. logout + redirect) that fires whenever a 401
 // cannot be recovered by the silent refresh flow below.
@@ -53,7 +59,7 @@ async function attemptSilentRefresh(): Promise<boolean> {
 // (i.e., does not auto-logout). Use this for pages like /admin where a 401
 // should be handled locally (show "session expired" UI) rather than
 // silently logging the user out.
-export async function apiFetch(endpoint: string, options: RequestInit = {}, timeoutMs = 30000, suppressUnauthorized = false) {
+export async function apiFetch(endpoint: string, options: RequestInit = {}, timeoutMs = API_TIMEOUT, suppressUnauthorized = false) {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> || {}),
@@ -120,7 +126,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
 
         // Retry the original request — the new auth_token cookie is now set
         const retryController = new AbortController();
-        const retryTimeout = setTimeout(() => retryController.abort(), 30000);
+        const retryTimeout = setTimeout(() => retryController.abort(), API_TIMEOUT);
         try {
           const retryRes = await fetch(`${API_URL}${endpoint}`, {
             ...options,
@@ -178,7 +184,7 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
   formData.append(fieldName, file);
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000); // 60s for uploads
+  const timeout = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT);
   let res: Response;
   try {
     res = await fetch(`${API_URL}${endpoint}`, {
@@ -222,7 +228,7 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
 // (CSV, PDF, etc.) rather than JSON.
 export async function apiDownload(endpoint: string, filename: string): Promise<void> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000); // 30s for downloads
+  const timeout = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT);
   let res: Response;
   try {
     res = await fetch(`${API_URL}${endpoint}`, {
@@ -561,15 +567,15 @@ export const api = {
   // Admin — all admin calls suppress the global logout so that a 401
   // (e.g. expired token) shows a "session expired" prompt on the admin page
   // instead of silently logging the user out site-wide.
-  getAdminUserCount: () => apiFetch('/admin/user-count', {}, 30000, true),
+  getAdminUserCount: () => apiFetch('/admin/user-count', {}, API_TIMEOUT, true),
   getAdminUsers: (page = 0, size = 50) =>
-    apiFetch(`/admin/active-users?page=${page}&size=${size}`, {}, 30000, true),
+    apiFetch(`/admin/active-users?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
   adminResetPassword: (userId: number) =>
-    apiFetch(`/admin/users/${userId}/reset-password`, { method: 'POST' }, 30000, true),
+    apiFetch(`/admin/users/${userId}/reset-password`, { method: 'POST' }, API_TIMEOUT, true),
   adminUpdatePlan: (userId: number, plan: string) =>
-    apiFetch(`/admin/users/${userId}/plan`, { method: 'PUT', body: JSON.stringify({ plan }) }, 30000, true),
-  getAdminAnalytics: () => apiFetch('/admin/analytics', {}, 30000, true),
-  getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, 30000, true),
+    apiFetch(`/admin/users/${userId}/plan`, { method: 'PUT', body: JSON.stringify({ plan }) }, API_TIMEOUT, true),
+  getAdminAnalytics: () => apiFetch('/admin/analytics', {}, API_TIMEOUT, true),
+  getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
 
   // Exports
   downloadTransactionsCsv: () =>
@@ -581,7 +587,7 @@ export const api = {
   monarchPreview: (file: File) =>
     apiUpload('/api/import/monarch/preview', file),
   monarchExecute: (payload: Record<string, unknown>) =>
-    apiFetch('/api/import/monarch/execute', { method: 'POST', body: JSON.stringify(payload) }, 300000),
+    apiFetch('/api/import/monarch/execute', { method: 'POST', body: JSON.stringify(payload) }, IMPORT_TIMEOUT),
 
   /**
    * Chunked execute — splits large transaction imports into batches to avoid
@@ -594,7 +600,7 @@ export const api = {
     if (format !== 'transactions') {
       return apiFetch('/api/import/monarch/execute', {
         method: 'POST', body: JSON.stringify(payload),
-      }, 300000);
+      }, IMPORT_TIMEOUT);
     }
 
     // Split transactions into chunks
@@ -602,7 +608,7 @@ export const api = {
     if (allTxns.length <= chunkSize) {
       return apiFetch('/api/import/monarch/execute', {
         method: 'POST', body: JSON.stringify(payload),
-      }, 300000);
+      }, IMPORT_TIMEOUT);
     }
 
     let totalCreated = 0;
@@ -614,7 +620,7 @@ export const api = {
       const chunkPayload = { format: 'transactions', transactions: chunk };
       const data = await apiFetch('/api/import/monarch/execute', {
         method: 'POST', body: JSON.stringify(chunkPayload),
-      }, 300000);
+      }, IMPORT_TIMEOUT);
       if (data.error) allErrors.push(data.error);
       totalCreated += data.transactionsCreated || 0;
       totalSkipped += data.skipped || 0;

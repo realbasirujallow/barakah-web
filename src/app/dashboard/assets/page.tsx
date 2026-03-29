@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
+import { useCurrency } from '../../../lib/useCurrency';
 import { logError } from '../../../lib/logError';
 
 interface Asset { id: number; name: string; type: string; value: number; penaltyRate?: number; taxRate?: number; address?: string; }
@@ -63,6 +64,7 @@ const ADDRESS_TYPES = ["primary_home","investment_property","investment_property
 const EMPTY_FORM: AssetFormState = { name: '', type: 'cash', value: '', penaltyRate: '', taxRate: '', address: '' };
 
 export default function AssetsPage() {
+  const { fmt } = useCurrency();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [total, setTotal] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -92,8 +94,6 @@ export default function AssetsPage() {
       .finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
-
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
   const typeLabel = (t: string) => {
     for (const items of Object.values(TYPE_GROUPS)) {
