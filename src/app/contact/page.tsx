@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { api } from '../../lib/api';
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
@@ -14,21 +15,11 @@ export default function ContactPage() {
     setErrorMsg('');
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.trybarakah.com'}/api/contact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setStatus('sent');
-        setForm({ name: '', email: '', subject: '', message: '' });
-      } else {
-        setErrorMsg(data.error || 'Something went wrong. Please try again.');
-        setStatus('error');
-      }
-    } catch {
-      setErrorMsg('Network error. Please check your connection and try again.');
+      await api.contact(form.subject, form.message);
+      setStatus('sent');
+      setForm({ name: '', email: '', subject: '', message: '' });
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Something went wrong. Please try again.');
       setStatus('error');
     }
   };

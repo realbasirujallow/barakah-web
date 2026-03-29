@@ -78,8 +78,7 @@ function SignupContent() {
     try {
       await api.resendVerification(email);
       setResendStatus('sent');
-    } catch (e) {
-      console.error('Resend verification error:', e);
+    } catch {
       setResendStatus('idle');
     }
   };

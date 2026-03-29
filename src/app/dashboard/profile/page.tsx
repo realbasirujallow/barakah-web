@@ -392,7 +392,7 @@ export default function ProfilePage() {
               const a = document.createElement('a');
               a.href = url; a.download = 'barakah-data-export.json'; a.click();
               URL.revokeObjectURL(url);
-            } catch { alert('Failed to export data. Please try again.'); }
+            } catch { toast('Failed to export data. Please try again.', 'error'); }
           }}
           className="text-[#1B5E20] border border-[#1B5E20] px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition"
         >
