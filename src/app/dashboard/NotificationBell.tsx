@@ -36,7 +36,9 @@ export function NotificationBell() {
       const data = await api.getUnreadNotifications();
       setUnreadCount(data?.count || 0);
       if (data?.notifications) setNotifications(data.notifications);
-    } catch { /* silent */ }
+    } catch (err: any) {
+      console.warn('Failed to fetch notifications:', err?.message || 'Unknown error');
+    }
   }, []);
 
   const fetchAll = useCallback(async () => {
@@ -45,7 +47,9 @@ export function NotificationBell() {
       const data = await api.getNotifications(0);
       setNotifications(data?.notifications || []);
       setUnreadCount(data?.unreadCount || 0);
-    } catch { /* silent */ }
+    } catch (err: any) {
+      console.warn('Failed to fetch notifications:', err?.message || 'Unknown error');
+    }
     finally { setLoading(false); }
   }, []);
 
@@ -75,7 +79,9 @@ export function NotificationBell() {
       await api.markNotificationRead(id);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch { /* silent */ }
+    } catch (err: any) {
+      console.warn('Failed to mark notification read:', err?.message || 'Unknown error');
+    }
   };
 
   const markAllRead = async () => {
@@ -83,7 +89,9 @@ export function NotificationBell() {
       await api.markAllNotificationsRead();
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
-    } catch { /* silent */ }
+    } catch (err: any) {
+      console.warn('Failed to mark all notifications read:', err?.message || 'Unknown error');
+    }
   };
 
   const deleteOne = async (id: number, e: React.MouseEvent) => {
@@ -95,7 +103,9 @@ export function NotificationBell() {
         if (removed && !removed.read) setUnreadCount(c => Math.max(0, c - 1));
         return prev.filter(n => n.id !== id);
       });
-    } catch { /* silent */ }
+    } catch (err: any) {
+      console.warn('Failed to delete notification:', err?.message || 'Unknown error');
+    }
   };
 
   const fmtTime = (ts: number) => {
