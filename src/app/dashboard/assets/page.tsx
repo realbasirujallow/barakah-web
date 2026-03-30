@@ -218,13 +218,14 @@ export default function AssetsPage() {
         <div className="flex items-center gap-2">
           {assets.length > 0 && (
             <button
+              type="button"
               onClick={() => { setSelectMode(s => !s); setSelectedIds(new Set()); }}
               className={`px-3 py-2 rounded-lg text-sm font-medium border transition ${selectMode ? 'bg-red-50 border-red-200 text-red-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
             >
               {selectMode ? 'Cancel' : 'Select'}
             </button>
           )}
-          <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm">+ Add Asset</button>
+          <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm">+ Add Asset</button>
         </div>
       </div>
 
@@ -237,6 +238,7 @@ export default function AssetsPage() {
           </span>
           {selectedIds.size > 0 && (
             <button
+              type="button"
               onClick={handleBulkDelete}
               disabled={bulkDeleting}
               className="px-4 py-1.5 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition disabled:opacity-50"
@@ -263,7 +265,7 @@ export default function AssetsPage() {
           {(total?.zakatFullyPaid as boolean) ? (
             <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">PAID {String(total?.currentLunarYear ?? '')} AH ✓</span>
           ) : (
-            <button onClick={() => setShowBreakdown(!showBreakdown)} className="text-green-100 text-sm underline hover:text-white font-medium">
+            <button type="button" onClick={() => setShowBreakdown(!showBreakdown)} className="text-green-100 text-sm underline hover:text-white font-medium">
               {((total?.zakatPaid as number) || 0) > 0
                 ? `Remaining: ${fmt((total?.zakatRemaining as number) || 0)} (paid ${fmt((total?.zakatPaid as number) || 0)}) ↗`
                 : `Due: ${fmt((total?.zakatDue as number) || 0)} ↗`}
@@ -276,7 +278,7 @@ export default function AssetsPage() {
         <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-[#1B5E20]">Zakat Calculation Breakdown</h2>
-            <button onClick={() => setShowBreakdown(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+            <button type="button" onClick={() => setShowBreakdown(false)} className="text-gray-400 hover:text-gray-600">✕</button>
           </div>
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="bg-blue-50 rounded-xl p-3"><p className="text-xs text-gray-500">Net Worth</p><p className="font-bold text-blue-700">{fmt((total?.netWorth as number) || 0)}</p></div>
@@ -312,7 +314,7 @@ export default function AssetsPage() {
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">
           <p className="font-medium">Failed to load assets</p>
           <p className="text-red-500 mt-1">{loadError}</p>
-          <button onClick={load} className="mt-2 text-red-700 underline hover:text-red-900 text-xs">Retry</button>
+          <button type="button" onClick={load} className="mt-2 text-red-700 underline hover:text-red-900 text-xs">Retry</button>
         </div>
       )}
 
@@ -353,8 +355,8 @@ export default function AssetsPage() {
                   <p className="text-lg font-bold text-[#1B5E20]">{fmt(a.value)}</p>
                   {!selectMode && (
                     <>
-                      <button onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
-                      <button onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                      <button type="button" onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
+                      <button type="button" onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
                     </>
                   )}
                 </div>
@@ -478,8 +480,8 @@ export default function AssetsPage() {
               </div>
             )}
             <div className="flex gap-3 mt-4">
-              <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !form.name || !form.value}
+              <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.value}
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
                 {saving ? 'Saving...' : editItem ? 'Update' : 'Add'}
               </button>

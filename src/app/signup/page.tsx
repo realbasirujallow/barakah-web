@@ -19,7 +19,10 @@ function SignupContent() {
     if (ref) {
       setReferralCode(ref.toUpperCase());
       // Fire-and-forget referral click tracking
-      fetch(`/api/referrals/click/${encodeURIComponent(ref)}`, { method: 'POST' }).catch((e) => console.error('Referral tracking error:', e));
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/referrals/click/${encodeURIComponent(ref)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }).catch(() => {});  // Silent fail is OK for tracking
     }
   }, [searchParams]);
 

@@ -119,7 +119,7 @@ export default function SavingsPage() {
       {/* ── Hajj prompt ────────────────────────────────────────────────────── */}
       {showHajjPrompt && !goals.some(g => g.category === 'hajj') && (
         <div className="bg-gradient-to-r from-amber-600 to-yellow-500 rounded-2xl p-5 text-white mb-6 relative">
-          <button onClick={() => setShowHajjPrompt(false)} className="absolute top-3 right-3 text-white/70 hover:text-white text-lg leading-none">✕</button>
+          <button type="button" onClick={() => setShowHajjPrompt(false)} className="absolute top-3 right-3 text-white/70 hover:text-white text-lg leading-none">✕</button>
           <div className="flex items-center gap-3 mb-3">
             <span className="text-3xl">🕋</span>
             <div>
@@ -139,7 +139,7 @@ export default function SavingsPage() {
       {/* ── Umrah prompt ───────────────────────────────────────────────────── */}
       {showUmrahPrompt && !goals.some(g => g.category === 'umrah') && (
         <div className="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-2xl p-5 text-white mb-6 relative">
-          <button onClick={() => setShowUmrahPrompt(false)} className="absolute top-3 right-3 text-white/70 hover:text-white text-lg leading-none">✕</button>
+          <button type="button" onClick={() => setShowUmrahPrompt(false)} className="absolute top-3 right-3 text-white/70 hover:text-white text-lg leading-none">✕</button>
           <div className="flex items-center gap-3 mb-3">
             <span className="text-3xl">🕌</span>
             <div>
@@ -172,8 +172,8 @@ export default function SavingsPage() {
                     <p className="text-sm text-gray-500 capitalize">{g.category}{g.description ? ` • ${g.description}` : ''}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => { setContModal(g); setContAmount(''); }} className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700">+ Add</button>
-                    <button onClick={() => handleDelete(g.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                    <button type="button" onClick={() => { setContModal(g); setContAmount(''); }} className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700">+ Add</button>
+                    <button type="button" onClick={() => handleDelete(g.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
                   </div>
                 </div>
                 <div className="flex justify-between text-sm mb-1">
@@ -217,8 +217,8 @@ export default function SavingsPage() {
                 <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !form.name || !form.targetAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Create'}</button>
+              <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.targetAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Create'}</button>
             </div>
           </div>
         </div>
@@ -233,8 +233,8 @@ export default function SavingsPage() {
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
               <input type="number" step="0.01" value={contAmount} onChange={e => setContAmount(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="100" /></div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setContModal(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleContribute} disabled={saving || !contAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Contribute'}</button>
+              <button type="button" onClick={() => setContModal(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={handleContribute} disabled={saving || !contAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Contribute'}</button>
             </div>
           </div>
         </div>

@@ -193,7 +193,7 @@ export default function DebtsPage() {
 
       <div className="flex gap-2 mb-6">
         {(['debts', 'projector'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)}
+          <button key={t} type="button" onClick={() => setTab(t)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tab === t ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>
             {t === 'debts' ? '📋 My Debts' : '🔮 Payoff Projector'}
           </button>
@@ -230,14 +230,14 @@ export default function DebtsPage() {
               {selectedIds.size > 0 && (
                 <>
                   <span className="text-sm text-gray-500">{selectedIds.size} selected</span>
-                  <button onClick={handleBulkDelete} disabled={bulkDeleting} className="bg-red-600 text-white text-sm px-3 py-1 rounded-lg hover:bg-red-700 disabled:opacity-50">
+                  <button type="button" onClick={handleBulkDelete} disabled={bulkDeleting} className="bg-red-600 text-white text-sm px-3 py-1 rounded-lg hover:bg-red-700 disabled:opacity-50">
                     {bulkDeleting ? 'Deleting...' : `Delete ${selectedIds.size}`}
                   </button>
-                  <button onClick={() => setSelectedIds(new Set())} className="text-sm text-gray-500 hover:text-gray-700 border border-gray-300 px-3 py-1 rounded-lg">Clear</button>
+                  <button type="button" onClick={() => setSelectedIds(new Set())} className="text-sm text-gray-500 hover:text-gray-700 border border-gray-300 px-3 py-1 rounded-lg">Clear</button>
                 </>
               )}
               {selectedIds.size === 0 && debts.length > 1 && (
-                <button onClick={handleDeleteAll} disabled={bulkDeleting} className="ml-auto text-xs text-red-500 hover:text-red-700 disabled:opacity-50">Delete all</button>
+                <button type="button" onClick={handleDeleteAll} disabled={bulkDeleting} className="ml-auto text-xs text-red-500 hover:text-red-700 disabled:opacity-50">Delete all</button>
               )}
             </div>
           )}
@@ -264,9 +264,9 @@ export default function DebtsPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <button onClick={() => { setPayModal(d); setPayAmount(String(d.monthlyPayment)); }} className="bg-[#1B5E20] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#2E7D32]">Pay</button>
-                        <button onClick={() => openEdit(d)} className="text-gray-500 hover:text-[#1B5E20] text-sm border border-gray-300 px-3 py-1 rounded-lg">Edit</button>
-                        <button onClick={() => handleDelete(d.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                        <button type="button" onClick={() => { setPayModal(d); setPayAmount(String(d.monthlyPayment)); }} className="bg-[#1B5E20] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#2E7D32]">Pay</button>
+                        <button type="button" onClick={() => openEdit(d)} className="text-gray-500 hover:text-[#1B5E20] text-sm border border-gray-300 px-3 py-1 rounded-lg">Edit</button>
+                        <button type="button" onClick={() => handleDelete(d.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
                       </div>
                     </div>
                     <div className="flex justify-between text-sm mb-1">
@@ -460,8 +460,8 @@ export default function DebtsPage() {
             </div>
             {saveError && <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{saveError}</div>}
             <div className="flex gap-3 mt-4">
-              <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !form.name || !form.totalAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : editDebt ? 'Update' : 'Add'}</button>
+              <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.totalAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : editDebt ? 'Update' : 'Add'}</button>
             </div>
           </div>
         </div>
@@ -477,8 +477,8 @@ export default function DebtsPage() {
               <input type="number" step="0.01" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             {payError && <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{payError}</div>}
             <div className="flex gap-3 mt-4">
-              <button onClick={() => { setPayModal(null); setPayError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handlePay} disabled={saving || !payAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Processing...' : 'Pay'}</button>
+              <button type="button" onClick={() => { setPayModal(null); setPayError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={handlePay} disabled={saving || !payAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Processing...' : 'Pay'}</button>
             </div>
           </div>
         </div>
