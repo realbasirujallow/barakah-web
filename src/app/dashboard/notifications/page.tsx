@@ -83,7 +83,7 @@ export default function NotificationsPage() {
           {unreadCount > 0 && <p className="text-sm text-gray-500 mt-1">{unreadCount} unread</p>}
         </div>
         {unreadCount > 0 && (
-          <button onClick={markAllRead} className="text-sm text-[#1B5E20] border border-[#1B5E20] px-3 py-1.5 rounded-lg hover:bg-green-50 transition">
+          <button type="button" onClick={markAllRead} className="text-sm text-[#1B5E20] border border-[#1B5E20] px-3 py-1.5 rounded-lg hover:bg-green-50 transition">
             Mark all read
           </button>
         )}
@@ -117,6 +117,7 @@ export default function NotificationsPage() {
                 <div className="flex items-start gap-2">
                   {!n.read && <div className="w-2.5 h-2.5 bg-[#1B5E20] rounded-full mt-1.5 flex-shrink-0" />}
                   <button
+                    type="button"
                     onClick={(e) => { e.stopPropagation(); deleteOne(n.id); }}
                     className="text-gray-300 hover:text-red-400 transition opacity-0 group-hover:opacity-100 text-sm"
                   >✕</button>
@@ -129,10 +130,10 @@ export default function NotificationsPage() {
 
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-6">
-          <button onClick={() => load(page - 1)} disabled={page === 0}
+          <button type="button" onClick={() => load(page - 1)} disabled={page === 0}
             className="px-4 py-2 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition">← Prev</button>
           <span className="px-4 py-2 text-sm text-gray-600">{page + 1} / {totalPages}</span>
-          <button onClick={() => load(page + 1)} disabled={page >= totalPages - 1}
+          <button type="button" onClick={() => load(page + 1)} disabled={page >= totalPages - 1}
             className="px-4 py-2 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition">Next →</button>
         </div>
       )}

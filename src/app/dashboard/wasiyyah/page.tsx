@@ -96,6 +96,7 @@ export default function WasiyyahPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Wasiyyah (Islamic Will)</h1>
         <button
+          type="button"
           onClick={() => tab === 'beneficiaries' ? setShowForm(true) : setShowObForm(true)}
           className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
         >
@@ -106,7 +107,7 @@ export default function WasiyyahPage() {
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
         {(['beneficiaries', 'obligations'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)}
+          <button key={t} type="button" onClick={() => setTab(t)}
             className={`px-5 py-2 rounded-full text-sm font-semibold transition ${tab === t ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
             {t === 'beneficiaries' ? '📜 Beneficiaries' : `⚖️ Obligations${obligations.filter(o=>o.status==='pending').length > 0 ? ` (${obligations.filter(o=>o.status==='pending').length})` : ''}`}
           </button>
@@ -140,7 +141,7 @@ export default function WasiyyahPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <p className="text-2xl font-bold text-purple-600">{b.sharePercentage}%</p>
-                    <button onClick={() => handleDelete(b.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                    <button type="button" onClick={() => handleDelete(b.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
                   </div>
                 </div>
               ))}
@@ -187,10 +188,10 @@ export default function WasiyyahPage() {
                       <div className="ml-4 text-right flex-shrink-0">
                         <p className="text-xl font-bold text-amber-700">{fmt(ob.amount, ob.currency)}</p>
                         <div className="flex gap-2 mt-2 justify-end">
-                          <button onClick={() => markFulfilled(ob)} className="text-xs text-[#1B5E20] hover:underline font-medium">
+                          <button type="button" onClick={() => markFulfilled(ob)} className="text-xs text-[#1B5E20] hover:underline font-medium">
                             {ob.status === 'pending' ? 'Mark fulfilled' : 'Mark pending'}
                           </button>
-                          <button onClick={() => handleObDelete(ob.id)} className="text-xs text-gray-400 hover:text-red-600">Del</button>
+                          <button type="button" onClick={() => handleObDelete(ob.id)} className="text-xs text-gray-400 hover:text-red-600">Del</button>
                         </div>
                       </div>
                     </div>
@@ -224,8 +225,8 @@ export default function WasiyyahPage() {
                 <input value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !form.beneficiaryName || !form.sharePercentage} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Add'}</button>
+              <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={handleSave} disabled={saving || !form.beneficiaryName || !form.sharePercentage} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Add'}</button>
             </div>
           </div>
         </div>
@@ -242,7 +243,7 @@ export default function WasiyyahPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Type of Obligation</label>
                 <div className="grid grid-cols-2 gap-2">
                   {OBLIGATION_TYPES.map(t => (
-                    <button key={t.value} onClick={() => setObForm({ ...obForm, type: t.value })}
+                    <button key={t.value} type="button" onClick={() => setObForm({ ...obForm, type: t.value })}
                       className={`flex items-center gap-2 p-2.5 rounded-xl border-2 text-left transition ${obForm.type === t.value ? 'border-[#1B5E20] bg-green-50' : 'border-gray-200 hover:border-gray-300'}`}>
                       <span className="text-lg">{t.emoji}</span>
                       <span className="text-xs font-medium text-gray-700 leading-tight">{t.label}</span>
@@ -283,8 +284,8 @@ export default function WasiyyahPage() {
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowObForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleObSave} disabled={saving || !obForm.description || !obForm.amount}
+              <button type="button" onClick={() => setShowObForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={handleObSave} disabled={saving || !obForm.description || !obForm.amount}
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Record Obligation'}</button>
             </div>
           </div>
