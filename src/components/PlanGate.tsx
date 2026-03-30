@@ -27,7 +27,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
   // Still loading or no user (layout guard handles redirect)
   if (!user) return null;
 
-  if (hasAccess(user.plan, required)) {
+  if (hasAccess(user.plan, required, user.planExpiresAt)) {
     return <>{children}</>;
   }
 
