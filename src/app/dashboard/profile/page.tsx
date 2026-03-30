@@ -410,6 +410,7 @@ export default function ProfilePage() {
             <p className="text-xs text-gray-500 mt-0.5">Switch to a dark theme for low-light environments</p>
           </div>
           <button
+            type="button"
             onClick={toggleDarkMode}
             className={`relative w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-[#1B5E20]' : 'bg-gray-200'}`}
           >
@@ -425,6 +426,7 @@ export default function ProfilePage() {
           Download a complete copy of all your Barakah data (transactions, budgets, savings goals, zakat, sadaqah and more) as a JSON file.
         </p>
         <button
+          type="button"
           onClick={async () => {
             try {
               const data = await api.exportData();
@@ -449,6 +451,7 @@ export default function ProfilePage() {
         </p>
 
         <button
+          type="button"
           onClick={() => setShowRetentionModal(true)}
           className="text-red-600 border border-red-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition"
         >
@@ -482,12 +485,14 @@ export default function ProfilePage() {
                 </p>
                 <div className="flex gap-3">
                   <button
+                    type="button"
                     onClick={() => { setShowRetentionModal(false); setShowDeleteConfirm(false); setDeletePassword(''); setDeleteMsg(null); }}
                     className="flex-1 bg-[#1B5E20] text-white py-2.5 rounded-lg font-semibold hover:bg-green-800 transition text-sm"
                   >
                     I&apos;ll Stay
                   </button>
                   <button
+                    type="button"
                     onClick={() => setShowDeleteConfirm(true)}
                     className="flex-1 text-red-600 border border-red-300 py-2.5 rounded-lg font-medium hover:bg-red-50 transition text-sm"
                   >
@@ -518,6 +523,7 @@ export default function ProfilePage() {
                 )}
                 <div className="flex gap-3">
                   <button
+                    type="button"
                     onClick={handleDeleteAccount}
                     disabled={deleting || !deletePassword}
                     className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 text-sm"
@@ -525,6 +531,7 @@ export default function ProfilePage() {
                     {deleting ? 'Deleting...' : 'Permanently Delete'}
                   </button>
                   <button
+                    type="button"
                     onClick={() => { setShowRetentionModal(false); setShowDeleteConfirm(false); setDeletePassword(''); setDeleteMsg(null); }}
                     className="flex-1 text-gray-600 border border-gray-300 py-2.5 rounded-lg text-sm hover:bg-gray-50"
                   >
