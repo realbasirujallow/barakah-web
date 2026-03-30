@@ -461,7 +461,18 @@ export const api = {
 
   // Halal Screening
   checkHalal: (symbol: string) => apiFetch(`/api/halal/check/${symbol}`),
-  getHalalStocks: () => apiFetch('/api/halal/list'),
+  getHalalStocks: (params?: { search?: string; sector?: string; compliance?: string; page?: number; size?: number }) => {
+    const p = new URLSearchParams();
+    if (params?.search) p.set('search', params.search);
+    if (params?.sector) p.set('sector', params.sector);
+    if (params?.compliance) p.set('compliance', params.compliance);
+    if (params?.page !== undefined) p.set('page', String(params.page));
+    if (params?.size !== undefined) p.set('size', String(params.size));
+    const qs = p.toString();
+    return apiFetch(`/api/halal/list${qs ? `?${qs}` : ''}`);
+  },
+  getHalalSectors: () => apiFetch('/api/halal/sectors'),
+  getHalalStats: () => apiFetch('/api/halal/stats'),
 
   // Analytics
   getTransactionSummary: (period: string = 'month') =>
