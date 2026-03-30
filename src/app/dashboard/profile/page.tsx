@@ -77,10 +77,9 @@ export default function ProfilePage() {
     document.documentElement.classList.toggle('dark', next);
   };
 
-  // Delete account — two-step: retention modal → password confirmation
+  // Delete account — two-step: retention modal → final confirmation (no password required)
   const [showRetentionModal, setShowRetentionModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deletePassword, setDeletePassword] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -143,14 +142,10 @@ export default function ProfilePage() {
   };
 
   const handleDeleteAccount = async () => {
-    if (!deletePassword) {
-      setDeleteMsg({ type: 'error', text: 'Please enter your password.' });
-      return;
-    }
     setDeleting(true);
     setDeleteMsg(null);
     try {
-      await api.deleteAccount(deletePassword);
+      await api.deleteAccount();
       logout('deleted');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Failed to delete account.';
@@ -486,7 +481,7 @@ export default function ProfilePage() {
                 <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => { setShowRetentionModal(false); setShowDeleteConfirm(false); setDeletePassword(''); setDeleteMsg(null); }}
+                    onClick={() => { setShowRetentionModal(false); setShowDeleteConfirm(false); setDeleteMsg(null); }}
                     className="flex-1 bg-[#1B5E20] text-white py-2.5 rounded-lg font-semibold hover:bg-green-800 transition text-sm"
                   >
                     I&apos;ll Stay
@@ -501,19 +496,12 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              /* Step 2: Password confirmation */
+              /* Step 2: Final confirmation (no password required) */
               <div className="p-6">
-                <h3 className="text-lg font-bold text-red-600 mb-4">Confirm Account Deletion</h3>
+                <h3 className="text-lg font-bold text-red-600 mb-4">Final Confirmation</h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Enter your password to permanently delete your account:
+                  Are you absolutely sure? This will permanently delete your account and all data. This action cannot be undone.
                 </p>
-                <input
-                  type="password"
-                  value={deletePassword}
-                  onChange={e => setDeletePassword(e.target.value)}
-                  className="w-full border border-red-200 rounded-lg px-3 py-2 text-gray-900 focus:ring-red-500 focus:border-red-500 mb-3"
-                  placeholder="Your current password"
-                />
                 {deleteMsg && (
                   <div className={`text-sm px-3 py-2 rounded-lg mb-3 ${
                     deleteMsg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
@@ -525,14 +513,14 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={handleDeleteAccount}
-                    disabled={deleting || !deletePassword}
+                    disabled={deleting}
                     className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 text-sm"
                   >
                     {deleting ? 'Deleting...' : 'Permanently Delete'}
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setShowRetentionModal(false); setShowDeleteConfirm(false); setDeletePassword(''); setDeleteMsg(null); }}
+                    onClick={() => { setShowRetentionModal(false); setShowDeleteConfirm(false); setDeleteMsg(null); }}
                     className="flex-1 text-gray-600 border border-gray-300 py-2.5 rounded-lg text-sm hover:bg-gray-50"
                   >
                     Cancel
