@@ -31,7 +31,10 @@ async function getSentry() {
   if (!dsn) return null;
 
   try {
-    Sentry = await import(/* webpackIgnore: true */ '@sentry/nextjs');
+    // Use a variable so TypeScript can't statically resolve the module
+    // (the package is optional and may not be installed)
+    const sentryModule = '@sentry/nextjs';
+    Sentry = await import(sentryModule);
     // Only initialize if not already initialized (Sentry guards against double-init)
     Sentry.init({
       dsn,
