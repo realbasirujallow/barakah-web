@@ -427,6 +427,9 @@ export const api = {
   deleteWaqfBeneficiary: (id: number) =>
     apiFetch(`/api/waqf/distribution/beneficiary/${id}`, { method: 'DELETE' }),
 
+  // Subscription Detection
+  detectSubscriptions: () => apiFetch('/api/subscriptions/detect'),
+
   // Riba
   scanRiba: () => apiFetch('/api/riba/scan'),
 

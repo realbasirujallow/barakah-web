@@ -196,9 +196,19 @@ export function useAuth() {
   return ctx;
 }
 
-/** Returns true if the user's plan meets the minimum required plan. */
-export function hasAccess(userPlan: string | undefined, required: 'plus' | 'family'): boolean {
+/** Returns true if the user's plan meets the minimum required plan.
+ *  Also checks planExpiresAt — if the subscription has expired, treat as free. */
+export function hasAccess(
+  userPlan: string | undefined,
+  required: 'plus' | 'family',
+  planExpiresAt?: string | number | null
+): boolean {
   if (!userPlan || userPlan === 'free') return false;
+  // If planExpiresAt is set and in the past, subscription has lapsed
+  if (planExpiresAt) {
+    const expiryMs = typeof planExpiresAt === 'number' ? planExpiresAt : new Date(planExpiresAt).getTime();
+    if (expiryMs > 0 && expiryMs < Date.now()) return false;
+  }
   if (required === 'plus') return userPlan === 'plus' || userPlan === 'family';
   if (required === 'family') return userPlan === 'family';
   return false;
