@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
+import { useToast } from '../../../lib/toast';
 
 /** Compute current Hijri year from today's date using the same formula as the backend. */
 function computeHijriYear(): number {
@@ -16,6 +17,7 @@ function computeHijriYear(): number {
 }
 
 export default function ZakatPage() {
+  const { toast } = useToast();
   const [data, setData] = useState<Record<string, unknown> | null>(null);
   const [payments, setPayments] = useState<Record<string, unknown>[]>([]);
   const [totalPaid, setTotalPaid] = useState(0);
