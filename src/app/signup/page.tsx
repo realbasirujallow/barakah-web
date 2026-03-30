@@ -147,7 +147,9 @@ function SignupContent() {
               onChange={e => setName(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none transition"
               placeholder="Your full name"
+              maxLength={255}
               required
+              aria-label="Full name"
             />
           </div>
 
@@ -159,7 +161,9 @@ function SignupContent() {
               onChange={e => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none transition"
               placeholder="you@example.com"
+              maxLength={254}
               required
+              aria-label="Email address"
             />
           </div>
 
@@ -172,7 +176,9 @@ function SignupContent() {
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none transition"
               placeholder="At least 8 characters"
               minLength={8}
+              maxLength={256}
               required
+              aria-label="Password"
             />
             <div className="flex items-center gap-2 mt-2">
               <p className="text-xs text-gray-500">At least 8 characters</p>
