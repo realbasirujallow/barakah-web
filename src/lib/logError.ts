@@ -1,16 +1,47 @@
 /**
- * Centralized error logging utility.
+ * Centralized error logging utility with optional Sentry integration.
  *
- * To add Sentry later:
+ * Setup:
  *   1. npm install @sentry/nextjs
- *   2. Replace the console.error below with: Sentry.captureException(error, { extra: context })
+ *   2. Set NEXT_PUBLIC_SENTRY_DSN in your .env
  *   3. Follow Sentry Next.js setup docs: https://docs.sentry.io/platforms/javascript/guides/nextjs/
+ *
+ * When NEXT_PUBLIC_SENTRY_DSN is set, errors are automatically sent to Sentry.
+ * When it's not set (local dev), errors only go to the browser console.
  */
 
 interface ErrorContext {
   digest?: string;
   userId?: string;
   [key: string]: unknown;
+}
+
+// Lazy-load Sentry so the app still works without the package installed
+let Sentry: typeof import('@sentry/nextjs') | null = null;
+let sentryInitAttempted = false;
+
+async function getSentry() {
+  if (sentryInitAttempted) return Sentry;
+  sentryInitAttempted = true;
+
+  const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
+  if (!dsn) return null;
+
+  try {
+    Sentry = await import('@sentry/nextjs');
+    // Only initialize if not already initialized (Sentry guards against double-init)
+    Sentry.init({
+      dsn,
+      environment: process.env.NODE_ENV,
+      tracesSampleRate: 0.1, // 10% of transactions for performance monitoring
+      replaysSessionSampleRate: 0,
+      replaysOnErrorSampleRate: 1.0, // Capture replay on every error
+    });
+    return Sentry;
+  } catch {
+    // @sentry/nextjs not installed — that's fine, fall through to console logging
+    return null;
+  }
 }
 
 export function logError(error: Error | unknown, context?: ErrorContext): void {
@@ -27,8 +58,28 @@ export function logError(error: Error | unknown, context?: ErrorContext): void {
   const digest = context?.digest ?? '';
   console.error('[Barakah Error]', message, digest ? `(digest: ${digest})` : '');
 
-  // TODO: Swap this for a real monitoring service when ready, e.g.:
-  // Sentry.captureException(error, { extra: context });
-  // Or send to your own logging endpoint:
-  // fetch('/api/log-error', { method: 'POST', body: JSON.stringify({ message, digest, ...context }) });
+  // Send to Sentry if configured
+  getSentry().then((sentry) => {
+    if (sentry) {
+      if (error instanceof Error) {
+        sentry.captureException(error, { extra: context });
+      } else {
+        sentry.captureMessage(message, { extra: context });
+      }
+    }
+  }).catch(() => {
+    // Sentry send failed — nothing more we can do
+  });
+}
+
+/**
+ * Set user context for Sentry (call after login).
+ * Clears user context when called with null (call after logout).
+ */
+export function setErrorUser(user: { id: string; email?: string } | null): void {
+  getSentry().then((sentry) => {
+    if (sentry) {
+      sentry.setUser(user ? { id: user.id, email: user.email } : null);
+    }
+  }).catch(() => {});
 }

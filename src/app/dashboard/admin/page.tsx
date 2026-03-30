@@ -363,8 +363,8 @@ export default function AdminPage() {
                     className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
                   >
                     <option value="free">Free</option>
-                    <option value="plus">Plus — $7.99/mo</option>
-                    <option value="family">Family — $11.99/mo</option>
+                    <option value="plus">Plus — $9.99/mo</option>
+                    <option value="family">Family — $14.99/mo</option>
                   </select>
                   <button
                     onClick={handleSavePlan}
