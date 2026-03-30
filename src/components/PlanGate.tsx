@@ -32,7 +32,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
   }
 
   const planLabel = required === 'family' ? 'Family' : 'Plus';
-  const planPrice = required === 'family' ? '$14.99/mo' : '$7.99/mo';
+  const planPrice = required === 'family' ? '$11.99/mo' : '$7.99/mo';
   const planColor = required === 'family' ? 'purple' : 'green';
 
   const colorClasses = planColor === 'purple'
