@@ -16,8 +16,11 @@ interface ErrorContext {
   [key: string]: unknown;
 }
 
-// Lazy-load Sentry so the app still works without the package installed
-let Sentry: typeof import('@sentry/nextjs') | null = null;
+// Lazy-load Sentry so the app still works without the package installed.
+// We use `any` for the Sentry module type because @sentry/nextjs may not be
+// installed — TypeScript would fail to resolve the type declaration otherwise.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let Sentry: any = null;
 let sentryInitAttempted = false;
 
 async function getSentry() {
@@ -28,7 +31,7 @@ async function getSentry() {
   if (!dsn) return null;
 
   try {
-    Sentry = await import('@sentry/nextjs');
+    Sentry = await import(/* webpackIgnore: true */ '@sentry/nextjs');
     // Only initialize if not already initialized (Sentry guards against double-init)
     Sentry.init({
       dsn,
