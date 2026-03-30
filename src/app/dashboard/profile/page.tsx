@@ -59,6 +59,10 @@ export default function ProfilePage() {
   const [showNewPw, setShowNewPw] = useState(false);
   const { toast } = useToast();
 
+  // Currency
+  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const [savingCurrency, setSavingCurrency] = useState(false);
+
   // Dark mode
   const [darkMode, setDarkMode] = useState(false);
   useEffect(() => {
@@ -86,6 +90,7 @@ export default function ProfilePage() {
       .then((d: ProfileData) => {
         setProfile(d);
         setNameForm({ fullName: d.fullName || '', email: d.email || '' });
+        setSelectedCurrency(d.preferredCurrency || 'USD');
         // Sync currency preference to localStorage so useCurrency() hook picks it up app-wide
         if (d.preferredCurrency) saveCurrencyPreference(d.preferredCurrency);
       })
@@ -341,6 +346,46 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Currency Preference */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
+        <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Currency</h2>
+        <p className="text-sm text-gray-500 mb-3">Choose your preferred currency for displaying amounts across the app.</p>
+        <div className="flex items-center gap-3">
+          <select
+            value={selectedCurrency}
+            onChange={e => setSelectedCurrency(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-gray-900 text-sm flex-1 max-w-xs"
+          >
+            {[
+              'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'CHF', 'JPY', 'CNY', 'INR', 'PKR',
+              'BDT', 'IDR', 'MYR', 'SGD', 'AED', 'SAR', 'QAR', 'KWD', 'BHD', 'OMR',
+              'EGP', 'TRY', 'NGN', 'KES', 'ZAR', 'MAD', 'BRL', 'MXN', 'KRW', 'THB',
+              'PHP', 'VND', 'HKD', 'TWD', 'SEK', 'NOK', 'DKK', 'PLN', 'CZK', 'HUF',
+            ].map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          <button
+            onClick={async () => {
+              setSavingCurrency(true);
+              try {
+                await api.updateProfile({ preferredCurrency: selectedCurrency });
+                saveCurrencyPreference(selectedCurrency);
+                setProfile(prev => prev ? { ...prev, preferredCurrency: selectedCurrency } : prev);
+                toast('Currency updated!', 'success');
+              } catch {
+                toast('Failed to update currency.', 'error');
+              }
+              setSavingCurrency(false);
+            }}
+            disabled={savingCurrency || selectedCurrency === (profile?.preferredCurrency || 'USD')}
+            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium"
+          >
+            {savingCurrency ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </div>
+
       {/* Account Info (read-only) */}
       <div className="bg-white rounded-2xl shadow-sm p-6">
         <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Account Details</h2>
@@ -349,13 +394,9 @@ export default function ProfilePage() {
             <span className="text-gray-500">User ID</span>
             <span className="font-mono text-gray-700">#{profile?.userId}</span>
           </div>
-          <div className="flex justify-between py-2 border-b border-gray-50">
+          <div className="flex justify-between py-2">
             <span className="text-gray-500">Member Since</span>
             <span className="text-gray-700">{formatDate(profile?.createdAt)}</span>
-          </div>
-          <div className="flex justify-between py-2">
-            <span className="text-gray-500">Currency</span>
-            <span className="text-gray-700">{profile?.preferredCurrency || 'USD'}</span>
           </div>
         </div>
       </div>
