@@ -64,7 +64,7 @@ export default function HawlPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Hawl Tracker</h1>
-        <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Track Asset</button>
+        <button type="button" onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Track Asset</button>
       </div>
 
       <div className="grid md:grid-cols-3 gap-4 mb-6">
@@ -104,9 +104,9 @@ export default function HawlPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <p className="text-lg font-bold text-amber-600">{fmt(item.zakatAmount)}</p>
-                  <button onClick={() => handleMarkPaid(item.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm">Paid</button>
-                  <button onClick={() => handleReset(item.id)} className="text-blue-600 hover:text-blue-800 text-sm" title="Reset Hawl cycle">↻</button>
-                  <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                  <button type="button" onClick={() => handleMarkPaid(item.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm">Paid</button>
+                  <button type="button" onClick={() => handleReset(item.id)} className="text-blue-600 hover:text-blue-800 text-sm" title="Reset Hawl cycle">↻</button>
+                  <button type="button" onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
                 </div>
               </div>
             ))}
@@ -134,8 +134,8 @@ export default function HawlPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{daysLeft}d left</span>
-                      <button onClick={() => handleReset(item.id)} className="text-blue-600 hover:text-blue-800 text-sm" title="Reset Hawl cycle">↻</button>
-                      <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                      <button type="button" onClick={() => handleReset(item.id)} className="text-blue-600 hover:text-blue-800 text-sm" title="Reset Hawl cycle">↻</button>
+                      <button type="button" onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
                     </div>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-[#1B5E20] h-2 rounded-full" style={{ width: `${pct}%` }} /></div>
@@ -167,8 +167,8 @@ export default function HawlPage() {
                 <input type="number" step="0.01" value={form.nisabThreshold} onChange={e => setForm({ ...form, nisabThreshold: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !form.assetName || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Track'}</button>
+              <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={handleSave} disabled={saving || !form.assetName || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Track'}</button>
             </div>
           </div>
         </div>

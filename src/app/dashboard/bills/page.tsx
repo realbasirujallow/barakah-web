@@ -174,12 +174,12 @@ export default function BillsPage() {
             {fmt(b.amount)}
           </p>
           {!b.paid && (
-            <button onClick={() => handlePaid(b.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 whitespace-nowrap">
+            <button type="button" onClick={() => handlePaid(b.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 whitespace-nowrap">
               ✓ Paid
             </button>
           )}
-          <button onClick={() => openEdit(b)} className="text-gray-400 hover:text-[#1B5E20] text-sm px-1">✏️</button>
-          <button onClick={() => handleDelete(b.id)} className="text-gray-400 hover:text-red-600 text-sm px-1">🗑️</button>
+          <button type="button" onClick={() => openEdit(b)} className="text-gray-400 hover:text-[#1B5E20] text-sm px-1">✏️</button>
+          <button type="button" onClick={() => handleDelete(b.id)} className="text-gray-400 hover:text-red-600 text-sm px-1">🗑️</button>
         </div>
       </div>
     );
@@ -201,7 +201,7 @@ export default function BillsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Bills & Reminders</h1>
-        <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Bill</button>
+        <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Bill</button>
       </div>
 
       {/* Stats */}
@@ -311,12 +311,14 @@ export default function BillsPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button
+                type="button"
                 onClick={() => { setShowForm(false); setEditBill(null); }}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleSave}
                 disabled={saving || !form.name || !form.amount}
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
