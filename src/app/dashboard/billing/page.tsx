@@ -24,7 +24,7 @@ const PLANS = [
   {
     id: 'plus',
     name: 'Barakah Plus',
-    price: '$9.99',
+    price: '$7.99',
     period: '/month',
     color: 'green',
     highlight: true,
