@@ -147,7 +147,7 @@ export default function WaqfPage() {
                   <div key={item.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
                     <div>
                       <p className="font-semibold text-[#1B5E20]">{item.organizationName || item.purpose}</p>
-                      <p className="text-sm text-gray-500 capitalize">{item.purpose} • {item.type} • {new Date(item.date).toLocaleDateString()}
+                      <p className="text-sm text-gray-500 capitalize">{item.purpose} • {item.type} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString()}
                         {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">Recurring</span>}
                       </p>
                     </div>

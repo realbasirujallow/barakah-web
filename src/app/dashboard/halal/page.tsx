@@ -47,7 +47,7 @@ export default function HalalPage() {
     setLoading(true);
     try {
       const d = await api.getHalalStocks({ search: debouncedSearch, sector, compliance, page, size: PAGE_SIZE });
-      setStocks(d?.stocks || []);
+      setStocks(Array.isArray(d?.stocks) ? d.stocks : []);
       setTotalFiltered(d?.totalFiltered || 0);
       setTotalPages(d?.totalPages || 0);
       setTotalInDb(d?.totalInDatabase || 0);

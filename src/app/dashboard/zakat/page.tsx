@@ -318,7 +318,7 @@ export default function ZakatPage() {
             {zakatDue > 0 && !hideZakat && (
               <div className="mt-4">
                 <div className="w-full bg-white/20 rounded-full h-3">
-                  <div className={`h-3 rounded-full ${fulfilled ? 'bg-blue-300' : 'bg-amber-400'}`} style={{ width: `${fulfillmentPct * 100}%` }} />
+                  <div className={`h-3 rounded-full ${fulfilled ? 'bg-blue-300' : 'bg-amber-400'}`} style={{ width: `${Math.min(100, fulfillmentPct * 100)}%` }} />
                 </div>
                 <p className="text-white/60 text-xs mt-2 text-center">{(fulfillmentPct * 100).toFixed(0)}% of zakat paid for {lunarYear} AH</p>
               </div>
@@ -341,7 +341,7 @@ export default function ZakatPage() {
             <div className="space-y-3">
               {payments.map((p) => {
                 const paidAt = p.paidAt as number;
-                const date = new Date(paidAt);
+                const date = new Date(paidAt < 1e12 ? paidAt * 1000 : paidAt);
                 return (
                   <div key={p.id as number} className="bg-white rounded-xl p-4 flex items-center gap-4">
                     <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center text-xl">🕌</div>

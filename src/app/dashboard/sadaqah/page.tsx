@@ -184,7 +184,7 @@ function SadaqahContent() {
             <div key={item.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
               <div>
                 <p className="font-semibold text-[#1B5E20]">{item.recipientName || item.category}</p>
-                <p className="text-sm text-gray-500 capitalize">{item.category} • {new Date(item.date).toLocaleDateString()}
+                <p className="text-sm text-gray-500 capitalize">{item.category} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString()}
                   {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">Recurring</span>}
                   {item.anonymous && <span className="ml-1 bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">Anonymous</span>}
                 </p>
