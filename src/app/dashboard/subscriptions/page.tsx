@@ -188,10 +188,10 @@ export default function SubscriptionsPage() {
                       {frequencyLabel(sub.frequency)}
                     </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                      {formatDate(sub.lastCharged)}
+                      {sub.lastCharged ? formatDate(sub.lastCharged) : 'N/A'}
                     </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                      {formatDate(sub.nextExpected)}
+                      {sub.nextExpected ? formatDate(sub.nextExpected) : 'N/A'}
                     </td>
                     <td className="px-4 py-3">
                       {sub.haramFlagged ? (
