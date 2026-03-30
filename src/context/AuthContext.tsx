@@ -8,6 +8,7 @@ export interface User {
   name: string;
   email: string;
   plan: 'free' | 'plus' | 'family';
+  planExpiresAt?: number | null;
   referralCode?: string;
 }
 
@@ -95,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const data = await api.getProfile();
         if (data?.plan) {
-          const updated: User = { ...u, plan: data.plan as User['plan'] };
+          const updated: User = { ...u, plan: data.plan as User['plan'], planExpiresAt: data.planExpiresAt ?? null };
           localStorage.setItem(USER_KEY, JSON.stringify(updated));
           return updated;
         }
@@ -150,6 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       name: data.fullName ?? data.name ?? email,
       email,
       plan: (data.plan as User['plan']) ?? 'free',
+      planExpiresAt: data.planExpiresAt ?? null,
       referralCode: data.referralCode,
     };
     localStorage.setItem(USER_KEY, JSON.stringify(profile));
@@ -176,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await api.getProfile();
       if (data?.plan && user) {
-        const updated: User = { ...user, plan: data.plan as User['plan'] };
+        const updated: User = { ...user, plan: data.plan as User['plan'], planExpiresAt: data.planExpiresAt ?? null };
         localStorage.setItem(USER_KEY, JSON.stringify(updated));
         setUser(updated);
       }
@@ -197,7 +199,8 @@ export function useAuth() {
 }
 
 /** Returns true if the user's plan meets the minimum required plan.
- *  Also checks planExpiresAt — if the subscription has expired, treat as free. */
+ *  Also checks planExpiresAt — if the subscription has expired, treat as free.
+ *  NOTE: The backend stores planExpiresAt as epoch SECONDS (from Stripe). */
 export function hasAccess(
   userPlan: string | undefined,
   required: 'plus' | 'family',
@@ -206,7 +209,14 @@ export function hasAccess(
   if (!userPlan || userPlan === 'free') return false;
   // If planExpiresAt is set and in the past, subscription has lapsed
   if (planExpiresAt) {
-    const expiryMs = typeof planExpiresAt === 'number' ? planExpiresAt : new Date(planExpiresAt).getTime();
+    let expiryMs: number;
+    if (typeof planExpiresAt === 'number') {
+      // Backend returns epoch seconds (from Stripe) — convert to milliseconds
+      // Heuristic: if the value is less than 1e12, it's seconds; otherwise already ms
+      expiryMs = planExpiresAt < 1e12 ? planExpiresAt * 1000 : planExpiresAt;
+    } else {
+      expiryMs = new Date(planExpiresAt).getTime();
+    }
     if (expiryMs > 0 && expiryMs < Date.now()) return false;
   }
   if (required === 'plus') return userPlan === 'plus' || userPlan === 'family';
