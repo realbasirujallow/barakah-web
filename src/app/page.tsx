@@ -80,9 +80,9 @@ const plans = [
   },
   {
     name: 'Family',
-    price: '$14.99',
+    price: '$11.99',
     period: '/mo',
-    annual: '$119/yr · save 34%',
+    annual: '$99/yr · save 31%',
     color: 'border-purple-300',
     badge: null,
     features: [
@@ -115,7 +115,7 @@ const comparisonRows = [
   { feature: 'Shared family finances',        b: true,  ynab: false, mint: false, zoya: false },
   { feature: 'Mobile app',                    b: true,  ynab: true,  mint: true,  zoya: true  },
   { feature: 'Starting price',
-    bText: 'Free',   ynabText: '$14.99/mo', mintText: 'Free*', zoyaText: 'Free' },
+    bText: 'Free',   ynabText: '$11.99/mo', mintText: 'Free*', zoyaText: 'Free' },
 ];
 
 const Tick = () => <span className="text-[#1B5E20] font-bold text-lg">✓</span>;

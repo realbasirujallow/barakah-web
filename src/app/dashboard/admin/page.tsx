@@ -364,7 +364,7 @@ export default function AdminPage() {
                   >
                     <option value="free">Free</option>
                     <option value="plus">Plus — $7.99/mo</option>
-                    <option value="family">Family — $14.99/mo</option>
+                    <option value="family">Family — $11.99/mo</option>
                   </select>
                   <button
                     onClick={handleSavePlan}
