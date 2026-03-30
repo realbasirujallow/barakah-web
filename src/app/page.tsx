@@ -31,7 +31,7 @@ const plans = [
     color: 'border-gray-200',
     badge: null,
     features: [
-      'Up to 5 transactions/month',
+      'Up to 25 transactions/month',
       'Zakat calculator (live nisab)',
       'Hawl tracker',
       'Prayer times (any city)',

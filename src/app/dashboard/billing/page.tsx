@@ -15,7 +15,7 @@ const PLANS = [
     period: 'forever',
     color: 'gray',
     features: [
-      '5 transactions per month',
+      '25 transactions per month',
       'Basic budget tracking',
       'Barakah Score overview',
       'Prayer times widget',
