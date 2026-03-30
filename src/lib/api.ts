@@ -384,6 +384,8 @@ export const api = {
     apiFetch(`/api/hawl/${id}/mark-paid`, { method: 'POST' }),
   deleteHawl: (id: number) =>
     apiFetch(`/api/hawl/${id}`, { method: 'DELETE' }),
+  resetHawl: (id: number) =>
+    apiFetch(`/api/hawl/${id}/reset`, { method: 'POST' }),
 
   // Sadaqah
   getSadaqah: () => apiFetch('/api/sadaqah/list'),

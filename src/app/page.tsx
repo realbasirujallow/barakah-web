@@ -19,7 +19,7 @@ const features = [
   { icon: '⭐', title: 'Barakah Score', desc: 'Your Islamic financial health score (0–100) across Zakat, Riba-free living, Sadaqah, Hawl, and debt.' },
   { icon: '🕌', title: 'Prayer Times', desc: 'Daily salah schedule for any city worldwide, with next prayer countdown — built in.' },
   { icon: '🔔', title: 'Smart Reminders', desc: 'Bill due alerts, Hawl anniversaries, Zakat nisab threshold alerts, and savings milestones.' },
-  { icon: '👥', title: 'Shared Family Finances', desc: 'Family plan lets up to 5 members track shared expenses, group transactions, and family Zakat.' },
+  { icon: '👥', title: 'Shared Family Finances', desc: 'Family plan lets up to 6 members track shared expenses, group transactions, and family Zakat.' },
 ];
 
 const plans = [
@@ -31,7 +31,7 @@ const plans = [
     color: 'border-gray-200',
     badge: null,
     features: [
-      'Up to 100 transactions/month',
+      'Up to 5 transactions/month',
       'Zakat calculator (live nisab)',
       'Hawl tracker',
       'Prayer times (any city)',
@@ -54,9 +54,9 @@ const plans = [
   },
   {
     name: 'Plus',
-    price: '$7.99',
+    price: '$9.99',
     period: '/mo',
-    annual: '$79/yr · save 18%',
+    annual: '$99/yr · save 17%',
     color: 'border-[#1B5E20] ring-2 ring-[#1B5E20]',
     badge: 'Most Popular',
     features: [
@@ -80,14 +80,14 @@ const plans = [
   },
   {
     name: 'Family',
-    price: '$11.99',
+    price: '$14.99',
     period: '/mo',
-    annual: '$99/yr · save 31%',
+    annual: '$119/yr · save 34%',
     color: 'border-purple-300',
     badge: null,
     features: [
       'Everything in Plus',
-      'Shared finances (up to 5 members)',
+      'Shared finances (up to 6 members)',
       'Family Zakat management',
       'Priority support',
     ],

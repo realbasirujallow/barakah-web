@@ -24,7 +24,7 @@ const PLANS = [
   {
     id: 'plus',
     name: 'Barakah Plus',
-    price: '$7.99',
+    price: '$9.99',
     period: '/month',
     color: 'green',
     highlight: true,
@@ -43,7 +43,7 @@ const PLANS = [
   {
     id: 'family',
     name: 'Barakah Family',
-    price: '$11.99',
+    price: '$14.99',
     period: '/month',
     color: 'blue',
     features: [
