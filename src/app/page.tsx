@@ -10,7 +10,7 @@ import Link from 'next/link';
 const features = [
   { icon: '🕌', title: 'Zakat Calculator', desc: 'AMJA-compliant nisab (85g gold, live price), Hawl tracker, and auto-categorized asset breakdown.' },
   { icon: '🛡️', title: 'Riba Detector', desc: 'Scan transactions to flag interest-bearing activity and stay halal.' },
-  { icon: '✅', title: 'Halal Screener', desc: 'Screen stocks and investments for Shariah compliance before you invest.' },
+  { icon: '✅', title: 'Halal Screener', desc: '30,000+ stocks screened against AAOIFI Standard 21 — filter by halal, haram, or all with sector breakdown and debt ratios.' },
   { icon: '📊', title: 'Budgets & Analytics', desc: 'Track spending by category and see where every dollar goes at a glance.' },
   { icon: '💎', title: 'Net Worth Tracker', desc: 'Real-time net worth with assets, debts, and investments in one place.' },
   { icon: '🤲', title: 'Sadaqah & Waqf', desc: 'Log charitable giving and endowments alongside everyday finances.' },
@@ -18,6 +18,7 @@ const features = [
   { icon: '🎯', title: 'Savings Goals', desc: 'Set goals for Hajj, emergency funds, or anything else — with an automatic Hajj savings template.' },
   { icon: '⭐', title: 'Barakah Score', desc: 'Your Islamic financial health score (0–100) across Zakat, Riba-free living, Sadaqah, Hawl, and debt.' },
   { icon: '🕌', title: 'Prayer Times', desc: 'Daily salah schedule for any city worldwide, with next prayer countdown — built in.' },
+  { icon: '🔄', title: 'Subscription Detector', desc: 'Automatically detect recurring subscriptions from your transactions — flag haram services and track monthly spend.' },
   { icon: '🔔', title: 'Smart Reminders', desc: 'Bill due alerts, Hawl anniversaries, Zakat nisab threshold alerts, and savings milestones.' },
   { icon: '👥', title: 'Shared Family Finances', desc: 'Family plan lets up to 6 members track shared expenses, group transactions, and family Zakat.' },
 ];
@@ -41,6 +42,7 @@ const plans = [
     ],
     missing: [
       'Halal screener',
+      'Subscription detector',
       'Riba detector',
       'Auto-categorize',
       'Investments & net worth',
@@ -62,7 +64,8 @@ const plans = [
     features: [
       'Unlimited transactions',
       'All Free features',
-      'Halal stock screener',
+      'Halal stock screener (30,000+ stocks)',
+      'Subscription detector (flag haram services)',
       'Riba detector',
       'Auto-categorize',
       'Investments & net worth',
@@ -103,8 +106,9 @@ const comparisonRows = [
   { feature: 'Budgeting & analytics',         b: true,  ynab: true,  mint: true,  zoya: false },
   { feature: 'Zakat calculator (live nisab)', b: true,  ynab: false, mint: false, zoya: false },
   { feature: 'Hawl lunar year tracker',       b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Halal stock screener',          b: true,  ynab: false, mint: false, zoya: true  },
+  { feature: 'Halal stock screener (30K+)',   b: true,  ynab: false, mint: false, zoya: true  },
   { feature: 'Riba detector',                 b: true,  ynab: false, mint: false, zoya: false },
+  { feature: 'Subscription detector',         b: true,  ynab: false, mint: false, zoya: false },
   { feature: 'Net worth tracking',            b: true,  ynab: false, mint: true,  zoya: false },
   { feature: 'Investment tracking',           b: true,  ynab: false, mint: true,  zoya: true  },
   { feature: 'Sadaqah & Waqf logging',       b: true,  ynab: false, mint: false, zoya: false },
