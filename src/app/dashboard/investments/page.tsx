@@ -98,8 +98,9 @@ export default function InvestmentsPage() {
         setError('Could not load portfolio. Make sure you have investment accounts set up.');
       }),
       // Pull investment-type assets (401k, IRA, HSA, 529 etc.) tracked via the Assets page
-      api.getAssets().then((assets: AssetAccount[]) => {
-        const investmentAssets = (assets || []).filter((a: AssetAccount) =>
+      api.getAssets().then((res: { assets?: AssetAccount[] } | AssetAccount[]) => {
+        const list: AssetAccount[] = Array.isArray(res) ? res : (res?.assets || []);
+        const investmentAssets = list.filter((a: AssetAccount) =>
           INVESTMENT_ASSET_TYPES.includes(a.type)
         );
         setAssetAccounts(investmentAssets);
