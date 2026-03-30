@@ -109,9 +109,10 @@ export function NotificationBell() {
   };
 
   const fmtTime = (ts: number) => {
-    const d = new Date(ts);
+    const ms = ts < 1e12 ? ts * 1000 : ts;
+    const d = new Date(ms);
     const now = Date.now();
-    const diff = now - ts;
+    const diff = now - ms;
     if (diff < 60000) return 'Just now';
     if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
     if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';

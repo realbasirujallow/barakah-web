@@ -55,9 +55,10 @@ export default function SubscriptionsPage() {
     }
   };
 
-  const formatDate = (ts: number) => new Date(ts).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric',
-  });
+  const formatDate = (ts: number) => {
+    const ms = ts < 1e12 ? ts * 1000 : ts;
+    return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
   const frequencyLabel = (f: string) => {
     switch (f) {

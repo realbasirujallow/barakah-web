@@ -37,8 +37,10 @@ export default function NetWorthPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
 
-  const formatDate = (epoch: number) =>
-    new Date(epoch).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const formatDate = (epoch: number) => {
+    const ms = epoch < 1e12 ? epoch * 1000 : epoch;
+    return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
   const load = async (p?: string) => {
     setLoading(true);

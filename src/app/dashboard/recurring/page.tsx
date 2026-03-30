@@ -24,7 +24,8 @@ const CAT_ICONS: Record<string, string> = {
 };
 
 function formatDate(epoch: number) {
-  return new Date(epoch).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const ms = epoch < 1e12 ? epoch * 1000 : epoch;
+  return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 export default function RecurringPage() {
