@@ -41,7 +41,7 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
     debts.forEach(d => {
       if (d.balance > 0) {
         const interest = d.balance * (d.rate / 100 / 12);
-        d.balance += interest;
+        d.balance = parseFloat((d.balance + interest).toFixed(2));
         totalInterest += interest;
       }
     });
@@ -403,7 +403,7 @@ export default function DebtsPage() {
                 <h2 className="font-bold text-[#1B5E20] mb-4">Your Debts at a Glance</h2>
                 <div className="space-y-3">
                   {[...debts].sort((a, b) => b.interestRate - a.interestRate).map(d => {
-                    const monthsLeft = d.monthlyPayment > 0 ? Math.ceil(d.remainingAmount / d.monthlyPayment) : null;
+                    const monthsLeft = d.monthlyPayment > 0 && d.remainingAmount > 0 ? Math.ceil(d.remainingAmount / d.monthlyPayment) : null;
                     const halal = d.ribaFree || ISLAMIC_TYPES.includes(d.type);
                     return (
                       <div key={d.id} className="flex items-center justify-between gap-4 py-2 border-b border-gray-50 last:border-0">
