@@ -367,7 +367,7 @@ export default function AnalyticsPage() {
               <tbody>
                 {yoyData.map((yr, i) => {
                   const prev = yoyData[i - 1];
-                  const expChange = prev ? ((yr.expenses - prev.expenses) / Math.abs(prev.expenses) * 100) : null;
+                  const expChange = prev && prev.expenses !== 0 ? ((yr.expenses - prev.expenses) / Math.abs(prev.expenses) * 100) : null;
                   const isCurrentYear = yr.year === String(new Date().getFullYear());
                   return (
                     <tr key={yr.year} className={`border-b border-gray-100 ${isCurrentYear ? 'bg-green-50' : ''}`}>
