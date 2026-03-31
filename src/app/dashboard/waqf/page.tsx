@@ -65,9 +65,12 @@ export default function WaqfPage() {
   };
   const handleSave = async () => {
     setSaving(true);
+    const amt = parseFloat(form.amount);
+    if (!form.organizationName.trim()) { toast('Please enter an organization name', 'error'); setSaving(false); return; }
+    if (!amt || amt <= 0) { toast('Amount must be greater than zero', 'error'); setSaving(false); return; }
     try {
-      if (editItem) await api.updateWaqf(editItem.id, { ...form, amount: parseFloat(form.amount) });
-      else await api.addWaqf({ ...form, amount: parseFloat(form.amount) });
+      if (editItem) await api.updateWaqf(editItem.id, { ...form, amount: amt });
+      else await api.addWaqf({ ...form, amount: amt });
       setShowForm(false); setEditItem(null);
       setForm({ organizationName: '', type: 'cash', purpose: 'education', amount: '', description: '', recurring: false });
       loadItems(); toast('Waqf contribution saved', 'success');
@@ -93,8 +96,11 @@ export default function WaqfPage() {
   };
   const handleSaveBenef = async () => {
     setSavingBenef(true);
+    if (!benefForm.name.trim()) { toast('Please enter a beneficiary name', 'error'); setSavingBenef(false); return; }
+    const pct = parseFloat(benefForm.percentage) || 0;
+    if (pct <= 0 || pct > 100) { toast('Percentage must be between 0 and 100', 'error'); setSavingBenef(false); return; }
     try {
-      const payload = { ...benefForm, percentage: parseFloat(benefForm.percentage) || 0 };
+      const payload = { ...benefForm, percentage: pct };
       if (editBenef) await api.updateWaqfBeneficiary(editBenef.id, payload);
       else await api.addWaqfBeneficiary(payload);
       setShowBenefForm(false); setEditBenef(null);
