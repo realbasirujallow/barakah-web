@@ -45,9 +45,8 @@ interface Tx {
 }
 
 // Friendly amount string for a transaction, respecting its own stored currency
-function txAmount(tx: Tx): string {
-  const sym = CURRENCY_SYMBOLS[tx.currency] || tx.currency || '$';
-  return `${sym}${tx.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function txAmount(tx: Tx, fmt: (n: number) => string): string {
+  return fmt(tx.amount);
 }
 
 export default function TransactionsPage() {
@@ -70,7 +69,7 @@ export default function TransactionsPage() {
   const [selectAllPages, setSelectAllPages] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
-  const { currency: preferredCurrency } = useCurrency();
+  const { currency: preferredCurrency, fmt } = useCurrency();
 
   const [form, setForm] = useState({
     type: 'expense', category: 'food', amount: '', description: '', currency: 'USD',
@@ -340,7 +339,7 @@ export default function TransactionsPage() {
               </div>
               <div className="flex items-center gap-3">
                 <p className={`text-lg font-bold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                  {tx.type === 'income' ? '+' : '−'}{txAmount(tx)}
+                  {tx.type === 'income' ? '+' : '−'}{txAmount(tx, fmt)}
                 </p>
                 {!selectMode && (
                   <div className="flex items-center gap-2">

@@ -145,6 +145,7 @@ export default function AssetsPage() {
       // Backend returns HTTP 200 even on error — check the body
       if (result?.error) throw new Error(result.error);
       setShowForm(false);
+      setForm(EMPTY_FORM);
       load();
     } catch (err: any) {
       logError(err, { context: 'Failed to save asset' });
@@ -480,7 +481,7 @@ export default function AssetsPage() {
               </div>
             )}
             <div className="flex gap-3 mt-4">
-              <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.value}
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
                 {saving ? 'Saving...' : editItem ? 'Update' : 'Add'}

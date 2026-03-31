@@ -28,8 +28,8 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
     rate: d.interestRate || 0,
   }));
 
-  if (strategy === 'avalanche') debts.sort((a, b) => b.rate - a.rate);
-  else debts.sort((a, b) => a.balance - b.balance);
+  if (strategy === 'avalanche') debts = [...debts].sort((a, b) => b.rate - a.rate);
+  else debts = [...debts].sort((a, b) => a.balance - b.balance);
 
   let month = 0;
   let totalInterest = 0;
@@ -115,7 +115,7 @@ export default function DebtsPage() {
       const payload = { ...form, totalAmount: totalAmt, remainingAmount: parseFloat(form.remainingAmount || form.totalAmount), monthlyPayment: monthlyPay, interestRate: parseFloat(form.interestRate), ribaFree: isHalal };
       const result = editDebt ? await api.updateDebt(editDebt.id, payload) : await api.addDebt(payload);
       if (result?.error) throw new Error(result.error);
-      setShowForm(false); load();
+      setShowForm(false); setForm(emptyForm); load();
     } catch (err: unknown) { setSaveError(err instanceof Error ? err.message : 'Failed to save debt. Please try again.'); }
     setSaving(false);
   };
@@ -464,7 +464,7 @@ export default function DebtsPage() {
             </div>
             {saveError && <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{saveError}</div>}
             <div className="flex gap-3 mt-4">
-              <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { setShowForm(false); setForm(emptyForm); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.totalAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : editDebt ? 'Update' : 'Add'}</button>
             </div>
           </div>
