@@ -153,6 +153,7 @@ function SignupContent() {
               maxLength={255}
               required
               aria-label="Full name"
+              autoComplete="name"
             />
           </div>
 
@@ -167,6 +168,7 @@ function SignupContent() {
               maxLength={254}
               required
               aria-label="Email address"
+              autoComplete="email"
             />
           </div>
 
@@ -182,6 +184,7 @@ function SignupContent() {
               maxLength={256}
               required
               aria-label="Password"
+              autoComplete="new-password"
             />
             <div className="flex items-center gap-2 mt-2">
               <p className="text-xs text-gray-500">At least 8 characters</p>
@@ -210,6 +213,7 @@ function SignupContent() {
               placeholder="Re-enter your password"
               minLength={8}
               required
+              autoComplete="new-password"
             />
             {confirmPassword && password !== confirmPassword && (
               <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
