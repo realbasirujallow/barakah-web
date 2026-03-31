@@ -1,5 +1,18 @@
 import type { NextConfig } from "next";
 
+// ── Build-time environment validation ──────────────────────────────────
+// Fail fast if critical server-side env vars are missing in production.
+if (process.env.NODE_ENV === 'production') {
+  const required = ['BACKEND_URL'];
+  const missing = required.filter((key) => !process.env[key]);
+  if (missing.length > 0) {
+    console.warn(
+      `⚠️  Missing recommended env vars: ${missing.join(', ')}. ` +
+      `Falling back to defaults. Set these in your deployment for reliability.`
+    );
+  }
+}
+
 // Backend URL used by the rewrite proxy. Set BACKEND_URL (server-side) or
 // NEXT_PUBLIC_API_URL to point to your Spring Boot backend.
 const BACKEND_URL =

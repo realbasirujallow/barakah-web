@@ -14,6 +14,23 @@ export default function ContactPage() {
     setStatus('sending');
     setErrorMsg('');
 
+    // Client-side validation
+    if (!form.email.trim()) {
+      setErrorMsg('Please enter your email address.');
+      setStatus('error');
+      return;
+    }
+    if (!form.subject) {
+      setErrorMsg('Please select a topic.');
+      setStatus('error');
+      return;
+    }
+    if (!form.message.trim() || form.message.trim().length < 10) {
+      setErrorMsg('Please enter a message (at least 10 characters).');
+      setStatus('error');
+      return;
+    }
+
     try {
       await api.contact(form.subject, form.message);
       setStatus('sent');
