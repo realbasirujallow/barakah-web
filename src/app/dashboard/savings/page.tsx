@@ -64,10 +64,11 @@ export default function SavingsPage() {
 
   const handleSave = async () => {
     setSaving(true);
+    if (!form.name.trim()) { toast('Please enter a goal name', 'error'); setSaving(false); return; }
     try {
       const target = parseFloat(form.targetAmount);
-      if (!target || target <= 0) { alert('Target amount must be greater than zero'); setSaving(false); return; }
-      await api.addSavingsGoal({ ...form, targetAmount: target });
+      if (!target || target <= 0) { toast('Target amount must be greater than zero', 'error'); setSaving(false); return; }
+      await api.addSavingsGoal({ ...form, name: form.name.trim(), targetAmount: target });
       setShowForm(false); setForm({ name: '', category: 'emergency', targetAmount: '', description: '' }); load();
       toast('Savings goal created', 'success');
     } catch { toast('Failed to create savings goal', 'error'); }
