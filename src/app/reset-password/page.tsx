@@ -88,6 +88,7 @@ function ResetPasswordForm() {
               placeholder="At least 8 characters"
               required
               minLength={8}
+              autoComplete="new-password"
             />
           </div>
 
@@ -101,6 +102,7 @@ function ResetPasswordForm() {
               placeholder="Re-enter your password"
               required
               minLength={8}
+              autoComplete="new-password"
             />
           </div>
 
