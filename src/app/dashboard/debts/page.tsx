@@ -108,7 +108,11 @@ export default function DebtsPage() {
   const handleSave = async () => {
     setSaving(true); setSaveError(null);
     try {
-      const payload = { ...form, totalAmount: parseFloat(form.totalAmount), remainingAmount: parseFloat(form.remainingAmount || form.totalAmount), monthlyPayment: parseFloat(form.monthlyPayment || '0'), interestRate: parseFloat(form.interestRate), ribaFree: isHalal };
+      const totalAmt = parseFloat(form.totalAmount);
+      if (!totalAmt || totalAmt <= 0) { alert('Total amount must be greater than zero'); setSaving(false); return; }
+      const monthlyPay = parseFloat(form.monthlyPayment || '0');
+      if (monthlyPay < 0) { alert('Monthly payment cannot be negative'); setSaving(false); return; }
+      const payload = { ...form, totalAmount: totalAmt, remainingAmount: parseFloat(form.remainingAmount || form.totalAmount), monthlyPayment: monthlyPay, interestRate: parseFloat(form.interestRate), ribaFree: isHalal };
       const result = editDebt ? await api.updateDebt(editDebt.id, payload) : await api.addDebt(payload);
       if (result?.error) throw new Error(result.error);
       setShowForm(false); load();

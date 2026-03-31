@@ -65,7 +65,9 @@ export default function SavingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.addSavingsGoal({ ...form, targetAmount: parseFloat(form.targetAmount) });
+      const target = parseFloat(form.targetAmount);
+      if (!target || target <= 0) { alert('Target amount must be greater than zero'); setSaving(false); return; }
+      await api.addSavingsGoal({ ...form, targetAmount: target });
       setShowForm(false); setForm({ name: '', category: 'emergency', targetAmount: '', description: '' }); load();
       toast('Savings goal created', 'success');
     } catch { toast('Failed to create savings goal', 'error'); }
@@ -76,7 +78,9 @@ export default function SavingsPage() {
     if (!contModal) return;
     setSaving(true);
     try {
-      await api.contributeSavingsGoal(contModal.id, parseFloat(contAmount));
+      const contrib = parseFloat(contAmount);
+      if (!contrib || contrib <= 0) { alert('Contribution amount must be greater than zero'); setSaving(false); return; }
+      await api.contributeSavingsGoal(contModal.id, contrib);
       setContModal(null); setContAmount('');
       load(); // re-check milestones after contribution
       toast('Contribution added', 'success');

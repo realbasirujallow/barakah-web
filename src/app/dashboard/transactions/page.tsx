@@ -115,11 +115,13 @@ export default function TransactionsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const amt = parseFloat(form.amount);
+      if (!amt || amt <= 0) { alert('Transaction amount must be greater than zero'); setSaving(false); return; }
       if (editTx) {
-        await api.updateTransaction(editTx.id, { ...form, amount: parseFloat(form.amount) });
+        await api.updateTransaction(editTx.id, { ...form, amount: amt });
         toast('Transaction updated', 'success');
       } else {
-        await api.addTransaction({ ...form, amount: parseFloat(form.amount) });
+        await api.addTransaction({ ...form, amount: amt });
         toast('Transaction added', 'success');
       }
       setShowForm(false);
