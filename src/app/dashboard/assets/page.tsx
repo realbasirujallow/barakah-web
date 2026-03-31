@@ -160,6 +160,7 @@ export default function AssetsPage() {
     try {
       const result = await api.deleteAsset(id);
       if (result?.error) throw new Error(result.error);
+      alert('Asset deleted successfully');
       load();
     } catch (err: any) {
       logError(err, { context: 'Failed to delete asset' });
