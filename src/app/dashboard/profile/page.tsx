@@ -278,6 +278,7 @@ export default function ProfilePage() {
                 onChange={e => setPwForm({ ...pwForm, currentPassword: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 pr-10 text-gray-900"
                 placeholder="Your current password"
+                autoComplete="current-password"
               />
               <button
                 type="button"
@@ -297,6 +298,7 @@ export default function ProfilePage() {
                 onChange={e => setPwForm({ ...pwForm, newPassword: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 pr-10 text-gray-900"
                 placeholder="At least 8 characters"
+                autoComplete="new-password"
               />
               <button
                 type="button"
@@ -315,6 +317,7 @@ export default function ProfilePage() {
               onChange={e => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
               className="w-full border rounded-lg px-3 py-2 text-gray-900"
               placeholder="Repeat new password"
+              autoComplete="new-password"
             />
             {pwForm.confirmPassword && pwForm.newPassword !== pwForm.confirmPassword && (
               <p className="text-xs text-red-500 mt-1">Passwords do not match.</p>
