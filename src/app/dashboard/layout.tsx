@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, ReactNode, useState, useMemo } from 'react';
 import { ToastProvider } from '../../lib/toast';
+import { toHijri } from '../../lib/format';
 import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
 
@@ -82,7 +83,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const hijriDate = useMemo(() => {
     try {
-      return new Intl.DateTimeFormat('en-u-ca-islamic', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+      const hijri = toHijri(new Date());
+      return `${hijri.day} ${hijri.monthName} ${hijri.year}`;
     } catch {
       return '';
     }

@@ -1,34 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { fmt } from '../../../lib/format';
+import { fmt, toHijri } from '../../../lib/format';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 
-/* ── Hijri date calculation (simple approximation) ──────────────────
-   Uses the Kuwaiti algorithm which is accurate to ±1 day.
-   For production a library like hijri-date-new is preferable,
-   but this keeps the bundle zero-dependency.                         */
-function toHijri(date: Date): { year: number; month: number; day: number; monthName: string } {
-  const HIJRI_MONTHS = [
-    'Muharram', 'Safar', "Rabi' al-Awwal", "Rabi' al-Thani",
-    'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', "Sha'ban",
-    'Ramadan', 'Shawwal', "Dhu al-Qi'dah", 'Dhu al-Hijjah',
-  ];
-  // JD number
-  const jd = Math.floor((date.getTime() / 86400000) + 2440587.5);
-  const l  = jd - 1948440 + 10632;
-  const n  = Math.floor((l - 1) / 10631);
-  const ll = l - 10631 * n + 354;
-  const j  = Math.floor((10985 - ll) / 5316) * Math.floor((50 * ll) / 17719)
-           + Math.floor(ll / 5670) * Math.floor((43 * ll) / 15238);
-  const ll2 = ll - Math.floor((30 - j) / 15) * Math.floor((17719 * j) / 50)
-            - Math.floor(j / 16) * Math.floor((15238 * j) / 43) + 29;
-  const month = Math.floor((24 * ll2) / 709);
-  const day   = ll2 - Math.floor((709 * month) / 24);
-  const year  = 30 * n + j - 30;
-  return { year, month: month + 1, day, monthName: HIJRI_MONTHS[month] ?? '' };
-}
+/* ── Hijri date calculation ──────────────────────────────────────────
+   Uses the Kuwaiti algorithm (imported from format.ts for consistency).
+   Accurate to ±1 day.                                                  */
 
 /* ── Ramadan dates (Gregorian approximations for 2024–2030) ─────── */
 const RAMADAN_DATES: Record<number, { start: string; end: string }> = {

@@ -68,6 +68,7 @@ export default function TransactionsPage() {
   const [selectMode, setSelectMode] = useState(false);
   const [selectAllPages, setSelectAllPages] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ type: 'single' | 'bulk'; id?: number; count?: number } | null>(null);
 
   const { currency: preferredCurrency, fmt } = useCurrency();
 
@@ -115,7 +116,11 @@ export default function TransactionsPage() {
     setSaving(true);
     try {
       const amt = parseFloat(form.amount);
-      if (!amt || amt <= 0) { alert('Transaction amount must be greater than zero'); setSaving(false); return; }
+      if (!amt || amt <= 0) {
+        toast('Transaction amount must be greater than zero', 'error');
+        setSaving(false);
+        return;
+      }
       if (editTx) {
         await api.updateTransaction(editTx.id, { ...form, amount: amt });
         toast('Transaction updated', 'success');
@@ -127,14 +132,21 @@ export default function TransactionsPage() {
       setEditTx(null);
       setForm({ type: 'expense', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD' });
       load();
-    } catch {
-      toast(editTx ? 'Failed to update transaction' : 'Failed to add transaction', 'error');
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : (editTx ? 'Failed to update transaction' : 'Failed to add transaction');
+      toast(errorMsg, 'error');
     }
     setSaving(false);
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Delete this transaction?')) return;
+    setDeleteConfirmation({ type: 'single', id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation || deleteConfirmation.type !== 'single' || deleteConfirmation.id === undefined) return;
+    const id = deleteConfirmation.id;
+    setDeleteConfirmation(null);
     try {
       await api.deleteTransaction(id);
       toast('Transaction deleted', 'success');
@@ -179,11 +191,14 @@ export default function TransactionsPage() {
   const handleBulkDelete = async () => {
     const count = selectAllPages ? totalElements : selectedIds.size;
     if (count === 0) return;
+    setDeleteConfirmation({ type: 'bulk', count });
+  };
+
+  const confirmBulkDelete = async () => {
+    if (!deleteConfirmation || deleteConfirmation.type !== 'bulk') return;
+    const count = deleteConfirmation.count ?? 0;
     const noun = count === 1 ? 'transaction' : 'transactions';
-    const scope = selectAllPages
-      ? `ALL ${totalElements} transaction${totalElements !== 1 ? 's' : ''} (across all pages)`
-      : `${count} selected ${noun}`;
-    if (!confirm(`Delete ${scope}? This cannot be undone.`)) return;
+    setDeleteConfirmation(null);
     setBulkDeleting(true);
     try {
       if (selectAllPages) {
@@ -428,6 +443,45 @@ export default function TransactionsPage() {
               <button onClick={handleSave} disabled={saving || !form.amount}
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
                 {saving ? 'Saving...' : (editTx ? 'Save Changes' : 'Add')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete confirmation modal ─────────────────────────────────────── */}
+      {deleteConfirmation && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <div className="flex items-start gap-3 mb-4">
+              <span className="text-2xl">🗑️</span>
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900">Delete transaction?</h3>
+                {deleteConfirmation.type === 'single' && (
+                  <p className="text-sm text-gray-600 mt-1">This transaction will be permanently deleted and cannot be undone.</p>
+                )}
+                {deleteConfirmation.type === 'bulk' && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    {selectAllPages
+                      ? `This will permanently delete ALL ${totalElements} transaction${totalElements !== 1 ? 's' : ''} across all pages and cannot be undone.`
+                      : `This will permanently delete ${deleteConfirmation.count} selected transaction${(deleteConfirmation.count ?? 0) > 1 ? 's' : ''} and cannot be undone.`}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirmation(null)}
+                className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={deleteConfirmation.type === 'single' ? confirmDelete : confirmBulkDelete}
+                disabled={bulkDeleting}
+                className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700 disabled:opacity-50 font-medium"
+              >
+                {bulkDeleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>

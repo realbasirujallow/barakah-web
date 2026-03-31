@@ -181,8 +181,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(REFRESH_TS_KEY);
     setUser(null);
-    const query = reason ? `?reason=${reason}` : '';
-    routerRef.current.push(`/login${query}`);
+    // Always redirect to /login (no reason query param shown to user)
+    routerRef.current.push('/login');
   };
 
   /** Refresh plan info from the server (call after a Stripe payment or upgrade). */
