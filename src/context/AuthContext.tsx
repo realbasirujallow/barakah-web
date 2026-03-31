@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return u;
     };
 
-    const lastRefreshTs = parseInt(localStorage.getItem(REFRESH_TS_KEY) || '0', 10);
+    const lastRefreshTs = parseInt(localStorage.getItem(REFRESH_TS_KEY) || '0', 10) || 0;
     const secondsSinceRefresh = (Date.now() - lastRefreshTs) / 1000;
 
     if (secondsSinceRefresh < REFRESH_GUARD_SECONDS) {
@@ -143,6 +143,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run ONCE on mount only.
+
+  // Sync logout across browser tabs via storage events.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === USER_KEY && e.newValue === null) {
+        setUser(null);
+        routerRef.current.push('/login?reason=expired');
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   const login = async (email: string, password: string) => {
     const data = await api.login(email, password);

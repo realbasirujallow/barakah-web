@@ -136,6 +136,7 @@ export default function TransactionsPage() {
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this transaction?')) return;
     await api.deleteTransaction(id).catch(() => toast('Failed to delete transaction', 'error'));
+    setPage(0);
     load();
   };
 
