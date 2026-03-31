@@ -126,8 +126,7 @@ export default function PrayerTimesPage() {
         }
         setSuggestions(results);
         setShowSuggestions(results.length > 0);
-      } catch (e) {
-        console.error('Failed to fetch city suggestions:', e);
+      } catch {
         setSuggestions([]);
       } finally {
         setLoadingSuggestions(false);

@@ -84,10 +84,10 @@ const securityHeaders = [
     value: "strict-origin-when-cross-origin",
   },
   // Allow camera/mic only if the user explicitly grants permission;
-  // disable geolocation (not needed by Barakah)
+  // geolocation allowed for prayer-times page (requires self permission)
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=()",
+    value: "camera=(), microphone=(), geolocation=(self)",
   },
 ];
 

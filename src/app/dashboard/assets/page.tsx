@@ -371,6 +371,7 @@ export default function AssetsPage() {
                     style={{ border: 0 }}
                     loading="lazy"
                     allowFullScreen
+                    sandbox="allow-scripts allow-same-origin"
                     src={mapsUrl(a.address)}
                   />
                 </div>
@@ -417,6 +418,7 @@ export default function AssetsPage() {
                     <div className="mt-2 rounded-lg overflow-hidden border">
                       <iframe
                         width="100%" height="180" style={{ border: 0 }} loading="lazy" allowFullScreen
+                        sandbox="allow-scripts allow-same-origin"
                         src={mapsUrl(form.address)}
                       />
                     </div>
