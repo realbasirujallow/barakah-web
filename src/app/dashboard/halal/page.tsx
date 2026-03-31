@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
+import { useToast } from '../../../lib/toast';
 
 interface HalalResult { symbol: string; name: string; isHalal: boolean; reason: string; sector: string; debtRatio?: number; }
 interface StockStats { totalStocks: number; halalCount: number; haramCount: number; sectorCount: number; }
@@ -9,6 +10,8 @@ interface StockStats { totalStocks: number; halalCount: number; haramCount: numb
 const PAGE_SIZE = 50;
 
 export default function HalalPage() {
+  const { toast } = useToast();
+
   // Single stock check
   const [symbol, setSymbol] = useState('');
   const [result, setResult] = useState<{ symbol: string; name: string; status: string; reason: string; sector: string; debtRatio?: number } | null>(null);
@@ -38,8 +41,8 @@ export default function HalalPage() {
 
   // Load stats and sectors on mount
   useEffect(() => {
-    api.getHalalStats().then(setStats).catch(() => {});
-    api.getHalalSectors().then((d: { sectors: { sector: string; count: number }[] }) => setSectors(d?.sectors || [])).catch(() => {});
+    api.getHalalStats().then(setStats).catch(() => toast('Failed to load halal stats', 'error'));
+    api.getHalalSectors().then((d: { sectors: { sector: string; count: number }[] }) => setSectors(d?.sectors || [])).catch(() => toast('Failed to load sectors', 'error'));
   }, []);
 
   // Fetch stocks when filters or page change
