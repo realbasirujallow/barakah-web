@@ -31,7 +31,7 @@ export default function ReferralPage() {
     navigator.clipboard.writeText(data.shareUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    }).catch(() => {});
   };
 
   const shareNative = () => {

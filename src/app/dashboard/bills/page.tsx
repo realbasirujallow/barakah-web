@@ -77,7 +77,11 @@ export default function BillsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = { ...form, amount: parseFloat(form.amount), dueDay: parseInt(form.dueDay) };
+      const amt = parseFloat(form.amount);
+      if (!amt || amt <= 0) { alert('Bill amount must be greater than zero'); setSaving(false); return; }
+      const day = parseInt(form.dueDay);
+      if (isNaN(day) || day < 1 || day > 31) { alert('Due day must be between 1 and 31'); setSaving(false); return; }
+      const payload = { ...form, amount: amt, dueDay: day };
       if (editBill) {
         await api.updateBill(editBill.id, payload);
         toast('Bill updated', 'success');

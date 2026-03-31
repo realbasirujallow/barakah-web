@@ -46,7 +46,9 @@ export default function WasiyyahPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.addWasiyyah({ ...form, sharePercentage: parseFloat(form.sharePercentage) });
+      const share = parseFloat(form.sharePercentage);
+      if (!share || share <= 0 || share > 33.33) { alert('Share percentage must be > 0 and <= 33.33%'); setSaving(false); return; }
+      await api.addWasiyyah({ ...form, sharePercentage: share });
       setShowForm(false);
       setForm({ beneficiaryName: '', relationship: '', sharePercentage: '', shareType: 'percentage', notes: '' });
       load(); toast('Beneficiary added', 'success');
@@ -63,9 +65,11 @@ export default function WasiyyahPage() {
   const handleObSave = async () => {
     setSaving(true);
     try {
+      const obAmt = parseFloat(obForm.amount);
+      if (!obAmt || obAmt <= 0) { alert('Obligation amount must be greater than zero'); setSaving(false); return; }
       await api.addWasiyyahObligation({
         ...obForm,
-        amount: parseFloat(obForm.amount),
+        amount: obAmt,
       });
       setShowObForm(false);
       setObForm({ type: 'ZAKAT', amount: '', currency: 'USD', description: '', recipient: '', notes: '' });
