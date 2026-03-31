@@ -57,7 +57,13 @@ function SadaqahContent() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this record?')) return;
-    await api.deleteSadaqah(id).catch(() => { toast('Failed to delete record', 'error'); }); load();
+    try {
+      await api.deleteSadaqah(id);
+      toast('Sadaqah record deleted', 'success');
+      load();
+    } catch {
+      toast('Failed to delete record', 'error');
+    }
   };
 
   const handleDonate = async () => {

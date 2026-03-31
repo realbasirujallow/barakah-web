@@ -58,8 +58,13 @@ export default function WasiyyahPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Remove this beneficiary?')) return;
-    await api.deleteWasiyyah(id).catch(() => toast('Failed to remove', 'error'));
-    load();
+    try {
+      await api.deleteWasiyyah(id);
+      toast('Beneficiary removed', 'success');
+      load();
+    } catch {
+      toast('Failed to remove beneficiary', 'error');
+    }
   };
 
   const handleObSave = async () => {
@@ -80,8 +85,13 @@ export default function WasiyyahPage() {
 
   const handleObDelete = async (id: number) => {
     if (!confirm('Remove this obligation?')) return;
-    await api.deleteWasiyyahObligation(id).catch(() => toast('Failed to remove', 'error'));
-    load();
+    try {
+      await api.deleteWasiyyahObligation(id);
+      toast('Obligation removed', 'success');
+      load();
+    } catch {
+      toast('Failed to remove obligation', 'error');
+    }
   };
 
   const markFulfilled = async (ob: Obligation) => {

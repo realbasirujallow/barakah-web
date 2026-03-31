@@ -107,8 +107,13 @@ export default function BillsPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this bill?')) return;
-    await api.deleteBill(id).catch(() => toast('Failed to delete bill', 'error'));
-    load();
+    try {
+      await api.deleteBill(id);
+      toast('Bill deleted', 'success');
+      load();
+    } catch {
+      toast('Failed to delete bill', 'error');
+    }
   };
 
   if (loading) return (

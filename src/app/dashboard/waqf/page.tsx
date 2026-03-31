@@ -76,8 +76,13 @@ export default function WaqfPage() {
   };
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this contribution?')) return;
-    await api.deleteWaqf(id).catch(() => toast('Failed to delete contribution', 'error'));
-    loadItems();
+    try {
+      await api.deleteWaqf(id);
+      toast('Waqf contribution deleted', 'success');
+      loadItems();
+    } catch {
+      toast('Failed to delete contribution', 'error');
+    }
   };
 
   const openAddBenef = () => { setEditBenef(null); setBenefForm({ name: '', category: 'general', percentage: '', contact: '', notes: '' }); setShowBenefForm(true); };
@@ -99,8 +104,13 @@ export default function WaqfPage() {
   };
   const handleDeleteBenef = async (id: number) => {
     if (!confirm('Remove this beneficiary?')) return;
-    await api.deleteWaqfBeneficiary(id).catch(() => toast('Failed to delete', 'error'));
-    loadDistribution();
+    try {
+      await api.deleteWaqfBeneficiary(id);
+      toast('Beneficiary removed', 'success');
+      loadDistribution();
+    } catch {
+      toast('Failed to delete beneficiary', 'error');
+    }
   };
 
   const totalContribs = items.reduce((s, i) => s + i.amount, 0);
