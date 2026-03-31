@@ -117,6 +117,7 @@ export default function HalalPage() {
             onKeyDown={e => e.key === 'Enter' && handleCheck()}
             className="flex-1 border rounded-lg px-4 py-2 text-gray-900 text-lg"
             placeholder="Enter ticker (e.g. AAPL, MSFT, TSLA)"
+            aria-label="Stock ticker symbol"
           />
           <button
             onClick={handleCheck}
@@ -178,6 +179,7 @@ export default function HalalPage() {
             onChange={e => setSearch(e.target.value)}
             className="flex-1 border rounded-lg px-4 py-2 text-gray-900"
             placeholder="Search by ticker, name, or sector..."
+            aria-label="Search stocks"
           />
           <select
             value={sector}
