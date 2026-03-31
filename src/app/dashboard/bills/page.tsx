@@ -38,7 +38,9 @@ function getDaysUntilDue(bill: BillItem): number | null {
 
 function formatDueDate(bill: BillItem): string {
   if (!bill.nextDueDate) return `Day ${bill.dueDay}`;
-  return new Date(bill.nextDueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  // Add 1 day to correct for backend off-by-one error in nextDueDate calculation
+  const correctedDate = new Date(bill.nextDueDate + 86400000);
+  return correctedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 const emptyForm = { name: '', category: 'utilities', amount: '', frequency: 'monthly', dueDay: '1' };
@@ -50,6 +52,7 @@ export default function BillsPage() {
   const [editBill, setEditBill]     = useState<BillItem | null>(null);
   const [form, setForm]             = useState(emptyForm);
   const [saving, setSaving]         = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<number | null>(null);
   const { toast } = useToast();
 
   const load = () => {
@@ -106,7 +109,13 @@ export default function BillsPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Delete this bill?')) return;
+    setDeleteConfirmation(id);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirmation === null) return;
+    const id = deleteConfirmation;
+    setDeleteConfirmation(null);
     try {
       await api.deleteBill(id);
       toast('Bill deleted', 'success');
@@ -333,6 +342,37 @@ export default function BillsPage() {
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
               >
                 {saving ? 'Saving...' : (editBill ? 'Save Changes' : 'Add Bill')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete confirmation modal ─────────────────────────────────────── */}
+      {deleteConfirmation !== null && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <div className="flex items-start gap-3 mb-4">
+              <span className="text-2xl">🗑️</span>
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900">Delete bill?</h3>
+                <p className="text-sm text-gray-600 mt-1">This bill will be permanently deleted and cannot be undone.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmation(null)}
+                className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700 font-medium"
+              >
+                Delete
               </button>
             </div>
           </div>
