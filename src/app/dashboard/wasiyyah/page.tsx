@@ -113,6 +113,21 @@ export default function WasiyyahPage() {
 
   return (
     <div>
+      {/* Estate Sharing Banner */}
+      <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+        <span className="text-xl">👨‍👩‍👧‍👦</span>
+        <div className="flex-1">
+          <p className="text-sm text-green-800 font-medium">Share your Wasiyyah with family</p>
+          <p className="text-xs text-green-600 mt-1">
+            Family plan members can view each other&apos;s wills and estate plans through Shared Finances.
+            Your sharing is currently managed in the Estate tab.
+          </p>
+        </div>
+        <a href="/dashboard/shared" className="text-xs text-[#1B5E20] font-semibold hover:underline whitespace-nowrap self-center">
+          Go to Shared Finances &rarr;
+        </a>
+      </div>
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Wasiyyah (Islamic Will)</h1>
         <div className="flex gap-2">
