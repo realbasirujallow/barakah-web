@@ -14,7 +14,7 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   signup: (name: string, email: string, password: string, state: string, referralCode?: string) => Promise<void>;
   logout: (reason?: 'logout' | 'deleted') => Promise<void>;
   isLoading: boolean;
@@ -209,8 +209,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const data = await api.login(email, password);
+  const login = async (email: string, password: string, rememberMe?: boolean) => {
+    const data = await api.login(email, password, rememberMe);
     const profile: User = {
       id: String(data.userId ?? data.id ?? email),
       name: data.fullName ?? data.name ?? email,
