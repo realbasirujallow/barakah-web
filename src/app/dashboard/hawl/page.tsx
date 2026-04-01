@@ -17,6 +17,7 @@ export default function HawlPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ assetName: '', assetType: 'cash', amount: '', nisabThreshold: '5000' });
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const load = () => {
@@ -64,11 +65,15 @@ export default function HawlPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this tracker?')) return;
+    setDeletingId(id);
     try {
       await api.deleteHawl(id);
-      load();
+      toast('Tracker deleted', 'success');
     } catch {
       toast('Failed to delete tracker', 'error');
+    } finally {
+      setDeletingId(null);
+      load();
     }
   };
 
@@ -123,7 +128,7 @@ export default function HawlPage() {
                   <p className="text-lg font-bold text-amber-600">{fmt(item.zakatAmount)}</p>
                   <button type="button" onClick={() => handleMarkPaid(item.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm">Paid</button>
                   <button type="button" onClick={() => handleReset(item.id)} className="text-blue-600 hover:text-blue-800 text-sm" title="Reset Hawl cycle">↻</button>
-                  <button type="button" onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                  <button type="button" onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === item.id ? 'Deleting...' : 'Del'}</button>
                 </div>
               </div>
             ))}
@@ -152,7 +157,7 @@ export default function HawlPage() {
                     <div className="flex items-center gap-2">
                       <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{daysLeft}d left</span>
                       <button type="button" onClick={() => handleReset(item.id)} className="text-blue-600 hover:text-blue-800 text-sm" title="Reset Hawl cycle">↻</button>
-                      <button type="button" onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                      <button type="button" onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === item.id ? 'Deleting...' : 'Del'}</button>
                     </div>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-[#1B5E20] h-2 rounded-full" style={{ width: `${pct}%` }} /></div>

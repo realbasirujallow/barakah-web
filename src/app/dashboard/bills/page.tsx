@@ -52,6 +52,7 @@ export default function BillsPage() {
   const [form, setForm]             = useState(emptyForm);
   const [saving, setSaving]         = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const load = () => {
@@ -121,12 +122,15 @@ export default function BillsPage() {
     if (deleteConfirmation === null) return;
     const id = deleteConfirmation;
     setDeleteConfirmation(null);
+    setDeletingId(id);
     try {
       await api.deleteBill(id);
       toast('Bill deleted', 'success');
-      load();
     } catch {
       toast('Failed to delete bill', 'error');
+    } finally {
+      setDeletingId(null);
+      load();
     }
   };
 
@@ -202,7 +206,7 @@ export default function BillsPage() {
             </button>
           )}
           <button type="button" onClick={() => openEdit(b)} className="text-gray-400 hover:text-[#1B5E20] text-sm px-1">✏️</button>
-          <button type="button" onClick={() => handleDelete(b.id)} className="text-gray-400 hover:text-red-600 text-sm px-1">🗑️</button>
+          <button type="button" onClick={() => handleDelete(b.id)} disabled={deletingId === b.id} className="text-gray-400 hover:text-red-600 text-sm px-1 disabled:opacity-50" title={deletingId === b.id ? 'Deleting...' : 'Delete'}>{deletingId === b.id ? '⏳' : '🗑️'}</button>
         </div>
       </div>
     );
@@ -375,9 +379,10 @@ export default function BillsPage() {
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700 font-medium"
+                disabled={deletingId === deleteConfirmation}
+                className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700 font-medium disabled:opacity-50"
               >
-                Delete
+                {deletingId === deleteConfirmation ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
