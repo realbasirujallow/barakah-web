@@ -54,7 +54,7 @@ const PLANS = [
       'Everything in Plus',
       'Up to 6 family members',
       'Shared budgets & goals',
-      'Family Estate Sharing (Waqf & Wasiyyah)',
+      'Family Estate Visibility (wills & endowments)',
       'Family financial summary',
       'Shared expense splitting',
       'Priority support',
