@@ -1,16 +1,16 @@
 import type { NextConfig } from "next";
 
-// ── Build-time environment validation ──────────────────────────────────
-// Fail fast if critical server-side env vars are missing in production.
-if (process.env.NODE_ENV === 'production') {
-  const required = ['BACKEND_URL'];
-  const missing = required.filter((key) => !process.env[key]);
-  if (missing.length > 0) {
-    throw new Error(
-      `Missing required env vars in production: ${missing.join(', ')}. ` +
-      `Set these in your deployment configuration.`
-    );
-  }
+// ── Environment validation ─────────────────────────────────────────────
+// Warn (but don't crash) if BACKEND_URL is unset during the build step —
+// Railway injects env vars at runtime, so the build image may not have
+// them yet.  The fallback on line 18 (`https://api.trybarakah.com`) keeps
+// the build working; the rewrites will resolve correctly at runtime once
+// the var is injected.
+if (process.env.NODE_ENV === 'production' && !process.env.BACKEND_URL) {
+  console.warn(
+    '⚠️  BACKEND_URL is not set — falling back to https://api.trybarakah.com. ' +
+    'Set BACKEND_URL in your deployment configuration for explicit control.'
+  );
 }
 
 // Backend URL used by the rewrite proxy. Set BACKEND_URL (server-side) or
