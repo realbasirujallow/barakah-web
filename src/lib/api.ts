@@ -615,6 +615,7 @@ export const api = {
     apiFetch(`/admin/users/${userId}/grant-trial`, { method: 'POST', body: JSON.stringify({ plan, durationDays, sendEmail }) }, API_TIMEOUT, true),
   getAdminAnalytics: () => apiFetch('/admin/analytics', {}, API_TIMEOUT, true),
   getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
+  getAdminOverview: () => apiFetch('/admin/overview', {}, API_TIMEOUT, true),
 
   // Exports
   downloadTransactionsCsv: () =>
