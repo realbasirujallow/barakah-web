@@ -119,10 +119,23 @@ export default function DebtsPage() {
     setSaving(true); setSaveError(null);
     try {
       const totalAmt = parseFloat(form.totalAmount);
-      if (!totalAmt || totalAmt <= 0) { alert('Total amount must be greater than zero'); setSaving(false); return; }
+      // Validate total amount: must be finite and positive
+      if (!Number.isFinite(totalAmt) || totalAmt <= 0) { alert('Total amount must be a positive number'); setSaving(false); return; }
+      const MAX_VALUE = 1_000_000_000; // 1 billion max
+      if (totalAmt > MAX_VALUE) { alert(`Debt amount cannot exceed $${MAX_VALUE.toLocaleString()}`); setSaving(false); return; }
+      // Check decimal precision (max 2 decimal places for currency)
+      if (!/^\d+(\.\d{1,2})?$/.test(form.totalAmount.trim())) {
+        alert('Please enter an amount with up to 2 decimal places');
+        setSaving(false);
+        return;
+      }
       const monthlyPay = parseFloat(form.monthlyPayment || '0');
-      if (monthlyPay < 0) { alert('Monthly payment cannot be negative'); setSaving(false); return; }
-      const payload = { ...form, totalAmount: totalAmt, remainingAmount: parseFloat(form.remainingAmount || form.totalAmount), monthlyPayment: monthlyPay, interestRate: parseFloat(form.interestRate), ribaFree: isHalal };
+      if (!Number.isFinite(monthlyPay) || monthlyPay < 0) { alert('Monthly payment must be a non-negative number'); setSaving(false); return; }
+      const remainingAmt = parseFloat(form.remainingAmount || form.totalAmount);
+      if (!Number.isFinite(remainingAmt) || remainingAmt < 0) { alert('Remaining amount must be non-negative'); setSaving(false); return; }
+      const intRate = parseFloat(form.interestRate || '0');
+      if (!Number.isFinite(intRate) || intRate < 0) { alert('Interest rate must be non-negative'); setSaving(false); return; }
+      const payload = { ...form, totalAmount: totalAmt, remainingAmount: remainingAmt, monthlyPayment: monthlyPay, interestRate: intRate, ribaFree: isHalal };
       const result = editDebt ? await api.updateDebt(editDebt.id, payload) : await api.addDebt(payload);
       if (result?.error) throw new Error(result.error);
       setShowForm(false); setForm(emptyForm); load();

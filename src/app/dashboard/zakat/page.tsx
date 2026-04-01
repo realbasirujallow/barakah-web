@@ -6,6 +6,52 @@ import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 import { safeParse, safeParseWithFallback, validateZakatCalculation, validateZakatPaymentsResponse, validateNisabInfo, formatTimeAgo } from '../../../lib/schemas';
 
+interface ZakatCalculation {
+  zakatDue?: number;
+  zakatRemaining?: number;
+  zakatEligible?: boolean;
+  effectiveZakatAmount?: number;
+  currentLunarYear?: number;
+  error?: string;
+}
+
+interface ZakatPayment {
+  id?: number;
+  amount: number;
+  recipient?: string;
+  notes?: string;
+  lunarYear?: number;
+}
+
+interface ZakatPaymentResponse {
+  payments?: ZakatPayment[];
+  error?: string;
+}
+
+interface NisabInfo {
+  goldPricePerGram?: number;
+  staleWarning?: boolean;
+  priceAgeMs?: number;
+}
+
+interface NisabMethodology {
+  id?: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
+interface FitrData {
+  [key: string]: unknown;
+}
+
+// Safe localStorage helpers
+const safeGetItem = (key: string): string | null => {
+  try { return localStorage.getItem(key); } catch { return null; }
+};
+const safeSetItem = (key: string, value: string): void => {
+  try { localStorage.setItem(key, value); } catch { /* private browsing or quota exceeded */ }
+};
+
 /** Compute current Hijri year from today's date using the Umm al-Qura calendar. */
 function computeHijriYear(): number {
   const hijri = toHijri(new Date());
@@ -14,8 +60,8 @@ function computeHijriYear(): number {
 
 export default function ZakatPage() {
   const { toast } = useToast();
-  const [data, setData] = useState<Record<string, unknown> | null>(null);
-  const [payments, setPayments] = useState<Record<string, unknown>[]>([]);
+  const [data, setData] = useState<ZakatCalculation | null>(null);
+  const [payments, setPayments] = useState<ZakatPayment[]>([]);
   const [totalPaid, setTotalPaid] = useState(0);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'calculator' | 'assets' | 'payments' | 'fitr' | 'references'>('calculator');
@@ -25,17 +71,17 @@ export default function ZakatPage() {
   const [showMabrook, setShowMabrook] = useState(false);
   const [form, setForm] = useState({ amount: '', recipient: '', notes: '' });
   const [hideZakat, setHideZakat] = useState(false);
-  const [nisabInfo, setNisabInfo] = useState<{ goldPricePerGram?: number; staleWarning?: boolean; priceAgeMs?: number } | null>(null);
+  const [nisabInfo, setNisabInfo] = useState<NisabInfo | null>(null);
   const [checklist, setChecklist] = useState({ wealth: false, hawl: false, debts: false, quranic: false });
 
   // FEATURE 1: Multi-Madhab Nisab Selector
-  const [nisabMethodologies, setNisabMethodologies] = useState<Record<string, unknown>[]>([]);
+  const [nisabMethodologies, setNisabMethodologies] = useState<NisabMethodology[]>([]);
   const [selectedMethodology, setSelectedMethodology] = useState('AMJA_GOLD');
   const [savingMethodology, setSavingMethodology] = useState(false);
 
   // FEATURE 2: Zakat al-Fitr
   const [householdSize, setHouseholdSize] = useState(1);
-  const [fitrData, setFitrData] = useState<Record<string, unknown> | null>(null);
+  const [fitrData, setFitrData] = useState<FitrData | null>(null);
   const [loadingFitr, setLoadingFitr] = useState(false);
 
   // FEATURE 3: PDF Export
@@ -65,13 +111,13 @@ export default function ZakatPage() {
   const lunarYear: number = (data?.currentLunarYear as number) || computeHijriYear();
 
   useEffect(() => {
-    setHideZakat(localStorage.getItem('hideZakat') === 'true');
+    setHideZakat(safeGetItem('hideZakat') === 'true');
   }, []);
 
   const toggleHideZakat = () => {
     const next = !hideZakat;
     setHideZakat(next);
-    localStorage.setItem('hideZakat', next ? 'true' : 'false');
+    safeSetItem('hideZakat', next ? 'true' : 'false');
   };
 
   const loadNisabMethodologies = async () => {
@@ -160,12 +206,12 @@ export default function ZakatPage() {
         setNisabMethodologies(methodologiesRaw);
       }
 
-      setData(zakatRaw as Record<string, unknown>);
+      setData(zakatRaw as ZakatCalculation);
 
       // Filter payments to current lunar year
       const year = (zakatRaw?.currentLunarYear as number) || computeHijriYear();
       const filtered = (paymentsValidated?.payments || []).filter(p => !p.lunarYear || p.lunarYear === year);
-      setPayments(filtered.map(p => ({ ...p })) as Record<string, unknown>[]);
+      setPayments(filtered);
       setTotalPaid(filtered.reduce((s: number, p) => s + (p.amount || 0), 0));
     } catch (err) {
       logError(err, { context: 'Failed to load zakat data' });

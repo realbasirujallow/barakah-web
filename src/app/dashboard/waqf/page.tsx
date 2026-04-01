@@ -72,8 +72,30 @@ export default function WaqfPage() {
   const handleSave = async () => {
     setSaving(true);
     const amt = parseFloat(form.amount);
-    if (!form.organizationName.trim()) { toast('Please enter an organization name', 'error'); setSaving(false); return; }
-    if (!amt || amt <= 0) { toast('Amount must be greater than zero', 'error'); setSaving(false); return; }
+    // Validate organization name
+    if (!form.organizationName.trim()) {
+      toast('Please enter an organization name', 'error');
+      setSaving(false);
+      return;
+    }
+    // Validate amount: must be finite and positive
+    if (!Number.isFinite(amt) || amt <= 0) {
+      toast('Amount must be a positive number', 'error');
+      setSaving(false);
+      return;
+    }
+    const MAX_VALUE = 1_000_000_000; // 1 billion max
+    if (amt > MAX_VALUE) {
+      toast(`Waqf amount cannot exceed $${MAX_VALUE.toLocaleString()}`, 'error');
+      setSaving(false);
+      return;
+    }
+    // Check decimal precision (max 2 decimal places)
+    if (!/^\d+(\.\d{1,2})?$/.test(form.amount.trim())) {
+      toast('Please enter an amount with up to 2 decimal places', 'error');
+      setSaving(false);
+      return;
+    }
     try {
       if (editItem) await api.updateWaqf(editItem.id, { ...form, amount: amt });
       else await api.addWaqf({ ...form, amount: amt });
@@ -102,9 +124,18 @@ export default function WaqfPage() {
   };
   const handleSaveBenef = async () => {
     setSavingBenef(true);
-    if (!benefForm.name.trim()) { toast('Please enter a beneficiary name', 'error'); setSavingBenef(false); return; }
+    if (!benefForm.name.trim()) {
+      toast('Please enter a beneficiary name', 'error');
+      setSavingBenef(false);
+      return;
+    }
     const pct = parseFloat(benefForm.percentage) || 0;
-    if (pct <= 0 || pct > 100) { toast('Percentage must be between 0 and 100', 'error'); setSavingBenef(false); return; }
+    // Validate percentage: must be finite, positive, and max 100
+    if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
+      toast('Percentage must be a number between 0 and 100', 'error');
+      setSavingBenef(false);
+      return;
+    }
     try {
       const payload = { ...benefForm, percentage: pct };
       if (editBenef) await api.updateWaqfBeneficiary(editBenef.id, payload);

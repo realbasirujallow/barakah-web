@@ -154,6 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const finalUser = planMissing ? await syncPlan(parsed!) : parsed!;
         setUser(finalUser);
       } else {
+        // Silent refresh failed (server returned !ok) — could be auth error or network issue
         try {
           localStorage.removeItem(USER_KEY);
           localStorage.removeItem(REFRESH_TS_KEY);
@@ -163,8 +164,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       }
       setIsLoading(false);
-    }).catch(() => {
-      // Network error on mount — keep stale profile for offline mode.
+    }).catch((err: unknown) => {
+      // Network error on mount (offline) — keep stale profile for offline mode.
+      // Log error for debugging: distinguish network errors from auth errors.
+      if (err instanceof Error) {
+        console.debug('Silent refresh error on mount:', {
+          message: err.message,
+          isNetworkError: err.message.includes('No connection') || err.message.includes('fetch'),
+        });
+      }
       setUser(parsed);
       setIsLoading(false);
     });
@@ -200,9 +208,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch { /* SSR safety */ }
       // Otherwise do a lightweight server check.
-      api.getProfile().catch(() => {
+      api.getProfile().catch((err: unknown) => {
         // Profile fetch failed (likely 401) — the global unauthorized
-        // handler will clean up and redirect.
+        // handler will clean up and redirect. Log for debugging.
+        if (err instanceof Error) {
+          console.debug('Profile check failed on visibility change:', { message: err.message });
+        }
       });
     };
     document.addEventListener('visibilitychange', onVisible);
@@ -230,9 +241,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async (reason?: 'logout' | 'deleted') => {
     _intentionalLogout = true;
-    try { await api.logout(); } catch { /* ignore network errors on logout */ }
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(REFRESH_TS_KEY);
+    try {
+      await api.logout();
+    } catch (err: unknown) {
+      // Ignore network errors on logout; log for debugging
+      if (err instanceof Error) {
+        console.debug('Logout API call failed (network error):', { message: err.message });
+      }
+    }
+    try {
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem(REFRESH_TS_KEY);
+    } catch {
+      // localStorage access failed
+    }
     setUser(null);
     const query = reason ? `?reason=${reason}` : '';
     routerRef.current.push(`/login${query}`);
@@ -244,10 +266,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await api.getProfile();
       if (data?.plan && user) {
         const updated: User = { ...user, plan: data.plan as User['plan'], planExpiresAt: data.planExpiresAt ?? null };
-        localStorage.setItem(USER_KEY, JSON.stringify(updated));
+        try {
+          localStorage.setItem(USER_KEY, JSON.stringify(updated));
+        } catch {
+          // localStorage access failed, but continue with state update
+        }
         setUser(updated);
       }
-    } catch { /* silent */ }
+    } catch (err: unknown) {
+      // Silent failure — could be offline or auth error
+      if (err instanceof Error) {
+        console.debug('Plan refresh failed:', { message: err.message });
+      }
+    }
   };
 
   return (

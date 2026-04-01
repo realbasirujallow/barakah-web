@@ -64,6 +64,14 @@ const DUAS = [
   { arabic: 'رَبَّنَا تَقَبَّلْ مِنَّا إِنَّكَ أَنتَ السَّمِيعُ الْعَلِيمُ', transliteration: 'Rabbana taqabbal minna innaka antas-Sami\'ul-\'Aleem', meaning: 'Our Lord, accept from us; indeed You are the All-Hearing, the All-Knowing' },
 ];
 
+// Safe localStorage helpers
+const safeGetItem = (key: string): string | null => {
+  try { return localStorage.getItem(key); } catch { return null; }
+};
+const safeSetItem = (key: string, value: string): void => {
+  try { localStorage.setItem(key, value); } catch { /* private browsing or quota exceeded */ }
+};
+
 export default function RamadanPage() {
   const [now, setNow]                   = useState(new Date());
   const [members, setMembers]           = useState(1);
@@ -118,16 +126,16 @@ export default function RamadanPage() {
         }
       } catch (err) {
         // Fall back to localStorage if offline
-        try {
-          const cached = localStorage.getItem('ramadan_goals');
-          if (cached) {
+        const cached = safeGetItem('ramadan_goals');
+        if (cached) {
+          try {
             const data = JSON.parse(cached);
             if (data.members) setMembers(data.members);
             if (data.fitrahPaid !== undefined) setFitrahPaid(data.fitrahPaid);
             if (data.fitrahPerPerson) setFitrahPerPerson(data.fitrahPerPerson);
+          } catch {
+            // Silent fail on localStorage parse error
           }
-        } catch {
-          // Silent fail on localStorage parse error
         }
       }
       setIsLoading(false);
@@ -137,20 +145,16 @@ export default function RamadanPage() {
 
   // Save to localStorage as cache
   useEffect(() => {
-    try {
-      localStorage.setItem('ramadan_goals', JSON.stringify({
-        members,
-        fitrahPaid,
-        fitrahPerPerson,
-        quranPages: budget.find(b => b.key === 'quran')?.allocated || 0,
-        fastingDays: budget.find(b => b.key === 'iftarguest')?.allocated || 0,
-        sadaqahTarget: budget.find(b => b.key === 'charity')?.allocated || 0,
-        extraPrayers: budget.find(b => b.key === 'itikaaf')?.allocated || 0,
-        notes: customGoal.label,
-      }));
-    } catch {
-      // Silent fail on localStorage write error
-    }
+    safeSetItem('ramadan_goals', JSON.stringify({
+      members,
+      fitrahPaid,
+      fitrahPerPerson,
+      quranPages: budget.find(b => b.key === 'quran')?.allocated || 0,
+      fastingDays: budget.find(b => b.key === 'iftarguest')?.allocated || 0,
+      sadaqahTarget: budget.find(b => b.key === 'charity')?.allocated || 0,
+      extraPrayers: budget.find(b => b.key === 'itikaaf')?.allocated || 0,
+      notes: customGoal.label,
+    }));
   }, [members, fitrahPaid, fitrahPerPerson, budget, customGoal]);
 
   // Save to server

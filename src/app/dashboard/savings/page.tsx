@@ -72,7 +72,24 @@ export default function SavingsPage() {
     if (!form.name.trim()) { toast('Please enter a goal name', 'error'); setSaving(false); return; }
     try {
       const target = parseFloat(form.targetAmount);
-      if (!target || target <= 0) { toast('Target amount must be greater than zero', 'error'); setSaving(false); return; }
+      // Validate target: must be finite and positive
+      if (!Number.isFinite(target) || target <= 0) {
+        toast('Target amount must be a positive number', 'error');
+        setSaving(false);
+        return;
+      }
+      const MAX_VALUE = 1_000_000_000; // 1 billion max
+      if (target > MAX_VALUE) {
+        toast(`Target amount cannot exceed $${MAX_VALUE.toLocaleString()}`, 'error');
+        setSaving(false);
+        return;
+      }
+      // Check decimal precision (max 2 decimal places)
+      if (!/^\d+(\.\d{1,2})?$/.test(form.targetAmount.trim())) {
+        toast('Please enter a target with up to 2 decimal places', 'error');
+        setSaving(false);
+        return;
+      }
       await api.addSavingsGoal({ ...form, name: form.name.trim(), targetAmount: target });
       setShowForm(false); setForm({ name: '', category: 'emergency', targetAmount: '', description: '' }); load();
       toast('Savings goal created', 'success');
@@ -85,7 +102,24 @@ export default function SavingsPage() {
     setSaving(true);
     try {
       const contrib = parseFloat(contAmount);
-      if (!contrib || contrib <= 0) { alert('Contribution amount must be greater than zero'); setSaving(false); return; }
+      // Validate contribution: must be finite and positive
+      if (!Number.isFinite(contrib) || contrib <= 0) {
+        alert('Contribution amount must be a positive number');
+        setSaving(false);
+        return;
+      }
+      const MAX_VALUE = 1_000_000_000; // 1 billion max
+      if (contrib > MAX_VALUE) {
+        alert(`Contribution cannot exceed $${MAX_VALUE.toLocaleString()}`);
+        setSaving(false);
+        return;
+      }
+      // Check decimal precision (max 2 decimal places)
+      if (!/^\d+(\.\d{1,2})?$/.test(contAmount.trim())) {
+        alert('Please enter an amount with up to 2 decimal places');
+        setSaving(false);
+        return;
+      }
       await api.contributeSavingsGoal(contModal.id, contrib);
       setContModal(null); setContAmount('');
       load(); // re-check milestones after contribution

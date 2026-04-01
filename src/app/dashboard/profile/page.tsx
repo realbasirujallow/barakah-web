@@ -69,17 +69,25 @@ export default function ProfilePage() {
   const [savingCurrency, setSavingCurrency] = useState(false);
   const [supportedCurrencies, setSupportedCurrencies] = useState<Array<{ code: string; name: string; symbol: string }>>([]);
 
+  // Safe localStorage helpers
+  const safeGetItem = (key: string): string | null => {
+    try { return localStorage.getItem(key); } catch { return null; }
+  };
+  const safeSetItem = (key: string, value: string): void => {
+    try { localStorage.setItem(key, value); } catch { /* private browsing or quota exceeded */ }
+  };
+
   // Dark mode
   const [darkMode, setDarkMode] = useState(false);
   useEffect(() => {
-    const stored = localStorage.getItem('barakah_dark_mode') === 'true';
+    const stored = safeGetItem('barakah_dark_mode') === 'true';
     setDarkMode(stored);
     document.documentElement.classList.toggle('dark', stored);
   }, []);
   const toggleDarkMode = () => {
     const next = !darkMode;
     setDarkMode(next);
-    localStorage.setItem('barakah_dark_mode', String(next));
+    safeSetItem('barakah_dark_mode', String(next));
     document.documentElement.classList.toggle('dark', next);
   };
 

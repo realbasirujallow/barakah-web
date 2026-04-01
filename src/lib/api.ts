@@ -502,7 +502,13 @@ export const api = {
     apiFetch(`/api/savings-goals/${id}`, { method: 'DELETE' }),
 
   // Halal Screening
-  checkHalal: (symbol: string) => apiFetch(`/api/halal/check/${symbol}`),
+  checkHalal: (symbol: string) => {
+    // Validate symbol: alphanumeric, max 10 chars
+    if (!symbol || !/^[A-Z0-9]{1,10}$/i.test(symbol.trim())) {
+      throw new Error('Invalid stock symbol. Use alphanumeric characters only, max 10 characters.');
+    }
+    return apiFetch(`/api/halal/check/${encodeURIComponent(symbol.trim())}`);
+  },
   getHalalStocks: (params?: { search?: string; sector?: string; compliance?: string; page?: number; size?: number }) => {
     const p = new URLSearchParams();
     if (params?.search) p.set('search', params.search);
@@ -525,8 +531,25 @@ export const api = {
 
   // Multi-currency
   getCurrencyRates: () => apiFetch('/api/currency/rates'),
-  convertCurrency: (from: string, to: string, amount: number) =>
-    apiFetch(`/api/currency/convert?from=${from}&to=${to}&amount=${amount}`),
+  convertCurrency: (from: string, to: string, amount: number) => {
+    // Validate currency codes: 3-letter uppercase codes
+    if (!from || !/^[A-Z]{3}$/.test(from.trim().toUpperCase())) {
+      throw new Error('Invalid source currency code. Use 3-letter uppercase codes (e.g., USD).');
+    }
+    if (!to || !/^[A-Z]{3}$/.test(to.trim().toUpperCase())) {
+      throw new Error('Invalid target currency code. Use 3-letter uppercase codes (e.g., EUR).');
+    }
+    // Validate amount: must be positive and finite
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error('Amount must be a positive number.');
+    }
+    const params = new URLSearchParams({
+      from: from.trim().toUpperCase(),
+      to: to.trim().toUpperCase(),
+      amount: String(amount),
+    });
+    return apiFetch(`/api/currency/convert?${params.toString()}`);
+  },
 
   // Push notifications — register FCM device token
   registerFcmToken: (token: string) =>

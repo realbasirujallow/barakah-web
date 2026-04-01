@@ -148,23 +148,56 @@ export default function AssetsPage() {
     setSaveError(null);
     try {
       const val = parseFloat(form.value);
+      // Validate asset value: must be finite, non-negative, and reasonable
       if (!Number.isFinite(val) || val < 0) {
         setSaveError('Please enter a valid positive number for value.');
         setSaving(false);
         return;
       }
+      const MAX_VALUE = 1_000_000_000; // 1 billion max
+      if (val > MAX_VALUE) {
+        setSaveError(`Asset value cannot exceed ${fmt(MAX_VALUE)}.`);
+        setSaving(false);
+        return;
+      }
+      // Check decimal precision (max 2 decimal places for currency)
+      if (!/^\d+(\.\d{1,2})?$/.test(form.value.trim())) {
+        setSaveError('Please enter a value with up to 2 decimal places.');
+        setSaving(false);
+        return;
+      }
+
       const data: Record<string, unknown> = {
         name: form.name.trim(), type: form.type, value: val,
         address: form.address?.trim() || null,
       };
       if (PENALTY_TAX_TYPES.includes(form.type)) {
-        if (form.penaltyRate) data.penaltyRate = parseFloat(form.penaltyRate) / 100;
-        if (form.taxRate) data.taxRate = parseFloat(form.taxRate) / 100;
+        if (form.penaltyRate) {
+          const penaltyVal = parseFloat(form.penaltyRate);
+          if (Number.isFinite(penaltyVal) && penaltyVal >= 0 && penaltyVal <= 100) {
+            data.penaltyRate = penaltyVal / 100;
+          }
+        }
+        if (form.taxRate) {
+          const taxVal = parseFloat(form.taxRate);
+          if (Number.isFinite(taxVal) && taxVal >= 0 && taxVal <= 100) {
+            data.taxRate = taxVal / 100;
+          }
+        }
       }
       // Investment types: only capital gains tax (no penalty)
       if (INVESTMENT_TYPES.includes(form.type)) {
         // Send 0 explicitly if blank (resets to default full-value zakat), or user-set rate
-        data.taxRate = form.taxRate ? parseFloat(form.taxRate) / 100 : 0;
+        if (form.taxRate) {
+          const taxVal = parseFloat(form.taxRate);
+          if (Number.isFinite(taxVal) && taxVal >= 0 && taxVal <= 100) {
+            data.taxRate = taxVal / 100;
+          } else {
+            data.taxRate = 0;
+          }
+        } else {
+          data.taxRate = 0;
+        }
       }
       let result;
       if (editItem) result = await api.updateAsset(editItem.id, data);
