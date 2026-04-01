@@ -42,17 +42,33 @@ export default function HawlPage() {
   };
 
   const handleMarkPaid = async (id: number) => {
-    await api.markHawlPaid(id).catch(() => { toast('Failed to mark as paid', 'error'); }); load();
+    try {
+      await api.markHawlPaid(id);
+      load();
+    } catch {
+      toast('Failed to mark as paid', 'error');
+    }
   };
 
   const handleReset = async (id: number) => {
     if (!confirm('Reset this Hawl? This starts a new 354-day cycle from today.')) return;
-    await api.resetHawl(id).then(() => { toast('Hawl reset — new cycle started', 'success'); }).catch(() => { toast('Failed to reset hawl', 'error'); }); load();
+    try {
+      await api.resetHawl(id);
+      toast('Hawl reset — new cycle started', 'success');
+      load();
+    } catch {
+      toast('Failed to reset hawl', 'error');
+    }
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this tracker?')) return;
-    await api.deleteHawl(id).catch(() => { toast('Failed to delete tracker', 'error'); }); load();
+    try {
+      await api.deleteHawl(id);
+      load();
+    } catch {
+      toast('Failed to delete tracker', 'error');
+    }
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;

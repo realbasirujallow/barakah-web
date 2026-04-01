@@ -553,6 +553,14 @@ export const api = {
   deleteSharedGoal: (groupId: number, goalId: number) =>
     apiFetch(`/api/shared/groups/${groupId}/goals/${goalId}`, { method: 'DELETE' }),
 
+  // Family Estate Sharing
+  getFamilyEstate: (groupId: number) =>
+    apiFetch(`/api/shared/groups/${groupId}/estate`),
+  getEstateSharingStatus: () =>
+    apiFetch('/api/shared/estate-sharing'),
+  setEstateSharing: (enabled: boolean) =>
+    apiFetch('/api/shared/estate-sharing', { method: 'PUT', body: JSON.stringify({ enabled }) }),
+
   // Ramadan
   getRamadanGoals: () => apiFetch('/api/ramadan/goals'),
   saveRamadanGoals: (data: Record<string, unknown>) =>

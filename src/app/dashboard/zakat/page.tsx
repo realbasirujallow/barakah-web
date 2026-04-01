@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { fmt } from '../../../lib/format';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 
@@ -83,7 +84,6 @@ export default function ZakatPage() {
 
   useEffect(() => { load(); }, []);
 
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
   const zakatDue = (data?.zakatDue as number) || 0;
   const zakatEligible = data?.zakatEligible as boolean;
   const remaining = Math.max(0, zakatDue - totalPaid);
