@@ -32,6 +32,10 @@ const PLANS = [
     features: [
       'Unlimited transactions',
       'Full Zakat calculator',
+      'Halal stock screener (30,000+)',
+      'Riba & subscription detector',
+      'Wasiyyah & Waqf planning',
+      'Investments & net worth',
       'Debt Payoff Projector',
       'Ramadan Mode',
       'Analytics & Year-over-Year',
@@ -50,8 +54,10 @@ const PLANS = [
       'Everything in Plus',
       'Up to 6 family members',
       'Shared budgets & goals',
+      'Family Estate Sharing (Waqf & Wasiyyah)',
       'Family financial summary',
       'Shared expense splitting',
+      'Priority support',
     ],
   },
 ] as const;
