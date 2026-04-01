@@ -110,8 +110,13 @@ export default function BillsPage() {
   };
 
   const handlePaid = async (id: number) => {
-    await api.markBillPaid(id).catch(() => toast('Failed to mark bill as paid', 'error'));
-    load();
+    try {
+      await api.markBillPaid(id);
+      toast('Bill marked as paid', 'success');
+      load();
+    } catch {
+      toast('Failed to mark bill as paid', 'error');
+    }
   };
 
   const handleDelete = async (id: number) => {
