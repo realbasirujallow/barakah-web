@@ -224,9 +224,10 @@ export function hasAccess(
   if (planExpiresAt) {
     let expiryMs: number;
     if (typeof planExpiresAt === 'number') {
-      // Backend returns epoch seconds (from Stripe) — convert to milliseconds
-      // Heuristic: if the value is less than 1e12, it's seconds; otherwise already ms
-      expiryMs = planExpiresAt < 1e12 ? planExpiresAt * 1000 : planExpiresAt;
+      // Backend returns epoch seconds (from Stripe) — convert to milliseconds.
+      // Epoch seconds for years 2001–2286 stay under 10 billion; millis are always above.
+      const EPOCH_SECONDS_MAX = 10_000_000_000;
+      expiryMs = planExpiresAt < EPOCH_SECONDS_MAX ? planExpiresAt * 1000 : planExpiresAt;
     } else {
       expiryMs = new Date(planExpiresAt).getTime();
     }
