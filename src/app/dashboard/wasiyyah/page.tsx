@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
+import { safeParse, validateWasiyyahBeneficiary } from '../../../lib/schemas';
 
 interface Beneficiary { id: number; beneficiaryName: string; relationship: string; sharePercentage: number; shareType: string; notes: string; }
 interface Obligation { id: number; type: string; amount: number; currency: string; description: string; recipient?: string; notes?: string; status: string; }
@@ -34,16 +35,42 @@ export default function WasiyyahPage() {
       api.getWasiyyah(),
       api.getWasiyyahObligations(),
     ]).then((results) => {
-      const bData = results[0].status === 'fulfilled' ? results[0].value : null;
-      const oData = results[1].status === 'fulfilled' ? results[1].value : null;
-      if (bData?.error || oData?.error) {
-        toast(bData?.error || oData?.error, 'error');
+      const bRaw = results[0].status === 'fulfilled' ? results[0].value : null;
+      const oRaw = results[1].status === 'fulfilled' ? results[1].value : null;
+
+      if (bRaw?.error || oRaw?.error) {
+        toast(bRaw?.error || oRaw?.error, 'error');
         return;
       }
-      const b = bData?.beneficiaries ?? bData;
-      const o = oData?.obligations;
-      setItems(Array.isArray(b) ? b : []);
-      setObligations(Array.isArray(o) ? o : []);
+
+      // Validate beneficiaries
+      const bList = bRaw?.beneficiaries ?? bRaw;
+      const validatedBeneficiaries: Beneficiary[] = [];
+      if (Array.isArray(bList)) {
+        for (const item of bList) {
+          // Adapt response field names to schema (beneficiaryName -> name)
+          const adapted = { ...item, name: (item as any).beneficiaryName || (item as any).name };
+          const result = safeParse(validateWasiyyahBeneficiary, adapted, `beneficiary/${(item as any)?.id}`);
+          if (result) {
+            // Map back to component's interface (name -> beneficiaryName)
+            const component: Beneficiary = {
+              id: result.id,
+              beneficiaryName: result.name,
+              relationship: result.relationship,
+              sharePercentage: result.sharePercentage,
+              shareType: result.shareType,
+              notes: result.notes || '',
+            };
+            validatedBeneficiaries.push(component);
+          } else {
+            console.warn('Skipped invalid beneficiary:', item);
+          }
+        }
+      }
+
+      const oList = oRaw?.obligations;
+      setItems(validatedBeneficiaries);
+      setObligations(Array.isArray(oList) ? oList : []);
     }).catch(() => toast('Failed to load wasiyyah data', 'error'))
       .finally(() => setLoading(false));
   };

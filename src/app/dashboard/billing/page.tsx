@@ -75,6 +75,17 @@ function BillingContent() {
   const [referral, setReferral] = useState<{ referralCode: string; shareUrl: string; referralCount: number } | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const validateStripeUrl = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.protocol !== 'https:') return false;
+      const hostname = urlObj.hostname;
+      return hostname === 'stripe.com' || hostname === 'checkout.stripe.com' || hostname.endsWith('.stripe.com');
+    } catch {
+      return false;
+    }
+  };
+
   useEffect(() => {
     api.subscriptionStatus()
       .then(setStatus)
@@ -102,7 +113,12 @@ function BillingContent() {
       const result = await api.upgradeSubscription(plan);
       if (result?.url) {
         // Free user — redirect to Stripe Checkout
-        window.location.href = result.url;
+        if (validateStripeUrl(result.url)) {
+          window.location.href = result.url;
+        } else {
+          toast('Invalid Stripe URL. Please contact support.', 'error');
+          setLoading(null);
+        }
       } else if (result?.success) {
         // Existing subscriber — plan switched immediately, refresh status
         setStatus(prev => prev ? { ...prev, plan: result.plan, status: result.status } : prev);
@@ -124,7 +140,12 @@ function BillingContent() {
     setLoading('portal');
     try {
       const { url } = await api.openPortal();
-      window.location.href = url;
+      if (validateStripeUrl(url)) {
+        window.location.href = url;
+      } else {
+        alert('Invalid Stripe URL. Please contact support.');
+        setLoading(null);
+      }
     } catch {
       alert('No active subscription found. Please contact support.');
       setLoading(null);

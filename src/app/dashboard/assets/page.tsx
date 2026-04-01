@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { logError } from '../../../lib/logError';
+import { safeParse, safeParseWithFallback, validateAsset } from '../../../lib/schemas';
 
 interface Asset { id: number; name: string; type: string; value: number; penaltyRate?: number; taxRate?: number; address?: string; }
 
@@ -84,20 +85,34 @@ export default function AssetsPage() {
     setLoadError(null);
     Promise.allSettled([api.getAssets(), api.getAssetTotal()])
       .then((results) => {
-        const a = results[0].status === 'fulfilled' ? results[0].value : null;
-        const t = results[1].status === 'fulfilled' ? results[1].value : null;
-        if (a?.error) {
-          logError(new Error(a.error), { context: 'Asset API error' });
-          setLoadError(a.error as string);
+        const aRaw = results[0].status === 'fulfilled' ? results[0].value : null;
+        const tRaw = results[1].status === 'fulfilled' ? results[1].value : null;
+
+        if (aRaw?.error) {
+          logError(new Error(aRaw.error), { context: 'Asset API error' });
+          setLoadError(aRaw.error as string);
           return;
         }
-        if (t?.error) {
-          logError(new Error(t.error), { context: 'Asset total API error' });
-          setLoadError(t.error as string);
+        if (tRaw?.error) {
+          logError(new Error(tRaw.error), { context: 'Asset total API error' });
+          setLoadError(tRaw.error as string);
           return;
         }
-        setAssets(Array.isArray(a?.assets) ? a.assets : Array.isArray(a) ? a : []);
-        setTotal(t);
+
+        // Validate each asset
+        const assetList = Array.isArray(aRaw?.assets) ? aRaw.assets : Array.isArray(aRaw) ? aRaw : [];
+        const validatedAssets: Asset[] = [];
+        for (const item of assetList) {
+          const result = safeParse(validateAsset, item, `asset/${(item as any)?.id}`);
+          if (result) {
+            validatedAssets.push(result as Asset);
+          } else {
+            console.warn('Skipped invalid asset:', item);
+          }
+        }
+
+        setAssets(validatedAssets);
+        setTotal(tRaw);
       })
       .catch((err) => {
         logError(err, { context: 'Failed to load assets' });
@@ -133,7 +148,7 @@ export default function AssetsPage() {
     setSaveError(null);
     try {
       const val = parseFloat(form.value);
-      if (isNaN(val) || val < 0) {
+      if (!Number.isFinite(val) || val < 0) {
         setSaveError('Please enter a valid positive number for value.');
         setSaving(false);
         return;
@@ -496,7 +511,7 @@ export default function AssetsPage() {
               </div>
             )}
             <div className="flex gap-3 mt-4">
-              <button type="button" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.value}
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
                 {saving ? 'Saving...' : editItem ? 'Update' : 'Add'}

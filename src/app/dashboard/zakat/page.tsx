@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { fmt, toHijri } from '../../../lib/format';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
+import { safeParse, safeParseWithFallback, validateZakatCalculation, validateZakatPaymentsResponse, validateNisabInfo, formatTimeAgo } from '../../../lib/schemas';
 
 /** Compute current Hijri year from today's date using the Umm al-Qura calendar. */
 function computeHijriYear(): number {
@@ -19,11 +20,13 @@ export default function ZakatPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'calculator' | 'assets' | 'payments'>('calculator');
   const [showForm, setShowForm] = useState(false);
+  const [showChecklist, setShowChecklist] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showMabrook, setShowMabrook] = useState(false);
   const [form, setForm] = useState({ amount: '', recipient: '', notes: '' });
   const [hideZakat, setHideZakat] = useState(false);
-  const [nisabInfo, setNisabInfo] = useState<{ goldPricePerGram?: number } | null>(null);
+  const [nisabInfo, setNisabInfo] = useState<{ goldPricePerGram?: number; staleWarning?: boolean; priceAgeMs?: number } | null>(null);
+  const [checklist, setChecklist] = useState({ wealth: false, hawl: false, debts: false, quranic: false });
 
   // Manual asset breakdown calculator
   const [manualAssets, setManualAssets] = useState({
@@ -61,28 +64,47 @@ export default function ZakatPage() {
         api.getZakatPayments(), // load all years; filter by lunarYear after we know it
         api.getNisabInfo().catch(() => null),  // non-critical — live gold price display
       ]);
-      const zakatData = results[0].status === 'fulfilled' ? results[0].value : null;
-      const paymentsData = results[1].status === 'fulfilled' ? results[1].value : null;
-      const nisabData = results[2].status === 'fulfilled' ? results[2].value : null;
-      if (zakatData?.error) {
-        logError(new Error(zakatData.error as string), { context: 'Zakat API error' });
+      const zakatRaw = results[0].status === 'fulfilled' ? results[0].value : null;
+      const paymentsRaw = results[1].status === 'fulfilled' ? results[1].value : null;
+      const nisabRaw = results[2].status === 'fulfilled' ? results[2].value : null;
+
+      // Validate zakat data
+      const zakatData = safeParse(validateZakatCalculation, zakatRaw, 'zakat/calculate');
+      if (!zakatData && zakatRaw?.error) {
+        logError(new Error(zakatRaw.error as string), { context: 'Zakat API error' });
         setLoading(false);
         return;
       }
-      if (paymentsData?.error) {
-        logError(new Error(paymentsData.error as string), { context: 'Payments API error' });
+      if (zakatRaw?.error) {
+        logError(new Error(zakatRaw.error as string), { context: 'Zakat API error' });
         setLoading(false);
         return;
       }
-      setData(zakatData);
-      if (nisabData) setNisabInfo(nisabData as { goldPricePerGram?: number });
-      // Filter payments to current lunar year (use API year once we have it)
-      const year = (zakatData?.currentLunarYear as number) || computeHijriYear();
-      const filtered = Array.isArray(paymentsData?.payments)
-        ? paymentsData.payments.filter((p: Record<string, unknown>) => !p.lunarYear || p.lunarYear === year)
-        : [];
-      setPayments(filtered);
-      setTotalPaid(filtered.reduce((s: number, p: Record<string, unknown>) => s + (p.amount as number || 0), 0));
+
+      // Validate payments data
+      const paymentsValidated = safeParse(validateZakatPaymentsResponse, paymentsRaw, 'zakat/payments');
+      if (!paymentsValidated && paymentsRaw?.error) {
+        logError(new Error(paymentsRaw.error as string), { context: 'Payments API error' });
+        setLoading(false);
+        return;
+      }
+      if (paymentsRaw?.error) {
+        logError(new Error(paymentsRaw.error as string), { context: 'Payments API error' });
+        setLoading(false);
+        return;
+      }
+
+      // Use fallback for non-critical nisab info
+      const nisabData = safeParseWithFallback(validateNisabInfo, nisabRaw, 'nisab/info');
+      if (nisabData) setNisabInfo(nisabData);
+
+      setData(zakatRaw as Record<string, unknown>);
+
+      // Filter payments to current lunar year
+      const year = (zakatRaw?.currentLunarYear as number) || computeHijriYear();
+      const filtered = (paymentsValidated?.payments || []).filter(p => !p.lunarYear || p.lunarYear === year);
+      setPayments(filtered.map(p => ({ ...p })) as Record<string, unknown>[]);
+      setTotalPaid(filtered.reduce((s: number, p) => s + (p.amount || 0), 0));
     } catch (err) {
       logError(err, { context: 'Failed to load zakat data' });
     }
@@ -98,9 +120,16 @@ export default function ZakatPage() {
   const fulfilled = zakatEligible && totalPaid >= zakatDue && zakatDue > 0;
   const fulfillmentPct = zakatDue > 0 ? Math.min(1, totalPaid / zakatDue) : 0;
 
+  const handleShowPaymentForm = () => {
+    // Show checklist first, reset form
+    setChecklist({ wealth: false, hawl: false, debts: false, quranic: false });
+    setForm({ amount: '', recipient: '', notes: '' });
+    setShowChecklist(true);
+  };
+
   const handleSavePayment = async () => {
     const amount = parseFloat(form.amount);
-    if (!amount || amount <= 0) return;
+    if (!Number.isFinite(amount) || amount <= 0) return;
     setSaving(true);
     try {
       await api.addZakatPayment({
@@ -111,6 +140,7 @@ export default function ZakatPage() {
       });
       setForm({ amount: '', recipient: '', notes: '' });
       setShowForm(false);
+      setShowChecklist(false);
       // Calculate new total directly without relying on stale state
       const newTotalPaid = totalPaid + amount;
       if (zakatEligible && newTotalPaid >= zakatDue) {
@@ -202,6 +232,16 @@ export default function ZakatPage() {
               )}
             </div>
           </div>
+
+          {nisabInfo?.staleWarning && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4 mt-4">
+              <p className="text-amber-800 text-sm font-medium">
+                ⚠ Price data may be outdated (last updated {formatTimeAgo(nisabInfo.priceAgeMs)} ago).
+                Gold and silver prices are used to calculate your Nisab threshold.
+                Consider refreshing or verifying current prices before making zakat decisions.
+              </p>
+            </div>
+          )}
 
           <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
             <strong>Reminder:</strong> Zakat is 2.5% of wealth held for one Islamic lunar year (Hawl) above the Nisab threshold.
@@ -342,7 +382,7 @@ export default function ZakatPage() {
           {/* Payment History */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-[#1B5E20]">Payment History</h2>
-            <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm">+ Record Payment</button>
+            <button onClick={handleShowPaymentForm} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm">+ Record Payment</button>
           </div>
 
           {payments.length === 0 ? (
@@ -413,6 +453,85 @@ export default function ZakatPage() {
         </>
       )}
 
+      {/* Eligibility Checklist Modal */}
+      {showChecklist && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Zakat Eligibility Checklist</h2>
+            <p className="text-sm text-gray-600 mb-4">Before recording your zakat payment, please confirm the following:</p>
+
+            <div className="space-y-3 mb-6">
+              <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-green-50 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={checklist.wealth}
+                  onChange={e => setChecklist({ ...checklist, wealth: e.target.checked })}
+                  className="mt-1 w-4 h-4"
+                  disabled={!zakatEligible}
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">My wealth exceeds the nisab threshold</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{fmt((data?.totalWealth as number) || 0)} {zakatEligible ? '✓' : '(not yet)'}</p>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-green-50 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={checklist.hawl}
+                  onChange={e => setChecklist({ ...checklist, hawl: e.target.checked })}
+                  className="mt-1 w-4 h-4"
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">I have held this wealth for one full lunar year (Hawl)</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Islamic requirement: wealth must be held 12 lunar months</p>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-green-50 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={checklist.debts}
+                  onChange={e => setChecklist({ ...checklist, debts: e.target.checked })}
+                  className="mt-1 w-4 h-4"
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">I have deducted all eligible debts from my calculation</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Debts reduce your zakatable wealth</p>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-green-50 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={checklist.quranic}
+                  onChange={e => setChecklist({ ...checklist, quranic: e.target.checked })}
+                  className="mt-1 w-4 h-4"
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">I understand this is my religious obligation (Qur'an 9:60)</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Zakat is a pillar of Islam — give with sincere intention</p>
+                </div>
+              </label>
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => { setShowChecklist(false); setShowForm(false); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50 font-medium text-sm">Back</button>
+              <button
+                onClick={() => {
+                  setShowChecklist(false);
+                  setShowForm(true);
+                }}
+                disabled={!checklist.wealth || !checklist.hawl || !checklist.debts || !checklist.quranic}
+                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50 font-medium text-sm"
+              >
+                Continue to Payment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Payment Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -433,7 +552,7 @@ export default function ZakatPage() {
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50" disabled={saving}>Cancel</button>
               <button onClick={handleSavePayment} disabled={saving || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Record'}</button>
             </div>
           </div>

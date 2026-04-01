@@ -132,9 +132,14 @@ export default function DebtsPage() {
 
   const handlePay = async () => {
     if (!payModal) return;
+    const amount = parseFloat(payAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setPayError('Please enter a valid positive amount');
+      return;
+    }
     setSaving(true); setPayError(null);
     try {
-      const result = await api.makeDebtPayment(payModal.id, parseFloat(payAmount));
+      const result = await api.makeDebtPayment(payModal.id, amount);
       if (result?.error) throw new Error(result.error);
       setPayModal(null); setPayAmount(''); load();
     } catch (err: unknown) { setPayError(err instanceof Error ? err.message : 'Failed to record payment. Please try again.'); }
@@ -484,7 +489,7 @@ export default function DebtsPage() {
             </div>
             {saveError && <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{saveError}</div>}
             <div className="flex gap-3 mt-4">
-              <button type="button" onClick={() => { setShowForm(false); setForm(emptyForm); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { setShowForm(false); setForm(emptyForm); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.totalAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : editDebt ? 'Update' : 'Add'}</button>
             </div>
           </div>
@@ -501,7 +506,7 @@ export default function DebtsPage() {
               <input type="number" step="0.01" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             {payError && <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{payError}</div>}
             <div className="flex gap-3 mt-4">
-              <button type="button" onClick={() => { setPayModal(null); setPayError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { setPayModal(null); setPayError(null); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handlePay} disabled={saving || !payAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Processing...' : 'Pay'}</button>
             </div>
           </div>
