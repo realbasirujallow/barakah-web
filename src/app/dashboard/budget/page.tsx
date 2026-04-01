@@ -84,7 +84,13 @@ export default function BudgetPage() {
   const handleSave = async () => {
     setSaving(true); setSaveError(null);
     try {
-      const data = { category: form.category, monthlyLimit: parseFloat(form.monthlyLimit), month: parseInt(form.month), year: parseInt(form.year) };
+      const limit = parseFloat(form.monthlyLimit);
+      if (!form.monthlyLimit.trim() || isNaN(limit) || limit <= 0) {
+        setSaveError('Monthly limit must be a positive number');
+        setSaving(false);
+        return;
+      }
+      const data = { category: form.category, monthlyLimit: limit, month: parseInt(form.month), year: parseInt(form.year) };
       let result;
       if (editItem) result = await api.updateBudget(editItem.id, data);
       else result = await api.addBudget(data);

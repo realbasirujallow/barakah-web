@@ -62,11 +62,14 @@ export default function ZakatPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const [zakatData, paymentsData, nisabData] = await Promise.all([
+      const results = await Promise.allSettled([
         api.getZakat(),
         api.getZakatPayments(), // load all years; filter by lunarYear after we know it
         api.getNisabInfo().catch(() => null),  // non-critical — live gold price display
       ]);
+      const zakatData = results[0].status === 'fulfilled' ? results[0].value : null;
+      const paymentsData = results[1].status === 'fulfilled' ? results[1].value : null;
+      const nisabData = results[2].status === 'fulfilled' ? results[2].value : null;
       if (zakatData?.error) {
         logError(new Error(zakatData.error as string), { context: 'Zakat API error' });
         setLoading(false);

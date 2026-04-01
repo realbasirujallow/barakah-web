@@ -48,13 +48,17 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
+    Promise.allSettled([
       api.getTransactionSummary('week'),
       api.getTransactionSummary('month'),
       api.getTransactionSummary('year'),
       api.getMonthlySummary(13),
     ])
-      .then(([week, month, year, monthly]) => {
+      .then((results) => {
+        const week = results[0].status === 'fulfilled' ? results[0].value : null;
+        const month = results[1].status === 'fulfilled' ? results[1].value : null;
+        const year = results[2].status === 'fulfilled' ? results[2].value : null;
+        const monthly = results[3].status === 'fulfilled' ? results[3].value : null;
         setAllPeriods({ week, month, year });
         setSummary(month);
         setMonthlyData(monthly?.months || []);

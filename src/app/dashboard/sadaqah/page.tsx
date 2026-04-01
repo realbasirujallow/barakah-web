@@ -32,8 +32,10 @@ function SadaqahContent() {
 
   const load = () => {
     setLoading(true);
-    Promise.all([api.getSadaqah(), api.getSadaqahStats()])
-      .then(([d, s]) => {
+    Promise.allSettled([api.getSadaqah(), api.getSadaqahStats()])
+      .then((results) => {
+        const d = results[0].status === 'fulfilled' ? results[0].value : null;
+        const s = results[1].status === 'fulfilled' ? results[1].value : null;
         if (d?.error) { toast(d.error, 'error'); return; }
         setItems(Array.isArray(d?.donations) ? d.donations : Array.isArray(d) ? d : []);
         setStats(s || null);
@@ -52,7 +54,13 @@ function SadaqahContent() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.addSadaqah({ ...form, amount: parseFloat(form.amount) });
+      const amt = parseFloat(form.amount);
+      if (isNaN(amt) || amt <= 0) {
+        toast('Amount must be a positive number', 'error');
+        setSaving(false);
+        return;
+      }
+      await api.addSadaqah({ ...form, amount: amt });
       setShowForm(false); setForm({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false }); load();
       toast('Sadaqah recorded', 'success');
     } catch (err: any) { toast(err?.message || 'Failed to save sadaqah', 'error'); }
