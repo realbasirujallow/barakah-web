@@ -18,7 +18,7 @@ export default function ZakatPage() {
   const [payments, setPayments] = useState<Record<string, unknown>[]>([]);
   const [totalPaid, setTotalPaid] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'calculator' | 'assets' | 'payments'>('calculator');
+  const [tab, setTab] = useState<'calculator' | 'assets' | 'payments' | 'fitr' | 'references'>('calculator');
   const [showForm, setShowForm] = useState(false);
   const [showChecklist, setShowChecklist] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -27,6 +27,24 @@ export default function ZakatPage() {
   const [hideZakat, setHideZakat] = useState(false);
   const [nisabInfo, setNisabInfo] = useState<{ goldPricePerGram?: number; staleWarning?: boolean; priceAgeMs?: number } | null>(null);
   const [checklist, setChecklist] = useState({ wealth: false, hawl: false, debts: false, quranic: false });
+
+  // FEATURE 1: Multi-Madhab Nisab Selector
+  const [nisabMethodologies, setNisabMethodologies] = useState<Record<string, unknown>[]>([]);
+  const [selectedMethodology, setSelectedMethodology] = useState('AMJA_GOLD');
+  const [savingMethodology, setSavingMethodology] = useState(false);
+
+  // FEATURE 2: Zakat al-Fitr
+  const [householdSize, setHouseholdSize] = useState(1);
+  const [fitrData, setFitrData] = useState<Record<string, unknown> | null>(null);
+  const [loadingFitr, setLoadingFitr] = useState(false);
+
+  // FEATURE 3: PDF Export
+  const [exporting, setExporting] = useState(false);
+
+  // FEATURE 5: Scholarly References
+  const [scholarlyReferences, setScholarlyReferences] = useState<Record<string, unknown>[]>([]);
+  const [showReferences, setShowReferences] = useState(false);
+  const [loadingReferences, setLoadingReferences] = useState(false);
 
   // Manual asset breakdown calculator
   const [manualAssets, setManualAssets] = useState({
@@ -56,6 +74,43 @@ export default function ZakatPage() {
     localStorage.setItem('hideZakat', next ? 'true' : 'false');
   };
 
+  const loadNisabMethodologies = async () => {
+    try {
+      const methodologies = await api.getNisabMethodologies();
+      if (methodologies && Array.isArray(methodologies)) {
+        setNisabMethodologies(methodologies);
+      }
+    } catch (err) {
+      logError(err, { context: 'Failed to load nisab methodologies' });
+    }
+  };
+
+  const loadZakatAlFitr = async () => {
+    setLoadingFitr(true);
+    try {
+      const fitr = await api.getZakatAlFitr(householdSize, 'USD');
+      if (fitr) {
+        setFitrData(fitr);
+      }
+    } catch (err) {
+      logError(err, { context: 'Failed to load zakat al-fitr' });
+    }
+    setLoadingFitr(false);
+  };
+
+  const loadScholarlyReferences = async () => {
+    setLoadingReferences(true);
+    try {
+      const references = await api.getScholarlyReferences();
+      if (references && Array.isArray(references)) {
+        setScholarlyReferences(references);
+      }
+    } catch (err) {
+      logError(err, { context: 'Failed to load scholarly references' });
+    }
+    setLoadingReferences(false);
+  };
+
   const load = async () => {
     setLoading(true);
     try {
@@ -63,10 +118,12 @@ export default function ZakatPage() {
         api.getZakat(),
         api.getZakatPayments(), // load all years; filter by lunarYear after we know it
         api.getNisabInfo().catch(() => null),  // non-critical — live gold price display
+        api.getNisabMethodologies().catch(() => null), // FEATURE 1: methodologies
       ]);
       const zakatRaw = results[0].status === 'fulfilled' ? results[0].value : null;
       const paymentsRaw = results[1].status === 'fulfilled' ? results[1].value : null;
       const nisabRaw = results[2].status === 'fulfilled' ? results[2].value : null;
+      const methodologiesRaw = results[3].status === 'fulfilled' ? results[3].value : null;
 
       // Validate zakat data
       const zakatData = safeParse(validateZakatCalculation, zakatRaw, 'zakat/calculate');
@@ -97,6 +154,11 @@ export default function ZakatPage() {
       // Use fallback for non-critical nisab info
       const nisabData = safeParseWithFallback(validateNisabInfo, nisabRaw, 'nisab/info');
       if (nisabData) setNisabInfo(nisabData);
+
+      // FEATURE 1: Load nisab methodologies
+      if (methodologiesRaw && Array.isArray(methodologiesRaw)) {
+        setNisabMethodologies(methodologiesRaw);
+      }
 
       setData(zakatRaw as Record<string, unknown>);
 
@@ -162,6 +224,129 @@ export default function ZakatPage() {
     }
   };
 
+  // FEATURE 1: Handle Nisab Methodology Change
+  const handleMethodologyChange = async (methodology: string) => {
+    setSelectedMethodology(methodology);
+    setSavingMethodology(true);
+    try {
+      await api.setNisabMethodology(methodology);
+      toast('Nisab methodology updated', 'success');
+      await load();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to update methodology', 'error');
+      setSavingMethodology(false);
+    }
+  };
+
+  // FEATURE 2: Update household size and recalculate fitr
+  const handleHouseholdSizeChange = (size: number) => {
+    setHouseholdSize(Math.max(1, size));
+  };
+
+  useEffect(() => {
+    if (tab === 'fitr') {
+      loadZakatAlFitr();
+    }
+  }, [householdSize, tab]);
+
+  // FEATURE 3: PDF Export
+  const handleExportPDF = async () => {
+    try {
+      setExporting(true);
+      const report = await api.exportZakatReport();
+      if (!report) {
+        toast('No report data available', 'error');
+        return;
+      }
+
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast('Please allow popups to export', 'error');
+        return;
+      }
+
+      const summary = report.summary as Record<string, unknown> || {};
+      const printContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Zakat Report - Barakah</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { font-family: 'Georgia', serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; color: #1a1a1a; line-height: 1.6; }
+              h1 { color: #1B6B4A; border-bottom: 2px solid #1B6B4A; padding-bottom: 10px; margin-bottom: 20px; font-size: 28px; }
+              h2 { color: #1B6B4A; margin-top: 30px; margin-bottom: 15px; font-size: 18px; }
+              table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+              th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+              th { background: #f0f7f4; color: #1B5E20; font-weight: bold; }
+              tr:nth-child(even) { background: #f9f9f9; }
+              .summary-box { background: #f0f7f4; border: 1px solid #1B6B4A; border-radius: 8px; padding: 20px; margin: 20px 0; }
+              .amount { font-size: 1.2em; font-weight: bold; color: #1B6B4A; }
+              .disclaimer { font-size: 0.85em; color: #666; margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; }
+              .citation { font-style: italic; color: #555; font-size: 0.9em; }
+              .footer { text-align: center; color: #999; margin-top: 40px; font-size: 0.85em; }
+              @media print { body { padding: 20px; } }
+            </style>
+          </head>
+          <body>
+            <h1>${report.title || 'Zakat Report'}</h1>
+            <p><strong>Prepared for:</strong> ${report.generatedFor || 'User'}</p>
+            <p><strong>Lunar Year:</strong> ${report.lunarYear || lunarYear} AH</p>
+            <p><strong>Generated:</strong> ${new Date().toLocaleDateString()}</p>
+
+            <div class="summary-box">
+              <h2>Zakat Summary</h2>
+              <table>
+                <tr>
+                  <td>Total Wealth</td>
+                  <td class="amount">$${(summary.totalWealth as number)?.toFixed(2) || '0.00'}</td>
+                </tr>
+                <tr>
+                  <td>Zakatable Wealth</td>
+                  <td class="amount">$${(summary.zakatableWealth as number)?.toFixed(2) || '0.00'}</td>
+                </tr>
+                <tr>
+                  <td>Nisab Threshold</td>
+                  <td>$${(summary.nisabThreshold as number)?.toFixed(2) || '0.00'} (${summary.nisabMethodology || 'AMJA_GOLD'})</td>
+                </tr>
+                <tr>
+                  <td>Zakat Due (2.5%)</td>
+                  <td class="amount">$${(summary.zakatDue as number)?.toFixed(2) || '0.00'}</td>
+                </tr>
+                <tr>
+                  <td>Total Paid</td>
+                  <td>$${(summary.totalPaid as number)?.toFixed(2) || '0.00'}</td>
+                </tr>
+                <tr>
+                  <td>Remaining</td>
+                  <td class="amount">$${(summary.remaining as number)?.toFixed(2) || '0.00'}</td>
+                </tr>
+              </table>
+            </div>
+
+            <p class="citation">${report.complianceStatement || ''}</p>
+            <p class="disclaimer">${report.disclaimer || 'This report is for informational purposes. Consult a scholar for your specific zakat obligation.'}</p>
+            <div class="footer">
+              <p>Generated by Barakah Islamic Finance Platform — trybarakah.com</p>
+            </div>
+          </body>
+        </html>
+      `;
+
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to export report', 'error');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
 
   return (
@@ -178,10 +363,22 @@ export default function ZakatPage() {
           >
             {hideZakat ? 'Show' : 'Hide'}
           </button>
-          <div className="flex bg-gray-100 rounded-lg p-1">
+          {tab === 'calculator' && (
+            <button
+              onClick={handleExportPDF}
+              disabled={exporting}
+              className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 disabled:opacity-50 font-medium"
+              title="Export as PDF"
+            >
+              {exporting ? 'Exporting...' : 'Export PDF'}
+            </button>
+          )}
+          <div className="flex bg-gray-100 rounded-lg p-1 flex-wrap">
             <button onClick={() => setTab('calculator')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'calculator' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Overview</button>
             <button onClick={() => setTab('assets')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'assets' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Asset Calc</button>
             <button onClick={() => setTab('payments')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'payments' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Payments</button>
+            <button onClick={() => setTab('fitr')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'fitr' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Al-Fitr</button>
+            <button onClick={() => { setTab('references'); loadScholarlyReferences(); }} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'references' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Sources</button>
           </div>
         </div>
       </div>
@@ -232,6 +429,31 @@ export default function ZakatPage() {
               )}
             </div>
           </div>
+
+          {nisabMethodologies.length > 0 && (
+            <div className="mt-6 bg-white rounded-xl p-5">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Nisab Methodology (Multi-Madhab Support)
+              </label>
+              <select
+                value={selectedMethodology}
+                onChange={(e) => handleMethodologyChange(e.target.value)}
+                disabled={savingMethodology}
+                className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+              >
+                {nisabMethodologies.map((m) => (
+                  <option key={m.code as string} value={m.code as string}>
+                    {m.name as string} {m.description ? `— ${m.description}` : ''}
+                  </option>
+                ))}
+              </select>
+              {(() => {
+                const desc = nisabMethodologies.find((m) => m.code === selectedMethodology)?.description;
+                return desc ? <p className="text-xs text-gray-500 mt-2">{String(desc)}</p> : null;
+              })()}
+              {savingMethodology && <p className="text-xs text-gray-400 mt-2">Saving...</p>}
+            </div>
+          )}
 
           {nisabInfo?.staleWarning && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4 mt-4">
@@ -350,7 +572,7 @@ export default function ZakatPage() {
             );
           })()}
         </>
-      ) : (
+      ) : tab === 'payments' ? (
         <>
           {/* Payment Progress Summary */}
           <div className={`rounded-2xl p-6 text-white mb-6 ${fulfilled ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gradient-to-r from-[#1B5E20] to-[#2E7D32]'}`}>
@@ -451,6 +673,149 @@ export default function ZakatPage() {
             </p>
           </div>
         </>
+      ) : tab === 'fitr' ? (
+        <>
+          {/* Zakat al-Fitr Calculator */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-sm text-amber-800">
+            <p className="font-semibold mb-1">🌙 Zakat al-Fitr Calculator</p>
+            <p>Zakat al-Fitr is a charity given at the end of Ramadan, before the Eid prayer. It is mandatory on all Muslims and purifies those who fasted.</p>
+          </div>
+
+          <div className="bg-white rounded-xl p-5 mb-5">
+            <label className="block text-sm font-medium text-gray-700 mb-3">Household Size</label>
+            <input
+              type="number"
+              min="1"
+              value={householdSize}
+              onChange={(e) => handleHouseholdSizeChange(parseInt(e.target.value) || 1)}
+              className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+            />
+            <p className="text-xs text-gray-500 mt-2">Enter the number of people in your household</p>
+          </div>
+
+          {loadingFitr ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+            </div>
+          ) : fitrData ? (
+            <>
+              <div className="bg-gradient-to-r from-amber-600 to-yellow-500 rounded-2xl p-6 text-white text-center mb-6">
+                <p className="text-amber-100 mb-2">Zakat al-Fitr Due</p>
+                <p className="text-4xl font-bold">{fmt((fitrData.totalDue as number) || 0)}</p>
+                <p className="text-amber-200 text-sm mt-2">For {householdSize} person{householdSize > 1 ? 's' : ''}</p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <p className="text-gray-500 text-xs">Minimum</p>
+                  <p className="text-xl font-bold text-[#1B5E20]">{fmt((fitrData.minimumAmount as number) || 0)}</p>
+                  <p className="text-xs text-gray-400 mt-1">Per person</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <p className="text-gray-500 text-xs">Recommended</p>
+                  <p className="text-xl font-bold text-[#1B5E20]">{fmt((fitrData.recommendedAmount as number) || 0)}</p>
+                  <p className="text-xs text-gray-400 mt-1">Per person</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <p className="text-gray-500 text-xs">Generous</p>
+                  <p className="text-xl font-bold text-[#1B5E20]">{fmt((fitrData.generousAmount as number) || 0)}</p>
+                  <p className="text-xs text-gray-400 mt-1">Per person</p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                <p className="font-semibold text-blue-900 mb-2">Key Information</p>
+                <ul className="text-sm text-blue-800 space-y-2">
+                  <li><strong>Deadline:</strong> {String(fitrData.deadline ?? 'Before Eid al-Fitr prayer')}</li>
+                  <li><strong>Eligible Recipients:</strong> {String(fitrData.eligibleRecipients ?? 'The poor and needy')}</li>
+                  {fitrData.hadithCitation ? <li><strong>Hadith:</strong> {String(fitrData.hadithCitation)}</li> : null}
+                </ul>
+              </div>
+
+              <div className="bg-white rounded-xl p-5">
+                <p className="font-semibold text-[#1B5E20] mb-3">Purpose & Reward</p>
+                <p className="text-sm text-gray-700">
+                  Zakat al-Fitr is prescribed to purify those who fasted from any indecent act or speech during Ramadan. It is an obligation and a form of charity that should be given before the Eid prayer for it to be accepted. All Muslims must give Zakat al-Fitr, including children, the elderly, and the sick.
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12 text-gray-400">
+              <p className="text-lg mb-2">Unable to load Zakat al-Fitr information</p>
+              <button
+                onClick={loadZakatAlFitr}
+                className="text-[#1B5E20] font-medium hover:underline text-sm"
+              >
+                Try again
+              </button>
+            </div>
+          )}
+        </>
+      ) : tab === 'references' ? (
+        <>
+          {/* Scholarly Sources */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5 text-sm text-blue-800">
+            <p className="font-semibold mb-1">📚 Scholarly Sources</p>
+            <p>All zakat calculations are based on established Islamic jurisprudence from multiple madhabs (schools of thought) and contemporary scholarly research.</p>
+          </div>
+
+          {loadingReferences ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+            </div>
+          ) : scholarlyReferences.length > 0 ? (
+            <div className="space-y-4">
+              {scholarlyReferences.map((ref, idx) => (
+                <div key={idx} className="bg-white rounded-xl p-5 border border-gray-200">
+                  <div className="flex gap-3">
+                    <div className="shrink-0 w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-lg">📖</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-[#1B5E20] text-sm">{String(ref.ruling ?? '')}</h3>
+                      {ref.source ? (
+                        <p className="text-xs text-gray-600 mt-1">
+                          <strong>Source:</strong> {String(ref.source)}
+                        </p>
+                      ) : null}
+                      {ref.verse ? (
+                        <p className="text-xs text-gray-600">
+                          <strong>Qur&apos;an:</strong> {String(ref.verse)}
+                        </p>
+                      ) : null}
+                      {ref.hadith ? (
+                        <p className="text-xs text-gray-600">
+                          <strong>Hadith:</strong> {String(ref.hadith)}
+                        </p>
+                      ) : null}
+                      {ref.opinion ? (
+                        <p className="text-xs text-gray-700 mt-2 italic">
+                          {String(ref.opinion)}
+                        </p>
+                      ) : null}
+                      {ref.madhabs ? (
+                        <p className="text-xs text-gray-500 mt-2">
+                          <strong>Madhabs:</strong> {String(ref.madhabs)}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-400">
+              <p className="text-lg mb-2">No scholarly references available</p>
+            </div>
+          )}
+
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-6 text-sm text-amber-800">
+            <p className="font-semibold mb-2">Disclaimer</p>
+            <p>While these references represent established Islamic scholarship, zakat is a complex matter that may vary based on individual circumstances. We strongly recommend consulting with a qualified Islamic scholar (mufti) regarding your specific zakat obligation.</p>
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-gray-400">Unknown tab</p>
+        </div>
       )}
 
       {/* Eligibility Checklist Modal */}

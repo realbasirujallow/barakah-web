@@ -64,9 +64,10 @@ export default function ProfilePage() {
   const [showNewPw, setShowNewPw] = useState(false);
   const { toast } = useToast();
 
-  // Currency
+  // Currency - FEATURE 4
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [savingCurrency, setSavingCurrency] = useState(false);
+  const [supportedCurrencies, setSupportedCurrencies] = useState<Array<{ code: string; name: string; symbol: string }>>([]);
 
   // Dark mode
   const [darkMode, setDarkMode] = useState(false);
@@ -101,15 +102,29 @@ export default function ProfilePage() {
 
   const loadProfile = () => {
     setLoading(true);
-    api.getProfile()
-      .then((d: ProfileData) => {
-        setProfile(d);
-        setNameForm({ fullName: d.fullName || '', email: d.email || '' });
-        setSelectedCurrency(d.preferredCurrency || 'USD');
-        // Sync currency preference to localStorage so useCurrency() hook picks it up app-wide
-        if (d.preferredCurrency) saveCurrencyPreference(d.preferredCurrency);
+    Promise.allSettled([
+      api.getProfile(),
+      api.getSupportedCurrencies().catch(() => []), // FEATURE 4: Load supported currencies
+    ])
+      .then((results) => {
+        const profileResult = results[0];
+        const currenciesResult = results[1];
+
+        if (profileResult.status === 'fulfilled') {
+          const d = profileResult.value as ProfileData;
+          setProfile(d);
+          setNameForm({ fullName: d.fullName || '', email: d.email || '' });
+          setSelectedCurrency(d.preferredCurrency || 'USD');
+          // Sync currency preference to localStorage so useCurrency() hook picks it up app-wide
+          if (d.preferredCurrency) saveCurrencyPreference(d.preferredCurrency);
+        } else {
+          toast('Failed to load profile', 'error');
+        }
+
+        if (currenciesResult.status === 'fulfilled' && Array.isArray(currenciesResult.value)) {
+          setSupportedCurrencies(currenciesResult.value);
+        }
       })
-      .catch(() => { toast('Failed to load profile', 'error'); })
       .finally(() => setLoading(false));
   };
 
@@ -426,7 +441,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Currency Preference */}
+      {/* Currency Preference - FEATURE 4 */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
         <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Currency</h2>
         <p className="text-sm text-gray-500 mb-3">Choose your preferred currency for displaying amounts across Barakah.</p>
@@ -436,14 +451,22 @@ export default function ProfilePage() {
             onChange={e => setSelectedCurrency(e.target.value)}
             className="border rounded-lg px-3 py-2 text-gray-900 text-sm flex-1 max-w-xs"
           >
-            {[
-              'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'CHF', 'JPY', 'CNY', 'INR', 'PKR',
-              'BDT', 'IDR', 'MYR', 'SGD', 'AED', 'SAR', 'QAR', 'KWD', 'BHD', 'OMR',
-              'EGP', 'TRY', 'NGN', 'KES', 'ZAR', 'MAD', 'BRL', 'MXN', 'KRW', 'THB',
-              'PHP', 'VND', 'HKD', 'TWD', 'SEK', 'NOK', 'DKK', 'PLN', 'CZK', 'HUF',
-            ].map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
+            {supportedCurrencies.length > 0 ? (
+              supportedCurrencies.map(c => (
+                <option key={c.code} value={c.code}>
+                  {c.code} ({c.symbol}) — {c.name}
+                </option>
+              ))
+            ) : (
+              [
+                'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'CHF', 'JPY', 'CNY', 'INR', 'PKR',
+                'BDT', 'IDR', 'MYR', 'SGD', 'AED', 'SAR', 'QAR', 'KWD', 'BHD', 'OMR',
+                'EGP', 'TRY', 'NGN', 'KES', 'ZAR', 'MAD', 'BRL', 'MXN', 'KRW', 'THB',
+                'PHP', 'VND', 'HKD', 'TWD', 'SEK', 'NOK', 'DKK', 'PLN', 'CZK', 'HUF',
+              ].map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))
+            )}
           </select>
           <button
             onClick={async () => {
