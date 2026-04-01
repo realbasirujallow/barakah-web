@@ -105,6 +105,9 @@ export default function PrayerTimesPage() {
       try {
         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(trimmed)}&limit=7&addressdetails=1&featuretype=city`;
         const res  = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        if (!res.ok) {
+          throw new Error(`Nominatim API error: ${res.status} ${res.statusText}`);
+        }
         const data: Array<Record<string, unknown>> = await res.json();
 
         const seen = new Set<string>();
@@ -151,6 +154,9 @@ export default function PrayerTimesPage() {
       const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
       const url = `https://api.aladhan.com/v1/timingsByCity/${dateStr}?city=${encodeURIComponent(c)}&country=${encodeURIComponent(co)}&method=${m}`;
       const res  = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`Aladhan API error: ${res.status} ${res.statusText}`);
+      }
       const data = await res.json();
       if (data.code === 200 && data.data?.timings) {
         setTimings(data.data.timings as PrayerTimings);
@@ -195,6 +201,9 @@ export default function PrayerTimesPage() {
           const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
           const url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${latitude}&longitude=${longitude}&method=${method}`;
           const res = await fetch(url);
+          if (!res.ok) {
+            throw new Error(`Aladhan API error: ${res.status} ${res.statusText}`);
+          }
           const data = await res.json();
           if (data.code === 200 && data.data?.timings) {
             setTimings(data.data.timings as PrayerTimings);

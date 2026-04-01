@@ -95,7 +95,7 @@ export default function InvestmentsPage() {
   const load = () => {
     setLoading(true);
     setError('');
-    Promise.all([
+    Promise.allSettled([
       api.getPortfolioSummary().then(d => setPortfolio(d)).catch(() => {
         setError('Could not load portfolio. Make sure you have investment accounts set up.');
       }),
