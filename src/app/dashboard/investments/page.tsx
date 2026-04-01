@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
+import { useToast } from '../../../lib/toast';
 
 interface Account {
   id: number;
@@ -72,6 +73,7 @@ const emptyAccountForm = { name: '', type: 'brokerage', broker: '' };
 const emptyHoldingForm = { symbol: '', name: '', quantity: '', averageCost: '', currentPrice: '' };
 
 export default function InvestmentsPage() {
+  const { toast } = useToast();
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [assetAccounts, setAssetAccounts] = useState<AssetAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,13 +119,13 @@ export default function InvestmentsPage() {
       setShowAccountForm(false);
       setAccountForm(emptyAccountForm);
       load();
-    } catch (err: unknown) { logError(err); }
+    } catch (err: unknown) { logError(err); toast(err instanceof Error ? err.message : 'Failed to add account', 'error'); }
     setSavingAccount(false);
   };
 
   const handleDeleteAccount = async (id: number) => {
     if (!confirm('Delete this account and all its holdings?')) return;
-    await api.deleteInvestmentAccount(id).catch((err) => { logError(err); });
+    await api.deleteInvestmentAccount(id).catch((err) => { logError(err); toast('Failed to delete account', 'error'); });
     load();
   };
 
@@ -141,7 +143,7 @@ export default function InvestmentsPage() {
       setAddHoldingFor(null);
       setHoldingForm(emptyHoldingForm);
       load();
-    } catch (err: unknown) { logError(err); }
+    } catch (err: unknown) { logError(err); toast(err instanceof Error ? err.message : 'Failed to add holding', 'error'); }
     setSavingHolding(false);
   };
 

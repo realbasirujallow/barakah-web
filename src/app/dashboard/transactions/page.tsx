@@ -91,7 +91,8 @@ export default function TransactionsPage() {
     setError(null);
     api.getTransactions(filter === 'all' ? undefined : filter, page, pageSize)
       .then(d => {
-        setTxs(d?.transactions || []);
+        if (d?.error) { toast(d.error, 'error'); setError(d.error); return; }
+        setTxs(Array.isArray(d?.transactions) ? d.transactions : []);
         setTotalPages(d?.totalPages || 0);
         setTotalElements(d?.totalElements || 0);
       })

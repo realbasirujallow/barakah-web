@@ -67,13 +67,23 @@ export default function ZakatPage() {
         api.getZakatPayments(), // load all years; filter by lunarYear after we know it
         api.getNisabInfo().catch(() => null),  // non-critical — live gold price display
       ]);
+      if (zakatData?.error) {
+        logError(new Error(zakatData.error as string), { context: 'Zakat API error' });
+        setLoading(false);
+        return;
+      }
+      if (paymentsData?.error) {
+        logError(new Error(paymentsData.error as string), { context: 'Payments API error' });
+        setLoading(false);
+        return;
+      }
       setData(zakatData);
       if (nisabData) setNisabInfo(nisabData as { goldPricePerGram?: number });
       // Filter payments to current lunar year (use API year once we have it)
       const year = (zakatData?.currentLunarYear as number) || computeHijriYear();
-      const filtered = (paymentsData?.payments || []).filter(
-        (p: Record<string, unknown>) => !p.lunarYear || p.lunarYear === year
-      );
+      const filtered = Array.isArray(paymentsData?.payments)
+        ? paymentsData.payments.filter((p: Record<string, unknown>) => !p.lunarYear || p.lunarYear === year)
+        : [];
       setPayments(filtered);
       setTotalPaid(filtered.reduce((s: number, p: Record<string, unknown>) => s + (p.amount as number || 0), 0));
     } catch (err) {

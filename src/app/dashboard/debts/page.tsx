@@ -91,7 +91,16 @@ export default function DebtsPage() {
 
   const load = () => {
     setLoading(true);
-    api.getDebts().then(d => setDebts(d?.debts || d || [])).catch(() => { toast('Failed to load debts', 'error'); }).finally(() => setLoading(false));
+    api.getDebts()
+      .then(d => {
+        if (d?.error) {
+          toast(d.error as string, 'error');
+          return;
+        }
+        setDebts(Array.isArray(d?.debts) ? d.debts : Array.isArray(d) ? d : []);
+      })
+      .catch(() => { toast('Failed to load debts', 'error'); })
+      .finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
