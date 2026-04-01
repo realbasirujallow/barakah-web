@@ -111,11 +111,12 @@ export default function ZakatPage() {
       });
       setForm({ amount: '', recipient: '', notes: '' });
       setShowForm(false);
-      await load();
+      // Calculate new total directly without relying on stale state
       const newTotalPaid = totalPaid + amount;
       if (zakatEligible && newTotalPaid >= zakatDue) {
         setShowMabrook(true);
       }
+      await load();
     } catch { toast('Failed to save payment. Please try again.', 'error'); }
     setSaving(false);
   };
