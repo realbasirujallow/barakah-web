@@ -7,11 +7,11 @@ import { logError } from '../../../lib/logError';
 
 interface DebtItem { id: number; name: string; type: string; totalAmount: number; remainingAmount: number; monthlyPayment: number; interestRate: number; ribaFree: boolean; lender: string; status: string; }
 
-const TYPES = ['islamic_mortgage', 'personal_loan', 'student_loan', 'car_loan', 'qard_hasan', 'credit_card', 'business_loan', 'other'];
+const TYPES = ['islamic_mortgage', 'conventional_mortgage', 'personal_loan', 'student_loan', 'car_loan', 'qard_hasan', 'credit_card', 'business_loan', 'other'];
 const ISLAMIC_TYPES = ['islamic_mortgage', 'qard_hasan'];
 const TYPE_LABELS: Record<string, string> = {
-  islamic_mortgage: 'Islamic Mortgage', personal_loan: 'Personal Loan', student_loan: 'Student Loan',
-  car_loan: 'Car Loan', qard_hasan: "Qard Hasan", credit_card: 'Credit Card', business_loan: 'Business Loan', other: 'Other',
+  islamic_mortgage: 'Islamic Mortgage', conventional_mortgage: 'Conventional Mortgage', personal_loan: 'Personal Loan', student_loan: 'Student Loan',
+  car_loan: 'Car Loan', qard_hasan: "Qard Hasan (Interest-Free)", credit_card: 'Credit Card', business_loan: 'Business Loan', other: 'Other',
 };
 
 const emptyForm = { name: '', type: 'qard_hasan', totalAmount: '', remainingAmount: '', monthlyPayment: '', interestRate: '0', lender: '', ribaFree: true };
