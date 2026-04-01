@@ -16,7 +16,7 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string, state: string, referralCode?: string) => Promise<void>;
-  logout: (reason?: 'logout' | 'deleted') => void;
+  logout: (reason?: 'logout' | 'deleted') => Promise<void>;
   isLoading: boolean;
   /** Call after a plan change to refresh plan from /auth/profile */
   refreshPlan: () => Promise<void>;
@@ -175,13 +175,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await api.signup(name, email, password, state, referralCode);
   };
 
-  const logout = (reason?: 'logout' | 'deleted') => {
+  const logout = async (reason?: 'logout' | 'deleted') => {
     _intentionalLogout = true;
-    api.logout().catch(() => { /* ignore network errors on logout */ });
+    try { await api.logout(); } catch { /* ignore network errors on logout */ }
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(REFRESH_TS_KEY);
     setUser(null);
-    // Redirect to login with the reason so the page can show a friendly message
     const query = reason ? `?reason=${reason}` : '';
     routerRef.current.push(`/login${query}`);
   };
