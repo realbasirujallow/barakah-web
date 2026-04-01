@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
+import { useAuth, hasAccess } from '../../../context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface RibaFlag {
   transactionId: number;
@@ -25,9 +27,18 @@ interface RibaResult {
 }
 
 export default function RibaPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  // Redirect if user doesn't have plus or family plan
+  if (user && !hasAccess(user.plan, 'plus', user.planExpiresAt)) {
+    router.push('/dashboard/billing');
+    return null;
+  }
+
   const [result, setResult] = useState<RibaResult | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     api.scanRiba().then(d => {

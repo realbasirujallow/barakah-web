@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
+import { useAuth, hasAccess } from '../../../context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface HalalResult { symbol: string; name: string; isHalal: boolean; reason: string; sector: string; debtRatio?: number; }
 interface StockStats { totalStocks: number; halalCount: number; haramCount: number; sectorCount: number; }
@@ -11,7 +13,15 @@ interface DetailResult { symbol: string; name: string; status: string; reason: s
 const PAGE_SIZE = 50;
 
 export default function HalalPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
+
+  // Redirect if user doesn't have plus or family plan
+  if (user && !hasAccess(user.plan, 'plus', user.planExpiresAt)) {
+    router.push('/dashboard/billing');
+    return null;
+  }
 
   // Unified search — doubles as single-stock check and screener filter
   const [search, setSearch] = useState('');

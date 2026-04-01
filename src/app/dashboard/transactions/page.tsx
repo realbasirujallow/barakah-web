@@ -127,6 +127,11 @@ export default function TransactionsPage() {
         setSaving(false);
         return;
       }
+      if (amt > 10000000) {
+        toast('Transaction amount cannot exceed 10,000,000', 'error');
+        setSaving(false);
+        return;
+      }
       // Convert date string to epoch milliseconds (noon UTC to avoid timezone edge cases)
       const timestamp = form.date ? new Date(form.date + 'T12:00:00Z').getTime() : Date.now();
       if (editTx) {

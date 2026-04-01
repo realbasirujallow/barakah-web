@@ -1,20 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
+import { fmt, toHijri } from '../../../lib/format';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 
-/** Compute current Hijri year from today's date using the same formula as the backend. */
+/** Compute current Hijri year from today's date using the Umm al-Qura calendar. */
 function computeHijriYear(): number {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const diff = now.getTime() - start.getTime();
-  const dayOfYear = Math.floor(diff / 86400000);
-  const isLeap = (now.getFullYear() % 4 === 0 && now.getFullYear() % 100 !== 0) || now.getFullYear() % 400 === 0;
-  const yearFraction = (dayOfYear - 1) / (isLeap ? 366 : 365);
-  const gregorianDecimal = now.getFullYear() + yearFraction;
-  return Math.floor((gregorianDecimal - 621.5) * (365.25 / 354.367));
+  const hijri = toHijri(new Date());
+  return hijri.year;
 }
 
 export default function ZakatPage() {
@@ -97,7 +91,8 @@ export default function ZakatPage() {
 
   useEffect(() => { load(); }, []);
 
-  const zakatDue = (data?.zakatDue as number) || 0;
+  // Use effectiveZakatAmount (locked amount) if available, otherwise use zakatDue
+  const zakatDue = (data?.effectiveZakatAmount as number) || (data?.zakatDue as number) || 0;
   const zakatEligible = data?.zakatEligible as boolean;
   const remaining = Math.max(0, zakatDue - totalPaid);
   const fulfilled = zakatEligible && totalPaid >= zakatDue && zakatDue > 0;

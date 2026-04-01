@@ -51,9 +51,9 @@ export default function HawlPage() {
     if (isNaN(nisab) || nisab <= 0) { setSaveError('Nisab threshold must be a positive number'); setSaving(false); return; }
 
     const data: Record<string, unknown> = { assetName: form.assetName, assetType: form.assetType, amount: amt, nisabThreshold: nisab };
-    // Custom start date
+    // Custom start date (noon UTC to avoid timezone edge cases)
     if (form.startDate) {
-      data.hawlStartDate = new Date(form.startDate).getTime();
+      data.hawlStartDate = new Date(form.startDate + 'T12:00:00Z').getTime();
     }
     try {
       await api.addHawl(data);
@@ -141,7 +141,7 @@ export default function HawlPage() {
       let data: Record<string, unknown>;
       if (dateInputMode === 'gregorian') {
         if (!newStartDate) { toast('Please select a date', 'error'); return; }
-        data = { hawlStartDate: new Date(newStartDate).getTime() };
+        data = { hawlStartDate: new Date(newStartDate + 'T12:00:00Z').getTime() };
       } else {
         const y = parseInt(hijriInput.year), m = parseInt(hijriInput.month), d = parseInt(hijriInput.day);
         if (!y || !m || !d || m < 1 || m > 12 || d < 1 || d > 30) { toast('Invalid Hijri date', 'error'); return; }

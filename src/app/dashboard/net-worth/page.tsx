@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { useAuth, hasAccess } from '../../../context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface Snapshot {
   id?: number;
@@ -20,6 +22,15 @@ const PERIODS = [
 ];
 
 export default function NetWorthPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  // Redirect if user doesn't have plus or family plan
+  if (user && !hasAccess(user.plan, 'plus', user.planExpiresAt)) {
+    router.push('/dashboard/billing');
+    return null;
+  }
+
   const [history, setHistory] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [snapping, setSnapping] = useState(false);
