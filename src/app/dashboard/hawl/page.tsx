@@ -17,6 +17,7 @@ export default function HawlPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ assetName: '', assetType: 'cash', amount: '', nisabThreshold: '5000' });
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const { toast } = useToast();
 
@@ -35,11 +36,17 @@ export default function HawlPage() {
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError(null);
+    const amt = parseFloat(form.amount);
+    const nisab = parseFloat(form.nisabThreshold);
+    if (!form.assetName.trim()) { setSaveError('Asset name is required'); setSaving(false); return; }
+    if (isNaN(amt) || amt <= 0) { setSaveError('Amount must be a positive number'); setSaving(false); return; }
+    if (isNaN(nisab) || nisab <= 0) { setSaveError('Nisab threshold must be a positive number'); setSaving(false); return; }
     try {
-      await api.addHawl({ assetName: form.assetName, assetType: form.assetType, amount: parseFloat(form.amount), nisabThreshold: parseFloat(form.nisabThreshold) });
+      await api.addHawl({ assetName: form.assetName, assetType: form.assetType, amount: amt, nisabThreshold: nisab });
       setShowForm(false); setForm({ assetName: '', assetType: 'cash', amount: '', nisabThreshold: '5000' }); load();
       toast('Asset tracker added', 'success');
-    } catch { toast('Failed to save tracker', 'error'); }
+    } catch (e: unknown) { const msg = e instanceof Error ? e.message : 'Failed to save tracker'; setSaveError(msg); toast(msg, 'error'); }
     setSaving(false);
   };
 
@@ -188,6 +195,7 @@ export default function HawlPage() {
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Nisab Threshold</label>
                 <input type="number" step="0.01" value={form.nisabThreshold} onChange={e => setForm({ ...form, nisabThreshold: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             </div>
+            {saveError && <div className="text-sm text-red-600 bg-red-50 p-2 rounded mb-3">{saveError}</div>}
             <div className="flex gap-3 mt-6">
               <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handleSave} disabled={saving || !form.assetName || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Track'}</button>
