@@ -22,7 +22,8 @@ export default function HawlPage() {
   const load = () => {
     setLoading(true);
     api.getHawl().then(d => {
-      setItems(d?.trackers || d || []);
+      if (d?.error) { toast(d.error, 'error'); return; }
+      setItems(Array.isArray(d?.trackers) ? d.trackers : Array.isArray(d) ? d : []);
       setNextDueDate(d?.nextZakatDueDate || null);
       setNextDueAsset(d?.nextZakatDueAsset || '');
       setNextDueDays(d?.nextZakatDueDays || 0);

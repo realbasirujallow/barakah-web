@@ -152,7 +152,7 @@ export default function ImportPage() {
         const debts: ExistingAccount[] = data.existingDebts || [];
         setExistingAssets(assets);
         setExistingDebts(debts);
-        const parsed: PreviewAccount[] = (data.accounts as PreviewAccount[]).map(a => ({
+        const parsed: PreviewAccount[] = (Array.isArray(data.accounts) ? data.accounts as PreviewAccount[] : []).map(a => ({
           ...a,
           type: a.suggestedType,
           action: a.suggestedMatch ? 'update' as const : 'create' as const,

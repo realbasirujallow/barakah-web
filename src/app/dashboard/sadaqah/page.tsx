@@ -33,7 +33,11 @@ function SadaqahContent() {
   const load = () => {
     setLoading(true);
     Promise.all([api.getSadaqah(), api.getSadaqahStats()])
-      .then(([d, s]) => { setItems(d?.donations || d || []); setStats(s); })
+      .then(([d, s]) => {
+        if (d?.error) { toast(d.error, 'error'); return; }
+        setItems(Array.isArray(d?.donations) ? d.donations : Array.isArray(d) ? d : []);
+        setStats(s || null);
+      })
       .catch(() => { toast('Failed to load sadaqah records', 'error'); }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);

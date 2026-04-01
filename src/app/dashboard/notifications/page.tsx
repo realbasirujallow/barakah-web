@@ -34,11 +34,12 @@ export default function NotificationsPage() {
     setLoading(true);
     try {
       const data = await api.getNotifications(p);
-      setNotifications(data?.notifications || []);
+      if (data?.error) return;
+      setNotifications(Array.isArray(data?.notifications) ? data.notifications : []);
       setUnreadCount(data?.unreadCount || 0);
       setTotalPages(data?.totalPages || 1);
       setPage(p);
-    } catch { /* silent */ }
+    } catch { /* notifications are non-critical — fail silently */ }
     finally { setLoading(false); }
   }, []);
 
