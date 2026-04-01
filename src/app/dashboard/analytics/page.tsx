@@ -24,6 +24,15 @@ interface MonthlyPoint {
   net: number;
 }
 
+interface HalalBreakdown {
+  category: string; amount: number; percentage: number; status: string; transactionCount: number;
+}
+interface HalalAnalysis {
+  period: string; totalSpending: number; halalSpending: number; reviewSpending: number;
+  halalRatio: number; halalTransactions: number; reviewTransactions: number;
+  totalTransactions: number; breakdown: HalalBreakdown[]; insights: string[];
+}
+
 const COLORS = [
   '#1B5E20', '#388E3C', '#4CAF50', '#81C784', '#A5D6A7',
   '#C8E6C9', '#2E7D32', '#43A047', '#66BB6A', '#E8F5E9',
@@ -43,6 +52,7 @@ export default function AnalyticsPage() {
     week: null, month: null, year: null,
   });
   const [monthlyData, setMonthlyData] = useState<MonthlyPoint[]>([]);
+  const [halalAnalysis, setHalalAnalysis] = useState<HalalAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeChart, setActiveChart] = useState<'mom' | 'trend'>('mom');
 
@@ -53,15 +63,18 @@ export default function AnalyticsPage() {
       api.getTransactionSummary('month'),
       api.getTransactionSummary('year'),
       api.getMonthlySummary(13),
+      api.getHalalAnalysis('month'),
     ])
       .then((results) => {
         const week = results[0].status === 'fulfilled' ? results[0].value : null;
         const month = results[1].status === 'fulfilled' ? results[1].value : null;
         const year = results[2].status === 'fulfilled' ? results[2].value : null;
         const monthly = results[3].status === 'fulfilled' ? results[3].value : null;
+        const halal = results[4].status === 'fulfilled' ? results[4].value : null;
         setAllPeriods({ week, month, year });
         setSummary(month);
         setMonthlyData(monthly?.months || []);
+        if (halal) setHalalAnalysis(halal as HalalAnalysis);
       })
       .catch((err) => { logError(err, { context: 'Failed to load analytics data' }); })
       .finally(() => setLoading(false));
@@ -495,6 +508,80 @@ export default function AnalyticsPage() {
           )}
         </div>
       </div>
+
+      {/* ── Halal Spending Analysis ────────────────────────────────────────── */}
+      {halalAnalysis && halalAnalysis.totalTransactions > 0 && (
+        <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+          <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">🛡️ Halal Spending Analysis</h2>
+
+          {/* Ratio Cards */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-green-50 rounded-xl p-4 text-center">
+              <p className="text-3xl font-bold text-[#1B5E20]">{halalAnalysis.halalRatio}%</p>
+              <p className="text-xs text-gray-600 mt-1">Halal Ratio</p>
+            </div>
+            <div className="bg-green-50 rounded-xl p-4 text-center">
+              <p className="text-xl font-bold text-green-700">{fmt(halalAnalysis.halalSpending)}</p>
+              <p className="text-xs text-gray-600 mt-1">Halal ({halalAnalysis.halalTransactions} txns)</p>
+            </div>
+            <div className="bg-amber-50 rounded-xl p-4 text-center">
+              <p className="text-xl font-bold text-amber-700">{fmt(halalAnalysis.reviewSpending)}</p>
+              <p className="text-xs text-gray-600 mt-1">Needs Review ({halalAnalysis.reviewTransactions} txns)</p>
+            </div>
+          </div>
+
+          {/* Halal ratio bar */}
+          <div className="mb-4">
+            <div className="flex justify-between text-xs text-gray-500 mb-1">
+              <span>Halal</span><span>Needs Review</span>
+            </div>
+            <div className="w-full h-4 bg-amber-100 rounded-full overflow-hidden">
+              <div className="h-full bg-[#1B5E20] rounded-full transition-all" style={{ width: `${halalAnalysis.halalRatio}%` }} />
+            </div>
+          </div>
+
+          {/* Insights */}
+          {halalAnalysis.insights.length > 0 && (
+            <div className="bg-green-50 rounded-xl p-4 mb-4 space-y-2">
+              {halalAnalysis.insights.map((insight, i) => (
+                <p key={i} className="text-sm text-gray-700 flex items-start gap-2">
+                  <span className="text-green-600 mt-0.5">{i === 0 ? '💡' : '📌'}</span> {insight}
+                </p>
+              ))}
+            </div>
+          )}
+
+          {/* Breakdown table */}
+          {halalAnalysis.breakdown.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-3 text-gray-500 font-medium">Category</th>
+                    <th className="text-right py-2 px-3 text-gray-500 font-medium">Amount</th>
+                    <th className="text-right py-2 px-3 text-gray-500 font-medium">%</th>
+                    <th className="text-center py-2 px-3 text-gray-500 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {halalAnalysis.breakdown.slice(0, 10).map((b) => (
+                    <tr key={b.category} className="border-b border-gray-50 hover:bg-gray-50">
+                      <td className="py-2 px-3 capitalize font-medium text-gray-800">{b.category.replace(/_/g, ' ')}</td>
+                      <td className="py-2 px-3 text-right text-gray-700">{fmt(b.amount)}</td>
+                      <td className="py-2 px-3 text-right text-gray-500">{b.percentage}%</td>
+                      <td className="py-2 px-3 text-center">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${b.status === 'halal' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {b.status === 'halal' ? '✓ Halal' : '⚠ Review'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Top Categories Table */}
       <div className="bg-white rounded-2xl p-6 shadow-sm">

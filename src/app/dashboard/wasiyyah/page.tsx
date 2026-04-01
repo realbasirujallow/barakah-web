@@ -115,13 +115,22 @@ export default function WasiyyahPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Wasiyyah (Islamic Will)</h1>
-        <button
-          type="button"
-          onClick={() => tab === 'beneficiaries' ? setShowForm(true) : setShowObForm(true)}
-          className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
-        >
-          {tab === 'beneficiaries' ? '+ Add Beneficiary' : '+ Record Obligation'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => { api.downloadWasiyyahPdf().catch(() => {}); }}
+            className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium flex items-center gap-1"
+          >
+            📄 Export PDF
+          </button>
+          <button
+            type="button"
+            onClick={() => tab === 'beneficiaries' ? setShowForm(true) : setShowObForm(true)}
+            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
+          >
+            {tab === 'beneficiaries' ? '+ Add Beneficiary' : '+ Record Obligation'}
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}

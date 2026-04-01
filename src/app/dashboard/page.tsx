@@ -5,31 +5,39 @@ import { fmt } from '../../lib/format';
 import { useToast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
+import OnboardingWizard from '../../components/OnboardingWizard';
 
-/** Returns true if today is in Ramadan (Hijri month 9). Approximate — within ~1 day. */
-function isRamadan(): boolean {
-  const jd = Math.floor(Date.now() / 86400000) + 2440587;
-  const z = jd - 1948439;
-  const hijriMonth = Math.floor(((z % 10631) % 354.367) / 29.5) + 1;
-  return hijriMonth === 9;
-}
+interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
+interface HijriData { hijriDate: string; hijriMonthName: string; isRamadan: boolean; upcomingEvents: IslamicEvent[]; }
 
 export default function DashboardPage() {
   const [totals, setTotals] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [hideNetWorth, setHideNetWorth] = useState(false);
   const [hideZakat, setHideZakat] = useState(false);
+  const [hijri, setHijri] = useState<HijriData | null>(null);
+  const [hawlDue, setHawlDue] = useState<{ dueCount: number; upcomingCount: number; due: Record<string, unknown>[] } | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const ramadan = isRamadan();
 
   useEffect(() => {
+    // Show onboarding for first-time users
+    try {
+      if (!localStorage.getItem('barakah_onboarded')) setShowOnboarding(true);
+    } catch {}
     setHideNetWorth(localStorage.getItem('hideNetWorth') === 'true');
     setHideZakat(localStorage.getItem('hideZakatDashboard') === 'true');
-    api.getAssetTotal()
-      .then(data => setTotals(data))
-      .catch(() => { toast('Failed to load dashboard data. Please refresh.', 'error'); })
-      .finally(() => setLoading(false));
+    Promise.allSettled([
+      api.getAssetTotal(),
+      api.getIslamicCalendarToday(),
+      api.getHawlDue(30),
+    ]).then(([assetResult, hijriResult, hawlResult]) => {
+      if (assetResult.status === 'fulfilled') setTotals(assetResult.value);
+      else toast('Failed to load dashboard data. Please refresh.', 'error');
+      if (hijriResult.status === 'fulfilled') setHijri(hijriResult.value as HijriData);
+      if (hawlResult.status === 'fulfilled') setHawlDue(hawlResult.value as typeof hawlDue);
+    }).finally(() => setLoading(false));
   }, []);
 
   const toggleHideNetWorth = () => {
@@ -65,8 +73,11 @@ export default function DashboardPage() {
 
   return (
     <div>
+      {/* Onboarding Wizard for first-time users */}
+      {showOnboarding && <OnboardingWizard onComplete={() => setShowOnboarding(false)} />}
+
       {/* Ramadan Banner */}
-      {ramadan && (
+      {hijri?.isRamadan && (
         <div className="bg-gradient-to-r from-purple-700 to-indigo-600 rounded-2xl p-5 text-white mb-6">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-3xl">🌙</span>
@@ -82,6 +93,60 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── Islamic Calendar + Zakat Reminders Row ─────────────────────────── */}
+      <div className="grid md:grid-cols-2 gap-4 mb-6">
+        {/* Hijri Date + Upcoming Events */}
+        {hijri && (
+          <div className="bg-white rounded-2xl p-5 border border-green-100">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Islamic Date</p>
+                <p className="text-lg font-bold text-[#1B5E20]">{hijri.hijriDate}</p>
+              </div>
+              <span className="text-3xl">🕌</span>
+            </div>
+            {hijri.upcomingEvents.length > 0 && (
+              <div className="border-t border-green-50 pt-3 mt-2 space-y-2">
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Upcoming</p>
+                {hijri.upcomingEvents.slice(0, 3).map((e, i) => (
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-800 font-medium">{e.name}</span>
+                    <span className="text-gray-500 text-xs">
+                      {e.daysAway === 0 ? 'Today!' : e.daysAway === 1 ? 'Tomorrow' : `${e.daysAway} days`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {/* Hawl/Zakat Reminders */}
+        {hawlDue && (hawlDue.dueCount > 0 || hawlDue.upcomingCount > 0) && (
+          <div className={`rounded-2xl p-5 border ${hawlDue.dueCount > 0 ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-100'}`}>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Zakat Reminders</p>
+                {hawlDue.dueCount > 0 ? (
+                  <p className="text-lg font-bold text-amber-700">{hawlDue.dueCount} asset{hawlDue.dueCount !== 1 ? 's' : ''} — Zakat due now!</p>
+                ) : (
+                  <p className="text-lg font-bold text-[#1B5E20]">{hawlDue.upcomingCount} coming up</p>
+                )}
+              </div>
+              <span className="text-3xl">⏰</span>
+            </div>
+            {hawlDue.due?.slice(0, 2).map((h: Record<string, unknown>, i: number) => (
+              <div key={i} className="flex items-center justify-between text-sm mt-1 bg-white/60 rounded-lg px-3 py-2">
+                <span className="font-medium text-gray-800">{h.assetName as string}</span>
+                <span className="text-amber-700 font-bold">{fmt((h.zakatAmount as number) || 0)} due</span>
+              </div>
+            ))}
+            <Link href="/dashboard/hawl" className="inline-block mt-3 text-sm font-medium text-[#1B5E20] hover:underline">
+              View Hawl Tracker →
+            </Link>
+          </div>
+        )}
+      </div>
 
       {/* Summary cards */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
