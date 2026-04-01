@@ -96,7 +96,7 @@ const plans = [
       'Shared finances (up to 6 members)',
       'Family Zakat management',
       'Shared budgets & goals',
-      'Family Estate Sharing (Waqf & Wasiyyah)',
+      'Family Estate Visibility (see each other\u2019s wills & endowments)',
       'Shared expense splitting',
       'Family financial summary',
       'Priority support',
