@@ -4,6 +4,8 @@ import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
+import { useAuth } from '../../../context/AuthContext';
+import Link from 'next/link';
 import { SkeletonPage } from '../SkeletonCard';
 
 // ── Supported currencies ──────────────────────────────────────────────────────
@@ -71,6 +73,7 @@ export default function TransactionsPage() {
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ type: 'single' | 'bulk'; id?: number; count?: number } | null>(null);
 
   const { currency: preferredCurrency, fmt } = useCurrency();
+  const { user } = useAuth();
 
   const [form, setForm] = useState({
     type: 'expense', category: 'food', amount: '', description: '', currency: 'USD',
@@ -282,6 +285,24 @@ export default function TransactionsPage() {
         <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Expenses</p><p className="text-xl font-bold text-red-600">{fmt(expense)}</p></div>
         <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Net</p><p className={`text-xl font-bold ${income - expense >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(income - expense)}</p></div>
       </div>
+
+      {/* ── Free plan transaction limit nudge ──────────────────────────────── */}
+      {user?.plan === 'free' && totalElements > 0 && (
+        <div className="mb-4 bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">⚡</span>
+            <div>
+              <p className="text-sm font-medium text-gray-900">
+                You've used <span className="font-bold">{totalElements}</span> of <span className="font-bold">25</span> free transactions this month
+              </p>
+              <p className="text-xs text-gray-600 mt-0.5">Upgrade to Plus for unlimited transactions and more premium features.</p>
+            </div>
+          </div>
+          <Link href="/dashboard/billing" className="ml-4 flex-shrink-0 bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm whitespace-nowrap">
+            Upgrade
+          </Link>
+        </div>
+      )}
 
       {/* ── Filter + page-size row ──────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-2 mb-4 items-center">

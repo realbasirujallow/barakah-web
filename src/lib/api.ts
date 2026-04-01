@@ -598,6 +598,8 @@ export const api = {
     apiFetch(`/admin/users/${userId}/reset-password`, { method: 'POST' }, API_TIMEOUT, true),
   adminUpdatePlan: (userId: number, plan: string) =>
     apiFetch(`/admin/users/${userId}/plan`, { method: 'PUT', body: JSON.stringify({ plan }) }, API_TIMEOUT, true),
+  adminGrantTrial: (userId: number, plan: string, durationDays: number, sendEmail: boolean) =>
+    apiFetch(`/admin/users/${userId}/grant-trial`, { method: 'POST', body: JSON.stringify({ plan, durationDays, sendEmail }) }, API_TIMEOUT, true),
   getAdminAnalytics: () => apiFetch('/admin/analytics', {}, API_TIMEOUT, true),
   getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
 
