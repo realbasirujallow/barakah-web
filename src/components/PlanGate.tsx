@@ -31,12 +31,28 @@ export function PlanGate({ required, featureName, description, children }: PlanG
     return <>{children}</>;
   }
 
+  const validateStripeUrl = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.protocol !== 'https:') return false;
+      const hostname = urlObj.hostname;
+      return hostname === 'stripe.com' || hostname === 'checkout.stripe.com' || hostname.endsWith('.stripe.com');
+    } catch {
+      return false;
+    }
+  };
+
   const handleUpgrade = async (planType: 'plus' | 'family') => {
     setUpgrading(planType);
     try {
       const result = await api.upgradeSubscription(planType);
       if (result?.url) {
-        window.location.href = result.url;
+        if (validateStripeUrl(result.url)) {
+          window.location.href = result.url;
+        } else {
+          alert('Invalid Stripe URL. Please contact support.');
+          setUpgrading(null);
+        }
       } else if (result?.success) {
         window.location.reload();
       } else {

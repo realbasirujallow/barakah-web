@@ -85,7 +85,7 @@ export default function BudgetPage() {
     setSaving(true); setSaveError(null);
     try {
       const limit = parseFloat(form.monthlyLimit);
-      if (!form.monthlyLimit.trim() || isNaN(limit) || limit <= 0) {
+      if (!form.monthlyLimit.trim() || !Number.isFinite(limit) || limit <= 0) {
         setSaveError('Monthly limit must be a positive number');
         setSaving(false);
         return;
@@ -228,7 +228,7 @@ export default function BudgetPage() {
             </div>
             {saveError && <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{saveError}</div>}
             <div className="flex gap-3 mt-4">
-              <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => setShowForm(false)} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handleSave} disabled={saving || !form.monthlyLimit}
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
                 {saving ? 'Saving...' : editItem ? 'Update' : 'Add'}

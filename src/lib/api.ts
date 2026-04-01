@@ -10,6 +10,13 @@ const UPLOAD_TIMEOUT = 60_000;   // 60s for file uploads
 const DOWNLOAD_TIMEOUT = 30_000; // 30s for file downloads
 const IMPORT_TIMEOUT = 300_000;  // 5min for large imports (chunked)
 
+// ── CSRF Token Helper ──────────────────────────────────────────────────────
+function getCsrfToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 // ── 401 global handler ────────────────────────────────────────────────────────
 // Register a callback (e.g. logout + redirect) that fires whenever a 401
 // cannot be recovered by the silent refresh flow below.
@@ -69,6 +76,15 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> || {}),
   };
+
+  // Add CSRF token to non-GET requests for CSRF protection
+  const method = (options.method || 'GET').toUpperCase();
+  if (method !== 'GET') {
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      headers['X-XSRF-TOKEN'] = csrfToken;
+    }
+  }
 
   // credentials: 'include' ensures the auth_token httpOnly cookie is sent on
   // every request. The cookie is never readable by JavaScript — it is set by

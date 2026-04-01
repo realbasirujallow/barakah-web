@@ -30,16 +30,21 @@ export default function ProfilePage() {
     try {
       const result = await api.upgradeSubscription(plan);
       if (result?.url) {
-        window.location.href = result.url; // Free → Stripe Checkout
+        if (validateStripeUrl(result.url)) {
+          window.location.href = result.url; // Free → Stripe Checkout
+        } else {
+          toast('Invalid Stripe URL. Please contact support.', 'error');
+          setUpgradingPlan(null);
+        }
       } else if (result?.success) {
         toast('Plan updated successfully!', 'success');
         window.location.reload(); // Existing subscriber — plan switched
       } else {
         toast('Something went wrong. Please try again.', 'error');
+        setUpgradingPlan(null);
       }
     } catch {
       toast('Something went wrong. Please try again.', 'error');
-    } finally {
       setUpgradingPlan(null);
     }
   };
@@ -75,6 +80,17 @@ export default function ProfilePage() {
     setDarkMode(next);
     localStorage.setItem('barakah_dark_mode', String(next));
     document.documentElement.classList.toggle('dark', next);
+  };
+
+  const validateStripeUrl = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.protocol !== 'https:') return false;
+      const hostname = urlObj.hostname;
+      return hostname === 'stripe.com' || hostname === 'checkout.stripe.com' || hostname.endsWith('.stripe.com');
+    } catch {
+      return false;
+    }
   };
 
   // Delete account — two-step: retention modal → final confirmation (no password required)
@@ -222,6 +238,7 @@ export default function ProfilePage() {
                       onClick={() => handleUpgrade('plus')}
                       disabled={upgradingPlan !== null}
                       className="mt-4 w-full bg-[#1B5E20] text-white py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition disabled:opacity-60"
+                      type="button"
                     >
                       {upgradingPlan === 'plus' ? 'Redirecting...' : 'Upgrade to Plus'}
                     </button>
@@ -244,6 +261,7 @@ export default function ProfilePage() {
                       onClick={() => handleUpgrade('family')}
                       disabled={upgradingPlan !== null}
                       className="mt-4 w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-60"
+                      type="button"
                     >
                       {upgradingPlan === 'family' ? 'Redirecting...' : 'Upgrade to Family'}
                     </button>
@@ -268,6 +286,7 @@ export default function ProfilePage() {
                     onClick={() => handleUpgrade('family')}
                     disabled={upgradingPlan !== null}
                     className="mt-4 w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-60"
+                    type="button"
                   >
                     {upgradingPlan === 'family' ? 'Redirecting...' : 'Upgrade to Family'}
                   </button>
@@ -317,6 +336,7 @@ export default function ProfilePage() {
 
         <div className="mt-4 flex justify-end">
           <button
+            type="button"
             onClick={handleSaveName}
             disabled={savingName || !nameForm.fullName || !nameForm.email}
             className="bg-[#1B5E20] text-white px-5 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium"
@@ -396,6 +416,7 @@ export default function ProfilePage() {
 
         <div className="mt-4 flex justify-end">
           <button
+            type="button"
             onClick={handleChangePassword}
             disabled={savingPw || !pwForm.currentPassword || !pwForm.newPassword || !pwForm.confirmPassword}
             className="bg-[#1B5E20] text-white px-5 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium"

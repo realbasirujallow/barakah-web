@@ -55,7 +55,7 @@ function SadaqahContent() {
     setSaving(true);
     try {
       const amt = parseFloat(form.amount);
-      if (isNaN(amt) || amt <= 0) {
+      if (!Number.isFinite(amt) || amt <= 0) {
         toast('Amount must be a positive number', 'error');
         setSaving(false);
         return;
@@ -80,7 +80,7 @@ function SadaqahContent() {
 
   const handleDonate = async () => {
     const dollars = donateAmount ?? parseFloat(donateCustom);
-    if (!dollars || dollars <= 0) { toast('Please enter a valid amount', 'error'); return; }
+    if (!Number.isFinite(dollars) || dollars <= 0) { toast('Please enter a valid amount', 'error'); return; }
     const cents = Math.round(dollars * 100);
     setDonating(true);
     try {
@@ -240,7 +240,7 @@ function SadaqahContent() {
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button onClick={() => setShowForm(false)} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Record'}</button>
             </div>
           </div>
