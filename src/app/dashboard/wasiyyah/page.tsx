@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
 
 interface Beneficiary { id: number; beneficiaryName: string; relationship: string; sharePercentage: number; shareType: string; notes: string; }
@@ -14,9 +15,6 @@ const OBLIGATION_TYPES = [
   { value: 'MISSED_PRAYER_FIDYA', label: 'Fidya (Prayers/Fasts)', emoji: '📖', desc: 'Compensation owed for missed prayers or fasts' },
   { value: 'CUSTOM',              label: 'Other Obligation',      emoji: '📋', desc: 'Any other Islamic or personal obligation' },
 ];
-
-const fmt = (n: number, currency = 'USD') =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);
 
 export default function WasiyyahPage() {
   const [items, setItems]           = useState<Beneficiary[]>([]);

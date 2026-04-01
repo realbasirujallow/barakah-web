@@ -66,7 +66,10 @@ export default function SharedPage() {
   const [goals, setGoals] = useState<SharedGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
-  const [activeTab, setActiveTab] = useState<'expenses' | 'budgets' | 'goals'>('expenses');
+  const [activeTab, setActiveTab] = useState<'expenses' | 'budgets' | 'goals' | 'estate'>('expenses');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [estateData, setEstateData] = useState<any>(null);
+  const [estateSharing, setEstateSharing] = useState(true);
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [groupForm, setGroupForm] = useState(emptyGroupForm);
@@ -116,8 +119,10 @@ export default function SharedPage() {
       api.getGroupTransactions(group.id),
       api.getSharedBudgets(group.id),
       api.getSharedGoals(group.id),
+      api.getFamilyEstate(group.id),
+      api.getEstateSharingStatus(),
     ])
-      .then(([detail, s, t, b, g]) => {
+      .then(([detail, s, t, b, g, estate, sharingStatus]) => {
         // Merge full group details (including inviteCode and members)
         const fullGroup = detail?.group || detail || {};
         setActiveGroup({ ...group, ...fullGroup, members: fullGroup.members || group.members || [] });
@@ -125,6 +130,8 @@ export default function SharedPage() {
         setTransactions(t?.transactions || t || []);
         setBudgets(b?.budgets || b || []);
         setGoals(g?.goals || g || []);
+        setEstateData(estate);
+        setEstateSharing(sharingStatus?.shareEstateWithFamily ?? true);
       })
       .catch(() => { toast('Failed to load group details', 'error'); })
       .finally(() => setLoadingDetail(false));
@@ -177,8 +184,12 @@ export default function SharedPage() {
 
   const handleDeleteTx = async (txId: number) => {
     if (!activeGroup || !confirm('Delete this transaction?')) return;
-    await api.deleteGroupTransaction(activeGroup.id, txId).catch(() => { toast('Failed to delete transaction', 'error'); });
-    loadGroupDetail(activeGroup);
+    try {
+      await api.deleteGroupTransaction(activeGroup.id, txId);
+      loadGroupDetail(activeGroup);
+    } catch {
+      toast('Failed to delete transaction', 'error');
+    }
   };
 
   const handleAddBudget = async () => {
@@ -199,8 +210,12 @@ export default function SharedPage() {
 
   const handleDeleteBudget = async (budgetId: number) => {
     if (!activeGroup || !confirm('Delete this budget?')) return;
-    await api.deleteSharedBudget(activeGroup.id, budgetId).catch(() => { toast('Failed to delete budget', 'error'); });
-    loadGroupDetail(activeGroup);
+    try {
+      await api.deleteSharedBudget(activeGroup.id, budgetId);
+      loadGroupDetail(activeGroup);
+    } catch {
+      toast('Failed to delete budget', 'error');
+    }
   };
 
   const handleAddGoal = async () => {
@@ -236,8 +251,12 @@ export default function SharedPage() {
 
   const handleDeleteGoal = async (goalId: number) => {
     if (!activeGroup || !confirm('Delete this goal?')) return;
-    await api.deleteSharedGoal(activeGroup.id, goalId).catch(() => { toast('Failed to delete goal', 'error'); });
-    loadGroupDetail(activeGroup);
+    try {
+      await api.deleteSharedGoal(activeGroup.id, goalId);
+      loadGroupDetail(activeGroup);
+    } catch {
+      toast('Failed to delete goal', 'error');
+    }
   };
 
   const copyInviteCode = (code: string) => {
@@ -358,6 +377,16 @@ export default function SharedPage() {
                   }`}
                 >
                   Goals
+                </button>
+                <button
+                  onClick={() => setActiveTab('estate')}
+                  className={`flex-1 px-4 py-3 font-medium text-sm transition ${
+                    activeTab === 'estate'
+                      ? 'text-[#1B5E20] border-b-2 border-[#1B5E20]'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Estate
                 </button>
               </div>
 
@@ -496,6 +525,182 @@ export default function SharedPage() {
                       })}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Family Estate Tab — Waqf & Wasiyyah visibility for family members */}
+              {activeTab === 'estate' && (
+                <div>
+                  <div className="px-5 py-4 border-b">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h2 className="font-bold text-[#1B5E20]">Family Estate</h2>
+                        <p className="text-xs text-gray-500 mt-1">Waqf endowments and Wasiyyah (wills) shared by family members</p>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <span className="text-xs text-gray-500">Share mine</span>
+                        <div className="relative">
+                          <input
+                            type="checkbox"
+                            checked={estateSharing}
+                            onChange={async (e) => {
+                              const enabled = e.target.checked;
+                              setEstateSharing(enabled);
+                              try {
+                                await api.setEstateSharing(enabled);
+                                toast(enabled ? 'Estate shared with family' : 'Estate set to private', 'success');
+                                if (activeGroup) {
+                                  const estate = await api.getFamilyEstate(activeGroup.id);
+                                  setEstateData(estate);
+                                }
+                              } catch { toast('Failed to update sharing preference', 'error'); }
+                            }}
+                            className="sr-only peer"
+                          />
+                          <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[#1B5E20] transition-colors" />
+                          <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Group-level estate stats */}
+                  {estateData && !estateData.error && (
+                    <div className="px-5 py-4 border-b bg-gradient-to-r from-emerald-50 to-amber-50">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <p className="text-2xl font-bold text-[#1B5E20]">{estateData.membersSharing || 0}</p>
+                          <p className="text-xs text-gray-500">Members Sharing</p>
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-amber-600">{estateData.membersWithEstatePlan || 0}</p>
+                          <p className="text-xs text-gray-500">Have Estate Plan</p>
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-emerald-600">{fmt(estateData.groupTotalWaqf || 0)}</p>
+                          <p className="text-xs text-gray-500">Total Waqf</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Per-member estate cards */}
+                  <div className="p-5 space-y-4">
+                    {estateData?.members?.length > 0 ? estateData.members.map((member: Record<string, unknown>) => {
+                      const waqfs = (member.waqf as Record<string, unknown>[]) || [];
+                      const beneficiaries = (member.wasiyyahBeneficiaries as Record<string, unknown>[]) || [];
+                      const obligations = (member.obligations as Record<string, unknown>[]) || [];
+                      const isSharing = member.isSharing as boolean;
+                      const isSelf = member.isSelf as boolean;
+
+                      return (
+                        <div key={member.userId as number} className="border rounded-xl overflow-hidden">
+                          {/* Member header */}
+                          <div className={`px-4 py-3 flex items-center justify-between ${isSelf ? 'bg-emerald-50' : 'bg-gray-50'}`}>
+                            <div className="flex items-center gap-2">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isSelf ? 'bg-[#1B5E20] text-white' : 'bg-gray-200 text-gray-600'}`}>
+                                {((member.displayName as string) || 'M')[0].toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900 text-sm">
+                                  {member.displayName as string}{isSelf && <span className="text-xs text-[#1B5E20] ml-1">(you)</span>}
+                                </p>
+                                <p className="text-xs text-gray-400">{member.role as string}</p>
+                              </div>
+                            </div>
+                            {!isSharing && (
+                              <span className="text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full">Private</span>
+                            )}
+                            {isSharing && (member.hasEstatePlan as boolean) && (
+                              <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">Estate Plan Active</span>
+                            )}
+                          </div>
+
+                          {/* Estate content */}
+                          {isSharing ? (
+                            <div className="px-4 py-3 space-y-3">
+                              {/* Waqf Section */}
+                              {waqfs.length > 0 && (
+                                <div>
+                                  <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-2">Waqf Endowments</p>
+                                  {waqfs.map((w, i) => (
+                                    <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
+                                      <div>
+                                        <p className="text-sm text-gray-900">{w.organizationName as string}</p>
+                                        <p className="text-xs text-gray-400">{w.purpose as string} &middot; {w.type as string}{w.recurring ? ` &middot; ${w.frequency as string}` : ''}</p>
+                                      </div>
+                                      <p className="text-sm font-semibold text-emerald-600">{fmt((w.amount as number) || 0)}</p>
+                                    </div>
+                                  ))}
+                                  <p className="text-xs text-gray-400 mt-1">Total: {fmt((member.totalWaqf as number) || 0)}</p>
+                                </div>
+                              )}
+
+                              {/* Wasiyyah Section */}
+                              {beneficiaries.length > 0 && (
+                                <div>
+                                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Wasiyyah Beneficiaries</p>
+                                  {beneficiaries.map((b, i) => (
+                                    <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
+                                      <div>
+                                        <p className="text-sm text-gray-900">{b.beneficiaryName as string}</p>
+                                        <p className="text-xs text-gray-400">{b.relationship as string} &middot; {b.shareType as string}</p>
+                                      </div>
+                                      <p className="text-sm font-semibold text-amber-600">{(b.sharePercentage as number)?.toFixed(1)}%</p>
+                                    </div>
+                                  ))}
+                                  <p className="text-xs text-gray-400 mt-1">Total allocated: {((member.totalShareAllocated as number) || 0).toFixed(1)}%</p>
+                                </div>
+                              )}
+
+                              {/* Obligations Section */}
+                              {obligations.length > 0 && (
+                                <div>
+                                  <p className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-2">Outstanding Obligations</p>
+                                  {obligations.map((o, i) => (
+                                    <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
+                                      <div>
+                                        <p className="text-sm text-gray-900">{o.description as string}</p>
+                                        <p className="text-xs text-gray-400">{o.type as string}{o.recipient ? ` to ${o.recipient as string}` : ''}</p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className={`text-sm font-semibold ${o.status === 'fulfilled' ? 'text-green-600' : 'text-red-600'}`}>{fmt((o.amount as number) || 0)}</p>
+                                        <p className="text-xs text-gray-400">{o.status as string}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {(member.pendingObligations as number) > 0 && (
+                                    <p className="text-xs text-red-500 mt-1">Pending: {fmt(member.pendingObligations as number)}</p>
+                                  )}
+                                </div>
+                              )}
+
+                              {waqfs.length === 0 && beneficiaries.length === 0 && obligations.length === 0 && (
+                                <p className="text-sm text-gray-400 py-2">No estate plan set up yet.</p>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="px-4 py-3">
+                              <p className="text-sm text-gray-400">{isSelf ? 'Toggle "Share mine" above to share your Waqf and Wasiyyah with family.' : 'This member has not shared their estate plan.'}</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }) : (
+                      <div className="text-center py-10 text-gray-400 text-sm">No family members in this group yet.</div>
+                    )}
+                  </div>
+
+                  {/* Islamic guidance */}
+                  <div className="mx-5 mb-5 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <p className="text-sm font-medium text-amber-800 mb-1">Why share your estate plan?</p>
+                    <p className="text-xs text-amber-700">
+                      In Islam, ensuring your family knows your Wasiyyah (will) and Waqf (endowments)
+                      is essential for proper execution after you pass. The Prophet (peace be upon him) said:
+                      &ldquo;It is not permissible for any Muslim who has something to will to stay for two
+                      nights without having his last will and testament written.&rdquo; (Bukhari &amp; Muslim)
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
