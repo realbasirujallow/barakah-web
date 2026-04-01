@@ -8,7 +8,7 @@ import { useToast } from '../../../lib/toast';
 
 interface SadaqahItem { id: number; amount: number; recipientName: string; category: string; date: number; description: string; recurring: boolean; anonymous: boolean; }
 interface Stats { totalDonated: number; donationCount: number; thisMonthTotal: number; topCategory: string; }
-const CATS = ['food', 'education', 'healthcare', 'orphans', 'masjid', 'disaster_relief', 'water', 'dawah', 'general', 'other'];
+const CATS = ['food', 'clothing', 'education', 'medical', 'shelter', 'water', 'general', 'orphan', 'mosque', 'disaster_relief', 'dawah', 'other'];
 
 // Preset donation amounts in dollars
 const PRESET_AMOUNTS = [5, 10, 25, 50, 100];

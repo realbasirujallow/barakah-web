@@ -7,8 +7,8 @@ import { useToast } from '../../../lib/toast';
 interface WaqfItem { id: number; organizationName: string; type: string; purpose: string; amount: number; date: number; recurring: boolean; status: string; }
 interface Beneficiary { id: number; name: string; category: string; percentage: number; contact?: string; notes?: string; calculatedAmount: number; }
 
-const PURPOSES = ['education', 'healthcare', 'masjid', 'water', 'housing', 'general', 'other'];
-const TYPES = ['cash', 'property', 'equipment', 'land', 'other'];
+const PURPOSES = ['education', 'healthcare', 'mosque', 'water', 'orphanage', 'general', 'other'];
+const TYPES = ['cash', 'property', 'equipment', 'books', 'land', 'other'];
 const CATEGORIES = ['masjid', 'charity', 'family', 'education', 'healthcare', 'water', 'general', 'other'];
 const CATEGORY_COLORS: Record<string, string> = {
   masjid: 'bg-emerald-100 text-emerald-800', charity: 'bg-teal-100 text-teal-800',
