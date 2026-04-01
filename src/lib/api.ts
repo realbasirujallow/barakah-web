@@ -209,7 +209,7 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
     if (res.status === 401) {
       const refreshOk = isRefreshing
         ? await new Promise<boolean>(r => subscribeToRefresh(r))
-        : (isRefreshing = true, await attemptSilentRefresh().finally(() => { isRefreshing = false; notifySubscribers(false); }));
+        : await (async () => { isRefreshing = true; const ok = await attemptSilentRefresh(); isRefreshing = false; notifySubscribers(ok); return ok; })();
       if (refreshOk) {
         const r2 = await fetch(`${API_URL}${endpoint}`, { method: 'POST', body: formData, credentials: 'include' });
         if (r2.ok) { const t = await r2.text(); if (!t) return null; try { return JSON.parse(t); } catch { throw new Error('Unexpected server response.'); } }
@@ -251,7 +251,7 @@ export async function apiDownload(endpoint: string, filename: string): Promise<v
     if (res.status === 401) {
       const refreshOk = isRefreshing
         ? await new Promise<boolean>(r => subscribeToRefresh(r))
-        : (isRefreshing = true, await attemptSilentRefresh().finally(() => { isRefreshing = false; notifySubscribers(false); }));
+        : await (async () => { isRefreshing = true; const ok = await attemptSilentRefresh(); isRefreshing = false; notifySubscribers(ok); return ok; })();
       if (refreshOk) {
         const r2 = await fetch(`${API_URL}${endpoint}`, { credentials: 'include' });
         if (r2.ok) {
@@ -391,6 +391,14 @@ export const api = {
     apiFetch(`/api/hawl/${id}`, { method: 'DELETE' }),
   resetHawl: (id: number) =>
     apiFetch(`/api/hawl/${id}/reset`, { method: 'POST' }),
+  lockHawlZakat: (id: number) =>
+    apiFetch(`/api/hawl/${id}/lock-zakat`, { method: 'POST' }),
+  unlockHawlZakat: (id: number) =>
+    apiFetch(`/api/hawl/${id}/unlock-zakat`, { method: 'POST' }),
+  importAssetsToHawl: () =>
+    apiFetch('/api/hawl/import-assets', { method: 'POST' }),
+  updateHawlStartDate: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/hawl/${id}/start-date`, { method: 'PUT', body: JSON.stringify(data) }),
 
   // Sadaqah
   getSadaqah: () => apiFetch('/api/sadaqah/list'),
@@ -731,7 +739,7 @@ export const api = {
 
   // ── Wasiyyah PDF Export ─────────────────────────────────────────────────────
   downloadWasiyyahPdf: async () => {
-    const resp = await fetch(`${typeof window !== 'undefined' ? '' : ''}/api/wasiyyah/export/pdf`, {
+    const resp = await fetch(`${API_URL}/api/wasiyyah/export/pdf`, {
       credentials: 'include',
     });
     if (!resp.ok) throw new Error('Failed to download PDF');

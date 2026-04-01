@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Barakah - Islamic Finance Tracker",
   description:
-    "The all-in-one halal finance app. Track spending, calculate zakat, screen halal stocks, manage family budgets, and grow your wealth — the Islamic way.",
+    "The all-in-one halal finance platform. Track spending, calculate zakat, screen halal stocks, manage family budgets, and grow your wealth — the Islamic way.",
   keywords: [
     "islamic finance",
     "halal finance",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Barakah - Islamic Finance Tracker",
     description:
-      "The all-in-one halal finance app. Zakat, halal stocks, budgeting, and more.",
+      "The all-in-one halal finance platform. Zakat, halal stocks, budgeting, and more.",
     images: ["https://trybarakah.com/og-image.png"],
   },
   metadataBase: new URL("https://trybarakah.com"),

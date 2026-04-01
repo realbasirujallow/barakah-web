@@ -6,9 +6,9 @@ if (process.env.NODE_ENV === 'production') {
   const required = ['BACKEND_URL'];
   const missing = required.filter((key) => !process.env[key]);
   if (missing.length > 0) {
-    console.warn(
-      `⚠️  Missing recommended env vars: ${missing.join(', ')}. ` +
-      `Falling back to defaults. Set these in your deployment for reliability.`
+    throw new Error(
+      `Missing required env vars in production: ${missing.join(', ')}. ` +
+      `Set these in your deployment configuration.`
     );
   }
 }

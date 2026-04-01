@@ -53,12 +53,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem(USER_KEY);
+    let savedUser: string | null = null;
+    try {
+      savedUser = localStorage.getItem(USER_KEY);
+    } catch {
+      // localStorage is disabled (SSR context, private browsing, etc.)
+      setIsLoading(false);
+      return;
+    }
 
     // Register a global 401 handler.
     setUnauthorizedHandler(() => {
-      localStorage.removeItem(USER_KEY);
-      localStorage.removeItem(REFRESH_TS_KEY);
+      try {
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(REFRESH_TS_KEY);
+      } catch {
+        // localStorage access failed, continue with cleanup
+      }
       setUser(null);
       routerRef.current.push('/login?reason=expired');
     });
@@ -72,7 +83,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       parsed = JSON.parse(savedUser);
     } catch {
-      localStorage.removeItem(USER_KEY);
+      try {
+        localStorage.removeItem(USER_KEY);
+      } catch {
+        // localStorage access failed
+      }
       setIsLoading(false);
       return;
     }
@@ -104,7 +119,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return u;
     };
 
-    const lastRefreshTs = parseInt(localStorage.getItem(REFRESH_TS_KEY) || '0', 10) || 0;
+    let lastRefreshTs = 0;
+    try {
+      lastRefreshTs = parseInt(localStorage.getItem(REFRESH_TS_KEY) || '0', 10) || 0;
+    } catch {
+      // localStorage access failed
+    }
     const secondsSinceRefresh = (Date.now() - lastRefreshTs) / 1000;
 
     if (secondsSinceRefresh < REFRESH_GUARD_SECONDS) {
@@ -125,13 +145,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Try a silent refresh. If it succeeds the server has rotated both cookies.
     api.refresh().then(async (ok: boolean) => {
       if (ok) {
-        localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
+        try {
+          localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
+        } catch {
+          // localStorage access failed
+        }
         // If plan was missing, fetch the real one now that the session is fresh.
         const finalUser = planMissing ? await syncPlan(parsed!) : parsed!;
         setUser(finalUser);
       } else {
-        localStorage.removeItem(USER_KEY);
-        localStorage.removeItem(REFRESH_TS_KEY);
+        try {
+          localStorage.removeItem(USER_KEY);
+          localStorage.removeItem(REFRESH_TS_KEY);
+        } catch {
+          // localStorage access failed
+        }
         setUser(null);
       }
       setIsLoading(false);
