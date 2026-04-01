@@ -9,6 +9,7 @@
  * Use this raw fmt() only in non-React contexts (e.g. utility functions).
  */
 export function fmt(n: number, currency = 'USD'): string {
+  if (!isFinite(n)) return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(0);
   return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);
 }
 

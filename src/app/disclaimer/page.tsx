@@ -64,7 +64,7 @@ export default function DisclaimerPage() {
         <section className="bg-white rounded-xl shadow-sm border p-6 space-y-3">
           <h2 className="text-xl font-semibold text-[#1B5E20]">Zakat Calculations</h2>
           <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm">
-            <li>Nisab is calculated using <strong>live gold and silver prices</strong> with the silver standard as default per AMJA recommendation for the benefit of the poor.</li>
+            <li>Nisab is calculated using the <strong>85g gold standard</strong> with live gold pricing, following the AMJA (Assembly of Muslim Jurists of America) recommendation. Some scholars prefer the silver standard (595g) which produces a lower threshold — consult your local scholar if unsure.</li>
             <li>Zakat rate is fixed at <strong>2.5%</strong> of zakatable wealth above nisab.</li>
             <li>Asset classifications (zakatable vs. exempt) follow majority scholarly opinion but may differ from your school of thought (madhhab).</li>
             <li>Debt deduction uses the <strong>annual installment method</strong> for long-term debts per contemporary scholarly guidance.</li>
