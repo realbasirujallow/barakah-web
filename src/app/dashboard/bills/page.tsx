@@ -38,9 +38,8 @@ function getDaysUntilDue(bill: BillItem): number | null {
 
 function formatDueDate(bill: BillItem): string {
   if (!bill.nextDueDate) return `Day ${bill.dueDay}`;
-  // Add 1 day to correct for backend off-by-one error in nextDueDate calculation
-  const correctedDate = new Date(bill.nextDueDate + 86400000);
-  return correctedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const dueDate = new Date(bill.nextDueDate);
+  return dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 const emptyForm = { name: '', category: 'utilities', amount: '', frequency: 'monthly', dueDay: '1' };
