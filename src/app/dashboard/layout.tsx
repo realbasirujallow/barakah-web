@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, ReactNode, useState, useMemo } from 'react';
 import { ToastProvider } from '../../lib/toast';
-import { toHijri } from '../../lib/format';
+
 import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
 
@@ -81,10 +81,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const hijriDate = useMemo(() => {
+  const headerDate = useMemo(() => {
     try {
-      const hijri = toHijri(new Date());
-      return `${hijri.day} ${hijri.monthName} ${hijri.year}`;
+      return new Date().toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      });
     } catch {
       return '';
     }
@@ -197,7 +198,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </svg>
           </button>
           <div className="flex items-center gap-4">
-            {hijriDate && <span className="text-xs text-green-600 hidden md:block">🌙 {hijriDate}</span>}
+            {headerDate && <span className="text-xs text-gray-500 hidden md:block">📅 {headerDate}</span>}
             <NotificationBell />
             <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-[#1B5E20]">{user.name}</span></p>
           </div>
