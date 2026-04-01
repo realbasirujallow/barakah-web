@@ -26,6 +26,7 @@ export default function SavingsPage() {
   const [saving, setSaving] = useState(false);
   const [showHajjPrompt, setShowHajjPrompt] = useState(true);
   const [showUmrahPrompt, setShowUmrahPrompt] = useState(true);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Once-per-session milestone guard
@@ -95,8 +96,16 @@ export default function SavingsPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this savings goal?')) return;
-    await api.deleteSavingsGoal(id).catch(() => { toast('Failed to delete savings goal', 'error'); });
-    load();
+    setDeletingId(id);
+    try {
+      await api.deleteSavingsGoal(id);
+      toast('Savings goal deleted', 'success');
+    } catch {
+      toast('Failed to delete savings goal', 'error');
+    } finally {
+      setDeletingId(null);
+      load();
+    }
   };
 
   // ── Skeleton loading ────────────────────────────────────────────────────────
@@ -182,7 +191,7 @@ export default function SavingsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <button type="button" onClick={() => { setContModal(g); setContAmount(''); }} className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700">+ Add</button>
-                    <button type="button" onClick={() => handleDelete(g.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                    <button type="button" onClick={() => handleDelete(g.id)} disabled={deletingId === g.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === g.id ? 'Deleting...' : 'Del'}</button>
                   </div>
                 </div>
                 <div className="flex justify-between text-sm mb-1">

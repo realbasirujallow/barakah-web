@@ -87,6 +87,7 @@ export default function DebtsPage() {
   const [extra, setExtra] = useState(0);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const load = () => {
@@ -142,7 +143,17 @@ export default function DebtsPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this debt?')) return;
-    await api.deleteDebt(id).catch((err) => { logError(err, { context: 'Failed to delete debt' }); }); load();
+    setDeletingId(id);
+    try {
+      await api.deleteDebt(id);
+      toast('Debt deleted', 'success');
+    } catch (err) {
+      logError(err, { context: 'Failed to delete debt' });
+      toast('Failed to delete debt', 'error');
+    } finally {
+      setDeletingId(null);
+      load();
+    }
   };
 
   const toggleSelect = (id: number) => setSelectedIds(prev => {
@@ -279,7 +290,7 @@ export default function DebtsPage() {
                       <div className="flex items-center gap-2">
                         <button type="button" onClick={() => { setPayModal(d); setPayAmount(String(d.monthlyPayment)); }} className="bg-[#1B5E20] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#2E7D32]">Pay</button>
                         <button type="button" onClick={() => openEdit(d)} className="text-gray-500 hover:text-[#1B5E20] text-sm border border-gray-300 px-3 py-1 rounded-lg">Edit</button>
-                        <button type="button" onClick={() => handleDelete(d.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                        <button type="button" onClick={() => handleDelete(d.id)} disabled={deletingId === d.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === d.id ? 'Deleting...' : 'Del'}</button>
                       </div>
                     </div>
                     <div className="flex justify-between text-sm mb-1">
