@@ -48,6 +48,11 @@ export default function AdminPage() {
   const [draftPlan, setDraftPlan]   = useState('');
   const [analytics, setAnalytics]   = useState<{ totalUsers: number; freeUsers: number; plusUsers: number; familyUsers: number; growthByMonth: { month: string; signups: number }[] } | null>(null);
   const [featureUsage, setFeatureUsage] = useState<Record<string, number> | null>(null);
+  const [trialModalOpen, setTrialModalOpen] = useState(false);
+  const [trialPlan, setTrialPlan] = useState('plus');
+  const [trialDurationDays, setTrialDurationDays] = useState(30);
+  const [trialSendEmail, setTrialSendEmail] = useState(true);
+  const [trialGranting, setTrialGranting] = useState(false);
   const { toast } = useToast();
 
   const loadData = useCallback(async (p: number) => {
@@ -125,6 +130,29 @@ export default function AdminPage() {
       toast(err instanceof Error ? err.message : 'Failed to update plan', 'error');
     } finally {
       setPlanSaving(false);
+    }
+  };
+
+  const openTrialModal = () => {
+    setTrialPlan('plus');
+    setTrialDurationDays(30);
+    setTrialSendEmail(true);
+    setTrialModalOpen(true);
+  };
+
+  const closeTrialModal = () => setTrialModalOpen(false);
+
+  const handleGrantTrial = async () => {
+    if (!selected) return;
+    setTrialGranting(true);
+    try {
+      await api.adminGrantTrial(selected.id, trialPlan, trialDurationDays, trialSendEmail);
+      toast(`Trial granted: ${trialPlan} for ${trialDurationDays} days`, 'success');
+      closeTrialModal();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to grant trial', 'error');
+    } finally {
+      setTrialGranting(false);
     }
   };
 
@@ -393,6 +421,114 @@ export default function AdminPage() {
                   className="w-full py-2.5 border-2 border-[#1B5E20] text-[#1B5E20] rounded-lg text-sm font-semibold hover:bg-green-50 transition disabled:opacity-40"
                 >
                   {resetting ? 'Sending…' : '📧 Send Password Reset Email'}
+                </button>
+              </div>
+
+              {/* Grant Trial */}
+              <div className="border-t pt-5">
+                <p className="text-sm font-medium text-gray-700 mb-1">Grant Trial</p>
+                <p className="text-xs text-gray-500 mb-3">
+                  Grants the user a free trial. They'll receive full access for the selected duration.
+                </p>
+                <button
+                  onClick={openTrialModal}
+                  className="w-full py-2.5 border-2 border-blue-500 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-50 transition"
+                >
+                  🎁 Grant Trial
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Grant Trial Modal ── */}
+      {trialModalOpen && selected && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeTrialModal}>
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="p-6 border-b flex items-start justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Grant Trial</h2>
+              <button onClick={closeTrialModal} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Note */}
+              <p className="text-xs text-gray-600 bg-blue-50 p-3 rounded-lg">
+                Grants the user a free trial. They'll receive full access for the selected duration.
+              </p>
+
+              {/* Plan selector */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Plan</label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-3 p-3 border rounded-lg border-gray-200 hover:bg-gray-50 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="trialPlan"
+                      value="plus"
+                      checked={trialPlan === 'plus'}
+                      onChange={e => setTrialPlan(e.target.value)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Plus — $9.99/mo</span>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 border rounded-lg border-gray-200 hover:bg-gray-50 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="trialPlan"
+                      value="family"
+                      checked={trialPlan === 'family'}
+                      onChange={e => setTrialPlan(e.target.value)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Family — $14.99/mo</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Duration input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Duration (days)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="365"
+                  value={trialDurationDays}
+                  onChange={e => setTrialDurationDays(Math.min(365, Math.max(1, parseInt(e.target.value) || 1)))}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
+                />
+                <p className="text-xs text-gray-400 mt-1">Range: 1-365 days (default 30)</p>
+              </div>
+
+              {/* Send email checkbox */}
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="sendEmail"
+                  checked={trialSendEmail}
+                  onChange={e => setTrialSendEmail(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-[#1B5E20] focus:ring-[#1B5E20]"
+                />
+                <label htmlFor="sendEmail" className="text-sm text-gray-700">
+                  Send notification email
+                </label>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={closeTrialModal}
+                  className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleGrantTrial}
+                  disabled={trialGranting}
+                  className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-40"
+                >
+                  {trialGranting ? 'Granting…' : 'Grant Trial'}
                 </button>
               </div>
             </div>

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { fmt } from '../../lib/format';
 import { useToast } from '../../lib/toast';
+import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 
 /** Returns true if today is in Ramadan (Hijri month 9). Approximate — within ~1 day. */
@@ -19,6 +20,7 @@ export default function DashboardPage() {
   const [hideNetWorth, setHideNetWorth] = useState(false);
   const [hideZakat, setHideZakat] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   const ramadan = isRamadan();
 
   useEffect(() => {
@@ -132,6 +134,32 @@ export default function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {/* ── Free plan upgrade teaser ─────────────────────────────────────────── */}
+      {user?.plan === 'free' && (
+        <div className="mt-10 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6">
+          <div className="flex items-start gap-4">
+            <span className="text-4xl">✨</span>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-[#1B5E20] mb-1">Unlock Barakah Plus</h3>
+              <p className="text-sm text-gray-700 mb-3">
+                Get access to Halal Stock Screener, Riba Detector, unlimited transactions, and more premium features.
+              </p>
+              <div className="flex flex-wrap gap-2 mb-4">
+                <span className="bg-white text-xs font-medium text-gray-700 px-3 py-1 rounded-full border border-green-100">🔍 Halal Stock Screener</span>
+                <span className="bg-white text-xs font-medium text-gray-700 px-3 py-1 rounded-full border border-green-100">🛡️ Riba Detector</span>
+                <span className="bg-white text-xs font-medium text-gray-700 px-3 py-1 rounded-full border border-green-100">♾️ Unlimited Transactions</span>
+              </div>
+              <Link
+                href="/dashboard/billing"
+                className="inline-block bg-[#1B5E20] text-white px-6 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm transition"
+              >
+                View Plans & Pricing
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
