@@ -31,6 +31,14 @@ export function middleware(request: NextRequest) {
     pathname === '/signup';
 
   if (isAuthPage && hasAuthToken) {
+    const reason = request.nextUrl.searchParams.get('reason');
+    if (reason === 'logout' || reason === 'deleted') {
+      // User is intentionally logging out — clear the stale cookie and let /login render
+      const response = NextResponse.next();
+      response.cookies.delete('auth_token');
+      response.cookies.delete('refresh_token');
+      return response;
+    }
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = '/dashboard';
     return NextResponse.redirect(dashboardUrl);
