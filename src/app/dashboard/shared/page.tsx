@@ -104,7 +104,11 @@ export default function SharedPage() {
   const loadGroups = () => {
     setLoading(true);
     api.getSharedGroups()
-      .then(d => setGroups(d?.groups || d || []))
+      .then(d => {
+        if (d?.error) { toast(d.error, 'error'); return; }
+        const g = d?.groups ?? d;
+        setGroups(Array.isArray(g) ? g : []);
+      })
       .catch(() => { toast('Failed to load groups', 'error'); })
       .finally(() => setLoading(false));
   };
@@ -113,7 +117,7 @@ export default function SharedPage() {
     setActiveGroup(group);
     setLoadingDetail(true);
     setActiveTab('expenses');
-    Promise.all([
+    Promise.allSettled([
       api.getGroupDetails(group.id),
       api.getGroupSummary(group.id),
       api.getGroupTransactions(group.id),
@@ -122,18 +126,31 @@ export default function SharedPage() {
       api.getFamilyEstate(group.id),
       api.getEstateSharingStatus(),
     ])
-      .then(([detail, s, t, b, g, estate, sharingStatus]) => {
+      .then((results) => {
+        const val = (i: number) => results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<any>).value : null;
+        const detail = val(0);
+        const s = val(1);
+        const t = val(2);
+        const b = val(3);
+        const g = val(4);
+        const estate = val(5);
+        const sharingStatus = val(6);
+
         // Merge full group details (including inviteCode and members)
-        const fullGroup = detail?.group || detail || {};
-        setActiveGroup({ ...group, ...fullGroup, members: fullGroup.members || group.members || [] });
-        setSummary(s);
-        setTransactions(t?.transactions || t || []);
-        setBudgets(b?.budgets || b || []);
-        setGoals(g?.goals || g || []);
-        setEstateData(estate);
+        if (detail && !detail.error) {
+          const fullGroup = detail.group || detail;
+          setActiveGroup({ ...group, ...fullGroup, members: fullGroup.members || group.members || [] });
+        }
+        if (s && !s.error) setSummary(s);
+        const txArr = t?.transactions ?? t;
+        setTransactions(Array.isArray(txArr) ? txArr : []);
+        const budgetArr = b?.budgets ?? b;
+        setBudgets(Array.isArray(budgetArr) ? budgetArr : []);
+        const goalArr = g?.goals ?? g;
+        setGoals(Array.isArray(goalArr) ? goalArr : []);
+        if (estate && !estate.error) setEstateData(estate);
         setEstateSharing(sharingStatus?.shareEstateWithFamily ?? true);
       })
-      .catch(() => { toast('Failed to load group details', 'error'); })
       .finally(() => setLoadingDetail(false));
   };
 
