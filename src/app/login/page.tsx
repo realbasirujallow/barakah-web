@@ -5,9 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
 
+const REMEMBERED_EMAIL_KEY = 'barakah_remembered_email';
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
@@ -16,6 +19,17 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Restore remembered email on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(REMEMBERED_EMAIL_KEY);
+      if (saved) {
+        setEmail(saved);
+        setRememberMe(true);
+      }
+    } catch { /* SSR / incognito safety */ }
+  }, []);
 
   useEffect(() => {
     const reason = searchParams.get('reason') as 'expired' | 'logout' | 'deleted' | null;
@@ -34,7 +48,15 @@ export default function LoginPage() {
     setResendStatus('idle');
     setLoading(true);
     try {
-      await login(email, password);
+      // Persist or clear remembered email
+      try {
+        if (rememberMe) {
+          localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
+        } else {
+          localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+        }
+      } catch { /* incognito safety */ }
+      await login(email, password, rememberMe);
       router.push('/dashboard');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Login failed';
@@ -136,7 +158,7 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <div className="flex items-center justify-between mb-1">
               <label className="block text-sm font-medium text-gray-700">Password</label>
               <Link href="/forgot-password" className="text-xs text-[#1B5E20] hover:underline">Forgot Password?</Link>
@@ -150,6 +172,19 @@ export default function LoginPage() {
               autoComplete="current-password"
               required
             />
+          </div>
+
+          <div className="flex items-center mb-6">
+            <input
+              id="remember-me"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={e => setRememberMe(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-[#1B5E20] focus:ring-[#1B5E20] cursor-pointer"
+            />
+            <label htmlFor="remember-me" className="ml-2 text-sm text-gray-600 cursor-pointer select-none">
+              Remember me
+            </label>
           </div>
 
           <button
