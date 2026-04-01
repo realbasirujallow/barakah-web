@@ -58,12 +58,16 @@ export default function AdminPage() {
   const loadData = useCallback(async (p: number) => {
     setLoading(true);
     try {
-      const [countRes, usersRes, analyticsRes, featureRes] = await Promise.all([
+      const results = await Promise.allSettled([
         api.getAdminUserCount(),
         api.getAdminUsers(p, 50),
         api.getAdminAnalytics().catch(() => null),
         api.getAdminFeatureUsage().catch(() => null),
       ]);
+      const countRes = results[0].status === 'fulfilled' ? results[0].value : null;
+      const usersRes = results[1].status === 'fulfilled' ? results[1].value : null;
+      const analyticsRes = results[2].status === 'fulfilled' ? results[2].value : null;
+      const featureRes = results[3].status === 'fulfilled' ? results[3].value : null;
       setUserCount(countRes?.count ?? null);
       setUsersData(usersRes);
       if (analyticsRes) setAnalytics(analyticsRes);

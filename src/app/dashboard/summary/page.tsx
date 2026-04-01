@@ -91,10 +91,12 @@ export default function SummaryPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const [s, m] = await Promise.all([
+      const results = await Promise.allSettled([
         api.getTransactionSummary(period),
         api.getMonthlySummary(months),
       ]);
+      const s = results[0].status === 'fulfilled' ? results[0].value : null;
+      const m = results[1].status === 'fulfilled' ? results[1].value : null;
       setSummary(s);
       setMonthly(m?.months || []);
     } catch {

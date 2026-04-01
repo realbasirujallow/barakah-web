@@ -30,10 +30,12 @@ export default function WasiyyahPage() {
 
   const load = () => {
     setLoading(true);
-    Promise.all([
+    Promise.allSettled([
       api.getWasiyyah(),
       api.getWasiyyahObligations(),
-    ]).then(([bData, oData]) => {
+    ]).then((results) => {
+      const bData = results[0].status === 'fulfilled' ? results[0].value : null;
+      const oData = results[1].status === 'fulfilled' ? results[1].value : null;
       if (bData?.error || oData?.error) {
         toast(bData?.error || oData?.error, 'error');
         return;

@@ -82,8 +82,10 @@ export default function AssetsPage() {
   const load = () => {
     setLoading(true);
     setLoadError(null);
-    Promise.all([api.getAssets(), api.getAssetTotal()])
-      .then(([a, t]) => {
+    Promise.allSettled([api.getAssets(), api.getAssetTotal()])
+      .then((results) => {
+        const a = results[0].status === 'fulfilled' ? results[0].value : null;
+        const t = results[1].status === 'fulfilled' ? results[1].value : null;
         if (a?.error) {
           logError(new Error(a.error), { context: 'Asset API error' });
           setLoadError(a.error as string);
