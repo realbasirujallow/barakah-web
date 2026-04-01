@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
+import { useCurrency } from '../../../lib/useCurrency';
 
 interface Account {
   id: number;
@@ -74,6 +75,7 @@ const emptyHoldingForm = { symbol: '', name: '', quantity: '', averageCost: '', 
 
 export default function InvestmentsPage() {
   const { toast } = useToast();
+  const { fmt } = useCurrency();
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [assetAccounts, setAssetAccounts] = useState<AssetAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,8 +90,6 @@ export default function InvestmentsPage() {
   const [holdingForm, setHoldingForm] = useState(emptyHoldingForm);
   const [savingHolding, setSavingHolding] = useState(false);
 
-  const fmt = (n: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
   const fmtPct = (n: number) => `${n >= 0 ? '+' : ''}${(n || 0).toFixed(2)}%`;
 
   const load = () => {

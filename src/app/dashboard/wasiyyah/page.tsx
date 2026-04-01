@@ -81,10 +81,19 @@ export default function WasiyyahPage() {
     try {
       const share = parseFloat(form.sharePercentage);
       if (!share || share <= 0 || share > 33.33) { alert('Share percentage must be > 0 and <= 33.33%'); setSaving(false); return; }
+      // Enforce total wasiyyah 1/3 cap: calculate total existing share + new share
+      const totalExistingShare = items.reduce((sum, b) => sum + (b.sharePercentage || 0), 0);
+      const totalWithNew = totalExistingShare + share;
+      if (totalWithNew > 33.33) {
+        alert(`Total wasiyyah would be ${totalWithNew.toFixed(2)}%, which exceeds the Islamic 1/3 limit. Current beneficiaries use ${totalExistingShare.toFixed(2)}%, so maximum new share is ${Math.max(0, (33.33 - totalExistingShare)).toFixed(2)}%.`);
+        setSaving(false);
+        return;
+      }
       await api.addWasiyyah({ ...form, sharePercentage: share });
+      toast('Beneficiary added', 'success');
       setShowForm(false);
       setForm({ beneficiaryName: '', relationship: '', sharePercentage: '', shareType: 'percentage', notes: '' });
-      load(); toast('Beneficiary added', 'success');
+      load();
     } catch { toast('Failed to add beneficiary', 'error'); }
     setSaving(false);
   };
@@ -109,9 +118,10 @@ export default function WasiyyahPage() {
         ...obForm,
         amount: obAmt,
       });
+      toast('Obligation recorded', 'success');
       setShowObForm(false);
       setObForm({ type: 'ZAKAT', amount: '', currency: 'USD', description: '', recipient: '', notes: '' });
-      load(); toast('Obligation recorded', 'success');
+      load();
     } catch { toast('Failed to record obligation', 'error'); }
     setSaving(false);
   };
