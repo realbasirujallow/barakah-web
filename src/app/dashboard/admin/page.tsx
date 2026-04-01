@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
+import { useCurrency } from '../../../lib/useCurrency';
 
 /* ──────────────────────────── Types ──────────────────────────── */
 
@@ -85,7 +86,7 @@ function fmtDateMs(unixMs: number | undefined) {
   });
 }
 
-function fmtMoney(n: number) {
+function fmtMoneyStaticUSD(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 }
 
@@ -122,6 +123,7 @@ export default function AdminPage() {
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts'>('overview');
   const { toast } = useToast();
+  const { fmt: fmtMoney } = useCurrency();
 
   /* ── Data loading ── */
   const loadData = useCallback(async (p: number) => {

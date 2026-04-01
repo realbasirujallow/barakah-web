@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useCurrency } from '../../../lib/useCurrency';
 
 interface Snapshot {
   id?: number;
@@ -24,6 +25,7 @@ const PERIODS = [
 export default function NetWorthPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const { fmt } = useCurrency();
 
   // Redirect if user doesn't have plus or family plan
   if (user && !hasAccess(user.plan, 'plus', user.planExpiresAt)) {
@@ -44,9 +46,6 @@ export default function NetWorthPage() {
   const [totalSavings, setTotalSavings] = useState(0);
   const [changeAmount, setChangeAmount] = useState(0);
   const [changePercent, setChangePercent] = useState(0);
-
-  const fmt = (n: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
 
   const formatDate = (epoch: number) => {
     const ms = epoch < 1e12 ? epoch * 1000 : epoch;

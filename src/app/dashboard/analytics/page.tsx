@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
+import { useCurrency } from '../../../lib/useCurrency';
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -46,6 +47,7 @@ const periods = [
 ];
 
 export default function AnalyticsPage() {
+  const { fmt } = useCurrency();
   const [period, setPeriod] = useState('month');
   const [summary, setSummary] = useState<Summary | null>(null);
   const [allPeriods, setAllPeriods] = useState<{ week: Summary | null; month: Summary | null; year: Summary | null }>({
@@ -85,9 +87,6 @@ export default function AnalyticsPage() {
       setSummary(allPeriods[period as keyof typeof allPeriods]);
     }
   }, [period, allPeriods]);
-
-  const fmt = (n: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
   const fmtShort = (n: number) => {
     if (Math.abs(n) >= 1000) return '$' + (n / 1000).toFixed(1) + 'k';

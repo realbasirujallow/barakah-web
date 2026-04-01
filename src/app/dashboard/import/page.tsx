@@ -1,6 +1,7 @@
 ﻿'use client';
 import { useState, useRef, DragEvent } from 'react';
 import { api } from '../../../lib/api';
+import { useCurrency } from '../../../lib/useCurrency';
 
 /* -- Asset / Debt type options (match the assets + debts pages) ------------ */
 const ASSET_TYPES = [
@@ -102,6 +103,7 @@ interface TransactionsResult {
 type ImportResult = BalancesResult | TransactionsResult;
 
 export default function ImportPage() {
+  const { fmt } = useCurrency();
   const [step, setStep] = useState<Step>('upload');
   const [csvFormat, setCsvFormat] = useState<CsvFormat>('balances');
   const [dragActive, setDragActive] = useState(false);
@@ -235,7 +237,6 @@ export default function ImportPage() {
   const updateCount = accounts.filter(a => !a.skip && a.action === 'update').length;
   const createCount = accounts.filter(a => !a.skip && a.action === 'create').length;
   const activeTxnCount = transactions.filter(t => !t.skip).length;
-  const fmt = (v: number) => v.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
   const resetAll = () => {
     setStep('upload'); setCsvFormat('balances');

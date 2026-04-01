@@ -41,8 +41,9 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
     debts.forEach(d => {
       if (d.balance > 0) {
         const interest = d.balance * (d.rate / 100 / 12);
-        d.balance = parseFloat((d.balance + interest).toFixed(2));
-        totalInterest += interest;
+        const roundedInterest = parseFloat(interest.toFixed(2));
+        d.balance = parseFloat((d.balance + roundedInterest).toFixed(2));
+        totalInterest += roundedInterest;
       }
     });
     // Pay minimums
