@@ -3,7 +3,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
-import { useToast } from '../../../components/ToastContext';
+import { useToast } from '../../../lib/toast';
 
 // ── Plan tier ranking ────────────────────────────────────────────────────────
 const PLAN_TIER: Record<string, number> = { free: 0, plus: 1, family: 2 };
@@ -108,7 +108,7 @@ function BillingContent() {
         setStatus(prev => prev ? { ...prev, plan: result.plan, status: result.status } : prev);
         // Sync AuthContext so all pages see the new plan immediately
         await refreshPlan();
-        toast('Plan updated! You're now on ' + (plan === 'family' ? 'Barakah Family' : 'Barakah Plus'), 'success');
+        toast('Plan updated! You\u2019re now on ' + (plan === 'family' ? 'Barakah Family' : 'Barakah Plus'), 'success');
         setLoading(null);
       } else {
         toast('Something went wrong. Please try again.', 'error');
