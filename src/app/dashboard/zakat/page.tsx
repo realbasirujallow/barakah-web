@@ -122,8 +122,13 @@ export default function ZakatPage() {
 
   const handleDeletePayment = async (id: number) => {
     if (!confirm('Delete this payment?')) return;
-    await api.deleteZakatPayment(id);
-    load();
+    try {
+      await api.deleteZakatPayment(id);
+      toast('Payment deleted', 'success');
+      load();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to delete payment', 'error');
+    }
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
