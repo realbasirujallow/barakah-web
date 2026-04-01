@@ -1,8 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
+import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import { safeParse, validateWasiyyahBeneficiary } from '../../../lib/schemas';
 
 interface Beneficiary { id: number; beneficiaryName: string; relationship: string; sharePercentage: number; shareType: string; notes: string; }
@@ -17,7 +19,7 @@ const OBLIGATION_TYPES = [
   { value: 'CUSTOM',              label: 'Other Obligation',      emoji: '📋', desc: 'Any other Islamic or personal obligation' },
 ];
 
-export default function WasiyyahPage() {
+function WasiyyahPageContent() {
   const [items, setItems]           = useState<Beneficiary[]>([]);
   const [obligations, setObligations] = useState<Obligation[]>([]);
   const [loading, setLoading]       = useState(true);
@@ -25,11 +27,22 @@ export default function WasiyyahPage() {
   const [showForm, setShowForm]     = useState(false);
   const [showObForm, setShowObForm] = useState(false);
   const [form, setForm]             = useState({ beneficiaryName: '', relationship: '', sharePercentage: '', shareType: 'percentage', notes: '' });
-  const [obForm, setObForm]         = useState({ type: 'ZAKAT', amount: '', currency: 'USD', description: '', recipient: '', notes: '' });
+  const [obForm, setObForm]         = useState({ type: 'ZAKAT', amount: '', currency: '', description: '', recipient: '', notes: '' });
   const [saving, setSaving]         = useState(false);
+  const loadingRef = useRef(false);
   const { toast } = useToast();
+  const { currency: currencyCode, fmt: fmtCurrency } = useCurrency();
+
+  // Set obligation form currency when user preference loads
+  useEffect(() => {
+    if (currencyCode && !obForm.currency) {
+      setObForm(prev => ({ ...prev, currency: currencyCode }));
+    }
+  }, [currencyCode]);
 
   const load = () => {
+    if (loadingRef.current) return; // Prevent concurrent loads
+    loadingRef.current = true;
     setLoading(true);
     Promise.allSettled([
       api.getWasiyyah(),
@@ -72,7 +85,10 @@ export default function WasiyyahPage() {
       setItems(validatedBeneficiaries);
       setObligations(Array.isArray(oList) ? oList : []);
     }).catch(() => toast('Failed to load wasiyyah data', 'error'))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        loadingRef.current = false;
+      });
   };
   useEffect(() => { load(); }, []);
 
@@ -120,7 +136,7 @@ export default function WasiyyahPage() {
       });
       toast('Obligation recorded', 'success');
       setShowObForm(false);
-      setObForm({ type: 'ZAKAT', amount: '', currency: 'USD', description: '', recipient: '', notes: '' });
+      setObForm({ type: 'ZAKAT', amount: '', currency: currencyCode, description: '', recipient: '', notes: '' });
       load();
     } catch { toast('Failed to record obligation', 'error'); }
     setSaving(false);
@@ -186,10 +202,17 @@ export default function WasiyyahPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6" role="tablist" aria-label="Wasiyyah sections">
         {(['beneficiaries', 'obligations'] as const).map(t => (
-          <button key={t} type="button" onClick={() => setTab(t)}
-            className={`px-5 py-2 rounded-full text-sm font-semibold transition ${tab === t ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            role="tab"
+            aria-selected={tab === t}
+            aria-label={t === 'beneficiaries' ? 'View beneficiaries' : 'View obligations'}
+            className={`px-5 py-2 rounded-full text-sm font-semibold transition ${tab === t ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+          >
             {t === 'beneficiaries' ? '📜 Beneficiaries' : `⚖️ Obligations${obligations.filter(o=>o.status==='pending').length > 0 ? ` (${obligations.filter(o=>o.status==='pending').length})` : ''}`}
           </button>
         ))}
@@ -215,14 +238,14 @@ export default function WasiyyahPage() {
           {items.length > 0 ? (
             <div className="space-y-3">
               {items.map(b => (
-                <div key={b.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
+                <div key={b.id} className="bg-white rounded-xl p-4 flex justify-between items-center" role="listitem">
                   <div>
                     <p className="font-semibold text-[#1B5E20]">{b.beneficiaryName}</p>
                     <p className="text-sm text-gray-500">{b.relationship}{b.notes ? ` • ${b.notes}` : ''}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <p className="text-2xl font-bold text-purple-600">{b.sharePercentage}%</p>
-                    <button type="button" onClick={() => handleDelete(b.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                    <p className="text-2xl font-bold text-purple-600" aria-label={`Share: ${b.sharePercentage} percent`}>{b.sharePercentage}%</p>
+                    <button type="button" onClick={() => handleDelete(b.id)} aria-label={`Delete beneficiary ${b.beneficiaryName}`} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
                   </div>
                 </div>
               ))}
@@ -250,11 +273,11 @@ export default function WasiyyahPage() {
           </div>
 
           {obligations.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-3" role="list">
               {obligations.map(ob => {
                 const typeInfo = OBLIGATION_TYPES.find(t => t.value === ob.type) ?? OBLIGATION_TYPES[OBLIGATION_TYPES.length - 1];
                 return (
-                  <div key={ob.id} className={`bg-white rounded-xl p-4 border-l-4 ${ob.status === 'fulfilled' ? 'border-green-400 opacity-60' : 'border-amber-400'}`}>
+                  <div key={ob.id} className={`bg-white rounded-xl p-4 border-l-4 ${ob.status === 'fulfilled' ? 'border-green-400 opacity-60' : 'border-amber-400'}`} role="listitem">
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -267,12 +290,24 @@ export default function WasiyyahPage() {
                         {ob.notes && <p className="text-xs text-gray-400 mt-1 italic">{ob.notes}</p>}
                       </div>
                       <div className="ml-4 text-right flex-shrink-0">
-                        <p className="text-xl font-bold text-amber-700">{fmt(ob.amount, ob.currency)}</p>
+                        <p className="text-xl font-bold text-amber-700" aria-label={`Amount: ${fmt(ob.amount, ob.currency)}`}>{fmt(ob.amount, ob.currency)}</p>
                         <div className="flex gap-2 mt-2 justify-end">
-                          <button type="button" onClick={() => markFulfilled(ob)} className="text-xs text-[#1B5E20] hover:underline font-medium">
+                          <button
+                            type="button"
+                            onClick={() => markFulfilled(ob)}
+                            aria-label={`${ob.status === 'pending' ? 'Mark' : 'Unmark'} obligation fulfilled`}
+                            className="text-xs text-[#1B5E20] hover:underline font-medium"
+                          >
                             {ob.status === 'pending' ? 'Mark fulfilled' : 'Mark pending'}
                           </button>
-                          <button type="button" onClick={() => handleObDelete(ob.id)} className="text-xs text-gray-400 hover:text-red-600">Del</button>
+                          <button
+                            type="button"
+                            onClick={() => handleObDelete(ob.id)}
+                            aria-label={`Delete obligation`}
+                            className="text-xs text-gray-400 hover:text-red-600"
+                          >
+                            Del
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -296,18 +331,72 @@ export default function WasiyyahPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Beneficiary</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input value={form.beneficiaryName} onChange={e => setForm({ ...form, beneficiaryName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="Full name" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Relationship</label>
-                <input value={form.relationship} onChange={e => setForm({ ...form, relationship: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Nephew, Charity" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Share Percentage</label>
-                <input type="number" step="0.1" min="0" max="100" value={form.sharePercentage} onChange={e => setForm({ ...form, sharePercentage: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="10" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                <input value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div>
+                <label htmlFor="beneficiary-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  id="beneficiary-name"
+                  value={form.beneficiaryName}
+                  onChange={e => setForm({ ...form, beneficiaryName: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                  placeholder="Full name"
+                  aria-label="Beneficiary name"
+                />
+              </div>
+              <div>
+                <label htmlFor="beneficiary-relationship" className="block text-sm font-medium text-gray-700 mb-1">Relationship</label>
+                <input
+                  id="beneficiary-relationship"
+                  value={form.relationship}
+                  onChange={e => setForm({ ...form, relationship: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                  placeholder="e.g. Nephew, Charity"
+                  aria-label="Relationship to beneficiary"
+                />
+              </div>
+              <div>
+                <label htmlFor="share-percentage" className="block text-sm font-medium text-gray-700 mb-1">Share Percentage</label>
+                <input
+                  id="share-percentage"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  value={form.sharePercentage}
+                  onChange={e => setForm({ ...form, sharePercentage: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                  placeholder="10"
+                  aria-label="Share percentage"
+                />
+              </div>
+              <div>
+                <label htmlFor="beneficiary-notes" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <input
+                  id="beneficiary-notes"
+                  value={form.notes}
+                  onChange={e => setForm({ ...form, notes: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                  aria-label="Additional notes"
+                />
+              </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handleSave} disabled={saving || !form.beneficiaryName || !form.sharePercentage} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Add'}</button>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                aria-label="Cancel adding beneficiary"
+                className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving || !form.beneficiaryName || !form.sharePercentage}
+                aria-label="Add beneficiary"
+                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Add'}
+              </button>
             </div>
           </div>
         </div>
@@ -334,44 +423,98 @@ export default function WasiyyahPage() {
                 <p className="text-xs text-gray-500 mt-2 italic">{OBLIGATION_TYPES.find(t => t.value === obForm.type)?.desc}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-                <input value={obForm.description} onChange={e => setObForm({ ...obForm, description: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={obForm.type === 'ZAKAT' ? 'e.g. Zakat for 2024 — held back due to illness' : obForm.type === 'UNPAID_LOAN' ? 'e.g. £500 borrowed from Ahmed in 2022' : 'Brief description'} />
+                <label htmlFor="ob-description" className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                <input
+                  id="ob-description"
+                  value={obForm.description}
+                  onChange={e => setObForm({ ...obForm, description: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                  placeholder={obForm.type === 'ZAKAT' ? 'e.g. Zakat for 2024 — held back due to illness' : obForm.type === 'UNPAID_LOAN' ? 'e.g. £500 borrowed from Ahmed in 2022' : 'Brief description'}
+                  aria-label="Obligation description"
+                />
               </div>
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
-                  <input type="number" step="0.01" min="0" value={obForm.amount} onChange={e => setObForm({ ...obForm, amount: e.target.value })}
-                    className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="0.00" />
+                  <label htmlFor="ob-amount" className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+                  <input
+                    id="ob-amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={obForm.amount}
+                    onChange={e => setObForm({ ...obForm, amount: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                    placeholder="0.00"
+                    aria-label="Obligation amount"
+                  />
                 </div>
                 <div className="w-28">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
-                  <select value={obForm.currency} onChange={e => setObForm({ ...obForm, currency: e.target.value })}
-                    className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm">
+                  <label htmlFor="ob-currency" className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                  <select
+                    id="ob-currency"
+                    value={obForm.currency}
+                    onChange={e => setObForm({ ...obForm, currency: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm"
+                    aria-label="Currency"
+                  >
                     {['USD','GBP','EUR','SAR','AED','CAD','AUD','PKR','MYR','BDT','NGN','EGP'].map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Who should receive this?</label>
-                <input value={obForm.recipient} onChange={e => setObForm({ ...obForm, recipient: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Local mosque, Ahmed ibn Ibrahim" />
+                <label htmlFor="ob-recipient" className="block text-sm font-medium text-gray-700 mb-1">Who should receive this?</label>
+                <input
+                  id="ob-recipient"
+                  value={obForm.recipient}
+                  onChange={e => setObForm({ ...obForm, recipient: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                  placeholder="e.g. Local mosque, Ahmed ibn Ibrahim"
+                  aria-label="Recipient name"
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Additional Notes (for family)</label>
-                <textarea value={obForm.notes} onChange={e => setObForm({ ...obForm, notes: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none" rows={3}
-                  placeholder="Any context your family needs to know to fulfil this obligation..." />
+                <label htmlFor="ob-notes" className="block text-sm font-medium text-gray-700 mb-1">Additional Notes (for family)</label>
+                <textarea
+                  id="ob-notes"
+                  value={obForm.notes}
+                  onChange={e => setObForm({ ...obForm, notes: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none"
+                  rows={3}
+                  placeholder="Any context your family needs to know to fulfil this obligation..."
+                  aria-label="Additional notes"
+                />
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button type="button" onClick={() => setShowObForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handleObSave} disabled={saving || !obForm.description || !obForm.amount}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Record Obligation'}</button>
+              <button
+                type="button"
+                onClick={() => setShowObForm(false)}
+                aria-label="Cancel recording obligation"
+                className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleObSave}
+                disabled={saving || !obForm.description || !obForm.amount}
+                aria-label="Record obligation"
+                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Record Obligation'}
+              </button>
             </div>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+export default function WasiyyahPage() {
+  return (
+    <ErrorBoundary>
+      <WasiyyahPageContent />
+    </ErrorBoundary>
   );
 }

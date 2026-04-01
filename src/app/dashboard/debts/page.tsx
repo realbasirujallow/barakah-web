@@ -2,6 +2,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 
@@ -90,6 +91,7 @@ export default function DebtsPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const { toast } = useToast();
+  const { symbol } = useCurrency();
 
   const load = () => {
     setLoading(true);
@@ -123,7 +125,7 @@ export default function DebtsPage() {
       // Validate total amount: must be finite and positive
       if (!Number.isFinite(totalAmt) || totalAmt <= 0) { alert('Total amount must be a positive number'); setSaving(false); return; }
       const MAX_VALUE = 1_000_000_000; // 1 billion max
-      if (totalAmt > MAX_VALUE) { alert(`Debt amount cannot exceed $${MAX_VALUE.toLocaleString()}`); setSaving(false); return; }
+      if (totalAmt > MAX_VALUE) { alert(`Debt amount cannot exceed ${symbol}${MAX_VALUE.toLocaleString()}`); setSaving(false); return; }
       // Check decimal precision (max 2 decimal places for currency)
       if (!/^\d+(\.\d{1,2})?$/.test(form.totalAmount.trim())) {
         alert('Please enter an amount with up to 2 decimal places');
@@ -351,7 +353,7 @@ export default function DebtsPage() {
                   <span className="text-xl font-bold text-[#1B5E20] w-24 text-right">{fmt(extra)}</span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-400 mt-1">
-                  <span>$0</span><span>$500</span><span>$1,000</span><span>$1,500</span><span>$2,000</span>
+                  <span>{symbol}0</span><span>{symbol}500</span><span>{symbol}1,000</span><span>{symbol}1,500</span><span>{symbol}2,000</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-3">
                   Total monthly payment: <strong className="text-gray-700">{fmt(totalMinPayment + extra)}</strong>
