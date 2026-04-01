@@ -184,6 +184,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
+  // Detect stale auth when a tab regains focus. Another tab may have logged
+  // out (clearing the cookie) while this tab was backgrounded — the storage
+  // event catches localStorage changes, but this handler also re-checks the
+  // server session so we catch cookie-only expirations.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      // If localStorage was already cleared by another tab, fast-path out.
+      try {
+        if (!localStorage.getItem(USER_KEY)) {
+          setUser(null);
+          routerRef.current.push('/login?reason=expired');
+          return;
+        }
+      } catch { /* SSR safety */ }
+      // Otherwise do a lightweight server check.
+      api.getProfile().catch(() => {
+        // Profile fetch failed (likely 401) — the global unauthorized
+        // handler will clean up and redirect.
+      });
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, []);
+
   const login = async (email: string, password: string) => {
     const data = await api.login(email, password);
     const profile: User = {
