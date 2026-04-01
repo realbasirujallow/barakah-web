@@ -408,7 +408,7 @@ export default function ProfilePage() {
       {/* Currency Preference */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
         <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Currency</h2>
-        <p className="text-sm text-gray-500 mb-3">Choose your preferred currency for displaying amounts across the app.</p>
+        <p className="text-sm text-gray-500 mb-3">Choose your preferred currency for displaying amounts across Barakah.</p>
         <div className="flex items-center gap-3">
           <select
             value={selectedCurrency}

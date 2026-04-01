@@ -10,8 +10,8 @@ const steps = [
   {
     icon: '🕌',
     title: 'Welcome to Barakah',
-    subtitle: 'The halal-first Islamic finance app',
-    body: 'Barakah helps you manage your wealth according to Islamic principles — from Zakat calculation to halal investment screening.',
+    subtitle: 'Halal-first Islamic finance platform',
+    body: 'Barakah helps you manage your wealth according to Islamic principles — from Zakat calculation to halal investment screening, right from your browser.',
   },
   {
     icon: '⏰',
