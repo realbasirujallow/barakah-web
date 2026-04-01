@@ -99,7 +99,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [user, isLoading, router]);
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-[#FFF8E1]">Loading...</div>;
-  if (!user) return null;
+  if (!user) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#FFF8E1]">
+      <div className="text-center">
+        <p className="text-4xl mb-3">&#127769;</p>
+        <p className="text-[#1B5E20] font-medium">Signing out...</p>
+      </div>
+    </div>
+  );
 
   const renderNavLink = (item: typeof navItems[0], locked: boolean) => (
     <Link

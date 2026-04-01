@@ -34,8 +34,14 @@ export default function WasiyyahPage() {
       api.getWasiyyah(),
       api.getWasiyyahObligations(),
     ]).then(([bData, oData]) => {
-      setItems(bData?.beneficiaries || bData || []);
-      setObligations(oData?.obligations || []);
+      if (bData?.error || oData?.error) {
+        toast(bData?.error || oData?.error, 'error');
+        return;
+      }
+      const b = bData?.beneficiaries ?? bData;
+      const o = oData?.obligations;
+      setItems(Array.isArray(b) ? b : []);
+      setObligations(Array.isArray(o) ? o : []);
     }).catch(() => toast('Failed to load wasiyyah data', 'error'))
       .finally(() => setLoading(false));
   };

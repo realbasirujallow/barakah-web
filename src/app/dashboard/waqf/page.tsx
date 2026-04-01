@@ -42,13 +42,19 @@ export default function WaqfPage() {
 
   const loadItems = useCallback(() => {
     setLoadingItems(true);
-    api.getWaqf().then(d => setItems(d?.contributions || d || [])).catch(() => toast('Failed to load waqf data', 'error')).finally(() => setLoadingItems(false));
+    api.getWaqf().then(d => {
+      if (d?.error) { toast(d.error, 'error'); return; }
+      const items = d?.contributions ?? d;
+      setItems(Array.isArray(items) ? items : []);
+    }).catch(() => toast('Failed to load waqf data', 'error')).finally(() => setLoadingItems(false));
   }, []);
 
   const loadDistribution = useCallback(() => {
     setLoadingDist(true);
     api.getWaqfDistribution().then(d => {
-      setBeneficiaries(d?.beneficiaries || []);
+      if (d?.error) { toast(d.error, 'error'); return; }
+      const b = d?.beneficiaries;
+      setBeneficiaries(Array.isArray(b) ? b : []);
       setTotalWaqf(d?.totalWaqf || 0);
       setAllocatedPct(d?.allocatedPercentage || 0);
     }).catch(() => toast('Failed to load distribution', 'error')).finally(() => setLoadingDist(false));
