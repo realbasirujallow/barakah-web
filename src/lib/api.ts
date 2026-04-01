@@ -478,6 +478,19 @@ export const api = {
   getNisabInfo: () => apiFetch("/api/zakat/info"),
   calculateZakat: (data: Record<string, unknown>) =>
     apiFetch('/api/zakat/calculate', { method: 'POST', body: JSON.stringify(data) }),
+  // FEATURE 1: Multi-Madhab Nisab Selector
+  getNisabMethodologies: () => apiFetch('/api/zakat/nisab-methodologies'),
+  setNisabMethodology: (methodology: string) =>
+    apiFetch('/auth/update-profile', { method: 'PUT', body: JSON.stringify({ nisabMethodology: methodology }) }),
+  // FEATURE 2: Zakat al-Fitr Calculator
+  getZakatAlFitr: (householdSize: number = 1, currency: string = 'USD') =>
+    apiFetch(`/api/zakat/fitr?householdSize=${householdSize}&currency=${currency}`),
+  // FEATURE 3: PDF Export
+  exportZakatReport: () => apiFetch('/api/zakat/export-report'),
+  // FEATURE 4: Supported Currencies
+  getSupportedCurrencies: () => apiFetch('/api/zakat/supported-currencies'),
+  // FEATURE 5: Scholarly References
+  getScholarlyReferences: () => apiFetch('/api/zakat/scholarly-references'),
 
   // Savings Goals
   getSavingsGoals: () => apiFetch('/api/savings-goals/list'),
