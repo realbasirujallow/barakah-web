@@ -118,7 +118,7 @@ export default function WasiyyahPage() {
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => { api.downloadWasiyyahPdf().catch(() => {}); }}
+            onClick={async () => { try { await api.downloadWasiyyahPdf(); } catch (err) { toast(err instanceof Error ? err.message : 'Failed to export PDF', 'error'); } }}
             className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium flex items-center gap-1"
           >
             📄 Export PDF

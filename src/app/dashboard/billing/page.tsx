@@ -2,6 +2,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
+import { useAuth } from '../../../context/AuthContext';
+import { useToast } from '../../../components/ToastContext';
 
 // ── Plan tier ranking ────────────────────────────────────────────────────────
 const PLAN_TIER: Record<string, number> = { free: 0, plus: 1, family: 2 };
@@ -65,6 +67,8 @@ const PLANS = [
 // ── Billing content (needs Suspense for useSearchParams) ─────────────────────
 function BillingContent() {
   const params = useSearchParams();
+  const { refreshPlan } = useAuth();
+  const { toast } = useToast();
   const [status, setStatus] = useState<{ plan: string; status: string; hasSubscription: boolean } | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
@@ -102,13 +106,16 @@ function BillingContent() {
       } else if (result?.success) {
         // Existing subscriber — plan switched immediately, refresh status
         setStatus(prev => prev ? { ...prev, plan: result.plan, status: result.status } : prev);
+        // Sync AuthContext so all pages see the new plan immediately
+        await refreshPlan();
+        toast('Plan updated! You're now on ' + (plan === 'family' ? 'Barakah Family' : 'Barakah Plus'), 'success');
         setLoading(null);
       } else {
-        alert('Something went wrong. Please try again.');
+        toast('Something went wrong. Please try again.', 'error');
         setLoading(null);
       }
-    } catch {
-      alert('Something went wrong. Please try again.');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Something went wrong. Please try again.', 'error');
       setLoading(null);
     }
   };
@@ -213,40 +220,56 @@ function BillingContent() {
                 ))}
               </ul>
 
-              {/* CTA */}
-              {isCurrent ? (
-                <div className="text-center text-sm font-semibold text-[#1B5E20] py-2 bg-green-50 rounded-xl">
-                  ✅ Current Plan
-                </div>
-              ) : plan.id === 'free' ? (
-                <div className="text-center text-sm text-gray-400 py-2">
-                  Always free — cancel anytime to return here
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleUpgrade(plan.id as 'plus' | 'family')}
-                  disabled={loading === plan.id}
-                  className="w-full bg-[#1B5E20] text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-[#155016] disabled:opacity-50 transition-colors"
-                >
-                  {loading === plan.id ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      {status?.hasSubscription ? 'Switching plan...' : 'Redirecting to Stripe...'}
-                    </span>
-                  ) : (() => {
-                    if (!status?.hasSubscription) {
-                      return `Upgrade to ${plan.name}`;
-                    }
-                    const currentTier = PLAN_TIER[currentPlan] || 0;
-                    const planTier = PLAN_TIER[plan.id] || 0;
-                    if (planTier > currentTier) {
-                      return `Upgrade to ${plan.name}`;
-                    } else {
-                      return `Switch to ${plan.name}`;
-                    }
-                  })()}
-                </button>
-              )}
+              {/* CTA — only show upgrade buttons for HIGHER tiers.
+                 Family users see no buttons on Plus/Free (retention-first).
+                 Plus users see upgrade on Family, nothing on Free.
+                 Free users see upgrade on both Plus and Family. */}
+              {(() => {
+                const currentTier = PLAN_TIER[currentPlan] || 0;
+                const planTier    = PLAN_TIER[plan.id] || 0;
+
+                if (isCurrent) {
+                  return (
+                    <div className="text-center text-sm font-semibold text-[#1B5E20] py-2 bg-green-50 rounded-xl">
+                      ✅ Current Plan
+                    </div>
+                  );
+                }
+                if (plan.id === 'free') {
+                  // Never show an upgrade/switch button for Free — only info text
+                  return (
+                    <div className="text-center text-sm text-gray-400 py-2">
+                      {currentTier > 0 ? 'Included in your plan' : 'Always free — cancel anytime to return here'}
+                    </div>
+                  );
+                }
+                if (planTier <= currentTier) {
+                  // Lower-tier plan — don't show downgrade button (retention-first).
+                  // Users who truly need to downgrade can use the Stripe billing portal.
+                  return (
+                    <div className="text-center text-sm text-gray-400 py-2">
+                      Included in your plan
+                    </div>
+                  );
+                }
+                // Higher-tier plan — show upgrade button
+                return (
+                  <button
+                    onClick={() => handleUpgrade(plan.id as 'plus' | 'family')}
+                    disabled={loading === plan.id}
+                    className="w-full bg-[#1B5E20] text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-[#155016] disabled:opacity-50 transition-colors"
+                  >
+                    {loading === plan.id ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        {status?.hasSubscription ? 'Upgrading plan...' : 'Redirecting to Stripe...'}
+                      </span>
+                    ) : (
+                      `Upgrade to ${plan.name}`
+                    )}
+                  </button>
+                );
+              })()}
             </div>
           );
         })}
