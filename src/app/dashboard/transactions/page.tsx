@@ -77,6 +77,7 @@ export default function TransactionsPage() {
 
   const [form, setForm] = useState({
     type: 'expense', category: 'food', amount: '', description: '', currency: 'USD',
+    date: new Date().toISOString().slice(0, 10),
   });
 
   // Sync form currency with user's preferred currency on first load
@@ -106,13 +107,14 @@ export default function TransactionsPage() {
 
   const openAdd = () => {
     setEditTx(null);
-    setForm({ type: 'expense', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD' });
+    setForm({ type: 'expense', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10) });
     setShowForm(true);
   };
 
   const openEdit = (tx: Tx) => {
     setEditTx(tx);
-    setForm({ type: tx.type, category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD' });
+    const txDate = new Date(tx.timestamp).toISOString().slice(0, 10);
+    setForm({ type: tx.type, category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate });
     setShowForm(true);
   };
 
@@ -125,16 +127,18 @@ export default function TransactionsPage() {
         setSaving(false);
         return;
       }
+      // Convert date string to epoch milliseconds (noon UTC to avoid timezone edge cases)
+      const timestamp = form.date ? new Date(form.date + 'T12:00:00Z').getTime() : Date.now();
       if (editTx) {
-        await api.updateTransaction(editTx.id, { ...form, amount: amt });
+        await api.updateTransaction(editTx.id, { ...form, amount: amt, timestamp });
         toast('Transaction updated', 'success');
       } else {
-        await api.addTransaction({ ...form, amount: amt });
+        await api.addTransaction({ ...form, amount: amt, timestamp });
         toast('Transaction added', 'success');
       }
       setShowForm(false);
       setEditTx(null);
-      setForm({ type: 'expense', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD' });
+      setForm({ type: 'expense', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10) });
       load();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : (editTx ? 'Failed to update transaction' : 'Failed to add transaction');
@@ -458,6 +462,13 @@ export default function TransactionsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Groceries" />
+              </div>
+              {/* Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
+                  max={new Date().toISOString().slice(0, 10)}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900" />
               </div>
             </div>
             <div className="flex gap-3 mt-6">

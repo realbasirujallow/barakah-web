@@ -42,14 +42,19 @@ function notifySubscribers(ok: boolean) {
 
 /** Calls POST /auth/refresh directly (bypasses apiFetch to avoid recursion). */
 async function attemptSilentRefresh(): Promise<boolean> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000); // 10s timeout
   try {
     const res = await fetch(`${API_URL}/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
+      signal: controller.signal,
     });
     return res.ok;
   } catch {
     return false;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -707,6 +712,39 @@ export const api = {
   // ── Assets bulk delete ───────────────────────────────────────────────────────
   bulkDeleteAssets: (ids: number[]) =>
     apiFetch('/api/assets/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
+
+  // ── Islamic Calendar ─────────────────────────────────────────────────────────
+  getIslamicCalendarToday: () => apiFetch('/api/islamic-calendar/today'),
+  getIslamicCalendarEvents: (year?: number) =>
+    apiFetch(`/api/islamic-calendar/events${year ? `?year=${year}` : ''}`),
+
+  // ── Halal Spending Analysis ─────────────────────────────────────────────────
+  getHalalAnalysis: (period = 'month') =>
+    apiFetch(`/api/transactions/halal-analysis?period=${encodeURIComponent(period)}`),
+
+  // ── Multi-Currency Zakat Summary ────────────────────────────────────────────
+  getZakatSummary: (currency = 'USD') =>
+    apiFetch(`/api/hawl/zakat-summary?currency=${encodeURIComponent(currency)}`),
+
+  // ── Hawl Due Reminders ──────────────────────────────────────────────────────
+  getHawlDue: (days = 30) => apiFetch(`/api/hawl/due?days=${days}`),
+
+  // ── Wasiyyah PDF Export ─────────────────────────────────────────────────────
+  downloadWasiyyahPdf: async () => {
+    const resp = await fetch(`${typeof window !== 'undefined' ? '' : ''}/api/wasiyyah/export/pdf`, {
+      credentials: 'include',
+    });
+    if (!resp.ok) throw new Error('Failed to download PDF');
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wasiyyah_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
 
   // ── Sadaqah / Donation to Barakah ────────────────────────────────────────────
   /**
