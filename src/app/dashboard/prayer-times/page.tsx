@@ -59,6 +59,14 @@ const CALC_METHODS = [
   { id: 99, name: 'Custom / Other' },
 ];
 
+// Safe localStorage helpers
+const safeGetItem = (key: string): string | null => {
+  try { return localStorage.getItem(key); } catch { return null; }
+};
+const safeSetItem = (key: string, value: string): void => {
+  try { localStorage.setItem(key, value); } catch { /* private browsing or quota exceeded */ }
+};
+
 export default function PrayerTimesPage() {
   const [timings, setTimings]       = useState<PrayerTimings | null>(null);
   const [loading, setLoading]       = useState(false);
@@ -172,7 +180,7 @@ export default function PrayerTimesPage() {
 
   // Try to restore last search from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('prayerTimesLocation');
+    const saved = safeGetItem('prayerTimesLocation');
     if (saved) {
       try {
         const { city: c, country: co, method: m } = JSON.parse(saved);
@@ -186,7 +194,7 @@ export default function PrayerTimesPage() {
     setShowSuggestions(false);
     if (!city.trim()) { setError('Please enter a city name.'); return; }
     if (!country.trim()) { setError('Please enter a country code (e.g., US, GB, SA).'); return; }
-    localStorage.setItem('prayerTimesLocation', JSON.stringify({ city, country, method }));
+    safeSetItem('prayerTimesLocation', JSON.stringify({ city, country, method }));
     fetchTimes(city, country, method);
   };
 
@@ -211,7 +219,7 @@ export default function PrayerTimesPage() {
             // Optionally, you could reverse-geocode to show city name, but for now just use coords
             setCity(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
             setCountry('GPS');
-            localStorage.setItem('prayerTimesLocation', JSON.stringify({
+            safeSetItem('prayerTimesLocation', JSON.stringify({
               city: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
               country: 'GPS',
               method

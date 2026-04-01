@@ -87,8 +87,17 @@ export default function BillsPage() {
     setSaving(true);
     try {
       const amt = parseFloat(form.amount);
-      if (!amt || amt <= 0) { alert('Bill amount must be greater than zero'); setSaving(false); return; }
-      const day = parseInt(form.dueDay);
+      // Validate amount: must be finite, positive, and reasonable
+      if (!Number.isFinite(amt) || amt <= 0) { alert('Bill amount must be a positive number'); setSaving(false); return; }
+      const MAX_VALUE = 1_000_000_000; // 1 billion max
+      if (amt > MAX_VALUE) { alert(`Bill amount cannot exceed $${MAX_VALUE.toLocaleString()}`); setSaving(false); return; }
+      // Check decimal precision (max 2 decimal places for currency)
+      if (!/^\d+(\.\d{1,2})?$/.test(form.amount.trim())) {
+        alert('Please enter an amount with up to 2 decimal places');
+        setSaving(false);
+        return;
+      }
+      const day = parseInt(form.dueDay, 10);
       if (isNaN(day) || day < 1 || day > 31) { alert('Due day must be between 1 and 31'); setSaving(false); return; }
       const payload = { ...form, amount: amt, dueDay: day };
       if (editBill) {

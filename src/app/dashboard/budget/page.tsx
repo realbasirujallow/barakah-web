@@ -90,7 +90,19 @@ export default function BudgetPage() {
         setSaving(false);
         return;
       }
-      const data = { category: form.category, monthlyLimit: limit, month: parseInt(form.month), year: parseInt(form.year) };
+      const MAX_VALUE = 1_000_000_000; // 1 billion max
+      if (limit > MAX_VALUE) {
+        setSaveError(`Budget limit cannot exceed $${MAX_VALUE.toLocaleString()}`);
+        setSaving(false);
+        return;
+      }
+      // Check decimal precision (max 2 decimal places for currency)
+      if (!/^\d+(\.\d{1,2})?$/.test(form.monthlyLimit.trim())) {
+        setSaveError('Please enter a limit with up to 2 decimal places');
+        setSaving(false);
+        return;
+      }
+      const data = { category: form.category, monthlyLimit: limit, month: parseInt(form.month, 10), year: parseInt(form.year, 10) };
       let result;
       if (editItem) result = await api.updateBudget(editItem.id, data);
       else result = await api.addBudget(data);

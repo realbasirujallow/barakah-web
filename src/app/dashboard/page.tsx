@@ -9,25 +9,33 @@ import OnboardingWizard from '../../components/OnboardingWizard';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
 interface HijriData { hijriDate: string; hijriMonthName: string; isRamadan: boolean; upcomingEvents: IslamicEvent[]; }
+interface HawlDue { dueCount: number; upcomingCount: number; due: Array<{ assetName: string; zakatAmount: number }>; }
+interface AssetTotal { netWorth?: number; totalWealth?: number; zakatDue?: number; zakatRemaining?: number; zakatPaid?: number; zakatFullyPaid?: boolean; zakatEligible?: boolean; currentLunarYear?: number; }
+
+// Safe localStorage helpers
+const safeGetItem = (key: string): string | null => {
+  try { return localStorage.getItem(key); } catch { return null; }
+};
+const safeSetItem = (key: string, value: string): void => {
+  try { localStorage.setItem(key, value); } catch { /* private browsing or quota exceeded */ }
+};
 
 export default function DashboardPage() {
-  const [totals, setTotals] = useState<Record<string, unknown> | null>(null);
+  const [totals, setTotals] = useState<AssetTotal | null>(null);
   const [loading, setLoading] = useState(true);
   const [hideNetWorth, setHideNetWorth] = useState(false);
   const [hideZakat, setHideZakat] = useState(false);
   const [hijri, setHijri] = useState<HijriData | null>(null);
-  const [hawlDue, setHawlDue] = useState<{ dueCount: number; upcomingCount: number; due: Record<string, unknown>[] } | null>(null);
+  const [hawlDue, setHawlDue] = useState<HawlDue | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
   useEffect(() => {
     // Show onboarding for first-time users
-    try {
-      if (!localStorage.getItem('barakah_onboarded')) setShowOnboarding(true);
-    } catch {}
-    setHideNetWorth(localStorage.getItem('hideNetWorth') === 'true');
-    setHideZakat(localStorage.getItem('hideZakatDashboard') === 'true');
+    if (!safeGetItem('barakah_onboarded')) setShowOnboarding(true);
+    setHideNetWorth(safeGetItem('hideNetWorth') === 'true');
+    setHideZakat(safeGetItem('hideZakatDashboard') === 'true');
     Promise.allSettled([
       api.getAssetTotal(),
       api.getIslamicCalendarToday(),
@@ -43,13 +51,13 @@ export default function DashboardPage() {
   const toggleHideNetWorth = () => {
     const newValue = !hideNetWorth;
     setHideNetWorth(newValue);
-    localStorage.setItem('hideNetWorth', newValue ? 'true' : 'false');
+    safeSetItem('hideNetWorth', newValue ? 'true' : 'false');
   };
 
   const toggleHideZakat = () => {
     const newValue = !hideZakat;
     setHideZakat(newValue);
-    localStorage.setItem('hideZakatDashboard', newValue ? 'true' : 'false');
+    safeSetItem('hideZakatDashboard', newValue ? 'true' : 'false');
   };
 
   const cards = [
