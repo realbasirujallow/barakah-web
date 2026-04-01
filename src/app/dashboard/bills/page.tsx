@@ -9,7 +9,7 @@ interface BillItem {
   frequency: string; dueDay: number; paid: boolean; nextDueDate: number;
 }
 
-const FREQS = ['weekly', 'monthly', 'quarterly', 'yearly'];
+const FREQS = ['weekly', 'monthly', 'quarterly', 'yearly', 'one_time'];
 
 const CATEGORIES: { value: string; label: string; icon: string }[] = [
   { value: 'utilities',      label: 'Utilities',       icon: '💡' },
