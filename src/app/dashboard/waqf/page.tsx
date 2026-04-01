@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 
 interface WaqfItem { id: number; organizationName: string; type: string; purpose: string; amount: number; date: number; recurring: boolean; status: string; }
@@ -19,6 +20,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export default function WaqfPage() {
   const [tab, setTab] = useState<'contributions' | 'distribution'>('contributions');
+  const { symbol } = useCurrency();
 
   // contributions
   const [items, setItems] = useState<WaqfItem[]>([]);
@@ -86,7 +88,7 @@ export default function WaqfPage() {
     }
     const MAX_VALUE = 1_000_000_000; // 1 billion max
     if (amt > MAX_VALUE) {
-      toast(`Waqf amount cannot exceed $${MAX_VALUE.toLocaleString()}`, 'error');
+      toast(`Waqf amount cannot exceed ${symbol}${MAX_VALUE.toLocaleString()}`, 'error');
       setSaving(false);
       return;
     }

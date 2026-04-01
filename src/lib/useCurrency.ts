@@ -15,7 +15,7 @@ const CURRENCY_KEY = 'barakah_preferred_currency';
  * It gets saved there by the profile page whenever the user's profile is loaded.
  * Defaults to 'USD' if no preference is stored.
  */
-export function useCurrency(): { fmt: (n: number) => string; currency: string } {
+export function useCurrency(): { fmt: (n: number) => string; currency: string; symbol: string } {
   const [currency, setCurrency] = useState<string>(() => {
     if (typeof window === 'undefined') return 'USD';
     return localStorage.getItem(CURRENCY_KEY) ?? 'USD';
@@ -30,7 +30,12 @@ export function useCurrency(): { fmt: (n: number) => string; currency: string } 
   const fmt = (n: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);
 
-  return { fmt, currency };
+  // Extract the currency symbol (e.g., "$", "€", "£", "﷼")
+  const symbol = new Intl.NumberFormat('en-US', { style: 'currency', currency })
+    .formatToParts(0)
+    .find(p => p.type === 'currency')?.value ?? currency;
+
+  return { fmt, currency, symbol };
 }
 
 /**

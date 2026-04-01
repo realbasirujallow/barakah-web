@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useCurrency } from '../../../lib/useCurrency';
+import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -46,8 +47,8 @@ const periods = [
   { value: 'year', label: 'This Year' },
 ];
 
-export default function AnalyticsPage() {
-  const { fmt } = useCurrency();
+function AnalyticsPageContent() {
+  const { fmt, symbol } = useCurrency();
   const [period, setPeriod] = useState('month');
   const [summary, setSummary] = useState<Summary | null>(null);
   const [allPeriods, setAllPeriods] = useState<{ week: Summary | null; month: Summary | null; year: Summary | null }>({
@@ -89,7 +90,7 @@ export default function AnalyticsPage() {
   }, [period, allPeriods]);
 
   const fmtShort = (n: number) => {
-    if (Math.abs(n) >= 1000) return '$' + (n / 1000).toFixed(1) + 'k';
+    if (Math.abs(n) >= 1000) return symbol + (n / 1000).toFixed(1) + 'k';
     return fmt(n);
   };
 
@@ -154,14 +155,17 @@ export default function AnalyticsPage() {
   })();
 
   return (
-    <div>
+    <div role="main">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold text-[#1B5E20]">📊 Analytics</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2" role="tablist" aria-label="Period selection">
           {periods.map((p) => (
             <button
               key={p.value}
               onClick={() => setPeriod(p.value)}
+              role="tab"
+              aria-selected={period === p.value}
+              aria-label={`Select ${p.label}`}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                 period === p.value
                   ? 'bg-[#1B5E20] text-white'
@@ -204,15 +208,21 @@ export default function AnalyticsPage() {
             <h2 className="text-lg font-semibold text-[#1B5E20]">📅 Month-over-Month</h2>
             <p className="text-xs text-gray-500 mt-0.5">Last 13 months — income vs spending trends</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2" role="tablist" aria-label="Chart type selection">
             <button
               onClick={() => setActiveChart('mom')}
+              role="tab"
+              aria-selected={activeChart === 'mom'}
+              aria-label="Bar chart view"
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'mom' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               Bar
             </button>
             <button
               onClick={() => setActiveChart('trend')}
+              role="tab"
+              aria-selected={activeChart === 'trend'}
+              aria-label="Line chart view"
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'trend' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               Line
@@ -231,6 +241,8 @@ export default function AnalyticsPage() {
 
         {momDisplayData.length === 0 ? (
           <p className="text-gray-400 text-center py-12">No monthly data available yet</p>
+        ) : monthlyData.length < 2 ? (
+          <p className="text-gray-400 text-center py-12">Insufficient data for trend analysis — need at least 2 months of data</p>
         ) : activeChart === 'mom' ? (
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={momDisplayData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
@@ -308,7 +320,7 @@ export default function AnalyticsPage() {
       {/* Charts Row 1: Overview Bar + Period Comparison */}
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         {/* Income vs Expense Bar */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
+        <div className="bg-white rounded-2xl p-6 shadow-sm" role="region" aria-label="Income vs Expenses chart">
           <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Income vs Expenses</h2>
           {overviewData.every((d) => d.amount === 0) ? (
             <p className="text-gray-400 text-center py-12">No transaction data for this period</p>
@@ -336,7 +348,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Period Comparison Trend */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
+        <div className="bg-white rounded-2xl p-6 shadow-sm" role="region" aria-label="Period Comparison chart">
           <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Period Comparison</h2>
           {[allPeriods.week, allPeriods.month, allPeriods.year].every(p => !p || (p.totalIncome === 0 && p.totalExpenses === 0)) ? (
             <p className="text-gray-400 text-center py-12">No transaction data available</p>
@@ -637,5 +649,13 @@ export default function AnalyticsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AnalyticsPage() {
+  return (
+    <ErrorBoundary>
+      <AnalyticsPageContent />
+    </ErrorBoundary>
   );
 }
