@@ -57,7 +57,11 @@ export default function BudgetPage() {
     setLoading(true);
     api.getBudgets()
       .then(d => {
-        const items: BudgetItem[] = d?.budgets || d || [];
+        if (d?.error) {
+          toast(d.error as string, 'error');
+          return;
+        }
+        const items: BudgetItem[] = Array.isArray(d?.budgets) ? d.budgets : Array.isArray(d) ? d : [];
         setBudgets(items);
         checkBudgetAlerts(items);
       })

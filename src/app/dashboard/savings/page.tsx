@@ -53,7 +53,11 @@ export default function SavingsPage() {
     setLoading(true);
     api.getSavingsGoals()
       .then(d => {
-        const items: Goal[] = d?.goals || d || [];
+        if (d?.error) {
+          toast(d.error as string, 'error');
+          return;
+        }
+        const items: Goal[] = Array.isArray(d?.goals) ? d.goals : Array.isArray(d) ? d : [];
         setGoals(items);
         checkMilestones(items);
       })

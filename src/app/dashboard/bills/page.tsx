@@ -57,7 +57,13 @@ export default function BillsPage() {
   const load = () => {
     setLoading(true);
     api.getBills()
-      .then(d => setBills(d?.bills || d || []))
+      .then(d => {
+        if (d?.error) {
+          toast(d.error as string, 'error');
+          return;
+        }
+        setBills(Array.isArray(d?.bills) ? d.bills : Array.isArray(d) ? d : []);
+      })
       .catch(() => toast('Failed to load bills', 'error'))
       .finally(() => setLoading(false));
   };

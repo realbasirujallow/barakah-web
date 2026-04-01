@@ -84,6 +84,16 @@ export default function AssetsPage() {
     setLoadError(null);
     Promise.all([api.getAssets(), api.getAssetTotal()])
       .then(([a, t]) => {
+        if (a?.error) {
+          logError(new Error(a.error), { context: 'Asset API error' });
+          setLoadError(a.error as string);
+          return;
+        }
+        if (t?.error) {
+          logError(new Error(t.error), { context: 'Asset total API error' });
+          setLoadError(t.error as string);
+          return;
+        }
         setAssets(Array.isArray(a?.assets) ? a.assets : Array.isArray(a) ? a : []);
         setTotal(t);
       })

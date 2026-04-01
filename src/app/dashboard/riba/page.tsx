@@ -30,7 +30,11 @@ export default function RibaPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    api.scanRiba().then(d => setResult(d)).catch(() => { toast('Failed to scan for riba', 'error'); }).finally(() => setLoading(false));
+    api.scanRiba().then(d => {
+      if (d?.error) { toast(d.error, 'error'); return; }
+      if (d?.flaggedTransactions && !Array.isArray(d.flaggedTransactions)) d.flaggedTransactions = [];
+      setResult(d);
+    }).catch(() => { toast('Failed to scan for riba', 'error'); }).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
