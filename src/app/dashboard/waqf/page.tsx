@@ -41,6 +41,7 @@ export default function WaqfPage() {
   const [savingBenef, setSavingBenef] = useState(false);
 
   const { toast } = useToast();
+  const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
 
   const loadItems = useCallback(() => {
     setLoadingItems(true);
@@ -107,15 +108,19 @@ export default function WaqfPage() {
     } catch { toast('Failed to save contribution', 'error'); }
     setSaving(false);
   };
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this contribution?')) return;
-    try {
-      await api.deleteWaqf(id);
-      toast('Waqf contribution deleted', 'success');
-      loadItems();
-    } catch {
-      toast('Failed to delete contribution', 'error');
-    }
+  const handleDelete = (id: number) => {
+    setConfirmAction({
+      message: 'Delete this contribution?',
+      action: async () => {
+        try {
+          await api.deleteWaqf(id);
+          toast('Waqf contribution deleted', 'success');
+          loadItems();
+        } catch {
+          toast('Failed to delete contribution', 'error');
+        }
+      }
+    });
   };
 
   const openAddBenef = () => { setEditBenef(null); setBenefForm({ name: '', category: 'general', percentage: '', contact: '', notes: '' }); setShowBenefForm(true); };
@@ -147,15 +152,19 @@ export default function WaqfPage() {
     } catch { toast('Failed to save beneficiary', 'error'); }
     setSavingBenef(false);
   };
-  const handleDeleteBenef = async (id: number) => {
-    if (!confirm('Remove this beneficiary?')) return;
-    try {
-      await api.deleteWaqfBeneficiary(id);
-      toast('Beneficiary removed', 'success');
-      loadDistribution();
-    } catch {
-      toast('Failed to delete beneficiary', 'error');
-    }
+  const handleDeleteBenef = (id: number) => {
+    setConfirmAction({
+      message: 'Remove this beneficiary?',
+      action: async () => {
+        try {
+          await api.deleteWaqfBeneficiary(id);
+          toast('Beneficiary removed', 'success');
+          loadDistribution();
+        } catch {
+          toast('Failed to delete beneficiary', 'error');
+        }
+      }
+    });
   };
 
   const totalContribs = items.reduce((s, i) => s + i.amount, 0);
@@ -345,6 +354,17 @@ export default function WaqfPage() {
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowBenefForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSaveBenef} disabled={savingBenef || !benefForm.name || !benefForm.percentage} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{savingBenef ? 'Saving...' : editBenef ? 'Update' : 'Add'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmAction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <p className="text-gray-800 mb-6">{confirmAction.message}</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>
         </div>

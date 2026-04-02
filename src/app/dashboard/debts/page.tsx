@@ -90,6 +90,8 @@ export default function DebtsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const { toast } = useToast();
   const { symbol } = useCurrency();
 
@@ -119,25 +121,24 @@ export default function DebtsPage() {
   const isHalal = isIslamic || form.ribaFree;
 
   const handleSave = async () => {
-    setSaving(true); setSaveError(null);
+    setSaving(true); setSaveError(null); setFormError(null);
     try {
       const totalAmt = parseFloat(form.totalAmount);
-      // Validate total amount: must be finite and positive
-      if (!Number.isFinite(totalAmt) || totalAmt <= 0) { alert('Total amount must be a positive number'); setSaving(false); return; }
-      const MAX_VALUE = 1_000_000_000; // 1 billion max
-      if (totalAmt > MAX_VALUE) { alert(`Debt amount cannot exceed ${symbol}${MAX_VALUE.toLocaleString()}`); setSaving(false); return; }
-      // Check decimal precision (max 2 decimal places for currency)
+      if (!Number.isFinite(totalAmt) || totalAmt <= 0) { const msg = 'Total amount must be a positive number'; setFormError(msg); toast(msg, 'error'); setSaving(false); return; }
+      const MAX_VALUE = 1_000_000_000;
+      if (totalAmt > MAX_VALUE) { const msg = `Debt amount cannot exceed ${symbol}${MAX_VALUE.toLocaleString()}`; setFormError(msg); toast(msg, 'error'); setSaving(false); return; }
       if (!/^\d+(\.\d{1,2})?$/.test(form.totalAmount.trim())) {
-        alert('Please enter an amount with up to 2 decimal places');
+        const msg = 'Please enter an amount with up to 2 decimal places';
+        setFormError(msg); toast(msg, 'error');
         setSaving(false);
         return;
       }
       const monthlyPay = parseFloat(form.monthlyPayment || '0');
-      if (!Number.isFinite(monthlyPay) || monthlyPay < 0) { alert('Monthly payment must be a non-negative number'); setSaving(false); return; }
+      if (!Number.isFinite(monthlyPay) || monthlyPay < 0) { const msg = 'Monthly payment must be a non-negative number'; setFormError(msg); toast(msg, 'error'); setSaving(false); return; }
       const remainingAmt = parseFloat(form.remainingAmount || form.totalAmount);
-      if (!Number.isFinite(remainingAmt) || remainingAmt < 0) { alert('Remaining amount must be non-negative'); setSaving(false); return; }
+      if (!Number.isFinite(remainingAmt) || remainingAmt < 0) { const msg = 'Remaining amount must be non-negative'; setFormError(msg); toast(msg, 'error'); setSaving(false); return; }
       const intRate = parseFloat(form.interestRate || '0');
-      if (!Number.isFinite(intRate) || intRate < 0) { alert('Interest rate must be non-negative'); setSaving(false); return; }
+      if (!Number.isFinite(intRate) || intRate < 0) { const msg = 'Interest rate must be non-negative'; setFormError(msg); toast(msg, 'error'); setSaving(false); return; }
       const payload = { ...form, totalAmount: totalAmt, remainingAmount: remainingAmt, monthlyPayment: monthlyPay, interestRate: intRate, ribaFree: isHalal };
       const result = editDebt ? await api.updateDebt(editDebt.id, payload) : await api.addDebt(payload);
       if (result?.error) throw new Error(result.error);
@@ -162,19 +163,23 @@ export default function DebtsPage() {
     setSaving(false);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this debt?')) return;
-    setDeletingId(id);
-    try {
-      await api.deleteDebt(id);
-      toast('Debt deleted', 'success');
-    } catch (err) {
-      logError(err, { context: 'Failed to delete debt' });
-      toast('Failed to delete debt', 'error');
-    } finally {
-      setDeletingId(null);
-      load();
-    }
+  const handleDelete = (id: number) => {
+    setConfirmAction({
+      message: 'Delete this debt?',
+      action: async () => {
+        setDeletingId(id);
+        try {
+          await api.deleteDebt(id);
+          toast('Debt deleted', 'success');
+        } catch (err) {
+          logError(err, { context: 'Failed to delete debt' });
+          toast('Failed to delete debt', 'error');
+        } finally {
+          setDeletingId(null);
+          load();
+        }
+      }
+    });
   };
 
   const toggleSelect = (id: number) => setSelectedIds(prev => {
@@ -188,29 +193,37 @@ export default function DebtsPage() {
     else setSelectedIds(new Set(debts.map(d => d.id)));
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     const count = selectedIds.size;
-    if (!confirm(`Delete ${count} debt${count !== 1 ? 's' : ''}? This cannot be undone.`)) return;
-    setBulkDeleting(true);
-    try {
-      await api.bulkDeleteDebts(Array.from(selectedIds));
-      setSelectedIds(new Set());
-      load();
-      toast(`${count} debt${count !== 1 ? 's' : ''} deleted`, 'success');
-    } catch { toast('Failed to delete debts', 'error'); }
-    setBulkDeleting(false);
+    setConfirmAction({
+      message: `Delete ${count} debt${count !== 1 ? 's' : ''}? This cannot be undone.`,
+      action: async () => {
+        setBulkDeleting(true);
+        try {
+          await api.bulkDeleteDebts(Array.from(selectedIds));
+          setSelectedIds(new Set());
+          load();
+          toast(`${count} debt${count !== 1 ? 's' : ''} deleted`, 'success');
+        } catch { toast('Failed to delete debts', 'error'); }
+        setBulkDeleting(false);
+      }
+    });
   };
 
-  const handleDeleteAll = async () => {
-    if (!confirm(`Delete ALL ${debts.length} debts? This cannot be undone.`)) return;
-    setBulkDeleting(true);
-    try {
-      await api.deleteAllDebts();
-      setSelectedIds(new Set());
-      load();
-      toast('All debts deleted', 'success');
-    } catch { toast('Failed to delete all debts', 'error'); }
-    setBulkDeleting(false);
+  const handleDeleteAll = () => {
+    setConfirmAction({
+      message: `Delete ALL ${debts.length} debts? This cannot be undone.`,
+      action: async () => {
+        setBulkDeleting(true);
+        try {
+          await api.deleteAllDebts();
+          setSelectedIds(new Set());
+          load();
+          toast('All debts deleted', 'success');
+        } catch { toast('Failed to delete all debts', 'error'); }
+        setBulkDeleting(false);
+      }
+    });
   };
 
   // Projector calculations
@@ -524,6 +537,17 @@ export default function DebtsPage() {
             <div className="flex gap-3 mt-4">
               <button type="button" onClick={() => { setPayModal(null); setPayError(null); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handlePay} disabled={saving || !payAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Processing...' : 'Pay'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmAction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <p className="text-gray-800 mb-6">{confirmAction.message}</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>
         </div>

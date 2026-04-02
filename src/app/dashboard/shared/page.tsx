@@ -96,6 +96,7 @@ export default function SharedPage() {
   const [contributingGoal, setContributingGoal] = useState(false);
 
   const [copiedCode, setCopiedCode] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const { toast } = useToast();
 
   const formatDate = (d: string) =>
@@ -199,14 +200,19 @@ export default function SharedPage() {
     setSavingTx(false);
   };
 
-  const handleDeleteTx = async (txId: number) => {
-    if (!activeGroup || !confirm('Delete this transaction?')) return;
-    try {
-      await api.deleteGroupTransaction(activeGroup.id, txId);
-      loadGroupDetail(activeGroup);
-    } catch {
-      toast('Failed to delete transaction', 'error');
-    }
+  const handleDeleteTx = (txId: number) => {
+    if (!activeGroup) return;
+    setConfirmAction({
+      message: 'Delete this transaction?',
+      action: async () => {
+        try {
+          await api.deleteGroupTransaction(activeGroup!.id, txId);
+          loadGroupDetail(activeGroup!);
+        } catch {
+          toast('Failed to delete transaction', 'error');
+        }
+      }
+    });
   };
 
   const handleAddBudget = async () => {
@@ -225,14 +231,19 @@ export default function SharedPage() {
     setSavingBudget(false);
   };
 
-  const handleDeleteBudget = async (budgetId: number) => {
-    if (!activeGroup || !confirm('Delete this budget?')) return;
-    try {
-      await api.deleteSharedBudget(activeGroup.id, budgetId);
-      loadGroupDetail(activeGroup);
-    } catch {
-      toast('Failed to delete budget', 'error');
-    }
+  const handleDeleteBudget = (budgetId: number) => {
+    if (!activeGroup) return;
+    setConfirmAction({
+      message: 'Delete this budget?',
+      action: async () => {
+        try {
+          await api.deleteSharedBudget(activeGroup!.id, budgetId);
+          loadGroupDetail(activeGroup!);
+        } catch {
+          toast('Failed to delete budget', 'error');
+        }
+      }
+    });
   };
 
   const handleAddGoal = async () => {
@@ -266,14 +277,19 @@ export default function SharedPage() {
     setContributingGoal(false);
   };
 
-  const handleDeleteGoal = async (goalId: number) => {
-    if (!activeGroup || !confirm('Delete this goal?')) return;
-    try {
-      await api.deleteSharedGoal(activeGroup.id, goalId);
-      loadGroupDetail(activeGroup);
-    } catch {
-      toast('Failed to delete goal', 'error');
-    }
+  const handleDeleteGoal = (goalId: number) => {
+    if (!activeGroup) return;
+    setConfirmAction({
+      message: 'Delete this goal?',
+      action: async () => {
+        try {
+          await api.deleteSharedGoal(activeGroup!.id, goalId);
+          loadGroupDetail(activeGroup!);
+        } catch {
+          toast('Failed to delete goal', 'error');
+        }
+      }
+    });
   };
 
   const copyInviteCode = (code: string) => {
@@ -1053,6 +1069,17 @@ export default function SharedPage() {
               >
                 {joiningGroup ? 'Joining...' : 'Join Group'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmAction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <p className="text-gray-800 mb-6">{confirmAction.message}</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>
         </div>

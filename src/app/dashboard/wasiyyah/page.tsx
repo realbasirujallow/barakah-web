@@ -29,6 +29,8 @@ function WasiyyahPageContent() {
   const [form, setForm]             = useState({ beneficiaryName: '', relationship: '', sharePercentage: '', shareType: 'percentage', notes: '' });
   const [obForm, setObForm]         = useState({ type: 'ZAKAT', amount: '', currency: '', description: '', recipient: '', notes: '' });
   const [saving, setSaving]         = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<{ type: 'beneficiary' | 'obligation'; id: number } | null>(null);
+  const [formError, setFormError]   = useState<string | null>(null);
   const loadingRef = useRef(false);
   const { toast } = useToast();
   const { currency: currencyCode, fmt: fmtCurrency } = useCurrency();
@@ -94,16 +96,19 @@ function WasiyyahPageContent() {
 
   const handleSave = async () => {
     setSaving(true);
+    setFormError(null);
     try {
       const share = parseFloat(form.sharePercentage);
-      if (!share || share <= 0 || share > 33.33) { alert('Share percentage must be > 0 and <= 33.33%'); setSaving(false); return; }
+      if (!share || share <= 0 || share > 33.33) {
+        const msg = 'Share percentage must be > 0 and <= 33.33%';
+        setFormError(msg); toast(msg, 'error'); setSaving(false); return;
+      }
       // Enforce total wasiyyah 1/3 cap: calculate total existing share + new share
       const totalExistingShare = items.reduce((sum, b) => sum + (b.sharePercentage || 0), 0);
       const totalWithNew = totalExistingShare + share;
       if (totalWithNew > 33.33) {
-        alert(`Total wasiyyah would be ${totalWithNew.toFixed(2)}%, which exceeds the Islamic 1/3 limit. Current beneficiaries use ${totalExistingShare.toFixed(2)}%, so maximum new share is ${Math.max(0, (33.33 - totalExistingShare)).toFixed(2)}%.`);
-        setSaving(false);
-        return;
+        const msg = `Total wasiyyah would be ${totalWithNew.toFixed(2)}%, which exceeds the Islamic 1/3 limit. Current beneficiaries use ${totalExistingShare.toFixed(2)}%, so maximum new share is ${Math.max(0, (33.33 - totalExistingShare)).toFixed(2)}%.`;
+        setFormError(msg); toast(msg, 'error'); setSaving(false); return;
       }
       await api.addWasiyyah({ ...form, sharePercentage: share });
       toast('Beneficiary added', 'success');
@@ -114,14 +119,25 @@ function WasiyyahPageContent() {
     setSaving(false);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Remove this beneficiary?')) return;
+  const handleDelete = (id: number) => {
+    setDeleteConfirmId({ type: 'beneficiary', id });
+  };
+
+  const confirmDeleteItem = async () => {
+    if (!deleteConfirmId) return;
+    const { type, id } = deleteConfirmId;
+    setDeleteConfirmId(null);
     try {
-      await api.deleteWasiyyah(id);
-      toast('Beneficiary removed', 'success');
+      if (type === 'beneficiary') {
+        await api.deleteWasiyyah(id);
+        toast('Beneficiary removed', 'success');
+      } else {
+        await api.deleteWasiyyahObligation(id);
+        toast('Obligation removed', 'success');
+      }
       load();
     } catch {
-      toast('Failed to remove beneficiary', 'error');
+      toast(`Failed to remove ${type}`, 'error');
     }
   };
 
@@ -129,7 +145,7 @@ function WasiyyahPageContent() {
     setSaving(true);
     try {
       const obAmt = parseFloat(obForm.amount);
-      if (!obAmt || obAmt <= 0) { alert('Obligation amount must be greater than zero'); setSaving(false); return; }
+      if (!obAmt || obAmt <= 0) { toast('Obligation amount must be greater than zero', 'error'); setSaving(false); return; }
       await api.addWasiyyahObligation({
         ...obForm,
         amount: obAmt,
@@ -142,15 +158,8 @@ function WasiyyahPageContent() {
     setSaving(false);
   };
 
-  const handleObDelete = async (id: number) => {
-    if (!confirm('Remove this obligation?')) return;
-    try {
-      await api.deleteWasiyyahObligation(id);
-      toast('Obligation removed', 'success');
-      load();
-    } catch {
-      toast('Failed to remove obligation', 'error');
-    }
+  const handleObDelete = (id: number) => {
+    setDeleteConfirmId({ type: 'obligation', id });
   };
 
   const markFulfilled = async (ob: Obligation) => {
@@ -330,6 +339,11 @@ function WasiyyahPageContent() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Beneficiary</h2>
+            {formError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg mb-4">
+                ⚠️ {formError}
+              </div>
+            )}
             <div className="space-y-4">
               <div>
                 <label htmlFor="beneficiary-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
@@ -382,7 +396,7 @@ function WasiyyahPageContent() {
             <div className="flex gap-3 mt-6">
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={() => { setShowForm(false); setFormError(null); }}
                 aria-label="Cancel adding beneficiary"
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
               >
@@ -503,6 +517,25 @@ function WasiyyahPageContent() {
               >
                 {saving ? 'Saving...' : 'Record Obligation'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete confirmation modal ─────────────────────────────────── */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <div className="flex items-start gap-3 mb-4">
+              <span className="text-2xl">🗑️</span>
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900">Remove {deleteConfirmId.type}?</h3>
+                <p className="text-sm text-gray-600 mt-1">This {deleteConfirmId.type} will be permanently removed from your wasiyyah.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirmId(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button onClick={confirmDeleteItem} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Remove</button>
             </div>
           </div>
         </div>

@@ -63,6 +63,7 @@ function computeHijriYear(): number {
 
 export default function ZakatPage() {
   const { toast } = useToast();
+  const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [data, setData] = useState<ZakatCalculation | null>(null);
   const [payments, setPayments] = useState<ZakatPayment[]>([]);
   const [totalPaid, setTotalPaid] = useState(0);
@@ -262,15 +263,19 @@ export default function ZakatPage() {
     setSaving(false);
   };
 
-  const handleDeletePayment = async (id: number) => {
-    if (!confirm('Delete this payment?')) return;
-    try {
-      await api.deleteZakatPayment(id);
-      toast('Payment deleted', 'success');
-      load();
-    } catch (err) {
-      toast(err instanceof Error ? err.message : 'Failed to delete payment', 'error');
-    }
+  const handleDeletePayment = (id: number) => {
+    setConfirmAction({
+      message: 'Delete this payment?',
+      action: async () => {
+        try {
+          await api.deleteZakatPayment(id);
+          toast('Payment deleted', 'success');
+          load();
+        } catch (err) {
+          toast(err instanceof Error ? err.message : 'Failed to delete payment', 'error');
+        }
+      }
+    });
   };
 
   // FEATURE 1: Handle Nisab Methodology Change
@@ -983,6 +988,17 @@ export default function ZakatPage() {
             <p className="text-gray-600 mb-2">You have fulfilled your Zakat obligation for {lunarYear} AH. May Allah accept it from you and bless your wealth.</p>
             <p className="text-gray-400 italic mb-6">تقبل الله منك</p>
             <button onClick={() => setShowMabrook(false)} className="w-full bg-[#1B5E20] text-white rounded-lg py-3 hover:bg-[#2E7D32] font-medium">Jazakallah Khayran</button>
+          </div>
+        </div>
+      )}
+      {confirmAction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <p className="text-gray-800 mb-6">{confirmAction.message}</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
+            </div>
           </div>
         </div>
       )}

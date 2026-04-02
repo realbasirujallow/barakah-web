@@ -32,6 +32,7 @@ export default function BudgetPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [copyingMonth, setCopyingMonth] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const { toast } = useToast();
 
   // Once-per-session alert guard — prevents re-toasting on every re-render / reload
@@ -114,28 +115,36 @@ export default function BudgetPage() {
     setSaving(false);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this budget?')) return;
-    await api.deleteBudget(id).catch(() => { toast('Failed to delete budget', 'error'); });
-    load();
+  const handleDelete = (id: number) => {
+    setConfirmAction({
+      message: 'Delete this budget?',
+      action: async () => {
+        await api.deleteBudget(id).catch(() => { toast('Failed to delete budget', 'error'); });
+        load();
+      }
+    });
   };
 
-  const handleCopyMonth = async () => {
+  const handleCopyMonth = () => {
     const prev = now.getMonth() === 0
       ? { month: 12, year: now.getFullYear() - 1 }
       : { month: now.getMonth(), year: now.getFullYear() };
-    if (!confirm(`Copy all budgets from ${MONTHS[prev.month - 1]} ${prev.year} to ${MONTHS[now.getMonth()]} ${now.getFullYear()}?`)) return;
-    setCopyingMonth(true);
-    try {
-      const result = await api.copyBudget(prev.month, prev.year, now.getMonth() + 1, now.getFullYear());
-      if (result?.copied === 0) {
-        toast(`No budget found for ${MONTHS[prev.month - 1]} ${prev.year}. Add a budget first, then copy it next month.`, 'error');
-      } else {
-        load();
-        toast(`${result?.copied ?? 'All'} budget(s) copied from ${MONTHS[prev.month - 1]}`, 'success');
+    setConfirmAction({
+      message: `Copy all budgets from ${MONTHS[prev.month - 1]} ${prev.year} to ${MONTHS[now.getMonth()]} ${now.getFullYear()}?`,
+      action: async () => {
+        setCopyingMonth(true);
+        try {
+          const result = await api.copyBudget(prev.month, prev.year, now.getMonth() + 1, now.getFullYear());
+          if (result?.copied === 0) {
+            toast(`No budget found for ${MONTHS[prev.month - 1]} ${prev.year}. Add a budget first, then copy it next month.`, 'error');
+          } else {
+            load();
+            toast(`${result?.copied ?? 'All'} budget(s) copied from ${MONTHS[prev.month - 1]}`, 'success');
+          }
+        } catch { toast('Failed to copy budgets', 'error'); }
+        setCopyingMonth(false);
       }
-    } catch { toast('Failed to copy budgets', 'error'); }
-    setCopyingMonth(false);
+    });
   };
 
   // ── Skeleton loading ────────────────────────────────────────────────────────
@@ -245,6 +254,17 @@ export default function BudgetPage() {
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
                 {saving ? 'Saving...' : editItem ? 'Update' : 'Add'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmAction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <p className="text-gray-800 mb-6">{confirmAction.message}</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>
         </div>

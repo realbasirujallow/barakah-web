@@ -79,6 +79,7 @@ export default function TransactionsPage() {
     type: 'expense', category: 'food', amount: '', description: '', currency: 'USD',
     date: new Date().toISOString().slice(0, 10),
   });
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Sync form currency with user's preferred currency on first load
   useEffect(() => {
@@ -120,15 +121,20 @@ export default function TransactionsPage() {
 
   const handleSave = async () => {
     setSaving(true);
+    setFormError(null);
     try {
       const amt = parseFloat(form.amount);
       if (!amt || amt <= 0) {
-        toast('Transaction amount must be greater than zero', 'error');
+        const msg = 'Transaction amount must be greater than zero';
+        setFormError(msg);
+        toast(msg, 'error');
         setSaving(false);
         return;
       }
       if (amt > 10000000) {
-        toast('Transaction amount cannot exceed 10,000,000', 'error');
+        const msg = 'Transaction amount cannot exceed 10,000,000';
+        setFormError(msg);
+        toast(msg, 'error');
         setSaving(false);
         return;
       }
@@ -446,12 +452,18 @@ export default function TransactionsPage() {
                   {CATEGORIES.map(c => <option key={c} value={c}>{c.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase())}</option>)}
                 </select>
               </div>
+              {/* Inline form error */}
+              {formError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">
+                  ⚠️ {formError}
+                </div>
+              )}
               {/* Amount + Currency (side by side) */}
               <div className="grid grid-cols-5 gap-3">
                 <div className="col-span-3">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                  <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })}
-                    className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="0.00" />
+                  <input type="number" step="0.01" min="0.01" value={form.amount} onChange={e => { setForm({ ...form, amount: e.target.value }); setFormError(null); }}
+                    className={`w-full border rounded-lg px-3 py-2 text-gray-900 ${formError ? 'border-red-400' : ''}`} placeholder="0.00" />
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
@@ -477,7 +489,7 @@ export default function TransactionsPage() {
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => { setShowForm(false); setEditTx(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button onClick={() => { setShowForm(false); setEditTx(null); setFormError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.amount}
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
                 {saving ? 'Saving...' : (editTx ? 'Save Changes' : 'Add')}

@@ -76,6 +76,7 @@ const emptyHoldingForm = { symbol: '', name: '', quantity: '', averageCost: '', 
 export default function InvestmentsPage() {
   const { toast } = useToast();
   const { fmt } = useCurrency();
+  const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [assetAccounts, setAssetAccounts] = useState<AssetAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,10 +124,14 @@ export default function InvestmentsPage() {
     setSavingAccount(false);
   };
 
-  const handleDeleteAccount = async (id: number) => {
-    if (!confirm('Delete this account and all its holdings?')) return;
-    await api.deleteInvestmentAccount(id).catch((err) => { logError(err); toast('Failed to delete account', 'error'); });
-    load();
+  const handleDeleteAccount = (id: number) => {
+    setConfirmAction({
+      message: 'Delete this account and all its holdings?',
+      action: async () => {
+        await api.deleteInvestmentAccount(id).catch((err) => { logError(err); toast('Failed to delete account', 'error'); });
+        load();
+      }
+    });
   };
 
   const handleAddHolding = async () => {
@@ -147,10 +152,14 @@ export default function InvestmentsPage() {
     setSavingHolding(false);
   };
 
-  const handleDeleteHolding = async (id: number) => {
-    if (!confirm('Remove this holding?')) return;
-    await api.deleteHolding(id).catch((err) => { logError(err); });
-    load();
+  const handleDeleteHolding = (id: number) => {
+    setConfirmAction({
+      message: 'Remove this holding?',
+      action: async () => {
+        await api.deleteHolding(id).catch((err) => { logError(err); });
+        load();
+      }
+    });
   };
 
   if (loading) return (
@@ -495,6 +504,17 @@ export default function InvestmentsPage() {
               >
                 {savingHolding ? 'Saving...' : 'Add Holding'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmAction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <p className="text-gray-800 mb-6">{confirmAction.message}</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>
         </div>
