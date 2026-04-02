@@ -18,8 +18,8 @@ interface ZakatCalculation {
 interface ZakatPayment {
   id?: number;
   amount: number;
-  recipient?: string;
-  notes?: string;
+  recipient?: string | null;
+  notes?: string | null;
   lunarYear?: number;
 }
 
