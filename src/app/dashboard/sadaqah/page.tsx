@@ -8,6 +8,25 @@ import { useToast } from '../../../lib/toast';
 
 interface SadaqahItem { id: number; amount: number; recipientName: string; category: string; date: number; description: string; recurring: boolean; anonymous: boolean; }
 interface Stats { totalDonated: number; donationCount: number; thisMonthTotal: number; topCategory: string; }
+
+// Map backend stats response fields to frontend Stats interface
+function mapStats(raw: any): Stats | null {
+  if (!raw) return null;
+  // Backend may use totalAllTime/totalDonated, totalDonations/donationCount, thisMonth/thisMonthTotal
+  const totalDonated = raw.totalDonated ?? raw.totalAllTime ?? 0;
+  const donationCount = raw.donationCount ?? raw.totalDonations ?? 0;
+  const thisMonthTotal = raw.thisMonthTotal ?? raw.thisMonth ?? 0;
+  let topCategory = raw.topCategory || 'N/A';
+  // Derive top category from byCategory map if not provided directly
+  if (topCategory === 'N/A' && raw.byCategory && typeof raw.byCategory === 'object') {
+    const entries = Object.entries(raw.byCategory) as [string, number][];
+    if (entries.length > 0) {
+      entries.sort((a, b) => b[1] - a[1]);
+      topCategory = entries[0][0].toLowerCase();
+    }
+  }
+  return { totalDonated, donationCount, thisMonthTotal, topCategory };
+}
 const CATS = ['food', 'clothing', 'education', 'medical', 'shelter', 'water', 'general', 'orphan', 'mosque', 'disaster_relief', 'dawah', 'other'];
 
 // Preset donation amounts in dollars
@@ -38,7 +57,7 @@ function SadaqahContent() {
         const s = results[1].status === 'fulfilled' ? results[1].value : null;
         if (d?.error) { toast(d.error, 'error'); return; }
         setItems(Array.isArray(d?.donations) ? d.donations : Array.isArray(d) ? d : []);
-        setStats(s || null);
+        setStats(mapStats(s));
       })
       .catch(() => { toast('Failed to load sadaqah records', 'error'); }).finally(() => setLoading(false));
   };
