@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
-import { fmt, useCurrency } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 
@@ -46,7 +46,7 @@ const US_STATES = [
 
 export default function RetirementZakatPage() {
   const { toast } = useToast();
-  const { formatCurrency } = useCurrency();
+  const { fmt: formatCurrency } = useCurrency();
 
   // Form state
   const [balance, setBalance] = useState('');
