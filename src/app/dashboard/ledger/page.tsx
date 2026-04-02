@@ -32,17 +32,24 @@ interface LedgerResponse {
 const ENTRY_TYPES = [
   { value: '', label: 'All Types' },
   { value: 'ASSET_ADDED', label: 'Asset Added' },
+  { value: 'ASSET_REMOVED', label: 'Asset Removed' },
   { value: 'ASSET_UPDATED', label: 'Asset Updated' },
-  { value: 'ASSET_DELETED', label: 'Asset Deleted' },
+  { value: 'DEBT_ADDED', label: 'Debt Added' },
+  { value: 'DEBT_PAYMENT', label: 'Debt Payment' },
+  { value: 'DEBT_REMOVED', label: 'Debt Removed' },
+  { value: 'DEBT_UPDATED', label: 'Debt Updated' },
+  { value: 'FIQH_CONFIG_CHANGED', label: 'Fiqh Config Changed' },
+  { value: 'HAWL_COMPLETED', label: 'Hawl Completed' },
+  { value: 'HAWL_RESET', label: 'Hawl Reset' },
+  { value: 'HAWL_STARTED', label: 'Hawl Started' },
+  { value: 'PURIFICATION_RECORDED', label: 'Purification Recorded' },
+  { value: 'RETIREMENT_ZAKAT_CALCULATED', label: 'Retirement Zakat Calculated' },
+  { value: 'SADAQAH_RECORDED', label: 'Sadaqah Recorded' },
+  { value: 'TRANSACTION_CREATED', label: 'Transaction Created' },
+  { value: 'WASIYYAH_UPDATED', label: 'Wasiyyah Updated' },
+  { value: 'ZAKAT_CALCULATED', label: 'Zakat Calculated' },
   { value: 'ZAKAT_PAID', label: 'Zakat Paid' },
   { value: 'ZAKAT_SNAPSHOT_LOCKED', label: 'Zakat Snapshot (Locked)' },
-  { value: 'HAWL_STARTED', label: 'Hawl Started' },
-  { value: 'TRANSACTION', label: 'Transaction' },
-  { value: 'DEBT_ADDED', label: 'Debt Added' },
-  { value: 'DEBT_UPDATED', label: 'Debt Updated' },
-  { value: 'ADJUSTMENT', label: 'Adjustment' },
-  { value: 'CORRECTION', label: 'Correction' },
-  { value: 'IMPORT', label: 'Import' },
 ];
 
 export default function AuditLedgerPage() {
@@ -72,8 +79,8 @@ export default function AuditLedgerPage() {
         if (result) {
           const ledgerEntries = Array.isArray(result) ? result : result.entries || [];
           setEntries(ledgerEntries);
-          setTotal(result.total || ledgerEntries.length || 0);
-          setTotalPages(result.totalPages || Math.ceil((result.total || 0) / PAGE_SIZE));
+          setTotal(result.totalEntries || result.total || ledgerEntries.length || 0);
+          setTotalPages(result.totalPages || Math.ceil((result.totalEntries || result.total || 0) / PAGE_SIZE));
         }
       } catch (err) {
         logError(err, { context: 'Failed to load ledger' });
