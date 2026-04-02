@@ -14,6 +14,7 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
   { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
   // ── Free features (alphabetized) ──────────────────────────────────────────
   { href: '/dashboard/assets', icon: '💰', label: 'Assets' },
+  { href: '/dashboard/ledger', icon: '📋', label: 'Audit Ledger' },
   { href: '/dashboard/billing', icon: '💳', label: 'Billing & Plans' },
   { href: '/dashboard/bills', icon: '🔔', label: 'Bills' },
   { href: '/dashboard/budget', icon: '📊', label: 'Budget' },
@@ -21,13 +22,12 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
   { href: '/dashboard/fiqh', icon: '📚', label: 'Fiqh Settings' },
   { href: '/dashboard/hawl', icon: '⏰', label: 'Hawl Tracker' },
   { href: '/dashboard/import', icon: '📥', label: 'Import Data' },
-  { href: '/dashboard/ledger', icon: '📋', label: 'Audit Ledger' },
   { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications' },
   { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times' },
   { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
   { href: '/dashboard/ramadan', icon: '🌙', label: 'Ramadan Mode' },
-  { href: '/dashboard/referral', icon: '🎁', label: 'Refer a Friend' },
   { href: '/dashboard/recurring', icon: '🔁', label: 'Recurring' },
+  { href: '/dashboard/referral', icon: '🎁', label: 'Refer a Friend' },
   { href: '/dashboard/retirement-zakat', icon: '🏦', label: 'Retirement Zakat' },
   { href: '/dashboard/sadaqah', icon: '🤲', label: 'Sadaqah' },
   { href: '/dashboard/savings', icon: '🎯', label: 'Savings Goals' },
@@ -54,7 +54,7 @@ type SidebarSection = 'finance' | 'islamic' | 'premium' | 'account';
 const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> = {
   finance: {
     label: 'Finance',
-    items: ['Assets', 'Audit Ledger', 'Budget', 'Bills', 'Debts', 'Recurring', 'Savings Goals', 'Transactions'],
+    items: ['Assets', 'Audit Ledger', 'Bills', 'Budget', 'Debts', 'Recurring', 'Savings Goals', 'Transactions'],
   },
   islamic: {
     label: 'Islamic',
