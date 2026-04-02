@@ -17,9 +17,10 @@ interface FiqhConfig {
 }
 
 interface FiqhSchool {
-  id: string;
-  name: string;
-  description?: string;
+  value: string;
+  displayName: string;
+  founder?: string;
+  summary?: string;
   [key: string]: unknown;
 }
 
@@ -167,22 +168,25 @@ export default function FiqhSettingsPage() {
               <div className="space-y-4">
                 {schools.map((school) => (
                   <label
-                    key={school.id}
+                    key={school.value}
                     className="flex items-start gap-4 p-4 border-2 border-gray-200 rounded-lg hover:border-green-700 hover:bg-green-50 cursor-pointer transition"
                   >
                     <input
                       type="radio"
                       name="madhab"
-                      value={school.id}
-                      checked={selectedMadhab === school.id}
-                      onChange={() => handleMadhabChange(school.id)}
+                      value={school.value}
+                      checked={selectedMadhab === school.value}
+                      onChange={() => handleMadhabChange(school.value)}
                       disabled={saving}
                       className="mt-1 w-5 h-5 text-green-700"
                     />
                     <div className="flex-1">
-                      <p className="font-semibold text-[#1B5E20]">{school.name}</p>
-                      {school.description && (
-                        <p className="text-sm text-gray-600 mt-1">{school.description}</p>
+                      <p className="font-semibold text-[#1B5E20]">{school.displayName}</p>
+                      {school.founder && (
+                        <p className="text-sm text-green-800 font-medium">{school.founder}</p>
+                      )}
+                      {school.summary && (
+                        <p className="text-sm text-gray-600 mt-1">{school.summary}</p>
                       )}
                     </div>
                   </label>
@@ -265,9 +269,8 @@ export default function FiqhSettingsPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
                 >
                   <option value="">Select Fitr Type</option>
-                  <option value="staple">Staple Food</option>
-                  <option value="cash">Cash</option>
-                  <option value="mixed">Mixed</option>
+                  <option value="food">Staple Food</option>
+                  <option value="money">Cash / Monetary Value</option>
                 </select>
                 <p className="text-sm text-gray-600 mt-2">Choose how you prefer to calculate Zakat al-Fitr</p>
               </div>
@@ -281,9 +284,8 @@ export default function FiqhSettingsPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
                 >
                   <option value="">Select Method</option>
-                  <option value="full">Deduct Full Amount</option>
-                  <option value="necessary">Deduct Necessary Only</option>
-                  <option value="partial">Deduct Portion</option>
+                  <option value="full_balance">Deduct Full Balance (Hanafi)</option>
+                  <option value="annual_installment">Deduct Annual Installment Only (Majority)</option>
                 </select>
                 <p className="text-sm text-gray-600 mt-2">Choose how debts affect your Zakat calculation</p>
               </div>
