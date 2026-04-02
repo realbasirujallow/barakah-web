@@ -84,6 +84,14 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
     if (csrfToken) {
       headers['X-XSRF-TOKEN'] = csrfToken;
     }
+    // Idempotency key: every POST gets a unique key so the backend can detect
+    // and safely deduplicate retries (network glitches, double-clicks, etc.).
+    // The server caches the response for 24h keyed on (userId, idempotencyKey).
+    // If the caller already set the header (e.g. for manual retry with same key),
+    // we respect it.
+    if (method === 'POST' && !headers['Idempotency-Key']) {
+      headers['Idempotency-Key'] = crypto.randomUUID();
+    }
   }
 
   // credentials: 'include' ensures the auth_token httpOnly cookie is sent on
