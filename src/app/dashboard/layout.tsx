@@ -17,8 +17,10 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
   { href: '/dashboard/bills', icon: '🔔', label: 'Bills' },
   { href: '/dashboard/budget', icon: '📊', label: 'Budget' },
   { href: '/dashboard/debts', icon: '💳', label: 'Debts' },
+  { href: '/dashboard/fiqh', icon: '📚', label: 'Fiqh Settings' },
   { href: '/dashboard/hawl', icon: '⏰', label: 'Hawl Tracker' },
   { href: '/dashboard/import', icon: '📥', label: 'Import Data' },
+  { href: '/dashboard/ledger', icon: '📋', label: 'Audit Ledger' },
   { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications' },
   { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times' },
   { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
@@ -49,11 +51,11 @@ type SidebarSection = 'finance' | 'islamic' | 'premium' | 'account';
 const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> = {
   finance: {
     label: 'Finance',
-    items: ['Assets', 'Budget', 'Bills', 'Debts', 'Recurring', 'Savings Goals', 'Transactions'],
+    items: ['Assets', 'Audit Ledger', 'Budget', 'Bills', 'Debts', 'Recurring', 'Savings Goals', 'Transactions'],
   },
   islamic: {
     label: 'Islamic',
-    items: ['Hawl Tracker', 'Prayer Times', 'Ramadan Mode', 'Sadaqah', 'Zakat'],
+    items: ['Fiqh Settings', 'Hawl Tracker', 'Prayer Times', 'Ramadan Mode', 'Sadaqah', 'Zakat'],
   },
   premium: {
     label: 'Premium',

@@ -818,4 +818,31 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ amountCents, description }),
     }),
+
+  // ─── Fiqh Configuration ──────────────────────────────────────
+  getFiqhConfig: () =>
+    apiFetch('/api/fiqh/config'),
+
+  setMadhab: (madhab: string) =>
+    apiFetch('/api/fiqh/madhab', { method: 'POST', body: JSON.stringify({ madhab }) }),
+
+  updateFiqhRules: (rules: Record<string, unknown>) =>
+    apiFetch('/api/fiqh/rules', { method: 'PUT', body: JSON.stringify(rules) }),
+
+  getFiqhSchools: () =>
+    apiFetch('/api/fiqh/schools'),
+
+  // ─── Financial Ledger ────────────────────────────────────────
+  getFinancialLedger: (page = 0, size = 50) =>
+    apiFetch(`/api/ledger?page=${page}&size=${size}`),
+
+  getLedgerByType: (type: string) =>
+    apiFetch(`/api/ledger/type/${encodeURIComponent(type)}`),
+
+  // ─── Zakat Snapshots ─────────────────────────────────────────
+  getZakatSnapshots: () =>
+    apiFetch('/api/zakat/snapshots'),
+
+  getLockedSnapshots: () =>
+    apiFetch('/api/zakat/snapshots/locked'),
 };
