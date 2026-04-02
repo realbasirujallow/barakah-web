@@ -24,6 +24,8 @@ interface ZakatPayment {
   recipient?: string | null;
   notes?: string | null;
   lunarYear?: number;
+  paidAt?: number;
+  [key: string]: unknown;
 }
 
 interface ZakatPaymentResponse {
