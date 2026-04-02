@@ -6,6 +6,7 @@ import { useToast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 import OnboardingWizard from '../../components/OnboardingWizard';
+import { TransactionUsageMeter } from '../../components/TransactionUsageMeter';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
 interface HijriData { hijriDate: string; hijriMonthName: string; isRamadan: boolean; upcomingEvents: IslamicEvent[]; }
@@ -208,28 +209,48 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* ── Free plan upgrade teaser ─────────────────────────────────────────── */}
+      {/* ── Free plan: Transaction usage + Plus feature teasers ──────────── */}
       {user?.plan === 'free' && (
-        <div className="mt-10 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6">
-          <div className="flex items-start gap-4">
-            <span className="text-4xl">✨</span>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-[#1B5E20] mb-1">Unlock Barakah Plus</h3>
-              <p className="text-sm text-gray-700 mb-3">
-                Get access to Halal Stock Screener, Riba Detector, unlimited transactions, and more premium features.
-              </p>
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className="bg-white text-xs font-medium text-gray-700 px-3 py-1 rounded-full border border-green-100">🔍 Halal Stock Screener</span>
-                <span className="bg-white text-xs font-medium text-gray-700 px-3 py-1 rounded-full border border-green-100">🛡️ Riba Detector</span>
-                <span className="bg-white text-xs font-medium text-gray-700 px-3 py-1 rounded-full border border-green-100">♾️ Unlimited Transactions</span>
-              </div>
-              <Link
-                href="/dashboard/billing"
-                className="inline-block bg-[#1B5E20] text-white px-6 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm transition"
-              >
-                View Plans & Pricing
-              </Link>
+        <div className="mt-8 space-y-4">
+          {/* Transaction usage meter */}
+          <TransactionUsageMeter />
+
+          {/* Feature teaser cards */}
+          <div className="grid md:grid-cols-3 gap-4">
+            <Link href="/dashboard/barakah-score" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
+              <div className="absolute top-3 right-3 bg-green-100 text-[#1B5E20] text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
+              <div className="text-2xl mb-2">📊</div>
+              <h4 className="font-semibold text-gray-900 group-hover:text-[#1B5E20]">Financial Insights</h4>
+              <p className="text-xs text-gray-500 mt-1">Barakah Score, spending trends, and halal ratio — see your full picture.</p>
+            </Link>
+
+            <Link href="/dashboard/halal" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
+              <div className="absolute top-3 right-3 bg-green-100 text-[#1B5E20] text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
+              <div className="text-2xl mb-2">🔍</div>
+              <h4 className="font-semibold text-gray-900 group-hover:text-[#1B5E20]">Halal Finance Check</h4>
+              <p className="text-xs text-gray-500 mt-1">Screen 30,000+ stocks and detect interest in your accounts.</p>
+            </Link>
+
+            <Link href="/dashboard/net-worth" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
+              <div className="absolute top-3 right-3 bg-green-100 text-[#1B5E20] text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
+              <div className="text-2xl mb-2">📈</div>
+              <h4 className="font-semibold text-gray-900 group-hover:text-[#1B5E20]">Net Worth Tracking</h4>
+              <p className="text-xs text-gray-500 mt-1">Assets minus debts, tracked over time with trend analysis.</p>
+            </Link>
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="bg-gradient-to-r from-[#1B5E20] to-green-600 rounded-xl p-5 flex items-center justify-between">
+            <div className="text-white">
+              <p className="font-bold text-lg">Barakah Plus — $9.99/mo</p>
+              <p className="text-green-200 text-sm">Unlimited transactions + 11 premium features</p>
             </div>
+            <Link
+              href="/dashboard/billing"
+              className="bg-white text-[#1B5E20] px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-green-50 transition flex-shrink-0"
+            >
+              View Plans
+            </Link>
           </div>
         </div>
       )}

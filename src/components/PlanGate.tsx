@@ -65,34 +65,48 @@ export function PlanGate({ required, featureName, description, children }: PlanG
     }
   };
 
+  // Feature-specific descriptions for better conversion copy
+  const featureDescriptions: Record<string, string> = {
+    'Financial Insights': 'See your Barakah Score, spending trends, halal ratio, and month-over-month analytics — all in one place.',
+    'Halal Screener': 'Screen 30,000+ stocks for Sharia compliance. Know exactly where your money is going.',
+    'Halal Finance Check': 'Screen 30,000+ stocks for Sharia compliance and detect interest-bearing transactions in your accounts.',
+    'Investments': 'Track your full portfolio — accounts, holdings, P&L, and allocation breakdown.',
+    'Net Worth': 'See your complete financial picture — assets minus debts, tracked over time.',
+    'Wasiyyah': 'Plan your Islamic will with automatic Faraid calculation and 1/3 cap enforcement. Export as PDF.',
+    'Waqf': 'Track Islamic endowments, manage beneficiaries, and plan charitable distributions.',
+    'Analytics': 'Spending trends, category breakdown, and month-over-month financial analysis.',
+    'Auto-Categorize': 'AI-powered transaction categorization saves you time and keeps your records clean.',
+    'Riba Detector': 'Automatically flag interest-bearing transactions and accounts in your finances.',
+    'Subscription Detection': 'Auto-detect recurring subscriptions you may have forgotten about.',
+    'Debt Projections': 'See exactly when you\'ll be debt-free with snowball and avalanche payoff strategies.',
+  };
+
   // Plan features data
   const planFeatures = {
     free: [
       '25 transactions/month',
-      'Basic budget tracking',
-      'Prayer times',
-      'Barakah Score overview',
+      'Zakat Calculator + Hawl Tracker',
+      'Sadaqah tracking',
+      'Prayer times & Islamic calendar',
+      'Budgets, bills & debts',
     ],
     plus: [
       'Unlimited transactions',
-      'Full Zakat calculator',
-      'Halal stock screener (30,000+)',
-      'Riba & subscription detector',
-      'Wasiyyah & Waqf planning',
-      'Investments & net worth',
-      'Debt payoff projector',
-      'Ramadan mode',
-      'Analytics & financial summaries',
-      'CSV/PDF export',
+      'Financial Insights (Score + Analytics)',
+      'Halal Finance Check (30,000+ stocks)',
+      'Investments & net worth tracking',
+      'Wasiyyah — Islamic will planning',
+      'Auto-categorization',
+      'Subscription detection',
+      'Debt payoff projections',
+      'PDF export',
     ],
     family: [
       'Everything in Plus',
       'Up to 6 family members',
       'Shared budgets & goals',
-      'Family Estate Visibility',
-      'Shared expense splitting',
-      'Family financial summary',
-      'Priority support',
+      'Shared transactions',
+      'Family estate visibility',
     ],
   };
 
@@ -115,7 +129,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
             Unlock <span className="text-[#1B5E20]">{featureName}</span>
           </h1>
           <p className="text-gray-600 text-lg">
-            {description ?? `Choose a plan to access ${featureName} and all other premium features.`}
+            {description ?? featureDescriptions[featureName] ?? `Choose a plan to access ${featureName} and all other premium features.`}
           </p>
         </div>
 
