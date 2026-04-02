@@ -32,8 +32,8 @@ export function middleware(request: NextRequest) {
 
   if (isAuthPage && hasAuthToken) {
     const reason = request.nextUrl.searchParams.get('reason');
-    if (reason === 'logout' || reason === 'deleted') {
-      // User is intentionally logging out — clear the stale cookie and let /login render
+    if (reason === 'logout' || reason === 'deleted' || reason === 'expired') {
+      // Session ended — clear the stale cookie and let /login render
       const response = NextResponse.next();
       response.cookies.delete('auth_token');
       response.cookies.delete('refresh_token');
