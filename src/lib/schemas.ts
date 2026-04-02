@@ -303,7 +303,7 @@ export interface WasiyyahBeneficiary {
   id: number;
   name: string;
   relationship: string;
-  shareType: 'legal' | 'voluntary';
+  shareType: 'legal' | 'voluntary' | 'percentage';
   sharePercentage: number;
   notes?: string | null;
 }
@@ -319,8 +319,8 @@ export function validateWasiyyahBeneficiary(data: unknown): ValidationResult<Was
   if (!isFiniteNumber(obj.id)) issues.push({ path: 'id', message: 'Expected finite number' });
   if (!isString(obj.name)) issues.push({ path: 'name', message: 'Expected string' });
   if (!isString(obj.relationship)) issues.push({ path: 'relationship', message: 'Expected string' });
-  if (!['legal', 'voluntary'].includes(obj.shareType as string)) {
-    issues.push({ path: 'shareType', message: 'Expected legal | voluntary' });
+  if (!['legal', 'voluntary', 'percentage'].includes(obj.shareType as string)) {
+    issues.push({ path: 'shareType', message: 'Expected legal | voluntary | percentage' });
   }
   if (!isNonNegativeNumber(obj.sharePercentage)) issues.push({ path: 'sharePercentage', message: 'Expected non-negative number' });
 
@@ -332,7 +332,7 @@ export function validateWasiyyahBeneficiary(data: unknown): ValidationResult<Was
       id: obj.id as number,
       name: obj.name as string,
       relationship: obj.relationship as string,
-      shareType: (obj.shareType as 'legal' | 'voluntary') || 'voluntary',
+      shareType: (obj.shareType as 'legal' | 'voluntary' | 'percentage') || 'voluntary',
       sharePercentage: obj.sharePercentage as number,
       notes: (obj.notes as string | null) || undefined,
     },
