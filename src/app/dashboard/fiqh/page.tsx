@@ -9,6 +9,7 @@ interface FiqhConfig {
   jewelryZakatable?: boolean;
   fitrType?: string;
   debtMethod?: string;
+  retirementMethod?: string;
   hawlResetOnNisabDrop?: boolean;
   wasiyyahExceedThirdWithConsent?: boolean;
   raddIncludesSpouse?: boolean;
@@ -36,6 +37,7 @@ export default function FiqhSettingsPage() {
     jewelryZakatable: false,
     fitrType: '',
     debtMethod: '',
+    retirementMethod: '',
     hawlResetOnNisabDrop: false,
     wasiyyahExceedThirdWithConsent: false,
     raddIncludesSpouse: false,
@@ -57,6 +59,7 @@ export default function FiqhSettingsPage() {
             jewelryZakatable: configData.jewelryZakatable ?? false,
             fitrType: configData.fitrType || '',
             debtMethod: configData.debtMethod || '',
+            retirementMethod: configData.retirementMethod || '',
             hawlResetOnNisabDrop: configData.hawlResetOnNisabDrop ?? false,
             wasiyyahExceedThirdWithConsent: configData.wasiyyahExceedThirdWithConsent ?? false,
             raddIncludesSpouse: configData.raddIncludesSpouse ?? false,
@@ -283,6 +286,21 @@ export default function FiqhSettingsPage() {
                   <option value="partial">Deduct Portion</option>
                 </select>
                 <p className="text-sm text-gray-600 mt-2">Choose how debts affect your Zakat calculation</p>
+              </div>
+
+              {/* Retirement Method */}
+              <div className="p-4 border border-gray-200 rounded-lg">
+                <label className="block font-semibold text-[#1B5E20] mb-2">Retirement Account Zakat Method</label>
+                <select
+                  value={rules.retirementMethod}
+                  onChange={(e) => handleRuleChange('retirementMethod', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
+                >
+                  <option value="full_accessible">Full Accessible Balance (AMJA/Majority)</option>
+                  <option value="employer_match_only">Employer Match Only</option>
+                  <option value="on_withdrawal_only">On Withdrawal Only</option>
+                </select>
+                <p className="text-sm text-gray-600 mt-2">Choose the scholarly opinion for retirement account zakat calculations</p>
               </div>
             </div>
 

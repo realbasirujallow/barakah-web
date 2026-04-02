@@ -27,6 +27,7 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
   { href: '/dashboard/ramadan', icon: '🌙', label: 'Ramadan Mode' },
   { href: '/dashboard/referral', icon: '🎁', label: 'Refer a Friend' },
   { href: '/dashboard/recurring', icon: '🔁', label: 'Recurring' },
+  { href: '/dashboard/retirement-zakat', icon: '🏦', label: 'Retirement Zakat' },
   { href: '/dashboard/sadaqah', icon: '🤲', label: 'Sadaqah' },
   { href: '/dashboard/savings', icon: '🎯', label: 'Savings Goals' },
   { href: '/dashboard/transactions', icon: '📝', label: 'Transactions' },
@@ -55,7 +56,7 @@ const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> 
   },
   islamic: {
     label: 'Islamic',
-    items: ['Fiqh Settings', 'Hawl Tracker', 'Prayer Times', 'Ramadan Mode', 'Sadaqah', 'Zakat'],
+    items: ['Fiqh Settings', 'Hawl Tracker', 'Prayer Times', 'Ramadan Mode', 'Retirement Zakat', 'Sadaqah', 'Zakat'],
   },
   premium: {
     label: 'Premium',
