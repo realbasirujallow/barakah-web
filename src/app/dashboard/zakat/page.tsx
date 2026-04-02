@@ -12,7 +12,10 @@ interface ZakatCalculation {
   zakatEligible?: boolean;
   effectiveZakatAmount?: number;
   currentLunarYear?: number;
+  totalWealth?: number;
+  nisab?: number;
   error?: string;
+  [key: string]: unknown;
 }
 
 interface ZakatPayment {
