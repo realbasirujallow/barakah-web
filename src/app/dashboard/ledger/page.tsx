@@ -8,10 +8,15 @@ import { useCurrency } from '../../../lib/useCurrency';
 interface LedgerEntry {
   id?: number;
   date?: string | number;
+  createdAt?: string | number;
   type?: string;
+  entryType?: string;
   amount?: number;
   currency?: string;
   description?: string;
+  metadataJson?: string;
+  referenceType?: string;
+  referenceId?: number;
   [key: string]: unknown;
 }
 
@@ -26,10 +31,17 @@ interface LedgerResponse {
 
 const ENTRY_TYPES = [
   { value: '', label: 'All Types' },
+  { value: 'ASSET_ADDED', label: 'Asset Added' },
+  { value: 'ASSET_UPDATED', label: 'Asset Updated' },
+  { value: 'ASSET_DELETED', label: 'Asset Deleted' },
+  { value: 'ZAKAT_PAID', label: 'Zakat Paid' },
+  { value: 'ZAKAT_SNAPSHOT_LOCKED', label: 'Zakat Snapshot (Locked)' },
+  { value: 'HAWL_STARTED', label: 'Hawl Started' },
   { value: 'TRANSACTION', label: 'Transaction' },
+  { value: 'DEBT_ADDED', label: 'Debt Added' },
+  { value: 'DEBT_UPDATED', label: 'Debt Updated' },
   { value: 'ADJUSTMENT', label: 'Adjustment' },
   { value: 'CORRECTION', label: 'Correction' },
-  { value: 'ZAKAT_SNAPSHOT_LOCKED', label: 'Zakat Snapshot (Locked)' },
   { value: 'IMPORT', label: 'Import' },
 ];
 
@@ -105,6 +117,42 @@ export default function AuditLedgerPage() {
     }
   };
 
+  // Extract a human-readable description from metadataJson or description field
+  const getDescription = (entry: LedgerEntry): string => {
+    if (entry.description) return entry.description;
+    if (entry.metadataJson) {
+      try {
+        const meta = JSON.parse(entry.metadataJson);
+        // Build description from metadata fields
+        const parts: string[] = [];
+        if (meta.assetName) parts.push(meta.assetName);
+        if (meta.recipient) parts.push(`To: ${meta.recipient}`);
+        if (meta.oldValue !== undefined && meta.newValue !== undefined) {
+          parts.push(`${fmt(meta.oldValue)} → ${fmt(meta.newValue)}`);
+        }
+        if (meta.assetType) parts.push(`(${meta.assetType})`);
+        if (meta.debtName) parts.push(meta.debtName);
+        if (meta.goalName) parts.push(meta.goalName);
+        if (meta.billName) parts.push(meta.billName);
+        if (meta.transactionDescription) parts.push(meta.transactionDescription);
+        return parts.join(' · ') || '—';
+      } catch {
+        return '—';
+      }
+    }
+    return '—';
+  };
+
+  // Get the entry type, preferring entryType (backend field) over type
+  const getEntryType = (entry: LedgerEntry): string => {
+    return String(entry.entryType || entry.type || 'UNKNOWN');
+  };
+
+  // Get the date, preferring createdAt (backend field) over date
+  const getEntryDate = (entry: LedgerEntry): unknown => {
+    return entry.createdAt || entry.date;
+  };
+
   if (loading && entries.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] p-4 sm:p-8">
@@ -165,27 +213,29 @@ export default function AuditLedgerPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {entries.map((entry, idx) => (
+                  {entries.map((entry, idx) => {
+                    const entryType = getEntryType(entry);
+                    return (
                     <tr
                       key={entry.id || idx}
                       className={`hover:bg-green-50 transition ${
-                        String(entry.type) === 'ZAKAT_SNAPSHOT_LOCKED' ? 'bg-blue-50' : ''
+                        entryType === 'ZAKAT_SNAPSHOT_LOCKED' ? 'bg-blue-50' : ''
                       }`}
                     >
                       <td className="px-6 py-4 text-sm text-gray-700">
-                        {formatDate(entry.date)}
+                        {formatDate(getEntryDate(entry))}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-[#1B5E20]">
-                        {String(entry.type || 'UNKNOWN').replace(/_/g, ' ')}
+                        {entryType.replace(/_/g, ' ')}
                       </td>
                       <td className="px-6 py-4 text-sm text-right font-mono text-gray-700">
                         {formatAmount(entry.amount, entry.currency)}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
-                        {entry.description || '—'}
+                        {getDescription(entry)}
                       </td>
                       <td className="px-6 py-4 text-center">
-                        {String(entry.type) === 'ZAKAT_SNAPSHOT_LOCKED' ? (
+                        {entryType === 'ZAKAT_SNAPSHOT_LOCKED' ? (
                           <span className="inline-flex items-center gap-1 text-blue-700 font-semibold">
                             <span>🔒</span> Locked
                           </span>
@@ -196,7 +246,8 @@ export default function AuditLedgerPage() {
                         )}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
