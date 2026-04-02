@@ -51,7 +51,8 @@ export default function RibaPage() {
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
 
   const noTransactions = !result || result.totalScanned === 0;
-  const isClean = !result || result.flaggedCount === 0;
+  const flagged = result?.flaggedCount ?? 0;
+  const isClean = !result || flagged === 0;
 
   return (
     <div>
@@ -80,15 +81,15 @@ export default function RibaPage() {
           <div className="grid grid-cols-3 gap-4 mt-6">
             <div className="text-center">
               <p className="text-white/70 text-xs">Flagged</p>
-              <p className="text-2xl font-bold">{result.flaggedCount}</p>
+              <p className="text-2xl font-bold">{flagged}</p>
             </div>
             <div className="text-center">
               <p className="text-white/70 text-xs">Riba Amount</p>
-              <p className="text-2xl font-bold">{fmt(result.totalRibaAmount)}</p>
+              <p className="text-2xl font-bold">{fmt(result.totalRibaAmount ?? 0)}</p>
             </div>
             <div className="text-center">
               <p className="text-white/70 text-xs">% of Total</p>
-              <p className="text-2xl font-bold">{result.ribaPercentage.toFixed(1)}%</p>
+              <p className="text-2xl font-bold">{(result.ribaPercentage ?? 0).toFixed(1)}%</p>
             </div>
           </div>
         )}

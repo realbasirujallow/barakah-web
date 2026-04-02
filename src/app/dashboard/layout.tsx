@@ -7,6 +7,7 @@ import { ToastProvider } from '../../lib/toast';
 
 import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
+import { SessionTimeoutModal } from '../../components/SessionTimeoutModal';
 
 // 'plus' = Plus or Family plan required | 'family' = Family plan only
 const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'family' }[] = [
@@ -41,6 +42,7 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
   { href: '/dashboard/investments', icon: '📈', label: 'Investments', gate: 'plus' },
   { href: '/dashboard/net-worth', icon: '💎', label: 'Net Worth', gate: 'plus' },
   { href: '/dashboard/riba', icon: '🛡️', label: 'Riba Detector', gate: 'plus' },
+  { href: '/dashboard/subscriptions', icon: '🔄', label: 'Subscription Detector', gate: 'plus' },
   { href: '/dashboard/shared', icon: '👥', label: 'Shared Finances', gate: 'family' },
   { href: '/dashboard/waqf', icon: '🏛️', label: 'Waqf', gate: 'plus' },
   { href: '/dashboard/wasiyyah', icon: '📜', label: 'Wasiyyah', gate: 'plus' },
@@ -60,7 +62,7 @@ const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> 
   },
   premium: {
     label: 'Premium',
-    items: ['Analytics', 'Auto-Categorize', 'Barakah Score', 'Financial Summary', 'Halal Screener', 'Investments', 'Net Worth', 'Riba Detector', 'Shared Finances', 'Waqf', 'Wasiyyah'],
+    items: ['Analytics', 'Auto-Categorize', 'Barakah Score', 'Financial Summary', 'Halal Screener', 'Investments', 'Net Worth', 'Riba Detector', 'Shared Finances', 'Subscription Detector', 'Waqf', 'Wasiyyah'],
   },
   account: {
     label: 'Account',
@@ -219,6 +221,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <span>Not a fatwa — consult a qualified scholar for your specific situation</span>
         </footer>
       </div>
+
+      {/* Session timeout warning — auto-logout after 30 min of inactivity */}
+      <SessionTimeoutModal />
 
       {/* Floating feedback widget — visible on all dashboard pages */}
       <FeedbackWidget />

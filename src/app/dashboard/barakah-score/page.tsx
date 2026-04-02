@@ -71,15 +71,15 @@ function ScoreGauge({ score, grade }: { score: number; grade: string }) {
   const color = GRADE_COLORS[grade] || '#EF4444';
   const label = grade === 'A' ? 'Excellent' : grade === 'B' ? 'Good' : grade === 'C' ? 'Fair' : grade === 'D' ? 'Needs Work' : 'Getting Started';
   return (
-    <div className="flex flex-col items-center">
+    <div className="relative flex flex-col items-center">
       <svg width="180" height="180" className="-rotate-90">
         <circle cx="90" cy="90" r={r} fill="none" stroke="#E5E7EB" strokeWidth="14" />
         <circle cx="90" cy="90" r={r} fill="none" stroke={color} strokeWidth="14"
           strokeDasharray={`${filled} ${circ}`} strokeLinecap="round" style={{ transition: 'stroke-dasharray 1s ease' }} />
       </svg>
-      <div className="mt-[-80px] mb-[80px] text-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
         <p className="text-5xl font-bold" style={{ color }}>{score}</p>
-        <p className="text-sm font-semibold" style={{ color }}>{label} (Grade {grade})</p>
+        <p className="text-xs font-semibold mt-1" style={{ color }}>{label} (Grade {grade})</p>
         <p className="text-xs text-gray-400">/ 100</p>
       </div>
     </div>

@@ -363,7 +363,7 @@ export default function ZakatPage() {
                 </tr>
                 <tr>
                   <td>Nisab Threshold</td>
-                  <td>$${(summary.nisabThreshold as number)?.toFixed(2) || '0.00'} (${summary.nisabMethodology || 'AMJA_GOLD'})</td>
+                  <td>$${((summary.nisab ?? summary.nisabThreshold) as number)?.toFixed(2) || '0.00'} (${summary.nisabMethodology || 'AMJA_GOLD'})</td>
                 </tr>
                 <tr>
                   <td>Zakat Due (2.5%)</td>
@@ -512,7 +512,7 @@ export default function ZakatPage() {
           {nisabInfo?.staleWarning && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4 mt-4">
               <p className="text-amber-800 text-sm font-medium">
-                ⚠ Price data may be outdated (last updated {formatTimeAgo(nisabInfo.priceAgeMs)} ago).
+                ⚠ Price data may be outdated (last updated {formatTimeAgo(nisabInfo.priceAgeMs)}).
                 Gold and silver prices are used to calculate your Nisab threshold.
                 Consider refreshing or verifying current prices before making zakat decisions.
               </p>

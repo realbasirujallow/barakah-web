@@ -67,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(REFRESH_TS_KEY);
+        localStorage.removeItem('last_activity_ts');
       } catch {
         // localStorage access failed, continue with cleanup
       }
@@ -252,6 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(REFRESH_TS_KEY);
+      localStorage.removeItem('last_activity_ts');
     } catch {
       // localStorage access failed
     }

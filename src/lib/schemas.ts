@@ -89,9 +89,9 @@ export function validateUser(data: unknown): ValidationResult<User> {
 export interface ZakatCalculation {
   totalWealth: number;
   zakatableWealth: number;
-  nisabThreshold: number;
+  nisab: number;
   zakatDue: number;
-  isEligible: boolean;
+  zakatEligible: boolean;
   goldNisab?: number;
   silverNisab?: number;
   staleWarning?: boolean;
@@ -111,9 +111,9 @@ export function validateZakatCalculation(data: unknown): ValidationResult<ZakatC
 
   if (!isFiniteNumber(obj.totalWealth)) issues.push({ path: 'totalWealth', message: 'Expected finite number' });
   if (!isFiniteNumber(obj.zakatableWealth)) issues.push({ path: 'zakatableWealth', message: 'Expected finite number' });
-  if (!isNonNegativeNumber(obj.nisabThreshold)) issues.push({ path: 'nisabThreshold', message: 'Expected non-negative number' });
+  if (!isNonNegativeNumber(obj.nisab)) issues.push({ path: 'nisab', message: 'Expected non-negative number' });
   if (!isNonNegativeNumber(obj.zakatDue)) issues.push({ path: 'zakatDue', message: 'Expected non-negative number' });
-  if (!isBoolean(obj.isEligible)) issues.push({ path: 'isEligible', message: 'Expected boolean' });
+  if (!isBoolean(obj.zakatEligible)) issues.push({ path: 'zakatEligible', message: 'Expected boolean' });
 
   if (issues.length > 0) return { success: false, issues };
 
@@ -122,9 +122,9 @@ export function validateZakatCalculation(data: unknown): ValidationResult<ZakatC
     data: {
       totalWealth: obj.totalWealth as number,
       zakatableWealth: obj.zakatableWealth as number,
-      nisabThreshold: obj.nisabThreshold as number,
+      nisab: obj.nisab as number,
       zakatDue: obj.zakatDue as number,
-      isEligible: obj.isEligible as boolean,
+      zakatEligible: obj.zakatEligible as boolean,
       goldNisab: isNonNegativeNumber(obj.goldNisab) ? (obj.goldNisab as number) : undefined,
       silverNisab: isNonNegativeNumber(obj.silverNisab) ? (obj.silverNisab as number) : undefined,
       staleWarning: isBoolean(obj.staleWarning) ? (obj.staleWarning as boolean) : undefined,
@@ -368,6 +368,11 @@ export function formatTimeAgo(milliseconds?: number): string {
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
+
+  // If age exceeds 365 days, prices were likely never fetched (cache
+  // initialized at epoch 0). Show a user-friendly message instead of
+  // an absurd day count like "20545d ago".
+  if (days > 365) return 'a long time ago — prices may not have loaded';
 
   if (seconds < 60) return `${seconds}s ago`;
   if (minutes < 60) return `${minutes}m ago`;
