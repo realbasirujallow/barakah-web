@@ -26,6 +26,7 @@ export default function HawlPage() {
   const [newStartDate, setNewStartDate] = useState('');
   const [dateInputMode, setDateInputMode] = useState<'gregorian' | 'hijri'>('gregorian');
   const [hijriInput, setHijriInput] = useState({ year: '', month: '', day: '' });
+  const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const { toast } = useToast();
 
   const load = () => {
@@ -76,29 +77,37 @@ export default function HawlPage() {
     }
   };
 
-  const handleReset = async (id: number) => {
-    if (!confirm('Reset this Hawl? This starts a new 354-day cycle from today.')) return;
-    try {
-      await api.resetHawl(id);
-      toast('Hawl reset — new cycle started', 'success');
-      load();
-    } catch {
-      toast('Failed to reset hawl', 'error');
-    }
+  const handleReset = (id: number) => {
+    setConfirmAction({
+      message: 'Reset this Hawl? This starts a new 354-day cycle from today.',
+      action: async () => {
+        try {
+          await api.resetHawl(id);
+          toast('Hawl reset — new cycle started', 'success');
+          load();
+        } catch {
+          toast('Failed to reset hawl', 'error');
+        }
+      }
+    });
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this tracker?')) return;
-    setDeletingId(id);
-    try {
-      await api.deleteHawl(id);
-      toast('Tracker deleted', 'success');
-    } catch {
-      toast('Failed to delete tracker', 'error');
-    } finally {
-      setDeletingId(null);
-      load();
-    }
+  const handleDelete = (id: number) => {
+    setConfirmAction({
+      message: 'Delete this tracker?',
+      action: async () => {
+        setDeletingId(id);
+        try {
+          await api.deleteHawl(id);
+          toast('Tracker deleted', 'success');
+        } catch {
+          toast('Failed to delete tracker', 'error');
+        } finally {
+          setDeletingId(null);
+          load();
+        }
+      }
+    });
   };
 
   const handleLockZakat = async (id: number) => {
@@ -111,15 +120,19 @@ export default function HawlPage() {
     }
   };
 
-  const handleUnlockZakat = async (id: number) => {
-    if (!confirm('Unlock zakat? Your obligation will revert to live gold/silver prices.')) return;
-    try {
-      const result = await api.unlockHawlZakat(id);
-      toast(result?.message || 'Zakat lock removed', 'success');
-      load();
-    } catch {
-      toast('Failed to unlock zakat', 'error');
-    }
+  const handleUnlockZakat = (id: number) => {
+    setConfirmAction({
+      message: 'Unlock zakat? Your obligation will revert to live gold/silver prices.',
+      action: async () => {
+        try {
+          const result = await api.unlockHawlZakat(id);
+          toast(result?.message || 'Zakat lock removed', 'success');
+          load();
+        } catch {
+          toast('Failed to unlock zakat', 'error');
+        }
+      }
+    });
   };
 
   const handleImportAssets = async () => {
@@ -357,6 +370,18 @@ export default function HawlPage() {
           <button type="button" onClick={handleImportAssets} disabled={importing} className="text-[#1B5E20] underline hover:text-[#2E7D32]">
             {importing ? 'Importing...' : 'Import from your Assets'}
           </button>
+        </div>
+      )}
+
+      {confirmAction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <p className="text-gray-800 mb-6">{confirmAction.message}</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
+            </div>
+          </div>
         </div>
       )}
 

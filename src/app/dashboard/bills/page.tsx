@@ -32,14 +32,19 @@ function getCatIcon(cat: string) {
 
 function getDaysUntilDue(bill: BillItem): number | null {
   if (!bill.nextDueDate) return null;
-  const now = Date.now();
-  return Math.round((bill.nextDueDate - now) / (1000 * 60 * 60 * 24));
+  // Use UTC day boundaries for consistent day calculation regardless of timezone
+  const nowUtc = new Date();
+  const todayUtc = Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth(), nowUtc.getUTCDate());
+  const dueUtc = new Date(bill.nextDueDate);
+  const dueDayUtc = Date.UTC(dueUtc.getUTCFullYear(), dueUtc.getUTCMonth(), dueUtc.getUTCDate());
+  return Math.round((dueDayUtc - todayUtc) / (1000 * 60 * 60 * 24));
 }
 
 function formatDueDate(bill: BillItem): string {
   if (!bill.nextDueDate) return `Day ${bill.dueDay}`;
   const dueDate = new Date(bill.nextDueDate);
-  return dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  // Use UTC to prevent local timezone shifting the day backwards (off-by-one fix)
+  return dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
 const emptyForm = { name: '', category: 'utilities', amount: '', frequency: 'monthly', dueDay: '1' };
@@ -88,17 +93,17 @@ export default function BillsPage() {
     try {
       const amt = parseFloat(form.amount);
       // Validate amount: must be finite, positive, and reasonable
-      if (!Number.isFinite(amt) || amt <= 0) { alert('Bill amount must be a positive number'); setSaving(false); return; }
+      if (!Number.isFinite(amt) || amt <= 0) { toast('Bill amount must be a positive number', 'error'); setSaving(false); return; }
       const MAX_VALUE = 1_000_000_000; // 1 billion max
-      if (amt > MAX_VALUE) { alert(`Bill amount cannot exceed $${MAX_VALUE.toLocaleString()}`); setSaving(false); return; }
+      if (amt > MAX_VALUE) { toast(`Bill amount cannot exceed $${MAX_VALUE.toLocaleString()}`, 'error'); setSaving(false); return; }
       // Check decimal precision (max 2 decimal places for currency)
       if (!/^\d+(\.\d{1,2})?$/.test(form.amount.trim())) {
-        alert('Please enter an amount with up to 2 decimal places');
+        toast('Please enter an amount with up to 2 decimal places', 'error');
         setSaving(false);
         return;
       }
       const day = parseInt(form.dueDay, 10);
-      if (isNaN(day) || day < 1 || day > 31) { alert('Due day must be between 1 and 31'); setSaving(false); return; }
+      if (isNaN(day) || day < 1 || day > 31) { toast('Due day must be between 1 and 31', 'error'); setSaving(false); return; }
       const payload = { ...form, amount: amt, dueDay: day };
       if (editBill) {
         await api.updateBill(editBill.id, payload);

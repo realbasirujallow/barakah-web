@@ -5,6 +5,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { logError } from '../../../lib/logError';
 import { safeParse, safeParseWithFallback, validateAsset } from '../../../lib/schemas';
+import { useToast } from '../../../lib/toast';
 
 interface Asset { id: number; name: string; type: string; value: number; penaltyRate?: number; taxRate?: number; address?: string; }
 
@@ -66,6 +67,8 @@ const EMPTY_FORM: AssetFormState = { name: '', type: 'cash', value: '', penaltyR
 
 export default function AssetsPage() {
   const { fmt } = useCurrency();
+  const { toast } = useToast();
+  const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [total, setTotal] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -215,17 +218,21 @@ export default function AssetsPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this asset?')) return;
-    try {
-      const result = await api.deleteAsset(id);
-      if (result?.error) throw new Error(result.error);
-      alert('Asset deleted successfully');
-      load();
-    } catch (err: any) {
-      logError(err, { context: 'Failed to delete asset' });
-      alert(err?.message || 'Failed to delete asset. Please try again.');
-    }
+  const handleDelete = (id: number) => {
+    setConfirmAction({
+      message: 'Delete this asset?',
+      action: async () => {
+        try {
+          const result = await api.deleteAsset(id);
+          if (result?.error) throw new Error(result.error);
+          toast('Asset deleted successfully', 'success');
+          load();
+        } catch (err: any) {
+          logError(err, { context: 'Failed to delete asset' });
+          toast(err?.message || 'Failed to delete asset. Please try again.', 'error');
+        }
+      }
+    });
   };
 
   const toggleSelect = (id: number) => {
@@ -244,21 +251,25 @@ export default function AssetsPage() {
     }
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Delete ${selectedIds.size} asset${selectedIds.size === 1 ? '' : 's'}? This cannot be undone.`)) return;
-    setBulkDeleting(true);
-    try {
-      const result = await api.bulkDeleteAssets(Array.from(selectedIds));
-      if (result?.error) throw new Error(result.error);
-      setSelectedIds(new Set());
-      setSelectMode(false);
-      load();
-    } catch (err: any) {
-      alert(err?.message || 'Failed to delete assets.');
-    } finally {
-      setBulkDeleting(false);
-    }
+    setConfirmAction({
+      message: `Delete ${selectedIds.size} asset${selectedIds.size === 1 ? '' : 's'}? This cannot be undone.`,
+      action: async () => {
+        setBulkDeleting(true);
+        try {
+          const result = await api.bulkDeleteAssets(Array.from(selectedIds));
+          if (result?.error) throw new Error(result.error);
+          setSelectedIds(new Set());
+          setSelectMode(false);
+          load();
+        } catch (err: any) {
+          toast(err?.message || 'Failed to delete assets.', 'error');
+        } finally {
+          setBulkDeleting(false);
+        }
+      }
+    });
   };
 
   const mapsUrl = (address: string) =>
@@ -438,6 +449,18 @@ export default function AssetsPage() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {confirmAction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <p className="text-gray-800 mb-6">{confirmAction.message}</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
+            </div>
+          </div>
         </div>
       )}
 

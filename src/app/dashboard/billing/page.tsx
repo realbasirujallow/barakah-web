@@ -143,11 +143,11 @@ function BillingContent() {
       if (validateStripeUrl(url)) {
         window.location.href = url;
       } else {
-        alert('Invalid Stripe URL. Please contact support.');
+        toast('Invalid Stripe URL. Please contact support.', 'error');
         setLoading(null);
       }
     } catch {
-      alert('No active subscription found. Please contact support.');
+      toast('No active subscription found. Please contact support.', 'error');
       setLoading(null);
     }
   };

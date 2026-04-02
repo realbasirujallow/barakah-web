@@ -39,6 +39,7 @@ function SadaqahContent() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false });
   const [saving, setSaving] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Donate-to-Barakah state
@@ -86,8 +87,14 @@ function SadaqahContent() {
     setSaving(false);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this record?')) return;
+  const handleDelete = (id: number) => {
+    setDeleteConfirmId(id);
+  };
+
+  const confirmDeleteSadaqah = async () => {
+    if (deleteConfirmId === null) return;
+    const id = deleteConfirmId;
+    setDeleteConfirmId(null);
     try {
       await api.deleteSadaqah(id);
       toast('Sadaqah record deleted', 'success');
@@ -261,6 +268,25 @@ function SadaqahContent() {
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowForm(false)} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Record'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete confirmation modal ─────────────────────────────────── */}
+      {deleteConfirmId !== null && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <div className="flex items-start gap-3 mb-4">
+              <span className="text-2xl">🗑️</span>
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900">Delete sadaqah record?</h3>
+                <p className="text-sm text-gray-600 mt-1">This record will be permanently deleted.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirmId(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button onClick={confirmDeleteSadaqah} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Delete</button>
             </div>
           </div>
         </div>

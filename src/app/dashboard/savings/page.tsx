@@ -27,6 +27,8 @@ export default function SavingsPage() {
   const [showHajjPrompt, setShowHajjPrompt] = useState(true);
   const [showUmrahPrompt, setShowUmrahPrompt] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
+  const [contError, setContError] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Once-per-session milestone guard
@@ -99,26 +101,21 @@ export default function SavingsPage() {
 
   const handleContribute = async () => {
     if (!contModal) return;
-    setSaving(true);
+    setSaving(true); setContError(null);
     try {
       const contrib = parseFloat(contAmount);
-      // Validate contribution: must be finite and positive
       if (!Number.isFinite(contrib) || contrib <= 0) {
-        alert('Contribution amount must be a positive number');
-        setSaving(false);
-        return;
+        const msg = 'Contribution amount must be a positive number';
+        setContError(msg); toast(msg, 'error'); setSaving(false); return;
       }
-      const MAX_VALUE = 1_000_000_000; // 1 billion max
+      const MAX_VALUE = 1_000_000_000;
       if (contrib > MAX_VALUE) {
-        alert(`Contribution cannot exceed $${MAX_VALUE.toLocaleString()}`);
-        setSaving(false);
-        return;
+        const msg = `Contribution cannot exceed $${MAX_VALUE.toLocaleString()}`;
+        setContError(msg); toast(msg, 'error'); setSaving(false); return;
       }
-      // Check decimal precision (max 2 decimal places)
       if (!/^\d+(\.\d{1,2})?$/.test(contAmount.trim())) {
-        alert('Please enter an amount with up to 2 decimal places');
-        setSaving(false);
-        return;
+        const msg = 'Please enter an amount with up to 2 decimal places';
+        setContError(msg); toast(msg, 'error'); setSaving(false); return;
       }
       await api.contributeSavingsGoal(contModal.id, contrib);
       setContModal(null); setContAmount('');
@@ -128,18 +125,22 @@ export default function SavingsPage() {
     setSaving(false);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this savings goal?')) return;
-    setDeletingId(id);
-    try {
-      await api.deleteSavingsGoal(id);
-      toast('Savings goal deleted', 'success');
-    } catch {
-      toast('Failed to delete savings goal', 'error');
-    } finally {
-      setDeletingId(null);
-      load();
-    }
+  const handleDelete = (id: number) => {
+    setConfirmAction({
+      message: 'Delete this savings goal?',
+      action: async () => {
+        setDeletingId(id);
+        try {
+          await api.deleteSavingsGoal(id);
+          toast('Savings goal deleted', 'success');
+        } catch {
+          toast('Failed to delete savings goal', 'error');
+        } finally {
+          setDeletingId(null);
+          load();
+        }
+      }
+    });
   };
 
   // ── Skeleton loading ────────────────────────────────────────────────────────
@@ -282,11 +283,23 @@ export default function SavingsPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <h2 className="text-xl font-bold text-[#1B5E20] mb-2">Contribute</h2>
             <p className="text-gray-500 text-sm mb-4">{contModal.name} • {fmt(contModal.currentAmount)} / {fmt(contModal.targetAmount)}</p>
+            {contError && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg mb-2">{contError}</div>}
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-              <input type="number" step="0.01" value={contAmount} onChange={e => setContAmount(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="100" /></div>
+              <input type="number" step="0.01" value={contAmount} onChange={e => { setContAmount(e.target.value); setContError(null); }} className={`w-full border rounded-lg px-3 py-2 text-gray-900 ${contError ? 'border-red-400' : ''}`} placeholder="100" /></div>
             <div className="flex gap-3 mt-6">
               <button type="button" onClick={() => setContModal(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handleContribute} disabled={saving || !contAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Contribute'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmAction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <p className="text-gray-800 mb-6">{confirmAction.message}</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>
         </div>
