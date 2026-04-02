@@ -15,7 +15,6 @@ interface ZakatCalculation {
   totalWealth?: number;
   nisab?: number;
   error?: string;
-  [key: string]: unknown;
 }
 
 interface ZakatPayment {
@@ -25,7 +24,6 @@ interface ZakatPayment {
   notes?: string | null;
   lunarYear?: number;
   paidAt?: number;
-  [key: string]: unknown;
 }
 
 interface ZakatPaymentResponse {
