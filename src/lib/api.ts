@@ -342,6 +342,7 @@ export const api = {
     if (size !== undefined) params.set('size', String(size));
     return apiFetch(`/api/transactions/list?${params}`);
   },
+  getTransactionUsage: () => apiFetch('/api/transactions/usage'),
   addTransaction: (data: Record<string, unknown>) =>
     apiFetch('/api/transactions/add', { method: 'POST', body: JSON.stringify(data) }),
   updateTransaction: (id: number, data: Record<string, unknown>) =>
