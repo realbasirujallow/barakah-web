@@ -478,6 +478,8 @@ export const api = {
   getNisabInfo: () => apiFetch("/api/zakat/info"),
   calculateZakat: (data: Record<string, unknown>) =>
     apiFetch('/api/zakat/calculate', { method: 'POST', body: JSON.stringify(data) }),
+  calculateRetirementZakat: (data: { balance: number; accountType?: string; employerMatchPercent?: number; state?: string }) =>
+    apiFetch('/api/zakat/calculate-retirement', { method: 'POST', body: JSON.stringify(data) }),
   // FEATURE 1: Multi-Madhab Nisab Selector
   getNisabMethodologies: () => apiFetch('/api/zakat/nisab-methodologies'),
   setNisabMethodology: (methodology: string) =>
