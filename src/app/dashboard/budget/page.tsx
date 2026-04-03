@@ -33,6 +33,11 @@ export default function BudgetPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [copyingMonth, setCopyingMonth] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
+  // Monthly navigation — view budgets for a specific month
+  const [viewMonth, setViewMonth] = useState(now.getMonth() + 1); // 1-indexed
+  const [viewYear, setViewYear] = useState(now.getFullYear());
+  const goToPrevMonth = () => { if (viewMonth === 1) { setViewMonth(12); setViewYear(y => y - 1); } else { setViewMonth(m => m - 1); } };
+  const goToNextMonth = () => { if (viewMonth === 12) { setViewMonth(1); setViewYear(y => y + 1); } else { setViewMonth(m => m + 1); } };
   const { toast } = useToast();
 
   // Once-per-session alert guard — prevents re-toasting on every re-render / reload
@@ -150,8 +155,9 @@ export default function BudgetPage() {
   // ── Skeleton loading ────────────────────────────────────────────────────────
   if (loading) return <SkeletonPage summaryCount={3} listCount={4} />;
 
-  const totalBudget = budgets.reduce((s, b) => s + b.monthlyLimit, 0);
-  const totalSpent  = budgets.reduce((s, b) => s + b.spent, 0);
+  const filteredBudgets = budgets.filter(b => b.month === viewMonth && b.year === viewYear);
+  const totalBudget = filteredBudgets.reduce((s, b) => s + b.monthlyLimit, 0);
+  const totalSpent  = filteredBudgets.reduce((s, b) => s + b.spent, 0);
 
   return (
     <div>
@@ -167,6 +173,15 @@ export default function BudgetPage() {
         </div>
       </div>
 
+      {/* ── Month Navigation ──────────────────────────────────────────────── */}
+      <div className="flex items-center justify-center gap-4 mb-6">
+        <button type="button" onClick={goToPrevMonth} className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">← Prev</button>
+        <span className="text-lg font-semibold text-gray-800">{MONTHS[viewMonth - 1]} {viewYear}</span>
+        <button type="button" onClick={goToNextMonth}
+          disabled={viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear()}
+          className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed">Next →</button>
+      </div>
+
       {/* ── Summary cards ──────────────────────────────────────────────────── */}
       <div className="grid md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Budget</p><p className="text-2xl font-bold text-[#1B5E20]">{fmt(totalBudget)}</p></div>
@@ -178,9 +193,9 @@ export default function BudgetPage() {
       </div>
 
       {/* ── Budget list or empty state ──────────────────────────────────────── */}
-      {budgets.length > 0 ? (
+      {filteredBudgets.length > 0 ? (
         <div className="space-y-3">
-          {budgets.map(b => {
+          {filteredBudgets.map(b => {
             const pct = b.monthlyLimit > 0 ? Math.min((b.spent / b.monthlyLimit) * 100, 100) : 0;
             const over = b.spent > b.monthlyLimit;
             const warn = !over && pct >= 80;
@@ -209,8 +224,8 @@ export default function BudgetPage() {
       ) : (
         <div className="text-center py-20 bg-white rounded-2xl">
           <p className="text-5xl mb-4">📋</p>
-          <p className="text-gray-600 font-semibold text-lg mb-1">No budgets set yet</p>
-          <p className="text-gray-400 text-sm mb-6">Create your first budget to start tracking your spending.</p>
+          <p className="text-gray-600 font-semibold text-lg mb-1">No budgets for {MONTHS[viewMonth - 1]} {viewYear}</p>
+          <p className="text-gray-400 text-sm mb-6">{viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear() ? 'Create your first budget to start tracking your spending.' : 'No budgets were set for this month. Use \"Copy Last Month\" or add one.'}</p>
           <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-xl hover:bg-[#2E7D32] font-medium text-sm">
             + Add Budget
           </button>

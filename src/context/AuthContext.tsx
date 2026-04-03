@@ -193,6 +193,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
+  // ── Proactive background token refresh ───────────────────────────────
+  // Refreshes the access token every 15 minutes while the user is active.
+  // This prevents the JWT from silently expiring during long sessions where
+  // the user is navigating but never triggers a 401 (e.g., reading pages
+  // without making API calls). Without this, the auth_token cookie can
+  // expire and the Next.js middleware redirects to /login?reason=expired
+  // before the silent-refresh-on-401 mechanism has a chance to kick in.
+  useEffect(() => {
+    if (!user) return;
+
+    const BACKGROUND_REFRESH_MS = 15 * 60 * 1000; // 15 minutes
+
+    const interval = setInterval(async () => {
+      // Skip if a refresh happened recently (e.g., from a 401 retry)
+      let lastTs = 0;
+      try { lastTs = parseInt(localStorage.getItem(REFRESH_TS_KEY) || '0', 10) || 0; } catch { /* SSR */ }
+      if (Date.now() - lastTs < BACKGROUND_REFRESH_MS * 0.8) return;
+
+      try {
+        const ok = await api.refresh();
+        if (ok) {
+          try { localStorage.setItem(REFRESH_TS_KEY, String(Date.now())); } catch { /* SSR */ }
+        }
+        // If refresh fails, don't force logout — the 401 handler will catch it
+        // on the next API call. This avoids unnecessary logouts for transient
+        // network issues.
+      } catch {
+        // Network error — ignore; next API call will trigger refresh if needed.
+      }
+    }, BACKGROUND_REFRESH_MS);
+
+    return () => clearInterval(interval);
+  }, [user]);
+
   // Detect stale auth when a tab regains focus. Another tab may have logged
   // out (clearing the cookie) while this tab was backgrounded — the storage
   // event catches localStorage changes, but this handler also re-checks the

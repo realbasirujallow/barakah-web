@@ -371,7 +371,9 @@ export function safeParseWithFallback<T>(validate: (data: unknown) => Validation
 // ── formatTimeAgo helper ──────────────────────────────────────────────────────
 
 export function formatTimeAgo(milliseconds?: number): string {
-  if (!milliseconds || milliseconds < 0) return 'unknown';
+  if (milliseconds === undefined || milliseconds === null) return 'unknown';
+  // -1 means prices have never been successfully fetched
+  if (milliseconds < 0) return 'never — prices failed to load';
 
   const seconds = Math.floor(milliseconds / 1000);
   const minutes = Math.floor(seconds / 60);

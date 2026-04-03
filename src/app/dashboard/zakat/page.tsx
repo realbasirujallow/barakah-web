@@ -13,8 +13,12 @@ interface ZakatCalculation {
   effectiveZakatAmount?: number;
   currentLunarYear?: number;
   totalWealth?: number;
+  zakatableWealth?: number;
   nisab?: number;
+  breakdown?: Array<Record<string, unknown>>;
+  totalDebts?: number;
   error?: string;
+  [key: string]: unknown;
 }
 
 interface ZakatPayment {
@@ -472,6 +476,9 @@ export default function ZakatPage() {
               {nisabInfo?.goldPricePerGram && (
                 <p className="text-xs text-gray-400 mt-1">
                   Gold: ${nisabInfo.goldPricePerGram!.toFixed(2)}/g · 85g standard
+                  {nisabInfo.priceAgeMs !== undefined && (
+                    <span className="ml-1">· updated {formatTimeAgo(nisabInfo.priceAgeMs)}</span>
+                  )}
                 </p>
               )}
             </div>
