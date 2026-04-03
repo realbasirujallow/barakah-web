@@ -588,6 +588,8 @@ export const api = {
   deleteHolding: (id: number) =>
     apiFetch(`/api/investments/holdings/${id}`, { method: 'DELETE' }),
   getPortfolioSummary: () => apiFetch('/api/investments/portfolio/summary'),
+  getPortfolioHistory: (days: number = 30) =>
+    apiFetch(`/api/investments/portfolio/history?days=${days}`),
 
   // Net Worth
   takeNetWorthSnapshot: () => apiFetch('/api/net-worth/snapshot', { method: 'POST' }),
