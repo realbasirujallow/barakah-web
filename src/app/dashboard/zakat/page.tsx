@@ -128,7 +128,37 @@ export default function ZakatPage() {
     try {
       const fitr = await api.getZakatAlFitr(householdSize, 'USD');
       if (fitr) {
-        setFitrData(fitr);
+        // Map backend response shape to frontend expected keys.
+        // Backend returns: { totalDue: { minimum, recommended, generous }, perPerson: { ... } }
+        // Frontend expects: { totalDue (number), minimumAmount, recommendedAmount, generousAmount }
+        const totalDue = fitr.totalDue as Record<string, number> | number | undefined;
+        const perPerson = fitr.perPerson as Record<string, number> | undefined;
+        const mapped: Record<string, unknown> = { ...fitr };
+
+        if (totalDue && typeof totalDue === 'object') {
+          mapped.totalDue = totalDue.recommended ?? totalDue.minimum ?? 0;
+          mapped.minimumTotal = totalDue.minimum ?? 0;
+          mapped.recommendedTotal = totalDue.recommended ?? 0;
+          mapped.generousTotal = totalDue.generous ?? 0;
+        }
+        if (perPerson && typeof perPerson === 'object') {
+          mapped.minimumAmount = perPerson.minimum ?? 0;
+          mapped.recommendedAmount = perPerson.recommended ?? 0;
+          mapped.generousAmount = perPerson.generous ?? 0;
+        }
+        // Map citation fields
+        const citations = fitr.citations as Record<string, string> | undefined;
+        if (citations) {
+          mapped.hadithCitation = citations.hadith ?? '';
+          mapped.deadline = fitr.deadline ?? citations.ruling ?? '';
+        }
+        // Map eligibleRecipients array to string
+        const recipients = fitr.eligibleRecipients as string[] | undefined;
+        if (Array.isArray(recipients)) {
+          mapped.eligibleRecipients = recipients.join(', ');
+        }
+
+        setFitrData(mapped);
       }
     } catch (err) {
       logError(err, { context: 'Failed to load zakat al-fitr' });
@@ -217,7 +247,12 @@ export default function ZakatPage() {
       const year = (zakatRaw?.currentLunarYear as number) || computeHijriYear();
       const filtered = (paymentsValidated?.payments || []).filter(p => !p.lunarYear || p.lunarYear === year);
       setPayments(filtered);
-      setTotalPaid(filtered.reduce((s: number, p) => s + (p.amount || 0), 0));
+      // Use the backend's zakatPaid value for consistency with the dashboard.
+      // Previously, summing individual payment records caused a rounding discrepancy
+      // (e.g., dashboard showed $700.00 but zakat page showed $700.04).
+      const backendPaid = (zakatRaw?.zakatPaid as number) ?? undefined;
+      const clientPaid = filtered.reduce((s: number, p) => s + (p.amount || 0), 0);
+      setTotalPaid(backendPaid != null ? backendPaid : clientPaid);
     } catch (err) {
       logError(err, { context: 'Failed to load zakat data' });
     }

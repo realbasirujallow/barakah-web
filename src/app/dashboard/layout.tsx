@@ -107,15 +107,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   // ── Proactive token refresh on every client-side navigation ────────────
   // When the user navigates between dashboard pages the pathname changes.
-  // If the last refresh was more than 90 seconds ago, fire a silent refresh
-  // so the auth_token cookie stays fresh. This prevents the Next.js
-  // middleware from bouncing the user to /login on the next full-page load.
+  // Fire a silent refresh to keep the auth_token cookie fresh. This prevents
+  // the Next.js middleware from bouncing the user to /login on the next
+  // full-page load. The guard is set to 30 seconds to avoid unnecessary
+  // refreshes during rapid navigation, while being aggressive enough to
+  // prevent the cookie from going stale between page transitions.
   useEffect(() => {
     if (!user) return;
     let lastTs = 0;
     try { lastTs = parseInt(localStorage.getItem(REFRESH_TS_KEY) || '0', 10) || 0; } catch { /* SSR */ }
     const secondsSince = (Date.now() - lastTs) / 1000;
-    if (secondsSince > 90) {
+    if (secondsSince > 30) {
       api.refresh().then((result: 'ok' | 'expired' | 'network_error') => {
         if (result === 'ok') {
           try { localStorage.setItem(REFRESH_TS_KEY, String(Date.now())); } catch { /* SSR */ }

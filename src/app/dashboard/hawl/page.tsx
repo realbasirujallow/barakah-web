@@ -279,14 +279,14 @@ export default function HawlPage() {
                   <div className="mt-2 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                     <div className="flex items-center gap-2 text-sm text-green-700">
                       <span>&#128274;</span>
-                      <span>Locked {new Date(item.zakatLockedDate).toLocaleDateString()} — Gold: ${item.lockedGoldPrice?.toFixed(2)}/g</span>
+                      <span>Zakat locked: {fmt(item.lockedZakatAmount || item.zakatAmount)} ({item.assetType === 'silver' ? 'Silver' : 'Gold'}: ${item.lockedGoldPrice?.toFixed(2)}/g on {new Date(item.zakatLockedDate).toLocaleDateString()})</span>
                     </div>
                     <button type="button" onClick={() => handleUnlockZakat(item.id)} className="text-xs text-gray-500 hover:text-red-600 underline">Unlock</button>
                   </div>
                 ) : (
                   <div className="mt-2">
                     <button type="button" onClick={() => handleLockZakat(item.id)} className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                      <span>&#128275;</span> Lock zakat at current price
+                      <span>&#128275;</span> Lock zakat amount at today&apos;s {item.assetType === 'silver' ? 'silver' : item.assetType === 'gold' ? 'gold' : 'metal'} price
                     </button>
                   </div>
                 )}
@@ -348,12 +348,12 @@ export default function HawlPage() {
                   <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-[#1B5E20] h-2 rounded-full" style={{ width: `${pct}%` }} /></div>
                   {item.zakatLocked ? (
                     <div className="mt-2 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs">
-                      <span className="text-green-700">&#128274; Zakat locked: {fmt(item.lockedZakatAmount)} (Gold: ${item.lockedGoldPrice?.toFixed(2)}/g on {new Date(item.zakatLockedDate).toLocaleDateString()})</span>
+                      <span className="text-green-700">&#128274; Zakat locked: {fmt(item.lockedZakatAmount)} ({item.assetType === 'silver' ? 'Silver' : 'Gold'}: ${item.lockedGoldPrice?.toFixed(2)}/g on {new Date(item.zakatLockedDate).toLocaleDateString()})</span>
                       <button type="button" onClick={() => handleUnlockZakat(item.id)} className="text-gray-500 hover:text-red-600 underline ml-2">Unlock</button>
                     </div>
                   ) : (
                     <button type="button" onClick={() => handleLockZakat(item.id)} className="mt-2 text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                      &#128275; Lock zakat amount at today&apos;s gold price
+                      &#128275; Lock zakat amount at today&apos;s {item.assetType === 'silver' ? 'silver' : item.assetType === 'gold' ? 'gold' : 'metal'} price
                     </button>
                   )}
                 </div>
