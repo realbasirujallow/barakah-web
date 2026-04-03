@@ -36,19 +36,26 @@ export function setUnauthorizedHandler(fn: () => void) {
 // promise, then each re-tries their own request once.
 
 let isRefreshing = false;
-let refreshSubscribers: Array<(ok: boolean) => void> = [];
+type RefreshResult = 'ok' | 'expired' | 'network_error';
+let refreshSubscribers: Array<(result: RefreshResult) => void> = [];
 
-function subscribeToRefresh(cb: (ok: boolean) => void) {
+function subscribeToRefresh(cb: (result: RefreshResult) => void) {
   refreshSubscribers.push(cb);
 }
 
-function notifySubscribers(ok: boolean) {
-  refreshSubscribers.forEach(cb => cb(ok));
+function notifySubscribers(result: RefreshResult) {
+  refreshSubscribers.forEach(cb => cb(result));
   refreshSubscribers = [];
 }
 
-/** Calls POST /auth/refresh directly (bypasses apiFetch to avoid recursion). */
-async function attemptSilentRefresh(): Promise<boolean> {
+/**
+ * Calls POST /auth/refresh directly (bypasses apiFetch to avoid recursion).
+ * Returns: 'ok' if refresh succeeded, 'expired' if server rejected (401/403),
+ * 'network_error' if the request failed due to connectivity.
+ * This distinction is critical: 'expired' should trigger logout,
+ * 'network_error' should NOT (the session may still be valid).
+ */
+async function attemptSilentRefresh(): Promise<'ok' | 'expired' | 'network_error'> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000); // 10s timeout
   try {
@@ -62,9 +69,14 @@ async function attemptSilentRefresh(): Promise<boolean> {
       headers,
       signal: controller.signal,
     });
-    return res.ok;
+    if (res.ok) return 'ok';
+    // Server explicitly rejected our refresh token — session is truly expired
+    if (res.status === 401 || res.status === 403) return 'expired';
+    // Other server errors (500, etc.) — treat as transient, don't logout
+    return 'network_error';
   } catch {
-    return false;
+    // Network error, timeout, abort — don't logout
+    return 'network_error';
   } finally {
     clearTimeout(timeout);
   }
@@ -140,18 +152,18 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
                            endpoint.startsWith('/auth/verify-email') ||
                            endpoint.startsWith('/auth/resend-verification');
     if (res.status === 401 && !isAuthEndpoint) {
-      let refreshOk: boolean;
+      let refreshResult: RefreshResult;
       if (!isRefreshing) {
         isRefreshing = true;
-        refreshOk = await attemptSilentRefresh();
+        refreshResult = await attemptSilentRefresh();
         isRefreshing = false;
-        notifySubscribers(refreshOk);
+        notifySubscribers(refreshResult);
       } else {
         // Another request is already refreshing — wait for it
-        refreshOk = await new Promise<boolean>(resolve => subscribeToRefresh(resolve));
+        refreshResult = await new Promise<RefreshResult>(resolve => subscribeToRefresh(resolve));
       }
 
-      if (refreshOk) {
+      if (refreshResult === 'ok') {
         // Stamp the refresh time so AuthContext's mount guard (and other tabs)
         // know the cookies are fresh. This prevents AuthContext from firing a
         // redundant proactive refresh when the user navigates between pages,
@@ -180,7 +192,13 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
         }
       }
 
-      // Refresh failed or retry failed — the session is gone.
+      if (refreshResult === 'network_error') {
+        // Network issue — session may still be valid, do NOT logout.
+        // Throw a connection error so the UI can show a retry prompt.
+        throw new Error('Network error — please check your connection and try again.');
+      }
+
+      // Refresh returned 'expired' or retry after 'ok' also failed — session is gone.
       // Only fire the global logout if the caller hasn't opted out.
       if (!suppressUnauthorized && onUnauthorizedCallback) onUnauthorizedCallback();
       throw new Error('Your session has expired. Please log in again.');
@@ -236,13 +254,14 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
 
   if (!res.ok) {
     if (res.status === 401) {
-      const refreshOk = isRefreshing
-        ? await new Promise<boolean>(r => subscribeToRefresh(r))
-        : await (async () => { isRefreshing = true; const ok = await attemptSilentRefresh(); isRefreshing = false; notifySubscribers(ok); return ok; })();
-      if (refreshOk) {
+      const refreshResult: RefreshResult = isRefreshing
+        ? await new Promise<RefreshResult>(r => subscribeToRefresh(r))
+        : await (async () => { isRefreshing = true; const r = await attemptSilentRefresh(); isRefreshing = false; notifySubscribers(r); return r; })();
+      if (refreshResult === 'ok') {
         const r2 = await fetch(`${API_URL}${endpoint}`, { method: 'POST', body: formData, credentials: 'include' });
         if (r2.ok) { const t = await r2.text(); if (!t) return null; try { return JSON.parse(t); } catch { throw new Error('Unexpected server response.'); } }
       }
+      if (refreshResult === 'network_error') throw new Error('Network error — please check your connection and try again.');
       if (onUnauthorizedCallback) onUnauthorizedCallback();
       throw new Error('Your session has expired. Please log in again.');
     }
@@ -278,10 +297,10 @@ export async function apiDownload(endpoint: string, filename: string): Promise<v
 
   if (!res.ok) {
     if (res.status === 401) {
-      const refreshOk = isRefreshing
-        ? await new Promise<boolean>(r => subscribeToRefresh(r))
-        : await (async () => { isRefreshing = true; const ok = await attemptSilentRefresh(); isRefreshing = false; notifySubscribers(ok); return ok; })();
-      if (refreshOk) {
+      const refreshResult: RefreshResult = isRefreshing
+        ? await new Promise<RefreshResult>(r => subscribeToRefresh(r))
+        : await (async () => { isRefreshing = true; const r = await attemptSilentRefresh(); isRefreshing = false; notifySubscribers(r); return r; })();
+      if (refreshResult === 'ok') {
         const r2 = await fetch(`${API_URL}${endpoint}`, { credentials: 'include' });
         if (r2.ok) {
           const blob2 = await r2.blob();
@@ -291,6 +310,7 @@ export async function apiDownload(endpoint: string, filename: string): Promise<v
           return;
         }
       }
+      if (refreshResult === 'network_error') throw new Error('Network error — please check your connection and try again.');
       if (onUnauthorizedCallback) onUnauthorizedCallback();
       throw new Error('Your session has expired. Please log in again.');
     }
@@ -318,7 +338,8 @@ export const api = {
   logout: () =>
     apiFetch('/auth/logout', { method: 'POST' }),
   // Silently renews the access token using the refresh_token cookie.
-  // Returns true if successful (new auth_token cookie has been set by the server).
+  // Returns 'ok' | 'expired' | 'network_error' to let callers distinguish
+  // genuine session expiry from transient connectivity issues.
   refresh: () => attemptSilentRefresh(),
   verifyEmail: (token: string) =>
     apiFetch(`/auth/verify-email?token=${encodeURIComponent(token)}`),

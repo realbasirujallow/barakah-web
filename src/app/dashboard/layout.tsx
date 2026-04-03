@@ -116,8 +116,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     try { lastTs = parseInt(localStorage.getItem(REFRESH_TS_KEY) || '0', 10) || 0; } catch { /* SSR */ }
     const secondsSince = (Date.now() - lastTs) / 1000;
     if (secondsSince > 90) {
-      api.refresh().then((ok: boolean) => {
-        if (ok) {
+      api.refresh().then((result: 'ok' | 'expired' | 'network_error') => {
+        if (result === 'ok') {
           try { localStorage.setItem(REFRESH_TS_KEY, String(Date.now())); } catch { /* SSR */ }
         }
       }).catch(() => { /* network error — 401 handler will catch on next API call */ });
