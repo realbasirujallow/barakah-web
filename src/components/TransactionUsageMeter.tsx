@@ -51,6 +51,14 @@ export function TransactionUsageMeter() {
     try {
       const result = await api.upgradeSubscription('plus');
       if (result?.url) {
+        // Validate URL before redirecting — only allow HTTPS Stripe URLs
+        try {
+          const parsed = new URL(result.url);
+          if (parsed.protocol !== 'https:' || !parsed.hostname.endsWith('stripe.com')) {
+            window.location.href = '/dashboard/billing';
+            return;
+          }
+        } catch { window.location.href = '/dashboard/billing'; return; }
         window.location.href = result.url;
       }
     } catch {

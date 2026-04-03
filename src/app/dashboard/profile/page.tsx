@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { useAuth } from '../../../context/AuthContext';
+import { validateStripeUrl } from '../../../lib/validateUrl';
 import { saveCurrencyPreference } from '../../../lib/useCurrency';
 
 interface ProfileData {
@@ -91,16 +92,7 @@ export default function ProfilePage() {
     document.documentElement.classList.toggle('dark', next);
   };
 
-  const validateStripeUrl = (url: string): boolean => {
-    try {
-      const urlObj = new URL(url);
-      if (urlObj.protocol !== 'https:') return false;
-      const hostname = urlObj.hostname;
-      return hostname === 'stripe.com' || hostname === 'checkout.stripe.com' || hostname.endsWith('.stripe.com');
-    } catch {
-      return false;
-    }
-  };
+
 
   // Delete account — two-step: retention modal → final confirmation (no password required)
   const [showRetentionModal, setShowRetentionModal] = useState(false);
