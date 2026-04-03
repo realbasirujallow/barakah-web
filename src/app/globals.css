@@ -37,6 +37,19 @@ body {
   transition: background 0.2s, color 0.2s;
 }
 
+/* ── Accessibility: larger text for older / low-vision users ──────────── */
+/* Bumps the base font size from the browser default (16px) to 17px.
+   All rem-based sizes inherit this, making sidebar labels, descriptions,
+   and small text more readable without breaking the layout. */
+html { font-size: 17px; }
+
+/* Increase minimum touch-target / click area on sidebar links and buttons */
+nav a, nav button { min-height: 2.5rem; }
+
+/* Make small descriptive text slightly larger for readability */
+.text-xs { font-size: 0.8rem !important; line-height: 1.35 !important; }
+.text-sm { font-size: 0.9rem !important; line-height: 1.4 !important; }
+
 /* Dark mode overrides for common patterns */
 .dark .bg-white { background-color: var(--card-bg) !important; }
 .dark .bg-\[#FFF8E1\] { background-color: var(--background) !important; }

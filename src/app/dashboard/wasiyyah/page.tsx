@@ -233,7 +233,7 @@ function WasiyyahPageContent() {
           <div className="bg-gradient-to-r from-purple-700 to-indigo-600 rounded-2xl p-6 text-white mb-6">
             <p className="text-purple-200 text-sm">Total Share Allocated</p>
             <p className="text-4xl font-bold">{totalShare.toFixed(1)}%</p>
-            <p className="text-purple-200 text-sm mt-1">{totalShare <= 33.3 ? '✅ Within the 1/3 Sunnah limit' : '⚠️ Exceeds the 1/3 Sunnah limit'}</p>
+            <p className="text-purple-200 text-sm mt-1">{totalShare <= 33.3 ? '✅ Within the 1/3 Sunnah limit' : `⚠️ Exceeds the 1/3 Sunnah limit by ${(totalShare - 33.3).toFixed(1)}%`}</p>
             <div className="w-full bg-purple-900/40 rounded-full h-3 mt-3">
               <div className={`h-3 rounded-full ${totalShare <= 33.3 ? 'bg-green-400' : 'bg-red-400'}`} style={{ width: `${Math.min(totalShare, 100)}%` }} />
             </div>
@@ -243,6 +243,19 @@ function WasiyyahPageContent() {
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800 mb-6">
             <strong>Islamic Guidance:</strong> Wasiyyah for non-heirs should not exceed one-third (Bukhari &amp; Muslim). Fixed-share heirs receive their Quranic portions automatically.
           </div>
+
+          {totalShare > 33.3 && items.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-800 mb-6">
+              <strong>How to fix:</strong> Your total allocation is {totalShare.toFixed(1)}%, which is {(totalShare - 33.3).toFixed(1)}% over the Sunnah limit.
+              Consider reducing the share of your largest beneficiary
+              {(() => {
+                const largest = [...items].sort((a, b) => b.sharePercentage - a.sharePercentage)[0];
+                const excess = totalShare - 33.3;
+                return largest ? ` ("${largest.beneficiaryName}" at ${largest.sharePercentage}%) by at least ${excess.toFixed(1)}%` : '';
+              })()}
+              , or remove a beneficiary to bring the total within the Islamic 1/3 limit.
+            </div>
+          )}
 
           {items.length > 0 ? (
             <div className="space-y-3">
