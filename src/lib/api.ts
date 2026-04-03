@@ -52,9 +52,14 @@ async function attemptSilentRefresh(): Promise<boolean> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000); // 10s timeout
   try {
+    const csrfToken = getCsrfToken();
+    const headers: Record<string, string> = {};
+    if (csrfToken) headers['X-XSRF-TOKEN'] = csrfToken;
+
     const res = await fetch(`${API_URL}/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
+      headers,
       signal: controller.signal,
     });
     return res.ok;
