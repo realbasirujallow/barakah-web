@@ -86,7 +86,7 @@ export default function NotificationsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#1B5E20]">🔔 Notifications</h1>
+          <h1 className="text-2xl font-bold text-[#1B5E20]">Notifications</h1>
           {unreadCount > 0 && <p className="text-sm text-gray-500 mt-1">{unreadCount} unread</p>}
         </div>
         {unreadCount > 0 && (

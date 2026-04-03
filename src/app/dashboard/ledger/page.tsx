@@ -177,7 +177,7 @@ export default function AuditLedgerPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-[#1B5E20] mb-2">Financial Audit Ledger</h1>
+          <h1 className="text-4xl font-bold text-[#1B5E20] mb-2">Audit Ledger</h1>
           <p className="text-gray-600">Complete transaction history and system adjustments</p>
         </div>
 

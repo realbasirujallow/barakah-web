@@ -131,7 +131,7 @@ export default function RecurringPage() {
     <div className="max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#1B5E20]">🔁 Recurring Transactions</h1>
+          <h1 className="text-2xl font-bold text-[#1B5E20]">Recurring Transactions</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your automatically-repeating transactions</p>
         </div>
         <button
