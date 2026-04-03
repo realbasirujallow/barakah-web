@@ -500,7 +500,7 @@ export default function ZakatPage() {
                         <p className="text-sm font-medium text-gray-800 truncate">{String(item.name)}</p>
                         <div className="text-right shrink-0 ml-3">
                           <p className="text-sm font-bold text-gray-800">{fmt(Number(item.value) || 0)}</p>
-                          {item.zakatable && Number(item.zakatableValue) !== Number(item.value) && (
+                          {Boolean(item.zakatable) && Number(item.zakatableValue) !== Number(item.value) && (
                             <p className="text-xs text-green-600">{fmt(Number(item.zakatableValue) || 0)} zakatable</p>
                           )}
                         </div>
@@ -567,7 +567,7 @@ export default function ZakatPage() {
                     />
                     <div>
                       <p className="text-sm font-medium text-gray-800">{m.name as string}</p>
-                      {m.description && <p className="text-xs text-gray-500 mt-0.5">{String(m.description)}</p>}
+                      {m.description ? <p className="text-xs text-gray-500 mt-0.5">{String(m.description)}</p> : null}
                     </div>
                   </label>
                 ))}
