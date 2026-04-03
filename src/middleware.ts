@@ -4,21 +4,31 @@ import type { NextRequest } from 'next/server';
 /**
  * Server-side route protection middleware.
  *
- * Checks for the presence of the httpOnly auth_token cookie before allowing
- * access to protected routes. This prevents unauthenticated users from even
- * loading the dashboard/admin page bundles — the client-side AuthContext is a
- * secondary guard, not the primary one.
+ * Two-tier cookie check for protected routes:
+ *   1. auth_token present  → allow (normal case)
+ *   2. auth_token absent but refresh_token present → allow and let client-side
+ *      AuthContext perform a silent refresh before rendering. This eliminates
+ *      the "session expired" redirect that previously happened when the JWT
+ *      cookie was missing during full-page navigations (typed URLs, bookmarks,
+ *      browser refresh) even though a valid refresh_token still existed.
+ *   3. Neither cookie present → redirect to /login (truly unauthenticated)
+ *
+ * The client-side AuthContext remains the authoritative session guard — this
+ * middleware is a performance optimisation that prevents unauthenticated users
+ * from downloading protected page bundles.
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const hasAuthToken = request.cookies.has('auth_token');
+  const hasAuthToken    = request.cookies.has('auth_token');
+  const hasRefreshToken = request.cookies.has('refresh_token');
 
-  // ── Protected routes: require auth_token cookie ──────────────────────
+  // ── Protected routes ────────────────────────────────────────────────
   const isProtected =
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/admin');
 
-  if (isProtected && !hasAuthToken) {
+  if (isProtected && !hasAuthToken && !hasRefreshToken) {
+    // Truly unauthenticated — no session cookies at all
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.searchParams.set('reason', 'expired');
@@ -30,10 +40,10 @@ export function middleware(request: NextRequest) {
     pathname === '/login' ||
     pathname === '/signup';
 
-  if (isAuthPage && hasAuthToken) {
+  if (isAuthPage && (hasAuthToken || hasRefreshToken)) {
     const reason = request.nextUrl.searchParams.get('reason');
     if (reason === 'logout' || reason === 'deleted' || reason === 'expired') {
-      // Session ended — clear the stale cookie and let /login render
+      // Session ended — clear stale cookies and let /login render
       const response = NextResponse.next();
       response.cookies.delete('auth_token');
       response.cookies.delete('refresh_token');
