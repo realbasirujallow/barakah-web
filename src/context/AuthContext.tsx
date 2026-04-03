@@ -146,8 +146,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Try a silent refresh. If it succeeds the server has rotated both cookies.
-    api.refresh().then(async (ok: boolean) => {
-      if (ok) {
+    api.refresh().then(async (result: 'ok' | 'expired' | 'network_error') => {
+      if (result === 'ok') {
         try {
           localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
         } catch {
@@ -156,8 +156,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // If plan was missing, fetch the real one now that the session is fresh.
         const finalUser = planMissing ? await syncPlan(parsed!) : parsed!;
         setUser(finalUser);
-      } else {
-        // Silent refresh failed (server returned !ok) — could be auth error or network issue
+      } else if (result === 'expired') {
+        // Session truly expired — clear local state and force re-login
         try {
           localStorage.removeItem(USER_KEY);
           localStorage.removeItem(REFRESH_TS_KEY);
@@ -165,6 +165,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // localStorage access failed
         }
         setUser(null);
+      } else {
+        // Network error — keep stale profile for offline mode
+        setUser(parsed);
       }
       setIsLoading(false);
     }).catch((err: unknown) => {
@@ -214,13 +217,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (Date.now() - lastTs < BACKGROUND_REFRESH_MS * 0.8) return;
 
       try {
-        const ok = await api.refresh();
-        if (ok) {
+        const result = await api.refresh();
+        if (result === 'ok') {
           try { localStorage.setItem(REFRESH_TS_KEY, String(Date.now())); } catch { /* SSR */ }
         }
-        // If refresh fails, don't force logout — the 401 handler will catch it
-        // on the next API call. This avoids unnecessary logouts for transient
-        // network issues.
+        // If refresh returns 'expired' or 'network_error', don't force logout —
+        // the 401 handler will catch it on the next API call. This avoids
+        // unnecessary logouts for transient network issues.
       } catch {
         // Network error — ignore; next API call will trigger refresh if needed.
       }
