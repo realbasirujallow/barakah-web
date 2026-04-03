@@ -282,14 +282,16 @@ export default function InvestmentsPage() {
                       borderRadius: '8px',
                       padding: '10px',
                     }}
-                    formatter={(value: number, name: string) => {
-                      if (name === 'totalValue') return [fmt(value), 'Portfolio Value'];
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    formatter={((value: any, name: any) => {
+                      if (name === 'totalValue') return [fmt(Number(value) || 0), 'Portfolio Value'];
                       return [value, name];
-                    }}
-                    labelFormatter={(label: string) => {
-                      const d = new Date(label);
+                    }) as any}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    labelFormatter={((label: any) => {
+                      const d = new Date(String(label));
                       return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                    }}
+                    }) as any}
                   />
                   <Line
                     type="monotone"
