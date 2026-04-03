@@ -113,7 +113,7 @@ export default function RetirementZakatPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-[#1B5E20] mb-2">Retirement Account Zakat Calculator</h1>
+          <h1 className="text-4xl font-bold text-[#1B5E20] mb-2">Retirement Zakat Calculator</h1>
           <p className="text-gray-600">Calculate zakat on 401(k), IRA, Roth IRA, 403(b), TSP, and other retirement accounts</p>
         </div>
 

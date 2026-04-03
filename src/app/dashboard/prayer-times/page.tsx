@@ -250,7 +250,7 @@ export default function PrayerTimesPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">🕌 Prayer Times</h1>
+        <h1 className="text-2xl font-bold text-[#1B5E20]">Prayer Times</h1>
         <p className="text-gray-500 text-sm mt-1">{dateStr} · {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })}</p>
       </div>
 

@@ -60,7 +60,7 @@ export default function ReferralPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">🎁 Refer a Friend</h1>
+      <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Refer a Friend</h1>
       <p className="text-gray-600 mb-8">Share Barakah with friends and family. Help others manage their finances the halal way.</p>
 
       {/* Stats */}

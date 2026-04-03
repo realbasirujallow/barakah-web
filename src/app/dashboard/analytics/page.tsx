@@ -170,7 +170,7 @@ function AnalyticsPageContent() {
   return (
     <div role="main">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">📊 Analytics</h1>
+        <h1 className="text-2xl font-bold text-[#1B5E20]">Analytics</h1>
         <div className="flex gap-2" role="tablist" aria-label="Period selection">
           {periods.map((p) => (
             <button
