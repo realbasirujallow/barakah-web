@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
+import { validateStripeUrl } from '../../../lib/validateUrl';
 
 // ── Plan tier ranking ────────────────────────────────────────────────────────
 const PLAN_TIER: Record<string, number> = { free: 0, plus: 1, family: 2 };
@@ -76,16 +77,7 @@ function BillingContent() {
   const [referral, setReferral] = useState<{ referralCode: string; shareUrl: string; referralCount: number } | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const validateStripeUrl = (url: string): boolean => {
-    try {
-      const urlObj = new URL(url);
-      if (urlObj.protocol !== 'https:') return false;
-      const hostname = urlObj.hostname;
-      return hostname === 'stripe.com' || hostname === 'checkout.stripe.com' || hostname.endsWith('.stripe.com');
-    } catch {
-      return false;
-    }
-  };
+
 
   useEffect(() => {
     api.subscriptionStatus()

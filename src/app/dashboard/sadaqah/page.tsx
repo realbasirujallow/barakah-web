@@ -113,7 +113,14 @@ function SadaqahContent() {
       const purposeLabel = donatePurpose.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
       const res = await api.donateToBarakah(cents, `Sadaqah – ${purposeLabel}`);
       if (res?.url) {
-        window.location.href = res.url;
+        // Validate the redirect URL — only allow HTTPS to prevent open redirect attacks
+        try {
+          const parsed = new URL(res.url);
+          if (parsed.protocol !== 'https:') throw new Error('Non-HTTPS redirect');
+          window.location.href = res.url;
+        } catch {
+          toast('Invalid payment URL received. Please try again.', 'error');
+        }
       } else {
         toast('Could not initiate donation. Please try again.', 'error');
       }

@@ -60,8 +60,11 @@ export default function RibaPage() {
         const d = ribaRes.value;
         if (d?.error) { toast(d.error, 'error'); }
         else {
-          if (d?.flaggedTransactions && !Array.isArray(d.flaggedTransactions)) d.flaggedTransactions = [];
-          setResult(d);
+          // Normalize without mutating the original API response object
+          setResult({
+            ...d,
+            flaggedTransactions: Array.isArray(d?.flaggedTransactions) ? d.flaggedTransactions : [],
+          });
         }
       } else {
         toast('Failed to scan transactions for riba', 'error');
