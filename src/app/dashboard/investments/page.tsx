@@ -5,6 +5,7 @@ import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 import { useCurrency } from '../../../lib/useCurrency';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface Account {
   id: number;
@@ -37,6 +38,18 @@ interface Portfolio {
   totalGainLoss: number;
   totalGainLossPct: number;
   accounts: Account[];
+}
+
+interface PortfolioHistorySnapshot {
+  date: string;
+  totalValue: number;
+  totalCost: number;
+  dayGainLoss: number;
+  dayGainLossPercent: number;
+  totalGainLoss: number;
+  totalGainLossPercent: number;
+  holdingCount: number;
+  halalPercent: number;
 }
 
 // Investment-type assets from the Assets page
@@ -82,6 +95,8 @@ export default function InvestmentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedAccount, setExpandedAccount] = useState<number | null>(null);
+  const [portfolioHistory, setPortfolioHistory] = useState<PortfolioHistorySnapshot[]>([]);
+  const [historyDays, setHistoryDays] = useState(30);
 
   const [showAccountForm, setShowAccountForm] = useState(false);
   const [accountForm, setAccountForm] = useState(emptyAccountForm);
@@ -108,10 +123,15 @@ export default function InvestmentsPage() {
         );
         setAssetAccounts(investmentAssets);
       }).catch(() => { /* graceful — don't block portfolio load */ }),
+      // Load portfolio history for chart
+      api.getPortfolioHistory(historyDays).then((res: { history?: PortfolioHistorySnapshot[] }) => {
+        const history: PortfolioHistorySnapshot[] = res?.history || [];
+        setPortfolioHistory(history);
+      }).catch(() => { /* graceful — don't block if history unavailable */ }),
     ]).finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [historyDays]);
 
   const handleAddAccount = async () => {
     setSavingAccount(true);
@@ -208,6 +228,109 @@ export default function InvestmentsPage() {
           <p className={`text-sm mt-1 ${isGain ? 'text-green-200' : 'text-red-300'}`}>
             {isGain ? '▲' : '▼'} {fmt(Math.abs(totalGainLoss))} ({fmtPct(totalGainLossPct)}) all time
           </p>
+        </div>
+      )}
+
+      {/* Portfolio Performance Chart */}
+      {combinedTotal > 0 && portfolioHistory.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Portfolio Performance</h2>
+              <p className="text-sm text-gray-500 mt-1">Prices update automatically</p>
+            </div>
+            <div className="flex gap-2">
+              {[7, 30, 90, 365].map(days => (
+                <button
+                  key={days}
+                  onClick={() => setHistoryDays(days)}
+                  className={`px-3 py-1 text-sm rounded-lg font-medium transition ${
+                    historyDays === days
+                      ? 'bg-[#1B5E20] text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {days === 365 ? '1y' : `${days}d`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {portfolioHistory.length > 0 ? (
+            <div className="w-full h-80 -mx-6">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={portfolioHistory} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 12, fill: '#6b7280' }}
+                    stroke="#d1d5db"
+                    tickFormatter={(date: string) => {
+                      const d = new Date(date);
+                      return `${d.getMonth() + 1}/${d.getDate()}`;
+                    }}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12, fill: '#6b7280' }}
+                    stroke="#d1d5db"
+                    tickFormatter={(value: number) => `$${(value / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      padding: '10px',
+                    }}
+                    formatter={(value: number, name: string) => {
+                      if (name === 'totalValue') return [fmt(value), 'Portfolio Value'];
+                      return [value, name];
+                    }}
+                    labelFormatter={(label: string) => {
+                      const d = new Date(label);
+                      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="totalValue"
+                    stroke="#1B5E20"
+                    strokeWidth={2}
+                    dot={false}
+                    fill="#d1fae5"
+                    isAnimationActive={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-400">No historical data available yet. Check back soon.</p>
+            </div>
+          )}
+
+          {portfolioHistory.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-200">
+              <div>
+                <p className="text-xs text-gray-500">Current Value</p>
+                <p className="text-lg font-bold text-gray-900">{fmt(combinedTotal)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Total Return</p>
+                <p className={`text-lg font-bold ${totalGainLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {fmt(totalGainLoss)} ({fmtPct(totalGainLossPct)})
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Holdings</p>
+                <p className="text-lg font-bold text-gray-900">{portfolioHistory[portfolioHistory.length - 1]?.holdingCount || 0}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Halal %</p>
+                <p className="text-lg font-bold text-green-600">{(portfolioHistory[portfolioHistory.length - 1]?.halalPercent || 0).toFixed(1)}%</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
