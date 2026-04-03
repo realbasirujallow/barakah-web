@@ -8,7 +8,7 @@ import Link from 'next/link';
 // ── Data ────────────────────────────────────────────────────────────────────
 
 const features = [
-  { icon: '🕌', title: 'Zakat Calculator', desc: 'AMJA-compliant nisab (85g gold, live price), Hawl tracker, and auto-categorized asset breakdown.' },
+  { icon: '🕌', title: 'Zakat Calculator', desc: 'Multi-madhab nisab (gold or silver standard), live prices, Hawl tracker, and auto-categorized asset breakdown — supporting Hanafi, Shafi\'i, Maliki, Hanbali, and AMJA methodologies.' },
   { icon: '🛡️', title: 'Riba Detector', desc: 'Scan transactions to flag interest-bearing activity and stay halal.' },
   { icon: '✅', title: 'Halal Screener', desc: '30,000+ stocks screened against AAOIFI Standard 21 — filter by halal, haram, or all with sector breakdown and debt ratios.' },
   { icon: '📊', title: 'Budgets & Analytics', desc: 'Track spending by category and see where every dollar goes at a glance.' },
@@ -223,9 +223,9 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-2xl p-6 text-center">
               <p className="text-4xl mb-3">🕌</p>
-              <h3 className="font-bold text-gray-900 mb-2">AMJA-Standard Zakat</h3>
+              <h3 className="font-bold text-gray-900 mb-2">Multi-Madhab Zakat</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Most apps either skip zakat entirely or get the nisab wrong. We follow the Assembly of Muslim Jurists of America (AMJA) gold standard — 85g — with a full Hawl calendar and per-asset breakdown.
+                Most apps either skip zakat entirely or get the nisab wrong. Barakah supports all four schools of thought (Hanafi, Shafi&apos;i, Maliki, Hanbali) plus AMJA consensus — with gold and silver nisab options, a full Hawl calendar, and per-asset breakdown.
               </p>
             </div>
             <div className="bg-white rounded-2xl p-6 text-center">
@@ -368,7 +368,7 @@ export default function Home() {
           <p className="text-3xl mb-3">🕌</p>
           <h2 className="text-2xl font-bold text-[#1B5E20] mb-3">Built on Islamic Principles</h2>
           <p className="text-gray-600 leading-relaxed">
-            Barakah uses AMJA standards for Zakat, flags riba-bearing transactions, and helps you track all your Islamic financial obligations in one place. We are a tool to help you stay informed — always consult a qualified scholar for specific rulings.
+            Barakah supports multiple schools of Islamic jurisprudence (Hanafi, Shafi&apos;i, Maliki, Hanbali, and AMJA consensus) for Zakat calculation, flags riba-bearing transactions, and helps you track all your Islamic financial obligations in one place. We are a tool to help you stay informed — always consult a qualified scholar for specific rulings.
           </p>
         </div>
       </section>
