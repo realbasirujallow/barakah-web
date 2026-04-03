@@ -26,6 +26,15 @@ interface RibaResult {
   flaggedTransactions: RibaFlag[];
 }
 
+interface RibaDebt {
+  id: number;
+  name: string;
+  type: string;
+  interestRate: number;
+  remainingAmount: number;
+  lender: string;
+}
+
 export default function RibaPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -38,42 +47,65 @@ export default function RibaPage() {
   }
 
   const [result, setResult] = useState<RibaResult | null>(null);
+  const [ribaDebts, setRibaDebts] = useState<RibaDebt[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.scanRiba().then(d => {
-      if (d?.error) { toast(d.error, 'error'); return; }
-      if (d?.flaggedTransactions && !Array.isArray(d.flaggedTransactions)) d.flaggedTransactions = [];
-      setResult(d);
-    }).catch(() => { toast('Failed to scan for riba', 'error'); }).finally(() => setLoading(false));
+    Promise.allSettled([
+      api.scanRiba(),
+      api.getDebts(),
+    ]).then(([ribaRes, debtsRes]) => {
+      // Handle transaction scan results
+      if (ribaRes.status === 'fulfilled') {
+        const d = ribaRes.value;
+        if (d?.error) { toast(d.error, 'error'); }
+        else {
+          if (d?.flaggedTransactions && !Array.isArray(d.flaggedTransactions)) d.flaggedTransactions = [];
+          setResult(d);
+        }
+      } else {
+        toast('Failed to scan transactions for riba', 'error');
+      }
+
+      // Check debts for interest (riba)
+      if (debtsRes.status === 'fulfilled') {
+        const d = debtsRes.value;
+        const debtList = Array.isArray(d?.debts) ? d.debts : Array.isArray(d) ? d : [];
+        const interestDebts = debtList.filter(
+          (debt: any) => debt.interestRate > 0 && !debt.ribaFree && debt.remainingAmount > 0
+        );
+        setRibaDebts(interestDebts);
+      }
+    }).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
 
   const noTransactions = !result || result.totalScanned === 0;
   const flagged = result?.flaggedCount ?? 0;
-  const isClean = !result || flagged === 0;
+  const hasRibaDebts = ribaDebts.length > 0;
+  const isClean = (!result || flagged === 0) && !hasRibaDebts;
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-[#1B5E20] mb-6">Riba Detector</h1>
 
       <div className={`rounded-2xl p-8 text-white mb-6 ${
-        noTransactions
+        noTransactions && !hasRibaDebts
           ? 'bg-gradient-to-r from-gray-500 to-gray-400'
           : isClean
             ? 'bg-gradient-to-r from-green-600 to-emerald-500'
             : 'bg-gradient-to-r from-red-600 to-orange-500'
       }`}>
         <div className="text-center">
-          <p className="text-6xl mb-3">{noTransactions ? '🔍' : isClean ? '✅' : '⚠️'}</p>
+          <p className="text-6xl mb-3">{noTransactions && !hasRibaDebts ? '🔍' : isClean ? '✅' : '⚠️'}</p>
           <p className="text-2xl font-bold">
-            {noTransactions ? 'No Transactions to Scan' : isClean ? 'Riba-Free!' : 'Riba Detected'}
+            {noTransactions && !hasRibaDebts ? 'No Data to Scan' : isClean ? 'Riba-Free!' : 'Riba Detected'}
           </p>
           <p className="text-white/80 mt-1">
-            {noTransactions
-              ? 'Add transactions to scan for riba (interest)'
-              : `${result?.totalScanned || 0} transactions scanned`}
+            {noTransactions && !hasRibaDebts
+              ? 'Add transactions or debts to scan for riba (interest)'
+              : `${result?.totalScanned || 0} transactions scanned${hasRibaDebts ? ` · ${ribaDebts.length} interest-bearing debt${ribaDebts.length !== 1 ? 's' : ''} found` : ''}`}
           </p>
         </div>
 
@@ -95,10 +127,49 @@ export default function RibaPage() {
         )}
       </div>
 
-      {isClean && !noTransactions && (
+      {isClean && !noTransactions && !hasRibaDebts && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-800 mb-6">
-          <strong>Alhamdulillah!</strong> No riba-related transactions were detected in your records.
+          <strong>Alhamdulillah!</strong> No riba-related transactions or debts were detected in your records.
           Continue to avoid interest-based dealings as commanded in the Quran (2:275).
+        </div>
+      )}
+
+      {/* ── Interest-bearing debts (riba) ── */}
+      {hasRibaDebts && (
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-red-700 mb-3">Interest-Bearing Debts (Riba)</h2>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-800 mb-4">
+            <strong>Warning:</strong> You have {ribaDebts.length} debt{ribaDebts.length !== 1 ? 's' : ''} with interest (riba).
+            Interest on loans is prohibited in Islam. Consider refinancing to halal alternatives such as Islamic mortgages (Murabaha),
+            Qard Hasan (interest-free loans), or paying off these debts as a priority.
+          </div>
+          <div className="space-y-3">
+            {ribaDebts.map(debt => (
+              <div key={debt.id} className="bg-white rounded-xl p-5 border-l-4 border-red-400">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-semibold text-gray-900">{debt.name}</p>
+                    <p className="text-sm text-gray-500">{debt.type.replace(/_/g, ' ')}{debt.lender ? ` · ${debt.lender}` : ''}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-red-600">{fmt(debt.remainingAmount)}</p>
+                    <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full font-medium">
+                      {debt.interestRate}% interest
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <p className="text-xs font-medium text-green-700 mb-1">Islamic Alternatives</p>
+                  <div className="flex flex-wrap gap-1">
+                    {debt.type.includes('mortgage') && <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">Murabaha (Islamic Mortgage)</span>}
+                    {debt.type.includes('loan') && <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">Qard Hasan (Interest-Free Loan)</span>}
+                    {debt.type.includes('credit') && <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">Halal Credit Card (e.g. Safina Bank)</span>}
+                    <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">Prioritize paying off this debt</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

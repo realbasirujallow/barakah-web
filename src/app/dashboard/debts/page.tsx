@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useCurrency } from '../../../lib/useCurrency';
@@ -147,13 +147,18 @@ export default function DebtsPage() {
     setSaving(false);
   };
 
+  // Debounce ref prevents double-clicks on the Pay button from creating
+  // duplicate transactions (BUG 4 in QA report).
+  const payingRef = React.useRef(false);
+
   const handlePay = async () => {
-    if (!payModal) return;
+    if (!payModal || payingRef.current) return;
     const amount = parseFloat(payAmount);
     if (!Number.isFinite(amount) || amount <= 0) {
       setPayError('Please enter a valid positive amount');
       return;
     }
+    payingRef.current = true;
     setSaving(true); setPayError(null);
     try {
       const result = await api.makeDebtPayment(payModal.id, amount);
@@ -161,6 +166,8 @@ export default function DebtsPage() {
       setPayModal(null); setPayAmount(''); load();
     } catch (err: unknown) { setPayError(err instanceof Error ? err.message : 'Failed to record payment. Please try again.'); }
     setSaving(false);
+    // Allow another payment after a 2-second cooldown
+    setTimeout(() => { payingRef.current = false; }, 2000);
   };
 
   const handleDelete = (id: number) => {

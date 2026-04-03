@@ -1,9 +1,10 @@
 'use client';
-import { useAuth, hasAccess, isIntentionalLogout } from '../../context/AuthContext';
+import { useAuth, hasAccess, isIntentionalLogout, REFRESH_TS_KEY } from '../../context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, ReactNode, useState, useMemo } from 'react';
 import { ToastProvider } from '../../lib/toast';
+import { api } from '../../lib/api';
 
 import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
@@ -103,6 +104,25 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       router.push('/login?reason=expired');
     }
   }, [user, isLoading, router]);
+
+  // ── Proactive token refresh on every client-side navigation ────────────
+  // When the user navigates between dashboard pages the pathname changes.
+  // If the last refresh was more than 90 seconds ago, fire a silent refresh
+  // so the auth_token cookie stays fresh. This prevents the Next.js
+  // middleware from bouncing the user to /login on the next full-page load.
+  useEffect(() => {
+    if (!user) return;
+    let lastTs = 0;
+    try { lastTs = parseInt(localStorage.getItem(REFRESH_TS_KEY) || '0', 10) || 0; } catch { /* SSR */ }
+    const secondsSince = (Date.now() - lastTs) / 1000;
+    if (secondsSince > 90) {
+      api.refresh().then((ok: boolean) => {
+        if (ok) {
+          try { localStorage.setItem(REFRESH_TS_KEY, String(Date.now())); } catch { /* SSR */ }
+        }
+      }).catch(() => { /* network error — 401 handler will catch on next API call */ });
+    }
+  }, [pathname, user]);
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-[#FFF8E1]">Loading...</div>;
   if (!user) return (
