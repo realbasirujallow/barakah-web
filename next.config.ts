@@ -44,6 +44,8 @@ const csp = [
   "font-src 'self'",
   // Connections: backend proxy + PostHog analytics (proxied through /ingest)
   "connect-src 'self' https://api.trybarakah.com https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com",
+  // Allow Google Maps iframe embeds for property asset address visualization
+  "frame-src 'self' https://*.google.com https://*.googleapis.com https://*.gstatic.com",
   // No plugins (Flash, Silverlight, etc.)
   "object-src 'none'",
   // Prevent base-tag injection attacks
