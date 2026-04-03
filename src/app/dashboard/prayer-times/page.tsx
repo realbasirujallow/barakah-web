@@ -186,7 +186,9 @@ export default function PrayerTimesPage() {
         const { city: c, country: co, method: m } = JSON.parse(saved);
         setCity(c); setCountry(co); setMethod(m);
         fetchTimes(c, co, m);
-      } catch {}
+      } catch (err) {
+        console.warn('Failed to restore saved prayer location:', err);
+      }
     }
   }, [fetchTimes]);
 

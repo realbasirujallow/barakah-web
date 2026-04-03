@@ -50,7 +50,9 @@ export default function NotificationsPage() {
       await api.markNotificationRead(id);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch { /* silent */ }
+    } catch {
+      console.warn('Failed to mark notification as read');
+    }
   };
 
   const markAllRead = async () => {
@@ -58,7 +60,9 @@ export default function NotificationsPage() {
       await api.markAllNotificationsRead();
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
-    } catch { /* silent */ }
+    } catch {
+      console.warn('Failed to mark all notifications as read');
+    }
   };
 
   const deleteOne = async (id: number) => {
@@ -67,7 +71,9 @@ export default function NotificationsPage() {
       const removed = notifications.find(n => n.id === id);
       if (removed && !removed.read) setUnreadCount(c => Math.max(0, c - 1));
       setNotifications(prev => prev.filter(n => n.id !== id));
-    } catch { /* silent */ }
+    } catch {
+      console.warn('Failed to delete notification');
+    }
   };
 
   const fmtTime = (ts: number) => {
