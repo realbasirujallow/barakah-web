@@ -52,7 +52,8 @@ function fmtMonth(m: string) {
 
 function generateText(summary: PeriodSummary, months: MonthlyPoint[], period: string): string {
   const net    = summary.netIncome;
-  const rate   = summary.totalIncome > 0 ? (net / summary.totalIncome * 100).toFixed(1) : '0';
+  const rateRaw = summary.totalIncome > 0 ? (net / summary.totalIncome * 100).toFixed(1) : '0';
+  const rate = parseFloat(rateRaw) > 999 ? '>999' : parseFloat(rateRaw) < -999 ? '<-999' : rateRaw;
   const topCat = Object.entries(summary.expensesByCategory).sort((a, b) => b[1] - a[1])[0];
   const label  = period === 'month' ? 'this month' : 'this year';
 
@@ -64,7 +65,7 @@ function generateText(summary: PeriodSummary, months: MonthlyPoint[], period: st
   text += `Transactions:    ${summary.transactionCount}\n\n`;
 
   if (topCat) {
-    text += `Top spending category ${label}: ${topCat[0]} (${fmt(topCat[1])})\n\n`;
+    text += `Top spending category ${label}: ${topCat[0].replace(/_/g, ' ')} (${fmt(topCat[1])})\n\n`;
   }
 
   if (months.length >= 2) {
@@ -129,9 +130,20 @@ export default function SummaryPage() {
     </div>
   );
 
-  const savingsRate = summary.totalIncome > 0
+  // Cap extreme percentages so elderly / new users aren't alarmed by values
+  // like "-2783%" or "140955%". Anything beyond ±999% is shown as ">999%".
+  const capPct = (pct: string): string => {
+    const n = parseFloat(pct);
+    if (Number.isNaN(n)) return pct;
+    if (n > 999) return '>999';
+    if (n < -999) return '<-999';
+    return pct;
+  };
+
+  const savingsRateRaw = summary.totalIncome > 0
     ? ((summary.netIncome / summary.totalIncome) * 100).toFixed(1)
     : '0.0';
+  const savingsRate = capPct(savingsRateRaw);
 
   const expenseEntries = Object.entries(summary.expensesByCategory)
     .sort((a, b) => b[1] - a[1])
@@ -140,9 +152,10 @@ export default function SummaryPage() {
   const momChange = monthly.length >= 2
     ? monthly[monthly.length - 1].expenses - monthly[monthly.length - 2].expenses
     : 0;
-  const momPct = monthly.length >= 2 && monthly[monthly.length - 2].expenses > 0
+  const momPctRaw = monthly.length >= 2 && monthly[monthly.length - 2].expenses > 0
     ? (momChange / monthly[monthly.length - 2].expenses * 100).toFixed(1)
     : '0.0';
+  const momPct = capPct(momPctRaw);
 
   const chartData = monthly.map(d => ({ label: fmtMonth(d.month), income: d.income, expenses: d.expenses, net: d.net }));
 
@@ -218,7 +231,7 @@ export default function SummaryPage() {
         <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium mb-5 ${
           momChange <= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
         }`}>
-          {momChange <= 0 ? '↓' : '↑'} Spending {momChange <= 0 ? 'down' : 'up'} {Math.abs(parseFloat(momPct))}% vs last month
+          {momChange <= 0 ? '↓' : '↑'} Spending {momChange <= 0 ? 'down' : 'up'} {momPct.replace(/^[<>-]/, '')}% vs last month
         </div>
       )}
 
@@ -254,7 +267,7 @@ export default function SummaryPage() {
                   <div className="flex justify-between items-center mb-1">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{CAT_ICONS[cat] ?? '📋'}</span>
-                      <span className="text-sm font-medium text-gray-700 capitalize">{cat}</span>
+                      <span className="text-sm font-medium text-gray-700 capitalize">{cat.replace(/_/g, ' ')}</span>
                     </div>
                     <div className="text-right">
                       <span className="text-sm font-bold text-gray-800">{fmt(amt)}</span>

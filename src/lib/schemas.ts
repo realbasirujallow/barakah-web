@@ -219,11 +219,12 @@ export function validateZakatPaymentsResponse(data: unknown): ValidationResult<Z
 export interface NisabInfo {
   goldPricePerGram: number;
   silverPricePerGram: number;
-  goldNisabGrams: number;
-  silverNisabGrams: number;
-  goldNisabUSD: number;
-  silverNisabUSD: number;
-  source?: string;
+  nisabGoldGrams: number;
+  nisabSilverGrams: number;
+  nisabGoldThreshold: number;
+  nisabSilverThreshold: number;
+  goldPriceSource?: string;
+  silverPriceSource?: string;
   staleWarning?: boolean;
   priceAgeMs?: number;
 }
@@ -238,10 +239,10 @@ export function validateNisabInfo(data: unknown): ValidationResult<NisabInfo> {
 
   if (!isNonNegativeNumber(obj.goldPricePerGram)) issues.push({ path: 'goldPricePerGram', message: 'Expected non-negative number' });
   if (!isNonNegativeNumber(obj.silverPricePerGram)) issues.push({ path: 'silverPricePerGram', message: 'Expected non-negative number' });
-  if (!isNonNegativeNumber(obj.goldNisabGrams)) issues.push({ path: 'goldNisabGrams', message: 'Expected non-negative number' });
-  if (!isNonNegativeNumber(obj.silverNisabGrams)) issues.push({ path: 'silverNisabGrams', message: 'Expected non-negative number' });
-  if (!isNonNegativeNumber(obj.goldNisabUSD)) issues.push({ path: 'goldNisabUSD', message: 'Expected non-negative number' });
-  if (!isNonNegativeNumber(obj.silverNisabUSD)) issues.push({ path: 'silverNisabUSD', message: 'Expected non-negative number' });
+  if (!isNonNegativeNumber(obj.nisabGoldGrams)) issues.push({ path: 'nisabGoldGrams', message: 'Expected non-negative number' });
+  if (!isNonNegativeNumber(obj.nisabSilverGrams)) issues.push({ path: 'nisabSilverGrams', message: 'Expected non-negative number' });
+  if (!isNonNegativeNumber(obj.nisabGoldThreshold)) issues.push({ path: 'nisabGoldThreshold', message: 'Expected non-negative number' });
+  if (!isNonNegativeNumber(obj.nisabSilverThreshold)) issues.push({ path: 'nisabSilverThreshold', message: 'Expected non-negative number' });
 
   if (issues.length > 0) return { success: false, issues };
 
@@ -250,11 +251,12 @@ export function validateNisabInfo(data: unknown): ValidationResult<NisabInfo> {
     data: {
       goldPricePerGram: obj.goldPricePerGram as number,
       silverPricePerGram: obj.silverPricePerGram as number,
-      goldNisabGrams: obj.goldNisabGrams as number,
-      silverNisabGrams: obj.silverNisabGrams as number,
-      goldNisabUSD: obj.goldNisabUSD as number,
-      silverNisabUSD: obj.silverNisabUSD as number,
-      source: isString(obj.source) ? (obj.source as string) : undefined,
+      nisabGoldGrams: obj.nisabGoldGrams as number,
+      nisabSilverGrams: obj.nisabSilverGrams as number,
+      nisabGoldThreshold: obj.nisabGoldThreshold as number,
+      nisabSilverThreshold: obj.nisabSilverThreshold as number,
+      goldPriceSource: isString(obj.goldPriceSource) ? (obj.goldPriceSource as string) : undefined,
+      silverPriceSource: isString(obj.silverPriceSource) ? (obj.silverPriceSource as string) : undefined,
       staleWarning: isBoolean(obj.staleWarning) ? (obj.staleWarning as boolean) : undefined,
       priceAgeMs: isFiniteNumber(obj.priceAgeMs) ? (obj.priceAgeMs as number) : undefined,
     },

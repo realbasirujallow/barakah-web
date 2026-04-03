@@ -116,18 +116,31 @@ function AnalyticsPageContent() {
   ];
 
   const netIncome = summary?.netIncome || 0;
-  const savingsRate =
+
+  // Cap extreme percentages so users aren't alarmed by values like "-2783%".
+  const capPct = (pct: string): string => {
+    const n = parseFloat(pct);
+    if (Number.isNaN(n)) return pct;
+    if (n > 999) return '>999';
+    if (n < -999) return '<-999';
+    return pct;
+  };
+
+  const savingsRate = capPct(
     summary && summary.totalIncome > 0
       ? ((summary.netIncome / summary.totalIncome) * 100).toFixed(1)
-      : '0.0';
+      : '0.0'
+  );
 
   // Month-over-month change (last 2 months)
   const momChange = monthlyData.length >= 2
     ? monthlyData[monthlyData.length - 1].expenses - monthlyData[monthlyData.length - 2].expenses
     : 0;
-  const momPct = monthlyData.length >= 2 && monthlyData[monthlyData.length - 2].expenses > 0
-    ? ((momChange / monthlyData[monthlyData.length - 2].expenses) * 100).toFixed(1)
-    : '0.0';
+  const momPct = capPct(
+    monthlyData.length >= 2 && monthlyData[monthlyData.length - 2].expenses > 0
+      ? ((momChange / monthlyData[monthlyData.length - 2].expenses) * 100).toFixed(1)
+      : '0.0'
+  );
 
   // Format month label: "2025-12" → "Dec '25"
   const fmtMonth = (m: string) => {
@@ -235,7 +248,7 @@ function AnalyticsPageContent() {
           <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium mb-4 ${
             momChange <= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
           }`}>
-            {momChange <= 0 ? '↓' : '↑'} Expenses {momChange <= 0 ? 'down' : 'up'} {Math.abs(parseFloat(momPct))}% vs last month
+            {momChange <= 0 ? '↓' : '↑'} Expenses {momChange <= 0 ? 'down' : 'up'} {momPct.replace(/^[<>-]/, '')}% vs last month
           </div>
         )}
 
