@@ -85,7 +85,23 @@ export default function FiqhSettingsPage() {
     try {
       const result = await api.setMadhab(madhab);
       if (result) {
-        toast('Madhab updated successfully!', 'success');
+        // Refetch the full config so Detailed Rules tab reflects the new madhab defaults.
+        // The backend's applySchoolDefaults() sets rules like jewelryZakatable, fitrType, etc.
+        // based on the selected madhab — we need to reload those into local state.
+        const updatedConfig = await api.getFiqhConfig();
+        if (updatedConfig) {
+          setConfig(updatedConfig);
+          setRules({
+            jewelryZakatable: updatedConfig.jewelryZakatable ?? false,
+            fitrType: updatedConfig.fitrType || '',
+            debtMethod: updatedConfig.debtMethod || '',
+            retirementMethod: updatedConfig.retirementMethod || '',
+            hawlResetOnNisabDrop: updatedConfig.hawlResetOnNisabDrop ?? false,
+            wasiyyahExceedThirdWithConsent: updatedConfig.wasiyyahExceedThirdWithConsent ?? false,
+            raddIncludesSpouse: updatedConfig.raddIncludesSpouse ?? false,
+          });
+        }
+        toast('Madhab updated successfully! Detailed rules have been updated to match.', 'success');
       }
     } catch (err) {
       logError(err, { context: 'Failed to update madhab' });

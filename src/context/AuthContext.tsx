@@ -35,12 +35,13 @@ const AuthContext = createContext<AuthContextType | null>(null);
 const USER_KEY = 'user';
 
 // How long after a successful refresh before we allow another proactive refresh.
-// Reduced to 90 seconds so the auth_token cookie stays fresh even during
+// Reduced to 30 seconds so the auth_token cookie stays fresh even during
 // frequent navigation (direct URL entry causes a full-page load where the
 // Next.js middleware checks the cookie *before* client JS runs — if the
 // cookie has expired the user gets bounced to /login before React can refresh).
+// Previously 90s which was too long — users got session-expired on page transitions.
 export const REFRESH_TS_KEY = 'last_refresh_ts';
-const REFRESH_GUARD_SECONDS = 90; // 90 seconds
+const REFRESH_GUARD_SECONDS = 30; // 30 seconds
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
