@@ -37,8 +37,9 @@ interface NisabInfo {
 }
 
 interface NisabMethodology {
-  id?: string;
+  code?: string;
   name?: string;
+  description?: string;
   [key: string]: unknown;
 }
 
@@ -192,10 +193,23 @@ export default function ZakatPage() {
       const nisabData = safeParseWithFallback(validateNisabInfo, nisabRaw, 'nisab/info');
       if (nisabData) setNisabInfo(nisabData);
 
-      // FEATURE 1: Load nisab methodologies
+      // FEATURE 1: Load nisab methodologies and user's current selection
       if (methodologiesRaw && Array.isArray(methodologiesRaw)) {
-        setNisabMethodologies(methodologiesRaw);
+        // Backend returns { value, displayName, description } — normalize to { code, name, description }
+        const normalized: NisabMethodology[] = methodologiesRaw.map((m: Record<string, unknown>) => ({
+          code: String(m.value ?? m.code ?? ''),
+          name: String(m.displayName ?? m.name ?? ''),
+          description: String(m.description ?? ''),
+        }));
+        setNisabMethodologies(normalized);
       }
+      // Load user's current methodology preference from backend
+      try {
+        const currentPref = await api.getNisabMethodology();
+        if (currentPref?.methodology) {
+          setSelectedMethodology(currentPref.methodology as string);
+        }
+      } catch { /* default to AMJA_GOLD if preference fetch fails */ }
 
       setData(zakatRaw as ZakatCalculation);
 

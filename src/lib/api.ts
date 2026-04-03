@@ -491,6 +491,7 @@ export const api = {
     apiFetch('/api/zakat/calculate-retirement', { method: 'POST', body: JSON.stringify(data) }),
   // FEATURE 1: Multi-Madhab Nisab Selector
   getNisabMethodologies: () => apiFetch('/api/zakat/nisab-methodologies'),
+  getNisabMethodology: () => apiFetch('/api/zakat/nisab-methodology'),
   setNisabMethodology: (methodology: string) =>
     apiFetch('/api/zakat/nisab-methodology', { method: 'POST', body: JSON.stringify({ methodology }) }),
   // FEATURE 2: Zakat al-Fitr Calculator
