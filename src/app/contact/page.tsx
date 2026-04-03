@@ -110,7 +110,7 @@ export default function ContactPage() {
             <div className="bg-green-50 border border-green-200 rounded-2xl p-10 text-center">
               <div className="text-5xl mb-4">✅</div>
               <h3 className="text-xl font-bold text-[#1B5E20] mb-2">Message received!</h3>
-              <p className="text-gray-600 text-sm">JazakAllahu khayran for reaching out. We'll get back to you at your email address within 1–2 business days.</p>
+              <p className="text-gray-600 text-sm">JazakAllahu khayran for reaching out. We&apos;ll get back to you at your email address within 1–2 business days.</p>
               <button
                 onClick={() => setStatus('idle')}
                 className="mt-6 text-sm text-[#1B5E20] underline hover:no-underline"

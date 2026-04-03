@@ -31,7 +31,7 @@ function isEmail(val: unknown): boolean {
   return isString(val) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val as string);
 }
 
-function isArray<T>(val: unknown, check?: (item: unknown) => boolean): boolean {
+function isArray(val: unknown, check?: (item: unknown) => boolean): boolean {
   return Array.isArray(val) && (!check || (val as unknown[]).every(check));
 }
 

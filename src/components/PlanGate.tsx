@@ -79,7 +79,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
     'Riba Detector': 'Automatically flag interest-bearing transactions and accounts in your finances.',
     'Subscription Detection': 'Auto-detect recurring subscriptions you may have forgotten about.',
     'Subscription Detector': 'Auto-detect recurring subscriptions from your transactions and flag non-halal services.',
-    'Debt Projections': 'See exactly when you\'ll be debt-free with snowball and avalanche payoff strategies.',
+    'Debt Projections': 'See exactly when you&apos;ll be debt-free with snowball and avalanche payoff strategies.',
   };
 
   // Plan features data
@@ -248,7 +248,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
           </button>
 
           <div className="border-t pt-8">
-            <h3 className="font-semibold text-gray-900 mb-4 text-lg">What's included in Family Plan:</h3>
+            <h3 className="font-semibold text-gray-900 mb-4 text-lg">What&apos;s included in Family Plan:</h3>
             <div className="space-y-3">
               {planFeatures.family.map((feature, idx) => (
                 <div key={idx} className="flex items-start gap-3">

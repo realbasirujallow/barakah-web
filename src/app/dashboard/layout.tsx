@@ -119,6 +119,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       key={item.href}
       href={item.href}
       onClick={() => setSidebarOpen(false)}
+      aria-label={item.label}
       className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition ${
         pathname === item.href
           ? 'bg-green-800 text-white font-semibold'
