@@ -111,7 +111,7 @@ function SadaqahContent() {
     setDonating(true);
     try {
       const purposeLabel = donatePurpose.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
-      const res = await api.donateToBarak(cents, `Sadaqah – ${purposeLabel}`);
+      const res = await api.donateToBarakah(cents, `Sadaqah – ${purposeLabel}`);
       if (res?.url) {
         window.location.href = res.url;
       } else {

@@ -290,7 +290,7 @@ export default function SummaryPage() {
       {/* Shareable text preview */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="font-semibold text-[#1B5E20]">📄 Text Summary</h2>
+          <h2 className="font-semibold text-[#1B5E20]">Text Summary</h2>
           <button
             onClick={handleCopy}
             className="text-sm text-[#1B5E20] hover:underline font-medium"
