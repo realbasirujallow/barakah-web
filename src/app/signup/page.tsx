@@ -26,6 +26,7 @@ function SignupContent() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const [emailSent, setEmailSent] = useState(true);
   const US_STATES = [
     '', 'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'
   ];
@@ -62,7 +63,8 @@ function SignupContent() {
 
     setLoading(true);
     try {
-      await api.signup(name, email, password, state, referralCode.trim().toUpperCase() || undefined);
+      const result = await api.signup(name, email, password, state, referralCode.trim().toUpperCase() || undefined);
+      setEmailSent(result?.emailSent !== false);
       setSignupSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
@@ -91,15 +93,31 @@ function SignupContent() {
             <Link href="/" className="text-3xl font-bold text-[#1B5E20]">&#127769; Barakah</Link>
           </div>
           <div className="bg-white rounded-2xl shadow-sm p-8">
-            <div className="text-5xl mb-4">📧</div>
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-2">Check Your Email!</h2>
-            <p className="text-gray-600 mb-2">
-              We sent a verification link to <strong>{email}</strong>.
-            </p>
-            <p className="text-gray-500 text-sm mb-6">
-              Click the link in the email to verify your account, then you can sign in.
-              Don&apos;t forget to check your spam folder!
-            </p>
+            <div className="text-5xl mb-4">{emailSent ? '📧' : '⚠️'}</div>
+            <h2 className="text-xl font-bold text-[#1B5E20] mb-2">
+              {emailSent ? 'Check Your Email!' : 'Account Created'}
+            </h2>
+            {emailSent ? (
+              <>
+                <p className="text-gray-600 mb-2">
+                  We sent a verification link to <strong>{email}</strong>.
+                </p>
+                <p className="text-gray-500 text-sm mb-6">
+                  Click the link in the email to verify your account, then you can sign in.
+                  Don&apos;t forget to check your spam folder!
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-600 mb-2">
+                  Your account was created, but we had trouble sending the verification email.
+                </p>
+                <p className="text-gray-500 text-sm mb-6">
+                  Please click &ldquo;Resend&rdquo; below to try again. If you still don&apos;t receive it,
+                  check your spam folder or contact support@trybarakah.com.
+                </p>
+              </>
+            )}
 
             {resendStatus === 'sent' ? (
               <p className="text-green-700 text-sm mb-4">✅ Verification email resent!</p>
