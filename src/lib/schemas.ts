@@ -99,6 +99,15 @@ export interface ZakatCalculation {
   interestMustBeDonatedToCharity?: boolean;
   interestDonationAmount?: number;
   interestDonationGuidance?: string;
+  // Asset breakdown from backend (per-asset zakatable/exempt detail)
+  breakdown?: Array<Record<string, unknown>>;
+  totalDebts?: number;
+  nonZakatableWealth?: number;
+  totalSavings?: number;
+  netWorth?: number;
+  currentLunarYear?: number;
+  effectiveZakatAmount?: number;
+  [key: string]: unknown;
 }
 
 export function validateZakatCalculation(data: unknown): ValidationResult<ZakatCalculation> {
