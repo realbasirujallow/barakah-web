@@ -113,6 +113,7 @@ export default function AdminPage() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<AdminUser | null>(null);
   const [resetting, setResetting] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
   const [planSaving, setPlanSaving] = useState(false);
   const [draftPlan, setDraftPlan] = useState('');
   const [trialModalOpen, setTrialModalOpen] = useState(false);
@@ -197,6 +198,19 @@ export default function AdminPage() {
       toast(err instanceof Error ? err.message : 'Failed to send reset email', 'error');
     } finally {
       setResetting(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!selected) return;
+    setResendingVerification(true);
+    try {
+      await api.adminResendVerification(selected.id);
+      toast(`Verification email sent to ${selected.email}`, 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to send verification email', 'error');
+    } finally {
+      setResendingVerification(false);
     }
   };
 
@@ -786,6 +800,24 @@ export default function AdminPage() {
                   {resetting ? 'Sending…' : 'Send Password Reset Email'}
                 </button>
               </div>
+
+              {/* Resend Verification Email */}
+              {!selected.emailVerified && (
+              <div className="border-t pt-5">
+                <p className="text-sm font-medium text-gray-700 mb-1">Resend Verification Email</p>
+                <p className="text-xs text-gray-500 mb-3">
+                  This user has <strong className="text-red-600">not verified their email</strong>.
+                  Send a new verification link to <strong>{selected.email}</strong> (expires in 24 hours).
+                </p>
+                <button
+                  onClick={handleResendVerification}
+                  disabled={resendingVerification}
+                  className="w-full py-2.5 bg-amber-600 text-white rounded-lg text-sm font-semibold hover:bg-amber-700 transition disabled:opacity-40"
+                >
+                  {resendingVerification ? 'Sending…' : 'Resend Verification Email'}
+                </button>
+              </div>
+              )}
 
               {/* Grant Trial */}
               <div className="border-t pt-5">
