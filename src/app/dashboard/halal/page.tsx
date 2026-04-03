@@ -125,7 +125,7 @@ export default function HalalPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-6">Halal Stock Screener</h1>
+      <h1 className="text-2xl font-bold text-[#1B5E20] mb-6">Stock Screener</h1>
 
       {/* Stats bar */}
       {stats && (

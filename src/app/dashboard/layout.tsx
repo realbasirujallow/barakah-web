@@ -39,7 +39,7 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
   { href: '/dashboard/categorize', icon: '🔄', label: 'Auto-Categorize', gate: 'plus' },
   { href: '/dashboard/barakah-score', icon: '⭐', label: 'Barakah Score', gate: 'plus' },
   { href: '/dashboard/summary', icon: '📋', label: 'Financial Summary', gate: 'plus' },
-  { href: '/dashboard/halal', icon: '✅', label: 'Halal Screener', gate: 'plus' },
+  { href: '/dashboard/halal', icon: '✅', label: 'Stock Screener', gate: 'plus' },
   { href: '/dashboard/investments', icon: '📈', label: 'Investments', gate: 'plus' },
   { href: '/dashboard/net-worth', icon: '💎', label: 'Net Worth', gate: 'plus' },
   { href: '/dashboard/riba', icon: '🛡️', label: 'Riba Detector', gate: 'plus' },
@@ -63,7 +63,7 @@ const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> 
   },
   premium: {
     label: 'Premium',
-    items: ['Analytics', 'Auto-Categorize', 'Barakah Score', 'Financial Summary', 'Halal Screener', 'Investments', 'Net Worth', 'Riba Detector', 'Shared Finances', 'Subscription Detector', 'Waqf', 'Wasiyyah'],
+    items: ['Analytics', 'Auto-Categorize', 'Barakah Score', 'Financial Summary', 'Stock Screener', 'Investments', 'Net Worth', 'Riba Detector', 'Shared Finances', 'Subscription Detector', 'Waqf', 'Wasiyyah'],
   },
   account: {
     label: 'Account',
