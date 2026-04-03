@@ -251,7 +251,7 @@ export default function RamadanPage() {
 
       {/* Zakat al-Fitr Calculator */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
-        <h2 className="font-bold text-[#1B5E20] mb-3">🕌 Zakat al-Fitr</h2>
+        <h2 className="font-bold text-[#1B5E20] mb-3">Zakat al-Fitr</h2>
         <p className="text-sm text-gray-600 mb-4">
           Obligatory charity paid before Eid al-Fitr prayer. Enter the amount your mosque specifies — typically $10–$15 per person based on staple food equivalent.
         </p>
@@ -292,7 +292,7 @@ export default function RamadanPage() {
 
       {/* Ramadan Budget Planner */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
-        <h2 className="font-bold text-[#1B5E20] mb-1">💰 Ramadan Budget Planner</h2>
+        <h2 className="font-bold text-[#1B5E20] mb-1">Ramadan Budget Planner</h2>
         <p className="text-xs text-gray-500 mb-4">Plan extra Ramadan spending. Adjust amounts for your situation.</p>
         <div className="space-y-3">
           {budget.map(b => (
@@ -397,7 +397,7 @@ export default function RamadanPage() {
       {/* Daily Nafila Tracker */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="font-bold text-[#1B5E20]">🌟 Daily Nawafil Tracker</h2>
+          <h2 className="font-bold text-[#1B5E20]">Daily Nawafil Tracker</h2>
           <span className="text-sm text-gray-500">{nafilaCount}/{ramadan.inRamadan ? ramadan.day : 30} days</span>
         </div>
         <p className="text-xs text-gray-500 mb-4">Track your extra voluntary prayers and worship during Ramadan</p>
@@ -430,7 +430,7 @@ export default function RamadanPage() {
 
       {/* Duas for Ramadan */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
-        <h2 className="font-bold text-[#1B5E20] mb-3">🤲 Ramadan Du&apos;as</h2>
+        <h2 className="font-bold text-[#1B5E20] mb-3">Ramadan Du&apos;as</h2>
         <div className="space-y-2">
           {DUAS.map((dua, i) => (
             <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">

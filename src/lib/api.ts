@@ -483,12 +483,12 @@ export const api = {
 
   // Zakat
   getZakat: () => apiFetch('/api/assets/total'),
-    getZakatPayments: (lunarYear?: number) =>
-      apiFetch(`/api/zakat/payments${lunarYear ? `?lunarYear=${lunarYear}` : ''}`),
-    addZakatPayment: (data: Record<string, unknown>) =>
-      apiFetch('/api/zakat/payments', { method: 'POST', body: JSON.stringify(data) }),
-    deleteZakatPayment: (id: number) =>
-      apiFetch(`/api/zakat/payments/${id}`, { method: 'DELETE' }),
+  getZakatPayments: (lunarYear?: number) =>
+    apiFetch(`/api/zakat/payments${lunarYear ? `?lunarYear=${lunarYear}` : ''}`),
+  addZakatPayment: (data: Record<string, unknown>) =>
+    apiFetch('/api/zakat/payments', { method: 'POST', body: JSON.stringify(data) }),
+  deleteZakatPayment: (id: number) =>
+    apiFetch(`/api/zakat/payments/${id}`, { method: 'DELETE' }),
   getNisabInfo: () => apiFetch("/api/zakat/info"),
   calculateZakat: (data: Record<string, unknown>) =>
     apiFetch('/api/zakat/calculate', { method: 'POST', body: JSON.stringify(data) }),
@@ -834,7 +834,7 @@ export const api = {
    * Barakah collects and distributes the funds to verified causes.
    * Returns { url } — redirect the user to this URL.
    */
-  donateToBarak: (amountCents: number, description: string) =>
+  donateToBarakah: (amountCents: number, description: string) =>
     apiFetch('/api/stripe/donate', {
       method: 'POST',
       body: JSON.stringify({ amountCents, description }),

@@ -218,7 +218,7 @@ function AnalyticsPageContent() {
       <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-[#1B5E20]">📅 Month-over-Month</h2>
+            <h2 className="text-lg font-semibold text-[#1B5E20]">Month-over-Month</h2>
             <p className="text-xs text-gray-500 mt-0.5">Last 13 months — income vs spending trends</p>
           </div>
           <div className="flex gap-2" role="tablist" aria-label="Chart type selection">
@@ -392,7 +392,7 @@ function AnalyticsPageContent() {
       {/* Year-over-Year Comparison */}
       {yoyData.length >= 2 && (
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="text-lg font-semibold text-[#1B5E20] mb-1">📆 Year-over-Year</h2>
+          <h2 className="text-lg font-semibold text-[#1B5E20] mb-1">Year-over-Year</h2>
           <p className="text-xs text-gray-500 mb-4">Annual income vs spending — based on imported data</p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -536,7 +536,7 @@ function AnalyticsPageContent() {
       {/* ── Halal Spending Analysis ────────────────────────────────────────── */}
       {halalAnalysis && halalAnalysis.totalTransactions > 0 && (
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">🛡️ Halal Spending Analysis</h2>
+          <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Halal Spending Analysis</h2>
 
           {/* Ratio Cards */}
           <div className="grid grid-cols-3 gap-4 mb-6">
