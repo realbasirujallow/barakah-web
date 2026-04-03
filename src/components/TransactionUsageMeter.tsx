@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth, hasAccess } from '../context/AuthContext';
 import { api } from '../lib/api';
 
@@ -23,6 +23,7 @@ interface UsageData {
 export function TransactionUsageMeter() {
   const { user } = useAuth();
   const [usage, setUsage] = useState<UsageData | null>(null);
+  const [now] = useState(() => Math.floor(Date.now() / 1000));
 
   useEffect(() => {
     if (!user || hasAccess(user.plan, 'plus', user.planExpiresAt)) return;
@@ -44,7 +45,6 @@ export function TransactionUsageMeter() {
   const isAtLimit = remaining === 0;
 
   // Days until reset
-  const now = Math.floor(Date.now() / 1000);
   const daysUntilReset = Math.max(1, Math.ceil((usage.resetAt - now) / 86400));
 
   const handleUpgrade = async () => {

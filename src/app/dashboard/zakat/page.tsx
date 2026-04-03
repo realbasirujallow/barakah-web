@@ -26,11 +26,6 @@ interface ZakatPayment {
   paidAt?: number;
 }
 
-interface ZakatPaymentResponse {
-  payments?: ZakatPayment[];
-  error?: string;
-}
-
 interface NisabInfo {
   goldPricePerGram?: number;
   staleWarning?: boolean;
@@ -93,7 +88,6 @@ export default function ZakatPage() {
 
   // FEATURE 5: Scholarly References
   const [scholarlyReferences, setScholarlyReferences] = useState<Record<string, unknown>[]>([]);
-  const [showReferences, setShowReferences] = useState(false);
   const [loadingReferences, setLoadingReferences] = useState(false);
 
   // Manual asset breakdown calculator
@@ -122,17 +116,6 @@ export default function ZakatPage() {
     const next = !hideZakat;
     setHideZakat(next);
     safeSetItem('hideZakat', next ? 'true' : 'false');
-  };
-
-  const loadNisabMethodologies = async () => {
-    try {
-      const methodologies = await api.getNisabMethodologies();
-      if (methodologies && Array.isArray(methodologies)) {
-        setNisabMethodologies(methodologies);
-      }
-    } catch (err) {
-      logError(err, { context: 'Failed to load nisab methodologies' });
-    }
   };
 
   const loadZakatAlFitr = async () => {

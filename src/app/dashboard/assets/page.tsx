@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { logError } from '../../../lib/logError';
-import { safeParse, safeParseWithFallback, validateAsset } from '../../../lib/schemas';
+import { safeParse, validateAsset } from '../../../lib/schemas';
 import { useToast } from '../../../lib/toast';
 
 interface Asset { id: number; name: string; type: string; value: number; penaltyRate?: number; taxRate?: number; address?: string; }

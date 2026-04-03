@@ -108,8 +108,8 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
       credentials: 'include',
       signal: controller.signal,
     });
-  } catch (err: any) {
-    if (err.name === 'AbortError') {
+  } catch (err: unknown) {
+    if ((err as Record<string, unknown>).name === 'AbortError') {
       throw new Error('Server unavailable, please try again later.');
     }
     throw new Error('No connection to server.');
@@ -222,8 +222,8 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
       credentials: 'include',
       signal: controller.signal,
     });
-  } catch (err: any) {
-    if (err.name === 'AbortError') throw new Error('Upload timed out.');
+  } catch (err: unknown) {
+    if ((err as Record<string, unknown>).name === 'AbortError') throw new Error('Upload timed out.');
     throw new Error('No connection to server.');
   } finally {
     clearTimeout(timeout);
@@ -264,8 +264,8 @@ export async function apiDownload(endpoint: string, filename: string): Promise<v
       credentials: 'include',
       signal: controller.signal,
     });
-  } catch (err: any) {
-    if (err.name === 'AbortError') throw new Error('Download timed out.');
+  } catch (err: unknown) {
+    if ((err as Record<string, unknown>).name === 'AbortError') throw new Error('Download timed out.');
     throw new Error('No connection to server.');
   } finally {
     clearTimeout(timeout);

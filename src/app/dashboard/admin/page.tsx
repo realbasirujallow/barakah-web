@@ -86,10 +86,6 @@ function fmtDateMs(unixMs: number | undefined) {
   });
 }
 
-function fmtMoneyStaticUSD(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-}
-
 function daysUntil(epochSec: number | undefined) {
   if (!epochSec) return null;
   const diff = epochSec - Math.floor(Date.now() / 1000);
