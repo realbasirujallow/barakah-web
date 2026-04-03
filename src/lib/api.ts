@@ -492,7 +492,7 @@ export const api = {
   // FEATURE 1: Multi-Madhab Nisab Selector
   getNisabMethodologies: () => apiFetch('/api/zakat/nisab-methodologies'),
   setNisabMethodology: (methodology: string) =>
-    apiFetch('/auth/update-profile', { method: 'PUT', body: JSON.stringify({ nisabMethodology: methodology }) }),
+    apiFetch('/api/zakat/nisab-methodology', { method: 'POST', body: JSON.stringify({ methodology }) }),
   // FEATURE 2: Zakat al-Fitr Calculator
   getZakatAlFitr: (householdSize: number = 1, currency: string = 'USD') =>
     apiFetch(`/api/zakat/fitr?householdSize=${householdSize}&currency=${currency}`),

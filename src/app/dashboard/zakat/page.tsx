@@ -263,6 +263,7 @@ export default function ZakatPage() {
 
   // FEATURE 1: Handle Nisab Methodology Change
   const handleMethodologyChange = async (methodology: string) => {
+    const previous = selectedMethodology;
     setSelectedMethodology(methodology);
     setSavingMethodology(true);
     try {
@@ -271,6 +272,8 @@ export default function ZakatPage() {
       await load();
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to update methodology', 'error');
+      setSelectedMethodology(previous); // revert on failure
+    } finally {
       setSavingMethodology(false);
     }
   };
@@ -444,12 +447,19 @@ export default function ZakatPage() {
             )}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl p-5">
               <p className="text-gray-500 text-sm">Total Wealth</p>
               <p className="text-2xl font-bold text-[#1B5E20]">
                 {hideZakat ? '••••••' : fmt((data?.totalWealth as number) || 0)}
               </p>
+            </div>
+            <div className="bg-white rounded-xl p-5">
+              <p className="text-gray-500 text-sm">Zakatable Wealth</p>
+              <p className="text-2xl font-bold text-[#1B5E20]">
+                {hideZakat ? '••••••' : fmt((data?.zakatableWealth as number) || 0)}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">After deductions &amp; exemptions</p>
             </div>
             <div className="bg-white rounded-xl p-5">
               <p className="text-gray-500 text-sm flex items-center gap-1">
@@ -461,34 +471,106 @@ export default function ZakatPage() {
               </p>
               {nisabInfo?.goldPricePerGram && (
                 <p className="text-xs text-gray-400 mt-1">
-                  Gold: ${nisabInfo.goldPricePerGram!.toFixed(2)}/g · 85g standard · refreshed hourly
+                  Gold: ${nisabInfo.goldPricePerGram!.toFixed(2)}/g · 85g standard
                 </p>
               )}
             </div>
           </div>
 
+          {/* How Your Zakat Is Calculated — Asset Breakdown */}
+          {!hideZakat && data?.breakdown && Array.isArray(data.breakdown) && (data.breakdown as Record<string, unknown>[]).length > 0 && (
+            <div className="mt-6 bg-white rounded-xl p-5">
+              <h3 className="text-sm font-semibold text-[#1B5E20] mb-3">How Your Zakat Is Calculated</h3>
+              <p className="text-xs text-gray-500 mb-4">Each asset you&apos;ve added is classified as zakatable or exempt. Here&apos;s the breakdown:</p>
+              <div className="space-y-2">
+                {(data.breakdown as Record<string, unknown>[]).map((item, i) => (
+                  <div key={i} className={`flex items-start gap-3 py-2.5 px-3 rounded-lg ${item.zakatable ? 'bg-green-50' : 'bg-gray-50'}`}>
+                    <span className={`mt-0.5 text-xs font-bold px-1.5 py-0.5 rounded ${item.zakatable ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}`}>
+                      {item.zakatable ? 'Zakatable' : 'Exempt'}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline">
+                        <p className="text-sm font-medium text-gray-800 truncate">{String(item.name)}</p>
+                        <div className="text-right shrink-0 ml-3">
+                          <p className="text-sm font-bold text-gray-800">{fmt(Number(item.value) || 0)}</p>
+                          {item.zakatable && Number(item.zakatableValue) !== Number(item.value) && (
+                            <p className="text-xs text-green-600">{fmt(Number(item.zakatableValue) || 0)} zakatable</p>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">{String(item.reason)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {(data.totalDebts as number) > 0 && (
+                <div className="mt-3 flex items-start gap-3 py-2.5 px-3 rounded-lg bg-red-50">
+                  <span className="mt-0.5 text-xs font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700">Deduction</span>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-baseline">
+                      <p className="text-sm font-medium text-gray-800">Debt Deductions</p>
+                      <p className="text-sm font-bold text-red-600">-{fmt(data.totalDebts as number)}</p>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">Active debts deducted per your fiqh settings</p>
+                  </div>
+                </div>
+              )}
+              <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-baseline">
+                <p className="text-sm font-medium text-gray-700">Net Zakatable Wealth</p>
+                <p className="text-lg font-bold text-[#1B5E20]">{fmt((data?.zakatableWealth as number) || 0)}</p>
+              </div>
+            </div>
+          )}
+
+          {/* No assets message */}
+          {!hideZakat && (!data?.breakdown || (data.breakdown as Record<string, unknown>[]).length === 0) && (
+            <div className="mt-6 bg-blue-50 border border-blue-100 rounded-xl p-5 text-center">
+              <p className="text-blue-800 text-sm font-medium mb-1">No assets found</p>
+              <p className="text-blue-600 text-xs">Add your assets in the Assets page so Barakah can automatically calculate your zakat obligation.</p>
+              <button onClick={() => window.location.href = '/dashboard/assets'} className="mt-3 text-sm bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32]">
+                Go to Assets
+              </button>
+            </div>
+          )}
+
           {nisabMethodologies.length > 0 && (
             <div className="mt-6 bg-white rounded-xl p-5">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Nisab Methodology (Multi-Madhab Support)
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nisab Methodology
               </label>
-              <select
-                value={selectedMethodology}
-                onChange={(e) => handleMethodologyChange(e.target.value)}
-                disabled={savingMethodology}
-                className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
-              >
+              <p className="text-xs text-gray-400 mb-3">Choose how the minimum zakat threshold is calculated</p>
+              <div className="space-y-2">
                 {nisabMethodologies.map((m) => (
-                  <option key={m.code as string} value={m.code as string}>
-                    {m.name as string} {m.description ? `— ${m.description}` : ''}
-                  </option>
+                  <label
+                    key={m.code as string}
+                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition ${
+                      selectedMethodology === m.code
+                        ? 'border-[#1B5E20] bg-green-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    } ${savingMethodology ? 'opacity-50 pointer-events-none' : ''}`}
+                  >
+                    <input
+                      type="radio"
+                      name="nisabMethodology"
+                      value={m.code as string}
+                      checked={selectedMethodology === m.code}
+                      onChange={() => handleMethodologyChange(m.code as string)}
+                      disabled={savingMethodology}
+                      className="mt-0.5 accent-[#1B5E20]"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{m.name as string}</p>
+                      {m.description && <p className="text-xs text-gray-500 mt-0.5">{String(m.description)}</p>}
+                    </div>
+                  </label>
                 ))}
-              </select>
-              {(() => {
-                const desc = nisabMethodologies.find((m) => m.code === selectedMethodology)?.description;
-                return desc ? <p className="text-xs text-gray-500 mt-2">{String(desc)}</p> : null;
-              })()}
-              {savingMethodology && <p className="text-xs text-gray-400 mt-2">Saving...</p>}
+              </div>
+              {savingMethodology && (
+                <div className="flex items-center gap-2 mt-3">
+                  <div className="animate-spin w-3 h-3 border-2 border-[#1B5E20] border-t-transparent rounded-full" />
+                  <p className="text-xs text-gray-500">Updating methodology...</p>
+                </div>
+              )}
             </div>
           )}
 
