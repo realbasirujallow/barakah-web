@@ -113,8 +113,9 @@ export default function HalalPage() {
           debtRatio: r.debtRatio,
         });
       }
-    } catch {
-      setDetailResult({ symbol: ticker, name: '', status: 'UNKNOWN', reason: 'Could not find stock data', sector: '' });
+    } catch (err) {
+      console.error('Halal stock lookup failed:', err);
+      setDetailResult({ symbol: ticker, name: '', status: 'UNKNOWN', reason: 'Could not find stock data. Please check the ticker and try again.', sector: '' });
     }
     setChecking(false);
   };
