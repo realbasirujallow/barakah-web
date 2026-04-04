@@ -115,7 +115,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
   // Free user needs Plus: show side-by-side Plus and Family
   if (required === 'plus' && user.plan === 'free') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen px-6 py-12 bg-gradient-to-b from-green-50 to-white">
+      <div className="flex flex-col items-center justify-center min-h-[80vh] px-6 py-12 bg-gradient-to-b from-green-50 to-white">
         {/* Header */}
         <div className="text-center mb-12 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-6 bg-green-100 text-[#1B5E20]">
@@ -129,19 +129,20 @@ export function PlanGate({ required, featureName, description, children }: PlanG
           </p>
         </div>
 
-        {/* Billing toggle */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
+        {/* Billing toggle — prominent card so users see the annual discount option */}
+        <div className="flex items-center justify-center gap-4 mb-8 bg-white border border-gray-200 rounded-xl px-6 py-3 shadow-sm">
+          <span className={`text-sm font-semibold ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
           <button
             onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
             className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
+            aria-label="Toggle annual billing"
           >
             <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-7' : ''}`} />
           </button>
-          <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
-          {billing === 'yearly' && (
-            <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save up to 34%</span>
-          )}
+          <span className={`text-sm font-semibold ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${billing === 'yearly' ? 'bg-green-100 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
+            {billing === 'yearly' ? 'Saving up to 34%!' : 'Save up to 34%'}
+          </span>
         </div>
 
         {/* Plan Comparison */}
@@ -232,7 +233,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
   // Plus user needs Family: show just Family upgrade with explanation
   if (required === 'family' && (user.plan === 'plus' || user.plan === 'free')) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen px-6 py-12 bg-gradient-to-b from-green-50 to-white">
+      <div className="flex flex-col items-center justify-center min-h-[80vh] px-6 py-12 bg-gradient-to-b from-green-50 to-white">
         {/* Header */}
         <div className="text-center mb-12 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-6 bg-green-100 text-[#1B5E20]">
@@ -255,19 +256,20 @@ export function PlanGate({ required, featureName, description, children }: PlanG
           </div>
         )}
 
-        {/* Billing toggle */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
+        {/* Billing toggle — prominent card */}
+        <div className="flex items-center justify-center gap-4 mb-8 bg-white border border-gray-200 rounded-xl px-6 py-3 shadow-sm">
+          <span className={`text-sm font-semibold ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
           <button
             onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
             className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
+            aria-label="Toggle annual billing"
           >
             <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-7' : ''}`} />
           </button>
-          <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
-          {billing === 'yearly' && (
-            <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">{PRICING.family.yearlySaving}</span>
-          )}
+          <span className={`text-sm font-semibold ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${billing === 'yearly' ? 'bg-green-100 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
+            {billing === 'yearly' ? PRICING.family.yearlySaving : 'Save up to 34%'}
+          </span>
         </div>
 
         {/* Family Plan Card */}
