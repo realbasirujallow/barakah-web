@@ -22,6 +22,7 @@ interface AdminUser {
   updatedAt?: number;
   country?: string;
   state?: string;
+  phoneNumber?: string;
 }
 
 interface UsersResponse {
@@ -880,6 +881,9 @@ export default function AdminPage() {
               <div>
                 <h2 className="text-lg font-bold text-gray-900">{selected.name || 'Unnamed User'}</h2>
                 <p className="text-sm text-gray-500">{selected.email}</p>
+                {selected.phoneNumber && (
+                  <p className="text-sm text-gray-500">📞 <a href={`tel:${selected.phoneNumber}`} className="text-[#1B5E20] hover:underline">{selected.phoneNumber}</a></p>
+                )}
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-xs text-gray-400">ID: {selected.id}</span>
                   <span className="text-xs text-gray-400">·</span>

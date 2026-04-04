@@ -13,6 +13,7 @@ function SignupContent() {
   const [country, setCountry] = useState('US');
   const [state, setState] = useState('');
   const [referralCode, setReferralCode] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -264,7 +265,7 @@ function SignupContent() {
 
     setLoading(true);
     try {
-      const result = await api.signup(name, email, password, state, country, referralCode.trim().toUpperCase() || undefined);
+      const result = await api.signup(name, email, password, state, country, referralCode.trim().toUpperCase() || undefined, phoneNumber.trim() || undefined);
       setEmailSent(result?.emailSent !== false);
       setSignupSuccess(true);
     } catch (err) {
@@ -461,6 +462,21 @@ function SignupContent() {
           )}
 
           <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone number <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="tel"
+              placeholder="+1 (555) 123-4567"
+              value={phoneNumber}
+              onChange={e => setPhoneNumber(e.target.value)}
+              maxLength={20}
+              className="w-full border rounded-lg px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
+            />
+            <p className="text-xs text-gray-400 mt-1">For customer support — we&apos;ll never spam you.</p>
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Referral code <span className="text-gray-400 font-normal">(optional)</span>
             </label>
