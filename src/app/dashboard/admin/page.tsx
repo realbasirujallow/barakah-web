@@ -122,6 +122,7 @@ export default function AdminPage() {
   const [trialDurationDays, setTrialDurationDays] = useState(30);
   const [trialSendEmail, setTrialSendEmail] = useState(true);
   const [trialGranting, setTrialGranting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts' | 'unverified'>('overview');
   const { toast } = useToast();
@@ -993,6 +994,50 @@ export default function AdminPage() {
                 >
                   Grant Trial
                 </button>
+              </div>
+
+              {/* Delete Account */}
+              <div className="border-t pt-5">
+                <p className="text-sm font-medium text-red-700 mb-1">Delete Account</p>
+                <p className="text-xs text-gray-500 mb-3">Permanently deletes this user and ALL their data. This cannot be undone.</p>
+                {deleteConfirm === selected?.id ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-red-600 font-semibold bg-red-50 p-2 rounded">
+                      Are you sure? This will delete {selected.name || selected.email} and all their financial data permanently.
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          try {
+                            await api.adminDeleteUser(selected.id);
+                            toast(`User ${selected.email} deleted`, 'success');
+                            setSelected(null);
+                            setDeleteConfirm(null);
+                            setUsersData(prev => prev ? { ...prev, users: prev.users.filter(u => u.id !== selected.id), totalElements: prev.totalElements - 1 } : prev);
+                          } catch (err) {
+                            toast(err instanceof Error ? err.message : 'Delete failed', 'error');
+                          }
+                        }}
+                        className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
+                      >
+                        Yes, Delete Permanently
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirm(null)}
+                        className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setDeleteConfirm(selected?.id ?? null)}
+                    className="w-full py-2.5 border-2 border-red-300 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-50 transition"
+                  >
+                    Delete User
+                  </button>
+                )}
               </div>
             </div>
           </div>
