@@ -1,7 +1,7 @@
 'use client';
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, setUnauthorizedHandler, setRefreshToken } from '../lib/api';
+import { api, setUnauthorizedHandler, setRefreshToken, setAccessToken } from '../lib/api';
 
 export interface User {
   id: string;
@@ -67,8 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Register a global 401 handler.
     setUnauthorizedHandler(() => {
-      // Clear in-memory + persisted refresh token
+      // Clear in-memory + persisted tokens
       setRefreshToken(null);
+      setAccessToken(null);
       try {
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(REFRESH_TS_KEY);
@@ -297,9 +298,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     localStorage.setItem(USER_KEY, JSON.stringify(profile));
     localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
-    // Store refresh token in memory for body-based refresh (bypasses cookie proxy issues)
+    // Store tokens in localStorage — CDN strips Set-Cookie headers so httpOnly
+    // cookies never reach the browser. Both tokens are persisted client-side.
     if (data.refreshToken) {
       setRefreshToken(data.refreshToken);
+    }
+    if (data.token) {
+      setAccessToken(data.token);
     }
     setUser(profile);
   };
@@ -310,8 +315,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async (reason?: 'logout' | 'deleted') => {
     _intentionalLogout = true;
-    // Clear in-memory refresh token
+    // Clear in-memory tokens
     setRefreshToken(null);
+    setAccessToken(null);
     try {
       await api.logout();
     } catch (err: unknown) {
