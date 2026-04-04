@@ -1,10 +1,9 @@
 'use client';
-import { useAuth, hasAccess, isIntentionalLogout, REFRESH_TS_KEY } from '../../context/AuthContext';
+import { useAuth, hasAccess, isIntentionalLogout } from '../../context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, ReactNode, useState, useMemo } from 'react';
 import { ToastProvider } from '../../lib/toast';
-import { api } from '../../lib/api';
 
 import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
@@ -105,26 +104,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   }, [user, isLoading, router]);
 
-  // ── Proactive token refresh on every client-side navigation ────────────
-  // When the user navigates between dashboard pages the pathname changes.
-  // Fire a silent refresh to keep the auth_token cookie fresh. This prevents
-  // the Next.js middleware from bouncing the user to /login on the next
-  // full-page load. The guard is set to 30 seconds to avoid unnecessary
-  // refreshes during rapid navigation, while being aggressive enough to
-  // prevent the cookie from going stale between page transitions.
-  useEffect(() => {
-    if (!user) return;
-    let lastTs = 0;
-    try { lastTs = parseInt(localStorage.getItem(REFRESH_TS_KEY) || '0', 10) || 0; } catch { /* SSR */ }
-    const secondsSince = (Date.now() - lastTs) / 1000;
-    if (secondsSince > 30) {
-      api.refresh().then((result: 'ok' | 'expired' | 'network_error') => {
-        if (result === 'ok') {
-          try { localStorage.setItem(REFRESH_TS_KEY, String(Date.now())); } catch { /* SSR */ }
-        }
-      }).catch(() => { /* network error — 401 handler will catch on next API call */ });
-    }
-  }, [pathname, user]);
+  // ── NOTE: Proactive refresh removed from layout ──────────────────────────
+  // Previously this layout fired api.refresh() on every pathname change.
+  // This caused a "rotation death spiral": the layout and AuthContext both
+  // fired concurrent refresh requests with the same token. The first
+  // succeeded (rotating the token), but the second used the now-revoked
+  // token and returned 'expired', triggering logout.
+  //
+  // Token freshness is now handled entirely by:
+  //   1. AuthContext mount-time refresh (with 30s guard)
+  //   2. AuthContext 4-minute background interval
+  //   3. api.ts 401-handler (reactive refresh on any failed request)
+  // All three go through deduplicatedRefresh() so concurrent calls are safe.
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-[#FFF8E1]">Loading...</div>;
   if (!user) return (
