@@ -396,12 +396,12 @@ export default function TransactionsPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-20 bg-white rounded-2xl">
-          <p className="text-5xl mb-4">📊</p>
-          <p className="text-gray-600 font-semibold text-lg mb-1">No transactions yet</p>
-          <p className="text-gray-400 text-sm mb-6">Add your first income or expense to get started.</p>
+        <div className="text-center py-20 bg-gradient-to-b from-white to-gray-50 rounded-2xl border border-gray-100">
+          <p className="text-6xl mb-4">📊</p>
+          <p className="text-gray-700 font-semibold text-lg mb-2">No transactions yet</p>
+          <p className="text-gray-500 text-sm mb-6">No transactions recorded. Add your first transaction to start tracking your income and expenses.</p>
           <button onClick={openAdd} className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-xl hover:bg-[#2E7D32] font-medium text-sm">
-            + Add Transaction
+            + Add Your First Transaction
           </button>
         </div>
       )}

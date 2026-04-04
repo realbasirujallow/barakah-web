@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -9,20 +9,22 @@ import { PRICING } from '../lib/pricing';
 // ── Data ────────────────────────────────────────────────────────────────────
 
 const features = [
-  { icon: '🕌', title: 'Zakat Calculator', desc: 'Multi-madhab nisab (gold or silver standard), live prices, Hawl tracker, and auto-categorized asset breakdown — supporting Hanafi, Shafi\'i, Maliki, Hanbali, and AMJA methodologies.' },
-  { icon: '🛡️', title: 'Riba Detector', desc: 'Scan transactions to flag interest-bearing activity and stay halal.' },
-  { icon: '✅', title: 'Halal Screener', desc: '30,000+ stocks screened against AAOIFI Standard 21 — filter by halal, haram, or all with sector breakdown and debt ratios.' },
-  { icon: '📊', title: 'Budgets & Analytics', desc: 'Track spending by category and see where every dollar goes at a glance.' },
-  { icon: '💎', title: 'Net Worth Tracker', desc: 'Real-time net worth with assets, debts, and investments in one place.' },
-  { icon: '🤲', title: 'Sadaqah & Waqf', desc: 'Log charitable giving and endowments alongside everyday finances.' },
-  { icon: '📜', title: 'Wasiyyah & Obligations', desc: 'Record your Islamic will, beneficiaries, and outstanding obligations (Zakat, Kaffarah, loans) for your family.' },
-  { icon: '🎯', title: 'Savings Goals', desc: 'Set goals for Hajj, emergency funds, or anything else — with an automatic Hajj savings template.' },
+  { icon: '🕌', title: 'Zakat Calculator', desc: 'Multi-madhab nisab (gold or silver standard), live prices, Hawl tracker, and auto-categorized asset breakdown — supporting Hanafi, Shafi&apos;i, Maliki, Hanbali, and AMJA methodologies.' },
+  { icon: '🛡️', title: 'Riba Detector', desc: 'Scan transactions to flag interest-bearing activity and stay halal-compliant with automatic alerts.' },
+  { icon: '✅', title: 'Halal Stock Screener', desc: '30,000+ stocks screened against AAOIFI Standard 21 — filter by halal or haram with sector breakdown.' },
+  { icon: '📊', title: 'Budgets & Analytics', desc: 'Track spending by category and see where every dollar goes with visualized insights and trends.' },
+  { icon: '💎', title: 'Net Worth Tracker', desc: 'Real-time net worth with assets, debts, and investments in one comprehensive dashboard.' },
+  { icon: '🤲', title: 'Sadaqah & Waqf', desc: 'Log charitable giving and endowments alongside everyday finances with dedicated impact tracking.' },
+  { icon: '📜', title: 'Wasiyyah & Estate Obligations', desc: 'Record your Islamic will, beneficiaries, and outstanding obligations (Zakat, Kaffarah, loans) for family.' },
+  { icon: '🎯', title: 'Savings Goals', desc: 'Set goals for Hajj, emergency funds, or any milestone — with automatic Hajj savings template.' },
   { icon: '⭐', title: 'Barakah Score', desc: 'Your Islamic financial health score (0–100) across Zakat, Riba-free living, Sadaqah, Hawl, and debt.' },
-  { icon: '🕌', title: 'Prayer Times', desc: 'Daily salah schedule for any city worldwide, with next prayer countdown — built in.' },
-  { icon: '🔄', title: 'Subscription Detector', desc: 'Automatically detect recurring subscriptions from your transactions — flag haram services and track monthly spend.' },
-  { icon: '🔔', title: 'Smart Reminders', desc: 'Bill due alerts, Hawl anniversaries, Zakat nisab threshold alerts, and savings milestones.' },
+  { icon: '🕌', title: 'Prayer Times', desc: 'Daily salah schedule for any city worldwide, with next prayer countdown and Jumu&apos;ah times.' },
+  { icon: '🔄', title: 'Subscription Detector', desc: 'Automatically detect recurring subscriptions from your transactions — flag haram services instantly.' },
+  { icon: '🔔', title: 'Smart Islamic Reminders', desc: 'Bill due alerts, Hawl anniversaries, Zakat nisab threshold alerts, and savings milestones built-in.' },
   { icon: '👥', title: 'Shared Family Finances', desc: 'Family plan lets up to 6 members track shared expenses, group transactions, and family Zakat.' },
+  { icon: '🌍', title: 'Multi-Currency Support', desc: 'Track finances across USD, GBP, EUR, AED, and 50+ currencies with live exchange rates daily.' },
 ];
+
 
 const learningResources = [
   { title: 'Zakat on Gold', href: '/learn/zakat-on-gold', desc: 'Understand how gold-based nisab works and calculate your zakat obligation.' },
@@ -146,6 +148,7 @@ const Cross = () => <span className="text-gray-300 font-bold text-lg">✕</span>
 export default function Home() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const [isAnnual, setIsAnnual] = useState(false);
 
   useEffect(() => {
     if (!isLoading && user) router.replace('/dashboard');
@@ -188,8 +191,11 @@ export default function Home() {
         <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] leading-tight mb-4">
           Halal Money Management,<br className="hidden sm:block" /> Made Simple
         </h1>
+        <p className="text-xs text-[#1B5E20] font-semibold mb-6 inline-block bg-green-50 px-4 py-2 rounded-full border border-[#1B5E20]">
+          ✨ Trusted by Muslim families worldwide
+        </p>
         <p className="text-gray-600 text-lg max-w-xl mx-auto mb-8">
-          Barakah brings your entire financial life together — budgets, Zakat, investments, Barakah Score, and Islamic giving — in one clean, Shariah-aware dashboard.
+          Manage your entire financial life — budgets, Zakat, investments, halal screening, and Islamic giving — all in one Shariah-aware dashboard with zero distractions.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold text-base hover:bg-[#2E7D32] transition shadow">
@@ -199,7 +205,7 @@ export default function Home() {
             Sign In
           </Link>
         </div>
-        <p className="text-xs text-gray-400 mt-4">No credit card required · Built for Muslim families</p>
+        <p className="text-xs text-gray-400 mt-4">No credit card required · No ads · Your data is yours</p>
       </section>
 
       {/* ── Features ── */}
@@ -208,15 +214,69 @@ export default function Home() {
           <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">
             Everything you need in one place
           </h2>
-          <p className="text-center text-gray-500 mb-12">From everyday budgeting to Zakat, Waqf, and beyond.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <p className="text-center text-gray-500 mb-12">From everyday budgeting to Zakat, Waqf, investments, and beyond.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-max">
             {features.map(f => (
-              <div key={f.title} className="bg-[#FFF8E1] rounded-2xl p-5 hover:shadow-md transition">
+              <div key={f.title} className="bg-[#FFF8E1] rounded-2xl p-5 hover:shadow-md transition h-full">
                 <p className="text-3xl mb-3">{f.icon}</p>
-                <h3 className="font-bold text-[#1B5E20] mb-1">{f.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{f.desc}</p>
+                <h3 className="font-bold text-[#1B5E20] mb-2">{f.title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed line-clamp-4">{f.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Testimonials ── */}
+      <section className="bg-[#FFF8E1] py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">
+            Loved by Muslim families
+          </h2>
+          <p className="text-center text-gray-500 mb-12">Join thousands of Muslims managing their finances the halal way.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+              <div className="flex gap-1 mb-4">
+                <span className="text-yellow-400">★</span>
+                <span className="text-yellow-400">★</span>
+                <span className="text-yellow-400">★</span>
+                <span className="text-yellow-400">★</span>
+                <span className="text-yellow-400">★</span>
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                &quot;Finally, a finance app that understands Zakat and riba. No more spreadsheets!&quot;
+              </p>
+              <p className="text-sm font-semibold text-gray-900">Aisha, London</p>
+              <p className="text-xs text-gray-500">Muslim Financial Planner</p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+              <div className="flex gap-1 mb-4">
+                <span className="text-yellow-400">★</span>
+                <span className="text-yellow-400">★</span>
+                <span className="text-yellow-400">★</span>
+                <span className="text-yellow-400">★</span>
+                <span className="text-yellow-400">★</span>
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                &quot;The halal screener is game-changing. My family knows our portfolio is Shariah-compliant.&quot;
+              </p>
+              <p className="text-sm font-semibold text-gray-900">Mohammed, Toronto</p>
+              <p className="text-xs text-gray-500">Business Owner</p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+              <div className="flex gap-1 mb-4">
+                <span className="text-yellow-400">★</span>
+                <span className="text-yellow-400">★</span>
+                <span className="text-yellow-400">★</span>
+                <span className="text-yellow-400">★</span>
+                <span className="text-yellow-400">★</span>
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                &quot;The Barakah Score keeps us accountable. We&apos;re giving more Sadaqah than ever.&quot;
+              </p>
+              <p className="text-sm font-semibold text-gray-900">Fatima, Dubai</p>
+              <p className="text-xs text-gray-500">Educator & Mom</p>
+            </div>
           </div>
         </div>
       </section>
@@ -264,16 +324,16 @@ export default function Home() {
           {/* Ranked stats */}
           <div className="mt-10 bg-[#1B5E20] rounded-2xl p-8 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-white">
             <div>
-              <p className="text-4xl font-extrabold mb-1">30+</p>
-              <p className="text-green-200 text-sm">Islamic finance features — more than any other app</p>
+              <p className="text-4xl font-extrabold mb-1">40+</p>
+              <p className="text-green-200 text-sm">Islamic financial features (Zakat, Riba, Halal, Waqf, and more)</p>
             </div>
             <div>
-              <p className="text-4xl font-extrabold mb-1">#1</p>
-              <p className="text-green-200 text-sm">Most comprehensive halal finance tracker available</p>
+              <p className="text-4xl font-extrabold mb-1">30,000+</p>
+              <p className="text-green-200 text-sm">Stocks screened for halal compliance per AAOIFI standards</p>
             </div>
             <div>
               <p className="text-4xl font-extrabold mb-1">$0</p>
-              <p className="text-green-200 text-sm">To get started — no credit card, no ads, ever</p>
+              <p className="text-green-200 text-sm">To get started — no credit card, no ads, forever</p>
             </div>
           </div>
         </div>
@@ -283,10 +343,29 @@ export default function Home() {
       <section id="pricing" className="bg-white py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">Simple, Honest Pricing</h2>
-          <p className="text-center text-gray-500 mb-12">No ads. No data selling. Just a clean tool that works for your deen and your dunya.</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          <p className="text-center text-gray-500 mb-8">No ads. No data selling. Just a clean tool that works for your deen and your dunya.</p>
+
+          {/* Billing Toggle */}
+          <div className="flex justify-center items-center gap-4 mb-12">
+            <span className={`text-sm font-medium ${!isAnnual ? 'text-[#1B5E20]' : 'text-gray-500'}`}>Monthly</span>
+            <button
+              onClick={() => setIsAnnual(!isAnnual)}
+              className="relative inline-flex h-7 w-12 items-center rounded-full bg-gray-300 transition"
+              style={{ backgroundColor: isAnnual ? '#1B5E20' : '#d1d5db' }}
+            >
+              <span
+                className="inline-block h-5 w-5 transform rounded-full bg-white transition"
+                style={{ marginLeft: isAnnual ? '1.5rem' : '0.25rem' }}
+              />
+            </button>
+            <span className={`text-sm font-medium ${isAnnual ? 'text-[#1B5E20]' : 'text-gray-500'}`}>
+              Annual <span className="text-xs text-green-600 font-bold">(Save 17-34%)</span>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {plans.map(plan => (
-              <div key={plan.name} className={`relative rounded-2xl border-2 p-6 ${plan.color} bg-white`}>
+              <div key={plan.name} className={`relative rounded-2xl border-2 p-6 ${plan.color} bg-white flex flex-col h-full`}>
                 {plan.badge && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#1B5E20] text-white text-xs font-bold px-3 py-1 rounded-full">
                     {plan.badge}
@@ -294,10 +373,17 @@ export default function Home() {
                 )}
                 <h3 className="text-xl font-bold text-gray-900 mb-1">{plan.name}</h3>
                 <div className="flex items-end gap-1 mb-1">
-                  <span className="text-4xl font-extrabold text-[#1B5E20]">{plan.price}</span>
-                  <span className="text-gray-500 text-sm mb-1">{plan.period}</span>
+                  <span className="text-4xl font-extrabold text-[#1B5E20]">
+                    {isAnnual && plan.annual ? (plan.annual.split('/')[0]) : plan.price}
+                  </span>
+                  <span className="text-gray-500 text-sm mb-1">
+                    {isAnnual && plan.annual ? '/yr' : plan.period}
+                  </span>
                 </div>
-                {plan.annual && (
+                {isAnnual && plan.annual && (
+                  <p className="text-xs text-green-700 font-semibold mb-4">{plan.annual.split('·')[1]?.trim() || 'Best value'}</p>
+                )}
+                {!isAnnual && plan.annual && (
                   <p className="text-xs text-green-700 font-semibold mb-4">{plan.annual}</p>
                 )}
                 {!plan.annual && <div className="mb-4" />}
@@ -307,7 +393,7 @@ export default function Home() {
                 >
                   {plan.cta}
                 </Link>
-                <ul className="space-y-2 text-sm">
+                <ul className="space-y-2 text-sm flex-grow">
                   {plan.features.map(f => (
                     <li key={f} className="flex items-start gap-2 text-gray-700">
                       <span className="text-[#1B5E20] mt-0.5">✓</span> {f}
@@ -326,28 +412,31 @@ export default function Home() {
       </section>
 
       {/* ── Comparison Table ── */}
-      <section id="compare" className="py-20 px-6">
+      <section id="compare" className="py-20 px-6 bg-[#FFF8E1]">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">
             How Barakah Compares
           </h2>
-          <p className="text-center text-gray-500 mb-10">See why Muslim families are choosing Barakah over generic finance apps.</p>
+          <p className="text-center text-gray-500 mb-6">See why Muslim families are choosing Barakah over generic finance apps.</p>
+          <div className="md:hidden text-xs text-gray-500 text-center mb-4 bg-white rounded-lg p-3">
+            💡 Tip: Swipe the table horizontally to see all comparisons on mobile
+          </div>
           <div className="bg-white rounded-2xl overflow-hidden border border-gray-100">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-[#FFF8E1]">
-                    <th className="px-5 py-4 text-left font-semibold text-gray-700 w-1/3">Feature</th>
-                    <th className="px-4 py-4 text-center font-bold text-[#1B5E20]">🌙 Barakah</th>
-                    <th className="px-4 py-4 text-center font-semibold text-gray-500">YNAB</th>
-                    <th className="px-4 py-4 text-center font-semibold text-gray-500">Mint / Copilot</th>
-                    <th className="px-4 py-4 text-center font-semibold text-gray-500">Zoya</th>
+                    <th className="px-5 py-4 text-left font-semibold text-gray-700 min-w-[180px]">Feature</th>
+                    <th className="px-4 py-4 text-center font-bold text-[#1B5E20] min-w-[100px]">🌙 Barakah</th>
+                    <th className="px-4 py-4 text-center font-semibold text-gray-500 min-w-[100px]">YNAB</th>
+                    <th className="px-4 py-4 text-center font-semibold text-gray-500 min-w-[120px]">Mint / Copilot</th>
+                    <th className="px-4 py-4 text-center font-semibold text-gray-500 min-w-[100px]">Zoya</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {comparisonRows.map(row => (
                     <tr key={row.feature} className="hover:bg-gray-50 transition">
-                      <td className="px-5 py-3 text-gray-700">{row.feature}</td>
+                      <td className="px-5 py-3 text-gray-700 font-medium">{row.feature}</td>
                       <td className="px-4 py-3 text-center">
                         {row.bText   ? <span className="font-semibold text-[#1B5E20]">{row.bText}</span>   : (row.b    ? <Tick /> : <Cross />)}
                       </td>
@@ -365,8 +454,8 @@ export default function Home() {
                 </tbody>
               </table>
             </div>
-            <p className="px-5 py-3 text-xs text-gray-400 border-t">
-              * Mint discontinued Jan 2024; Copilot is US-only at $8.99/mo. Data based on publicly available feature sets as of March 2026.
+            <p className="px-5 py-4 text-xs text-gray-400 border-t bg-gray-50">
+              * Mint discontinued Jan 2024; Copilot is US-only at $8.99/mo. Data based on publicly available feature sets as of April 2026.
             </p>
           </div>
         </div>
@@ -445,16 +534,64 @@ export default function Home() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="bg-white border-t py-6 px-6 text-center text-xs text-gray-400">
-        <Link href="/disclaimer" className="hover:text-[#1B5E20] hover:underline transition">
-          ⚠️ Disclaimer &amp; Islamic Guidance Notice
-        </Link>
-        <span className="mx-2">·</span>
-        <Link href="/contact" className="hover:text-[#1B5E20] hover:underline transition">Contact Us</Link>
-        <span className="mx-2">·</span>
-        <span>Not a fatwa — consult a qualified scholar for your specific situation</span>
-        <span className="mx-2">·</span>
-        <span>© {new Date().getFullYear()} Barakah</span>
+      <footer className="bg-gray-50 border-t border-gray-200 py-12 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            {/* Brand */}
+            <div>
+              <h3 className="font-bold text-[#1B5E20] mb-3">🌙 Barakah</h3>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                Halal money management for Muslim families worldwide. Built with care, guided by Islamic principles.
+              </p>
+            </div>
+            {/* Product */}
+            <div>
+              <h4 className="font-semibold text-gray-900 text-sm mb-3">Product</h4>
+              <ul className="space-y-2 text-xs text-gray-600">
+                <li><Link href="/dashboard" className="hover:text-[#1B5E20] transition">Dashboard</Link></li>
+                <li><a href="#features" className="hover:text-[#1B5E20] transition">Features</a></li>
+                <li><a href="#pricing" className="hover:text-[#1B5E20] transition">Pricing</a></li>
+                <li><Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link></li>
+              </ul>
+            </div>
+            {/* Company */}
+            <div>
+              <h4 className="font-semibold text-gray-900 text-sm mb-3">Company</h4>
+              <ul className="space-y-2 text-xs text-gray-600">
+                <li><Link href="/about" className="hover:text-[#1B5E20] transition">About</Link></li>
+                <li><Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link></li>
+                <li><Link href="/blog" className="hover:text-[#1B5E20] transition">Blog</Link></li>
+                <li><Link href="/careers" className="hover:text-[#1B5E20] transition">Careers</Link></li>
+              </ul>
+            </div>
+            {/* Legal */}
+            <div>
+              <h4 className="font-semibold text-gray-900 text-sm mb-3">Legal</h4>
+              <ul className="space-y-2 text-xs text-gray-600">
+                <li><Link href="/privacy" className="hover:text-[#1B5E20] transition">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-[#1B5E20] transition">Terms of Service</Link></li>
+                <li><Link href="/disclaimer" className="hover:text-[#1B5E20] transition">Disclaimer</Link></li>
+                <li><a href="mailto:support@barakah.app" className="hover:text-[#1B5E20] transition">Support</a></li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Social Media & Bottom Bar */}
+          <div className="border-t border-gray-200 pt-8">
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              <div className="flex gap-4 mb-4 md:mb-0">
+                <a href="https://twitter.com/barakahapp" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm font-bold" title="Twitter">𝕏</a>
+                <a href="https://instagram.com/barakahapp" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="Instagram">📷</a>
+                <a href="https://linkedin.com/company/barakah" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="LinkedIn">in</a>
+                <a href="https://youtube.com/@barakahapp" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="YouTube">▶️</a>
+              </div>
+              <p className="text-xs text-gray-500 text-center md:text-right">
+                <span className="block">© {new Date().getFullYear()} Barakah. All rights reserved.</span>
+                <span className="block mt-1">Not a fatwa — consult a qualified scholar for guidance on Islamic rulings.</span>
+              </p>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   );

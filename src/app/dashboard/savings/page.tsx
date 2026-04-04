@@ -236,18 +236,21 @@ export default function SavingsPage() {
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div className={`h-2 rounded-full transition-all ${done ? 'bg-green-500' : 'bg-blue-600'}`} style={{ width: `${pct}%` }} />
                 </div>
-                <p className="text-xs text-gray-400 mt-1 text-right">{pct.toFixed(0)}% complete</p>
+                <div className="mt-2 flex items-center justify-between">
+                  <p className="text-xs text-gray-400">{pct.toFixed(0)}% complete</p>
+                  {done && <p className="text-xs font-bold text-green-600">Goal Completed!</p>}
+                </div>
               </div>
             );
           })}
         </div>
       ) : (
-        <div className="text-center py-20 bg-white rounded-2xl">
-          <p className="text-5xl mb-4">🎯</p>
-          <p className="text-gray-600 font-semibold text-lg mb-1">No savings goals yet</p>
-          <p className="text-gray-400 text-sm mb-6">Set a goal for Hajj, Umrah, an emergency fund, or anything that matters to you.</p>
+        <div className="text-center py-20 bg-gradient-to-b from-white to-gray-50 rounded-2xl border border-gray-100">
+          <p className="text-6xl mb-4">🎯</p>
+          <p className="text-gray-700 font-semibold text-lg mb-2">No savings goals yet</p>
+          <p className="text-gray-500 text-sm mb-6">No savings goals yet. Set your first goal for Hajj, Umrah, an emergency fund, or anything that matters to you.</p>
           <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-xl hover:bg-[#2E7D32] font-medium text-sm">
-            + New Goal
+            + Set Your First Goal
           </button>
         </div>
       )}

@@ -242,7 +242,9 @@ export default function DebtsPage() {
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
 
   const totalDebt  = debts.reduce((s, d) => s + d.remainingAmount, 0);
-  const ribaDebts  = debts.filter(d => !d.ribaFree && !ISLAMIC_TYPES.includes(d.type));
+  const paidOffDebts = debts.filter(d => d.remainingAmount === 0);
+  const activeDebts = debts.filter(d => d.remainingAmount > 0);
+  const ribaDebts  = activeDebts.filter(d => !d.ribaFree && !ISLAMIC_TYPES.includes(d.type));
   const monthsSavedAvalanche  = projBase.months - projAvalanche.months;
   const interestSavedAvalanche = projBase.totalInterest - projAvalanche.totalInterest;
   const monthsSavedSnowball   = projBase.months - projSnowball.months;
@@ -286,11 +288,11 @@ export default function DebtsPage() {
             </div>
           )}
 
-          {debts.length > 0 && (
+          {activeDebts.length > 0 && (
             <div className="flex items-center gap-3 mb-3 flex-wrap">
               <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
-                <input type="checkbox" checked={selectedIds.size === debts.length && debts.length > 0} onChange={toggleSelectAll} className="w-4 h-4 accent-[#1B5E20] rounded" />
-                {selectedIds.size === debts.length && debts.length > 0 ? 'Deselect all' : 'Select all'}
+                <input type="checkbox" checked={selectedIds.size === activeDebts.length && activeDebts.length > 0} onChange={toggleSelectAll} className="w-4 h-4 accent-[#1B5E20] rounded" />
+                {selectedIds.size === activeDebts.length && activeDebts.length > 0 ? 'Deselect all' : 'Select all'}
               </label>
               {selectedIds.size > 0 && (
                 <>
@@ -301,14 +303,14 @@ export default function DebtsPage() {
                   <button type="button" onClick={() => setSelectedIds(new Set())} className="text-sm text-gray-500 hover:text-gray-700 border border-gray-300 px-3 py-1 rounded-lg">Clear</button>
                 </>
               )}
-              {selectedIds.size === 0 && debts.length > 1 && (
+              {selectedIds.size === 0 && activeDebts.length > 1 && (
                 <button type="button" onClick={handleDeleteAll} disabled={bulkDeleting} className="ml-auto text-xs text-red-500 hover:text-red-700 disabled:opacity-50">Delete all</button>
               )}
             </div>
           )}
-          {debts.length > 0 ? (
+          {activeDebts.length > 0 ? (
             <div className="space-y-3">
-              {debts.map((d: DebtItem) => {
+              {activeDebts.map((d: DebtItem) => {
                 const pct = d.totalAmount > 0 ? ((d.totalAmount - d.remainingAmount) / d.totalAmount) * 100 : 0;
                 const halal = d.ribaFree || ISLAMIC_TYPES.includes(d.type);
                 return (
@@ -322,6 +324,11 @@ export default function DebtsPage() {
                           <span className={`text-xs px-2 py-0.5 rounded-full ${halal ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{halal ? 'Halal' : 'Riba'}</span>
                         </div>
                         <p className="text-sm text-gray-500">{TYPE_LABELS[d.type] || d.type}{d.lender ? ` • ${d.lender}` : ''} • {fmt(d.monthlyPayment)}/mo</p>
+                        {d.monthlyPayment > 0 && d.remainingAmount > 0 && (
+                          <p className="text-xs text-blue-600 font-medium mt-1">
+                            ~{Math.ceil(d.remainingAmount / d.monthlyPayment)} months to payoff
+                          </p>
+                        )}
                         {d.interestRate > 0 && (
                           <p className={`text-xs font-bold mt-0.5 ${halal ? 'text-green-700' : 'text-red-700'}`}>
                             {ISLAMIC_TYPES.includes(d.type) ? `Profit Rate: ${d.interestRate}% (Halal)` : `Interest: ${d.interestRate}% (Riba)`}
@@ -346,8 +353,40 @@ export default function DebtsPage() {
                 );
               })}
             </div>
+          ) : paidOffDebts.length > 0 ? (
+            <div className="text-center py-8 text-gray-400"><p className="text-3xl mb-2">🎉</p><p className="text-lg font-semibold text-green-700">No active debts!</p><p className="text-sm mt-1">See paid-off debts below</p></div>
           ) : (
             <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-3">🎉</p><p>No debts — Alhamdulillah!</p></div>
+          )}
+
+          {paidOffDebts.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-lg font-bold text-green-700 mb-3">Paid Off</h2>
+              <p className="text-sm text-gray-600 mb-4">Congratulations on completing these debts!</p>
+              <div className="space-y-3">
+                {paidOffDebts.map((d: DebtItem) => {
+                  const halal = d.ribaFree || ISLAMIC_TYPES.includes(d.type);
+                  return (
+                    <div key={d.id} className="flex items-start gap-3 opacity-60">
+                      <div className="flex-1 bg-white rounded-xl p-4 border border-gray-200">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-semibold text-gray-600 line-through">{d.name}</p>
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Paid Off</span>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${halal ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{halal ? 'Halal' : 'Riba'}</span>
+                            </div>
+                            <p className="text-sm text-gray-500">{TYPE_LABELS[d.type] || d.type}{d.lender ? ` • ${d.lender}` : ''}</p>
+                          </div>
+                          <button type="button" onClick={() => handleDelete(d.id)} disabled={deletingId === d.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === d.id ? 'Deleting...' : 'Del'}</button>
+                        </div>
+                        <div className="text-sm text-gray-500">Total paid: <span className="font-semibold text-gray-700">{fmt(d.totalAmount)}</span></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
         </>
       )}

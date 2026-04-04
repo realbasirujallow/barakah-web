@@ -20,6 +20,8 @@ interface AdminUser {
   hasStripe?: boolean;
   createdAt: number;
   updatedAt?: number;
+  country?: string;
+  state?: string;
 }
 
 interface UsersResponse {
@@ -55,6 +57,8 @@ interface Overview {
   usersWithReferrals: number;
   totalDonationRecords: number;
   recentSignups: AdminUser[];
+  countryDistribution?: Record<string, number>;
+  stateDistribution?: Record<string, number>;
 }
 
 /* ──────────────────────────── Helpers ─────────────────────────── */
@@ -119,7 +123,7 @@ export default function AdminPage() {
   const [trialSendEmail, setTrialSendEmail] = useState(true);
   const [trialGranting, setTrialGranting] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts' | 'unverified'>('overview');
   const { toast } = useToast();
   const { fmt: fmtMoney } = useCurrency();
 
@@ -332,7 +336,7 @@ export default function AdminPage() {
 
       {/* ── Tab Navigation ── */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
-        {(['overview', 'users', 'alerts'] as const).map(tab => (
+        {(['overview', 'users', 'alerts', 'unverified'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -349,6 +353,14 @@ export default function AdminPage() {
                 🔔 Alerts
                 {alertCount > 0 && (
                   <span className="ml-1.5 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">{alertCount}</span>
+                )}
+              </>
+            )}
+            {tab === 'unverified' && (
+              <>
+                📧 Unverified
+                {(overview?.unverifiedEmails ?? 0) > 0 && (
+                  <span className="ml-1.5 bg-amber-500 text-white text-xs px-1.5 py-0.5 rounded-full">{overview!.unverifiedEmails}</span>
                 )}
               </>
             )}
@@ -449,6 +461,63 @@ export default function AdminPage() {
                 <p className="text-2xl font-bold text-red-500">{overview.expiringTrialsCount}</p>
                 <p className="text-xs text-gray-400 mt-1">within 7 days</p>
               </div>
+            </div>
+          )}
+
+          {/* ── User Demographics ── */}
+          {overview && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {overview.countryDistribution && Object.keys(overview.countryDistribution).length > 0 && (
+                <div className="bg-white rounded-2xl p-5 border">
+                  <h2 className="font-semibold text-gray-700 mb-4 text-sm">Top Countries</h2>
+                  <div className="space-y-3">
+                    {Object.entries(overview.countryDistribution)
+                      .sort(([, a], [, b]) => b - a)
+                      .slice(0, 10)
+                      .map(([country, count]) => {
+                        const total = Object.values(overview.countryDistribution!).reduce((a, b) => a + b, 0);
+                        const pct = (count / total) * 100;
+                        return (
+                          <div key={country}>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-gray-600">{country}</span>
+                              <span className="font-medium text-gray-800">{count} ({pct.toFixed(1)}%)</span>
+                            </div>
+                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-[#1B5E20] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              {overview.stateDistribution && Object.keys(overview.stateDistribution).length > 0 && (
+                <div className="bg-white rounded-2xl p-5 border">
+                  <h2 className="font-semibold text-gray-700 mb-4 text-sm">Top US States</h2>
+                  <div className="space-y-3">
+                    {Object.entries(overview.stateDistribution)
+                      .sort(([, a], [, b]) => b - a)
+                      .slice(0, 10)
+                      .map(([state, count]) => {
+                        const total = Object.values(overview.stateDistribution!).reduce((a, b) => a + b, 0);
+                        const pct = (count / total) * 100;
+                        return (
+                          <div key={state}>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-gray-600">{state}</span>
+                              <span className="font-medium text-gray-800">{count} ({pct.toFixed(1)}%)</span>
+                            </div>
+                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-[#1B5E20] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -711,6 +780,94 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* ═══════════════════ UNVERIFIED TAB ═══════════════════ */}
+      {activeTab === 'unverified' && (
+        <div className="bg-white rounded-2xl overflow-hidden border">
+          <div className="p-4 border-b bg-amber-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📧</span>
+                <div>
+                  <h2 className="font-semibold text-amber-800 text-sm">Unverified Emails</h2>
+                  <p className="text-xs text-amber-700 mt-0.5">These users signed up but never confirmed their email address. They cannot access the app until verified.</p>
+                </div>
+              </div>
+              {(usersData?.users.filter(u => u.emailVerified === false) ?? []).length > 0 && (
+                <button
+                  onClick={async () => {
+                    const unverified = usersData!.users.filter(u => u.emailVerified === false);
+                    try {
+                      await Promise.all(unverified.map(u => api.adminResendVerification(u.id)));
+                      toast(`Sent verification emails to ${unverified.length} user${unverified.length > 1 ? 's' : ''}`, 'success');
+                      loadData(page);
+                    } catch (err) {
+                      toast(err instanceof Error ? err.message : 'Failed to resend verification emails', 'error');
+                    }
+                  }}
+                  className="px-4 py-2 bg-amber-500 text-white text-sm rounded-lg font-semibold hover:bg-amber-600 transition"
+                >
+                  Resend All
+                </button>
+              )}
+            </div>
+          </div>
+
+          {(() => {
+            const unverified = usersData?.users.filter(u => u.emailVerified === false) ?? [];
+            if (unverified.length === 0) {
+              return (
+                <div className="p-8 text-center text-gray-400 text-sm">
+                  <p className="text-4xl mb-2">✓</p>
+                  <p>All users have verified their email addresses.</p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="divide-y divide-gray-100">
+                <div className="grid grid-cols-4 px-5 py-3 bg-gray-50 gap-4 text-xs font-semibold text-gray-600 uppercase">
+                  <div>Name & Email</div>
+                  <div>Signup Date</div>
+                  <div>Location</div>
+                  <div>Action</div>
+                </div>
+                {unverified.map(u => (
+                  <div key={u.id} className="grid grid-cols-4 px-5 py-4 gap-4 items-center hover:bg-gray-50 transition">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        {(u.name || u.email)[0].toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate">{u.name || 'Unnamed'}</p>
+                        <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-600">{fmtDateMs(u.createdAt)}</div>
+                    <div className="text-sm text-gray-600">
+                      {u.country && u.state ? `${u.state}, ${u.country}` : u.country || u.state || '—'}
+                    </div>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await api.adminResendVerification(u.id);
+                          toast(`Verification email sent to ${u.email}`, 'success');
+                          loadData(page);
+                        } catch (err) {
+                          toast(err instanceof Error ? err.message : 'Failed to send verification email', 'error');
+                        }
+                      }}
+                      className="px-3 py-1.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition"
+                    >
+                      Resend
+                    </button>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
       {/* ══════════════════ USER DETAIL MODAL ══════════════════ */}
       {selected && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeModal}>
@@ -725,6 +882,14 @@ export default function AdminPage() {
                   <span className="text-xs text-gray-400">·</span>
                   <span className="text-xs text-gray-400">Joined {fmtDateMs(selected.createdAt)}</span>
                 </div>
+                {(selected.country || selected.state) && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-gray-400">📍</span>
+                    <span className="text-xs text-gray-400">
+                      {selected.state && selected.country ? `${selected.state}, ${selected.country}` : selected.country || selected.state}
+                    </span>
+                  </div>
+                )}
                 <div className="flex gap-1.5 mt-2">
                   {(() => {
                     const planInfo = PLAN_LABELS[selected.plan] ?? PLAN_LABELS.free;

@@ -33,6 +33,13 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  const getGreeting = (): { text: string; emoji: string } => {
+    const hour = new Date().getHours();
+    if (hour < 12) return { text: 'Good morning', emoji: '🌅' };
+    if (hour < 18) return { text: 'Good afternoon', emoji: '☀️' };
+    return { text: 'Good evening', emoji: '🌙' };
+  };
+
   useEffect(() => {
     // Show onboarding for first-time users
     if (!safeGetItem('barakah_onboarded')) setShowOnboarding(true);
@@ -61,6 +68,13 @@ export default function DashboardPage() {
     setHideZakat(newValue);
     safeSetItem('hideZakatDashboard', newValue ? 'true' : 'false');
   };
+
+  const quickActions = [
+    { href: '/dashboard/zakat', icon: '🕌', label: 'Calculate Zakat', desc: 'Calculate zakat due' },
+    { href: '/dashboard/transactions', icon: '📝', label: 'Add Transaction', desc: 'Income & expenses' },
+    { href: '/dashboard/prayer-times', icon: '🕌', label: 'Check Prayer Times', desc: 'Daily salah schedule' },
+    { href: '/dashboard/budget', icon: '📈', label: 'View Budget', desc: 'Monthly spending limits' },
+  ];
 
   const cards = [
     { href: '/dashboard/assets', icon: '💰', label: 'Assets', desc: 'View & manage wealth' },
@@ -156,6 +170,32 @@ export default function DashboardPage() {
             </Link>
           </div>
         )}
+      </div>
+
+      {/* Greeting section */}
+      <div className="mb-8 p-6 bg-gradient-to-r from-[#1B5E20] to-green-600 rounded-2xl text-white">
+        <p className="text-lg font-semibold flex items-center gap-2">
+          <span className="text-2xl">{getGreeting().emoji}</span>
+          {getGreeting().text}{user?.name ? `, ${user.name}` : ''}
+        </p>
+        <p className="text-green-100 text-sm mt-1">Welcome back to Barakah. May your finances be blessed with barakah.</p>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="mb-8">
+        <h2 className="text-lg font-bold text-[#1B5E20] mb-3">Quick Actions</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {quickActions.map(c => (
+            <Link
+              key={c.href}
+              href={c.href}
+              className="bg-white rounded-xl p-4 hover:shadow-md transition group border border-gray-100"
+            >
+              <div className="text-2xl mb-2">{c.icon}</div>
+              <h3 className="font-semibold text-[#1B5E20] group-hover:underline text-sm">{c.label}</h3>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Summary cards */}
