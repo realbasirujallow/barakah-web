@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/dashboard/', '/admin/', '/api/', '/auth/'],
       },
     ],
-    sitemap: 'https://trybarakah.com/sitemap.xml',
+    sitemap: `${process.env.NEXT_PUBLIC_APP_URL || 'https://trybarakah.com'}/sitemap.xml`,
   };
 }

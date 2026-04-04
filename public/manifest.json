@@ -1,0 +1,29 @@
+{
+  "name": "Barakah - Islamic Finance Tracker & Zakat Calculator",
+  "short_name": "Barakah",
+  "description": "Track your wealth, calculate zakat, screen halal stocks, and manage family budgets — the Islamic way.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1B5E20",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "lifestyle"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
