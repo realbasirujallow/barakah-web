@@ -178,13 +178,13 @@ export default function AssetsPage() {
         if (form.penaltyRate) {
           const penaltyVal = parseFloat(form.penaltyRate);
           if (Number.isFinite(penaltyVal) && penaltyVal >= 0 && penaltyVal <= 100) {
-            data.penaltyRate = penaltyVal / 100;
+            data.penaltyRate = Math.round((penaltyVal / 100) * 10000) / 10000;
           }
         }
         if (form.taxRate) {
           const taxVal = parseFloat(form.taxRate);
           if (Number.isFinite(taxVal) && taxVal >= 0 && taxVal <= 100) {
-            data.taxRate = taxVal / 100;
+            data.taxRate = Math.round((taxVal / 100) * 10000) / 10000;
           }
         }
       }
@@ -194,7 +194,7 @@ export default function AssetsPage() {
         if (form.taxRate) {
           const taxVal = parseFloat(form.taxRate);
           if (Number.isFinite(taxVal) && taxVal >= 0 && taxVal <= 100) {
-            data.taxRate = taxVal / 100;
+            data.taxRate = Math.round((taxVal / 100) * 10000) / 10000;
           } else {
             data.taxRate = 0;
           }
@@ -210,9 +210,10 @@ export default function AssetsPage() {
       setShowForm(false);
       setForm(EMPTY_FORM);
       load();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
       logError(err, { context: 'Failed to save asset' });
-      setSaveError(err?.message || 'Failed to save asset. Please try again.');
+      setSaveError(message || 'Failed to save asset. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -227,9 +228,10 @@ export default function AssetsPage() {
           if (result?.error) throw new Error(result.error);
           toast('Asset deleted successfully', 'success');
           load();
-        } catch (err: any) {
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : String(err);
           logError(err, { context: 'Failed to delete asset' });
-          toast(err?.message || 'Failed to delete asset. Please try again.', 'error');
+          toast(message || 'Failed to delete asset. Please try again.', 'error');
         }
       }
     });
@@ -263,8 +265,9 @@ export default function AssetsPage() {
           setSelectedIds(new Set());
           setSelectMode(false);
           load();
-        } catch (err: any) {
-          toast(err?.message || 'Failed to delete assets.', 'error');
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : String(err);
+          toast(message || 'Failed to delete assets.', 'error');
         } finally {
           setBulkDeleting(false);
         }
@@ -280,7 +283,9 @@ export default function AssetsPage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div role="status" aria-label="Loading assets..." className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full">
+        <span className="sr-only">Loading...</span>
+      </div>
     </div>
   );
 
@@ -470,13 +475,13 @@ export default function AssetsPage() {
             <h2 className="text-xl font-bold text-[#1B5E20] mb-4">{editItem ? 'Edit Asset' : 'Add Asset'}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                <label htmlFor="asset-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input id="asset-name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. My Home" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}
+                <label htmlFor="asset-type" className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select id="asset-type" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {Object.entries(TYPE_GROUPS).map(([group, items]) => (
                     <optgroup key={group} label={group}>
@@ -486,8 +491,8 @@ export default function AssetsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Value (USD)</label>
-                <input type="number" step="0.01" value={form.value} onChange={e => setForm({ ...form, value: e.target.value })}
+                <label htmlFor="asset-value" className="block text-sm font-medium text-gray-700 mb-1">Value (USD)</label>
+                <input id="asset-value" type="number" step="0.01" value={form.value} onChange={e => setForm({ ...form, value: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="0.00" />
               </div>
 

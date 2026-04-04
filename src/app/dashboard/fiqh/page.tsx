@@ -71,7 +71,7 @@ export default function FiqhSettingsPage() {
         }
       } catch (err) {
         logError(err, { context: 'Failed to load fiqh config' });
-        toast('Failed to load Fiqh settings. Please refresh.', 'error');
+        toast('Failed to load fiqh settings. Please try refreshing.', 'error');
       }
       setLoading(false);
     };
