@@ -583,6 +583,11 @@ export default function ZakatPage() {
                   )}
                 </p>
               )}
+              <p className="text-xs text-green-700 bg-green-50 rounded px-2 py-0.5 mt-2 inline-block font-medium">
+                {selectedMethodology === 'CLASSICAL_SILVER' ? 'Silver Standard (Classical Hanafi)' :
+                 selectedMethodology === 'LOWER_OF_BOTH' ? 'Lower of Gold/Silver (Al-Qaradawi)' :
+                 'Gold Standard (AMJA)'} · <button onClick={() => { const el = document.getElementById('methodology-section'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="underline">Change</button>
+              </p>
             </div>
           </div>
 
@@ -643,7 +648,7 @@ export default function ZakatPage() {
           )}
 
           {nisabMethodologies.length > 0 && (
-            <div className="mt-6 bg-white rounded-xl p-5">
+            <div id="methodology-section" className="mt-6 bg-white rounded-xl p-5">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Nisab Methodology
               </label>
