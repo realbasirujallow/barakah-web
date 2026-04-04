@@ -92,9 +92,19 @@ export default function RetirementZakatPage() {
 
       const result = await api.calculateRetirementZakat(data);
       if (result?.error) {
-        toast(`Error: ${result.error}`, 'error');
-      } else {
+        toast(result.error, 'error');
+        setResults(null);
+        return;
+      }
+      // Validate results completeness before setting
+      const hasValidResults = result &&
+        result.fullAccessible !== undefined &&
+        result.fullAccessible !== null;
+      if (hasValidResults) {
         setResults(result);
+      } else {
+        toast('Unable to calculate retirement zakat. Please check your inputs and try again.', 'error');
+        setResults(null);
       }
     } catch (err) {
       logError(err, { context: 'Failed to calculate retirement zakat' });
@@ -167,7 +177,7 @@ export default function RetirementZakatPage() {
                     max="100"
                     value={employerMatchPercent}
                     onChange={(e) => setEmployerMatchPercent(e.target.value)}
-                    placeholder="50"
+                    placeholder="e.g. 50 for 50%"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
                   />
                   <p className="text-xs text-gray-600 mt-1">Typically 50% (e.g., employer matches 50% of your contribution)</p>
@@ -214,6 +224,14 @@ export default function RetirementZakatPage() {
                 <p className="text-gray-600">Enter your account details and click "Calculate Zakat" to see the three scholarly positions.</p>
               </div>
             ) : (
+              <>
+                {!results.fullAccessible ? (
+                  <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+                    <div className="text-red-600 p-4 bg-red-50 rounded-lg">
+                      Unable to calculate retirement zakat. Please check your inputs and try again.
+                    </div>
+                  </div>
+                ) : (
               <div className="space-y-6">
                 {/* Account Summary */}
                 <div className="bg-white rounded-lg shadow-lg p-6">
@@ -336,6 +354,8 @@ export default function RetirementZakatPage() {
                   </p>
                 </div>
               </div>
+                )}
+              </>
             )}
           </div>
         </div>

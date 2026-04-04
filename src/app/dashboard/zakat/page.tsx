@@ -75,6 +75,7 @@ export default function ZakatPage() {
   const [showMabrook, setShowMabrook] = useState(false);
   const [form, setForm] = useState({ amount: '', recipient: '', notes: '' });
   const [hideZakat, setHideZakat] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [nisabInfo, setNisabInfo] = useState<NisabInfo | null>(null);
   const [checklist, setChecklist] = useState({ wealth: false, hawl: false, debts: false, quranic: false });
 
@@ -131,20 +132,27 @@ export default function ZakatPage() {
         // Map backend response shape to frontend expected keys.
         // Backend returns: { totalDue: { minimum, recommended, generous }, perPerson: { ... } }
         // Frontend expects: { totalDue (number), minimumAmount, recommendedAmount, generousAmount }
-        const totalDue = fitr.totalDue as Record<string, number> | number | undefined;
-        const perPerson = fitr.perPerson as Record<string, number> | undefined;
+        const totalDue = fitr.totalDue;
+        const perPerson = fitr.perPerson;
         const mapped: Record<string, unknown> = { ...fitr };
 
-        if (totalDue && typeof totalDue === 'object') {
-          mapped.totalDue = totalDue.recommended ?? totalDue.minimum ?? 0;
-          mapped.minimumTotal = totalDue.minimum ?? 0;
-          mapped.recommendedTotal = totalDue.recommended ?? 0;
-          mapped.generousTotal = totalDue.generous ?? 0;
+        // Validate response shape
+        if (totalDue && typeof totalDue === 'object' && totalDue !== null && 'recommended' in totalDue) {
+          mapped.totalDue = (totalDue as Record<string, number>).recommended ?? (totalDue as Record<string, number>).minimum ?? 0;
+          mapped.minimumTotal = (totalDue as Record<string, number>).minimum ?? 0;
+          mapped.recommendedTotal = (totalDue as Record<string, number>).recommended ?? 0;
+          mapped.generousTotal = (totalDue as Record<string, number>).generous ?? 0;
+        } else if (typeof totalDue === 'number') {
+          mapped.totalDue = totalDue;
+        } else {
+          logError(new Error('Unexpected fitr response shape'), { context: 'fitr-response-validation', data: fitr });
+          // Use safe defaults
+          mapped.totalDue = 0;
         }
         if (perPerson && typeof perPerson === 'object') {
-          mapped.minimumAmount = perPerson.minimum ?? 0;
-          mapped.recommendedAmount = perPerson.recommended ?? 0;
-          mapped.generousAmount = perPerson.generous ?? 0;
+          mapped.minimumAmount = (perPerson as Record<string, number>).minimum ?? 0;
+          mapped.recommendedAmount = (perPerson as Record<string, number>).recommended ?? 0;
+          mapped.generousAmount = (perPerson as Record<string, number>).generous ?? 0;
         }
         // Map citation fields
         const citations = fitr.citations as Record<string, string> | undefined;
@@ -181,6 +189,7 @@ export default function ZakatPage() {
 
   const load = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const results = await Promise.allSettled([
         api.getZakat(),
@@ -255,6 +264,7 @@ export default function ZakatPage() {
       setTotalPaid(backendPaid != null ? backendPaid : clientPaid);
     } catch (err) {
       logError(err, { context: 'Failed to load zakat data' });
+      setLoadError('Failed to load zakat data. Please try refreshing.');
     }
     setLoading(false);
   };
@@ -262,11 +272,20 @@ export default function ZakatPage() {
   useEffect(() => { load(); }, []);
 
   // Use effectiveZakatAmount (locked amount) if available, otherwise use zakatDue
-  const zakatDue = (data?.effectiveZakatAmount as number) || (data?.zakatDue as number) || 0;
+  const zakatDue = data && !data.error
+    ? ((data?.effectiveZakatAmount as number) ?? (data?.zakatDue as number) ?? 0)
+    : null;
   const zakatEligible = data?.zakatEligible as boolean;
-  const remaining = Math.max(0, zakatDue - totalPaid);
-  const fulfilled = zakatEligible && totalPaid >= zakatDue && zakatDue > 0;
-  const fulfillmentPct = zakatDue > 0 ? Math.min(1, totalPaid / zakatDue) : 0;
+  const remaining = zakatDue !== null ? Math.max(0, zakatDue - totalPaid) : 0;
+  const fulfilled = zakatDue !== null && zakatEligible && totalPaid >= zakatDue && zakatDue > 0;
+  const fulfillmentPct = zakatDue !== null && zakatDue > 0 ? Math.min(1, totalPaid / zakatDue) : 0;
+
+  // Show Mabrook dialog if zakat is fulfilled
+  useEffect(() => {
+    if (fulfilled && zakatDue !== null && zakatDue > 0) {
+      setShowMabrook(true);
+    }
+  }, [fulfilled, zakatDue]);
 
   const handleShowPaymentForm = () => {
     // Show checklist first, reset form
@@ -290,16 +309,16 @@ export default function ZakatPage() {
       setShowForm(false);
       setShowChecklist(false);
       // Calculate new total directly without relying on stale state
-      const newTotalPaid = totalPaid + amount;
-      if (zakatEligible && newTotalPaid >= zakatDue) {
-        setShowMabrook(true);
-      }
       await load();
+      // Don't manually compute totalPaid — let it come from the server
     } catch { toast('Failed to save payment. Please try again.', 'error'); }
     setSaving(false);
   };
 
   const handleDeletePayment = (id: number) => {
+    const confirmed = window.confirm('Are you sure you want to delete this zakat payment? This cannot be undone.');
+    if (!confirmed) return;
+
     setConfirmAction({
       message: 'Delete this payment?',
       action: async () => {
@@ -316,6 +335,12 @@ export default function ZakatPage() {
 
   // FEATURE 1: Handle Nisab Methodology Change
   const handleMethodologyChange = async (methodology: string) => {
+    // Validate methodology
+    const validMethodologies = ['AMJA_GOLD', 'CLASSICAL_SILVER', 'LOWER_OF_BOTH'];
+    if (!validMethodologies.includes(methodology)) {
+      toast('Invalid methodology selected', 'error');
+      return;
+    }
     const previous = selectedMethodology;
     setSelectedMethodology(methodology);
     setSavingMethodology(true);
@@ -333,13 +358,17 @@ export default function ZakatPage() {
 
   // FEATURE 2: Update household size and recalculate fitr
   const handleHouseholdSizeChange = (size: number) => {
-    setHouseholdSize(Math.max(1, size));
+    const newSize = Math.min(Math.max(parseInt(String(size)) || 1, 1), 100);
+    setHouseholdSize(newSize);
   };
 
   useEffect(() => {
-    if (tab === 'fitr') {
-      loadZakatAlFitr();
-    }
+    const timer = setTimeout(() => {
+      if (tab === 'fitr' && householdSize > 0) {
+        loadZakatAlFitr();
+      }
+    }, 300); // 300ms debounce
+    return () => clearTimeout(timer);
   }, [householdSize, tab]);
 
   // FEATURE 3: PDF Export
@@ -440,7 +469,31 @@ export default function ZakatPage() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <div role="status" aria-label="Loading zakat data..." className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full">
+          <span className="sr-only">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="max-w-2xl mx-auto py-12 px-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-600 font-semibold mb-4">Failed to load zakat data.</p>
+          <button
+            onClick={load}
+            className="px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 font-medium"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -483,12 +536,12 @@ export default function ZakatPage() {
             <p className="text-4xl mb-2">{fulfilled ? '🌟' : zakatEligible ? '✅' : 'ℹ️'}</p>
             <p className="text-amber-100 mb-2">{fulfilled ? 'Zakat Fulfilled!' : 'Zakat Due (2.5%)'}</p>
             <p className="text-5xl font-bold">
-              {hideZakat ? '••••••' : fmt(zakatDue)}
+              {hideZakat ? '••••••' : fmt(zakatDue ?? 0)}
             </p>
             <p className="text-amber-200 mt-4 text-sm">
               {fulfilled ? 'Mabrook! May Allah accept your Zakat. تقبل الله منك' : zakatEligible ? 'Your wealth exceeds Nisab — Zakat is obligatory' : 'Your wealth is below Nisab threshold'}
             </p>
-            {totalPaid > 0 && zakatDue > 0 && !hideZakat && (
+            {totalPaid > 0 && (zakatDue ?? 0) > 0 && !hideZakat && (
               <div className="mt-4 max-w-md mx-auto">
                 <div className="w-full bg-white/20 rounded-full h-3">
                   <div className={`h-3 rounded-full transition-all ${fulfilled ? 'bg-blue-300' : 'bg-white'}`} style={{ width: `${fulfillmentPct * 100}%` }} />
@@ -662,7 +715,17 @@ export default function ZakatPage() {
             const totalOut = manualAssets.debts + manualAssets.expenses;
             const netWealth = Math.max(0, totalIn - totalOut);
             const nisab = (data?.nisab as number) || 0;
-            const isEligible = nisab > 0 && netWealth >= nisab;
+
+            // Check for zero or invalid nisab
+            if (!nisab || nisab <= 0) {
+              return (
+                <div className="text-amber-600 bg-amber-50 p-4 rounded-lg border border-amber-200">
+                  Unable to determine nisab threshold. Gold/silver prices may be unavailable. Please try again later.
+                </div>
+              );
+            }
+
+            const isEligible = netWealth >= nisab;
             const zakatAmt = isEligible ? netWealth * 0.025 : 0;
 
             const setAsset = (key: string, val: number) =>
@@ -740,6 +803,12 @@ export default function ZakatPage() {
                   </div>
                 </div>
 
+                {totalOut > totalIn && (
+                  <p className="text-sm text-gray-500 mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    Note: Your debts exceed your assets. Net zakatable wealth is capped at $0 — no zakat is due when debts exceed assets.
+                  </p>
+                )}
+
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-4 text-xs text-blue-800">
                   <strong>Note:</strong> Stocks: many scholars say to use the market value of shares in companies whose primary business is halal. For mixed companies, apply the purification ratio. Consult a scholar for your specific situation.
                 </div>
@@ -754,7 +823,7 @@ export default function ZakatPage() {
             <p className="text-lg font-bold mb-4">{fulfilled ? '🌟 Zakat Fulfilled' : '📊 Zakat Progress'} — {lunarYear} AH</p>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <p className="text-2xl font-bold">{hideZakat ? '••••' : fmt(zakatDue)}</p>
+                <p className="text-2xl font-bold">{hideZakat ? '••••' : fmt(zakatDue ?? 0)}</p>
                 <p className="text-white/60 text-xs">Due</p>
               </div>
               <div>
@@ -766,7 +835,7 @@ export default function ZakatPage() {
                 <p className="text-white/60 text-xs">Remaining</p>
               </div>
             </div>
-            {zakatDue > 0 && !hideZakat && (
+            {(zakatDue ?? 0) > 0 && !hideZakat && (
               <div className="mt-4">
                 <div className="w-full bg-white/20 rounded-full h-3">
                   <div className={`h-3 rounded-full ${fulfilled ? 'bg-blue-300' : 'bg-amber-400'}`} style={{ width: `${Math.min(100, fulfillmentPct * 100)}%` }} />
@@ -857,15 +926,17 @@ export default function ZakatPage() {
           </div>
 
           <div className="bg-white rounded-xl p-5 mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-3">Household Size</label>
+            <label htmlFor="household-size" className="block text-sm font-medium text-gray-700 mb-3">Household Size</label>
             <input
+              id="household-size"
               type="number"
               min="1"
+              max="100"
               value={householdSize}
               onChange={(e) => handleHouseholdSizeChange(parseInt(e.target.value) || 1)}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
             />
-            <p className="text-xs text-gray-500 mt-2">Enter the number of people in your household</p>
+            <p className="text-xs text-gray-500 mt-2">Enter the number of people in your household (1-100)</p>
           </div>
 
           {loadingFitr ? (
@@ -936,9 +1007,11 @@ export default function ZakatPage() {
 
           {loadingReferences ? (
             <div className="flex justify-center py-12">
-              <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+              <div role="status" aria-label="Loading scholarly references..." className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full">
+                <span className="sr-only">Loading...</span>
+              </div>
             </div>
-          ) : scholarlyReferences.length > 0 ? (
+          ) : Array.isArray(scholarlyReferences) && scholarlyReferences.length > 0 ? (
             <div className="space-y-4">
               {scholarlyReferences.map((ref, idx) => (
                 <div key={idx} className="bg-white rounded-xl p-5 border border-gray-200">
@@ -978,7 +1051,7 @@ export default function ZakatPage() {
             </div>
           ) : (
             <div className="text-center py-12 text-gray-400">
-              <p className="text-lg mb-2">No scholarly references available</p>
+              <p className="text-lg mb-2">No scholarly references available.</p>
             </div>
           )}
 

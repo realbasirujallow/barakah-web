@@ -8,6 +8,12 @@ import { toHijri } from '../../../lib/format';
 interface HawlItem { id: number; assetName: string; assetType: string; amount: number; nisabThreshold: number; zakatAmount: number; hawlStartDate: number; hawlEndDate: number; zakatPaid: boolean; active: boolean; zakatLocked: boolean; zakatLockedDate: number; lockedNisabValue: number; lockedGoldPrice: number; lockedZakatAmount: number; effectiveZakatAmount: number; }
 const TYPES = ['cash', 'gold', 'silver', 'crypto', 'stocks', 'business', 'other'];
 
+const DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric'
+};
+
 export default function HawlPage() {
   const [items, setItems] = useState<HawlItem[]>([]);
   const [nextDueDate, setNextDueDate] = useState<number | null>(null);
@@ -69,7 +75,6 @@ export default function HawlPage() {
       const result = await api.markHawlPaid(id);
       if (result?.allZakatPaid) {
         setAllPaidMessage(result.allPaidMessage || 'MashaAllah! All zakat obligations fulfilled!');
-        setTimeout(() => setAllPaidMessage(null), 8000);
       }
       load();
     } catch {
@@ -77,9 +82,17 @@ export default function HawlPage() {
     }
   };
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (allPaidMessage) {
+      timer = setTimeout(() => setAllPaidMessage(null), 8000);
+    }
+    return () => { if (timer) clearTimeout(timer); };
+  }, [allPaidMessage]);
+
   const handleReset = (id: number) => {
     setConfirmAction({
-      message: 'Reset this Hawl? This starts a new 354-day cycle from today.',
+      message: 'Reset this Hawl? This will start a new 354-day cycle from today and mark zakat as unpaid for this asset.',
       action: async () => {
         try {
           await api.resetHawl(id);
@@ -221,7 +234,7 @@ export default function HawlPage() {
           <div className="flex justify-between items-center">
             <div>
               <p className="text-white/90 font-semibold">{nextDueAsset}</p>
-              <p className="text-white/70 text-sm">{new Date(nextDueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+              <p className="text-white/70 text-sm">{new Date(nextDueDate).toLocaleDateString('en-US', DATE_FORMAT)}</p>
               <p className="text-white/50 text-xs">{formatHijriDate(nextDueDate)}</p>
             </div>
             <div className="text-right">
@@ -279,7 +292,7 @@ export default function HawlPage() {
                   <div className="mt-2 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                     <div className="flex items-center gap-2 text-sm text-green-700">
                       <span>&#128274;</span>
-                      <span>Zakat locked: {fmt(item.lockedZakatAmount || item.zakatAmount)} ({item.assetType === 'silver' ? 'Silver' : 'Gold'}: ${item.lockedGoldPrice?.toFixed(2)}/g on {new Date(item.zakatLockedDate).toLocaleDateString()})</span>
+                      <span>Zakat locked: {fmt(item.lockedZakatAmount || item.zakatAmount)} ({item.assetType === 'silver' ? 'Silver' : 'Gold'}: ${(item.lockedGoldPrice ?? 0).toFixed(2)}/g on {new Date(item.zakatLockedDate).toLocaleDateString('en-US', DATE_FORMAT)})</span>
                     </div>
                     <button type="button" onClick={() => handleUnlockZakat(item.id)} className="text-xs text-gray-500 hover:text-red-600 underline">Unlock</button>
                   </div>
@@ -305,7 +318,13 @@ export default function HawlPage() {
               const end = item.hawlEndDate || start + 354.37 * 86400000;
               const total = end - start;
               const elapsed = Date.now() - start;
-              const pct = Math.min(Math.max((elapsed / total) * 100, 0), 100);
+              // Guard against invalid date ranges
+              let pct = 0;
+              if (total <= 0) {
+                pct = end < Date.now() ? 100 : 0;
+              } else {
+                pct = Math.min(Math.max((elapsed / total) * 100, 0), 100);
+              }
               const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / 86400000));
               return (
                 <div key={item.id} className="bg-white rounded-xl p-4">
@@ -348,7 +367,7 @@ export default function HawlPage() {
                   <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-[#1B5E20] h-2 rounded-full" style={{ width: `${pct}%` }} /></div>
                   {item.zakatLocked ? (
                     <div className="mt-2 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs">
-                      <span className="text-green-700">&#128274; Zakat locked: {fmt(item.lockedZakatAmount)} ({item.assetType === 'silver' ? 'Silver' : 'Gold'}: ${item.lockedGoldPrice?.toFixed(2)}/g on {new Date(item.zakatLockedDate).toLocaleDateString()})</span>
+                      <span className="text-green-700">&#128274; Zakat locked: {fmt(item.lockedZakatAmount)} ({item.assetType === 'silver' ? 'Silver' : 'Gold'}: ${(item.lockedGoldPrice ?? 0).toFixed(2)}/g on {new Date(item.zakatLockedDate).toLocaleDateString('en-US', DATE_FORMAT)})</span>
                       <button type="button" onClick={() => handleUnlockZakat(item.id)} className="text-gray-500 hover:text-red-600 underline ml-2">Unlock</button>
                     </div>
                   ) : (
