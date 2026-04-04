@@ -223,7 +223,7 @@ export default function NisabThresholdPage() {
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: How do I check the current nisab value?</h3>
                 <p className="text-gray-700 text-sm">
-                  Check the daily spot price of gold per gram (usually in USD). Multiply by 85 to get the current gold nisab in dollars. For silver, multiply the spot price per gram by 595. Barakah&apos;s calculator automatically updates with current prices daily — see the live values at the top of this page.
+                  Check the daily spot price of gold per gram (usually in USD). Multiply by the nisab gram amount to get the current gold nisab in dollars. For silver, multiply the spot price per gram by its nisab gram amount. Barakah&apos;s calculator automatically updates with current prices daily — see the live values at the top of this page.
                 </p>
               </div>
 
