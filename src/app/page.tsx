@@ -149,6 +149,7 @@ export default function Home() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [isAnnual, setIsAnnual] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && user) router.replace('/dashboard');
@@ -167,22 +168,45 @@ export default function Home() {
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
 
       {/* ── Nav ── */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
+      <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <span className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</span>
           <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
             <a href="#features" className="hover:text-[#1B5E20] transition">Features</a>
             <a href="#pricing" className="hover:text-[#1B5E20] transition">Pricing</a>
             <a href="#compare" className="hover:text-[#1B5E20] transition">Compare</a>
+            <Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link>
             <Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link>
           </nav>
           <div className="flex items-center gap-3">
+            {/* Hamburger menu button - visible on mobile only */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden flex flex-col gap-1.5 text-[#1B5E20]"
+              aria-label="Toggle menu"
+            >
+              <div className="w-6 h-0.5 bg-[#1B5E20]"></div>
+              <div className="w-6 h-0.5 bg-[#1B5E20]"></div>
+              <div className="w-6 h-0.5 bg-[#1B5E20]"></div>
+            </button>
             <Link href="/login" className="text-sm text-[#1B5E20] font-medium hover:underline">Sign In</Link>
             <Link href="/signup" className="bg-[#1B5E20] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
               Get Started Free
             </Link>
           </div>
         </div>
+        {/* Mobile dropdown menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-100">
+            <nav className="max-w-6xl mx-auto px-6 py-4 flex flex-col gap-3 text-sm text-gray-600">
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Features</a>
+              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Pricing</a>
+              <a href="#compare" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Compare</a>
+              <Link href="/learn" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Learn</Link>
+              <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Contact</Link>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* ── Hero ── */}
@@ -558,10 +582,9 @@ export default function Home() {
             <div>
               <h4 className="font-semibold text-gray-900 text-sm mb-3">Company</h4>
               <ul className="space-y-2 text-xs text-gray-600">
-                <li><Link href="/about" className="hover:text-[#1B5E20] transition">About</Link></li>
+                <li><Link href="/disclaimer" className="hover:text-[#1B5E20] transition">About</Link></li>
                 <li><Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link></li>
-                <li><Link href="/blog" className="hover:text-[#1B5E20] transition">Blog</Link></li>
-                <li><Link href="/careers" className="hover:text-[#1B5E20] transition">Careers</Link></li>
+                <li><Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link></li>
               </ul>
             </div>
             {/* Legal */}
@@ -571,7 +594,7 @@ export default function Home() {
                 <li><Link href="/privacy" className="hover:text-[#1B5E20] transition">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-[#1B5E20] transition">Terms of Service</Link></li>
                 <li><Link href="/disclaimer" className="hover:text-[#1B5E20] transition">Disclaimer</Link></li>
-                <li><a href="mailto:support@barakah.app" className="hover:text-[#1B5E20] transition">Support</a></li>
+                <li><a href="mailto:support@trybarakah.com" className="hover:text-[#1B5E20] transition">Support</a></li>
               </ul>
             </div>
           </div>

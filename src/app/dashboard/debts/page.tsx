@@ -255,7 +255,7 @@ export default function DebtsPage() {
       {/* Header + tabs */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Debt Tracker</h1>
-        <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Debt</button>
+        <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Debt</button>
       </div>
 
       <div className="flex gap-2 mb-6">

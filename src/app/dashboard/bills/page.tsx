@@ -194,7 +194,7 @@ export default function BillsPage() {
     const isUpcoming = !isOverdue && days !== null && days <= 7 && !b.paid;
 
     return (
-      <div className={`bg-white rounded-xl p-4 flex justify-between items-center border-l-4 ${
+      <div className={`bg-white rounded-2xl shadow-sm p-6 flex justify-between items-center border-l-4 ${
         b.paid ? 'border-green-400 bg-green-50' :
         isOverdue ? 'border-red-500' :
         isUpcoming ? 'border-orange-400' :
