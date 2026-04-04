@@ -34,16 +34,16 @@ const isDev = process.env.NODE_ENV === "development";
 //   upgrade-insecure-requests    — forces all sub-resources to HTTPS
 const csp = [
   "default-src 'self'",
-  // Scripts: self + inline (hydration) + PostHog loader + dev eval
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://us-assets.i.posthog.com`,
+  // Scripts: self + inline (hydration) + PostHog loader + GA4 + dev eval
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://us-assets.i.posthog.com https://www.googletagmanager.com https://www.google-analytics.com`,
   // Styles: inline allowed (Tailwind + Recharts inject styles at runtime)
   "style-src 'self' 'unsafe-inline'",
-  // Images: self + data URIs (chart gradients/icons) + blobs (PDF previews)
-  "img-src 'self' data: blob:",
+  // Images: self + data URIs (chart gradients/icons) + blobs (PDF previews) + GA4
+  "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com",
   // Fonts: self only (no external font CDN used)
   "font-src 'self'",
-  // Connections: backend proxy + PostHog analytics (proxied through /ingest)
-  "connect-src 'self' https://api.trybarakah.com https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com",
+  // Connections: backend proxy + PostHog analytics (proxied through /ingest) + GA4
+  "connect-src 'self' https://api.trybarakah.com https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com https://www.google-analytics.com https://analytics.google.com",
   // Allow Google Maps iframe embeds for property asset address visualization
   "frame-src 'self' https://*.google.com https://*.googleapis.com https://*.gstatic.com",
   // No plugins (Flash, Silverlight, etc.)
