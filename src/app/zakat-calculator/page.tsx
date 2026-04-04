@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Script from 'next/script';
 import Calculator from './Calculator';
-import NisabLivePrices, { GoldPricePerGram, SilverPricePerGram, GoldNisabUSD, SilverNisabUSD } from '../../components/NisabLivePrices';
+import NisabLivePrices, { GoldPricePerGram, SilverPricePerGram, GoldNisabUSD, SilverNisabUSD, NisabGoldGrams, NisabSilverGrams } from '../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
   title: 'Free Zakat Calculator 2026 — Calculate Your Zakat Instantly | Barakah',
@@ -228,7 +228,7 @@ export default function ZakatCalculatorPage() {
               Zakat is an obligatory charitable payment in Islam, calculated as <strong>2.5% of your
               net wealth</strong> held for one Islamic lunar year (hawl) above the nisab threshold.
               The nisab is the minimum amount of wealth required for zakat to become obligatory,
-              based on 85 grams of gold or 595 grams of silver at current market prices.
+              based on <NisabGoldGrams /> grams of gold or <NisabSilverGrams /> grams of silver at current market prices.
             </p>
             {/* Live nisab card — values fetched from backend API */}
             <NisabLivePrices />
@@ -259,7 +259,7 @@ export default function ZakatCalculatorPage() {
                   </h3>
                   <p className="text-gray-700 leading-relaxed">
                     Calculate your total net wealth by adding all your assets and subtracting all
-                    your debts. If this net wealth is less than the nisab threshold (currently <GoldNisabUSD /> based on 85g of gold), zakat is not obligatory for you. Zakat is only due when your
+                    your debts. If this net wealth is less than the nisab threshold (currently <GoldNisabUSD /> based on <NisabGoldGrams />g of gold), zakat is not obligatory for you. Zakat is only due when your
                     wealth exceeds the minimum threshold set by Islamic law.
                   </p>
                 </div>
@@ -445,7 +445,7 @@ export default function ZakatCalculatorPage() {
               <div className="bg-yellow-50 border-l-4 border-yellow-600 p-6 rounded">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Gold Standard (Zahab)</h3>
                 <p className="text-gray-700 mb-3">
-                  <strong>85 grams of gold</strong> at current market price. This currently equals approximately <GoldNisabUSD /> (at <GoldPricePerGram /> per gram). This is the
+                  <strong><NisabGoldGrams /> grams of gold</strong> at current market price. This currently equals approximately <GoldNisabUSD /> (at <GoldPricePerGram /> per gram). This is the
                   primary standard used in Islamic jurisprudence.
                 </p>
                 <p className="text-sm text-gray-600">
@@ -458,7 +458,7 @@ export default function ZakatCalculatorPage() {
               <div className="bg-slate-50 border-l-4 border-slate-600 p-6 rounded">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Silver Standard (Fiddah)</h3>
                 <p className="text-gray-700 mb-3">
-                  <strong>595 grams of silver</strong> at current market price. This currently equals approximately <SilverNisabUSD /> (at <SilverPricePerGram /> per gram).
+                  <strong><NisabSilverGrams /> grams of silver</strong> at current market price. This currently equals approximately <SilverNisabUSD /> (at <SilverPricePerGram /> per gram).
                 </p>
                 <p className="text-sm text-gray-600">
                   The silver standard is much lower, as silver is less valuable per unit. According
@@ -548,7 +548,7 @@ export default function ZakatCalculatorPage() {
                 Create Free Account
               </Link>
               <Link
-                href="/features"
+                href="/#features"
                 className="border-2 border-white text-white hover:bg-white hover:text-green-700 font-bold py-3 px-8 rounded-lg transition-colors text-lg"
               >
                 Learn More
