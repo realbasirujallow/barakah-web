@@ -6,6 +6,12 @@ import { api } from '../lib/api';
 import { validateStripeUrl } from '../lib/validateUrl';
 import { ReactNode } from 'react';
 
+// ── Pricing data ────────────────────────────────────────────────────────────
+const PRICING = {
+  plus:   { monthly: '$9.99',  yearly: '$99',  yearlySaving: 'Save 17%' },
+  family: { monthly: '$14.99', yearly: '$119', yearlySaving: 'Save 34%' },
+} as const;
+
 interface PlanGateProps {
   /** Minimum plan required to see the content. */
   required: 'plus' | 'family';
@@ -24,6 +30,7 @@ interface PlanGateProps {
 export function PlanGate({ required, featureName, description, children }: PlanGateProps) {
   const { user } = useAuth();
   const [upgrading, setUpgrading] = useState<'plus' | 'family' | null>(null);
+  const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
   // Still loading or no user (layout guard handles redirect)
   if (!user) return null;
@@ -35,7 +42,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
   const handleUpgrade = async (planType: 'plus' | 'family') => {
     setUpgrading(planType);
     try {
-      const result = await api.upgradeSubscription(planType);
+      const result = await api.upgradeSubscription(planType, billing);
       if (result?.url) {
         if (validateStripeUrl(result.url)) {
           window.location.href = result.url;
@@ -126,6 +133,21 @@ export function PlanGate({ required, featureName, description, children }: PlanG
           </p>
         </div>
 
+        {/* Billing toggle */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
+          <button
+            onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
+            className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-7' : ''}`} />
+          </button>
+          <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
+          {billing === 'yearly' && (
+            <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save up to 34%</span>
+          )}
+        </div>
+
         {/* Plan Comparison */}
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl w-full mb-10">
           {/* Plus Plan */}
@@ -135,8 +157,15 @@ export function PlanGate({ required, featureName, description, children }: PlanG
             </div>
             <div className="pt-4">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Plus</h2>
-              <p className="text-4xl font-bold text-[#1B5E20] mb-1">$9.99<span className="text-lg text-gray-600">/mo</span></p>
-              <p className="text-sm text-gray-500 mb-6">Billed monthly</p>
+              <p className="text-4xl font-bold text-[#1B5E20] mb-1">
+                {billing === 'yearly' ? PRICING.plus.yearly : PRICING.plus.monthly}
+                <span className="text-lg text-gray-600">{billing === 'yearly' ? '/year' : '/mo'}</span>
+              </p>
+              <p className="text-sm text-gray-500 mb-6">
+                {billing === 'yearly' ? (
+                  <><span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">{PRICING.plus.yearlySaving}</span></>
+                ) : 'Billed monthly'}
+              </p>
 
               <button
                 onClick={() => handleUpgrade('plus')}
@@ -160,8 +189,15 @@ export function PlanGate({ required, featureName, description, children }: PlanG
           {/* Family Plan */}
           <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-sm">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Family</h2>
-            <p className="text-4xl font-bold text-gray-800 mb-1">$14.99<span className="text-lg text-gray-600">/mo</span></p>
-            <p className="text-sm text-gray-500 mb-6">Billed monthly</p>
+            <p className="text-4xl font-bold text-gray-800 mb-1">
+              {billing === 'yearly' ? PRICING.family.yearly : PRICING.family.monthly}
+              <span className="text-lg text-gray-600">{billing === 'yearly' ? '/year' : '/mo'}</span>
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              {billing === 'yearly' ? (
+                <><span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">{PRICING.family.yearlySaving}</span></>
+              ) : 'Billed monthly'}
+            </p>
 
             <button
               onClick={() => handleUpgrade('family')}
@@ -223,11 +259,33 @@ export function PlanGate({ required, featureName, description, children }: PlanG
           </div>
         )}
 
+        {/* Billing toggle */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
+          <button
+            onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
+            className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-7' : ''}`} />
+          </button>
+          <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
+          {billing === 'yearly' && (
+            <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">{PRICING.family.yearlySaving}</span>
+          )}
+        </div>
+
         {/* Family Plan Card */}
         <div className="max-w-2xl w-full bg-white border-2 border-[#1B5E20] rounded-2xl p-8 shadow-lg mb-10">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Family Plan</h2>
-          <p className="text-5xl font-bold text-[#1B5E20] mb-1">$14.99<span className="text-xl text-gray-600">/mo</span></p>
-          <p className="text-sm text-gray-500 mb-8">Billed monthly</p>
+          <p className="text-5xl font-bold text-[#1B5E20] mb-1">
+            {billing === 'yearly' ? PRICING.family.yearly : PRICING.family.monthly}
+            <span className="text-xl text-gray-600">{billing === 'yearly' ? '/year' : '/mo'}</span>
+          </p>
+          <p className="text-sm text-gray-500 mb-8">
+            {billing === 'yearly' ? (
+              <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">{PRICING.family.yearlySaving}</span>
+            ) : 'Billed monthly'}
+          </p>
 
           <button
             onClick={() => handleUpgrade('family')}

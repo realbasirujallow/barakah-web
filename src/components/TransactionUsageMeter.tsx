@@ -85,7 +85,7 @@ export function TransactionUsageMeter() {
           onClick={handleUpgrade}
           className="w-full bg-[#1B5E20] hover:bg-[#2E7D32] text-white py-2 px-4 rounded-lg text-sm font-semibold transition"
         >
-          Upgrade to Plus — $9.99/mo
+          Upgrade to Plus — Unlimited Transactions
         </button>
       </div>
     );
