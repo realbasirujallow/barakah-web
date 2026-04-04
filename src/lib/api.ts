@@ -28,12 +28,33 @@ export function setUnauthorizedHandler(fn: () => void) {
 
 // ── Silent refresh ─────────────────────────────────────────────────────────────
 // When a request gets a 401 (expired access token), we attempt one silent
-// refresh via POST /auth/refresh. The refresh_token httpOnly cookie is sent
-// automatically by the browser (path=/auth). If it succeeds, the server sets
-// a new auth_token cookie and we replay the original request transparently.
+// refresh via POST /auth/refresh. The refresh token is sent in the request
+// body (primary) AND as an httpOnly cookie (fallback). The body approach
+// bypasses CDN/proxy cookie corruption issues that plagued the cookie-only
+// flow (Cloudflare + Railway CDN + Next.js rewrites can mangle cookie values).
+//
+// If refresh succeeds, the server sets a new auth_token cookie and returns
+// a new refresh token in the response body. We store it for the next refresh.
 //
 // Concurrent 401s are deduplicated: all callers wait for the same refresh
 // promise, then each re-tries their own request once.
+
+// In-memory refresh token storage. Populated on login and on successful
+// refresh. NOT in localStorage to limit XSS exposure — the token lives only
+// in this module's closure. On full page reload, this is lost, but the
+// httpOnly cookie fallback still exists (and the auth_token cookie is the
+// primary session mechanism anyway).
+let _refreshToken: string | null = null;
+
+/** Store the refresh token (called by AuthContext after login). */
+export function setRefreshToken(token: string | null) {
+  _refreshToken = token;
+}
+
+/** Get the current in-memory refresh token. */
+export function getRefreshToken(): string | null {
+  return _refreshToken;
+}
 
 let isRefreshing = false;
 type RefreshResult = 'ok' | 'expired' | 'network_error';
@@ -60,16 +81,37 @@ async function attemptSilentRefresh(): Promise<'ok' | 'expired' | 'network_error
   const timeout = setTimeout(() => controller.abort(), 10_000); // 10s timeout
   try {
     const csrfToken = getCsrfToken();
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
     if (csrfToken) headers['X-XSRF-TOKEN'] = csrfToken;
+
+    // Send refresh token in body (primary) — bypasses cookie proxy corruption.
+    // The httpOnly cookie is also sent automatically as a fallback.
+    const bodyPayload: Record<string, string> = {};
+    if (_refreshToken) {
+      bodyPayload.refreshToken = _refreshToken;
+    }
 
     const res = await fetch(`${API_URL}/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
       headers,
+      body: JSON.stringify(bodyPayload),
       signal: controller.signal,
     });
-    if (res.ok) return 'ok';
+    if (res.ok) {
+      // Extract the new refresh token from the response body for the next cycle.
+      try {
+        const data = await res.json();
+        if (data.refreshToken) {
+          _refreshToken = data.refreshToken;
+        }
+      } catch {
+        // Response body parsing failed — not critical, cookie fallback remains
+      }
+      return 'ok';
+    }
     // Server explicitly rejected our refresh token — session is truly expired
     if (res.status === 401 || res.status === 403) return 'expired';
     // Other server errors (500, etc.) — treat as transient, don't logout
@@ -772,10 +814,10 @@ export const api = {
 
   // ── Stripe Billing ──────────────────────────────────────────────────────────
   /** Create a Stripe Checkout session (new subscriber). Returns { url }. */
-  createCheckout: (plan: 'plus' | 'family') =>
+  createCheckout: (plan: 'plus' | 'family', billing: 'monthly' | 'yearly' = 'monthly') =>
     apiFetch('/api/stripe/create-checkout', {
       method: 'POST',
-      body: JSON.stringify({ plan }),
+      body: JSON.stringify({ plan, billing }),
     }),
 
   /**
@@ -783,10 +825,10 @@ export const api = {
    * Falls back to createCheckout for free users with no subscription.
    * Returns { success, plan, status } OR { url } if redirect is needed.
    */
-  upgradeSubscription: (plan: 'plus' | 'family') =>
+  upgradeSubscription: (plan: 'plus' | 'family', billing: 'monthly' | 'yearly' = 'monthly') =>
     apiFetch('/api/stripe/upgrade', {
       method: 'POST',
-      body: JSON.stringify({ plan }),
+      body: JSON.stringify({ plan, billing }),
     }),
 
   /** Open Stripe Customer Portal (manage/cancel/update card). Returns { url }. */

@@ -1,7 +1,7 @@
 'use client';
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, setUnauthorizedHandler } from '../lib/api';
+import { api, setUnauthorizedHandler, setRefreshToken } from '../lib/api';
 
 export interface User {
   id: string;
@@ -147,6 +147,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Try a silent refresh. If it succeeds the server has rotated both cookies.
+    //
+    // IMPORTANT: This is a PROACTIVE refresh — the auth_token cookie may still
+    // be perfectly valid (24h / 7d with Remember Me). If the refresh fails for
+    // any reason (proxy cookie corruption, transient backend error, etc.) we
+    // MUST NOT logout. The auth_token cookie is the authoritative session —
+    // it will continue working for all API calls. Only the 401 handler in
+    // apiFetch should trigger a logout (when the auth_token truly expires and
+    // the refresh also fails).
     api.refresh().then(async (result: 'ok' | 'expired' | 'network_error') => {
       if (result === 'ok') {
         try {
@@ -158,14 +166,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const finalUser = planMissing ? await syncPlan(parsed!) : parsed!;
         setUser(finalUser);
       } else if (result === 'expired') {
-        // Session truly expired — clear local state and force re-login
+        // Proactive refresh returned 'expired'. This does NOT necessarily mean
+        // the session is dead — the auth_token cookie may still be valid. Don't
+        // logout here; instead, verify with a lightweight server call (getProfile).
+        // If getProfile succeeds → auth_token is valid, keep user logged in.
+        // If getProfile fails with 401 → the 401 handler in apiFetch will trigger
+        // the real logout flow.
+        console.debug('Proactive refresh returned expired — verifying auth_token with profile check');
         try {
-          localStorage.removeItem(USER_KEY);
-          localStorage.removeItem(REFRESH_TS_KEY);
+          const data = await api.getProfile();
+          if (data?.plan && parsed) {
+            const updated: User = { ...parsed, plan: data.plan as User['plan'], planExpiresAt: data.planExpiresAt ?? null };
+            try { localStorage.setItem(USER_KEY, JSON.stringify(updated)); } catch { /* SSR */ }
+            setUser(updated);
+          } else {
+            setUser(parsed);
+          }
         } catch {
-          // localStorage access failed
+          // getProfile failed — the 401 handler will have already triggered
+          // logout if auth_token is truly expired. If it was a network error,
+          // keep the cached user for offline mode.
+          setUser(parsed);
         }
-        setUser(null);
       } else {
         // Network error — keep stale profile for offline mode
         setUser(parsed);
@@ -273,6 +295,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     localStorage.setItem(USER_KEY, JSON.stringify(profile));
     localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
+    // Store refresh token in memory for body-based refresh (bypasses cookie proxy issues)
+    if (data.refreshToken) {
+      setRefreshToken(data.refreshToken);
+    }
     setUser(profile);
   };
 
@@ -282,6 +308,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async (reason?: 'logout' | 'deleted') => {
     _intentionalLogout = true;
+    // Clear in-memory refresh token
+    setRefreshToken(null);
     try {
       await api.logout();
     } catch (err: unknown) {
