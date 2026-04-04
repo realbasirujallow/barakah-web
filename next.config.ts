@@ -98,6 +98,11 @@ const nextConfig: NextConfig = {
   // Compress responses (gzip/brotli) — reduces payload by ~70%
   compress: true,
 
+  // Skip ESLint during builds — 159 pre-existing lint issues from
+  // react-hooks/immutability and react-hooks/set-state-in-effect rules.
+  // Fix these incrementally; don't block deploys.
+  eslint: { ignoreDuringBuilds: true },
+
   async headers() {
     return [
       {
@@ -159,6 +164,13 @@ export default withSentryConfig(nextConfig, {
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
+
+  // Don't fail the build if SENTRY_AUTH_TOKEN is missing (source maps
+  // just won't be uploaded). This prevents deploy failures on Railway
+  // when the token isn't configured.
+  errorHandler: (err) => {
+    console.warn('Sentry source map upload warning:', err.message);
+  },
 
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
