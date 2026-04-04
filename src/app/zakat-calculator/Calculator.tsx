@@ -14,17 +14,13 @@ interface CalculatorInputs {
   debts: number;
 }
 
-// DEPRECATED: These hardcoded values are OUTDATED and should be fetched from the backend API
-// Gold price was ~$70/g in this code but is actually ~$165/g as of April 2026
-// The calculator should fetch nisab thresholds from /api/zakat/info endpoint instead
-const GOLD_PRICE_PER_GRAM = 165; // USD per gram (updated to April 2026 prices)
-const SILVER_PRICE_PER_GRAM = 2.00; // USD per gram (updated to April 2026 prices)
+// Fallback prices used only when the /api/zakat/info endpoint is unavailable.
+// The live API values always take priority (see useEffect below).
+const FALLBACK_GOLD_PRICE = 97; // USD per gram — conservative fallback
+const FALLBACK_SILVER_PRICE = 1.05; // USD per gram — conservative fallback
 const NISAB_GOLD_GRAMS = 85;
 const NISAB_SILVER_GRAMS = 595;
 const ZAKAT_RATE = 0.025; // 2.5%
-
-// TODO: Fetch live nisab from backend API instead of hardcoded values
-// const nisabGoldThreshold = await fetch('/api/zakat/info').then(r => r.json()).then(d => d.nisabGoldThreshold)
 
 export default function Calculator() {
   const [inputs, setInputs] = useState<CalculatorInputs>({
@@ -40,7 +36,15 @@ export default function Calculator() {
 
   const [selectedMadhab, setSelectedMadhab] = useState<'hanafi' | 'shafii' | 'maliki' | 'hanbali'>('hanafi');
   const [showResults, setShowResults] = useState(false);
-  const [livePrices, setLivePrices] = useState<{goldPrice?: number; silverPrice?: number; nisabGoldThreshold?: number} | null>(null);
+  const [livePrices, setLivePrices] = useState<{
+    goldPricePerGram?: number;
+    silverPricePerGram?: number;
+    nisabGoldGrams?: number;
+    nisabSilverGrams?: number;
+    nisabGoldThreshold?: number;
+    nisabSilverThreshold?: number;
+    staleWarning?: boolean;
+  } | null>(null);
   const [pricesLoading, setPricesLoading] = useState(true);
   const [isPersonalJewelry, setIsPersonalJewelry] = useState(false);
 
@@ -53,8 +57,8 @@ export default function Calculator() {
       .finally(() => setPricesLoading(false));
   }, []);
 
-  const goldPricePerGram = livePrices?.goldPrice ?? GOLD_PRICE_PER_GRAM;
-  const silverPricePerGram = livePrices?.silverPrice ?? SILVER_PRICE_PER_GRAM;
+  const goldPricePerGram = livePrices?.goldPricePerGram ?? FALLBACK_GOLD_PRICE;
+  const silverPricePerGram = livePrices?.silverPricePerGram ?? FALLBACK_SILVER_PRICE;
 
   const nisabInGold = NISAB_GOLD_GRAMS * goldPricePerGram;
   const nisabInSilver = NISAB_SILVER_GRAMS * silverPricePerGram;

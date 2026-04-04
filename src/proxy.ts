@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Server-side route protection middleware.
+ * Server-side route protection proxy (Next.js 16 convention).
  *
  * Two-tier cookie check for protected routes:
  *   1. auth_token present  → allow (normal case)
@@ -14,10 +14,10 @@ import type { NextRequest } from 'next/server';
  *   3. Neither cookie present → redirect to /login (truly unauthenticated)
  *
  * The client-side AuthContext remains the authoritative session guard — this
- * middleware is a performance optimisation that prevents unauthenticated users
+ * proxy is a performance optimisation that prevents unauthenticated users
  * from downloading protected page bundles.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasAuthToken    = request.cookies.has('auth_token');
   const hasRefreshToken = request.cookies.has('refresh_token');
@@ -58,6 +58,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Only run middleware on these routes (skip API, static, etc.)
+  // Only run proxy on these routes (skip API, static, etc.)
   matcher: ['/dashboard/:path*', '/admin/:path*', '/login', '/signup'],
 };

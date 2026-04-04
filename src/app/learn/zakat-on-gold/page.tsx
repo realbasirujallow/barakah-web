@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import NisabLivePrices, { GoldPricePerGram, GoldNisabUSD, SilverNisabUSD } from '../../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
   title: 'Zakat on Gold & Jewelry: Complete 2026 Guide | Barakah',
@@ -41,7 +42,7 @@ const FaqSchema = {
       name: 'How do I calculate zakat on gold?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Multiply the total weight of your gold (in grams) by the current market price per gram, then multiply by 2.5% (0.025). For example: 200g × $65/g × 2.5% = $325 in zakat. Use Barakah\'s zakat calculator for current prices.',
+        text: 'Multiply the total weight of your gold (in grams) by the current market price per gram, then multiply by 2.5% (0.025). Use Barakah\'s zakat calculator for live gold prices and automatic calculations.',
       },
     },
   ],
@@ -118,8 +119,10 @@ export default function ZakatOnGoldPage() {
                 The nisab (minimum threshold) for gold is the amount you must possess for zakat to become obligatory. According to the Islamic Fiqh Academy (AMJA) — the most widely followed modern standard — the nisab for gold is <strong>85 grams</strong> (approximately 2.747 troy ounces).
               </p>
               <p className="text-gray-700 leading-relaxed">
-                At the current market price of approximately $65 per gram, this equates to roughly $5,525 USD. However, gold prices fluctuate daily, so you should calculate the current value based on today's market rate.
+                At the current market price of <GoldPricePerGram /> per gram, this equates to approximately <GoldNisabUSD />. Gold prices fluctuate daily, so always use today&apos;s market rate.
               </p>
+              {/* Live nisab card */}
+              <NisabLivePrices />
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-blue-900 mb-2">Did you know?</h3>
                 <p className="text-blue-900 text-sm">
@@ -144,10 +147,11 @@ export default function ZakatOnGoldPage() {
                 <h3 className="font-bold text-amber-900 mb-4">Example Calculation</h3>
                 <div className="space-y-2 text-sm text-amber-900 font-mono">
                   <p>Your total gold: <strong>150 grams</strong></p>
-                  <p>Current gold price: <strong>$65 per gram</strong></p>
-                  <p>Total value: 150g × $65 = <strong>$9,750</strong></p>
-                  <p>Zakat due (2.5%): $9,750 × 0.025 = <strong>$243.75</strong></p>
+                  <p>Current gold price: <GoldPricePerGram /> per gram (live)</p>
+                  <p>Formula: 150g × price per gram = total value</p>
+                  <p>Zakat due: total value × 2.5%</p>
                 </div>
+                <p className="text-xs text-amber-700 mt-3">Use Barakah&apos;s <Link href="/zakat-calculator" className="underline">zakat calculator</Link> for exact calculations with live prices.</p>
               </div>
             </section>
 
@@ -184,34 +188,8 @@ export default function ZakatOnGoldPage() {
                 Islamic law establishes nisab thresholds for both gold and silver. Here's how they compare:
               </p>
 
-              <div className="overflow-x-auto my-6">
-                <table className="w-full border border-gray-300">
-                  <thead className="bg-[#1B5E20] text-white">
-                    <tr>
-                      <th className="border border-gray-300 p-3 text-left">Criterion</th>
-                      <th className="border border-gray-300 p-3 text-left">Gold</th>
-                      <th className="border border-gray-300 p-3 text-left">Silver</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="bg-white">
-                      <td className="border border-gray-300 p-3 font-semibold">Weight</td>
-                      <td className="border border-gray-300 p-3">85 grams</td>
-                      <td className="border border-gray-300 p-3">595 grams</td>
-                    </tr>
-                    <tr className="bg-gray-50">
-                      <td className="border border-gray-300 p-3 font-semibold">Approx. USD Value (2026)</td>
-                      <td className="border border-gray-300 p-3">~$5,525</td>
-                      <td className="border border-gray-300 p-3">~$4,465</td>
-                    </tr>
-                    <tr className="bg-white">
-                      <td className="border border-gray-300 p-3 font-semibold">Scholarly Consensus</td>
-                      <td className="border border-gray-300 p-3">AMJA Standard</td>
-                      <td className="border border-gray-300 p-3">Classical (Hanafi)</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {/* Live comparison table — values fetched from API */}
+              <NisabLivePrices variant="table" />
 
               <div className="bg-green-50 border border-green-200 rounded-lg p-6">
                 <h3 className="font-bold text-[#1B5E20] mb-3">Which Should You Use?</h3>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Script from 'next/script';
 import Calculator from './Calculator';
+import NisabLivePrices, { GoldPricePerGram, SilverPricePerGram, GoldNisabUSD, SilverNisabUSD } from '../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
   title: 'Free Zakat Calculator 2026 — Calculate Your Zakat Instantly | Barakah',
@@ -51,7 +52,7 @@ const faqItems = [
   {
     question: 'How much is zakat on $10,000?',
     answer:
-      'If $10,000 is your net wealth after debts and you meet the nisab threshold (approximately $1,340 in 2026), you would owe 2.5% of your zakatable wealth in zakat. For example, if your total net wealth is exactly $10,000 and the nisab is $1,340, your zakatable wealth is $8,660, so your zakat would be $216.50.',
+      'If $10,000 is your net wealth after debts and you meet the nisab threshold (based on 85 grams of gold at current market prices), you would owe 2.5% of your total zakatable wealth in zakat. For example, if your total net wealth is $10,000 and exceeds the nisab, your zakat would be $10,000 × 2.5% = $250. Use our live calculator for exact amounts with current gold prices.',
   },
   {
     question: 'Do I pay zakat on my house?',
@@ -130,7 +131,7 @@ export default function ZakatCalculatorPage() {
               {
                 '@type': 'HowToStep',
                 name: 'Determine if you meet the nisab threshold',
-                text: 'Check if your net wealth (assets minus debts) exceeds the nisab threshold, currently approximately $1,340 based on the gold standard. The nisab is the minimum amount of wealth required for zakat to be obligatory.',
+                text: 'Check if your net wealth (assets minus debts) exceeds the nisab threshold, based on 85 grams of gold at current market prices. The nisab is the minimum amount of wealth required for zakat to be obligatory. Use Barakah\'s calculator for the live nisab value.',
               },
               {
                 '@type': 'HowToStep',
@@ -145,7 +146,7 @@ export default function ZakatCalculatorPage() {
               {
                 '@type': 'HowToStep',
                 name: 'Apply the 2.5% zakat rate',
-                text: 'Multiply your zakatable wealth (net wealth minus nisab) by 0.025. This gives you the amount of zakat you owe. The 2.5% rate is established in Islamic law and is the standard across all schools of thought.',
+                text: 'Multiply your total zakatable wealth (net wealth above nisab) by 0.025 (2.5%). This gives you the amount of zakat you owe. The 2.5% rate is established in Islamic law and is the standard across all schools of thought.',
               },
               {
                 '@type': 'HowToStep',
@@ -226,19 +227,11 @@ export default function ZakatCalculatorPage() {
             <p className="text-lg text-gray-700 leading-relaxed mb-4">
               Zakat is an obligatory charitable payment in Islam, calculated as <strong>2.5% of your
               net wealth</strong> held for one Islamic lunar year (hawl) above the nisab threshold.
-              The nisab is the minimum amount of wealth required for zakat to become obligatory. For
-              2026, the nisab threshold is approximately <strong>$1,340</strong> based on the gold
-              standard (85 grams of gold at current market prices) or the silver standard (595 grams
-              of silver), whichever is lower.
+              The nisab is the minimum amount of wealth required for zakat to become obligatory,
+              based on 85 grams of gold or 595 grams of silver at current market prices.
             </p>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6 mt-6">
-              <p className="text-sm text-gray-600 mb-2">Nisab Threshold (April 2026)</p>
-              <p className="text-3xl font-bold text-green-700">≈ $1,340</p>
-              <p className="text-xs text-gray-600 mt-2">
-                Prices fluctuate based on gold and silver market rates. Check current prices for
-                accuracy.
-              </p>
-            </div>
+            {/* Live nisab card — values fetched from backend API */}
+            <NisabLivePrices />
           </section>
 
           {/* Interactive Calculator Component */}
@@ -266,8 +259,7 @@ export default function ZakatCalculatorPage() {
                   </h3>
                   <p className="text-gray-700 leading-relaxed">
                     Calculate your total net wealth by adding all your assets and subtracting all
-                    your debts. If this net wealth is less than the nisab threshold (approximately
-                    $1,340 in 2026), zakat is not obligatory for you. Zakat is only due when your
+                    your debts. If this net wealth is less than the nisab threshold (currently <GoldNisabUSD /> based on 85g of gold), zakat is not obligatory for you. Zakat is only due when your
                     wealth exceeds the minimum threshold set by Islamic law.
                   </p>
                 </div>
@@ -453,8 +445,7 @@ export default function ZakatCalculatorPage() {
               <div className="bg-yellow-50 border-l-4 border-yellow-600 p-6 rounded">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Gold Standard (Zahab)</h3>
                 <p className="text-gray-700 mb-3">
-                  <strong>85 grams of gold</strong> at current market price. As of April 2026, this
-                  equals approximately <strong>$5,950</strong> (at ~$70 per gram). This is the
+                  <strong>85 grams of gold</strong> at current market price. This currently equals approximately <GoldNisabUSD /> (at <GoldPricePerGram /> per gram). This is the
                   primary standard used in Islamic jurisprudence.
                 </p>
                 <p className="text-sm text-gray-600">
@@ -467,8 +458,7 @@ export default function ZakatCalculatorPage() {
               <div className="bg-slate-50 border-l-4 border-slate-600 p-6 rounded">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Silver Standard (Fiddah)</h3>
                 <p className="text-gray-700 mb-3">
-                  <strong>595 grams of silver</strong> at current market price. As of April 2026,
-                  this equals approximately <strong>$506</strong> (at ~$0.85 per gram).
+                  <strong>595 grams of silver</strong> at current market price. This currently equals approximately <SilverNisabUSD /> (at <SilverPricePerGram /> per gram).
                 </p>
                 <p className="text-sm text-gray-600">
                   The silver standard is much lower, as silver is less valuable per unit. According
@@ -503,7 +493,7 @@ export default function ZakatCalculatorPage() {
                 <div className="bg-white p-4 rounded border border-gray-300 text-sm text-gray-700">
                   <p className="font-medium mb-2">Example Timeline:</p>
                   <ul className="space-y-1 list-disc list-inside">
-                    <li>April 3, 2026: You first reach nisab of $1,340</li>
+                    <li>April 3, 2026: Your wealth first exceeds the nisab threshold</li>
                     <li>April 3, 2027: One lunar year has passed (approximately)</li>
                     <li>By April 3, 2027: You must pay your zakat</li>
                     <li>The amount owed is 2.5% of your wealth on April 3, 2027</li>

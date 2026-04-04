@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import NisabLivePrices, { GoldPricePerGram, SilverPricePerGram, GoldNisabUSD, SilverNisabUSD } from '../../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
   title: 'Nisab Threshold 2026: Gold vs Silver — Which Should You Use? | Barakah',
@@ -30,18 +31,18 @@ const FaqSchema = {
     },
     {
       '@type': 'Question',
-      name: 'What is the gold nisab in 2026?',
+      name: 'What is the gold nisab?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'The gold nisab is 85 grams. At approximately $65 per gram, this equals roughly $5,525 USD as of April 2026. This is the most widely recommended standard by modern Islamic scholars and AMJA.',
+        text: 'The gold nisab is 85 grams (approximately 2.747 troy ounces). Multiply 85 by the current gold spot price per gram to get the nisab in your currency. This is the most widely recommended standard by modern Islamic scholars and AMJA.',
       },
     },
     {
       '@type': 'Question',
-      name: 'What is the silver nisab in 2026?',
+      name: 'What is the silver nisab?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'The silver nisab is 595 grams. At approximately $7.50 per gram, this equals roughly $4,465 USD as of April 2026. This is the classical Hanafi standard.',
+        text: 'The silver nisab is 595 grams (approximately 19.1 troy ounces). Multiply 595 by the current silver spot price per gram to get the nisab in your currency. This is the classical Hanafi standard.',
       },
     },
   ],
@@ -88,14 +89,16 @@ export default function NisabThresholdPage() {
               <div className="inline-block bg-green-100 text-[#1B5E20] px-3 py-1 rounded-full text-xs font-semibold mb-2">
                 Zakat Guide
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-[#1B5E20]">Nisab Threshold 2026: Gold vs Silver</h1>
+              <h1 className="text-4xl md:text-5xl font-bold text-[#1B5E20]">Nisab Threshold: Gold vs Silver</h1>
               <p className="text-lg text-gray-700">Master the nisab concept and determine which standard applies to your Islamic school and situation.</p>
               <div className="flex items-center gap-4 text-sm text-gray-600 border-t border-gray-200 pt-4">
                 <span>By Barakah Editorial Team</span>
                 <span>6 min read</span>
-                <span>Published: March 2026 • Last updated: April 3, 2026</span>
               </div>
             </header>
+
+            {/* Live Nisab Prices — fetched from API */}
+            <NisabLivePrices />
 
             {/* Table of Contents */}
             <nav className="bg-green-50 border border-green-100 rounded-lg p-6">
@@ -116,7 +119,7 @@ export default function NisabThresholdPage() {
                 The nisab threshold is the <strong>minimum amount of wealth</strong> you must possess before zakat (the obligatory annual charity) becomes a duty upon you. If your wealth falls below the nisab, you do not owe zakat that year.
               </p>
               <p className="text-gray-700 leading-relaxed">
-                Think of nisab as the "exemption threshold" — similar to income tax in secular systems, where you only pay if earnings exceed a certain amount. In Islam, you only owe zakat if your wealth exceeds the nisab.
+                Think of nisab as the &quot;exemption threshold&quot; — similar to income tax in secular systems, where you only pay if earnings exceed a certain amount. In Islam, you only owe zakat if your wealth exceeds the nisab.
               </p>
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Key Point</h3>
@@ -135,14 +138,13 @@ export default function NisabThresholdPage() {
                 <strong>Weight:</strong> 85 grams (approximately 2.747 troy ounces)
               </p>
               <p className="text-gray-700 leading-relaxed">
-                <strong>Current Value (April 2026):</strong> Approximately $5,525 USD (at ~$65 per gram)
+                <strong>Current Value:</strong> <GoldNisabUSD /> (at <GoldPricePerGram /> per gram)
               </p>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-blue-900 mb-3">About This Standard</h3>
                 <ul className="space-y-2 text-gray-700 text-sm">
                   <li><strong className="text-blue-900">Endorsed by:</strong> AMJA (American Muslim Jurists Association), Fiqh Council of North America, and most contemporary Islamic scholars</li>
                   <li><strong className="text-blue-900">Ease of use:</strong> Gold prices are widely published daily, making it easy to calculate current nisab value</li>
-                  <li><strong className="text-blue-900">Inclusivity:</strong> The gold standard is lower in monetary value than the silver standard, making it more stringent (ensuring more people owe zakat)</li>
                   <li><strong className="text-blue-900">Scholarly backing:</strong> Referenced in classical hadith and widely accepted across Islamic schools</li>
                 </ul>
               </div>
@@ -157,59 +159,22 @@ export default function NisabThresholdPage() {
                 <strong>Weight:</strong> 595 grams (approximately 19.1 troy ounces)
               </p>
               <p className="text-gray-700 leading-relaxed">
-                <strong>Current Value (April 2026):</strong> Approximately $4,465 USD (at ~$7.50 per gram)
+                <strong>Current Value:</strong> <SilverNisabUSD /> (at <SilverPricePerGram /> per gram)
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-amber-900 mb-3">About This Standard</h3>
                 <ul className="space-y-2 text-gray-700 text-sm">
                   <li><strong className="text-amber-900">Historical basis:</strong> This is the classical Hanafi school standard, traced to early Islamic jurisprudence</li>
-                  <li><strong className="text-amber-900">Lower threshold:</strong> Results in a slightly lower monetary threshold, making zakat obligatory on slightly less wealth</li>
-                  <li><strong className="text-amber-900">Practical consideration:</strong> Silver prices are less commonly quoted than gold, making calculations slightly less convenient</li>
                   <li><strong className="text-amber-900">School-specific:</strong> Primarily used by Hanafi madhab followers and some traditionalist scholars</li>
+                  <li><strong className="text-amber-900">Practical consideration:</strong> Silver prices are less commonly quoted than gold, making calculations slightly less convenient</li>
                 </ul>
               </div>
             </section>
 
             <section id="comparison" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Side-by-Side Comparison</h2>
-              <div className="overflow-x-auto my-6">
-                <table className="w-full border border-gray-300">
-                  <thead className="bg-[#1B5E20] text-white">
-                    <tr>
-                      <th className="border border-gray-300 p-3 text-left">Aspect</th>
-                      <th className="border border-gray-300 p-3 text-left">Gold (85g)</th>
-                      <th className="border border-gray-300 p-3 text-left">Silver (595g)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="bg-white">
-                      <td className="border border-gray-300 p-3 font-semibold">Weight</td>
-                      <td className="border border-gray-300 p-3">85 grams</td>
-                      <td className="border border-gray-300 p-3">595 grams</td>
-                    </tr>
-                    <tr className="bg-gray-50">
-                      <td className="border border-gray-300 p-3 font-semibold">2026 Value (USD)</td>
-                      <td className="border border-gray-300 p-3">~$5,525</td>
-                      <td className="border border-gray-300 p-3">~$4,465</td>
-                    </tr>
-                    <tr className="bg-white">
-                      <td className="border border-gray-300 p-3 font-semibold">Recommended by</td>
-                      <td className="border border-gray-300 p-3">AMJA, Contemporary Scholars</td>
-                      <td className="border border-gray-300 p-3">Hanafi Madhab (Traditional)</td>
-                    </tr>
-                    <tr className="bg-gray-50">
-                      <td className="border border-gray-300 p-3 font-semibold">Price Availability</td>
-                      <td className="border border-gray-300 p-3">Widely published daily</td>
-                      <td className="border border-gray-300 p-3">Less commonly quoted</td>
-                    </tr>
-                    <tr className="bg-white">
-                      <td className="border border-gray-300 p-3 font-semibold">Practical Impact</td>
-                      <td className="border border-gray-300 p-3">More stringent (higher bar)</td>
-                      <td className="border border-gray-300 p-3">More lenient (lower bar)</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {/* Live comparison table — values fetched from API */}
+              <NisabLivePrices variant="table" />
             </section>
 
             <section id="which-to-use" className="space-y-4">
@@ -220,7 +185,7 @@ export default function NisabThresholdPage() {
 
               <div className="space-y-4 my-6">
                 <div className="border-l-4 border-[#1B5E20] bg-green-50 p-4 rounded">
-                  <h3 className="font-bold text-[#1B5E20] mb-2">Sunni Majority (Shafi'i, Maliki, Hanbali) & Modern Scholars</h3>
+                  <h3 className="font-bold text-[#1B5E20] mb-2">Sunni Majority (Shafi&apos;i, Maliki, Hanbali) & Modern Scholars</h3>
                   <p className="text-gray-700 text-sm">
                     <strong>Use the gold standard (85 grams).</strong> This is the most widely recommended by AMJA, Fiqh Council, and most Islamic organizations in North America. If you are unsure of your madhab or follow a general contemporary approach, use the gold standard.
                   </p>
@@ -236,7 +201,7 @@ export default function NisabThresholdPage() {
                 <div className="border-l-4 border-purple-600 bg-purple-50 p-4 rounded">
                   <h3 className="font-bold text-purple-900 mb-2">Want to be Extra Conservative?</h3>
                   <p className="text-gray-700 text-sm">
-                    Some scholars recommend the "lower of two" approach: use whichever nisab is lower at the time of calculation (currently silver at ~$4,465). This ensures zakat is definitely due and you fulfill your obligation generously.
+                    Some scholars recommend the &quot;lower of two&quot; approach: use whichever nisab is lower at the time of calculation. This ensures zakat is definitely due and you fulfill your obligation generously.
                   </p>
                 </div>
               </div>
@@ -244,8 +209,8 @@ export default function NisabThresholdPage() {
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
                 <h3 className="font-bold text-amber-900 mb-3">Practical Steps to Choose</h3>
                 <ol className="space-y-2 text-gray-700 text-sm">
-                  <li>1. <strong>Know your madhab:</strong> Ask your imam which school of Islamic law you follow (Hanafi, Shafi'i, Maliki, Hanbali)</li>
-                  <li>2. <strong>Check your school's guidance:</strong> Most schools today recommend the gold standard (85g)</li>
+                  <li>1. <strong>Know your madhab:</strong> Ask your imam which school of Islamic law you follow (Hanafi, Shafi&apos;i, Maliki, Hanbali)</li>
+                  <li>2. <strong>Check your school&apos;s guidance:</strong> Most schools today recommend the gold standard (85g)</li>
                   <li>3. <strong>When in doubt:</strong> Use the gold standard (85g), which is the safest and most widely accepted</li>
                   <li>4. <strong>Stay consistent:</strong> Once you choose a standard, use the same one year after year for consistency</li>
                 </ol>
@@ -258,12 +223,12 @@ export default function NisabThresholdPage() {
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: How do I check the current nisab value?</h3>
                 <p className="text-gray-700 text-sm">
-                  Check the daily spot price of gold per gram (usually in USD). Multiply by 85 to get the current gold nisab in dollars. For silver, multiply the spot price per gram by 595. Barakah's calculator automatically updates with current prices daily.
+                  Check the daily spot price of gold per gram (usually in USD). Multiply by 85 to get the current gold nisab in dollars. For silver, multiply the spot price per gram by 595. Barakah&apos;s calculator automatically updates with current prices daily — see the live values at the top of this page.
                 </p>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="font-bold text-[#1B5E20] mb-2">Q: What if I'm exactly at the nisab amount? Do I owe zakat?</h3>
+                <h3 className="font-bold text-[#1B5E20] mb-2">Q: What if I&apos;m exactly at the nisab amount? Do I owe zakat?</h3>
                 <p className="text-gray-700 text-sm">
                   Yes, if you are at or above the nisab threshold and have held the wealth for one lunar year, zakat is due. Many scholars prefer to round up slightly to ensure compliance.
                 </p>
@@ -277,9 +242,9 @@ export default function NisabThresholdPage() {
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="font-bold text-[#1B5E20] mb-2">Q: Can I use the silver nisab even if I follow the Shafi'i school?</h3>
+                <h3 className="font-bold text-[#1B5E20] mb-2">Q: Can I use the silver nisab even if I follow the Shafi&apos;i school?</h3>
                 <p className="text-gray-700 text-sm">
-                  Technically, the Shafi'i school recommends the gold standard. However, if you want to be extra cautious and use the lower (silver) standard, most scholars accept this as a valid approach to ensure you're fulfilling zakat properly.
+                  Technically, the Shafi&apos;i school recommends the gold standard. However, if you want to be extra cautious and use the lower (silver) standard, most scholars accept this as a valid approach to ensure you&apos;re fulfilling zakat properly.
                 </p>
               </div>
 
@@ -295,7 +260,7 @@ export default function NisabThresholdPage() {
             <div className="bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] rounded-xl p-8 text-white mt-12 space-y-4">
               <h2 className="text-2xl font-bold">Check Your Nisab Status Today</h2>
               <p className="text-green-100">
-                Use Barakah's zakat calculator to determine your current nisab threshold and whether zakat is due on your wealth.
+                Use Barakah&apos;s zakat calculator to determine your current nisab threshold and whether zakat is due on your wealth.
               </p>
               <Link
                 href="/dashboard"
@@ -329,7 +294,6 @@ export default function NisabThresholdPage() {
             {/* Author Info */}
             <footer className="mt-12 pt-8 border-t border-gray-200 text-sm text-gray-600">
               <p><strong>By:</strong> Barakah Editorial Team</p>
-              <p><strong>Last updated:</strong> April 3, 2026</p>
               <p className="mt-2">Content based on Islamic fiqh from AMJA, Fiqh Council of North America, and classical Islamic jurisprudence across all madhabs.</p>
             </footer>
           </article>

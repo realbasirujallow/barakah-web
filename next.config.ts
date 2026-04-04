@@ -98,11 +98,6 @@ const nextConfig: NextConfig = {
   // Compress responses (gzip/brotli) — reduces payload by ~70%
   compress: true,
 
-  // Skip ESLint during builds — 159 pre-existing lint issues from
-  // react-hooks/immutability and react-hooks/set-state-in-effect rules.
-  // Fix these incrementally; don't block deploys.
-  eslint: { ignoreDuringBuilds: true },
-
   async headers() {
     return [
       {
