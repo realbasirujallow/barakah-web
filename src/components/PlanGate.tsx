@@ -6,11 +6,7 @@ import { api } from '../lib/api';
 import { validateStripeUrl } from '../lib/validateUrl';
 import { ReactNode } from 'react';
 
-// ── Pricing data ────────────────────────────────────────────────────────────
-const PRICING = {
-  plus:   { monthly: '$9.99',  yearly: '$99',  yearlySaving: 'Save 17%' },
-  family: { monthly: '$14.99', yearly: '$119', yearlySaving: 'Save 34%' },
-} as const;
+import { PRICING } from '../lib/pricing';
 
 interface PlanGateProps {
   /** Minimum plan required to see the content. */

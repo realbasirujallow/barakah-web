@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { useCurrency } from '../../../lib/useCurrency';
+import { PRICING } from '../../../lib/pricing';
 
 /* ──────────────────────────── Types ──────────────────────────── */
 
@@ -766,8 +767,8 @@ export default function AdminPage() {
                     className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
                   >
                     <option value="free">Free</option>
-                    <option value="plus">Plus — $9.99/mo</option>
-                    <option value="family">Family — $14.99/mo</option>
+                    <option value="plus">{`Plus — ${PRICING.plus.monthly}/mo`}</option>
+                    <option value="family">{`Family — ${PRICING.family.monthly}/mo`}</option>
                   </select>
                   <button
                     onClick={handleSavePlan}
@@ -846,7 +847,7 @@ export default function AdminPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">Plan</label>
                 <div className="space-y-2">
-                  {[{ value: 'plus', label: 'Plus — $9.99/mo' }, { value: 'family', label: 'Family — $14.99/mo' }].map(p => (
+                  {[{ value: 'plus', label: `Plus — ${PRICING.plus.monthly}/mo` }, { value: 'family', label: `Family — ${PRICING.family.monthly}/mo` }].map(p => (
                     <label key={p.value} className="flex items-center gap-3 p-3 border rounded-lg border-gray-200 hover:bg-gray-50 cursor-pointer">
                       <input type="radio" name="trialPlan" value={p.value} checked={trialPlan === p.value}
                         onChange={e => setTrialPlan(e.target.value)} className="w-4 h-4" />

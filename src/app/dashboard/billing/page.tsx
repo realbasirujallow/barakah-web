@@ -5,6 +5,7 @@ import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
 import { validateStripeUrl } from '../../../lib/validateUrl';
+import { PRICING } from '../../../lib/pricing';
 
 // ── Plan tier ranking ────────────────────────────────────────────────────────
 const PLAN_TIER: Record<string, number> = { free: 0, plus: 1, family: 2 };
@@ -12,10 +13,13 @@ const PLAN_TIER: Record<string, number> = { free: 0, plus: 1, family: 2 };
 // ── Plan definitions ─────────────────────────────────────────────────────────
 const PLANS = [
   {
-    id: 'free',
+    id: 'free' as const,
     name: 'Free',
-    price: '$0',
-    period: 'forever',
+    monthlyPrice: '$0',
+    yearlyPrice: '$0',
+    monthlyPeriod: 'forever',
+    yearlyPeriod: 'forever',
+    yearlySaving: null,
     color: 'gray',
     features: [
       '25 transactions per month',
@@ -27,10 +31,13 @@ const PLANS = [
     ],
   },
   {
-    id: 'plus',
+    id: 'plus' as const,
     name: 'Barakah Plus',
-    price: '$9.99',
-    period: '/month',
+    monthlyPrice: PRICING.plus.monthly,
+    yearlyPrice: PRICING.plus.yearly,
+    monthlyPeriod: PRICING.plus.monthlyPeriod,
+    yearlyPeriod: PRICING.plus.yearlyPeriod,
+    yearlySaving: PRICING.plus.yearlySaving,
     color: 'green',
     highlight: true,
     badge: 'Most Popular',
@@ -49,10 +56,13 @@ const PLANS = [
     ],
   },
   {
-    id: 'family',
+    id: 'family' as const,
     name: 'Barakah Family',
-    price: '$14.99',
-    period: '/month',
+    monthlyPrice: PRICING.family.monthly,
+    yearlyPrice: PRICING.family.yearly,
+    monthlyPeriod: PRICING.family.monthlyPeriod,
+    yearlyPeriod: PRICING.family.yearlyPeriod,
+    yearlySaving: PRICING.family.yearlySaving,
     color: 'blue',
     features: [
       'Everything in Plus',
@@ -64,7 +74,7 @@ const PLANS = [
       'Priority support',
     ],
   },
-] as const;
+];
 
 // ── Billing content (needs Suspense for useSearchParams) ─────────────────────
 function BillingContent() {
@@ -76,6 +86,7 @@ function BillingContent() {
   const [statusLoading, setStatusLoading] = useState(true);
   const [referral, setReferral] = useState<{ referralCode: string; shareUrl: string; referralCount: number } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
 
 
@@ -103,7 +114,7 @@ function BillingContent() {
     try {
       // Existing subscribers: upgrade/downgrade in-place (no redirect needed).
       // New subscribers (free plan): get redirected to Stripe Checkout.
-      const result = await api.upgradeSubscription(plan);
+      const result = await api.upgradeSubscription(plan, billing);
       if (result?.url) {
         // Free user — redirect to Stripe Checkout
         if (validateStripeUrl(result.url)) {
@@ -194,11 +205,30 @@ function BillingContent() {
         </div>
       )}
 
+      {/* Billing toggle */}
+      <div className="flex items-center justify-center gap-3 mb-6">
+        <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
+        <button
+          onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
+          className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
+        >
+          <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-7' : ''}`} />
+        </button>
+        <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>
+          Yearly
+        </span>
+        {billing === 'yearly' && (
+          <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save up to 34%</span>
+        )}
+      </div>
+
       {/* Plan cards */}
       <div className="grid md:grid-cols-3 gap-4 mb-8">
         {PLANS.map(plan => {
           const isCurrent   = currentPlan === plan.id;
           const isHighlight = 'highlight' in plan && plan.highlight;
+          const price  = billing === 'yearly' ? plan.yearlyPrice  : plan.monthlyPrice;
+          const period = billing === 'yearly' ? plan.yearlyPeriod : plan.monthlyPeriod;
 
           return (
             <div
@@ -221,8 +251,13 @@ function BillingContent() {
               <h2 className="text-lg font-bold text-gray-800 mt-1">{plan.name}</h2>
 
               <div className="mt-2 mb-4">
-                <span className="text-3xl font-extrabold text-[#1B5E20]">{plan.price}</span>
-                <span className="text-gray-400 text-sm">{plan.period}</span>
+                <span className="text-3xl font-extrabold text-[#1B5E20]">{price}</span>
+                <span className="text-gray-400 text-sm">{period}</span>
+                {billing === 'yearly' && plan.yearlySaving && (
+                  <span className="ml-2 text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                    {plan.yearlySaving}
+                  </span>
+                )}
               </div>
 
               <ul className="space-y-2 flex-1 mb-5">
