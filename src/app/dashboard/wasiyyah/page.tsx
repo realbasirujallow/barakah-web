@@ -260,7 +260,7 @@ function WasiyyahPageContent() {
           {items.length > 0 ? (
             <div className="space-y-3">
               {items.map(b => (
-                <div key={b.id} className="bg-white rounded-xl p-4 flex justify-between items-center" role="listitem">
+                <div key={b.id} className="bg-white rounded-2xl shadow-sm p-6 flex justify-between items-center" role="listitem">
                   <div>
                     <p className="font-semibold text-[#1B5E20]">{b.beneficiaryName}</p>
                     <p className="text-sm text-gray-500">{b.relationship}{b.notes ? ` • ${b.notes}` : ''}</p>
@@ -299,7 +299,7 @@ function WasiyyahPageContent() {
               {obligations.map(ob => {
                 const typeInfo = OBLIGATION_TYPES.find(t => t.value === ob.type) ?? OBLIGATION_TYPES[OBLIGATION_TYPES.length - 1];
                 return (
-                  <div key={ob.id} className={`bg-white rounded-xl p-4 border-l-4 ${ob.status === 'fulfilled' ? 'border-green-400 opacity-60' : 'border-amber-400'}`} role="listitem">
+                  <div key={ob.id} className={`bg-white rounded-2xl shadow-sm p-6 border-l-4 ${ob.status === 'fulfilled' ? 'border-green-400 opacity-60' : 'border-amber-400'}`} role="listitem">
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">

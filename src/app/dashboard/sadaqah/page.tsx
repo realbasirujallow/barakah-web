@@ -252,6 +252,7 @@ function SadaqahContent() {
           {displayCount < items.length && (
             <div className="text-center mt-4">
               <button
+                type="button"
                 onClick={() => setDisplayCount(displayCount + 10)}
                 className="bg-[#1B5E20] text-white px-6 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
               >

@@ -303,6 +303,7 @@ export default function AdminPage() {
           </p>
         </div>
         <button
+          type="button"
           onClick={() => loadData(page)}
           className="px-4 py-2 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-[#2E7D32] transition font-medium"
         >
@@ -319,12 +320,12 @@ export default function AdminPage() {
               <p className="font-semibold text-amber-800 text-sm">Attention Required</p>
               <div className="flex flex-wrap gap-4 mt-1 text-sm text-amber-700">
                 {(overview?.pastDueCount ?? 0) > 0 && (
-                  <button onClick={() => setActiveTab('alerts')} className="underline hover:text-amber-900">
+                  <button type="button" onClick={() => setActiveTab('alerts')} className="underline hover:text-amber-900">
                     {overview!.pastDueCount} past-due subscription{overview!.pastDueCount > 1 ? 's' : ''}
                   </button>
                 )}
                 {(overview?.expiringTrialsCount ?? 0) > 0 && (
-                  <button onClick={() => setActiveTab('alerts')} className="underline hover:text-amber-900">
+                  <button type="button" onClick={() => setActiveTab('alerts')} className="underline hover:text-amber-900">
                     {overview!.expiringTrialsCount} trial{overview!.expiringTrialsCount > 1 ? 's' : ''} expiring within 7 days
                   </button>
                 )}
@@ -339,6 +340,7 @@ export default function AdminPage() {
         {(['overview', 'users', 'alerts', 'unverified'] as const).map(tab => (
           <button
             key={tab}
+            type="button"
             onClick={() => setActiveTab(tab)}
             className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition ${
               activeTab === tab
