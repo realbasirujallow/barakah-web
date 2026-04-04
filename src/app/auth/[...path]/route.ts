@@ -13,9 +13,6 @@ import { NextRequest, NextResponse } from 'next/server';
  *   1. Forwarding the request (with cookies) to the backend
  *   2. Copying ALL Set-Cookie headers from the backend response
  *   3. Returning the body + headers to the browser
- *
- * The rewrite rule for /auth/:path* in next.config.ts must be REMOVED
- * so this route handler takes precedence.
  */
 
 const BACKEND_URL =
@@ -25,9 +22,9 @@ const BACKEND_URL =
 
 async function handler(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  context: { params: Promise<{ path: string[] }> }
 ) {
-  const { path } = await params;
+  const { path } = await context.params;
   const backendPath = '/auth/' + path.join('/');
   const url = new URL(backendPath, BACKEND_URL);
 
@@ -85,9 +82,24 @@ async function handler(
 
   // Copy ALL Set-Cookie headers — this is the critical part that
   // next.config.ts rewrites fail to do.
-  const setCookies = backendRes.headers.getSetCookie();
-  for (const cookie of setCookies) {
-    response.headers.append('Set-Cookie', cookie);
+  // Use getSetCookie() if available (Node 20+), fall back to raw header.
+  if (typeof backendRes.headers.getSetCookie === 'function') {
+    const setCookies = backendRes.headers.getSetCookie();
+    for (const c of setCookies) {
+      response.headers.append('Set-Cookie', c);
+    }
+  } else {
+    // Fallback for older Node: raw header access
+    const raw = backendRes.headers.get('set-cookie');
+    if (raw) {
+      // Multiple Set-Cookie headers are comma-joined by the fetch spec,
+      // but cookies themselves can contain commas in Expires. Split on
+      // patterns that look like a new cookie name start.
+      const parts = raw.split(/,(?=\s*[A-Za-z_-]+=)/);
+      for (const c of parts) {
+        response.headers.append('Set-Cookie', c.trim());
+      }
+    }
   }
 
   // Copy CORS headers
@@ -98,11 +110,12 @@ async function handler(
   }
 
   // Copy security headers
-  for (const name of [
+  const securityHeaders = [
     'cache-control', 'pragma', 'expires',
     'x-content-type-options', 'x-frame-options',
     'referrer-policy', 'content-security-policy',
-  ]) {
+  ];
+  for (const name of securityHeaders) {
     const val = backendRes.headers.get(name);
     if (val) response.headers.set(name, val);
   }
