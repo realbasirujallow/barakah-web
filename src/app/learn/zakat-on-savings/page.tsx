@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import NisabLivePrices, { GoldNisabUSD } from '../../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
   title: 'Zakat on Savings & Bank Accounts: How to Calculate in 2026 | Barakah',
@@ -126,7 +127,7 @@ export default function ZakatOnSavingsPage() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">The Nisab Rule</h3>
                 <p className="text-gray-700 text-sm">
-                  If your savings balance is <strong>below the nisab threshold</strong> (approximately $5,525 in gold value), you do not owe zakat. If it is <strong>above nisab</strong> and you've owned it for one lunar year, you owe 2.5% in zakat.
+                  If your savings balance is <strong>below the nisab threshold</strong> (currently <GoldNisabUSD /> based on 85g of gold), you do not owe zakat. If it is <strong>above nisab</strong> and you&apos;ve owned it for one lunar year, you owe 2.5% in zakat.
                 </p>
               </div>
             </section>
@@ -148,7 +149,7 @@ export default function ZakatOnSavingsPage() {
                   <span className="text-2xl font-bold text-[#1B5E20]">2</span>
                   <div>
                     <p className="font-semibold text-gray-900">Verify it exceeds nisab</p>
-                    <p className="text-gray-600 text-sm">Compare to the current nisab threshold (~$5,525 USD or 85g of gold value)</p>
+                    <p className="text-gray-600 text-sm">Compare to the current nisab threshold (<GoldNisabUSD /> or 85g of gold value)</p>
                   </div>
                 </li>
                 <li className="flex gap-4">
@@ -178,7 +179,7 @@ export default function ZakatOnSavingsPage() {
                 <h3 className="font-bold text-amber-900 mb-4">Example: $10,000 in Savings</h3>
                 <div className="space-y-2 text-sm text-amber-900 font-mono">
                   <p>Current balance: <strong>$10,000</strong></p>
-                  <p>Nisab threshold: <strong>~$5,525</strong></p>
+                  <p>Nisab threshold: <GoldNisabUSD /> (live)</p>
                   <p>Does it exceed nisab? <strong>YES ✓</strong></p>
                   <p>Lunar year held? <strong>YES ✓</strong></p>
                   <p>Zakat due (2.5%): <strong>$10,000 × 0.025 = $250</strong></p>
