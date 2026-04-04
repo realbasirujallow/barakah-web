@@ -23,6 +23,15 @@ const features = [
   { icon: '👥', title: 'Shared Family Finances', desc: 'Family plan lets up to 6 members track shared expenses, group transactions, and family Zakat.' },
 ];
 
+const learningResources = [
+  { title: 'Zakat on Gold', href: '/learn/zakat-on-gold', desc: 'Understand how gold-based nisab works and calculate your zakat obligation.' },
+  { title: 'Zakat on Retirement Accounts', href: '/learn/zakat-on-retirement-accounts', desc: 'Navigate zakat rules for 401(k)s, IRAs, and other retirement savings.' },
+  { title: 'Zakat on Savings', href: '/learn/zakat-on-savings', desc: 'Learn which savings are zakatable and how to calculate your obligation.' },
+  { title: 'Nisab Threshold', href: '/learn/nisab-threshold', desc: 'Understand the nisab threshold and how it\'s calculated with current gold prices.' },
+  { title: 'Zakat Al-Fitr', href: '/learn/zakat-al-fitr', desc: 'Master Zakat Al-Fitr, the charity given at the end of Ramadan.' },
+  { title: 'Islamic Finance Basics', href: '/learn/islamic-finance-basics', desc: 'Learn the fundamentals of Islamic finance principles and halal investing.' },
+];
+
 const plans = [
   {
     name: 'Free',
@@ -370,6 +379,58 @@ export default function Home() {
           <p className="text-gray-600 leading-relaxed">
             Barakah supports multiple schools of Islamic jurisprudence (Hanafi, Shafi&apos;i, Maliki, Hanbali, and AMJA consensus) for Zakat calculation, flags riba-bearing transactions, and helps you track all your Islamic financial obligations in one place. We are a tool to help you stay informed — always consult a qualified scholar for specific rulings.
           </p>
+        </div>
+      </section>
+
+      {/* ── Free Zakat Calculator ── */}
+      <section className="py-20 px-6 bg-[#FFF8E1]">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-4xl mb-4">🧮</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">Free Zakat Calculator</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto mb-8">
+              Calculate your zakat obligation instantly with our free, multi-madhab zakat calculator. Support for gold or silver nisab, live gold prices, and detailed breakdowns by asset type.
+            </p>
+            <Link
+              href="/zakat-calculator"
+              className="inline-block bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition shadow"
+            >
+              Try Zakat Calculator Now
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Learn About Islamic Finance ── */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">Learn About Islamic Finance</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Deepen your understanding of zakat, nisab, halal investing, and Islamic financial principles with our comprehensive learning resources.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {learningResources.map(resource => (
+              <Link
+                key={resource.href}
+                href={resource.href}
+                className="bg-[#FFF8E1] hover:shadow-md transition rounded-2xl p-6 border border-gray-100"
+              >
+                <h3 className="font-bold text-[#1B5E20] mb-2">{resource.title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{resource.desc}</p>
+                <div className="mt-4 text-[#1B5E20] font-semibold text-sm">Learn More →</div>
+              </Link>
+            ))}
+          </div>
+          <div className="text-center">
+            <Link
+              href="/learn"
+              className="inline-block bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition"
+            >
+              View All Articles
+            </Link>
+          </div>
         </div>
       </section>
 

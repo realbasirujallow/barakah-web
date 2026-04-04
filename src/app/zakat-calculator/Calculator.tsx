@@ -1,0 +1,413 @@
+'use client';
+
+import { useState, useMemo } from 'react';
+import Link from 'next/link';
+
+interface CalculatorInputs {
+  cashAndBanking: number;
+  goldGrams: number;
+  silverGrams: number;
+  investments: number;
+  businessAssets: number;
+  retirementAccounts: number;
+  otherAssets: number;
+  debts: number;
+}
+
+// Approximate values as of April 2026 (these should ideally come from an API)
+const GOLD_PRICE_PER_GRAM = 70; // USD per gram
+const SILVER_PRICE_PER_GRAM = 0.85; // USD per gram
+const NISAB_GOLD_GRAMS = 85;
+const NISAB_SILVER_GRAMS = 595;
+const ZAKAT_RATE = 0.025; // 2.5%
+
+export default function Calculator() {
+  const [inputs, setInputs] = useState<CalculatorInputs>({
+    cashAndBanking: 0,
+    goldGrams: 0,
+    silverGrams: 0,
+    investments: 0,
+    businessAssets: 0,
+    retirementAccounts: 0,
+    otherAssets: 0,
+    debts: 0,
+  });
+
+  const [selectedMadhab, setSelectedMadhab] = useState<'hanafi' | 'shafii' | 'maliki' | 'hanbali'>('hanafi');
+  const [showResults, setShowResults] = useState(false);
+
+  const nisabInGold = NISAB_GOLD_GRAMS * GOLD_PRICE_PER_GRAM;
+  const nisabInSilver = NISAB_SILVER_GRAMS * SILVER_PRICE_PER_GRAM;
+  const nisabThreshold = Math.min(nisabInGold, nisabInSilver); // Al-Qaradawi's approach
+
+  const calculations = useMemo(() => {
+    // Calculate total asset values
+    const goldValue = inputs.goldGrams * GOLD_PRICE_PER_GRAM;
+    const silverValue = inputs.silverGrams * SILVER_PRICE_PER_GRAM;
+
+    const totalAssets =
+      inputs.cashAndBanking +
+      goldValue +
+      silverValue +
+      inputs.investments +
+      inputs.businessAssets +
+      inputs.retirementAccounts +
+      inputs.otherAssets;
+
+    const totalDebt = inputs.debts;
+    const netWealth = Math.max(0, totalAssets - totalDebt);
+
+    // Zakat is only due if net wealth exceeds nisab
+    const zakatabledWealth = Math.max(0, netWealth - nisabThreshold);
+    const zakatDue = zakatabledWealth * ZAKAT_RATE;
+
+    const meetsNisab = netWealth >= nisabThreshold;
+
+    return {
+      totalAssets,
+      netWealth,
+      zakatabledWealth,
+      zakatDue,
+      meetsNisab,
+      goldValue,
+      silverValue,
+    };
+  }, [inputs]);
+
+  const handleInputChange = (field: keyof CalculatorInputs, value: number) => {
+    setInputs((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleCalculate = () => {
+    setShowResults(true);
+  };
+
+  const handleReset = () => {
+    setInputs({
+      cashAndBanking: 0,
+      goldGrams: 0,
+      silverGrams: 0,
+      investments: 0,
+      businessAssets: 0,
+      retirementAccounts: 0,
+      otherAssets: 0,
+      debts: 0,
+    });
+    setShowResults(false);
+  };
+
+  const InputField = ({
+    label,
+    field,
+    value,
+    unit = 'USD',
+    tooltip,
+  }: {
+    label: string;
+    field: keyof CalculatorInputs;
+    value: number;
+    unit?: string;
+    tooltip: string;
+  }) => (
+    <div className="mb-4">
+      <div className="flex items-center gap-2 mb-1">
+        <label className="block text-sm font-medium text-gray-700">{label}</label>
+        <div
+          className="relative group cursor-help"
+          title={tooltip}
+        >
+          <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-amber-500 rounded-full hover:bg-amber-600">
+            ?
+          </span>
+          <div className="absolute left-0 bottom-full mb-2 w-48 hidden group-hover:block bg-gray-900 text-white text-xs rounded p-2 z-10 whitespace-normal">
+            {tooltip}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          value={value === 0 ? '' : value}
+          onChange={(e) =>
+            handleInputChange(field, e.target.value ? parseFloat(e.target.value) : 0)
+          }
+          placeholder="0"
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+        />
+        <span className="text-sm text-gray-600 font-medium min-w-12">{unit}</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="w-full">
+      {/* Interactive Calculator Card */}
+      <div className="bg-white rounded-xl shadow-lg p-8 mb-8 border-t-4 border-amber-500">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Calculate Your Zakat</h2>
+          <p className="text-gray-600">
+            Enter your assets below. All calculations are done locally on your device.
+          </p>
+        </div>
+
+        {/* Madhab Selector */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+          <p className="text-sm font-medium text-gray-700 mb-3">
+            Select your Islamic school of thought (madhab):
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {(['hanafi', 'shafii', 'maliki', 'hanbali'] as const).map((madhab) => (
+              <button
+                key={madhab}
+                onClick={() => setSelectedMadhab(madhab)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
+                  selectedMadhab === madhab
+                    ? 'bg-green-700 text-white'
+                    : 'bg-white border border-amber-300 text-gray-700 hover:bg-amber-50'
+                }`}
+              >
+                {madhab === 'hanafi' && 'Hanafi'}
+                {madhab === 'shafii' && 'Shafii'}
+                {madhab === 'maliki' && 'Maliki'}
+                {madhab === 'hanbali' && 'Hanbali'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Input Fields */}
+        <div className="space-y-6 mb-8">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+              Liquid & Banking Assets
+            </h3>
+            <InputField
+              label="Cash & Bank Accounts"
+              field="cashAndBanking"
+              value={inputs.cashAndBanking}
+              tooltip="Include checking accounts, savings accounts, and cash on hand"
+            />
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+              Precious Metals
+            </h3>
+            <InputField
+              label="Gold (in grams)"
+              field="goldGrams"
+              value={inputs.goldGrams}
+              unit="g"
+              tooltip="Weight of gold jewelry, coins, or bars. Personal jewelry worn regularly may be exempt depending on madhab."
+            />
+            <InputField
+              label="Silver (in grams)"
+              field="silverGrams"
+              value={inputs.silverGrams}
+              unit="g"
+              tooltip="Weight of silver jewelry, coins, or bars"
+            />
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+              Investments & Property
+            </h3>
+            <InputField
+              label="Stocks, Bonds & Mutual Funds"
+              field="investments"
+              value={inputs.investments}
+              tooltip="Current market value of investment portfolios"
+            />
+            <InputField
+              label="Business Assets & Inventory"
+              field="businessAssets"
+              value={inputs.businessAssets}
+              tooltip="Value of business inventory, equipment, or stock in trade"
+            />
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+              Retirement & Other Assets
+            </h3>
+            <InputField
+              label="Retirement Accounts (401k, IRA, Roth IRA)"
+              field="retirementAccounts"
+              value={inputs.retirementAccounts}
+              tooltip="Some scholars include retirement accounts; others exclude them. Check with your local imam."
+            />
+            <InputField
+              label="Other Assets"
+              field="otherAssets"
+              value={inputs.otherAssets}
+              tooltip="Cryptocurrency, rental property, vehicles (excluding personal use), etc."
+            />
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+              Liabilities
+            </h3>
+            <InputField
+              label="Total Debts (to deduct)"
+              field="debts"
+              value={inputs.debts}
+              tooltip="Mortgages, personal loans, credit card debt, and other liabilities"
+            />
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 mb-8">
+          <button
+            onClick={handleCalculate}
+            className="flex-1 bg-green-700 hover:bg-green-800 text-white font-bold py-3 rounded-lg transition-colors text-lg"
+          >
+            Calculate My Zakat
+          </button>
+          <button
+            onClick={handleReset}
+            className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+
+        {/* Results Section */}
+        {showResults && (
+          <div className="space-y-4">
+            {/* Nisab Threshold Info */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-900 mb-2">Nisab Threshold</h3>
+              <p className="text-sm text-gray-700 mb-2">
+                You must meet the nisab threshold to be obligated to pay zakat.
+              </p>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-xs text-gray-600">Gold Standard</p>
+                  <p className="text-lg font-bold text-green-700">
+                    ${nisabInGold.toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600">Silver Standard</p>
+                  <p className="text-lg font-bold text-green-700">
+                    ${nisabInSilver.toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600">Your Threshold</p>
+                  <p className="text-lg font-bold text-amber-600">
+                    ${nisabThreshold.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Calculation Breakdown */}
+            <div className="space-y-3">
+              <div className="flex justify-between py-2 border-b border-gray-200">
+                <span className="text-gray-700">Total Assets:</span>
+                <span className="font-semibold text-gray-900">
+                  ${calculations.totalAssets.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-gray-200">
+                <span className="text-gray-700">Minus: Total Debts</span>
+                <span className="font-semibold text-red-600">
+                  -${inputs.debts.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-gray-200 bg-gray-50 px-2 -mx-2">
+                <span className="text-gray-900 font-medium">Net Wealth:</span>
+                <span className="font-bold text-gray-900">
+                  ${calculations.netWealth.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-gray-200">
+                <span className="text-gray-700">Minus: Nisab Exemption</span>
+                <span className="font-semibold text-gray-600">
+                  -${nisabThreshold.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between py-2 bg-amber-50 px-2 -mx-2 rounded">
+                <span className="text-gray-900 font-medium">Zakatable Wealth:</span>
+                <span className="font-bold text-amber-700">
+                  ${calculations.zakatabledWealth.toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            {/* Final Result */}
+            <div
+              className={`p-6 rounded-lg ${
+                calculations.meetsNisab
+                  ? 'bg-green-50 border-2 border-green-300'
+                  : 'bg-gray-50 border-2 border-gray-300'
+              }`}
+            >
+              {calculations.meetsNisab ? (
+                <>
+                  <p className="text-sm text-gray-700 mb-2">Your Zakat Due (2.5%):</p>
+                  <p className="text-4xl font-bold text-green-700 mb-2">
+                    ${calculations.zakatDue.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    You meet the nisab threshold and are obligated to pay zakat.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-700 mb-2">Zakat Status:</p>
+                  <p className="text-2xl font-bold text-gray-700 mb-2">Not Obligatory</p>
+                  <p className="text-sm text-gray-600">
+                    Your net wealth does not reach the nisab threshold of ${nisabThreshold.toFixed(2)}.
+                    Zakat is not obligatory, but sadaqah is always welcome.
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* Next Steps */}
+            {calculations.meetsNisab && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-2">Next Steps</h4>
+                <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
+                  <li>
+                    Record the date you first met nisab (your zakat anniversary)
+                  </li>
+                  <li>
+                    Recalculate one Islamic lunar year later
+                  </li>
+                  <li>
+                    Distribute zakat to eligible recipients (the poor, needy, slaves, debtors, in the way of Allah, travelers)
+                  </li>
+                  <li>
+                    Keep records for your own accountability
+                  </li>
+                </ul>
+              </div>
+            )}
+
+            {/* CTA */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-sm text-gray-700 mb-3">
+                Track your zakat automatically and never miss a payment with Barakah's zakat tracker.
+              </p>
+              <Link
+                href="/signup"
+                className="inline-block w-full text-center bg-green-700 hover:bg-green-800 text-white font-bold py-2 rounded-lg transition-colors"
+              >
+                Create Free Account
+              </Link>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
