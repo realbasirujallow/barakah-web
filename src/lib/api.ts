@@ -53,6 +53,7 @@ export function setUnauthorizedHandler(fn: () => void) {
 // This trade-off (XSS exposure of refresh token vs. functional sessions)
 // is acceptable given the CSP headers already in place.
 const RT_STORAGE_KEY = '_brt'; // short key to avoid detection by scrapers
+const AT_STORAGE_KEY = '_bat'; // access token (JWT) — stored in localStorage
 
 function _loadPersistedRT(): string | null {
   try { return localStorage.getItem(RT_STORAGE_KEY); } catch { return null; }
@@ -64,12 +65,29 @@ function _persistRT(token: string | null): void {
   } catch { /* SSR / private browsing */ }
 }
 
+function _loadPersistedAT(): string | null {
+  try { return localStorage.getItem(AT_STORAGE_KEY); } catch { return null; }
+}
+function _persistAT(token: string | null): void {
+  try {
+    if (token) localStorage.setItem(AT_STORAGE_KEY, token);
+    else localStorage.removeItem(AT_STORAGE_KEY);
+  } catch { /* SSR / private browsing */ }
+}
+
 let _refreshToken: string | null = (typeof window !== 'undefined') ? _loadPersistedRT() : null;
+let _accessToken: string | null = (typeof window !== 'undefined') ? _loadPersistedAT() : null;
 
 /** Store the refresh token (called by AuthContext after login). */
 export function setRefreshToken(token: string | null) {
   _refreshToken = token;
   _persistRT(token);
+}
+
+/** Store the access token JWT (called by AuthContext after login/refresh). */
+export function setAccessToken(token: string | null) {
+  _accessToken = token;
+  _persistAT(token);
 }
 
 /** Get the current in-memory refresh token. */
@@ -139,16 +157,23 @@ async function attemptSilentRefresh(): Promise<'ok' | 'expired' | 'network_error
       signal: controller.signal,
     });
     if (res.ok) {
-      // Extract the new refresh token from the response body for the next cycle.
-      // Persist to localStorage so it survives page reloads.
+      // Extract tokens from the response body and persist to localStorage.
+      // Both access token (JWT) and refresh token are stored so they survive
+      // page reloads — CDN/proxy strips Set-Cookie headers, so httpOnly
+      // cookies cannot be relied upon for session persistence.
       try {
         const data = await res.json();
         if (data.refreshToken) {
           _refreshToken = data.refreshToken;
           _persistRT(data.refreshToken);
         }
+        // The refresh endpoint returns a new JWT in the 'token' field
+        if (data.token) {
+          _accessToken = data.token;
+          _persistAT(data.token);
+        }
       } catch {
-        // Response body parsing failed — not critical, cookie fallback remains
+        // Response body parsing failed — not critical
       }
       return 'ok';
     }
@@ -175,6 +200,15 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> || {}),
   };
+
+  // Add Authorization header with JWT from localStorage.
+  // CDN/proxy layers (Cloudflare + Railway) strip Set-Cookie headers from
+  // Route Handler responses, so httpOnly cookies never reach the browser.
+  // The Bearer token from localStorage is the primary auth mechanism.
+  if (!_accessToken) _accessToken = _loadPersistedAT();
+  if (_accessToken && !headers['Authorization']) {
+    headers['Authorization'] = `Bearer ${_accessToken}`;
+  }
 
   // Add CSRF token to non-GET requests for CSRF protection
   const method = (options.method || 'GET').toUpperCase();
