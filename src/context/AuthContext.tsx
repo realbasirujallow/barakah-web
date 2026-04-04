@@ -67,6 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Register a global 401 handler.
     setUnauthorizedHandler(() => {
+      // Clear in-memory + persisted refresh token
+      setRefreshToken(null);
       try {
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(REFRESH_TS_KEY);

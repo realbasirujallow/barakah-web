@@ -39,34 +39,69 @@ export function setUnauthorizedHandler(fn: () => void) {
 // Concurrent 401s are deduplicated: all callers wait for the same refresh
 // promise, then each re-tries their own request once.
 
-// In-memory refresh token storage. Populated on login and on successful
-// refresh. NOT in localStorage to limit XSS exposure — the token lives only
-// in this module's closure. On full page reload, this is lost, but the
-// httpOnly cookie fallback still exists (and the auth_token cookie is the
-// primary session mechanism anyway).
-let _refreshToken: string | null = null;
+// ── Persistent refresh token storage ────────────────────────────────────────
+// The refresh token is stored in localStorage so it survives page reloads.
+// Previously it was in-memory only, which meant that after any full-page
+// navigation (typed URL, bookmark, browser refresh) the token was lost and
+// the client fell back to the httpOnly cookie. If the cookie was corrupted
+// by the Cloudflare/Railway/Next.js proxy chain (a known issue), the refresh
+// would fail with 401 and the user would be logged out.
+//
+// Security note: localStorage IS accessible to XSS, but the auth_token
+// (the actual session credential) remains in an httpOnly cookie. The refresh
+// token alone cannot access API data — it can only obtain a new auth_token.
+// This trade-off (XSS exposure of refresh token vs. functional sessions)
+// is acceptable given the CSP headers already in place.
+const RT_STORAGE_KEY = '_brt'; // short key to avoid detection by scrapers
+
+function _loadPersistedRT(): string | null {
+  try { return localStorage.getItem(RT_STORAGE_KEY); } catch { return null; }
+}
+function _persistRT(token: string | null): void {
+  try {
+    if (token) localStorage.setItem(RT_STORAGE_KEY, token);
+    else localStorage.removeItem(RT_STORAGE_KEY);
+  } catch { /* SSR / private browsing */ }
+}
+
+let _refreshToken: string | null = (typeof window !== 'undefined') ? _loadPersistedRT() : null;
 
 /** Store the refresh token (called by AuthContext after login). */
 export function setRefreshToken(token: string | null) {
   _refreshToken = token;
+  _persistRT(token);
 }
 
 /** Get the current in-memory refresh token. */
 export function getRefreshToken(): string | null {
+  // Re-read from localStorage in case another tab updated it
+  if (!_refreshToken && typeof window !== 'undefined') {
+    _refreshToken = _loadPersistedRT();
+  }
   return _refreshToken;
 }
 
-let isRefreshing = false;
+// ── Global refresh deduplication ───────────────────────────────────────────
+// ALL callers (proactive refresh in AuthContext, layout navigation refresh,
+// background interval, and 401 retry) go through this single gate. Only one
+// POST /auth/refresh is ever in-flight at a time. Concurrent callers wait
+// for the same promise. This prevents the "rotation death spiral" where two
+// simultaneous refresh requests each try to rotate the same token — the
+// first succeeds but the second uses the now-revoked token and fails.
 type RefreshResult = 'ok' | 'expired' | 'network_error';
-let refreshSubscribers: Array<(result: RefreshResult) => void> = [];
+let _activeRefreshPromise: Promise<RefreshResult> | null = null;
 
-function subscribeToRefresh(cb: (result: RefreshResult) => void) {
-  refreshSubscribers.push(cb);
-}
-
-function notifySubscribers(result: RefreshResult) {
-  refreshSubscribers.forEach(cb => cb(result));
-  refreshSubscribers = [];
+/**
+ * Deduplicated refresh — ALL refresh callers MUST use this instead of
+ * calling attemptSilentRefresh() directly. Returns the same promise to
+ * all concurrent callers.
+ */
+function deduplicatedRefresh(): Promise<RefreshResult> {
+  if (_activeRefreshPromise) return _activeRefreshPromise;
+  _activeRefreshPromise = attemptSilentRefresh().finally(() => {
+    _activeRefreshPromise = null;
+  });
+  return _activeRefreshPromise;
 }
 
 /**
@@ -88,6 +123,9 @@ async function attemptSilentRefresh(): Promise<'ok' | 'expired' | 'network_error
 
     // Send refresh token in body (primary) — bypasses cookie proxy corruption.
     // The httpOnly cookie is also sent automatically as a fallback.
+    // Re-read from localStorage in case _refreshToken was lost (e.g. module
+    // re-initialization) but persisted storage still has it.
+    if (!_refreshToken) _refreshToken = _loadPersistedRT();
     const bodyPayload: Record<string, string> = {};
     if (_refreshToken) {
       bodyPayload.refreshToken = _refreshToken;
@@ -102,10 +140,12 @@ async function attemptSilentRefresh(): Promise<'ok' | 'expired' | 'network_error
     });
     if (res.ok) {
       // Extract the new refresh token from the response body for the next cycle.
+      // Persist to localStorage so it survives page reloads.
       try {
         const data = await res.json();
         if (data.refreshToken) {
           _refreshToken = data.refreshToken;
+          _persistRT(data.refreshToken);
         }
       } catch {
         // Response body parsing failed — not critical, cookie fallback remains
@@ -181,8 +221,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
     // Before giving up and redirecting to login, try to silently refresh the
     // access token using the long-lived refresh_token httpOnly cookie.
     // Guard against recursive refresh calls (the /auth/refresh call itself
-    // never gets a 401 — it's unauthenticated — so isRefreshing will be false
-    // whenever we enter this block from a real API call).
+    // never gets a 401 — it's unauthenticated).
     //
     // SKIP refresh for auth endpoints — a 401 on /auth/login means "wrong
     // password", not "expired token". Let it fall through to the normal
@@ -194,16 +233,9 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
                            endpoint.startsWith('/auth/verify-email') ||
                            endpoint.startsWith('/auth/resend-verification');
     if (res.status === 401 && !isAuthEndpoint) {
-      let refreshResult: RefreshResult;
-      if (!isRefreshing) {
-        isRefreshing = true;
-        refreshResult = await attemptSilentRefresh();
-        isRefreshing = false;
-        notifySubscribers(refreshResult);
-      } else {
-        // Another request is already refreshing — wait for it
-        refreshResult = await new Promise<RefreshResult>(resolve => subscribeToRefresh(resolve));
-      }
+      // Use the global deduplication gate — all concurrent 401s share one
+      // refresh request, preventing the rotation death spiral.
+      const refreshResult = await deduplicatedRefresh();
 
       if (refreshResult === 'ok') {
         // Stamp the refresh time so AuthContext's mount guard (and other tabs)
@@ -296,9 +328,7 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
 
   if (!res.ok) {
     if (res.status === 401) {
-      const refreshResult: RefreshResult = isRefreshing
-        ? await new Promise<RefreshResult>(r => subscribeToRefresh(r))
-        : await (async () => { isRefreshing = true; const r = await attemptSilentRefresh(); isRefreshing = false; notifySubscribers(r); return r; })();
+      const refreshResult = await deduplicatedRefresh();
       if (refreshResult === 'ok') {
         const r2 = await fetch(`${API_URL}${endpoint}`, { method: 'POST', body: formData, credentials: 'include' });
         if (r2.ok) { const t = await r2.text(); if (!t) return null; try { return JSON.parse(t); } catch { throw new Error('Unexpected server response.'); } }
@@ -339,9 +369,7 @@ export async function apiDownload(endpoint: string, filename: string): Promise<v
 
   if (!res.ok) {
     if (res.status === 401) {
-      const refreshResult: RefreshResult = isRefreshing
-        ? await new Promise<RefreshResult>(r => subscribeToRefresh(r))
-        : await (async () => { isRefreshing = true; const r = await attemptSilentRefresh(); isRefreshing = false; notifySubscribers(r); return r; })();
+      const refreshResult = await deduplicatedRefresh();
       if (refreshResult === 'ok') {
         const r2 = await fetch(`${API_URL}${endpoint}`, { credentials: 'include' });
         if (r2.ok) {
@@ -382,7 +410,8 @@ export const api = {
   // Silently renews the access token using the refresh_token cookie.
   // Returns 'ok' | 'expired' | 'network_error' to let callers distinguish
   // genuine session expiry from transient connectivity issues.
-  refresh: () => attemptSilentRefresh(),
+  // Uses deduplicatedRefresh() so concurrent callers share one request.
+  refresh: () => deduplicatedRefresh(),
   verifyEmail: (token: string) =>
     apiFetch(`/auth/verify-email?token=${encodeURIComponent(token)}`),
   resendVerification: (email: string) =>
