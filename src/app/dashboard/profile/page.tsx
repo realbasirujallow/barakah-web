@@ -5,6 +5,7 @@ import { useToast } from '../../../lib/toast';
 import { useAuth } from '../../../context/AuthContext';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { saveCurrencyPreference } from '../../../lib/useCurrency';
+import { PRICING } from '../../../lib/pricing';
 
 interface ProfileData {
   userId: number;
@@ -256,7 +257,7 @@ export default function ProfilePage() {
                         <span className="absolute -top-3 left-4 bg-[#1B5E20] text-white text-xs font-bold px-2 py-0.5 rounded-full">Most Popular</span>
                         <h3 className="text-lg font-bold text-[#1B5E20]">Barakah Plus</h3>
                         <p className="text-2xl font-extrabold text-gray-900 mt-1">
-                          {billingPeriod === 'yearly' ? '$99' : '$9.99'}
+                          {billingPeriod === 'yearly' ? PRICING.plus.yearly : PRICING.plus.monthly}
                           <span className="text-sm font-normal text-gray-500">{billingPeriod === 'yearly' ? '/year' : '/month'}</span>
                         </p>
                         {billingPeriod === 'yearly' && (
@@ -290,7 +291,7 @@ export default function ProfilePage() {
                     <div className={`border rounded-xl p-5 ${planKey === 'plus' ? 'border-2 border-purple-300' : 'border-purple-200'}`}>
                       <h3 className="text-lg font-bold text-purple-700">Barakah Family</h3>
                       <p className="text-2xl font-extrabold text-gray-900 mt-1">
-                        {billingPeriod === 'yearly' ? '$119' : '$14.99'}
+                        {billingPeriod === 'yearly' ? PRICING.family.yearly : PRICING.family.monthly}
                         <span className="text-sm font-normal text-gray-500">{billingPeriod === 'yearly' ? '/year' : '/month'}</span>
                       </p>
                       {billingPeriod === 'yearly' && (

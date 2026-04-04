@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { PRICING } from '../lib/pricing';
 
 // ── Data ────────────────────────────────────────────────────────────────────
 
@@ -69,9 +70,9 @@ const plans = [
   },
   {
     name: 'Plus',
-    price: '$9.99',
-    period: '/mo',
-    annual: '$99/yr · save 17%',
+    price: PRICING.plus.monthly,
+    period: PRICING.plus.monthlyPeriod,
+    annual: `${PRICING.plus.yearly}/yr · save 17%`,
     color: 'border-[#1B5E20] ring-2 ring-[#1B5E20]',
     badge: 'Most Popular',
     features: [
@@ -95,9 +96,9 @@ const plans = [
   },
   {
     name: 'Family',
-    price: '$14.99',
-    period: '/mo',
-    annual: '$119/yr · save 34%',
+    price: PRICING.family.monthly,
+    period: PRICING.family.monthlyPeriod,
+    annual: `${PRICING.family.yearly}/yr · save 34%`,
     color: 'border-purple-300',
     badge: null,
     features: [

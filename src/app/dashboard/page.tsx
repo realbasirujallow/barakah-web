@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 import OnboardingWizard from '../../components/OnboardingWizard';
 import { TransactionUsageMeter } from '../../components/TransactionUsageMeter';
+import { PRICING } from '../../lib/pricing';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
 interface HijriData { hijriDate: string; hijriMonthName: string; isRamadan: boolean; upcomingEvents: IslamicEvent[]; }
@@ -242,7 +243,7 @@ export default function DashboardPage() {
           {/* Bottom CTA */}
           <div className="bg-gradient-to-r from-[#1B5E20] to-green-600 rounded-xl p-5 flex items-center justify-between">
             <div className="text-white">
-              <p className="font-bold text-lg">Barakah Plus — $9.99/mo</p>
+              <p className="font-bold text-lg">Barakah Plus — from {PRICING.plus.monthly}/mo</p>
               <p className="text-green-200 text-sm">Unlimited transactions + 11 premium features</p>
             </div>
             <Link
