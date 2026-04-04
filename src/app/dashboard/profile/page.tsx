@@ -26,10 +26,12 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
+
   const handleUpgrade = async (plan: 'plus' | 'family') => {
     setUpgradingPlan(plan);
     try {
-      const result = await api.upgradeSubscription(plan);
+      const result = await api.upgradeSubscription(plan, billingPeriod);
       if (result?.url) {
         if (validateStripeUrl(result.url)) {
           window.location.href = result.url; // Free → Stripe Checkout
@@ -229,83 +231,91 @@ export default function ProfilePage() {
                 <span className="text-sm text-gray-500">{info.desc}</span>
               </div>
 
-              {planKey === 'free' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Plus Plan */}
-                  <div className="border-2 border-[#1B5E20] rounded-xl p-5 relative">
-                    <span className="absolute -top-3 left-4 bg-[#1B5E20] text-white text-xs font-bold px-2 py-0.5 rounded-full">Most Popular</span>
-                    <h3 className="text-lg font-bold text-[#1B5E20]">Barakah Plus</h3>
-                    <p className="text-2xl font-extrabold text-gray-900 mt-1">$9.99<span className="text-sm font-normal text-gray-500">/month</span></p>
-                    <ul className="mt-3 space-y-1.5 text-sm text-gray-700">
-                      <li>&#10003; Unlimited transactions</li>
-                      <li>&#10003; Full Zakat calculator</li>
-                      <li>&#10003; Halal stock screener (30,000+)</li>
-                      <li>&#10003; Riba &amp; subscription detector</li>
-                      <li>&#10003; Wasiyyah &amp; Waqf planning</li>
-                      <li>&#10003; Investments &amp; net worth</li>
-                      <li>&#10003; Debt Payoff Projector</li>
-                      <li>&#10003; Ramadan Mode</li>
-                      <li>&#10003; Analytics &amp; Year-over-Year</li>
-                      <li>&#10003; Recurring transactions</li>
-                      <li>&#10003; CSV &amp; PDF export</li>
-                    </ul>
+              {(planKey === 'free' || planKey === 'plus') && (
+                <>
+                  {/* Billing toggle */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className={`text-xs font-medium ${billingPeriod === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
                     <button
-                      onClick={() => handleUpgrade('plus')}
-                      disabled={upgradingPlan !== null}
-                      className="mt-4 w-full bg-[#1B5E20] text-white py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition disabled:opacity-60"
                       type="button"
+                      onClick={() => setBillingPeriod(b => b === 'monthly' ? 'yearly' : 'monthly')}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${billingPeriod === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
                     >
-                      {upgradingPlan === 'plus' ? 'Redirecting...' : 'Upgrade to Plus'}
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${billingPeriod === 'yearly' ? 'translate-x-5' : ''}`} />
                     </button>
+                    <span className={`text-xs font-medium ${billingPeriod === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
+                    {billingPeriod === 'yearly' && (
+                      <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save up to 34%</span>
+                    )}
                   </div>
 
-                  {/* Family Plan */}
-                  <div className="border border-purple-200 rounded-xl p-5">
-                    <h3 className="text-lg font-bold text-purple-700">Barakah Family</h3>
-                    <p className="text-2xl font-extrabold text-gray-900 mt-1">$14.99<span className="text-sm font-normal text-gray-500">/month</span></p>
-                    <ul className="mt-3 space-y-1.5 text-sm text-gray-700">
-                      <li>&#10003; Everything in Plus</li>
-                      <li>&#10003; Up to 6 family members</li>
-                      <li>&#10003; Shared budgets &amp; goals</li>
-                      <li>&#10003; Family Estate Visibility</li>
-                      <li>&#10003; Family financial summary</li>
-                      <li>&#10003; Shared expense splitting</li>
-                      <li>&#10003; Priority support</li>
-                    </ul>
-                    <button
-                      onClick={() => handleUpgrade('family')}
-                      disabled={upgradingPlan !== null}
-                      className="mt-4 w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-60"
-                      type="button"
-                    >
-                      {upgradingPlan === 'family' ? 'Redirecting...' : 'Upgrade to Family'}
-                    </button>
-                  </div>
-                </div>
-              )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Plus Plan */}
+                    {planKey === 'free' && (
+                      <div className="border-2 border-[#1B5E20] rounded-xl p-5 relative">
+                        <span className="absolute -top-3 left-4 bg-[#1B5E20] text-white text-xs font-bold px-2 py-0.5 rounded-full">Most Popular</span>
+                        <h3 className="text-lg font-bold text-[#1B5E20]">Barakah Plus</h3>
+                        <p className="text-2xl font-extrabold text-gray-900 mt-1">
+                          {billingPeriod === 'yearly' ? '$99' : '$9.99'}
+                          <span className="text-sm font-normal text-gray-500">{billingPeriod === 'yearly' ? '/year' : '/month'}</span>
+                        </p>
+                        {billingPeriod === 'yearly' && (
+                          <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save 17%</span>
+                        )}
+                        <ul className="mt-3 space-y-1.5 text-sm text-gray-700">
+                          <li>&#10003; Unlimited transactions</li>
+                          <li>&#10003; Full Zakat calculator</li>
+                          <li>&#10003; Halal stock screener (30,000+)</li>
+                          <li>&#10003; Riba &amp; subscription detector</li>
+                          <li>&#10003; Wasiyyah &amp; Waqf planning</li>
+                          <li>&#10003; Investments &amp; net worth</li>
+                          <li>&#10003; Debt Payoff Projector</li>
+                          <li>&#10003; Ramadan Mode</li>
+                          <li>&#10003; Analytics &amp; Year-over-Year</li>
+                          <li>&#10003; Recurring transactions</li>
+                          <li>&#10003; CSV &amp; PDF export</li>
+                        </ul>
+                        <button
+                          onClick={() => handleUpgrade('plus')}
+                          disabled={upgradingPlan !== null}
+                          className="mt-4 w-full bg-[#1B5E20] text-white py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition disabled:opacity-60"
+                          type="button"
+                        >
+                          {upgradingPlan === 'plus' ? 'Redirecting...' : 'Upgrade to Plus'}
+                        </button>
+                      </div>
+                    )}
 
-              {planKey === 'plus' && (
-                <div className="border border-purple-200 rounded-xl p-5 max-w-sm">
-                  <h3 className="text-lg font-bold text-purple-700">Barakah Family</h3>
-                  <p className="text-2xl font-extrabold text-gray-900 mt-1">$14.99<span className="text-sm font-normal text-gray-500">/month</span></p>
-                  <ul className="mt-3 space-y-1.5 text-sm text-gray-700">
-                    <li>&#10003; Everything in Plus</li>
-                    <li>&#10003; Up to 6 family members</li>
-                    <li>&#10003; Shared budgets &amp; goals</li>
-                    <li>&#10003; Family Estate Visibility</li>
-                    <li>&#10003; Family financial summary</li>
-                    <li>&#10003; Shared expense splitting</li>
-                    <li>&#10003; Priority support</li>
-                  </ul>
-                  <button
-                    onClick={() => handleUpgrade('family')}
-                    disabled={upgradingPlan !== null}
-                    className="mt-4 w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-60"
-                    type="button"
-                  >
-                    {upgradingPlan === 'family' ? 'Redirecting...' : 'Upgrade to Family'}
-                  </button>
-                </div>
+                    {/* Family Plan */}
+                    <div className={`border rounded-xl p-5 ${planKey === 'plus' ? 'border-2 border-purple-300' : 'border-purple-200'}`}>
+                      <h3 className="text-lg font-bold text-purple-700">Barakah Family</h3>
+                      <p className="text-2xl font-extrabold text-gray-900 mt-1">
+                        {billingPeriod === 'yearly' ? '$119' : '$14.99'}
+                        <span className="text-sm font-normal text-gray-500">{billingPeriod === 'yearly' ? '/year' : '/month'}</span>
+                      </p>
+                      {billingPeriod === 'yearly' && (
+                        <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save 34%</span>
+                      )}
+                      <ul className="mt-3 space-y-1.5 text-sm text-gray-700">
+                        <li>&#10003; Everything in Plus</li>
+                        <li>&#10003; Up to 6 family members</li>
+                        <li>&#10003; Shared budgets &amp; goals</li>
+                        <li>&#10003; Family Estate Visibility</li>
+                        <li>&#10003; Family financial summary</li>
+                        <li>&#10003; Shared expense splitting</li>
+                        <li>&#10003; Priority support</li>
+                      </ul>
+                      <button
+                        onClick={() => handleUpgrade('family')}
+                        disabled={upgradingPlan !== null}
+                        className="mt-4 w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-60"
+                        type="button"
+                      >
+                        {upgradingPlan === 'family' ? 'Redirecting...' : 'Upgrade to Family'}
+                      </button>
+                    </div>
+                  </div>
+                </>
               )}
 
               {planKey === 'family' && (
