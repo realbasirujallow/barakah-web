@@ -40,6 +40,7 @@ function SadaqahContent() {
   const [form, setForm] = useState({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false });
   const [saving, setSaving] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [displayCount, setDisplayCount] = useState(10);
   const { toast } = useToast();
 
   // Donate-to-Barakah state
@@ -230,23 +231,35 @@ function SadaqahContent() {
       {/* ── My Sadaqah records ────────────────────────────────────────────── */}
       <h3 className="text-lg font-semibold text-gray-700 mb-3">My Sadaqah Records</h3>
       {items.length > 0 ? (
-        <div className="space-y-2">
-          {items.map(item => (
-            <div key={item.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
-              <div>
-                <p className="font-semibold text-[#1B5E20]">{item.recipientName || item.category}</p>
-                <p className="text-sm text-gray-500 capitalize">{item.category} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString()}
-                  {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">Recurring</span>}
-                  {item.anonymous && <span className="ml-1 bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">Anonymous</span>}
-                </p>
+        <>
+          <div className="space-y-2">
+            {items.slice(0, displayCount).map(item => (
+              <div key={item.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
+                <div>
+                  <p className="font-semibold text-[#1B5E20]">{item.recipientName || item.category}</p>
+                  <p className="text-sm text-gray-500 capitalize">{item.category} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString()}
+                    {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">Recurring</span>}
+                    {item.anonymous && <span className="ml-1 bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">Anonymous</span>}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <p className="text-lg font-bold text-[#1B5E20]">{fmt(item.amount)}</p>
+                  <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <p className="text-lg font-bold text-[#1B5E20]">{fmt(item.amount)}</p>
-                <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
-              </div>
+            ))}
+          </div>
+          {displayCount < items.length && (
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setDisplayCount(displayCount + 10)}
+                className="bg-[#1B5E20] text-white px-6 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
+              >
+                Show More
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       ) : (
         <div className="text-center py-12 text-gray-400"><p className="text-4xl mb-3">💝</p><p>No sadaqah recorded. Every act of kindness is sadaqah.</p></div>
       )}

@@ -170,7 +170,10 @@ export default function HawlPage() {
         data = { hawlStartDate: new Date(newStartDate + 'T12:00:00Z').getTime() };
       } else {
         const y = parseInt(hijriInput.year), m = parseInt(hijriInput.month), d = parseInt(hijriInput.day);
-        if (!y || !m || !d || m < 1 || m > 12 || d < 1 || d > 30) { toast('Invalid Hijri date', 'error'); return; }
+        if (!y || !m || !d || m < 1 || m > 12 || d < 1) { toast('Invalid Hijri date', 'error'); return; }
+        // Islamic months: 1,3,5,7,9,11 have 30 days; 2,4,6,8,10,12 have 29 days (except Dhul Hijjah which can have 30 in leap years)
+        const maxDays = [1, 3, 5, 7, 9, 11].includes(m) ? 30 : 29;
+        if (d > maxDays) { toast(`Hijri month ${m} has max ${maxDays} days`, 'error'); return; }
         data = { hijriYear: y, hijriMonth: m, hijriDay: d };
       }
       const result = await api.updateHawlStartDate(id, data);

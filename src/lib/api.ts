@@ -374,8 +374,8 @@ export const api = {
   // Auth
   login: (email: string, password: string, rememberMe = false) =>
     apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, rememberMe }) }),
-  signup: (name: string, email: string, password: string, state: string, referralCode?: string) =>
-    apiFetch('/auth/signup', { method: 'POST', body: JSON.stringify({ fullName: name, email, password, state, referralCode }) }),
+  signup: (name: string, email: string, password: string, state: string, country: string, referralCode?: string) =>
+    apiFetch('/auth/signup', { method: 'POST', body: JSON.stringify({ fullName: name, email, password, state, country, referralCode }) }),
   // Clears the auth_token httpOnly cookie on the server side.
   logout: () =>
     apiFetch('/auth/logout', { method: 'POST' }),

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 
 interface CalculatorInputs {
@@ -40,17 +40,39 @@ export default function Calculator() {
 
   const [selectedMadhab, setSelectedMadhab] = useState<'hanafi' | 'shafii' | 'maliki' | 'hanbali'>('hanafi');
   const [showResults, setShowResults] = useState(false);
+  const [livePrices, setLivePrices] = useState<{goldPrice?: number; silverPrice?: number; nisabGoldThreshold?: number} | null>(null);
+  const [pricesLoading, setPricesLoading] = useState(true);
+  const [isPersonalJewelry, setIsPersonalJewelry] = useState(false);
 
-  const nisabInGold = NISAB_GOLD_GRAMS * GOLD_PRICE_PER_GRAM;
-  const nisabInSilver = NISAB_SILVER_GRAMS * SILVER_PRICE_PER_GRAM;
+  useEffect(() => {
+    setPricesLoading(true);
+    fetch('/api/zakat/info')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setLivePrices(data); })
+      .catch(() => {}) // silently fall back to hardcoded
+      .finally(() => setPricesLoading(false));
+  }, []);
+
+  const goldPricePerGram = livePrices?.goldPrice ?? GOLD_PRICE_PER_GRAM;
+  const silverPricePerGram = livePrices?.silverPrice ?? SILVER_PRICE_PER_GRAM;
+
+  const nisabInGold = NISAB_GOLD_GRAMS * goldPricePerGram;
+  const nisabInSilver = NISAB_SILVER_GRAMS * silverPricePerGram;
   // AMJA gold standard: Use gold-only nisab (85g × live gold price)
   // This matches the backend's gold-based nisab calculation per AMJA recommendation
   const nisabThreshold = nisabInGold; // AMJA gold standard for North American Muslims
 
   const calculations = useMemo(() => {
     // Calculate total asset values
-    const goldValue = inputs.goldGrams * GOLD_PRICE_PER_GRAM;
-    const silverValue = inputs.silverGrams * SILVER_PRICE_PER_GRAM;
+    let goldValue = inputs.goldGrams * goldPricePerGram;
+    let silverValue = inputs.silverGrams * silverPricePerGram;
+
+    // Madhab-specific logic: for Shafii, Maliki, Hanbali, subtract personal jewelry from zakat calculation
+    const isNonHanafiMadhab = ['shafii', 'maliki', 'hanbali'].includes(selectedMadhab);
+    if (isPersonalJewelry && isNonHanafiMadhab) {
+      goldValue = 0;
+      silverValue = 0;
+    }
 
     const totalAssets =
       inputs.cashAndBanking +
@@ -79,7 +101,7 @@ export default function Calculator() {
       goldValue,
       silverValue,
     };
-  }, [inputs]);
+  }, [inputs, goldPricePerGram, silverPricePerGram, selectedMadhab, isPersonalJewelry]);
 
   const handleInputChange = (field: keyof CalculatorInputs, value: number) => {
     setInputs((prev) => ({
@@ -217,6 +239,24 @@ export default function Calculator() {
               unit="g"
               tooltip="Weight of silver jewelry, coins, or bars"
             />
+            {['shafii', 'maliki', 'hanbali'].includes(selectedMadhab) && (
+              <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isPersonalJewelry}
+                    onChange={(e) => setIsPersonalJewelry(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    This gold/silver is personal jewelry worn regularly
+                  </span>
+                </label>
+                <p className="text-xs text-gray-600 mt-2 ml-6">
+                  In the {selectedMadhab.charAt(0).toUpperCase() + selectedMadhab.slice(1)} school of thought, personal jewelry worn regularly is exempt from zakat. If checked, these amounts will be excluded from your calculation.
+                </p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -287,6 +327,30 @@ export default function Calculator() {
         {/* Results Section */}
         {showResults && (
           <div className="space-y-4">
+            {/* State Tax Deductions Note */}
+            {inputs.retirementAccounts > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h3 className="font-semibold text-amber-900 mb-2">Retirement Account Tax Deductions</h3>
+                <p className="text-sm text-amber-800">
+                  Tax deductions on retirement accounts (401k, IRA, Roth IRA, HSA) are calculated based on your profile state. To ensure accurate calculations, please update your state in <Link href="/profile" className="font-semibold underline hover:no-underline">Profile settings</Link>.
+                </p>
+              </div>
+            )}
+
+            {/* Price Source Indicator */}
+            {!pricesLoading && (
+              <div className={`text-xs font-medium px-3 py-1 rounded-full w-fit ${
+                livePrices ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+              }`}>
+                {livePrices ? '✓ Live prices' : 'Estimated prices'}
+              </div>
+            )}
+            {pricesLoading && (
+              <div className="text-xs font-medium px-3 py-1 rounded-full w-fit bg-blue-100 text-blue-700">
+                Loading prices...
+              </div>
+            )}
+
             {/* Nisab Threshold Info */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-gray-900 mb-2">Nisab Threshold</h3>

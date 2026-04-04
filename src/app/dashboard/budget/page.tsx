@@ -22,6 +22,23 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 function catLabel(cat: string) { return cat.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase()); }
 
+function getCategoryIcon(cat: string): string {
+  const categoryMap: Record<string, string> = {
+    'food': '🛒', 'dining': '🛒', 'groceries': '🛒', 'coffee': '🛒',
+    'housing': '🏠', 'rent': '🏠', 'home_maintenance': '🏠', 'utilities': '⚡', 'insurance': '🛡️',
+    'transportation': '🚗', 'fuel': '🚗', 'parking': '🚗', 'public_transit': '🚗',
+    'healthcare': '💊', 'fitness': '💪', 'pharmacy': '💊',
+    'education': '📚', 'kids': '👶', 'childcare': '👶',
+    'entertainment': '🎬', 'subscriptions': '🎬', 'travel': '✈️', 'gifts': '🎁', 'personal_care': '💄', 'pets': '🐕',
+    'shopping': '🛍️', 'clothing': '👔', 'electronics': '💻',
+    'savings': '💰', 'debt_payment': '💳', 'taxes': '📋', 'transfer': '🔄',
+    'charity': '🤲', 'zakat': '🕌', 'sadaqah': '🤲',
+    'business': '💼', 'investment': '📈', 'income': '💵',
+    'other': '📦',
+  };
+  return categoryMap[cat] || '📦';
+}
+
 export default function BudgetPage() {
   const now = new Date();
   const [budgets, setBudgets] = useState<BudgetItem[]>([]);
@@ -198,36 +215,42 @@ export default function BudgetPage() {
           {filteredBudgets.map(b => {
             const pct = b.monthlyLimit > 0 ? Math.min((b.spent / b.monthlyLimit) * 100, 100) : 0;
             const over = b.spent > b.monthlyLimit;
-            const warn = !over && pct >= 80;
+            const criticalWarn = pct >= 90;
+            const warn = !over && !criticalWarn && pct >= 75;
+            const overage = Math.max(0, b.spent - b.monthlyLimit);
             return (
-              <div key={b.id} className={`bg-white rounded-xl p-4 ${over ? 'border-l-4 border-red-500' : warn ? 'border-l-4 border-amber-400' : ''}`}>
+              <div key={b.id} className={`bg-white rounded-xl p-4 ${over ? 'border-l-4 border-red-500' : criticalWarn ? 'border-l-4 border-red-400' : warn ? 'border-l-4 border-amber-400' : ''}`}>
                 <div className="flex justify-between items-center mb-2">
-                  <div>
-                    <p className="font-semibold text-gray-900 capitalize">{catLabel(b.category)}</p>
-                    <p className="text-xs text-gray-500">{MONTHS[b.month - 1]} {b.year}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{getCategoryIcon(b.category)}</span>
+                    <div>
+                      <p className="font-semibold text-gray-900 capitalize">{catLabel(b.category)}</p>
+                      <p className="text-xs text-gray-500">{MONTHS[b.month - 1]} {b.year}</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    {over && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Over budget</span>}
-                    {warn && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{Math.round(pct)}% used</span>}
-                    <p className="text-sm"><span className={over ? 'text-red-600 font-bold' : 'text-gray-700'}>{fmt(b.spent)}</span> / {fmt(b.monthlyLimit)}</p>
+                    {over && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Over {fmt(overage)}</span>}
+                    {criticalWarn && !over && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">{Math.round(pct)}% - Critical</span>}
+                    {warn && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{Math.round(pct)}% - Warning</span>}
+                    <p className="text-sm"><span className={over ? 'text-red-600 font-bold' : criticalWarn ? 'text-red-600' : 'text-gray-700'}>{fmt(b.spent)}</span> / {fmt(b.monthlyLimit)}</p>
                     <button type="button" onClick={() => openEdit(b)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
                     <button type="button" onClick={() => handleDelete(b.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
                   </div>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className={`h-2 rounded-full transition-all ${over ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-[#1B5E20]'}`} style={{ width: `${pct}%` }} />
+                  <div className={`h-2 rounded-full transition-all ${over ? 'bg-red-600' : pct >= 90 ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-[#1B5E20]'}`} style={{ width: `${pct}%` }} />
                 </div>
               </div>
             );
           })}
         </div>
       ) : (
-        <div className="text-center py-20 bg-white rounded-2xl">
-          <p className="text-5xl mb-4">📋</p>
-          <p className="text-gray-600 font-semibold text-lg mb-1">No budgets for {MONTHS[viewMonth - 1]} {viewYear}</p>
-          <p className="text-gray-400 text-sm mb-6">{viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear() ? 'Create your first budget to start tracking your spending.' : 'No budgets were set for this month. Use \"Copy Last Month\" or add one.'}</p>
+        <div className="text-center py-20 bg-gradient-to-b from-white to-gray-50 rounded-2xl border border-gray-100">
+          <p className="text-6xl mb-4">📋</p>
+          <p className="text-gray-700 font-semibold text-lg mb-2">No budgets set up yet</p>
+          <p className="text-gray-500 text-sm mb-6">{viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear() ? 'No budgets set up yet. Create your first budget to start managing your spending.' : 'No budgets were set for this month. Use "Copy Last Month" or create a new one.'}</p>
           <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-xl hover:bg-[#2E7D32] font-medium text-sm">
-            + Add Budget
+            + Create Your First Budget
           </button>
         </div>
       )}
