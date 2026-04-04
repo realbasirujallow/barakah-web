@@ -14,12 +14,17 @@ interface CalculatorInputs {
   debts: number;
 }
 
-// Approximate values as of April 2026 (these should ideally come from an API)
-const GOLD_PRICE_PER_GRAM = 70; // USD per gram
-const SILVER_PRICE_PER_GRAM = 0.85; // USD per gram
+// DEPRECATED: These hardcoded values are OUTDATED and should be fetched from the backend API
+// Gold price was ~$70/g in this code but is actually ~$165/g as of April 2026
+// The calculator should fetch nisab thresholds from /api/zakat/info endpoint instead
+const GOLD_PRICE_PER_GRAM = 165; // USD per gram (updated to April 2026 prices)
+const SILVER_PRICE_PER_GRAM = 2.00; // USD per gram (updated to April 2026 prices)
 const NISAB_GOLD_GRAMS = 85;
 const NISAB_SILVER_GRAMS = 595;
 const ZAKAT_RATE = 0.025; // 2.5%
+
+// TODO: Fetch live nisab from backend API instead of hardcoded values
+// const nisabGoldThreshold = await fetch('/api/zakat/info').then(r => r.json()).then(d => d.nisabGoldThreshold)
 
 export default function Calculator() {
   const [inputs, setInputs] = useState<CalculatorInputs>({
@@ -38,7 +43,9 @@ export default function Calculator() {
 
   const nisabInGold = NISAB_GOLD_GRAMS * GOLD_PRICE_PER_GRAM;
   const nisabInSilver = NISAB_SILVER_GRAMS * SILVER_PRICE_PER_GRAM;
-  const nisabThreshold = Math.min(nisabInGold, nisabInSilver); // Al-Qaradawi's approach
+  // AMJA gold standard: Use gold-only nisab (85g × live gold price)
+  // This matches the backend's gold-based nisab calculation per AMJA recommendation
+  const nisabThreshold = nisabInGold; // AMJA gold standard for North American Muslims
 
   const calculations = useMemo(() => {
     // Calculate total asset values
@@ -57,16 +64,16 @@ export default function Calculator() {
     const totalDebt = inputs.debts;
     const netWealth = Math.max(0, totalAssets - totalDebt);
 
-    // Zakat is only due if net wealth exceeds nisab
-    const zakatabledWealth = Math.max(0, netWealth - nisabThreshold);
-    const zakatDue = zakatabledWealth * ZAKAT_RATE;
-
+    // Zakat is due on TOTAL net wealth if it meets/exceeds the nisab threshold.
+    // The nisab is a THRESHOLD (minimum), not a deduction — per the majority
+    // scholarly opinion (Hanafi, Maliki, Shafi'i, Hanbali). You pay 2.5% on
+    // ALL zakatable wealth, not just the amount above nisab.
     const meetsNisab = netWealth >= nisabThreshold;
+    const zakatDue = meetsNisab ? netWealth * ZAKAT_RATE : 0;
 
     return {
       totalAssets,
       netWealth,
-      zakatabledWealth,
       zakatDue,
       meetsNisab,
       goldValue,
@@ -328,16 +335,10 @@ export default function Calculator() {
                   ${calculations.netWealth.toFixed(2)}
                 </span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-200">
-                <span className="text-gray-700">Minus: Nisab Exemption</span>
-                <span className="font-semibold text-gray-600">
-                  -${nisabThreshold.toFixed(2)}
-                </span>
-              </div>
               <div className="flex justify-between py-2 bg-amber-50 px-2 -mx-2 rounded">
-                <span className="text-gray-900 font-medium">Zakatable Wealth:</span>
-                <span className="font-bold text-amber-700">
-                  ${calculations.zakatabledWealth.toFixed(2)}
+                <span className="text-gray-700">Nisab Threshold (minimum):</span>
+                <span className="font-semibold text-amber-700">
+                  ${nisabThreshold.toFixed(2)}
                 </span>
               </div>
             </div>

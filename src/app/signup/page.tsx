@@ -10,6 +10,7 @@ function SignupContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [country, setCountry] = useState('US');
   const [state, setState] = useState('');
   const [referralCode, setReferralCode] = useState('');
   const searchParams = useSearchParams();
@@ -29,6 +30,40 @@ function SignupContent() {
   const [emailSent, setEmailSent] = useState(true);
   const US_STATES = [
     '', 'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'
+  ];
+
+  // Countries with large Muslim populations + major markets
+  const COUNTRIES = [
+    { code: 'US', name: 'United States' },
+    { code: 'CA', name: 'Canada' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'AE', name: 'United Arab Emirates' },
+    { code: 'SA', name: 'Saudi Arabia' },
+    { code: 'MY', name: 'Malaysia' },
+    { code: 'ID', name: 'Indonesia' },
+    { code: 'PK', name: 'Pakistan' },
+    { code: 'BD', name: 'Bangladesh' },
+    { code: 'IN', name: 'India' },
+    { code: 'NG', name: 'Nigeria' },
+    { code: 'EG', name: 'Egypt' },
+    { code: 'TR', name: 'Turkey' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'FR', name: 'France' },
+    { code: 'AU', name: 'Australia' },
+    { code: 'SG', name: 'Singapore' },
+    { code: 'QA', name: 'Qatar' },
+    { code: 'KW', name: 'Kuwait' },
+    { code: 'BH', name: 'Bahrain' },
+    { code: 'OM', name: 'Oman' },
+    { code: 'JO', name: 'Jordan' },
+    { code: 'MA', name: 'Morocco' },
+    { code: 'KE', name: 'Kenya' },
+    { code: 'ZA', name: 'South Africa' },
+    { code: 'SE', name: 'Sweden' },
+    { code: 'NO', name: 'Norway' },
+    { code: 'NL', name: 'Netherlands' },
+    { code: 'BE', name: 'Belgium' },
+    { code: 'OTHER', name: 'Other' },
   ];
 
   const getPasswordStrength = (pwd: string): 'weak' | 'medium' | 'strong' => {
@@ -235,11 +270,29 @@ function SignupContent() {
             )}
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">State (for tax estimate)</label>
-            <select value={state} onChange={e => setState(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900" required>
-              {US_STATES.map((s) => (<option key={s} value={s}>{s ? s : 'Select your state'}</option>))}
+            <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+            <select
+              value={country}
+              onChange={e => { setCountry(e.target.value); setState(''); }}
+              className="w-full border rounded-lg px-3 py-2 text-gray-900"
+              required
+            >
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>{c.name}</option>
+              ))}
             </select>
           </div>
+
+          {country === 'US' && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                State <span className="text-gray-400 font-normal">(for tax estimate)</span>
+              </label>
+              <select value={state} onChange={e => setState(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                {US_STATES.map((s) => (<option key={s} value={s}>{s ? s : 'Select your state'}</option>))}
+              </select>
+            </div>
+          )}
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
