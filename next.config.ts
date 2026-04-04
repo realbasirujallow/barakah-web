@@ -127,7 +127,9 @@ const nextConfig: NextConfig = {
       // Proxy backend routes BEFORE Next.js page matching — eliminates CORS.
       beforeFiles: [
         { source: "/api/:path*", destination: `${BACKEND_URL}/api/:path*` },
-        { source: "/auth/:path*", destination: `${BACKEND_URL}/auth/:path*` },
+        // /auth/:path* is handled by Route Handler (src/app/auth/[...path]/route.ts)
+        // instead of a rewrite, because rewrites strip Set-Cookie headers from
+        // backend responses — breaking httpOnly auth_token / refresh_token cookies.
         { source: "/admin/:path*", destination: `${BACKEND_URL}/admin/:path*` },
         { source: "/health", destination: `${BACKEND_URL}/health` },
       ],
