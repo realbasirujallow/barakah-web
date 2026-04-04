@@ -15,7 +15,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
-  signup: (name: string, email: string, password: string, state: string, country: string, referralCode?: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, state: string, country: string, referralCode?: string, phoneNumber?: string) => Promise<void>;
   logout: (reason?: 'logout' | 'deleted') => Promise<void>;
   isLoading: boolean;
   /** Call after a plan change to refresh plan from /auth/profile */
@@ -309,8 +309,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(profile);
   };
 
-  const signup = async (name: string, email: string, password: string, state: string, country: string, referralCode?: string) => {
-    await api.signup(name, email, password, state, country, referralCode);
+  const signup = async (name: string, email: string, password: string, state: string, country: string, referralCode?: string, phoneNumber?: string) => {
+    await api.signup(name, email, password, state, country, referralCode, phoneNumber);
   };
 
   const logout = async (reason?: 'logout' | 'deleted') => {
