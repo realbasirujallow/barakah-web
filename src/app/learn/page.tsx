@@ -74,6 +74,34 @@ const articles: ArticleCard[] = [
     description: 'Core principles of Islamic finance, understanding riba and gharar, and getting started with halal money management.',
     readTime: 9,
   },
+  {
+    slug: 'zakat-on-401k',
+    category: 'Zakat',
+    title: 'Is My 401(k) Zakatable?',
+    description: 'Three scholarly positions on 401(k) zakat with tax deduction calculations and practical examples for US Muslims.',
+    readTime: 10,
+  },
+  {
+    slug: 'zakat-on-stocks',
+    category: 'Zakat',
+    title: 'Zakat on Stocks & Investments',
+    description: 'How to calculate zakat on stocks, mutual funds, ETFs, and cryptocurrency with market value method.',
+    readTime: 8,
+  },
+  {
+    slug: 'halal-stocks',
+    category: 'Halal Investing',
+    title: 'Halal Stocks List 2026',
+    description: 'How to screen stocks for Shariah compliance using AAOIFI standards. Common halal and haram sectors explained.',
+    readTime: 9,
+  },
+  {
+    slug: 'islamic-will',
+    category: 'Planning',
+    title: 'How to Write an Islamic Will (Wasiyyah)',
+    description: 'Complete guide to Islamic inheritance law, the 1/3 bequest rule, Faraid shares, and using Barakah\'s Wasiyyah planner.',
+    readTime: 12,
+  },
 ];
 
 const categoryColors: Record<ArticleCard['category'], { bg: string; text: string }> = {

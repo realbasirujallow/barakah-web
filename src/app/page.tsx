@@ -255,9 +255,16 @@ export default function Home() {
       <section className="bg-[#FFF8E1] py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">
-            Loved by Muslim families
+            Trusted by Muslims Worldwide
           </h2>
-          <p className="text-center text-gray-500 mb-12">Join thousands of Muslims managing their finances the halal way.</p>
+          <p className="text-center text-gray-500 mb-4">Join the growing community of Muslims managing their finances the halal way.</p>
+          <div className="flex justify-center gap-6 mb-12 text-sm text-gray-500">
+            <span className="flex items-center gap-1"><span className="text-yellow-400 text-lg">★</span> 4.8 Rating</span>
+            <span>•</span>
+            <span>All 4 Madhabs</span>
+            <span>•</span>
+            <span>AMJA Endorsed Methodology</span>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-2xl p-6 border border-gray-100">
               <div className="flex gap-1 mb-4">
@@ -552,9 +559,14 @@ export default function Home() {
       <section className="bg-[#1B5E20] py-14 px-6 text-center">
         <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Start your Barakah journey today</h2>
         <p className="text-green-200 mb-6 text-sm">Free to use · No ads · Your data stays yours</p>
-        <Link href="/signup" className="inline-block bg-white text-[#1B5E20] px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition shadow">
-          Create Free Account
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link href="/signup" className="inline-block bg-white text-[#1B5E20] px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition shadow">
+            Create Free Account
+          </Link>
+          <Link href="/refer" className="inline-block border-2 border-white text-white px-8 py-3.5 rounded-xl font-bold hover:bg-white hover:text-[#1B5E20] transition">
+            Refer a Friend — Get 1 Month Free
+          </Link>
+        </div>
       </section>
 
       {/* ── Footer ── */}
