@@ -54,7 +54,12 @@ export default function HalalPage() {
   // Load stats and sectors on mount
   useEffect(() => {
     api.getHalalStats().then(d => {
-      if (d && !d.error) setStats(d);
+      if (d && !d.error) setStats({
+        totalStocks: d.totalStocks ?? 0,
+        halalCount: d.halalCount ?? 0,
+        haramCount: d.haramCount ?? 0,
+        sectorCount: d.sectorCount ?? d.totalSectors ?? 0,
+      });
     }).catch(() => toast('Failed to load halal stats', 'error'));
     api.getHalalSectors().then((d: { sectors?: { sector: string; count: number }[]; error?: string }) => {
       if (d?.error) return;
