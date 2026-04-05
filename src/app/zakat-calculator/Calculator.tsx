@@ -16,10 +16,11 @@ interface CalculatorInputs {
 
 // Fallback prices used only when the /api/zakat/info endpoint is unavailable.
 // The live API values always take priority (see useEffect below).
-const FALLBACK_GOLD_PRICE = 97; // USD per gram — conservative fallback
-const FALLBACK_SILVER_PRICE = 1.05; // USD per gram — conservative fallback
-const NISAB_GOLD_GRAMS = 85;
-const NISAB_SILVER_GRAMS = 595;
+// Keep these in sync with the backend NisabService fallback constants.
+const FALLBACK_GOLD_PRICE = 165; // USD per gram — March 2026 fallback (matches backend)
+const FALLBACK_SILVER_PRICE = 2.73; // USD per gram — March 2026 fallback (matches backend)
+const FALLBACK_NISAB_GOLD_GRAMS = 85;
+const FALLBACK_NISAB_SILVER_GRAMS = 595;
 const ZAKAT_RATE = 0.025; // 2.5%
 
 export default function Calculator() {
@@ -59,10 +60,13 @@ export default function Calculator() {
 
   const goldPricePerGram = livePrices?.goldPricePerGram ?? FALLBACK_GOLD_PRICE;
   const silverPricePerGram = livePrices?.silverPricePerGram ?? FALLBACK_SILVER_PRICE;
+  const nisabGoldGrams = livePrices?.nisabGoldGrams ?? FALLBACK_NISAB_GOLD_GRAMS;
+  const nisabSilverGrams = livePrices?.nisabSilverGrams ?? FALLBACK_NISAB_SILVER_GRAMS;
 
-  const nisabInGold = NISAB_GOLD_GRAMS * goldPricePerGram;
-  const nisabInSilver = NISAB_SILVER_GRAMS * silverPricePerGram;
-  // AMJA gold standard: Use gold-only nisab (85g × live gold price)
+  // Use pre-calculated thresholds from the API when available, otherwise compute locally
+  const nisabInGold = livePrices?.nisabGoldThreshold ?? (nisabGoldGrams * goldPricePerGram);
+  const nisabInSilver = livePrices?.nisabSilverThreshold ?? (nisabSilverGrams * silverPricePerGram);
+  // AMJA gold standard: Use gold-only nisab
   // This matches the backend's gold-based nisab calculation per AMJA recommendation
   const nisabThreshold = nisabInGold; // AMJA gold standard for North American Muslims
 
