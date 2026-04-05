@@ -8,6 +8,7 @@ import { ToastProvider } from '../../lib/toast';
 import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
 import { SessionTimeoutModal } from '../../components/SessionTimeoutModal';
+import OnboardingTour from '../../components/OnboardingTour';
 
 // 'plus' = Plus or Family plan required | 'family' = Family plan only
 const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'family' }[] = [
@@ -241,6 +242,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Floating feedback widget — visible on all dashboard pages */}
       <FeedbackWidget />
+
+      {/* Onboarding tour for first-time users */}
+      <OnboardingTour />
     </div>
   );
 }
