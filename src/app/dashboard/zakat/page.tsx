@@ -336,7 +336,7 @@ export default function ZakatPage() {
   // FEATURE 1: Handle Nisab Methodology Change
   const handleMethodologyChange = async (methodology: string) => {
     // Validate methodology
-    const validMethodologies = ['AMJA_GOLD', 'CLASSICAL_SILVER', 'LOWER_OF_BOTH'];
+    const validMethodologies = ['AMJA_GOLD', 'CLASSICAL_SILVER', 'LOWER_OF_TWO'];
     if (!validMethodologies.includes(methodology)) {
       toast('Invalid methodology selected', 'error');
       return;
@@ -585,7 +585,7 @@ export default function ZakatPage() {
               )}
               <p className="text-xs text-green-700 bg-green-50 rounded px-2 py-0.5 mt-2 inline-block font-medium">
                 {selectedMethodology === 'CLASSICAL_SILVER' ? 'Silver Standard (Classical Hanafi)' :
-                 selectedMethodology === 'LOWER_OF_BOTH' ? 'Lower of Gold/Silver (Al-Qaradawi)' :
+                 selectedMethodology === 'LOWER_OF_TWO' ? 'Lower of Gold/Silver (Al-Qaradawi)' :
                  'Gold Standard (AMJA)'} · <button onClick={() => { const el = document.getElementById('methodology-section'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="underline">Change</button>
               </p>
             </div>
