@@ -240,8 +240,18 @@ function WasiyyahPageContent() {
             <div className="flex justify-between text-xs text-purple-300 mt-1"><span>0%</span><span>33.3%</span><span>100%</span></div>
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800 mb-6">
-            <strong>Islamic Guidance:</strong> Wasiyyah for non-heirs should not exceed one-third (Bukhari &amp; Muslim). Fixed-share heirs receive their Quranic portions automatically.
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm text-amber-900 mb-6 space-y-3">
+            <h3 className="font-bold text-base">📖 Islamic Guidance on Wasiyyah</h3>
+            <p>
+              <strong>The 1/3 Rule:</strong> Sa&apos;d ibn Abi Waqqas (رضي الله عنه) said: <em>&quot;I was ill and the Prophet (ﷺ) visited me. I said, &apos;O Messenger of Allah, may I bequeath all my wealth?&apos; He said, &apos;No.&apos; I said, &apos;Then half?&apos; He said, &apos;No.&apos; I said, &apos;Then one-third?&apos; He said, &apos;One-third, and one-third is a lot.&apos;&quot;</em> — <strong>Sahih al-Bukhari 2742, Sahih Muslim 1628</strong>
+            </p>
+            <p>
+              <strong>No Bequest to Heirs:</strong> The Prophet (ﷺ) said: <em>&quot;Allah has given every deserving person his right, so there is no bequest for an heir.&quot;</em> — <strong>Sunan Abu Dawud 2870, Sunan al-Tirmidhi 2120</strong>
+            </p>
+            <p>
+              <strong>Obligation:</strong> Ibn Umar (رضي الله عنه) reported that the Messenger of Allah (ﷺ) said: <em>&quot;It is not right for a Muslim who has something to bequeath to sleep two nights without having his will written down.&quot;</em> — <strong>Sahih al-Bukhari 2738</strong>
+            </p>
+            <p className="text-xs text-amber-700">Fixed-share heirs (spouse, children, parents) receive their Quranic portions (Surah An-Nisa 4:11-12) automatically. Voluntary bequests are only for non-heirs.</p>
           </div>
 
           {totalShare > 33.3 && items.length > 0 && (
