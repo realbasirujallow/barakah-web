@@ -60,10 +60,29 @@ export default function RibaPage() {
         const d = ribaRes.value;
         if (d?.error) { toast(d.error, 'error'); }
         else {
-          // Normalize without mutating the original API response object
+          // Map backend field names to frontend interface.
+          // Backend returns: ribaTransactions, ribaCount, totalTransactions, scannedCount
+          // Frontend expects: flaggedTransactions, flaggedCount, totalScanned
+          const flaggedTxns = Array.isArray(d?.ribaTransactions) ? d.ribaTransactions
+            : Array.isArray(d?.flaggedTransactions) ? d.flaggedTransactions : [];
           setResult({
-            ...d,
-            flaggedTransactions: Array.isArray(d?.flaggedTransactions) ? d.flaggedTransactions : [],
+            totalScanned: d?.scannedCount ?? d?.totalTransactions ?? d?.totalScanned ?? 0,
+            flaggedCount: d?.ribaCount ?? d?.flaggedCount ?? flaggedTxns.length,
+            totalRibaAmount: d?.totalRibaAmount ?? 0,
+            ribaPercentage: d?.ribaPercentage ?? 0,
+            flaggedTransactions: flaggedTxns.map((tx: any) => ({
+              transactionId: tx.transactionId,
+              description: tx.description,
+              amount: tx.amount,
+              date: tx.date ?? tx.timestamp,
+              ribaType: tx.ribaType,
+              riskLevel: tx.riskLevel,
+              riskScore: tx.riskScore,
+              flagDetails: tx.flags ?? tx.flagDetails ?? [],
+              islamicAlternatives: tx.islamicAlternatives
+                ? Object.values(tx.islamicAlternatives)
+                : [],
+            })),
           });
         }
       } else {
