@@ -183,8 +183,18 @@ export default function BarakahScorePage() {
   );
 
   if (error || !data) return (
-    <div className="text-center py-16">
-      <p className="text-red-500">{error || 'Could not load score'}</p>
+    <div className="text-center py-16 max-w-md mx-auto">
+      <div className="text-5xl mb-4">📊</div>
+      <h2 className="text-xl font-bold text-gray-900 mb-2">Unable to Calculate Score</h2>
+      <p className="text-gray-600 mb-6">
+        {error?.includes('403') || error?.includes('plan')
+          ? 'Barakah Score requires a Plus or Family plan. Upgrade to see your personalized Islamic financial health score.'
+          : 'We couldn\'t calculate your score right now. This usually means you need to add more financial data (assets, transactions, zakat payments) first.'}
+      </p>
+      <div className="flex gap-3 justify-center">
+        <a href="/dashboard" className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-medium hover:bg-[#2E7D32] transition">Go to Dashboard</a>
+        <button onClick={() => window.location.reload()} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Try Again</button>
+      </div>
     </div>
   );
 
