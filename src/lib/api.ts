@@ -814,6 +814,10 @@ export const api = {
     apiFetch(`/admin/users/${userId}/grant-trial`, { method: 'POST', body: JSON.stringify({ plan, durationDays, sendEmail }) }, API_TIMEOUT, true),
   adminDeleteUser: (userId: number) =>
     apiFetch(`/admin/users/${userId}`, { method: 'DELETE' }, API_TIMEOUT, true),
+  adminVerifyEmail: (userId: number) =>
+    apiFetch(`/admin/users/${userId}/verify-email`, { method: 'POST' }, API_TIMEOUT, true),
+  adminGetUserActivity: (userId: number) =>
+    apiFetch(`/admin/users/${userId}/activity`, {}, API_TIMEOUT, true),
   getAdminAnalytics: () => apiFetch('/admin/analytics', {}, API_TIMEOUT, true),
   getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
   getAdminOverview: () => apiFetch('/admin/overview', {}, API_TIMEOUT, true),
