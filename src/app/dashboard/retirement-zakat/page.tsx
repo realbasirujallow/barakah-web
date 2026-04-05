@@ -51,7 +51,7 @@ export default function RetirementZakatPage() {
   // Form state
   const [balance, setBalance] = useState('');
   const [accountType, setAccountType] = useState('401k');
-  const [employerMatchPercent, setEmployerMatchPercent] = useState('50');
+  // Employer match removed — users enter total balance (includes employer contributions)
   const [state, setState] = useState('');
 
   // Results state
@@ -86,7 +86,7 @@ export default function RetirementZakatPage() {
       const data = {
         balance: parseFloat(balance),
         accountType,
-        employerMatchPercent: parseFloat(employerMatchPercent) || 50,
+        employerMatchPercent: 0, // Not used — total balance already includes employer match
         state: state || '',
       };
 
@@ -136,7 +136,7 @@ export default function RetirementZakatPage() {
               <form onSubmit={handleCalculate} className="space-y-4">
                 {/* Balance */}
                 <div>
-                  <label className="block text-sm font-semibold text-[#1B5E20] mb-2">Account Balance ($)</label>
+                  <label className="block text-sm font-semibold text-[#1B5E20] mb-2">Total Account Balance ($)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -146,6 +146,7 @@ export default function RetirementZakatPage() {
                     placeholder="0.00"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Your full balance including any employer contributions</p>
                 </div>
 
                 {/* Account Type */}
@@ -167,22 +168,6 @@ export default function RetirementZakatPage() {
                   </select>
                 </div>
 
-                {/* Employer Match Percent */}
-                <div>
-                  <label className="block text-sm font-semibold text-[#1B5E20] mb-2">Employer Match (%)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="100"
-                    value={employerMatchPercent}
-                    onChange={(e) => setEmployerMatchPercent(e.target.value)}
-                    placeholder="e.g. 50 for 50%"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
-                  />
-                  <p className="text-xs text-gray-600 mt-1">Typically 50% (e.g., employer matches 50% of your contribution)</p>
-                </div>
-
                 {/* State */}
                 <div>
                   <label className="block text-sm font-semibold text-[#1B5E20] mb-2">State (Optional)</label>
@@ -196,6 +181,7 @@ export default function RetirementZakatPage() {
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
+                  <p className="text-xs text-gray-500 mt-1">Used to estimate state income tax on early withdrawals</p>
                 </div>
 
                 {/* Calculate Button */}

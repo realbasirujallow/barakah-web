@@ -192,8 +192,11 @@ export default function Calculator() {
 
         {/* Madhab Selector */}
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-          <p className="text-sm font-medium text-gray-700 mb-3">
+          <p className="text-sm font-medium text-gray-700 mb-1">
             Select your Islamic school of thought (madhab):
+          </p>
+          <p className="text-xs text-gray-500 mb-3">
+            Not sure? Most Muslims in North America follow the Hanafi school. Choose based on your family&apos;s tradition or local mosque.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {(['hanafi', 'shafii', 'maliki', 'hanbali'] as const).map((madhab) => (
