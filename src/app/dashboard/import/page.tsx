@@ -1,6 +1,6 @@
 ﻿'use client';
 import { useState, useRef, useEffect, useCallback, DragEvent } from 'react';
-import { usePlaidLink } from 'react-plaid-link';
+import { PlaidLink } from 'react-plaid-link';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 
@@ -138,12 +138,22 @@ export default function ImportPage() {
 
   useEffect(() => { loadPlaidAccounts(); }, [loadPlaidAccounts]);
 
+  const [plaidLoading, setPlaidLoading] = useState(false);
+
   const handlePlaidConnect = async () => {
+    setPlaidLoading(true);
+    setError('');
     try {
       const data = await api.plaidCreateLinkToken();
-      if (data?.linkToken) setPlaidLinkToken(data.linkToken);
+      if (data?.linkToken) {
+        setPlaidLinkToken(data.linkToken);
+      } else {
+        setError('Failed to get link token from Plaid');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to initialize bank linking');
+    } finally {
+      setPlaidLoading(false);
     }
   };
 
@@ -157,16 +167,6 @@ export default function ImportPage() {
       setError(err instanceof Error ? err.message : 'Failed to link bank');
     }
   }, [loadPlaidAccounts]);
-
-  const { open: openPlaidLink, ready: plaidReady } = usePlaidLink({
-    token: plaidLinkToken,
-    onSuccess: onPlaidSuccess,
-    onExit: () => setPlaidLinkToken(null),
-  });
-
-  useEffect(() => {
-    if (plaidLinkToken && plaidReady) openPlaidLink();
-  }, [plaidLinkToken, plaidReady, openPlaidLink]);
 
   const handlePlaidSync = async (accountId: number) => {
     setPlaidSyncing(accountId);
@@ -327,12 +327,24 @@ export default function ImportPage() {
             <h2 className="text-lg font-bold text-[#1B5E20]">Connect Your Bank</h2>
             <p className="text-sm text-gray-500">Automatically import transactions from your bank account</p>
           </div>
-          <button
-            onClick={handlePlaidConnect}
-            className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm"
-          >
-            + Link Bank Account
-          </button>
+          {plaidLinkToken ? (
+            <PlaidLink
+              token={plaidLinkToken}
+              onSuccess={onPlaidSuccess}
+              onExit={() => setPlaidLinkToken(null)}
+              className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm cursor-pointer"
+            >
+              Open Bank Login
+            </PlaidLink>
+          ) : (
+            <button
+              onClick={handlePlaidConnect}
+              disabled={plaidLoading}
+              className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm disabled:opacity-50"
+            >
+              {plaidLoading ? 'Connecting...' : '+ Link Bank Account'}
+            </button>
+          )}
         </div>
 
         {plaidMessage && (
