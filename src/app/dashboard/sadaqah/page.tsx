@@ -140,6 +140,19 @@ function SadaqahContent() {
         <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Give Sadaqah</button>
       </div>
 
+      <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-sm text-green-900 mb-6 space-y-3">
+        <h3 className="font-bold text-base">📖 Islamic Guidance on Sadaqah</h3>
+        <p>
+          <strong>What is Sadaqah?</strong> Voluntary charity beyond the obligatory zakat, given purely for the sake of Allah.
+        </p>
+        <p>
+          The Prophet (&#65018;) said: <em>&quot;Charity does not decrease wealth.&quot;</em> — <strong>Sahih Muslim 2588</strong>
+        </p>
+        <p>
+          The Prophet (&#65018;) said: <em>&quot;The most beloved deed to Allah is the most consistent one, even if it is small.&quot;</em> — <strong>Sahih al-Bukhari 6464</strong>
+        </p>
+      </div>
+
       {/* Stats banner */}
       <div className="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-2xl p-6 text-white mb-6">
         <p className="text-teal-100 text-sm">Total Donated</p>

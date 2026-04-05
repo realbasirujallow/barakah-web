@@ -179,6 +179,19 @@ export default function WaqfPage() {
         {tab === 'distribution' && <button onClick={openAddBenef} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Beneficiary</button>}
       </div>
 
+      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5 text-sm text-indigo-900 mb-6 space-y-3">
+        <h3 className="font-bold text-base">📖 Islamic Guidance on Waqf</h3>
+        <p>
+          <strong>What is Waqf?</strong> An Islamic endowment — a permanent charitable donation whose benefits continue perpetually.
+        </p>
+        <p>
+          The Prophet (&#65018;) said: <em>&quot;When a person dies, all their deeds cease except three: ongoing charity (sadaqah jariyah), knowledge that benefits others, and a righteous child who prays for them.&quot;</em> — <strong>Sahih Muslim 1631</strong>
+        </p>
+        <p>
+          <strong>How it works:</strong> Track your waqf contributions to masajid, schools, wells, and other permanent charitable projects.
+        </p>
+      </div>
+
       <div className="bg-gradient-to-r from-cyan-700 to-teal-500 rounded-2xl p-6 text-white mb-6">
         <p className="text-cyan-100 text-sm">Total Waqf Contributions</p>
         <p className="text-4xl font-bold">{fmt(totalContribs)}</p>
