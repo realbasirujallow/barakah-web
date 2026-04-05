@@ -81,8 +81,9 @@ export default function RootLayout({
     logo: 'https://trybarakah.com/icon.png',
     description: 'The all-in-one halal finance platform. Track spending, calculate zakat, manage budgets the Islamic way.',
     sameAs: [
-      'https://twitter.com/trybarakah',
-      'https://instagram.com/trybarakah',
+      'https://www.tiktok.com/@trybarakah',
+      'https://www.instagram.com/trybarakah/',
+      'https://apps.apple.com/us/app/barakah-islamic-finance/id6761279229',
     ],
     contactPoint: {
       '@type': 'ContactPoint',
