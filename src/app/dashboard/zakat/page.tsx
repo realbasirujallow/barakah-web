@@ -652,7 +652,8 @@ export default function ZakatPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Nisab Methodology
               </label>
-              <p className="text-xs text-gray-400 mb-3">Choose how the minimum zakat threshold is calculated</p>
+              <p className="text-xs text-gray-400 mb-2">Choose how the minimum zakat threshold is calculated</p>
+              <p className="text-xs text-blue-600 bg-blue-50 rounded px-2 py-1 mb-3">💡 This sets your <strong>nisab threshold</strong> only. For madhab-specific rules (jewelry exemption, debt deduction), go to <a href="/dashboard/fiqh" className="underline font-semibold">Fiqh Settings</a>.</p>
               <div className="space-y-2">
                 {nisabMethodologies.map((m) => (
                   <label
