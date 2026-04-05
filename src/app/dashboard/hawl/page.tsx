@@ -222,6 +222,19 @@ export default function HawlPage() {
         </div>
       </div>
 
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm text-amber-900 mb-6 space-y-3">
+        <h3 className="font-bold text-base">📖 Islamic Guidance on Hawl</h3>
+        <p>
+          <strong>What is Hawl?</strong> The Islamic lunar year (354 days) after which zakat becomes due on wealth above nisab.
+        </p>
+        <p>
+          Ibn Umar reported that the Prophet (&#65018;) said: <em>&quot;No zakat is due on wealth until a year has passed.&quot;</em> — <strong>Abu Dawud 1573</strong>
+        </p>
+        <p>
+          <strong>How it works:</strong> When your wealth exceeds the nisab threshold, your hawl begins. After one full lunar year, zakat is due. If your wealth drops below nisab, the hawl resets.
+        </p>
+      </div>
+
       <div className="grid md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Tracking</p><p className="text-2xl font-bold text-[#1B5E20]">{items.length}</p></div>
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Zakat Due</p><p className="text-2xl font-bold text-amber-600">{zakatDue.length}</p></div>
