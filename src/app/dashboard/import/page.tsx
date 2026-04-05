@@ -1,5 +1,6 @@
 ﻿'use client';
-import { useState, useRef, DragEvent } from 'react';
+import { useState, useRef, useEffect, useCallback, DragEvent } from 'react';
+import { usePlaidLink } from 'react-plaid-link';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 
@@ -121,6 +122,76 @@ export default function ImportPage() {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [generateTransactions, setGenerateTransactions] = useState(false);
+
+  // ── Plaid Bank Linking ──────────────────────────────────────────────────
+  const [plaidLinkToken, setPlaidLinkToken] = useState<string | null>(null);
+  const [plaidAccounts, setPlaidAccounts] = useState<Array<{ id: number; institutionName: string; accountName: string; accountMask: string; accountType: string; lastSyncedAt: number | null }>>([]);
+  const [plaidSyncing, setPlaidSyncing] = useState<number | null>(null);
+  const [plaidMessage, setPlaidMessage] = useState('');
+
+  const loadPlaidAccounts = useCallback(async () => {
+    try {
+      const data = await api.plaidGetAccounts();
+      setPlaidAccounts(data?.accounts || []);
+    } catch { /* silent */ }
+  }, []);
+
+  useEffect(() => { loadPlaidAccounts(); }, [loadPlaidAccounts]);
+
+  const handlePlaidConnect = async () => {
+    try {
+      const data = await api.plaidCreateLinkToken();
+      if (data?.linkToken) setPlaidLinkToken(data.linkToken);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to initialize bank linking');
+    }
+  };
+
+  const onPlaidSuccess = useCallback(async (publicToken: string, metadata: { institution: { name: string; institution_id: string } | null }) => {
+    try {
+      await api.plaidExchangeToken(publicToken, metadata?.institution?.name);
+      setPlaidLinkToken(null);
+      setPlaidMessage('Bank linked successfully! Click "Sync" to import transactions.');
+      loadPlaidAccounts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to link bank');
+    }
+  }, [loadPlaidAccounts]);
+
+  const { open: openPlaidLink, ready: plaidReady } = usePlaidLink({
+    token: plaidLinkToken,
+    onSuccess: onPlaidSuccess,
+    onExit: () => setPlaidLinkToken(null),
+  });
+
+  useEffect(() => {
+    if (plaidLinkToken && plaidReady) openPlaidLink();
+  }, [plaidLinkToken, plaidReady, openPlaidLink]);
+
+  const handlePlaidSync = async (accountId: number) => {
+    setPlaidSyncing(accountId);
+    setPlaidMessage('');
+    try {
+      const result = await api.plaidSync(accountId);
+      setPlaidMessage(`Imported ${result?.added || 0} new transaction(s)`);
+      loadPlaidAccounts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sync failed');
+    } finally {
+      setPlaidSyncing(null);
+    }
+  };
+
+  const handlePlaidUnlink = async (accountId: number) => {
+    if (!confirm('Unlink this bank account? Your imported transactions will remain.')) return;
+    try {
+      await api.plaidUnlinkAccount(accountId);
+      loadPlaidAccounts();
+      setPlaidMessage('Account unlinked');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to unlink');
+    }
+  };
   const [deltaStats, setDeltaStats] = useState<DeltaStats>({
     derivedTransactionCount: 0, derivedIncomeCount: 0, derivedExpenseCount: 0,
     derivedTotalIncome: 0, derivedTotalExpense: 0,
@@ -248,11 +319,67 @@ export default function ImportPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold text-[#1B5E20]">Import Data</h1>
-      <p className="text-gray-600">
-        Upload a <strong>CSV export</strong> from your bank or budgeting app (Monarch Money, YNAB, Mint, and others).
-        Supports both <strong>Balances</strong> (creates assets, debts &amp; investment accounts)
-        and <strong>Transactions</strong> (creates income &amp; expense records) formats.
-      </p>
+
+      {/* ── Plaid Bank Linking ──────────────────────────────────────────── */}
+      <div className="bg-white border border-green-200 rounded-xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-bold text-[#1B5E20]">Connect Your Bank</h2>
+            <p className="text-sm text-gray-500">Automatically import transactions from your bank account</p>
+          </div>
+          <button
+            onClick={handlePlaidConnect}
+            className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm"
+          >
+            + Link Bank Account
+          </button>
+        </div>
+
+        {plaidMessage && (
+          <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg p-3 mb-4 text-sm">{plaidMessage}</div>
+        )}
+
+        {plaidAccounts.length > 0 ? (
+          <div className="space-y-3">
+            {plaidAccounts.map(acct => (
+              <div key={acct.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                <div>
+                  <p className="font-semibold text-gray-900">{acct.institutionName}</p>
+                  <p className="text-sm text-gray-500">{acct.accountName} {acct.accountMask ? `••${acct.accountMask}` : ''} · {acct.accountType}</p>
+                  {acct.lastSyncedAt && (
+                    <p className="text-xs text-gray-400">Last synced: {new Date(acct.lastSyncedAt).toLocaleDateString()}</p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handlePlaidSync(acct.id)}
+                    disabled={plaidSyncing === acct.id}
+                    className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#2E7D32] transition disabled:opacity-50"
+                  >
+                    {plaidSyncing === acct.id ? 'Syncing...' : 'Sync'}
+                  </button>
+                  <button
+                    onClick={() => handlePlaidUnlink(acct.id)}
+                    className="border border-red-300 text-red-600 px-3 py-2 rounded-lg text-sm hover:bg-red-50 transition"
+                  >
+                    Unlink
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">No bank accounts linked yet. Click &quot;Link Bank Account&quot; to get started.</p>
+        )}
+      </div>
+
+      {/* ── CSV Import ─────────────────────────────────────────────────── */}
+      <div className="border-t pt-6">
+        <h2 className="text-lg font-bold text-gray-700 mb-2">Or Import via CSV</h2>
+        <p className="text-gray-600 text-sm mb-4">
+          Upload a <strong>CSV export</strong> from your bank or budgeting app (Monarch Money, YNAB, Mint, and others).
+        </p>
+      </div>
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4">{error}</div>

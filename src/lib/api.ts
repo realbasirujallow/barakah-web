@@ -818,6 +818,18 @@ export const api = {
   getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
   getAdminOverview: () => apiFetch('/admin/overview', {}, API_TIMEOUT, true),
 
+  // Plaid Bank Linking
+  plaidCreateLinkToken: () =>
+    apiFetch('/api/plaid/create-link-token', { method: 'POST' }),
+  plaidExchangeToken: (publicToken: string, institutionName?: string) =>
+    apiFetch('/api/plaid/exchange-token', { method: 'POST', body: JSON.stringify({ publicToken, institutionName }) }),
+  plaidSync: (linkedAccountId: number) =>
+    apiFetch(`/api/plaid/sync/${linkedAccountId}`, { method: 'POST' }),
+  plaidGetAccounts: () =>
+    apiFetch('/api/plaid/accounts'),
+  plaidUnlinkAccount: (linkedAccountId: number) =>
+    apiFetch(`/api/plaid/accounts/${linkedAccountId}`, { method: 'DELETE' }),
+
   // Exports
   downloadTransactionsCsv: () =>
     apiDownload('/api/transactions/export/csv', 'transactions.csv'),
