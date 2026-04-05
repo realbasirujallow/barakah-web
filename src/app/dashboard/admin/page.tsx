@@ -124,6 +124,7 @@ export default function AdminPage() {
   const [trialSendEmail, setTrialSendEmail] = useState(true);
   const [trialGranting, setTrialGranting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [userActivity, setUserActivity] = useState<Record<string, number> | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts' | 'unverified'>('overview');
   const { toast } = useToast();
@@ -188,7 +189,12 @@ export default function AdminPage() {
   }, [loadData, page]);
 
   /* ── User modal handlers ── */
-  const openUser = (u: AdminUser) => { setSelected(u); setDraftPlan(u.plan || 'free'); };
+  const openUser = (u: AdminUser) => {
+    setSelected(u);
+    setDraftPlan(u.plan || 'free');
+    setUserActivity(null);
+    api.adminGetUserActivity(u.id).then(d => { if (d && !d.error) setUserActivity(d); }).catch(() => {});
+  };
   const closeModal = () => setSelected(null);
 
   const handleResetPassword = async () => {
@@ -606,6 +612,33 @@ export default function AdminPage() {
               <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600 text-sm">Clear</button>
             )}
             <span className="text-xs text-gray-400">{usersData?.totalElements ?? 0} total</span>
+            <button
+              onClick={() => {
+                const users = usersData?.users ?? [];
+                const csv = ['ID,Name,Email,Phone,Plan,Status,Verified,Location,Joined']
+                  .concat(users.map(u => [
+                    u.id,
+                    `"${(u.name || '').replace(/"/g, '""')}"`,
+                    u.email,
+                    u.phoneNumber || '',
+                    u.plan,
+                    u.subscriptionStatus || 'inactive',
+                    u.emailVerified === false ? 'No' : 'Yes',
+                    [u.state, u.country].filter(Boolean).join(', '),
+                    fmtDateMs(u.createdAt),
+                  ].join(','))).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `barakah-users-${new Date().toISOString().slice(0, 10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="px-3 py-1.5 text-xs font-medium text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition"
+            >
+              Export CSV
+            </button>
           </div>
 
           <div className="overflow-x-auto">
@@ -614,10 +647,11 @@ export default function AdminPage() {
                 <tr className="bg-gray-50 text-left text-gray-500 text-xs uppercase tracking-wide">
                   <th className="px-4 py-3">ID</th>
                   <th className="px-4 py-3">User</th>
+                  <th className="px-4 py-3">Phone</th>
                   <th className="px-4 py-3">Plan</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Verified</th>
-                  <th className="px-4 py-3">Referrals</th>
+                  <th className="px-4 py-3">Location</th>
                   <th className="px-4 py-3">Joined</th>
                   <th className="px-4 py-3"></th>
                 </tr>
@@ -625,7 +659,7 @@ export default function AdminPage() {
               <tbody className="divide-y divide-gray-100">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="text-center py-10 text-gray-400">
+                    <td colSpan={9} className="text-center py-10 text-gray-400">
                       {search ? 'No users match your search.' : 'No users found.'}
                     </td>
                   </tr>
@@ -640,6 +674,9 @@ export default function AdminPage() {
                           <p className="font-medium text-gray-900 text-sm">{u.name || '—'}</p>
                           <p className="text-xs text-gray-400">{u.email}</p>
                         </td>
+                        <td className="px-4 py-3 text-xs text-gray-600">
+                          {u.phoneNumber ? <a href={`tel:${u.phoneNumber}`} className="text-[#1B5E20] hover:underline">{u.phoneNumber}</a> : <span className="text-gray-300">—</span>}
+                        </td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span>
                         </td>
@@ -652,7 +689,9 @@ export default function AdminPage() {
                             : <span className="text-green-500 text-xs font-medium">✓ Yes</span>
                           }
                         </td>
-                        <td className="px-4 py-3 text-gray-600 text-xs">{u.referralCount ?? 0}</td>
+                        <td className="px-4 py-3 text-xs text-gray-500">
+                          {u.state && u.country ? `${u.state}, ${u.country}` : u.country || u.state || '—'}
+                        </td>
                         <td className="px-4 py-3 text-gray-400 text-xs">{fmtDateMs(u.createdAt)}</td>
                         <td className="px-4 py-3 text-right">
                           <span className="text-[#1B5E20] text-xs font-medium">View →</span>
@@ -929,6 +968,21 @@ export default function AdminPage() {
             </div>
 
             <div className="p-6 space-y-5">
+              {/* User Activity Summary */}
+              {userActivity && (
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Account Activity</p>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    {Object.entries(userActivity).map(([k, v]) => (
+                      <div key={k} className="bg-white rounded-lg p-2">
+                        <p className="text-lg font-bold text-[#1B5E20]">{v}</p>
+                        <p className="text-[10px] text-gray-400 capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Plan management */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Subscription Plan</label>
@@ -984,6 +1038,25 @@ export default function AdminPage() {
                   className="w-full py-2.5 bg-amber-600 text-white rounded-lg text-sm font-semibold hover:bg-amber-700 transition disabled:opacity-40"
                 >
                   {resendingVerification ? 'Sending…' : 'Resend Verification Email'}
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!selected) return;
+                    try {
+                      await api.adminVerifyEmail(selected.id);
+                      toast('Email verified directly', 'success');
+                      setSelected({ ...selected, emailVerified: true });
+                      setUsersData(prev => prev ? {
+                        ...prev,
+                        users: prev.users.map(u => u.id === selected.id ? { ...u, emailVerified: true } : u),
+                      } : prev);
+                    } catch (err) {
+                      toast(err instanceof Error ? err.message : 'Verification failed', 'error');
+                    }
+                  }}
+                  className="w-full py-2.5 mt-2 border-2 border-green-500 text-green-600 rounded-lg text-sm font-semibold hover:bg-green-50 transition"
+                >
+                  Verify Email Directly (Skip Email)
                 </button>
               </div>
               )}
