@@ -268,6 +268,9 @@ function SignupContent() {
       const result = await api.signup(name, email, password, state, country, referralCode.trim().toUpperCase() || undefined, phoneNumber.trim() || undefined);
       setEmailSent(result?.emailSent !== false);
       setSignupSuccess(true);
+      // Track signup conversion in GA4
+      const { trackSignUp } = await import('../../lib/analytics');
+      trackSignUp('email');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
     } finally {

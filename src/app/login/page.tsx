@@ -57,6 +57,9 @@ export default function LoginPage() {
         }
       } catch { /* incognito safety */ }
       await login(email, password, rememberMe);
+      // Track login in GA4
+      const { trackLogin } = await import('../../lib/analytics');
+      trackLogin('email');
       router.push('/dashboard');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Login failed';

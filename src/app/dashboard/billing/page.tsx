@@ -128,6 +128,12 @@ function BillingContent() {
         setStatus(prev => prev ? { ...prev, plan: result.plan, status: result.status } : prev);
         // Sync AuthContext so all pages see the new plan immediately
         await refreshPlan();
+        // Track upgrade conversion in GA4
+        const { trackUpgrade } = await import('../../../lib/analytics');
+        const price = billing === 'yearly'
+          ? (plan === 'family' ? 119.99 : 79.99)
+          : (plan === 'family' ? 14.99 : 9.99);
+        trackUpgrade(plan, billing, price);
         toast('Plan updated! You\u2019re now on ' + (plan === 'family' ? 'Barakah Family' : 'Barakah Plus'), 'success');
         setLoading(null);
       } else {
