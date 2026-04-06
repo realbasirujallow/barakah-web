@@ -6,6 +6,12 @@ import { useToast } from '../../../lib/toast';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
+interface PurificationStatus {
+  totalRibaDetected: number;
+  totalPurified: number;
+  remainingToPurify: number;
+}
+
 interface RibaFlag {
   transactionId: number;
   description: string;
@@ -49,12 +55,16 @@ export default function RibaPage() {
   const [result, setResult] = useState<RibaResult | null>(null);
   const [ribaDebts, setRibaDebts] = useState<RibaDebt[]>([]);
   const [loading, setLoading] = useState(true);
+  const [purification, setPurification] = useState<PurificationStatus | null>(null);
+  const [purifyAmount, setPurifyAmount] = useState('');
+  const [purifying, setPurifying] = useState(false);
 
   useEffect(() => {
     Promise.allSettled([
       api.scanRiba(),
       api.getDebts(),
-    ]).then(([ribaRes, debtsRes]) => {
+      api.getRibaPurificationStatus(),
+    ]).then(([ribaRes, debtsRes, purRes]) => {
       // Handle transaction scan results
       if (ribaRes.status === 'fulfilled') {
         const d = ribaRes.value;
@@ -97,6 +107,12 @@ export default function RibaPage() {
           (debt: any) => debt.interestRate > 0 && !debt.ribaFree && debt.remainingAmount > 0
         );
         setRibaDebts(interestDebts);
+      }
+
+      // Load purification status
+      if (purRes.status === 'fulfilled') {
+        const p = purRes.value;
+        if (p && !p.error) setPurification(p);
       }
     }).finally(() => setLoading(false));
   }, []);
@@ -238,6 +254,75 @@ export default function RibaPage() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── Riba Purification Section ── */}
+      {purification && purification.totalRibaDetected > 0 && (
+        <div className="mt-6 bg-purple-50 border border-purple-200 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-purple-800 mb-2">Purify Riba (Interest)</h2>
+          <p className="text-sm text-purple-700 mb-4">
+            Scholars agree that interest income must be given away to charity — not kept.
+            Track your purification progress below.
+          </p>
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="text-center bg-white rounded-lg p-3">
+              <p className="text-xs text-gray-500">Total Riba</p>
+              <p className="text-lg font-bold text-red-600">{fmt(purification.totalRibaDetected)}</p>
+            </div>
+            <div className="text-center bg-white rounded-lg p-3">
+              <p className="text-xs text-gray-500">Purified</p>
+              <p className="text-lg font-bold text-green-600">{fmt(purification.totalPurified)}</p>
+            </div>
+            <div className="text-center bg-white rounded-lg p-3">
+              <p className="text-xs text-gray-500">Remaining</p>
+              <p className="text-lg font-bold text-amber-600">{fmt(purification.remainingToPurify)}</p>
+            </div>
+          </div>
+          {purification.remainingToPurify > 0 ? (
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <label className="text-xs font-medium text-purple-700 mb-1 block">Donation Amount ($)</label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={purifyAmount}
+                  onChange={e => setPurifyAmount(e.target.value)}
+                  placeholder={purification.remainingToPurify.toFixed(2)}
+                  className="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+                />
+              </div>
+              <button
+                onClick={async () => {
+                  const amt = parseFloat(purifyAmount) || purification.remainingToPurify;
+                  if (amt <= 0) return;
+                  setPurifying(true);
+                  try {
+                    const res = await api.recordRibaPurification(amt, 'Riba purification donation');
+                    if (res?.error) { toast(res.error, 'error'); return; }
+                    toast('Alhamdulillah! Riba purified via charity donation.', 'success');
+                    setPurification(prev => prev ? {
+                      ...prev,
+                      totalPurified: prev.totalPurified + amt,
+                      remainingToPurify: Math.max(0, prev.remainingToPurify - amt),
+                    } : prev);
+                    setPurifyAmount('');
+                  } catch (err) {
+                    toast('Failed to record purification', 'error');
+                  } finally { setPurifying(false); }
+                }}
+                disabled={purifying}
+                className="px-5 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition disabled:opacity-50"
+              >
+                {purifying ? 'Recording...' : 'Record Donation'}
+              </button>
+            </div>
+          ) : (
+            <div className="text-center bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-green-700 font-semibold">All riba has been purified! May Allah accept from you.</p>
+            </div>
+          )}
         </div>
       )}
 
