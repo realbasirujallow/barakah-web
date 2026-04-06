@@ -601,6 +601,9 @@ export const api = {
 
   // Riba
   scanRiba: () => apiFetch('/api/riba/scan'),
+  getRibaPurificationStatus: () => apiFetch('/api/zakat/purification-status'),
+  recordRibaPurification: (amount: number, notes?: string) =>
+    apiFetch('/api/zakat/record-purification', { method: 'POST', body: JSON.stringify({ amount, notes }) }),
 
   // Auto-Categorize
   reviewCategories: () => apiFetch('/api/categorize/review'),

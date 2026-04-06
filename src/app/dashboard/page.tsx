@@ -234,8 +234,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick actions grid */}
-      <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Quick Actions</h2>
+      {/* Feature cards grid */}
+      <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Explore Features</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {cards.map(c => (
           <Link
