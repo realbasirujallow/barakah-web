@@ -113,6 +113,7 @@ export default function ReferralPage() {
           href={`https://wa.me/?text=${encodeURIComponent('Manage your finances the halal way with Barakah! ' + data.shareUrl)}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => { import('../../../lib/analytics').then(m => m.trackReferralShare('whatsapp')); }}
           className="flex items-center justify-center gap-2 bg-green-500 text-white rounded-xl py-3 px-4 hover:bg-green-600 transition text-sm font-medium"
         >
           💬 WhatsApp
@@ -121,12 +122,14 @@ export default function ReferralPage() {
           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('Manage your finances the halal way with Barakah! 🌙 ' + data.shareUrl)}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => { import('../../../lib/analytics').then(m => m.trackReferralShare('twitter')); }}
           className="flex items-center justify-center gap-2 bg-sky-500 text-white rounded-xl py-3 px-4 hover:bg-sky-600 transition text-sm font-medium"
         >
           🐦 Twitter
         </a>
         <a
           href={`mailto:?subject=${encodeURIComponent('Check out Barakah — Islamic Finance Tracker')}&body=${encodeURIComponent('Assalamu Alaikum!\n\nI\'ve been using Barakah to manage my finances the halal way and thought you might like it too.\n\nSign up here: ' + data.shareUrl)}`}
+          onClick={() => { import('../../../lib/analytics').then(m => m.trackReferralShare('email')); }}
           className="flex items-center justify-center gap-2 bg-gray-600 text-white rounded-xl py-3 px-4 hover:bg-gray-700 transition text-sm font-medium"
         >
           ✉️ Email
