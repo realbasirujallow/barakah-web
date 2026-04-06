@@ -425,15 +425,28 @@ function WasiyyahPageContent() {
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving || !form.beneficiaryName || !form.sharePercentage}
-                aria-label="Add beneficiary"
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
-              >
-                {saving ? 'Saving...' : 'Add'}
-              </button>
+              {(() => {
+                const currentTotal = items.reduce((s, b) => s + (b.sharePercentage || 0), 0);
+                const newShare = parseFloat(form.sharePercentage) || 0;
+                const wouldExceed = currentTotal + newShare > 33.33 && currentTotal < 33.33;
+                const alreadyOver = currentTotal >= 33.33;
+                const maxNew = Math.max(0, 33.33 - currentTotal);
+                return (
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={saving || !form.beneficiaryName || !form.sharePercentage}
+                    aria-label="Add beneficiary"
+                    className={`flex-1 rounded-lg py-2 disabled:opacity-50 ${
+                      alreadyOver || wouldExceed
+                        ? 'bg-amber-600 text-white hover:bg-amber-700'
+                        : 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]'
+                    }`}
+                  >
+                    {saving ? 'Saving...' : alreadyOver ? `Add (Over 1/3 Limit)` : wouldExceed ? `Add (Exceeds 1/3)` : 'Add'}
+                  </button>
+                );
+              })()}
             </div>
           </div>
         </div>

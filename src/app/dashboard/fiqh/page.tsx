@@ -185,7 +185,11 @@ export default function FiqhSettingsPage() {
                 {schools.map((school) => (
                   <label
                     key={school.value}
-                    className="flex items-start gap-4 p-4 border-2 border-gray-200 rounded-lg hover:border-green-700 hover:bg-green-50 cursor-pointer transition"
+                    className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition ${
+                      selectedMadhab === school.value
+                        ? 'border-[#1B5E20] bg-green-50 ring-1 ring-[#1B5E20]'
+                        : 'border-gray-200 hover:border-green-700 hover:bg-green-50'
+                    }`}
                   >
                     <input
                       type="radio"
@@ -194,7 +198,7 @@ export default function FiqhSettingsPage() {
                       checked={selectedMadhab === school.value}
                       onChange={() => handleMadhabChange(school.value)}
                       disabled={saving}
-                      className="mt-1 w-5 h-5 text-green-700"
+                      className="mt-1 w-5 h-5 text-[#1B5E20] accent-[#1B5E20]"
                     />
                     <div className="flex-1">
                       <p className="font-semibold text-[#1B5E20]">{school.displayName}</p>
