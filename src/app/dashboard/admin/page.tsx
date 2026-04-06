@@ -72,7 +72,8 @@ const PLAN_LABELS: Record<string, { label: string; color: string }> = {
 
 const SUB_STATUS_LABELS: Record<string, { label: string; color: string }> = {
   active:   { label: 'Active',   color: 'bg-green-100 text-green-700' },
-  trial:    { label: 'Trial',    color: 'bg-amber-100 text-amber-700' },
+  trialing: { label: 'Trial',    color: 'bg-amber-100 text-amber-700' },
+  trial:    { label: 'Trial',    color: 'bg-amber-100 text-amber-700' },  // legacy
   past_due: { label: 'Past Due', color: 'bg-red-100 text-red-700' },
   canceled: { label: 'Canceled', color: 'bg-gray-200 text-gray-500' },
   inactive: { label: 'Inactive', color: 'bg-gray-100 text-gray-400' },
