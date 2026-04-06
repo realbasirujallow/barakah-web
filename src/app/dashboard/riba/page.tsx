@@ -219,7 +219,7 @@ export default function RibaPage() {
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <p className="font-semibold text-gray-900">{tx.description}</p>
-                  <p className="text-sm text-gray-500">{new Date(tx.date).toLocaleDateString()}</p>
+                  <p className="text-sm text-gray-500">{tx.date && !isNaN(new Date(tx.date).getTime()) ? new Date(tx.date).toLocaleDateString() : ''}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-red-600">{fmt(tx.amount)}</p>
