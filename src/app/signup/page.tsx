@@ -263,6 +263,11 @@ function SignupContent() {
       return;
     }
 
+    if (!phoneNumber.trim()) {
+      setError('Phone number is required');
+      return;
+    }
+
     setLoading(true);
     try {
       const result = await api.signup(name, email, password, state, country, referralCode.trim().toUpperCase() || undefined, phoneNumber.trim() || undefined);
@@ -466,13 +471,14 @@ function SignupContent() {
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone number <span className="text-gray-400 font-normal">(optional)</span>
+              Phone number <span className="text-red-400">*</span>
             </label>
             <input
               type="tel"
               placeholder="+1 (555) 123-4567"
               value={phoneNumber}
               onChange={e => setPhoneNumber(e.target.value)}
+              required
               maxLength={20}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
             />
