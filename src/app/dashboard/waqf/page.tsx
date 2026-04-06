@@ -5,7 +5,7 @@ import { fmt } from '../../../lib/format';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 
-interface WaqfItem { id: number; organizationName: string; type: string; purpose: string; amount: number; date: number; recurring: boolean; status: string; }
+interface WaqfItem { id: number; organizationName: string; type: string; purpose: string; amount: number; date: number; recurring: boolean; status: string; description?: string; }
 interface Beneficiary { id: number; name: string; category: string; percentage: number; contact?: string; notes?: string; calculatedAmount: number; }
 
 const PURPOSES = ['education', 'healthcare', 'mosque', 'water', 'orphanage', 'general', 'other'];
@@ -69,7 +69,7 @@ export default function WaqfPage() {
   const openAdd = () => { setEditItem(null); setForm({ organizationName: '', type: 'cash', purpose: 'education', amount: '', description: '', recurring: false }); setShowForm(true); };
   const openEdit = (item: WaqfItem) => {
     setEditItem(item);
-    setForm({ organizationName: item.organizationName || '', type: item.type || 'cash', purpose: item.purpose || 'education', amount: item.amount?.toString() || '', description: (item as any).description || '', recurring: item.recurring || false });
+    setForm({ organizationName: item.organizationName || '', type: item.type || 'cash', purpose: item.purpose || 'education', amount: item.amount?.toString() || '', description: item.description || '', recurring: item.recurring || false });
     setShowForm(true);
   };
   const handleSave = async () => {
