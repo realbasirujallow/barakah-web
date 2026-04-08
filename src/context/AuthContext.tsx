@@ -43,6 +43,10 @@ const USER_KEY = 'user';
 export const REFRESH_TS_KEY = 'last_refresh_ts';
 const REFRESH_GUARD_SECONDS = 30; // 30 seconds
 
+function isProtectedPath(pathname: string): boolean {
+  return pathname.startsWith('/dashboard');
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,7 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // localStorage access failed, continue with cleanup
       }
       setUser(null);
-      routerRef.current.push('/login?reason=expired');
+      if (typeof window !== 'undefined' && isProtectedPath(window.location.pathname)) {
+        routerRef.current.push('/login?reason=expired');
+      }
     });
 
     if (!savedUser) {
@@ -217,7 +223,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const onStorage = (e: StorageEvent) => {
       if (e.key === USER_KEY && e.newValue === null) {
         setUser(null);
-        routerRef.current.push('/login?reason=expired');
+        if (typeof window !== 'undefined' && isProtectedPath(window.location.pathname)) {
+          routerRef.current.push('/login?reason=expired');
+        }
       }
     };
     window.addEventListener('storage', onStorage);
@@ -265,14 +273,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const onVisible = () => {
       if (document.visibilityState !== 'visible') return;
+      if (!user) return;
       // If localStorage was already cleared by another tab, fast-path out.
       try {
         if (!localStorage.getItem(USER_KEY)) {
           setUser(null);
-          routerRef.current.push('/login?reason=expired');
+          if (isProtectedPath(window.location.pathname)) {
+            routerRef.current.push('/login?reason=expired');
+          }
           return;
         }
       } catch { /* SSR safety */ }
+      if (!isProtectedPath(window.location.pathname)) return;
       // Otherwise do a lightweight server check.
       api.getProfile().catch((err: unknown) => {
         // Profile fetch failed (likely 401) — the global unauthorized
@@ -284,7 +296,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
-  }, []);
+  }, [user]);
 
   const login = async (email: string, password: string, rememberMe?: boolean) => {
     const data = await api.login(email, password, rememberMe);

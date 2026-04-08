@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
             <strong>Account Information:</strong> When you create an account, we collect your name, email address, and a securely hashed password. We never store passwords in plain text.
           </p>
           <p className="text-gray-700 leading-relaxed">
-            <strong>Financial Data You Enter:</strong> You may voluntarily enter financial information such as asset values, debt amounts, budget categories, bill details, investment holdings, and charitable giving records. This data is used solely to provide the Service&apos;s features (zakat calculation, halal screening, debt tracking, etc.).
+            <strong>Financial Data You Enter:</strong> You may voluntarily enter financial information such as asset values, debt amounts, budget categories, bill details, investment holdings, and charitable giving records. This data is used solely to provide the Service&apos;s features (zakat calculation, halal stock screening, debt tracking, etc.).
           </p>
           <p className="text-gray-700 leading-relaxed">
             <strong>Usage Data:</strong> We may collect basic usage analytics such as which features you use and how often, to improve the Service. This data is aggregated and not linked to your personal identity.
