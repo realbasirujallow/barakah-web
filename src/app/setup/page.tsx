@@ -25,10 +25,28 @@ interface PlaidAccount {
   accountName: string;
   accountMask: string;
   accountType: string;
+  currentBalance: number | null;
+  availableBalance: number | null;
+  currencyCode: string;
   lastSyncedAt: number | null;
 }
 
 const STEP_LABELS = ['Choose Plan', 'Connect Accounts', 'Pick Your Focus'] as const;
+
+function formatPlaidBalance(value: number | null | undefined, currencyCode = 'USD') {
+  if (value == null || Number.isNaN(Number(value))) return null;
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode || 'USD',
+    }).format(value);
+  } catch {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(value);
+  }
+}
 
 const focusOptions = [
   {
@@ -492,6 +510,14 @@ export default function SetupPage() {
                           {account.institutionName} • {account.accountType}
                           {account.accountMask ? ` •••• ${account.accountMask}` : ''}
                         </p>
+                        <p className="text-sm font-semibold text-gray-900 mt-2">
+                          Current balance {formatPlaidBalance(account.currentBalance, account.currencyCode) ?? 'Unavailable'}
+                        </p>
+                        {account.availableBalance != null && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Available {formatPlaidBalance(account.availableBalance, account.currencyCode)}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>

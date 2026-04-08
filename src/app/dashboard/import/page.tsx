@@ -77,6 +77,18 @@ interface PreviewTransaction {
 type CsvFormat = 'balances' | 'transactions';
 type Step = 'upload' | 'preview' | 'done';
 
+interface PlaidAccount {
+  id: number;
+  institutionName: string;
+  accountName: string;
+  accountMask: string;
+  accountType: string;
+  currentBalance: number | null;
+  availableBalance: number | null;
+  currencyCode: string;
+  lastSyncedAt: number | null;
+}
+
 interface BalancesResult {
   format: 'balances';
   assetsCreated: number;
@@ -105,6 +117,21 @@ interface TransactionsResult {
 
 type ImportResult = BalancesResult | TransactionsResult;
 
+function formatPlaidBalance(value: number | null | undefined, currencyCode = 'USD') {
+  if (value == null || Number.isNaN(Number(value))) return null;
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode || 'USD',
+    }).format(value);
+  } catch {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(value);
+  }
+}
+
 export default function ImportPage() {
   const { fmt } = useCurrency();
   const router = useRouter();
@@ -129,7 +156,7 @@ export default function ImportPage() {
 
   // ── Plaid Bank Linking ──────────────────────────────────────────────────
   const [plaidLinkToken, setPlaidLinkToken] = useState<string | null>(null);
-  const [plaidAccounts, setPlaidAccounts] = useState<Array<{ id: number; institutionName: string; accountName: string; accountMask: string; accountType: string; lastSyncedAt: number | null }>>([]);
+  const [plaidAccounts, setPlaidAccounts] = useState<PlaidAccount[]>([]);
   const [plaidSyncing, setPlaidSyncing] = useState<number | null>(null);
   const [plaidMessage, setPlaidMessage] = useState('');
 
@@ -377,15 +404,23 @@ export default function ImportPage() {
 
         {plaidAccounts.length > 0 ? (
           <div className="space-y-3">
-            {plaidAccounts.map(acct => (
-              <div key={acct.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
-                <div>
-                  <p className="font-semibold text-gray-900">{acct.institutionName}</p>
-                  <p className="text-sm text-gray-500">{acct.accountName} {acct.accountMask ? `••${acct.accountMask}` : ''} · {acct.accountType}</p>
-                  {acct.lastSyncedAt && (
-                    <p className="text-xs text-gray-400">Last synced: {new Date(acct.lastSyncedAt).toLocaleDateString()}</p>
-                  )}
-                </div>
+                    {plaidAccounts.map(acct => (
+                      <div key={acct.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                        <div>
+                          <p className="font-semibold text-gray-900">{acct.institutionName}</p>
+                          <p className="text-sm text-gray-500">{acct.accountName} {acct.accountMask ? `••${acct.accountMask}` : ''} · {acct.accountType}</p>
+                          <p className="text-sm font-semibold text-gray-900 mt-2">
+                            Current balance {formatPlaidBalance(acct.currentBalance, acct.currencyCode) ?? 'Unavailable'}
+                          </p>
+                          {acct.availableBalance != null && (
+                            <p className="text-xs text-gray-500">
+                              Available {formatPlaidBalance(acct.availableBalance, acct.currencyCode)}
+                            </p>
+                          )}
+                          {acct.lastSyncedAt && (
+                            <p className="text-xs text-gray-400">Last synced: {new Date(acct.lastSyncedAt).toLocaleDateString()}</p>
+                          )}
+                        </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handlePlaidSync(acct.id)}
