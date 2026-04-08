@@ -1,7 +1,9 @@
 ﻿'use client';
 import { useState, useRef, useEffect, useCallback, DragEvent } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { PlaidLink } from 'react-plaid-link';
 import { api } from '../../../lib/api';
+import { clearPendingPlaidLinkToken, savePendingPlaidLinkToken } from '../../../lib/plaid';
 import { useCurrency } from '../../../lib/useCurrency';
 
 /* -- Asset / Debt type options (match the assets + debts pages) ------------ */
@@ -105,6 +107,8 @@ type ImportResult = BalancesResult | TransactionsResult;
 
 export default function ImportPage() {
   const { fmt } = useCurrency();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>('upload');
   const [csvFormat, setCsvFormat] = useState<CsvFormat>('balances');
   const [dragActive, setDragActive] = useState(false);
@@ -138,6 +142,21 @@ export default function ImportPage() {
 
   useEffect(() => { loadPlaidAccounts(); }, [loadPlaidAccounts]);
 
+  useEffect(() => {
+    const plaidStatus = searchParams.get('plaid');
+    const rawMessage = searchParams.get('message');
+    if (!plaidStatus) return;
+
+    if (plaidStatus === 'linked') {
+      setPlaidMessage(rawMessage || 'Bank linked successfully! Click "Sync" to import transactions.');
+      loadPlaidAccounts();
+    } else if (plaidStatus === 'error') {
+      setError(rawMessage || 'Plaid authentication did not complete.');
+    }
+
+    router.replace('/dashboard/import');
+  }, [loadPlaidAccounts, router, searchParams]);
+
   const [plaidLoading, setPlaidLoading] = useState(false);
 
   const handlePlaidConnect = async () => {
@@ -146,6 +165,7 @@ export default function ImportPage() {
     try {
       const data = await api.plaidCreateLinkToken();
       if (data?.linkToken) {
+        savePendingPlaidLinkToken(data.linkToken);
         setPlaidLinkToken(data.linkToken);
       } else {
         setError('Failed to get link token from Plaid');
@@ -160,6 +180,7 @@ export default function ImportPage() {
   const onPlaidSuccess = useCallback(async (publicToken: string, metadata: { institution: { name: string; institution_id: string } | null }) => {
     try {
       await api.plaidExchangeToken(publicToken, metadata?.institution?.name);
+      clearPendingPlaidLinkToken();
       setPlaidLinkToken(null);
       setPlaidMessage('Bank linked successfully! Click "Sync" to import transactions.');
       loadPlaidAccounts();
@@ -331,7 +352,10 @@ export default function ImportPage() {
             <PlaidLink
               token={plaidLinkToken}
               onSuccess={onPlaidSuccess}
-              onExit={() => setPlaidLinkToken(null)}
+              onExit={() => {
+                clearPendingPlaidLinkToken();
+                setPlaidLinkToken(null);
+              }}
               className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm cursor-pointer"
             >
               Open Bank Login
