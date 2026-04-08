@@ -194,7 +194,7 @@ export default function Home() {
           ✨ Fiqh-aware money management for Muslim households
         </p>
         <p className="text-gray-600 text-lg max-w-xl mx-auto mb-8">
-          Barakah helps Muslim individuals and families run daily finances, zakat, hawl, giving, and estate planning in one Shariah-aware system grounded in real responsibilities, not generic finance advice.
+          Barakah helps Muslim households manage daily money, zakat, hawl, giving, and estate planning in one Shariah-aware system built for shared responsibilities, family clarity, and long-term continuity.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold text-base hover:bg-[#2E7D32] transition shadow">
@@ -247,7 +247,7 @@ export default function Home() {
               <p className="text-4xl mb-3">👨‍👩‍👧‍👦</p>
               <h3 className="font-bold text-gray-900 mb-2">Household, Not Solo Finance</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Shared budgets, family visibility, estate sharing, and guided obligations make Barakah feel more like a Muslim household operating system than a single-user budgeting tool.
+                Shared budgets, family visibility, estate sharing, and guided obligations make Barakah feel like a financial home for Muslim households, not just a tool for one person tracking numbers.
               </p>
             </div>
             <div className="bg-white rounded-2xl p-6 text-center">
@@ -270,7 +270,7 @@ export default function Home() {
           <div className="mt-10 bg-[#1B5E20] rounded-2xl p-8 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-white">
             <div>
               <p className="text-4xl font-extrabold mb-1">40+</p>
-              <p className="text-green-200 text-sm">Connected workflows across daily finance, Islamic obligations, and family planning</p>
+              <p className="text-green-200 text-sm">Connected workflows across daily money, Islamic obligations, and household planning</p>
             </div>
             <div>
               <p className="text-4xl font-extrabold mb-1">30,000+</p>
@@ -278,7 +278,7 @@ export default function Home() {
             </div>
             <div>
               <p className="text-4xl font-extrabold mb-1">$0</p>
-              <p className="text-green-200 text-sm">To start building a more faithful financial system for your home</p>
+              <p className="text-green-200 text-sm">To start building a more faithful financial system for your household</p>
             </div>
           </div>
         </div>
@@ -422,7 +422,7 @@ export default function Home() {
       {/* ── CTA strip ── */}
       <section className="bg-[#1B5E20] py-14 px-6 text-center">
         <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Build a more faithful financial system for your household</h2>
-        <p className="text-green-200 mb-6 text-sm">Start with daily money. Stay for zakat discipline, family clarity, and estate readiness.</p>
+        <p className="text-green-200 mb-6 text-sm">Start with daily money. Stay for zakat discipline, household clarity, and estate readiness.</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/signup" className="inline-block bg-white text-[#1B5E20] px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition shadow">
             Create Free Account

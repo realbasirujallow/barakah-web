@@ -47,7 +47,7 @@ export const metadata: Metadata = {
         url: "https://trybarakah.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Barakah - Islamic Finance Tracker",
+        alt: "Barakah - Islamic Household Finance",
       },
     ],
   },
@@ -95,7 +95,7 @@ export default function RootLayout({
   const softwareSchema = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'Barakah - Islamic Finance Tracker',
+    name: 'Barakah - Islamic Household Finance',
     operatingSystem: 'Web, iOS, Android',
     applicationCategory: 'FinanceApplication',
     offers: {
