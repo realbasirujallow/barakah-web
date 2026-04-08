@@ -118,6 +118,15 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Greeting section */}
+      <div className="mb-8 p-6 bg-gradient-to-r from-[#1B5E20] to-green-600 rounded-2xl text-white">
+        <p className="text-lg font-semibold flex items-center gap-2">
+          <span className="text-2xl">{getGreeting().emoji}</span>
+          {getGreeting().text}{user?.name ? `, ${user.name}` : ''}
+        </p>
+        <p className="text-green-100 text-sm mt-1">Welcome back to Barakah. May your finances be blessed with barakah.</p>
+      </div>
+
       {/* ── Islamic Calendar + Zakat Reminders Row ─────────────────────────── */}
       <div className="grid md:grid-cols-2 gap-4 mb-6">
         {/* Hijri Date + Upcoming Events */}
@@ -170,15 +179,6 @@ export default function DashboardPage() {
             </Link>
           </div>
         )}
-      </div>
-
-      {/* Greeting section */}
-      <div className="mb-8 p-6 bg-gradient-to-r from-[#1B5E20] to-green-600 rounded-2xl text-white">
-        <p className="text-lg font-semibold flex items-center gap-2">
-          <span className="text-2xl">{getGreeting().emoji}</span>
-          {getGreeting().text}{user?.name ? `, ${user.name}` : ''}
-        </p>
-        <p className="text-green-100 text-sm mt-1">Welcome back to Barakah. May your finances be blessed with barakah.</p>
       </div>
 
       {/* Quick Actions */}
