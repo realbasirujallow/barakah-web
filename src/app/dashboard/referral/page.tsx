@@ -38,7 +38,7 @@ export default function ReferralPage() {
     if (!data || !navigator.share) return;
     navigator.share({
       title: 'Join Barakah — Islamic Finance Tracker',
-      text: 'Manage your finances the halal way with Barakah. Sign up with my referral link!',
+      text: 'Build a more thoughtful Muslim household finance system with Barakah. Sign up with my referral link!',
       url: data.shareUrl,
     }).catch(() => {});
   };
@@ -61,7 +61,7 @@ export default function ReferralPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Refer a Friend</h1>
-      <p className="text-gray-600 mb-8">Share Barakah with friends and family. Help others manage their finances the halal way.</p>
+      <p className="text-gray-600 mb-8">Share Barakah with friends and family. Help others connect daily money, Islamic obligations, and family clarity in one place.</p>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 mb-8">
@@ -110,7 +110,7 @@ export default function ReferralPage() {
           </button>
         )}
         <a
-          href={`https://wa.me/?text=${encodeURIComponent('Manage your finances the halal way with Barakah! ' + data.shareUrl)}`}
+          href={`https://wa.me/?text=${encodeURIComponent('Build a more thoughtful Muslim household finance system with Barakah! ' + data.shareUrl)}`}
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => { import('../../../lib/analytics').then(m => m.trackReferralShare('whatsapp')); }}
@@ -119,7 +119,7 @@ export default function ReferralPage() {
           💬 WhatsApp
         </a>
         <a
-          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('Manage your finances the halal way with Barakah! 🌙 ' + data.shareUrl)}`}
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('Build a more thoughtful Muslim household finance system with Barakah! 🌙 ' + data.shareUrl)}`}
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => { import('../../../lib/analytics').then(m => m.trackReferralShare('twitter')); }}
@@ -128,7 +128,7 @@ export default function ReferralPage() {
           🐦 Twitter
         </a>
         <a
-          href={`mailto:?subject=${encodeURIComponent('Check out Barakah — Islamic Finance Tracker')}&body=${encodeURIComponent('Assalamu Alaikum!\n\nI\'ve been using Barakah to manage my finances the halal way and thought you might like it too.\n\nSign up here: ' + data.shareUrl)}`}
+          href={`mailto:?subject=${encodeURIComponent('Check out Barakah — Islamic Household Finance')}&body=${encodeURIComponent('Assalamu Alaikum!\n\nI\'ve been using Barakah to organize daily money, zakat, and family financial responsibilities in one place, and thought you might like it too.\n\nSign up here: ' + data.shareUrl)}`}
           onClick={() => { import('../../../lib/analytics').then(m => m.trackReferralShare('email')); }}
           className="flex items-center justify-center gap-2 bg-gray-600 text-white rounded-xl py-3 px-4 hover:bg-gray-700 transition text-sm font-medium"
         >

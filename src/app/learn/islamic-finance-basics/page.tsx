@@ -446,7 +446,7 @@ export default function IslamicFinanceBasicsPage() {
             <div className="grid md:grid-cols-4 gap-8 mb-8">
               <div>
                 <h3 className="font-bold text-[#1B5E20] mb-4">Barakah</h3>
-                <p className="text-sm text-gray-600">Islamic finance tools for modern Muslims.</p>
+                <p className="text-sm text-gray-600">Fiqh-aware household finance for modern Muslim families.</p>
               </div>
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3 text-sm">Learn</h4>

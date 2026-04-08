@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Barakah - Islamic Finance Tracker & Zakat Calculator",
+  title: "Barakah - Islamic Household Finance & Zakat Platform",
   description:
-    "The all-in-one halal finance platform with free zakat calculator. Track spending, calculate zakat, screen halal stocks, manage family budgets, and grow your wealth — the Islamic way.",
+    "Fiqh-aware household finance for Muslims. Track daily money, zakat, hawl, sadaqah, family budgets, and estate readiness in one Shariah-conscious platform.",
   keywords: [
     "zakat calculator",
     "islamic finance",
@@ -35,9 +35,9 @@ export const metadata: Metadata = {
     "wasiyyah planner",
   ],
   openGraph: {
-    title: "Barakah - Islamic Finance Tracker & Zakat Calculator",
+    title: "Barakah - Islamic Household Finance & Zakat Platform",
     description:
-      "Track spending, calculate zakat, screen halal stocks, manage family budgets, and grow your wealth — the Islamic way.",
+      "Track daily money, zakat, hawl, family budgets, and estate readiness in one fiqh-aware platform for Muslim households.",
     url: "https://trybarakah.com",
     siteName: "Barakah",
     type: "website",
@@ -53,9 +53,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Barakah - Islamic Finance Tracker & Zakat Calculator",
+    title: "Barakah - Islamic Household Finance & Zakat Platform",
     description:
-      "The all-in-one halal finance platform with free zakat calculator. Zakat, halal stocks, budgeting, and more.",
+      "Fiqh-aware finance for Muslim households: zakat, hawl, family budgeting, and estate readiness.",
     images: ["https://trybarakah.com/og-image.png"],
   },
   metadataBase: new URL("https://trybarakah.com"),
@@ -79,7 +79,7 @@ export default function RootLayout({
     name: 'Barakah',
     url: 'https://trybarakah.com',
     logo: 'https://trybarakah.com/icon.png',
-    description: 'The all-in-one halal finance platform. Track spending, calculate zakat, manage budgets the Islamic way.',
+    description: 'Fiqh-aware household finance for Muslims, connecting daily money, zakat, family accountability, and estate readiness.',
     sameAs: [
       'https://www.tiktok.com/@trybarakah',
       'https://www.instagram.com/trybarakah/',

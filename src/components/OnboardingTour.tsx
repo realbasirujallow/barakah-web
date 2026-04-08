@@ -15,7 +15,7 @@ const slides = [
     ),
     title: 'Welcome to Barakah',
     description:
-      'Your Islamic finance companion. Track your wealth, calculate zakat, and manage your finances the halal way.',
+      'Your fiqh-aware household finance system. Track daily money, calculate zakat, and organize the responsibilities that shape a Muslim financial life.',
   },
   {
     icon: (
