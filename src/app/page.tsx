@@ -9,7 +9,7 @@ import { PRICING } from '../lib/pricing';
 // ── Data ────────────────────────────────────────────────────────────────────
 
 const features = [
-  { icon: '🕌', title: 'Zakat Calculator', desc: 'Multi-madhab nisab (gold or silver standard), live prices, Hawl tracker, and auto-categorized asset breakdown — supporting Hanafi, Shafi&apos;i, Maliki, Hanbali, and AMJA methodologies.' },
+  { icon: '💰', title: 'Zakat Calculator', desc: 'Multi-madhab nisab (gold or silver standard), live prices, Hawl tracker, and auto-categorized asset breakdown — supporting Hanafi, Shafi&apos;i, Maliki, Hanbali, and AMJA methodologies.' },
   { icon: '🛡️', title: 'Riba Detector', desc: 'Scan transactions to flag interest-bearing activity and stay halal-compliant with automatic alerts.' },
   { icon: '✅', title: 'Halal Stock Screener', desc: '30,000+ stocks screened against AAOIFI Standard 21 — filter by halal or haram with sector breakdown.' },
   { icon: '📊', title: 'Budgets & Analytics', desc: 'Track spending by category and see where every dollar goes with visualized insights and trends.' },
@@ -78,8 +78,8 @@ const plans = [
     color: 'border-[#1B5E20] ring-2 ring-[#1B5E20]',
     badge: 'Most Popular',
     features: [
-      'Unlimited transactions',
       'All Free features',
+      'Unlimited transactions',
       'Halal stock screener (30,000+ stocks)',
       'Subscription detector (flag haram services)',
       'Riba detector',
@@ -120,29 +120,6 @@ const plans = [
   },
 ];
 
-// Comparison: rows = features, cols = [Barakah, YNAB, Mint/Copilot, Zoya]
-const comparisonRows = [
-  { feature: 'Budgeting & analytics',         b: true,  ynab: true,  mint: true,  zoya: false },
-  { feature: 'Zakat calculator (live nisab)', b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Hawl lunar year tracker',       b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Halal stock screener (30K+)',   b: true,  ynab: false, mint: false, zoya: true  },
-  { feature: 'Riba detector',                 b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Subscription detector',         b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Net worth tracking',            b: true,  ynab: false, mint: true,  zoya: false },
-  { feature: 'Investment tracking',           b: true,  ynab: false, mint: true,  zoya: true  },
-  { feature: 'Sadaqah & Waqf logging',       b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Wasiyyah & estate obligations', b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Barakah Score',                 b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Prayer times built-in',         b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Smart Islamic reminders',       b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Shared family finances',        b: true,  ynab: false, mint: false, zoya: false },
-  { feature: 'Starting price',
-    bText: 'Free',   ynabText: '$11.99/mo', mintText: 'Free*', zoyaText: 'Free' },
-];
-
-const Tick = () => <span className="text-[#1B5E20] font-bold text-lg">✓</span>;
-const Cross = () => <span className="text-gray-300 font-bold text-lg">✕</span>;
-
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -174,7 +151,6 @@ export default function Home() {
           <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
             <a href="#features" className="hover:text-[#1B5E20] transition">Features</a>
             <a href="#pricing" className="hover:text-[#1B5E20] transition">Pricing</a>
-            <a href="#compare" className="hover:text-[#1B5E20] transition">Compare</a>
             <Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link>
             <Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link>
           </nav>
@@ -201,7 +177,6 @@ export default function Home() {
             <nav className="max-w-6xl mx-auto px-6 py-4 flex flex-col gap-3 text-sm text-gray-600">
               <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Features</a>
               <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Pricing</a>
-              <a href="#compare" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Compare</a>
               <Link href="/learn" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Learn</Link>
               <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Contact</Link>
             </nav>
@@ -229,7 +204,7 @@ export default function Home() {
             Sign In
           </Link>
         </div>
-        <p className="text-xs text-gray-400 mt-4">No credit card required · No ads · Your data is yours</p>
+        <p className="text-xs text-gray-400 mt-4">Start free · Upgrade only if you need more · Your data is yours</p>
       </section>
 
       {/* ── Features ── */}
@@ -244,70 +219,9 @@ export default function Home() {
               <div key={f.title} className="bg-[#FFF8E1] rounded-2xl p-5 hover:shadow-md transition h-full">
                 <p className="text-3xl mb-3">{f.icon}</p>
                 <h3 className="font-bold text-[#1B5E20] mb-2">{f.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed line-clamp-4">{f.desc}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{f.desc}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ── */}
-      <section className="bg-[#FFF8E1] py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">
-            Built for households, not just portfolios
-          </h2>
-          <p className="text-center text-gray-500 mb-4">People come for zakat or budgeting, then stay because Barakah helps them connect family, fiqh, and financial responsibility in one place.</p>
-          <div className="flex justify-center gap-6 mb-12 text-sm text-gray-500">
-            <span className="flex items-center gap-1"><span className="text-yellow-400 text-lg">★</span> 4.8 Rating</span>
-            <span>•</span>
-            <span>All 4 Madhabs</span>
-            <span>•</span>
-            <span>AMJA Endorsed Methodology</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <div className="flex gap-1 mb-4">
-                <span className="text-yellow-400">★</span>
-                <span className="text-yellow-400">★</span>
-                <span className="text-yellow-400">★</span>
-                <span className="text-yellow-400">★</span>
-                <span className="text-yellow-400">★</span>
-              </div>
-              <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                &quot;This is the first app that feels like it understands how Muslim families actually make money decisions, not just how to track numbers.&quot;
-              </p>
-              <p className="text-sm font-semibold text-gray-900">Aisha, London</p>
-              <p className="text-xs text-gray-500">Muslim Financial Planner</p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <div className="flex gap-1 mb-4">
-                <span className="text-yellow-400">★</span>
-                <span className="text-yellow-400">★</span>
-                <span className="text-yellow-400">★</span>
-                <span className="text-yellow-400">★</span>
-                <span className="text-yellow-400">★</span>
-              </div>
-              <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                &quot;We stopped juggling separate tools for zakat, family budgeting, and estate notes. Barakah finally brings those responsibilities together.&quot;
-              </p>
-              <p className="text-sm font-semibold text-gray-900">Mohammed, Toronto</p>
-              <p className="text-xs text-gray-500">Business Owner</p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <div className="flex gap-1 mb-4">
-                <span className="text-yellow-400">★</span>
-                <span className="text-yellow-400">★</span>
-                <span className="text-yellow-400">★</span>
-                <span className="text-yellow-400">★</span>
-                <span className="text-yellow-400">★</span>
-              </div>
-              <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                &quot;The Barakah Score keeps us accountable, but what really stands out is how clearly it ties our daily finances to our Islamic obligations.&quot;
-              </p>
-              <p className="text-sm font-semibold text-gray-900">Fatima, Dubai</p>
-              <p className="text-xs text-gray-500">Educator & Mom</p>
-            </div>
           </div>
         </div>
       </section>
@@ -374,7 +288,7 @@ export default function Home() {
       <section id="pricing" className="bg-white py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">Simple, Honest Pricing</h2>
-          <p className="text-center text-gray-500 mb-8">No ads. No data selling. Just a clean tool that works for your deen and your dunya.</p>
+          <p className="text-center text-gray-500 mb-8">Clear pricing, no hidden upsells, and no data selling.</p>
 
           {/* Billing Toggle */}
           <div className="flex justify-center items-center gap-4 mb-12">
@@ -438,56 +352,6 @@ export default function Home() {
                 </ul>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Comparison Table ── */}
-      <section id="compare" className="py-20 px-6 bg-[#FFF8E1]">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">
-            How Barakah Compares
-          </h2>
-          <p className="text-center text-gray-500 mb-6">Most products specialize in budgeting or halal investing. Barakah connects those pieces to family life, zakat discipline, and estate readiness.</p>
-          <div className="md:hidden text-xs text-gray-500 text-center mb-4 bg-white rounded-lg p-3">
-            💡 Tip: Swipe the table horizontally to see all comparisons on mobile
-          </div>
-          <div className="bg-white rounded-2xl overflow-hidden border border-gray-100">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-[#FFF8E1]">
-                    <th className="px-5 py-4 text-left font-semibold text-gray-700 min-w-[180px]">Feature</th>
-                    <th className="px-4 py-4 text-center font-bold text-[#1B5E20] min-w-[100px]">🌙 Barakah</th>
-                    <th className="px-4 py-4 text-center font-semibold text-gray-500 min-w-[100px]">YNAB</th>
-                    <th className="px-4 py-4 text-center font-semibold text-gray-500 min-w-[120px]">Mint / Copilot</th>
-                    <th className="px-4 py-4 text-center font-semibold text-gray-500 min-w-[100px]">Zoya</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {comparisonRows.map(row => (
-                    <tr key={row.feature} className="hover:bg-gray-50 transition">
-                      <td className="px-5 py-3 text-gray-700 font-medium">{row.feature}</td>
-                      <td className="px-4 py-3 text-center">
-                        {row.bText   ? <span className="font-semibold text-[#1B5E20]">{row.bText}</span>   : (row.b    ? <Tick /> : <Cross />)}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {row.ynabText ? <span className="text-gray-500">{row.ynabText}</span> : (row.ynab  ? <Tick /> : <Cross />)}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {row.mintText ? <span className="text-gray-500">{row.mintText}</span> : (row.mint  ? <Tick /> : <Cross />)}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {row.zoyaText ? <span className="text-gray-500">{row.zoyaText}</span> : (row.zoya  ? <Tick /> : <Cross />)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="px-5 py-4 text-xs text-gray-400 border-t bg-gray-50">
-              * Mint discontinued Jan 2024; Copilot is US-only at $8.99/mo. Data based on publicly available feature sets as of April 2026.
-            </p>
           </div>
         </div>
       </section>
@@ -572,7 +436,7 @@ export default function Home() {
       {/* ── Footer ── */}
       <footer className="bg-gray-50 border-t border-gray-200 py-12 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             {/* Brand */}
             <div>
               <h3 className="font-bold text-[#1B5E20] mb-3">🌙 Barakah</h3>
@@ -580,23 +444,11 @@ export default function Home() {
                 Fiqh-aware household finance for Muslims who want daily money, Islamic obligations, and family continuity to live in one place.
               </p>
             </div>
-            {/* Product */}
-            <div>
-              <h4 className="font-semibold text-gray-900 text-sm mb-3">Product</h4>
-              <ul className="space-y-2 text-xs text-gray-600">
-                <li><Link href="/dashboard" className="hover:text-[#1B5E20] transition">Dashboard</Link></li>
-                <li><a href="#features" className="hover:text-[#1B5E20] transition">Features</a></li>
-                <li><a href="#pricing" className="hover:text-[#1B5E20] transition">Pricing</a></li>
-                <li><Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link></li>
-              </ul>
-            </div>
             {/* Company */}
             <div>
               <h4 className="font-semibold text-gray-900 text-sm mb-3">Company</h4>
               <ul className="space-y-2 text-xs text-gray-600">
-                <li><Link href="/disclaimer" className="hover:text-[#1B5E20] transition">About</Link></li>
                 <li><Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link></li>
-                <li><Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link></li>
               </ul>
             </div>
             {/* Legal */}

@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Refer a Friend — Give 1 Month Free, Get 1 Month Free | Barakah',
+  title: 'Refer a Friend — Give 1 Free Month, Get 1 Free Month | Barakah',
   description:
     'Share Barakah with friends and family. When they sign up for Plus, you both get 1 free month of fiqh-aware household finance tools for Muslim families.',
   keywords: [
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/refer',
   },
   openGraph: {
-    title: 'Refer a Friend — Give 1 Month Free, Get 1 Month Free | Barakah',
+    title: 'Refer a Friend — Give 1 Free Month, Get 1 Free Month | Barakah',
     description:
       'Share Barakah with friends and family. When they sign up for Plus, you both get 1 free month of Barakah.',
     url: 'https://trybarakah.com/refer',
@@ -159,9 +159,9 @@ export default function ReferPage() {
             Referral Program
           </span>
           <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] mb-6 leading-tight">
-            Give 1 Month Free,
+            Give 1 Free Month,
             <br />
-            Get 1 Month Free
+            Get 1 Free Month
           </h1>
           <p className="text-lg text-gray-700 max-w-2xl mx-auto mb-8 leading-relaxed">
             Share Barakah with your friends and family. When they subscribe to
@@ -192,7 +192,7 @@ export default function ReferPage() {
             How It Works
           </h2>
           <p className="text-center text-gray-600 mb-12 max-w-xl mx-auto">
-            Three simple steps to earn free months for you and your friends.
+            Three simple steps to earn 1 free month for you and your friend with each successful referral.
           </p>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((step) => (
@@ -217,7 +217,7 @@ export default function ReferPage() {
           {/* Connector arrows on desktop */}
           <div className="hidden md:flex justify-center mt-6">
             <p className="text-sm text-gray-500 italic">
-              No limits on referrals &mdash; the more you share, the more free months you earn.
+              No limits on referrals &mdash; each successful referral earns 1 free month.
             </p>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function ReferPage() {
           </div>
           <div className="text-center mt-10">
             <Link
-              href="/signup"
+              href="/#pricing"
               className="text-[#1B5E20] font-semibold underline hover:text-[#2E7D32] transition"
             >
               View all Plus features &rarr;
