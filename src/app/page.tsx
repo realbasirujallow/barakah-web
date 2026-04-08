@@ -213,13 +213,13 @@ export default function Home() {
       <section className="flex flex-col items-center justify-center text-center px-6 py-24">
         <p className="text-5xl mb-4">🌙</p>
         <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] leading-tight mb-4">
-          Halal Money Management,<br className="hidden sm:block" /> Made Simple
+          Islamic Household Finance,<br className="hidden sm:block" /> Built Around Real Life
         </h1>
         <p className="text-xs text-[#1B5E20] font-semibold mb-6 inline-block bg-green-50 px-4 py-2 rounded-full border border-[#1B5E20]">
-          ✨ Trusted by Muslim families worldwide
+          ✨ Fiqh-aware money management for Muslim households
         </p>
         <p className="text-gray-600 text-lg max-w-xl mx-auto mb-8">
-          Manage your entire financial life — budgets, Zakat, investments, halal screening, and Islamic giving — all in one Shariah-aware dashboard with zero distractions.
+          Barakah helps Muslim individuals and families run daily finances, zakat, hawl, giving, and estate planning in one Shariah-aware system grounded in real responsibilities, not generic finance advice.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold text-base hover:bg-[#2E7D32] transition shadow">
@@ -236,9 +236,9 @@ export default function Home() {
       <section id="features" className="bg-white py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">
-            Everything you need in one place
+            One system for money, obligations, and family continuity
           </h2>
-          <p className="text-center text-gray-500 mb-12">From everyday budgeting to Zakat, Waqf, investments, and beyond.</p>
+          <p className="text-center text-gray-500 mb-12">From spending and savings to zakat, waqf, and wasiyyah, each tool connects to the life a Muslim household is actually trying to live.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-max">
             {features.map(f => (
               <div key={f.title} className="bg-[#FFF8E1] rounded-2xl p-5 hover:shadow-md transition h-full">
@@ -255,9 +255,9 @@ export default function Home() {
       <section className="bg-[#FFF8E1] py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">
-            Trusted by Muslims Worldwide
+            Built for households, not just portfolios
           </h2>
-          <p className="text-center text-gray-500 mb-4">Join the growing community of Muslims managing their finances the halal way.</p>
+          <p className="text-center text-gray-500 mb-4">People come for zakat or budgeting, then stay because Barakah helps them connect family, fiqh, and financial responsibility in one place.</p>
           <div className="flex justify-center gap-6 mb-12 text-sm text-gray-500">
             <span className="flex items-center gap-1"><span className="text-yellow-400 text-lg">★</span> 4.8 Rating</span>
             <span>•</span>
@@ -275,7 +275,7 @@ export default function Home() {
                 <span className="text-yellow-400">★</span>
               </div>
               <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                &quot;Finally, a finance app that understands Zakat and riba. No more spreadsheets!&quot;
+                &quot;This is the first app that feels like it understands how Muslim families actually make money decisions, not just how to track numbers.&quot;
               </p>
               <p className="text-sm font-semibold text-gray-900">Aisha, London</p>
               <p className="text-xs text-gray-500">Muslim Financial Planner</p>
@@ -289,7 +289,7 @@ export default function Home() {
                 <span className="text-yellow-400">★</span>
               </div>
               <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                &quot;The halal screener is game-changing. My family knows our portfolio is Shariah-compliant.&quot;
+                &quot;We stopped juggling separate tools for zakat, family budgeting, and estate notes. Barakah finally brings those responsibilities together.&quot;
               </p>
               <p className="text-sm font-semibold text-gray-900">Mohammed, Toronto</p>
               <p className="text-xs text-gray-500">Business Owner</p>
@@ -303,7 +303,7 @@ export default function Home() {
                 <span className="text-yellow-400">★</span>
               </div>
               <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                &quot;The Barakah Score keeps us accountable. We&apos;re giving more Sadaqah than ever.&quot;
+                &quot;The Barakah Score keeps us accountable, but what really stands out is how clearly it ties our daily finances to our Islamic obligations.&quot;
               </p>
               <p className="text-sm font-semibold text-gray-900">Fatima, Dubai</p>
               <p className="text-xs text-gray-500">Educator & Mom</p>
@@ -316,38 +316,38 @@ export default function Home() {
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-3">
-            Why Barakah is Different
+            Why Barakah feels different
           </h2>
           <p className="text-center text-gray-500 mb-12 max-w-xl mx-auto">
-            Most finance apps are built for a general audience. Barakah is built specifically for Muslims — every feature is designed around Islamic financial principles.
+            Most apps help with one slice of the problem. Barakah connects everyday money management with fiqh choices, family accountability, and end-of-life preparedness.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-2xl p-6 text-center">
               <p className="text-4xl mb-3">🕌</p>
-              <h3 className="font-bold text-gray-900 mb-2">Multi-Madhab Zakat</h3>
+              <h3 className="font-bold text-gray-900 mb-2">Fiqh-Personalized Guidance</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Most apps either skip zakat entirely or get the nisab wrong. Barakah supports all four schools of thought (Hanafi, Shafi&apos;i, Maliki, Hanbali) plus AMJA consensus — with gold and silver nisab options, a full Hawl calendar, and per-asset breakdown.
+                Barakah does not assume one-size-fits-all Islam. Users can choose madhab-based settings, track hawl correctly, and apply rules that reflect real differences in Islamic financial practice.
               </p>
             </div>
             <div className="bg-white rounded-2xl p-6 text-center">
-              <p className="text-4xl mb-3">🛡️</p>
-              <h3 className="font-bold text-gray-900 mb-2">Riba Detection Built In</h3>
+              <p className="text-4xl mb-3">👨‍👩‍👧‍👦</p>
+              <h3 className="font-bold text-gray-900 mb-2">Household, Not Solo Finance</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                No other personal finance app scans your transactions for interest-bearing activity. Barakah automatically flags riba so you can stay aware — not just track spending.
+                Shared budgets, family visibility, estate sharing, and guided obligations make Barakah feel more like a Muslim household operating system than a single-user budgeting tool.
               </p>
             </div>
             <div className="bg-white rounded-2xl p-6 text-center">
               <p className="text-4xl mb-3">📜</p>
-              <h3 className="font-bold text-gray-900 mb-2">Sadaqah, Waqf & Wasiyyah</h3>
+              <h3 className="font-bold text-gray-900 mb-2">From Hawl to Wasiyyah</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Track your charitable giving, endowments, and Islamic will — including estate obligations like unpaid Zakat. No other finance app covers all three.
+                Most competitors stop at halal investing or zakat. Barakah covers the full chain: earning, avoiding riba, giving, planning waqf, and preparing your estate before it becomes a crisis.
               </p>
             </div>
             <div className="bg-white rounded-2xl p-6 text-center mt-6 md:mt-0 md:col-start-2">
               <p className="text-4xl mb-3">⭐</p>
-              <h3 className="font-bold text-gray-900 mb-2">Barakah Score</h3>
+              <h3 className="font-bold text-gray-900 mb-2">Accountability You Can Act On</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Your Islamic financial health at a glance — scored across Zakat, riba-free living, Sadaqah, Hawl, and halal debt. Improve your score, improve your deen.
+                The Barakah Score turns ideals into practical next steps across zakat, sadaqah, halal cleanliness, debt, and savings so users can steadily improve, not just observe.
               </p>
             </div>
           </div>
@@ -356,15 +356,15 @@ export default function Home() {
           <div className="mt-10 bg-[#1B5E20] rounded-2xl p-8 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-white">
             <div>
               <p className="text-4xl font-extrabold mb-1">40+</p>
-              <p className="text-green-200 text-sm">Islamic financial features (Zakat, Riba, Halal, Waqf, and more)</p>
+              <p className="text-green-200 text-sm">Connected workflows across daily finance, Islamic obligations, and family planning</p>
             </div>
             <div>
               <p className="text-4xl font-extrabold mb-1">30,000+</p>
-              <p className="text-green-200 text-sm">Stocks screened for halal compliance per AAOIFI standards</p>
+              <p className="text-green-200 text-sm">Stocks screened for halal compliance alongside zakat, hawl, and household visibility</p>
             </div>
             <div>
               <p className="text-4xl font-extrabold mb-1">$0</p>
-              <p className="text-green-200 text-sm">To get started — no credit card, no ads, forever</p>
+              <p className="text-green-200 text-sm">To start building a more faithful financial system for your home</p>
             </div>
           </div>
         </div>
@@ -448,7 +448,7 @@ export default function Home() {
           <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">
             How Barakah Compares
           </h2>
-          <p className="text-center text-gray-500 mb-6">See why Muslim families are choosing Barakah over generic finance apps.</p>
+          <p className="text-center text-gray-500 mb-6">Most products specialize in budgeting or halal investing. Barakah connects those pieces to family life, zakat discipline, and estate readiness.</p>
           <div className="md:hidden text-xs text-gray-500 text-center mb-4 bg-white rounded-lg p-3">
             💡 Tip: Swipe the table horizontally to see all comparisons on mobile
           </div>
@@ -498,7 +498,7 @@ export default function Home() {
           <p className="text-3xl mb-3">🕌</p>
           <h2 className="text-2xl font-bold text-[#1B5E20] mb-3">Built on Islamic Principles</h2>
           <p className="text-gray-600 leading-relaxed">
-            Barakah supports multiple schools of Islamic jurisprudence (Hanafi, Shafi&apos;i, Maliki, Hanbali, and AMJA consensus) for Zakat calculation, flags riba-bearing transactions, and helps you track all your Islamic financial obligations in one place. We are a tool to help you stay informed — always consult a qualified scholar for specific rulings.
+            Barakah supports multiple schools of Islamic jurisprudence for zakat and related rules, flags riba-bearing activity, and helps households track obligations that are often scattered across spreadsheets, reminders, and private notes. We are a decision-support tool, not a fatwa service, so specific rulings should still be confirmed with a qualified scholar.
           </p>
         </div>
       </section>
@@ -528,7 +528,7 @@ export default function Home() {
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">Learn About Islamic Finance</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Deepen your understanding of zakat, nisab, halal investing, and Islamic financial principles with our comprehensive learning resources.
+              Learn the fiqh and practical thinking behind zakat, nisab, halal investing, household obligations, and Islamic estate planning.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -557,8 +557,8 @@ export default function Home() {
 
       {/* ── CTA strip ── */}
       <section className="bg-[#1B5E20] py-14 px-6 text-center">
-        <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Start your Barakah journey today</h2>
-        <p className="text-green-200 mb-6 text-sm">Free to use · No ads · Your data stays yours</p>
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Build a more faithful financial system for your household</h2>
+        <p className="text-green-200 mb-6 text-sm">Start with daily money. Stay for zakat discipline, family clarity, and estate readiness.</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/signup" className="inline-block bg-white text-[#1B5E20] px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition shadow">
             Create Free Account
@@ -577,7 +577,7 @@ export default function Home() {
             <div>
               <h3 className="font-bold text-[#1B5E20] mb-3">🌙 Barakah</h3>
               <p className="text-xs text-gray-600 leading-relaxed">
-                Halal money management for Muslim families worldwide. Built with care, guided by Islamic principles.
+                Fiqh-aware household finance for Muslims who want daily money, Islamic obligations, and family continuity to live in one place.
               </p>
             </div>
             {/* Product */}

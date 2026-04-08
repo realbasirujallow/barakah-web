@@ -2,15 +2,15 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Islamic Finance & Zakat Guide — Learn | Barakah',
-  description: 'Your complete guide to Islamic finance, zakat calculation, halal investing, and Muslim financial planning. Expert guides backed by scholarly references.',
+  title: 'Islamic Finance, Zakat & Estate Planning Guides | Barakah',
+  description: 'Practical guides on zakat, halal investing, household finance, and Islamic estate planning backed by scholarly references and real-world examples.',
   keywords: ['islamic finance guide', 'zakat guide', 'halal investing', 'muslim finance', 'zakat rules', 'islamic banking'],
   alternates: {
     canonical: 'https://trybarakah.com/learn',
   },
   openGraph: {
-    title: 'Islamic Finance & Zakat Guide — Learn | Barakah',
-    description: 'Your complete guide to Islamic finance, zakat calculation, halal investing, and Muslim financial planning.',
+    title: 'Islamic Finance, Zakat & Estate Planning Guides | Barakah',
+    description: 'Practical guides on zakat, halal investing, household finance, and Islamic estate planning.',
     url: 'https://trybarakah.com/learn',
     type: 'website',
     images: [
@@ -141,9 +141,9 @@ export default function LearnPage() {
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-[#1B5E20] to-[#2E7D32] text-white py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Islamic Finance Knowledge Hub</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">The Knowledge Layer Behind Barakah</h1>
           <p className="text-lg text-green-100 max-w-2xl mx-auto">
-            Master Islamic finance principles, zakat calculation, halal investing, and Muslim financial planning with expert guides backed by scholarly references.
+            Study the fiqh and practical reasoning behind zakat, halal investing, household money decisions, and Islamic estate planning with guides backed by trusted references.
           </p>
         </div>
       </section>
@@ -153,7 +153,7 @@ export default function LearnPage() {
         {/* Intro Paragraph */}
         <section className="mb-12 max-w-3xl mx-auto text-center">
           <p className="text-gray-700 text-lg leading-relaxed">
-            Whether you're calculating zakat, exploring Islamic finance principles, or learning about halal investing, Barakah's comprehensive guides break down complex concepts with practical examples and scholarly references. All content is aligned with established Islamic fiqh and trusted sources like AMJA, Fiqh Council, and classical hadith collections.
+            These guides are built to help Muslim households make better financial decisions with clarity and confidence. We break down complex topics like zakat, nisab, retirement accounts, halal investing, and wasiyyah into practical explanations grounded in established fiqh and contemporary scholarly guidance.
           </p>
         </section>
 
@@ -196,9 +196,9 @@ export default function LearnPage() {
 
         {/* Featured CTA */}
         <section className="mt-16 bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] rounded-2xl p-8 md:p-12 text-white text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to Calculate Your Zakat?</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to put this knowledge into practice?</h2>
           <p className="text-green-100 mb-6 max-w-2xl mx-auto">
-            Use Barakah's intelligent zakat calculator to determine your zakat obligations across all asset classes in minutes.
+            Use Barakah to move from reading to action with fiqh-aware tools for zakat, hawl, budgeting, family visibility, and estate planning.
           </p>
           <Link
             href="/dashboard"
@@ -215,7 +215,7 @@ export default function LearnPage() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <h3 className="font-bold text-[#1B5E20] mb-4">Barakah</h3>
-              <p className="text-sm text-gray-600">Islamic finance tools for modern Muslims.</p>
+              <p className="text-sm text-gray-600">Fiqh-aware household finance for modern Muslim families.</p>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900 mb-3 text-sm">Learn</h4>
@@ -242,7 +242,7 @@ export default function LearnPage() {
             </div>
           </div>
           <div className="border-t border-gray-100 pt-6 text-center text-xs text-gray-500">
-            <p>&copy; {new Date().getFullYear()} Barakah. Islamic Finance Knowledge Hub.</p>
+            <p>&copy; {new Date().getFullYear()} Barakah. Islamic finance, household money, and estate planning knowledge hub.</p>
           </div>
         </div>
       </footer>

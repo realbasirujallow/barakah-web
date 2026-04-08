@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Refer a Friend — Give 1 Month Free, Get 1 Month Free | Barakah',
   description:
-    'Share Barakah with friends and family. When they sign up for Plus, you both get 1 free month. The best halal finance app referral program for Muslims.',
+    'Share Barakah with friends and family. When they sign up for Plus, you both get 1 free month of fiqh-aware household finance tools for Muslim families.',
   keywords: [
     'barakah referral',
     'islamic finance app referral',
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Refer a Friend — Give 1 Month Free, Get 1 Month Free | Barakah',
     description:
-      'Share Barakah with friends and family. When they sign up for Plus, you both get 1 free month of Plus.',
+      'Share Barakah with friends and family. When they sign up for Plus, you both get 1 free month of Barakah.',
     url: 'https://trybarakah.com/refer',
     type: 'website',
   },
@@ -165,8 +165,8 @@ export default function ReferPage() {
           </h1>
           <p className="text-lg text-gray-700 max-w-2xl mx-auto mb-8 leading-relaxed">
             Share Barakah with your friends and family. When they subscribe to
-            Plus, you both receive a free month. Help your community manage
-            finances the halal way while earning rewards.
+            Plus, you both receive a free month. Help your community build a
+            more thoughtful Muslim household finance system while earning rewards.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
