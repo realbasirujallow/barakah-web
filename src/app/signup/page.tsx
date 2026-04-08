@@ -313,7 +313,7 @@ function SignupContent() {
                   We sent a verification link to <strong>{email}</strong>.
                 </p>
                 <p className="text-gray-500 text-sm mb-6">
-                  Click the link in the email to verify your account, then you can sign in.
+                  Click the link in the email to verify your account, then sign in to choose your starting plan and connect your accounts.
                   Don&apos;t forget to check your spam folder!
                 </p>
               </>
@@ -323,11 +323,14 @@ function SignupContent() {
                   Your account was created, but we had trouble sending the verification email.
                 </p>
                 <p className="text-gray-500 text-sm mb-6">
-                  Please click &ldquo;Resend&rdquo; below to try again. If you still don&apos;t receive it,
-                  check your spam folder or contact support@trybarakah.com.
+                  Please click &ldquo;Resend&rdquo; below to try again. Once you&apos;re verified, sign in to choose your plan and connect your accounts.
                 </p>
               </>
             )}
+
+            <div className="mb-4 rounded-xl bg-[#FFF3CD] text-[#1B5E20] text-sm font-medium px-4 py-3">
+              After sign in, Barakah will guide you through plan choice, secure account connection, and your first dashboard focus.
+            </div>
 
             {resendStatus === 'sent' ? (
               <p className="text-green-700 text-sm mb-4">✅ Verification email resent!</p>
@@ -346,7 +349,7 @@ function SignupContent() {
               href="/login"
               className="inline-block w-full bg-[#1B5E20] text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition"
             >
-              Go to Login
+              Continue to Sign In
             </Link>
           </div>
         </div>

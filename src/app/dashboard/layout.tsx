@@ -9,6 +9,7 @@ import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
 import { SessionTimeoutModal } from '../../components/SessionTimeoutModal';
 import OnboardingTour from '../../components/OnboardingTour';
+import { hasCompletedGuidedSetup } from '../../lib/setup';
 
 // 'plus' = Plus or Family plan required | 'family' = Family plan only
 const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'family' }[] = [
@@ -104,6 +105,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       router.push('/login?reason=expired');
     }
   }, [user, isLoading, router]);
+
+  useEffect(() => {
+    if (isLoading || !user) return;
+    if (!hasCompletedGuidedSetup(user.id)) {
+      router.replace('/setup');
+    }
+  }, [isLoading, router, user]);
 
   // ── NOTE: Proactive refresh removed from layout ──────────────────────────
   // Previously this layout fired api.refresh() on every pathname change.
