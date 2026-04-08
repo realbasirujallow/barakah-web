@@ -1,11 +1,33 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
 import { toHijri } from '../../../lib/format';
 
-interface HawlItem { id: number; assetName: string; assetType: string; amount: number; nisabThreshold: number; zakatAmount: number; hawlStartDate: number; hawlEndDate: number; zakatPaid: boolean; active: boolean; zakatLocked: boolean; zakatLockedDate: number; lockedNisabValue: number; lockedGoldPrice: number; lockedZakatAmount: number; effectiveZakatAmount: number; }
+interface HawlItem {
+  id: number;
+  assetName: string;
+  assetType: string;
+  amount: number;
+  nisabThreshold: number;
+  zakatAmount: number;
+  hawlStartDate: number;
+  hawlEndDate: number;
+  zakatPaid: boolean;
+  active: boolean;
+  zakatLocked: boolean;
+  zakatLockedDate: number;
+  lockedNisabValue: number;
+  lockedGoldPrice: number;
+  lockedZakatAmount: number;
+  effectiveZakatAmount: number;
+  continuityStatus?: string;
+  awaitingNisabRecovery?: boolean;
+  autoResetApplied?: boolean;
+  lastBelowNisabDate?: number | null;
+  recoveryDate?: number | null;
+}
 const TYPES = ['cash', 'gold', 'silver', 'crypto', 'stocks', 'business', 'other'];
 
 const DATE_FORMAT: Intl.DateTimeFormatOptions = {
@@ -20,8 +42,20 @@ export default function HawlPage() {
   const [nextDueAsset, setNextDueAsset] = useState<string>('');
   const [nextDueDays, setNextDueDays] = useState<number>(0);
   const [nextDueAmount, setNextDueAmount] = useState<number>(0);
+  const [liveNisab, setLiveNisab] = useState<number>(0);
+  const [currentZakatableWealth, setCurrentZakatableWealth] = useState<number>(0);
+  const [nisabWarning, setNisabWarning] = useState<string>('');
+  const [continuityMessage, setContinuityMessage] = useState<string>('');
+  const [continuityResetCount, setContinuityResetCount] = useState<number>(0);
+  const [pausedTrackerCount, setPausedTrackerCount] = useState<number>(0);
+  const [continuityTrackingActive, setContinuityTrackingActive] = useState<boolean>(false);
+  const [lastBelowNisabDate, setLastBelowNisabDate] = useState<number | null>(null);
+  const [lastRecoveryDate, setLastRecoveryDate] = useState<number | null>(null);
+  const [nisabMethodology, setNisabMethodology] = useState<string>('');
+  const [wealthSource, setWealthSource] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [defaultNisabThreshold, setDefaultNisabThreshold] = useState('5000');
   const [form, setForm] = useState({ assetName: '', assetType: 'cash', amount: '', nisabThreshold: '5000', startDate: '' });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -35,7 +69,7 @@ export default function HawlPage() {
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const { toast } = useToast();
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     api.getHawl().then(d => {
       if (d?.error) { toast(d.error, 'error'); return; }
@@ -44,9 +78,30 @@ export default function HawlPage() {
       setNextDueAsset(d?.nextZakatDueAsset || '');
       setNextDueDays(d?.nextZakatDueDays || 0);
       setNextDueAmount(d?.nextZakatDueAmount || 0);
+      const liveThreshold = typeof d?.liveNisab === 'number' ? d.liveNisab.toFixed(2) : '5000';
+      setDefaultNisabThreshold(liveThreshold);
+      setLiveNisab(typeof d?.liveNisab === 'number' ? d.liveNisab : 0);
+      setCurrentZakatableWealth(typeof d?.currentZakatableWealth === 'number' ? d.currentZakatableWealth : typeof d?.totalActiveAmount === 'number' ? d.totalActiveAmount : 0);
+      setNisabWarning(d?.nisabWarning || '');
+      setContinuityMessage(d?.continuityMessage || '');
+      setContinuityResetCount(typeof d?.continuityResetCount === 'number' ? d.continuityResetCount : 0);
+      setPausedTrackerCount(typeof d?.pausedTrackerCount === 'number' ? d.pausedTrackerCount : 0);
+      setContinuityTrackingActive(Boolean(d?.continuityTrackingActive));
+      setLastBelowNisabDate(typeof d?.lastBelowNisabDate === 'number' ? d.lastBelowNisabDate : null);
+      setLastRecoveryDate(typeof d?.lastRecoveryDate === 'number' ? d.lastRecoveryDate : null);
+      setNisabMethodology(typeof d?.nisabMethodology === 'string' ? d.nisabMethodology : '');
+      setWealthSource(typeof d?.wealthSource === 'string' ? d.wealthSource : '');
     }).catch(() => { toast('Failed to load hawl trackers', 'error'); }).finally(() => setLoading(false));
-  };
-  useEffect(() => { load(); }, []);
+  }, [toast]);
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    setForm(prev => {
+      if (prev.assetName || prev.amount || prev.startDate || prev.nisabThreshold === defaultNisabThreshold) {
+        return prev;
+      }
+      return { ...prev, nisabThreshold: defaultNisabThreshold };
+    });
+  }, [defaultNisabThreshold]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -64,7 +119,7 @@ export default function HawlPage() {
     }
     try {
       await api.addHawl(data);
-      setShowForm(false); setForm({ assetName: '', assetType: 'cash', amount: '', nisabThreshold: '5000', startDate: '' }); load();
+      setShowForm(false); setForm({ assetName: '', assetType: 'cash', amount: '', nisabThreshold: defaultNisabThreshold, startDate: '' }); load();
       toast('Asset tracker added', 'success');
     } catch (e: unknown) { const msg = e instanceof Error ? e.message : 'Failed to save tracker'; setSaveError(msg); toast(msg, 'error'); }
     setSaving(false);
@@ -192,6 +247,11 @@ export default function HawlPage() {
     return `${h.day} ${h.monthName} ${h.year} AH`;
   };
 
+  const formatDate = (epochMs: number | null) => {
+    if (!epochMs) return '';
+    return new Date(epochMs).toLocaleDateString('en-US', DATE_FORMAT);
+  };
+
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
 
   const zakatDue = items.filter(i => !i.zakatPaid && i.hawlEndDate && i.hawlEndDate < Date.now());
@@ -218,7 +278,7 @@ export default function HawlPage() {
           <button type="button" onClick={handleImportAssets} disabled={importing} className="border border-[#1B5E20] text-[#1B5E20] px-4 py-2 rounded-lg hover:bg-green-50 font-medium disabled:opacity-50 text-sm">
             {importing ? 'Importing...' : 'Import Assets'}
           </button>
-          <button type="button" onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Track Asset</button>
+          <button type="button" onClick={() => { setForm(prev => ({ ...prev, nisabThreshold: defaultNisabThreshold })); setShowForm(true); }} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Track Asset</button>
         </div>
       </div>
 
@@ -231,14 +291,44 @@ export default function HawlPage() {
           Ibn Umar reported that the Prophet (&#65018;) said: <em>&quot;No zakat is due on wealth until a year has passed.&quot;</em> — <strong>Abu Dawud 1573</strong>
         </p>
         <p>
-          <strong>How it works:</strong> When your wealth exceeds the nisab threshold, your hawl begins. After one full lunar year, zakat is due. If your wealth drops below nisab, the hawl resets.
+          <strong>How it works:</strong> When your wealth exceeds the nisab threshold, your hawl begins. Barakah now records daily continuity so mid-year drops below nisab can pause or restart the hawl according to your fiqh setting.
         </p>
       </div>
+
+      {continuityTrackingActive && (
+        <div className="bg-white border border-emerald-200 rounded-xl p-5 mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-emerald-700">Daily Nisab Continuity</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Current zakatable wealth: <span className="font-semibold text-gray-900">{fmt(currentZakatableWealth)}</span>
+                {' '}against a live nisab of <span className="font-semibold text-gray-900">{fmt(liveNisab)}</span>.
+              </p>
+              {nisabMethodology && (
+                <p className="text-xs text-gray-500 mt-1">Method: {nisabMethodology}{wealthSource ? ` • Source: ${wealthSource.replace('_', ' ')}` : ''}</p>
+              )}
+            </div>
+            <div className="text-right">
+              {continuityResetCount > 0 && <p className="text-sm font-semibold text-emerald-700">{continuityResetCount} auto-reset this load</p>}
+              {pausedTrackerCount > 0 && <p className="text-sm font-semibold text-red-600">{pausedTrackerCount} awaiting recovery</p>}
+            </div>
+          </div>
+          {continuityMessage && <p className="text-sm text-emerald-700 mt-3">{continuityMessage}</p>}
+          {nisabWarning && <p className="text-sm text-red-700 mt-3">{nisabWarning}</p>}
+          {(lastBelowNisabDate || lastRecoveryDate) && (
+            <p className="text-xs text-gray-500 mt-3">
+              {lastBelowNisabDate && `Last drop below nisab: ${formatDate(lastBelowNisabDate)}`}
+              {lastBelowNisabDate && lastRecoveryDate && ' • '}
+              {lastRecoveryDate && `Last recovery above nisab: ${formatDate(lastRecoveryDate)}`}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Tracking</p><p className="text-2xl font-bold text-[#1B5E20]">{items.length}</p></div>
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Zakat Due</p><p className="text-2xl font-bold text-amber-600">{zakatDue.length}</p></div>
-        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Zakat</p><p className="text-2xl font-bold text-red-600">{fmt(zakatDue.reduce((s, i) => s + (i.effectiveZakatAmount || i.zakatAmount), 0))}</p></div>
+        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Current Zakatable Wealth</p><p className="text-2xl font-bold text-red-600">{fmt(currentZakatableWealth)}</p></div>
       </div>
 
       {nextDueDate && (
@@ -348,6 +438,12 @@ export default function HawlPage() {
                     <div>
                       <p className="font-semibold text-[#1B5E20]">{item.assetName}</p>
                       <p className="text-sm text-gray-500">{item.assetType} &bull; {fmt(item.amount)}</p>
+                      {item.awaitingNisabRecovery && (
+                        <p className="text-xs text-red-600 mt-1">Paused until your zakatable wealth recovers above nisab.</p>
+                      )}
+                      {item.autoResetApplied && item.recoveryDate && (
+                        <p className="text-xs text-emerald-700 mt-1">Hawl automatically restarted on {formatDate(item.recoveryDate)}.</p>
+                      )}
                       <p className="text-xs text-gray-400">Hawl: {formatHijriDate(start)} &rarr; {formatHijriDate(end)}</p>
                     </div>
                     <div className="flex items-center gap-2">
