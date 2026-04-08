@@ -898,10 +898,19 @@ export const api = {
 
   // ── Stripe Billing ──────────────────────────────────────────────────────────
   /** Create a Stripe Checkout session (new subscriber). Returns { url }. */
-  createCheckout: (plan: 'plus' | 'family', billing: 'monthly' | 'yearly' = 'monthly') =>
+  createCheckout: (
+    plan: 'plus' | 'family',
+    billing: 'monthly' | 'yearly' = 'monthly',
+    options?: { successPath?: string; cancelPath?: string },
+  ) =>
     apiFetch('/api/stripe/create-checkout', {
       method: 'POST',
-      body: JSON.stringify({ plan, billing }),
+      body: JSON.stringify({
+        plan,
+        billing,
+        successPath: options?.successPath,
+        cancelPath: options?.cancelPath,
+      }),
     }),
 
   /**
@@ -909,10 +918,19 @@ export const api = {
    * Falls back to createCheckout for free users with no subscription.
    * Returns { success, plan, status } OR { url } if redirect is needed.
    */
-  upgradeSubscription: (plan: 'plus' | 'family', billing: 'monthly' | 'yearly' = 'monthly') =>
+  upgradeSubscription: (
+    plan: 'plus' | 'family',
+    billing: 'monthly' | 'yearly' = 'monthly',
+    options?: { successPath?: string; cancelPath?: string },
+  ) =>
     apiFetch('/api/stripe/upgrade', {
       method: 'POST',
-      body: JSON.stringify({ plan, billing }),
+      body: JSON.stringify({
+        plan,
+        billing,
+        successPath: options?.successPath,
+        cancelPath: options?.cancelPath,
+      }),
     }),
 
   /** Open Stripe Customer Portal (manage/cancel/update card). Returns { url }. */

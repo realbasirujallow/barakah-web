@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
+import { hasCompletedGuidedSetup } from '../../lib/setup';
 
 const REMEMBERED_EMAIL_KEY = 'barakah_remembered_email';
 
@@ -60,7 +61,19 @@ export default function LoginPage() {
       // Track login in GA4
       const { trackLogin } = await import('../../lib/analytics');
       trackLogin('email');
-      router.push('/dashboard');
+      let nextRoute = '/setup';
+      try {
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+          const parsed = JSON.parse(savedUser) as { id?: string };
+          if (parsed.id && hasCompletedGuidedSetup(parsed.id)) {
+            nextRoute = '/dashboard';
+          }
+        }
+      } catch {
+        // Ignore localStorage parse issues and fall back to setup
+      }
+      router.push(nextRoute);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Login failed';
       setError(msg);
