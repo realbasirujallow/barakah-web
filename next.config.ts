@@ -36,7 +36,7 @@ const isDev = process.env.NODE_ENV === "development";
 const csp = [
   "default-src 'self'",
   // Scripts: self + inline (hydration) + PostHog loader + GA4 + dev eval
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://us-assets.i.posthog.com https://www.googletagmanager.com https://www.google-analytics.com`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://cdn.plaid.com https://us-assets.i.posthog.com https://www.googletagmanager.com https://www.google-analytics.com`,
   // Styles: inline allowed (Tailwind + Recharts inject styles at runtime)
   "style-src 'self' 'unsafe-inline'",
   // Images: self + data URIs (chart gradients/icons) + blobs (PDF previews) + GA4
@@ -44,9 +44,9 @@ const csp = [
   // Fonts: self only (no external font CDN used)
   "font-src 'self'",
   // Connections: backend proxy + PostHog analytics (proxied through /ingest) + GA4
-  "connect-src 'self' https://api.trybarakah.com https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com https://www.google-analytics.com https://analytics.google.com",
+  "connect-src 'self' https://api.trybarakah.com https://production.plaid.com https://development.plaid.com https://sandbox.plaid.com https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com https://www.google-analytics.com https://analytics.google.com",
   // Allow Google Maps iframe embeds for property asset address visualization
-  "frame-src 'self' https://*.google.com https://*.googleapis.com https://*.gstatic.com",
+  "frame-src 'self' https://cdn.plaid.com https://*.google.com https://*.googleapis.com https://*.gstatic.com",
   // No plugins (Flash, Silverlight, etc.)
   "object-src 'none'",
   // Prevent base-tag injection attacks
