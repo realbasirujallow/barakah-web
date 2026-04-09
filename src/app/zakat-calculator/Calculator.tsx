@@ -14,6 +14,15 @@ interface CalculatorInputs {
   debts: number;
 }
 
+interface InputFieldProps {
+  label: string;
+  field: keyof CalculatorInputs;
+  value: number;
+  unit?: string;
+  tooltip: string;
+  onChange: (field: keyof CalculatorInputs, value: number) => void;
+}
+
 // Fallback prices used only when the /api/zakat/info endpoint is unavailable.
 // The live API values always take priority (see useEffect below).
 // Keep these in sync with the backend NisabService fallback constants.
@@ -22,6 +31,46 @@ const FALLBACK_SILVER_PRICE = 2.73; // USD per gram — March 2026 fallback (mat
 const FALLBACK_NISAB_GOLD_GRAMS = 85;
 const FALLBACK_NISAB_SILVER_GRAMS = 595;
 const ZAKAT_RATE = 0.025; // 2.5%
+
+function InputField({
+  label,
+  field,
+  value,
+  unit = 'USD',
+  tooltip,
+  onChange,
+}: InputFieldProps) {
+  return (
+    <div className="mb-4">
+      <div className="flex items-center gap-2 mb-1">
+        <label className="block text-sm font-medium text-gray-700">{label}</label>
+        <div
+          className="relative group cursor-help"
+          title={tooltip}
+        >
+          <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-amber-500 rounded-full hover:bg-amber-600">
+            ?
+          </span>
+          <div className="absolute left-0 bottom-full mb-2 w-48 hidden group-hover:block bg-gray-900 text-white text-xs rounded p-2 z-10 whitespace-normal">
+            {tooltip}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          value={value === 0 ? '' : value}
+          onChange={(e) =>
+            onChange(field, e.target.value ? parseFloat(e.target.value) : 0)
+          }
+          placeholder="0"
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+        />
+        <span className="text-sm text-gray-600 font-medium min-w-12">{unit}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function Calculator() {
   const [inputs, setInputs] = useState<CalculatorInputs>({
@@ -50,12 +99,29 @@ export default function Calculator() {
   const [isPersonalJewelry, setIsPersonalJewelry] = useState(false);
 
   useEffect(() => {
-    setPricesLoading(true);
-    fetch('/api/zakat/info')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data) setLivePrices(data); })
-      .catch(() => {}) // silently fall back to hardcoded
-      .finally(() => setPricesLoading(false));
+    let cancelled = false;
+
+    const loadPrices = async () => {
+      try {
+        const response = await fetch('/api/zakat/info');
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!cancelled && data) {
+          setLivePrices(data);
+        }
+      } catch {
+        // silently fall back to hardcoded
+      } finally {
+        if (!cancelled) {
+          setPricesLoading(false);
+        }
+      }
+    };
+
+    void loadPrices();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const goldPricePerGram = livePrices?.goldPricePerGram ?? FALLBACK_GOLD_PRICE;
@@ -109,7 +175,7 @@ export default function Calculator() {
       goldValue,
       silverValue,
     };
-  }, [inputs, goldPricePerGram, silverPricePerGram, selectedMadhab, isPersonalJewelry]);
+  }, [inputs, goldPricePerGram, silverPricePerGram, selectedMadhab, isPersonalJewelry, nisabThreshold]);
 
   const handleInputChange = (field: keyof CalculatorInputs, value: number) => {
     setInputs((prev) => ({
@@ -135,49 +201,6 @@ export default function Calculator() {
     });
     setShowResults(false);
   };
-
-  const InputField = ({
-    label,
-    field,
-    value,
-    unit = 'USD',
-    tooltip,
-  }: {
-    label: string;
-    field: keyof CalculatorInputs;
-    value: number;
-    unit?: string;
-    tooltip: string;
-  }) => (
-    <div className="mb-4">
-      <div className="flex items-center gap-2 mb-1">
-        <label className="block text-sm font-medium text-gray-700">{label}</label>
-        <div
-          className="relative group cursor-help"
-          title={tooltip}
-        >
-          <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-amber-500 rounded-full hover:bg-amber-600">
-            ?
-          </span>
-          <div className="absolute left-0 bottom-full mb-2 w-48 hidden group-hover:block bg-gray-900 text-white text-xs rounded p-2 z-10 whitespace-normal">
-            {tooltip}
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          value={value === 0 ? '' : value}
-          onChange={(e) =>
-            handleInputChange(field, e.target.value ? parseFloat(e.target.value) : 0)
-          }
-          placeholder="0"
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-        />
-        <span className="text-sm text-gray-600 font-medium min-w-12">{unit}</span>
-      </div>
-    </div>
-  );
 
   return (
     <div className="w-full">
@@ -229,6 +252,7 @@ export default function Calculator() {
               field="cashAndBanking"
               value={inputs.cashAndBanking}
               tooltip="Include checking accounts, savings accounts, and cash on hand"
+              onChange={handleInputChange}
             />
           </div>
 
@@ -242,6 +266,7 @@ export default function Calculator() {
               value={inputs.goldGrams}
               unit="g"
               tooltip="Weight of gold jewelry, coins, or bars. Personal jewelry worn regularly may be exempt depending on madhab."
+              onChange={handleInputChange}
             />
             <InputField
               label="Silver (in grams)"
@@ -249,6 +274,7 @@ export default function Calculator() {
               value={inputs.silverGrams}
               unit="g"
               tooltip="Weight of silver jewelry, coins, or bars"
+              onChange={handleInputChange}
             />
             {['shafii', 'maliki', 'hanbali'].includes(selectedMadhab) && (
               <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
@@ -279,12 +305,14 @@ export default function Calculator() {
               field="investments"
               value={inputs.investments}
               tooltip="Current market value of investment portfolios"
+              onChange={handleInputChange}
             />
             <InputField
               label="Business Assets & Inventory"
               field="businessAssets"
               value={inputs.businessAssets}
               tooltip="Value of business inventory, equipment, or stock in trade"
+              onChange={handleInputChange}
             />
           </div>
 
@@ -297,12 +325,14 @@ export default function Calculator() {
               field="retirementAccounts"
               value={inputs.retirementAccounts}
               tooltip="Some scholars include retirement accounts; others exclude them. Check with your local imam."
+              onChange={handleInputChange}
             />
             <InputField
               label="Other Assets"
               field="otherAssets"
               value={inputs.otherAssets}
               tooltip="Cryptocurrency, rental property, vehicles (excluding personal use), etc."
+              onChange={handleInputChange}
             />
           </div>
 
@@ -315,6 +345,7 @@ export default function Calculator() {
               field="debts"
               value={inputs.debts}
               tooltip="Mortgages, personal loans, credit card debt, and other liabilities"
+              onChange={handleInputChange}
             />
           </div>
         </div>
@@ -472,7 +503,7 @@ export default function Calculator() {
             {/* CTA */}
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <p className="text-sm text-gray-700 mb-3">
-                Track your zakat automatically and never miss a payment with Barakah's zakat tracker.
+                Track your zakat automatically and never miss a payment with Barakah&apos;s zakat tracker.
               </p>
               <Link
                 href="/signup"

@@ -25,11 +25,11 @@ const safeSetItem = (key: string, value: string): void => {
 export default function DashboardPage() {
   const [totals, setTotals] = useState<AssetTotal | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hideNetWorth, setHideNetWorth] = useState(false);
-  const [hideZakat, setHideZakat] = useState(false);
+  const [hideNetWorth, setHideNetWorth] = useState(() => safeGetItem('hideNetWorth') === 'true');
+  const [hideZakat, setHideZakat] = useState(() => safeGetItem('hideZakatDashboard') === 'true');
   const [hijri, setHijri] = useState<HijriData | null>(null);
   const [hawlDue, setHawlDue] = useState<HawlDue | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !safeGetItem('barakah_onboarded'));
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -41,21 +41,29 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    // Show onboarding for first-time users
-    if (!safeGetItem('barakah_onboarded')) setShowOnboarding(true);
-    setHideNetWorth(safeGetItem('hideNetWorth') === 'true');
-    setHideZakat(safeGetItem('hideZakatDashboard') === 'true');
-    Promise.allSettled([
-      api.getAssetTotal(),
-      api.getIslamicCalendarToday(),
-      api.getHawlDue(30),
-    ]).then(([assetResult, hijriResult, hawlResult]) => {
+    let cancelled = false;
+
+    const loadDashboard = async () => {
+      const [assetResult, hijriResult, hawlResult] = await Promise.allSettled([
+        api.getAssetTotal(),
+        api.getIslamicCalendarToday(),
+        api.getHawlDue(30),
+      ]);
+
+      if (cancelled) return;
+
       if (assetResult.status === 'fulfilled') setTotals(assetResult.value);
       else toast('Failed to load dashboard data. Please refresh.', 'error');
       if (hijriResult.status === 'fulfilled') setHijri(hijriResult.value as HijriData);
       if (hawlResult.status === 'fulfilled') setHawlDue(hawlResult.value as typeof hawlDue);
-    }).finally(() => setLoading(false));
-  }, []);
+      setLoading(false);
+    };
+
+    void loadDashboard();
+    return () => {
+      cancelled = true;
+    };
+  }, [toast]);
 
   const toggleHideNetWorth = () => {
     const newValue = !hideNetWorth;

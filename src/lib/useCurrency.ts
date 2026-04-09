@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 const CURRENCY_KEY = 'barakah_preferred_currency';
 
@@ -16,16 +16,10 @@ const CURRENCY_KEY = 'barakah_preferred_currency';
  * Defaults to 'USD' if no preference is stored.
  */
 export function useCurrency(): { fmt: (n: number) => string; currency: string; symbol: string } {
-  const [currency, setCurrency] = useState<string>(() => {
+  const [currency] = useState<string>(() => {
     if (typeof window === 'undefined') return 'USD';
     return localStorage.getItem(CURRENCY_KEY) ?? 'USD';
   });
-
-  useEffect(() => {
-    // Sync in case localStorage was updated by the profile page after this component mounted
-    const stored = localStorage.getItem(CURRENCY_KEY);
-    if (stored && stored !== currency) setCurrency(stored);
-  }, [currency]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);

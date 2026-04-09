@@ -68,6 +68,8 @@ export default function HawlPage() {
   const [hijriInput, setHijriInput] = useState({ year: '', month: '', day: '' });
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const { toast } = useToast();
+  const maxFutureInput = new Date(Date.now() + 355 * 86400000).toISOString().slice(0, 10);
+  const minBackdateInput = new Date(Date.now() - 3650 * 86400000).toISOString().slice(0, 10);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -233,9 +235,7 @@ export default function HawlPage() {
       }
       const result = await api.updateHawlStartDate(id, data);
       toast(result?.message || 'Start date updated', 'success');
-      setEditingDateId(null);
-      setNewStartDate('');
-      setHijriInput({ year: '', month: '', day: '' });
+      resetDateEditor();
       load();
     } catch {
       toast('Failed to update start date', 'error');
@@ -250,6 +250,24 @@ export default function HawlPage() {
   const formatDate = (epochMs: number | null) => {
     if (!epochMs) return '';
     return new Date(epochMs).toLocaleDateString('en-US', DATE_FORMAT);
+  };
+
+  const resetDateEditor = () => {
+    setEditingDateId(null);
+    setDateInputMode('gregorian');
+    setNewStartDate('');
+    setHijriInput({ year: '', month: '', day: '' });
+  };
+
+  const openDateEditor = (item: HawlItem) => {
+    if (editingDateId === item.id) {
+      resetDateEditor();
+      return;
+    }
+    setEditingDateId(item.id);
+    setDateInputMode('gregorian');
+    setNewStartDate(new Date(item.hawlStartDate || Date.now()).toISOString().slice(0, 10));
+    setHijriInput({ year: '', month: '', day: '' });
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
@@ -366,7 +384,7 @@ export default function HawlPage() {
                   <div className="flex items-center gap-3">
                     <p className="text-lg font-bold text-amber-600">{fmt(item.effectiveZakatAmount || item.zakatAmount)}</p>
                     <button type="button" onClick={() => handleMarkPaid(item.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm">Paid</button>
-                    <button type="button" onClick={() => setEditingDateId(editingDateId === item.id ? null : item.id)} className="text-purple-600 hover:text-purple-800 text-sm" title="Change Hawl date">&#128197;</button>
+                    <button type="button" onClick={() => openDateEditor(item)} className="text-purple-600 hover:text-purple-800 text-sm" title="Change Hawl date">&#128197;</button>
                     <button type="button" onClick={() => handleReset(item.id)} className="text-blue-600 hover:text-blue-800 text-sm" title="Reset Hawl cycle">&#8635;</button>
                     <button type="button" onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === item.id ? '...' : 'Del'}</button>
                   </div>
@@ -380,7 +398,7 @@ export default function HawlPage() {
                       <button type="button" onClick={() => setDateInputMode('hijri')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'hijri' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600'}`}>Hijri</button>
                     </div>
                     {dateInputMode === 'gregorian' ? (
-                      <input type="date" value={newStartDate} onChange={e => setNewStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm text-gray-900 w-full" />
+                      <input type="date" value={newStartDate} min={minBackdateInput} max={maxFutureInput} onChange={e => setNewStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm text-gray-900 w-full" />
                     ) : (
                       <div className="flex gap-2">
                         <input type="number" placeholder="Year (e.g. 1447)" value={hijriInput.year} onChange={e => setHijriInput({ ...hijriInput, year: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
@@ -390,7 +408,7 @@ export default function HawlPage() {
                     )}
                     <div className="flex gap-2 mt-2">
                       <button type="button" onClick={() => handleUpdateStartDate(item.id)} className="bg-[#1B5E20] text-white px-3 py-1 rounded text-sm">Update</button>
-                      <button type="button" onClick={() => { setEditingDateId(null); setNewStartDate(''); setHijriInput({ year: '', month: '', day: '' }); }} className="text-gray-500 text-sm">Cancel</button>
+                      <button type="button" onClick={resetDateEditor} className="text-gray-500 text-sm">Cancel</button>
                     </div>
                   </div>
                 )}
@@ -448,7 +466,7 @@ export default function HawlPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{daysLeft}d left</span>
-                      <button type="button" onClick={() => setEditingDateId(editingDateId === item.id ? null : item.id)} className="text-purple-600 hover:text-purple-800 text-sm" title="Change Hawl date">&#128197;</button>
+                      <button type="button" onClick={() => openDateEditor(item)} className="text-purple-600 hover:text-purple-800 text-sm" title="Change Hawl date">&#128197;</button>
                       <button type="button" onClick={() => handleReset(item.id)} className="text-blue-600 hover:text-blue-800 text-sm" title="Reset Hawl cycle">&#8635;</button>
                       <button type="button" onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === item.id ? '...' : 'Del'}</button>
                     </div>
@@ -462,7 +480,7 @@ export default function HawlPage() {
                         <button type="button" onClick={() => setDateInputMode('hijri')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'hijri' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600'}`}>Hijri</button>
                       </div>
                       {dateInputMode === 'gregorian' ? (
-                        <input type="date" value={newStartDate} onChange={e => setNewStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm text-gray-900 w-full" />
+                        <input type="date" value={newStartDate} min={minBackdateInput} max={maxFutureInput} onChange={e => setNewStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm text-gray-900 w-full" />
                       ) : (
                         <div className="flex gap-2">
                           <input type="number" placeholder="Year (e.g. 1447)" value={hijriInput.year} onChange={e => setHijriInput({ ...hijriInput, year: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
@@ -472,7 +490,7 @@ export default function HawlPage() {
                       )}
                       <div className="flex gap-2 mt-2">
                         <button type="button" onClick={() => handleUpdateStartDate(item.id)} className="bg-[#1B5E20] text-white px-3 py-1 rounded text-sm">Update</button>
-                        <button type="button" onClick={() => { setEditingDateId(null); setNewStartDate(''); setHijriInput({ year: '', month: '', day: '' }); }} className="text-gray-500 text-sm">Cancel</button>
+                        <button type="button" onClick={resetDateEditor} className="text-gray-500 text-sm">Cancel</button>
                       </div>
                     </div>
                   )}
@@ -531,8 +549,8 @@ export default function HawlPage() {
                 <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Nisab Threshold</label>
                 <input type="number" step="0.01" value={form.nisabThreshold} onChange={e => setForm({ ...form, nisabThreshold: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Hawl Start Date <span className="text-gray-400">(optional — defaults to today)</span></label>
-                <input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Hawl Start Date <span className="text-gray-400">(optional — defaults to today, backdate if you already held it)</span></label>
+                <input type="date" value={form.startDate} min={minBackdateInput} max={maxFutureInput} onChange={e => setForm({ ...form, startDate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             </div>
             {saveError && <div className="text-sm text-red-600 bg-red-50 p-2 rounded mb-3 mt-3">{saveError}</div>}
             <div className="flex gap-3 mt-6">

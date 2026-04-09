@@ -60,6 +60,9 @@ interface Overview {
   recentSignups: AdminUser[];
   countryDistribution?: Record<string, number>;
   stateDistribution?: Record<string, number>;
+  usersMissingPhone?: number;
+  usersMissingLocation?: number;
+  usersMissingProfileInfo?: number;
 }
 
 /* ──────────────────────────── Helpers ─────────────────────────── */
@@ -114,6 +117,7 @@ export default function AdminPage() {
   const [forbidden, setForbidden] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [search, setSearch] = useState('');
+  const [userFilter, setUserFilter] = useState<'all' | 'unverified' | 'past_due' | 'trialing' | 'missing_phone' | 'missing_location' | 'paying'>('all');
   const [selected, setSelected] = useState<AdminUser | null>(null);
   const [resetting, setResetting] = useState(false);
   const [resendingVerification, setResendingVerification] = useState(false);
@@ -261,9 +265,26 @@ export default function AdminPage() {
   };
 
   const filteredUsers = (usersData?.users ?? []).filter(u => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q);
+    const q = search.trim().toLowerCase();
+    const searchMatch = !q || u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q);
+    if (!searchMatch) return false;
+
+    switch (userFilter) {
+      case 'unverified':
+        return u.emailVerified === false;
+      case 'past_due':
+        return u.subscriptionStatus === 'past_due';
+      case 'trialing':
+        return u.subscriptionStatus === 'trialing' || u.subscriptionStatus === 'trial';
+      case 'missing_phone':
+        return !u.phoneNumber?.trim();
+      case 'missing_location':
+        return !u.state?.trim() && !u.country?.trim();
+      case 'paying':
+        return u.subscriptionStatus === 'active' || u.subscriptionStatus === 'trialing' || u.subscriptionStatus === 'trial';
+      default:
+        return true;
+    }
   });
 
   /* ── Loading / error states ── */
@@ -447,6 +468,70 @@ export default function AdminPage() {
                     );
                   })}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {overview && (
+            <div className="bg-white rounded-2xl p-5 border">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div>
+                  <h2 className="font-semibold text-gray-700 text-sm">Support Action Center</h2>
+                  <p className="text-xs text-gray-400 mt-1">Jump straight to the highest-friction user situations.</p>
+                </div>
+                <span className="text-xs text-gray-400">Click a card to open the right queue</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                {[
+                  {
+                    key: 'unverified' as const,
+                    label: 'Unverified Emails',
+                    value: overview.unverifiedEmails ?? 0,
+                    hint: 'Users blocked from logging in',
+                    color: 'border-amber-200 bg-amber-50 text-amber-800',
+                  },
+                  {
+                    key: 'past_due' as const,
+                    label: 'Past-Due Billing',
+                    value: overview.pastDueCount ?? 0,
+                    hint: 'Subscribers at churn risk',
+                    color: 'border-red-200 bg-red-50 text-red-800',
+                  },
+                  {
+                    key: 'trialing' as const,
+                    label: 'Trials Expiring',
+                    value: overview.expiringTrialsCount ?? 0,
+                    hint: 'Conversion follow-up needed',
+                    color: 'border-blue-200 bg-blue-50 text-blue-800',
+                  },
+                  {
+                    key: 'missing_phone' as const,
+                    label: 'Missing Contact Info',
+                    value: overview.usersMissingProfileInfo ?? 0,
+                    hint: 'Support reachability is weaker',
+                    color: 'border-gray-200 bg-gray-50 text-gray-700',
+                  },
+                ].map(card => (
+                  <button
+                    key={card.label}
+                    type="button"
+                    onClick={() => {
+                      setActiveTab(card.key === 'unverified' ? 'unverified' : 'users');
+                      setUserFilter(card.key === 'trialing' ? 'trialing' : card.key);
+                      setSearch('');
+                    }}
+                    className={`text-left rounded-xl border p-4 transition hover:shadow-sm ${card.color}`}
+                  >
+                    <p className="text-xs font-medium opacity-80">{card.label}</p>
+                    <p className="text-3xl font-bold mt-2">{card.value}</p>
+                    <p className="text-xs mt-2 opacity-80">{card.hint}</p>
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 text-xs text-gray-500">
+                <div className="rounded-lg bg-gray-50 px-3 py-2 border">Missing phone: <span className="font-semibold text-gray-800">{overview.usersMissingPhone ?? 0}</span></div>
+                <div className="rounded-lg bg-gray-50 px-3 py-2 border">Missing location: <span className="font-semibold text-gray-800">{overview.usersMissingLocation ?? 0}</span></div>
+                <div className="rounded-lg bg-gray-50 px-3 py-2 border">Total support backlog: <span className="font-semibold text-gray-800">{(overview.unverifiedEmails ?? 0) + (overview.pastDueCount ?? 0) + (overview.expiringTrialsCount ?? 0)}</span></div>
               </div>
             </div>
           )}
@@ -641,6 +726,35 @@ export default function AdminPage() {
               Export CSV
             </button>
           </div>
+          <div className="px-4 py-3 border-b bg-gray-50 flex flex-wrap gap-2">
+            {[
+              ['all', 'All Users'],
+              ['unverified', 'Unverified'],
+              ['past_due', 'Past Due'],
+              ['trialing', 'Trials'],
+              ['missing_phone', 'Missing Phone'],
+              ['missing_location', 'Missing Location'],
+              ['paying', 'Paying'],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setUserFilter(value as typeof userFilter)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                  userFilter === value
+                    ? 'bg-[#1B5E20] text-white'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:border-[#1B5E20] hover:text-[#1B5E20]'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+            {userFilter !== 'all' && (
+              <button type="button" onClick={() => setUserFilter('all')} className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-600">
+                Clear Filter
+              </button>
+            )}
+          </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -661,7 +775,7 @@ export default function AdminPage() {
                 {filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="text-center py-10 text-gray-400">
-                      {search ? 'No users match your search.' : 'No users found.'}
+                      {search ? 'No users match your search.' : userFilter !== 'all' ? 'No users match this filter on the current page.' : 'No users found.'}
                     </td>
                   </tr>
                 ) : (
@@ -807,7 +921,7 @@ export default function AdminPage() {
                     {overview!.unverifiedEmails} user{overview!.unverifiedEmails > 1 ? 's' : ''} with unverified emails
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    These users signed up but haven't confirmed their email. They cannot log in until verified.
+                    These users signed up but haven&apos;t confirmed their email. They cannot log in until verified.
                   </p>
                 </div>
               </div>
