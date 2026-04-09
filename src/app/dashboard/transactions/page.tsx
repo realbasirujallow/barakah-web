@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
@@ -57,6 +57,7 @@ function txAmount(tx: Tx, fmt: (n: number) => string): string {
 }
 
 export default function TransactionsPage() {
+  const reviewedTrackedRef = useRef(false);
   const [txs, setTxs] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,6 +110,13 @@ export default function TransactionsPage() {
       .finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, [filter, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (reviewedTrackedRef.current || txs.length === 0) return;
+    reviewedTrackedRef.current = true;
+    api.lifecycleTrackEvent('transactions_reviewed', {
+      transactionCount: txs.length,
+    }, 'web_transactions').catch(() => {});
+  }, [txs]);
 
   const openAdd = () => {
     setEditTx(null);

@@ -10,6 +10,14 @@ import { PRICING } from '../../../lib/pricing';
 // ── Plan tier ranking ────────────────────────────────────────────────────────
 const PLAN_TIER: Record<string, number> = { free: 0, plus: 1, family: 2 };
 
+type SaveOffer = {
+  label?: string;
+  message?: string;
+  percentOff?: number;
+  durationMonths?: number;
+  actionable?: boolean;
+};
+
 // ── Plan definitions ─────────────────────────────────────────────────────────
 const PLANS = [
   {
@@ -82,18 +90,36 @@ function BillingContent() {
   const { refreshPlan } = useAuth();
   const { toast } = useToast();
   const [status, setStatus] = useState<{ plan: string; status: string; hasSubscription: boolean } | null>(null);
+  const [saveOffer, setSaveOffer] = useState<SaveOffer | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
   const [referral, setReferral] = useState<{ referralCode: string; shareUrl: string; referralCount: number; referralClicks?: number } | null>(null);
   const [copied, setCopied] = useState(false);
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
+  const normalizeSaveOffer = (raw: unknown): SaveOffer | null => {
+    if (!raw || typeof raw !== 'object') return null;
+    const offer = raw as Record<string, unknown>;
+    return {
+      label: typeof offer.label === 'string' ? offer.label : undefined,
+      message: typeof offer.message === 'string' ? offer.message : undefined,
+      percentOff: typeof offer.percentOff === 'number' ? offer.percentOff : undefined,
+      durationMonths: typeof offer.durationMonths === 'number' ? offer.durationMonths : undefined,
+      actionable: offer.actionable === true,
+    };
+  };
 
+  const loadStatus = async () => {
+    try {
+      const data = await api.subscriptionStatus();
+      setStatus(data as { plan: string; status: string; hasSubscription: boolean });
+    } catch {
+      setStatus({ plan: 'free', status: 'inactive', hasSubscription: false });
+    }
+  };
 
   useEffect(() => {
-    api.subscriptionStatus()
-      .then(setStatus)
-      .catch(() => setStatus({ plan: 'free', status: 'inactive', hasSubscription: false }))
+    loadStatus()
       .finally(() => setStatusLoading(false));
 
     api.getReferralCode()
@@ -162,6 +188,32 @@ function BillingContent() {
     }
   };
 
+  const handleCancelFlow = async () => {
+    setLoading('cancel');
+    try {
+      const response = await api.lifecycleCancelIntent('billing');
+      setSaveOffer(normalizeSaveOffer(response?.offer));
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'We could not load cancellation options.', 'error');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleAcceptSaveOffer = async () => {
+    setLoading('save-offer');
+    try {
+      const response = await api.acceptSaveOffer();
+      toast((response?.message as string) || 'Your save offer has been applied.', 'success');
+      setSaveOffer(null);
+      await loadStatus();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'We could not apply the save offer.', 'error');
+    } finally {
+      setLoading(null);
+    }
+  };
+
   const currentPlan = status?.plan || 'free';
   const isPastDue   = status?.status === 'past_due';
   const isCanceled  = status?.status === 'canceled';
@@ -208,6 +260,55 @@ function BillingContent() {
         <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-4 mb-6 flex items-center gap-3">
           <span className="text-2xl">ℹ️</span>
           <p className="text-sm">Checkout was canceled — no charge was made.</p>
+        </div>
+      )}
+
+      {saveOffer && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 mb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-amber-900">Before you cancel</p>
+              <h2 className="text-xl font-bold text-gray-900 mt-1">
+                {String(saveOffer.label || 'Stay with Barakah and keep your progress')}
+              </h2>
+              <p className="text-sm text-amber-900/80 mt-2">
+                {String(saveOffer.message || 'We can help you stay on track without losing your history.')}
+              </p>
+              {saveOffer.percentOff && saveOffer.durationMonths && (
+                <p className="text-sm text-gray-700 mt-2">
+                  Offer: <span className="font-semibold">{String(saveOffer.percentOff)}% off</span> for{' '}
+                  <span className="font-semibold">{String(saveOffer.durationMonths)} month{Number(saveOffer.durationMonths) === 1 ? '' : 's'}</span>
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col gap-2 md:w-72">
+              {(saveOffer.actionable as boolean) ? (
+                <button
+                  type="button"
+                  onClick={handleAcceptSaveOffer}
+                  disabled={loading === 'save-offer'}
+                  className="rounded-xl bg-[#1B5E20] px-4 py-3 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-60"
+                >
+                  {loading === 'save-offer' ? 'Applying offer...' : 'Keep My Plan With This Offer'}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={handleManage}
+                disabled={loading === 'portal'}
+                className="rounded-xl border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-white disabled:opacity-60"
+              >
+                {loading === 'portal' ? 'Opening portal...' : 'Continue to Billing Portal'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSaveOffer(null)}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Not now
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -335,15 +436,24 @@ function BillingContent() {
         <div className="border border-gray-200 rounded-2xl p-5 bg-white">
           <h3 className="font-semibold text-gray-700 mb-1">Manage Subscription</h3>
           <p className="text-sm text-gray-500 mb-3">
-            Update your payment method, view invoices, or cancel your subscription via the Stripe portal.
+            Update your payment method, switch plans, or review cancellation options before you leave.
           </p>
-          <button
-            onClick={handleManage}
-            disabled={loading === 'portal'}
-            className="text-sm font-medium text-[#1B5E20] underline underline-offset-2 hover:text-[#155016] disabled:opacity-50"
-          >
-            {loading === 'portal' ? 'Opening portal...' : '→ Open billing portal'}
-          </button>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <button
+              onClick={handleManage}
+              disabled={loading === 'portal'}
+              className="rounded-xl border border-[#1B5E20] px-4 py-3 text-sm font-semibold text-[#1B5E20] hover:bg-green-50 disabled:opacity-60"
+            >
+              {loading === 'portal' ? 'Opening portal...' : 'Open Billing Portal'}
+            </button>
+            <button
+              onClick={handleCancelFlow}
+              disabled={loading === 'cancel'}
+              className="rounded-xl border border-amber-300 px-4 py-3 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-60"
+            >
+              {loading === 'cancel' ? 'Checking options...' : 'See Cancellation Options'}
+            </button>
+          </div>
         </div>
       )}
 

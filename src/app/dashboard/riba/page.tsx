@@ -123,7 +123,7 @@ export default function RibaPage() {
               transactionId: tx.transactionId,
               description: tx.description,
               amount: tx.amount,
-              date: tx.date ?? tx.timestamp,
+              date: String(tx.date ?? tx.timestamp ?? ''),
               ribaType: tx.ribaType,
               riskLevel: tx.riskLevel,
               riskScore: tx.riskScore,
@@ -141,7 +141,9 @@ export default function RibaPage() {
       // Check debts for interest (riba)
       if (debtsRes.status === 'fulfilled') {
         const d = debtsRes.value;
-        const debtList = Array.isArray(d?.debts) ? d.debts : Array.isArray(d) ? d : [];
+        const debtList = Array.isArray(d)
+          ? d
+          : (d && typeof d === 'object' && Array.isArray(d.debts) ? d.debts : []);
         const interestDebts = debtList.filter(
           (debt) => (debt.interestRate ?? 0) > 0 && !debt.ribaFree && (debt.remainingAmount ?? 0) > 0,
         ).map((debt) => ({

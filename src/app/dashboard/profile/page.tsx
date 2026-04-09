@@ -18,6 +18,17 @@ interface ProfileData {
   state?: string;
 }
 
+interface CommunicationPreferences {
+  notificationsEnabled: boolean;
+  zakatReminders: boolean;
+  emailMarketingOptIn: boolean;
+  seasonalGreetingsOptIn: boolean;
+  pushMarketingOptIn: boolean;
+  timeZone: string;
+  quietHoursStart: number;
+  quietHoursEnd: number;
+}
+
 const PLAN_INFO: Record<string, { label: string; color: string; bg: string; desc: string }> = {
   free:   { label: 'Free',   color: 'text-gray-600',   bg: 'bg-gray-100',    desc: 'Basic features, up to 25 transactions/month.' },
   plus:   { label: 'Plus',   color: 'text-blue-700',   bg: 'bg-blue-100',    desc: 'Unlimited transactions, all Islamic finance tools.' },
@@ -79,6 +90,8 @@ export default function ProfilePage() {
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [savingCurrency, setSavingCurrency] = useState(false);
   const [supportedCurrencies, setSupportedCurrencies] = useState<Array<{ code: string; name: string; symbol: string }>>([]);
+  const [preferences, setPreferences] = useState<CommunicationPreferences | null>(null);
+  const [savingPreferences, setSavingPreferences] = useState(false);
 
   // Safe localStorage helpers
   const safeSetItem = (key: string, value: string): void => {
@@ -116,10 +129,12 @@ export default function ProfilePage() {
     Promise.allSettled([
       api.getProfile(),
       api.getSupportedCurrencies().catch(() => []), // FEATURE 4: Load supported currencies
+      api.getPreferences().catch(() => null),
     ])
       .then((results) => {
         const profileResult = results[0];
         const currenciesResult = results[1];
+        const preferencesResult = results[2];
 
         if (profileResult.status === 'fulfilled') {
           const d = profileResult.value as ProfileData;
@@ -135,6 +150,10 @@ export default function ProfilePage() {
 
         if (currenciesResult.status === 'fulfilled' && Array.isArray(currenciesResult.value)) {
           setSupportedCurrencies(currenciesResult.value);
+        }
+
+        if (preferencesResult.status === 'fulfilled' && preferencesResult.value) {
+          setPreferences(preferencesResult.value as CommunicationPreferences);
         }
       })
       .finally(() => setLoading(false));
@@ -222,6 +241,21 @@ export default function ProfilePage() {
   const formatDate = (ts?: number) => {
     if (!ts) return '—';
     return new Date(ts * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
+  const handleSavePreferences = async () => {
+    if (!preferences) return;
+    setSavingPreferences(true);
+    try {
+      const updated = await api.updatePreferences(preferences as unknown as Record<string, unknown>);
+      setPreferences(updated as CommunicationPreferences);
+      toast('Communication preferences updated.', 'success');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Failed to update preferences.';
+      toast(msg, 'error');
+    } finally {
+      setSavingPreferences(false);
+    }
   };
 
   if (loading) return (
@@ -672,6 +706,86 @@ export default function ProfilePage() {
           </button>
         </div>
       </div>
+
+      {preferences && (
+        <div className="bg-white rounded-2xl shadow-sm p-6 mt-4 border border-gray-100">
+          <h2 className="text-lg font-bold text-gray-800 mb-2">Communication Preferences</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Control onboarding emails, Ramadan and Eid greetings, push nudges, and your quiet hours.
+          </p>
+          <div className="space-y-3">
+            {[
+              ['notificationsEnabled', 'Core notifications', 'Important account, billing, and in-app alerts.'],
+              ['zakatReminders', 'Zakat reminders', 'Operational reminders tied to zakat and Hawl readiness.'],
+              ['emailMarketingOptIn', 'Email journeys', 'Helpful onboarding, inactivity, and upgrade emails.'],
+              ['seasonalGreetingsOptIn', 'Ramadan and Eid greetings', 'Seasonal messages and holiday check-ins.'],
+              ['pushMarketingOptIn', 'Push nudges', 'Push reminders about balances, net worth, and setup progress.'],
+            ].map(([key, title, subtitle]) => (
+              <label key={key} className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 px-4 py-3">
+                <div>
+                  <p className="font-medium text-gray-700 text-sm">{title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={Boolean(preferences[key as keyof CommunicationPreferences])}
+                  onChange={e => setPreferences(prev => prev ? {
+                    ...prev,
+                    [key]: e.target.checked,
+                  } : prev)}
+                  className="h-4 w-4 rounded border-gray-300 text-[#1B5E20] focus:ring-[#1B5E20]"
+                />
+              </label>
+            ))}
+          </div>
+          <div className="grid md:grid-cols-3 gap-4 mt-5">
+            <label className="text-sm text-gray-600">
+              <span className="block mb-2 font-medium text-gray-800">Time Zone</span>
+              <input
+                type="text"
+                value={preferences.timeZone}
+                onChange={e => setPreferences(prev => prev ? { ...prev, timeZone: e.target.value } : prev)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                placeholder="America/Indiana/Indianapolis"
+              />
+            </label>
+            <label className="text-sm text-gray-600">
+              <span className="block mb-2 font-medium text-gray-800">Quiet Hours Start</span>
+              <select
+                value={preferences.quietHoursStart}
+                onChange={e => setPreferences(prev => prev ? { ...prev, quietHoursStart: Number(e.target.value) } : prev)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+              >
+                {Array.from({ length: 24 }, (_, hour) => (
+                  <option key={hour} value={hour}>{hour.toString().padStart(2, '0')}:00</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm text-gray-600">
+              <span className="block mb-2 font-medium text-gray-800">Quiet Hours End</span>
+              <select
+                value={preferences.quietHoursEnd}
+                onChange={e => setPreferences(prev => prev ? { ...prev, quietHoursEnd: Number(e.target.value) } : prev)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+              >
+                {Array.from({ length: 24 }, (_, hour) => (
+                  <option key={hour} value={hour}>{hour.toString().padStart(2, '0')}:00</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              onClick={handleSavePreferences}
+              disabled={savingPreferences}
+              className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-60"
+            >
+              {savingPreferences ? 'Saving...' : 'Save Preferences'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Data Privacy — GDPR Export */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mt-4 border border-gray-100">

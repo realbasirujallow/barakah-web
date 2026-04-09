@@ -260,8 +260,17 @@ export default function SetupPage() {
     }
   };
 
-  const finishSetup = (href: string) => {
+  const finishSetup = async (href: string) => {
     if (!user) return;
+    try {
+      await api.lifecycleTrackEvent('setup_completed', {
+        destination: href,
+        plan: currentPlan,
+        linkedAccounts: plaidAccounts.length,
+      }, 'web_setup');
+    } catch {
+      // Local completion still keeps the user moving if the tracking call fails.
+    }
     markGuidedSetupComplete(user.id);
     router.replace(href);
   };

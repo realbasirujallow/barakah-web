@@ -801,6 +801,23 @@ export const api = {
   deleteNotification: (id: number) =>
     apiFetch(`/api/notifications/${id}`, { method: 'DELETE' }),
 
+  // Preferences & lifecycle
+  getPreferences: () => apiFetch('/api/preferences'),
+  updatePreferences: (data: Record<string, unknown>) =>
+    apiFetch('/api/preferences', { method: 'PUT', body: JSON.stringify(data) }),
+  lifecycleHeartbeat: (data: { platform?: string; appVersion?: string; timeZone?: string; route?: string }) =>
+    apiFetch('/api/lifecycle/heartbeat', { method: 'POST', body: JSON.stringify(data) }),
+  lifecycleTrackEvent: (eventType: string, metadata?: Record<string, unknown>, source = 'web') =>
+    apiFetch('/api/lifecycle/events', {
+      method: 'POST',
+      body: JSON.stringify({ eventType, metadata: metadata ?? {}, source }),
+    }),
+  getLifecycleSummary: () => apiFetch('/api/lifecycle/summary'),
+  lifecycleCancelIntent: (context = 'billing') =>
+    apiFetch('/api/lifecycle/cancel-intent', { method: 'POST', body: JSON.stringify({ context }) }),
+  acceptSaveOffer: () =>
+    apiFetch('/api/lifecycle/save-offer/accept', { method: 'POST' }),
+
   // Admin — all admin calls suppress the global logout so that a 401
   // (e.g. expired token) shows a "session expired" prompt on the admin page
   // instead of silently logging the user out site-wide.
@@ -828,6 +845,33 @@ export const api = {
     apiFetch('/admin/settings/onboarding-trial', {}, API_TIMEOUT, true),
   updateAdminOnboardingTrialSettings: (settings: { enabled: boolean; plan: string; durationDays: number }) =>
     apiFetch('/admin/settings/onboarding-trial', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    }, API_TIMEOUT, true),
+  getAdminLifecycleOverview: () =>
+    apiFetch('/admin/lifecycle/overview', {}, API_TIMEOUT, true),
+  getAdminLifecycleTemplates: () =>
+    apiFetch('/admin/lifecycle/templates', {}, API_TIMEOUT, true),
+  getAdminLifecycleCampaigns: () =>
+    apiFetch('/admin/lifecycle/campaigns', {}, API_TIMEOUT, true),
+  saveAdminLifecycleCampaign: (campaign: Record<string, unknown>) =>
+    apiFetch('/admin/lifecycle/campaigns', {
+      method: 'POST',
+      body: JSON.stringify(campaign),
+    }, API_TIMEOUT, true),
+  getAdminLifecycleDeliveries: (campaignId: number) =>
+    apiFetch(`/admin/lifecycle/campaigns/${campaignId}/deliveries`, {}, API_TIMEOUT, true),
+  sendAdminLifecycleCampaign: (campaignId: number) =>
+    apiFetch(`/admin/lifecycle/campaigns/${campaignId}/send`, { method: 'POST' }, API_TIMEOUT, true),
+  testAdminLifecycleCampaign: (campaignId: number, payload: Record<string, unknown>) =>
+    apiFetch(`/admin/lifecycle/campaigns/${campaignId}/test`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }, API_TIMEOUT, true),
+  getAdminRetentionOfferSettings: () =>
+    apiFetch('/admin/lifecycle/settings/retention-offer', {}, API_TIMEOUT, true),
+  updateAdminRetentionOfferSettings: (settings: Record<string, unknown>) =>
+    apiFetch('/admin/lifecycle/settings/retention-offer', {
       method: 'PUT',
       body: JSON.stringify(settings),
     }, API_TIMEOUT, true),
