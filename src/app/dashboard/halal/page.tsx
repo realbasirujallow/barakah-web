@@ -13,15 +13,10 @@ interface DetailResult { symbol: string; name: string; status: string; reason: s
 const PAGE_SIZE = 50;
 
 export default function HalalPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-
-  // Redirect if user doesn't have plus or family plan
-  if (user && !hasAccess(user.plan, 'plus', user.planExpiresAt)) {
-    router.push('/dashboard/billing');
-    return null;
-  }
+  const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
 
   // Unified search — doubles as single-stock check and screener filter
   const [search, setSearch] = useState('');
@@ -47,6 +42,12 @@ export default function HalalPage() {
 
   // Debounce search for screener filtering
   useEffect(() => {
+    if (!isLoading && user && !hasPaidAccess) {
+      router.replace('/dashboard/billing');
+    }
+  }, [hasPaidAccess, isLoading, router, user]);
+
+  useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 400);
     return () => clearTimeout(t);
   }, [search]);
@@ -66,7 +67,7 @@ export default function HalalPage() {
       const s = d?.sectors;
       setSectors(Array.isArray(s) ? s : []);
     }).catch(() => toast('Failed to load sectors', 'error'));
-  }, []);
+  }, [toast]);
 
   // Fetch stocks when filters or page change
   const fetchStocks = useCallback(async () => {
@@ -89,12 +90,14 @@ export default function HalalPage() {
       logError(err, { context: 'Failed to load stocks' });
     }
     setLoading(false);
-  }, [debouncedSearch, sector, compliance, page]);
+  }, [compliance, debouncedSearch, page, sector, toast]);
 
-  useEffect(() => { fetchStocks(); }, [fetchStocks]);
-
-  // Reset to page 0 when filters change
-  useEffect(() => { setPage(0); }, [debouncedSearch, sector, compliance]);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void fetchStocks();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchStocks]);
 
   // Quick check — when user presses Enter with a ticker-like query, do a single-stock lookup
   const handleQuickCheck = async () => {
@@ -125,8 +128,13 @@ export default function HalalPage() {
     setChecking(false);
   };
 
-  // Clear detail result when search changes
-  useEffect(() => { setDetailResult(null); }, [search]);
+  if (isLoading || (user && !hasPaidAccess)) {
+    return (
+      <div className="flex justify-center py-20">
+        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -169,7 +177,10 @@ export default function HalalPage() {
             {(['all', 'halal', 'haram'] as const).map(c => (
               <button
                 key={c}
-                onClick={() => setCompliance(c)}
+                onClick={() => {
+                  setCompliance(c);
+                  setPage(0);
+                }}
                 className={`px-4 py-1.5 rounded-md font-medium transition ${
                   compliance === c
                     ? c === 'halal' ? 'bg-green-600 text-white' : c === 'haram' ? 'bg-red-500 text-white' : 'bg-white text-gray-900 shadow-sm'
@@ -187,7 +198,11 @@ export default function HalalPage() {
           <div className="flex-1 relative">
             <input
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => {
+                setSearch(e.target.value);
+                setDetailResult(null);
+                setPage(0);
+              }}
               onKeyDown={e => { if (e.key === 'Enter') handleQuickCheck(); }}
               className="w-full border rounded-lg px-4 py-2.5 text-gray-900 pr-20"
               placeholder="Search by ticker, name, or sector... (Enter for quick check)"
@@ -205,7 +220,10 @@ export default function HalalPage() {
           </div>
           <select
             value={sector}
-            onChange={e => setSector(e.target.value)}
+            onChange={e => {
+              setSector(e.target.value);
+              setPage(0);
+            }}
             className="border rounded-lg px-3 py-2 text-gray-900 text-sm min-w-[180px]"
           >
             <option value="">All Sectors</option>

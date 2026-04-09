@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
@@ -108,7 +108,7 @@ export default function InvestmentsPage() {
 
   const fmtPct = (n: number) => `${n >= 0 ? '+' : ''}${(n || 0).toFixed(2)}%`;
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     setError('');
     Promise.allSettled([
@@ -129,9 +129,14 @@ export default function InvestmentsPage() {
         setPortfolioHistory(history);
       }).catch(() => { /* graceful — don't block if history unavailable */ }),
     ]).finally(() => setLoading(false));
-  };
+  }, [historyDays]);
 
-  useEffect(() => { load(); }, [historyDays]);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      load();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [load]);
 
   const handleAddAccount = async () => {
     setSavingAccount(true);
@@ -282,16 +287,14 @@ export default function InvestmentsPage() {
                       borderRadius: '8px',
                       padding: '10px',
                     }}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    formatter={((value: any, name: any) => {
+                    formatter={(value: number | string, name: string) => {
                       if (name === 'totalValue') return [fmt(Number(value) || 0), 'Portfolio Value'];
                       return [value, name];
-                    }) as any}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    labelFormatter={((label: any) => {
+                    }}
+                    labelFormatter={(label: number | string) => {
                       const d = new Date(String(label));
                       return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                    }) as any}
+                    }}
                   />
                   <Line
                     type="monotone"

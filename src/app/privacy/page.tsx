@@ -9,8 +9,8 @@ export default function PrivacyPolicyPage() {
       <header className="bg-[#1B5E20] text-white py-6">
         <div className="max-w-3xl mx-auto px-6 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight">&#9770; Barakah</Link>
-          <Link href="/dashboard" className="text-sm bg-white/20 hover:bg-white/30 rounded-lg px-4 py-2 transition">
-            Back to Dashboard
+          <Link href="/" className="text-sm bg-white/20 hover:bg-white/30 rounded-lg px-4 py-2 transition">
+            Back to Home
           </Link>
         </div>
       </header>

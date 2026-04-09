@@ -7,7 +7,7 @@ import NisabLivePrices, { GoldPricePerGram, SilverPricePerGram, GoldNisabUSD, Si
 export const metadata: Metadata = {
   title: 'Free Zakat Calculator 2026 — Calculate Your Zakat Instantly | Barakah',
   description:
-    'Calculate your zakat in 60 seconds with our free online zakat calculator. Supports gold, silver, cash, savings, investments, retirement accounts, and business assets. Updated nisab threshold for 2026.',
+    'Calculate your zakat in 60 seconds with our free online zakat calculator. Supports gold, silver, cash, savings, investments, retirement accounts, and business assets with live nisab references.',
   keywords: [
     'zakat calculator',
     'how to calculate zakat',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Free Zakat Calculator 2026 — Calculate Zakat on All Assets',
     description:
-      'The most comprehensive free zakat calculator online. Gold, silver, cash, stocks, retirement accounts, business assets. Live nisab prices. All four madhabs supported.',
+      'Calculate zakat on gold, silver, cash, stocks, retirement accounts, and business assets with live nisab references and fiqh-aware guidance.',
     url: 'https://trybarakah.com/zakat-calculator',
     siteName: 'Barakah',
     type: 'website',
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Free Zakat Calculator 2026 — Calculate Your Zakat Instantly',
-    description: 'Calculate zakat on all your assets with our comprehensive Islamic calculator.',
+    description: 'Calculate zakat on all your assets with live nisab references and clear fiqh-aware guidance.',
     images: ['https://trybarakah.com/og-zakat-calculator.png'],
   },
 };

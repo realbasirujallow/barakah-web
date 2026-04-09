@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useCurrency } from '../../../lib/useCurrency';
@@ -50,7 +50,6 @@ const periods = [
 function AnalyticsPageContent() {
   const { fmt, symbol } = useCurrency();
   const [period, setPeriod] = useState('month');
-  const [summary, setSummary] = useState<Summary | null>(null);
   const [allPeriods, setAllPeriods] = useState<{ week: Summary | null; month: Summary | null; year: Summary | null }>({
     week: null, month: null, year: null,
   });
@@ -60,34 +59,35 @@ function AnalyticsPageContent() {
   const [activeChart, setActiveChart] = useState<'mom' | 'trend'>('mom');
 
   useEffect(() => {
-    setLoading(true);
-    Promise.allSettled([
-      api.getTransactionSummary('week'),
-      api.getTransactionSummary('month'),
-      api.getTransactionSummary('year'),
-      api.getMonthlySummary(13),
-      api.getHalalAnalysis('month'),
-    ])
-      .then((results) => {
-        const week = results[0].status === 'fulfilled' ? results[0].value : null;
-        const month = results[1].status === 'fulfilled' ? results[1].value : null;
-        const year = results[2].status === 'fulfilled' ? results[2].value : null;
-        const monthly = results[3].status === 'fulfilled' ? results[3].value : null;
-        const halal = results[4].status === 'fulfilled' ? results[4].value : null;
-        setAllPeriods({ week, month, year });
-        setSummary(month);
-        setMonthlyData(monthly?.months || []);
-        if (halal) setHalalAnalysis(halal as HalalAnalysis);
-      })
-      .catch((err) => { logError(err, { context: 'Failed to load analytics data' }); })
-      .finally(() => setLoading(false));
+    const timeoutId = window.setTimeout(() => {
+      Promise.allSettled([
+        api.getTransactionSummary('week'),
+        api.getTransactionSummary('month'),
+        api.getTransactionSummary('year'),
+        api.getMonthlySummary(13),
+        api.getHalalAnalysis('month'),
+      ])
+        .then((results) => {
+          const week = results[0].status === 'fulfilled' ? results[0].value : null;
+          const month = results[1].status === 'fulfilled' ? results[1].value : null;
+          const year = results[2].status === 'fulfilled' ? results[2].value : null;
+          const monthly = results[3].status === 'fulfilled' ? results[3].value : null;
+          const halal = results[4].status === 'fulfilled' ? results[4].value : null;
+          setAllPeriods({ week, month, year });
+          setMonthlyData(monthly?.months || []);
+          if (halal) setHalalAnalysis(halal as HalalAnalysis);
+        })
+        .catch((err) => { logError(err, { context: 'Failed to load analytics data' }); })
+        .finally(() => setLoading(false));
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
-  useEffect(() => {
-    if (allPeriods[period as keyof typeof allPeriods]) {
-      setSummary(allPeriods[period as keyof typeof allPeriods]);
-    }
-  }, [period, allPeriods]);
+  const summary = useMemo(
+    () => allPeriods[period as keyof typeof allPeriods],
+    [allPeriods, period],
+  );
 
   const fmtShort = (n: number) => {
     if (Math.abs(n) >= 1000) return symbol + (n / 1000).toFixed(1) + 'k';

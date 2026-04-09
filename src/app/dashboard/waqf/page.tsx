@@ -50,7 +50,7 @@ export default function WaqfPage() {
       const items = d?.contributions ?? d;
       setItems(Array.isArray(items) ? items : []);
     }).catch(() => toast('Failed to load waqf data', 'error')).finally(() => setLoadingItems(false));
-  }, []);
+  }, [toast]);
 
   const loadDistribution = useCallback(() => {
     setLoadingDist(true);
@@ -61,10 +61,21 @@ export default function WaqfPage() {
       setTotalWaqf(d?.totalWaqf || 0);
       setAllocatedPct(d?.allocatedPercentage || 0);
     }).catch(() => toast('Failed to load distribution', 'error')).finally(() => setLoadingDist(false));
-  }, []);
+  }, [toast]);
 
-  useEffect(() => { loadItems(); }, [loadItems]);
-  useEffect(() => { if (tab === 'distribution') loadDistribution(); }, [tab, loadDistribution]);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      loadItems();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [loadItems]);
+  useEffect(() => {
+    if (tab !== 'distribution') return;
+    const timeoutId = window.setTimeout(() => {
+      loadDistribution();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [tab, loadDistribution]);
 
   const openAdd = () => { setEditItem(null); setForm({ organizationName: '', type: 'cash', purpose: 'education', amount: '', description: '', recurring: false }); setShowForm(true); };
   const openEdit = (item: WaqfItem) => {
@@ -306,7 +317,7 @@ export default function WaqfPage() {
 
           <div className="mt-6 bg-teal-50 border border-teal-200 rounded-xl p-4">
             <p className="text-sm text-teal-800 font-medium mb-1">📖 About Waqf Distribution</p>
-            <p className="text-xs text-teal-700">A Waqf can be designated to one or multiple beneficiaries according to the donor's niyyah (intention). Ensure beneficiaries meet the conditions of eligibility under Islamic law and consult a scholar for complex distributions.</p>
+            <p className="text-xs text-teal-700">A Waqf can be designated to one or multiple beneficiaries according to the donor&apos;s niyyah (intention). Ensure beneficiaries meet the conditions of eligibility under Islamic law and consult a scholar for complex distributions.</p>
           </div>
         </>
       )}

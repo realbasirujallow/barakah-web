@@ -7,8 +7,8 @@ import { api } from '../../lib/api';
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('');
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(token ? 'loading' : 'error');
+  const [message, setMessage] = useState(token ? '' : 'No verification token provided.');
   const [resendEmail, setResendEmail] = useState('');
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
 
@@ -24,11 +24,7 @@ function VerifyEmailContent() {
   };
 
   useEffect(() => {
-    if (!token) {
-      setStatus('error');
-      setMessage('No verification token provided.');
-      return;
-    }
+    if (!token) return;
 
     api.verifyEmail(token)
       .then((data: { message?: string }) => {
