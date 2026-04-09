@@ -10,6 +10,23 @@ interface CitySuggestion {
   displayName: string;
 }
 
+type SavedPrayerLocation =
+  | {
+      type: 'city';
+      city: string;
+      country: string;
+      method: number;
+      timeZone?: string | null;
+    }
+  | {
+      type: 'coordinates';
+      latitude: number;
+      longitude: number;
+      label: string;
+      method: number;
+      timeZone?: string | null;
+    };
+
 const PRAYER_ORDER = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'] as const;
 const PRAYER_ICONS: Record<string, string> = { Fajr: '🌙', Sunrise: '🌅', Dhuhr: '☀️', Asr: '🌤️', Maghrib: '🌇', Isha: '🌃' };
 const PRAYER_LABELS: Record<string, string> = { Fajr: 'Fajr', Sunrise: 'Sunrise', Dhuhr: 'Dhuhr', Asr: 'Asr', Maghrib: 'Maghrib', Isha: 'Isha' };
@@ -27,9 +44,21 @@ function parseTime(timeStr: string): string {
   return `${h}:${m}`;
 }
 
-function getNextPrayer(timings: PrayerTimings): string {
-  const now = new Date();
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+function getCurrentMinutes(timeZone?: string | null): number {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: timeZone || undefined,
+  });
+  const parts = formatter.formatToParts(new Date());
+  const hour = Number(parts.find(part => part.type === 'hour')?.value ?? '0');
+  const minute = Number(parts.find(part => part.type === 'minute')?.value ?? '0');
+  return hour * 60 + minute;
+}
+
+function getNextPrayer(timings: PrayerTimings, timeZone?: string | null): string {
+  const nowMinutes = getCurrentMinutes(timeZone);
   const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'] as const;
   for (const p of prayers) {
     const t = parseTime((timings as unknown as Record<string, string>)[p]);
@@ -39,11 +68,10 @@ function getNextPrayer(timings: PrayerTimings): string {
   return 'Fajr'; // next day
 }
 
-function getCountdown(timeStr: string): string {
+function getCountdown(timeStr: string, timeZone?: string | null): string {
   const t = parseTime(timeStr);
   const [h, m] = t.split(':').map(Number);
-  const now = new Date();
-  let diff = (h * 60 + m) - (now.getHours() * 60 + now.getMinutes());
+  let diff = (h * 60 + m) - getCurrentMinutes(timeZone);
   if (diff < 0) diff += 1440;
   const hrs = Math.floor(diff / 60);
   const mins = diff % 60;
@@ -52,10 +80,10 @@ function getCountdown(timeStr: string): string {
 
 const CALC_METHODS = [
   { id: 2, name: 'Islamic Society of North America (ISNA)' },
-  { id: 1, name: 'Muslim World League (MWL)' },
-  { id: 3, name: 'Egyptian General Authority' },
+  { id: 1, name: 'University of Islamic Sciences, Karachi' },
+  { id: 3, name: 'Muslim World League (MWL)' },
   { id: 4, name: 'Umm Al-Qura University, Makkah' },
-  { id: 5, name: 'University of Islamic Sciences, Karachi' },
+  { id: 5, name: 'Egyptian General Authority of Survey' },
   { id: 99, name: 'Custom / Other' },
 ];
 
@@ -77,6 +105,9 @@ export default function PrayerTimesPage() {
   const [searched, setSearched]     = useState(false);
   const [now, setNow]               = useState(new Date());
   const [geoLoading, setGeoLoading] = useState(false);
+  const [locationTimeZone, setLocationTimeZone] = useState<string | null>(null);
+  const [locationLabel, setLocationLabel] = useState('');
+  const [currentLocation, setCurrentLocation] = useState<SavedPrayerLocation | null>(null);
 
   // Autocomplete state
   const [suggestions, setSuggestions]     = useState<CitySuggestion[]>([]);
@@ -154,6 +185,11 @@ export default function PrayerTimesPage() {
     setShowSuggestions(false);
   };
 
+  const saveLocation = (location: SavedPrayerLocation) => {
+    setCurrentLocation(location);
+    safeSetItem('prayerTimesLocation', JSON.stringify(location));
+  };
+
   const fetchTimes = useCallback(async (c: string, co: string, m: number) => {
     if (!c.trim() || !co.trim()) return;
     setLoading(true); setError(null);
@@ -168,6 +204,11 @@ export default function PrayerTimesPage() {
       const data = await res.json();
       if (data.code === 200 && data.data?.timings) {
         setTimings(data.data.timings as PrayerTimings);
+        const timezone = typeof data.data?.meta?.timezone === 'string' ? data.data.meta.timezone : null;
+        setLocationTimeZone(timezone);
+        setLocationLabel(`${c}, ${co}`);
+        setCurrentLocation({ type: 'city', city: c, country: co, method: m, timeZone: timezone });
+        safeSetItem('prayerTimesLocation', JSON.stringify({ type: 'city', city: c, country: co, method: m, timeZone: timezone }));
         setSearched(true);
       } else {
         setError('City not found. Please check your city and country name.');
@@ -178,25 +219,95 @@ export default function PrayerTimesPage() {
     setLoading(false);
   }, []);
 
+  const fetchTimesByCoordinates = useCallback(async (latitude: number, longitude: number, m: number, label = 'Current Location') => {
+    setLoading(true);
+    setError(null);
+    try {
+      const today = new Date();
+      const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+      const url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${latitude}&longitude=${longitude}&method=${m}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`Aladhan API error: ${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      if (data.code === 200 && data.data?.timings) {
+        setTimings(data.data.timings as PrayerTimings);
+        const timezone = typeof data.data?.meta?.timezone === 'string' ? data.data.meta.timezone : null;
+        const coordsLabel = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+        setCity(coordsLabel);
+        setCountry('GPS');
+        setLocationTimeZone(timezone);
+        setLocationLabel(label || coordsLabel);
+        const location: SavedPrayerLocation = {
+          type: 'coordinates',
+          latitude,
+          longitude,
+          label: label || coordsLabel,
+          method: m,
+          timeZone: timezone,
+        };
+        saveLocation(location);
+        setSearched(true);
+      } else {
+        setError('Could not fetch prayer times for your location.');
+      }
+    } catch {
+      setError('Could not fetch prayer times for your location.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Try to restore last search from localStorage
   useEffect(() => {
     const saved = safeGetItem('prayerTimesLocation');
     if (saved) {
       try {
-        const { city: c, country: co, method: m } = JSON.parse(saved);
-        setCity(c); setCountry(co); setMethod(m);
-        fetchTimes(c, co, m);
+        const parsed = JSON.parse(saved) as Partial<SavedPrayerLocation> & { city?: string; country?: string; method?: number };
+        const savedMethod = typeof parsed.method === 'number' ? parsed.method : 2;
+        setMethod(savedMethod);
+
+        if (
+          parsed.type === 'coordinates' &&
+          typeof parsed.latitude === 'number' &&
+          typeof parsed.longitude === 'number'
+        ) {
+          const label = typeof parsed.label === 'string' ? parsed.label : 'Saved Location';
+          setCity(`${parsed.latitude.toFixed(4)}, ${parsed.longitude.toFixed(4)}`);
+          setCountry('GPS');
+          fetchTimesByCoordinates(parsed.latitude, parsed.longitude, savedMethod, label);
+          return;
+        }
+
+        if (
+          parsed.country === 'GPS' &&
+          typeof parsed.city === 'string'
+        ) {
+          const match = parsed.city.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+          if (match) {
+            const latitude = Number(match[1]);
+            const longitude = Number(match[2]);
+            fetchTimesByCoordinates(latitude, longitude, savedMethod, 'Saved Location');
+            return;
+          }
+        }
+
+        if (typeof parsed.city === 'string' && typeof parsed.country === 'string') {
+          setCity(parsed.city);
+          setCountry(parsed.country);
+          fetchTimes(parsed.city, parsed.country, savedMethod);
+        }
       } catch (err) {
         console.warn('Failed to restore saved prayer location:', err);
       }
     }
-  }, [fetchTimes]);
+  }, [fetchTimes, fetchTimesByCoordinates]);
 
   const handleSearch = () => {
     setShowSuggestions(false);
     if (!city.trim()) { setError('Please enter a city name.'); return; }
     if (!country.trim()) { setError('Please enter a country code (e.g., US, GB, SA).'); return; }
-    safeSetItem('prayerTimesLocation', JSON.stringify({ city, country, method }));
     fetchTimes(city, country, method);
   };
 
@@ -207,28 +318,7 @@ export default function PrayerTimesPage() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          const today = new Date();
-          const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
-          const url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${latitude}&longitude=${longitude}&method=${method}`;
-          const res = await fetch(url);
-          if (!res.ok) {
-            throw new Error(`Aladhan API error: ${res.status} ${res.statusText}`);
-          }
-          const data = await res.json();
-          if (data.code === 200 && data.data?.timings) {
-            setTimings(data.data.timings as PrayerTimings);
-            setSearched(true);
-            // Optionally, you could reverse-geocode to show city name, but for now just use coords
-            setCity(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-            setCountry('GPS');
-            safeSetItem('prayerTimesLocation', JSON.stringify({
-              city: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-              country: 'GPS',
-              method
-            }));
-          } else {
-            setError('Could not fetch prayer times for your location.');
-          }
+          await fetchTimesByCoordinates(latitude, longitude, method, 'Current Location');
         } catch {
           setError('Could not fetch prayer times for your location.');
         } finally {
@@ -242,16 +332,38 @@ export default function PrayerTimesPage() {
     );
   };
 
-  const nextPrayer = timings ? getNextPrayer(timings) : null;
+  const handleMethodChange = async (nextMethod: number) => {
+    setMethod(nextMethod);
+    if (!currentLocation) {
+      return;
+    }
+    if (currentLocation.type === 'coordinates') {
+      await fetchTimesByCoordinates(currentLocation.latitude, currentLocation.longitude, nextMethod, currentLocation.label);
+      return;
+    }
+    await fetchTimes(currentLocation.city, currentLocation.country, nextMethod);
+  };
 
-  const today   = new Date();
-  const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const nextPrayer = timings ? getNextPrayer(timings, locationTimeZone) : null;
+  const dateStr = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: locationTimeZone || undefined,
+  }).format(now);
+  const timeStr = new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+    timeZone: locationTimeZone || undefined,
+  }).format(now);
 
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Prayer Times</h1>
-        <p className="text-gray-500 text-sm mt-1">{dateStr} · {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })}</p>
+        <p className="text-gray-500 text-sm mt-1">{dateStr} · {timeStr}</p>
       </div>
 
       {/* Location search */}
@@ -327,7 +439,7 @@ export default function PrayerTimesPage() {
         <div className="mt-3">
           <select
             value={method}
-            onChange={e => setMethod(Number(e.target.value))}
+            onChange={e => { void handleMethodChange(Number(e.target.value)); }}
             className="w-full border rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#1B5E20]"
           >
             {CALC_METHODS.map(cm => <option key={cm.id} value={cm.id}>{cm.name}</option>)}
@@ -351,7 +463,7 @@ export default function PrayerTimesPage() {
                   <p className="text-green-200 text-sm mt-1">at {(timings as unknown as Record<string, string>)[nextPrayer]}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold">{getCountdown((timings as unknown as Record<string, string>)[nextPrayer])}</p>
+                  <p className="text-2xl font-bold">{getCountdown((timings as unknown as Record<string, string>)[nextPrayer], locationTimeZone)}</p>
                   <p className="text-green-200 text-xs">remaining</p>
                 </div>
               </div>
@@ -383,7 +495,7 @@ export default function PrayerTimesPage() {
                     </p>
                     {isNext && (
                       <p className="text-xs text-[#1B5E20] font-medium">
-                        {getCountdown((timings as unknown as Record<string, string>)[prayer])} away
+                        {getCountdown((timings as unknown as Record<string, string>)[prayer], locationTimeZone)} away
                       </p>
                     )}
                   </div>
@@ -395,7 +507,7 @@ export default function PrayerTimesPage() {
           <p className="text-center text-xs text-gray-400 mt-4">
             Prayer times provided by{' '}
             <a href="https://aladhan.com" target="_blank" rel="noopener noreferrer" className="hover:underline">Aladhan.com</a>
-            {searched && city && ` for ${city}, ${country}`}
+            {searched && locationLabel && ` for ${locationLabel}`}
           </p>
         </>
       )}

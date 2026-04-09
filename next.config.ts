@@ -44,7 +44,7 @@ const csp = [
   // Fonts: self only (no external font CDN used)
   "font-src 'self'",
   // Connections: backend proxy + PostHog analytics (proxied through /ingest) + GA4
-  "connect-src 'self' https://api.trybarakah.com https://production.plaid.com https://development.plaid.com https://sandbox.plaid.com https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com https://www.google-analytics.com https://analytics.google.com",
+  "connect-src 'self' https://api.trybarakah.com https://production.plaid.com https://development.plaid.com https://sandbox.plaid.com https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com https://nominatim.openstreetmap.org https://www.google-analytics.com https://analytics.google.com",
   // Allow Google Maps iframe embeds for property asset address visualization
   "frame-src 'self' https://cdn.plaid.com https://*.google.com https://*.googleapis.com https://*.gstatic.com",
   // No plugins (Flash, Silverlight, etc.)
