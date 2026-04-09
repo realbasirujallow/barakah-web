@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { useAuth } from '../../../context/AuthContext';
@@ -25,7 +25,7 @@ const PLAN_INFO: Record<string, { label: string; color: string; bg: string; desc
 };
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -81,20 +81,21 @@ export default function ProfilePage() {
   const [supportedCurrencies, setSupportedCurrencies] = useState<Array<{ code: string; name: string; symbol: string }>>([]);
 
   // Safe localStorage helpers
-  const safeGetItem = (key: string): string | null => {
-    try { return localStorage.getItem(key); } catch { return null; }
-  };
   const safeSetItem = (key: string, value: string): void => {
     try { localStorage.setItem(key, value); } catch { /* private browsing or quota exceeded */ }
   };
 
   // Dark mode
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      return localStorage.getItem('barakah_dark_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
   useEffect(() => {
-    const stored = safeGetItem('barakah_dark_mode') === 'true';
-    setDarkMode(stored);
-    document.documentElement.classList.toggle('dark', stored);
-  }, []);
+    document.documentElement.classList.toggle('dark', darkMode);
+  }, [darkMode]);
   const toggleDarkMode = () => {
     const next = !darkMode;
     setDarkMode(next);
@@ -110,7 +111,7 @@ export default function ProfilePage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const loadProfile = () => {
+  const loadProfile = useCallback(() => {
     setLoading(true);
     Promise.allSettled([
       api.getProfile(),
@@ -137,9 +138,14 @@ export default function ProfilePage() {
         }
       })
       .finally(() => setLoading(false));
-  };
+  }, [toast]);
 
-  useEffect(() => { loadProfile(); }, []);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      loadProfile();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [loadProfile]);
 
   const handleSaveName = async () => {
     setSavingName(true);

@@ -2,14 +2,13 @@
 import { AuthProvider } from '../context/AuthContext';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Script from 'next/script';
 
 function PostHogInit({ children }: { children: React.ReactNode }) {
-  const [ready, setReady] = useState(false);
+  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
   useEffect(() => {
-    const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
     if (key) {
       posthog.init(key, {
         api_host: '/ingest',
@@ -18,11 +17,10 @@ function PostHogInit({ children }: { children: React.ReactNode }) {
         capture_pageview: false,
         capture_pageleave: true,
       });
-      setReady(true);
     }
-  }, []);
+  }, [key]);
 
-  if (ready) {
+  if (key) {
     return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
   }
   return <>{children}</>;

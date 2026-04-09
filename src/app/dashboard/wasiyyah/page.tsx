@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useCurrency } from '../../../lib/useCurrency';
@@ -9,6 +9,15 @@ import { safeParse, validateWasiyyahBeneficiary } from '../../../lib/schemas';
 
 interface Beneficiary { id: number; beneficiaryName: string; relationship: string; sharePercentage: number; shareType: string; notes: string; }
 interface Obligation { id: number; type: string; amount: number; currency: string; description: string; recipient?: string; notes?: string; status: string; }
+interface WasiyyahBeneficiaryApiItem {
+  id: number;
+  beneficiaryName?: string;
+  name?: string;
+  relationship: string;
+  sharePercentage: number;
+  shareType: string;
+  notes?: string;
+}
 
 const OBLIGATION_TYPES = [
   { value: 'ZAKAT',               label: 'Unpaid Zakat',          emoji: '🕌', desc: 'Zakat that is owed but not yet given' },
@@ -20,6 +29,8 @@ const OBLIGATION_TYPES = [
 ];
 
 function WasiyyahPageContent() {
+  const { toast } = useToast();
+  const { currency: currencyCode } = useCurrency();
   const [items, setItems]           = useState<Beneficiary[]>([]);
   const [obligations, setObligations] = useState<Obligation[]>([]);
   const [loading, setLoading]       = useState(true);
@@ -27,22 +38,13 @@ function WasiyyahPageContent() {
   const [showForm, setShowForm]     = useState(false);
   const [showObForm, setShowObForm] = useState(false);
   const [form, setForm]             = useState({ beneficiaryName: '', relationship: '', sharePercentage: '', shareType: 'percentage', notes: '' });
-  const [obForm, setObForm]         = useState({ type: 'ZAKAT', amount: '', currency: '', description: '', recipient: '', notes: '' });
+  const [obForm, setObForm]         = useState(() => ({ type: 'ZAKAT', amount: '', currency: currencyCode || '', description: '', recipient: '', notes: '' }));
   const [saving, setSaving]         = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<{ type: 'beneficiary' | 'obligation'; id: number } | null>(null);
   const [formError, setFormError]   = useState<string | null>(null);
   const loadingRef = useRef(false);
-  const { toast } = useToast();
-  const { currency: currencyCode, fmt: fmtCurrency } = useCurrency();
 
-  // Set obligation form currency when user preference loads
-  useEffect(() => {
-    if (currencyCode && !obForm.currency) {
-      setObForm(prev => ({ ...prev, currency: currencyCode }));
-    }
-  }, [currencyCode]);
-
-  const load = () => {
+  const load = useCallback(() => {
     if (loadingRef.current) return; // Prevent concurrent loads
     loadingRef.current = true;
     setLoading(true);
@@ -62,10 +64,10 @@ function WasiyyahPageContent() {
       const bList = bRaw?.beneficiaries ?? bRaw;
       const validatedBeneficiaries: Beneficiary[] = [];
       if (Array.isArray(bList)) {
-        for (const item of bList) {
+        for (const item of bList as WasiyyahBeneficiaryApiItem[]) {
           // Adapt response field names to schema (beneficiaryName -> name)
-          const adapted = { ...item, name: (item as any).beneficiaryName || (item as any).name };
-          const result = safeParse(validateWasiyyahBeneficiary, adapted, `beneficiary/${(item as any)?.id}`);
+          const adapted = { ...item, name: item.beneficiaryName || item.name };
+          const result = safeParse(validateWasiyyahBeneficiary, adapted, `beneficiary/${item.id}`);
           if (result) {
             // Map back to component's interface (name -> beneficiaryName)
             const component: Beneficiary = {
@@ -91,8 +93,13 @@ function WasiyyahPageContent() {
         setLoading(false);
         loadingRef.current = false;
       });
-  };
-  useEffect(() => { load(); }, []);
+  }, [toast]);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      load();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [load]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -430,7 +437,6 @@ function WasiyyahPageContent() {
                 const newShare = parseFloat(form.sharePercentage) || 0;
                 const wouldExceed = currentTotal + newShare > 33.33 && currentTotal < 33.33;
                 const alreadyOver = currentTotal >= 33.33;
-                const maxNew = Math.max(0, 33.33 - currentTotal);
                 return (
                   <button
                     type="button"

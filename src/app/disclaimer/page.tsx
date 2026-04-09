@@ -9,8 +9,8 @@ export default function DisclaimerPage() {
       <header className="bg-[#1B5E20] text-white py-6">
         <div className="max-w-3xl mx-auto px-6 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight">☪ Barakah</Link>
-          <Link href="/dashboard" className="text-sm bg-white/20 hover:bg-white/30 rounded-lg px-4 py-2 transition">
-            Back to Dashboard
+          <Link href="/" className="text-sm bg-white/20 hover:bg-white/30 rounded-lg px-4 py-2 transition">
+            Back to Home
           </Link>
         </div>
       </header>
@@ -124,8 +124,8 @@ export default function DisclaimerPage() {
         <div className="text-center text-sm text-gray-500 pt-6 border-t">
           <p>بسم الله الرحمن الرحيم</p>
           <p className="mt-1">May Allah grant us barakah in our wealth and guide us to what is halal and pure.</p>
-          <Link href="/dashboard" className="inline-block mt-4 text-[#1B5E20] font-medium hover:underline">
-            ← Return to Dashboard
+          <Link href="/" className="inline-block mt-4 text-[#1B5E20] font-medium hover:underline">
+            ← Return to Home
           </Link>
         </div>
       </main>

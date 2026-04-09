@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 const slides = [
   {
@@ -52,20 +52,16 @@ const slides = [
 const STORAGE_KEY = 'barakah_onboarded';
 
 export default function OnboardingTour() {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(() => {
+    try {
+      return typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY);
+    } catch {
+      return false;
+    }
+  });
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [animating, setAnimating] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)) {
-        setVisible(true);
-      }
-    } catch {
-      // localStorage unavailable — don't show
-    }
-  }, []);
 
   const dismiss = useCallback(() => {
     try {

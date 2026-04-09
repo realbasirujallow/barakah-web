@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -23,15 +23,10 @@ const PERIODS = [
 ];
 
 export default function NetWorthPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const { fmt } = useCurrency();
-
-  // Redirect if user doesn't have plus or family plan
-  if (user && !hasAccess(user.plan, 'plus', user.planExpiresAt)) {
-    router.push('/dashboard/billing');
-    return null;
-  }
+  const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
 
   const [history, setHistory] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,14 +47,14 @@ export default function NetWorthPage() {
     return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const load = async (p?: string) => {
+  const load = useCallback(async (selectedPeriod?: string) => {
     setLoading(true);
     setError('');
     try {
       // Auto-take a snapshot on each visit (like Flutter apps)
       try { await api.takeNetWorthSnapshot(); } catch { /* ignore */ }
 
-      const d = await api.getNetWorthHistory(p || period);
+      const d = await api.getNetWorthHistory(selectedPeriod || period);
       setCurrentNetWorth(d.currentNetWorth ?? 0);
       setTotalAssets(d.totalAssets ?? 0);
       setTotalDebts(d.totalDebts ?? 0);
@@ -82,9 +77,20 @@ export default function NetWorthPage() {
       setError('Could not load net worth data.');
     }
     setLoading(false);
-  };
+  }, [period]);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (!isLoading && user && !hasPaidAccess) {
+      router.replace('/dashboard/billing');
+    }
+  }, [hasPaidAccess, isLoading, router, user]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [load]);
 
   const takeSnapshot = async () => {
     setSnapping(true);
@@ -99,6 +105,14 @@ export default function NetWorthPage() {
 
   const changePositive = changeAmount >= 0;
   const periodLabel = PERIODS.find(p => p.key === period)?.label ?? period;
+
+  if (isLoading || (user && !hasPaidAccess)) {
+    return (
+      <div className="flex justify-center py-20">
+        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   if (loading) return (
     <div className="flex justify-center py-20">

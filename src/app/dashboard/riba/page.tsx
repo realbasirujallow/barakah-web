@@ -41,16 +41,48 @@ interface RibaDebt {
   lender: string;
 }
 
+interface RibaApiTransaction {
+  transactionId: number;
+  description: string;
+  amount: number;
+  date?: string;
+  timestamp?: string;
+  ribaType: string;
+  riskLevel: string;
+  riskScore: number;
+  flags?: string[];
+  flagDetails?: string[];
+  islamicAlternatives?: string[] | Record<string, string>;
+}
+
+interface RibaScanResponse {
+  error?: string;
+  ribaTransactions?: RibaApiTransaction[];
+  flaggedTransactions?: RibaApiTransaction[];
+  ribaCount?: number;
+  flaggedCount?: number;
+  scannedCount?: number;
+  totalTransactions?: number;
+  totalScanned?: number;
+  totalRibaAmount?: number;
+  ribaPercentage?: number;
+}
+
+interface DebtRecord {
+  id: number;
+  name: string;
+  type: string;
+  interestRate?: number;
+  remainingAmount?: number;
+  lender?: string;
+  ribaFree?: boolean;
+}
+
 export default function RibaPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-
-  // Redirect if user doesn't have plus or family plan
-  if (user && !hasAccess(user.plan, 'plus', user.planExpiresAt)) {
-    router.push('/dashboard/billing');
-    return null;
-  }
+  const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
 
   const [result, setResult] = useState<RibaResult | null>(null);
   const [ribaDebts, setRibaDebts] = useState<RibaDebt[]>([]);
@@ -60,9 +92,16 @@ export default function RibaPage() {
   const [purifying, setPurifying] = useState(false);
 
   useEffect(() => {
+    if (!isLoading && user && !hasPaidAccess) {
+      router.replace('/dashboard/billing');
+      return;
+    }
+
+    if (isLoading || !hasPaidAccess) return;
+
     Promise.allSettled([
-      api.scanRiba(),
-      api.getDebts(),
+      api.scanRiba() as Promise<RibaScanResponse>,
+      api.getDebts() as Promise<{ debts?: DebtRecord[] } | DebtRecord[]>,
       api.getRibaPurificationStatus(),
     ]).then(([ribaRes, debtsRes, purRes]) => {
       // Handle transaction scan results
@@ -80,7 +119,7 @@ export default function RibaPage() {
             flaggedCount: d?.ribaCount ?? d?.flaggedCount ?? flaggedTxns.length,
             totalRibaAmount: d?.totalRibaAmount ?? 0,
             ribaPercentage: d?.ribaPercentage ?? 0,
-            flaggedTransactions: flaggedTxns.map((tx: any) => ({
+            flaggedTransactions: flaggedTxns.map((tx) => ({
               transactionId: tx.transactionId,
               description: tx.description,
               amount: tx.amount,
@@ -104,8 +143,15 @@ export default function RibaPage() {
         const d = debtsRes.value;
         const debtList = Array.isArray(d?.debts) ? d.debts : Array.isArray(d) ? d : [];
         const interestDebts = debtList.filter(
-          (debt: any) => debt.interestRate > 0 && !debt.ribaFree && debt.remainingAmount > 0
-        );
+          (debt) => (debt.interestRate ?? 0) > 0 && !debt.ribaFree && (debt.remainingAmount ?? 0) > 0,
+        ).map((debt) => ({
+          id: debt.id,
+          name: debt.name,
+          type: debt.type,
+          interestRate: debt.interestRate ?? 0,
+          remainingAmount: debt.remainingAmount ?? 0,
+          lender: debt.lender ?? '',
+        }));
         setRibaDebts(interestDebts);
       }
 
@@ -115,7 +161,11 @@ export default function RibaPage() {
         if (p && !p.error) setPurification(p);
       }
     }).finally(() => setLoading(false));
-  }, []);
+  }, [hasPaidAccess, isLoading, router, toast, user]);
+
+  if (isLoading || (user && !hasPaidAccess)) {
+    return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
+  }
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
 
@@ -308,7 +358,7 @@ export default function RibaPage() {
                       remainingToPurify: Math.max(0, prev.remainingToPurify - amt),
                     } : prev);
                     setPurifyAmount('');
-                  } catch (err) {
+                  } catch {
                     toast('Failed to record purification', 'error');
                   } finally { setPurifying(false); }
                 }}
