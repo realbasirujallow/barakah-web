@@ -1,8 +1,9 @@
-// When empty (default), requests use same-origin and are proxied to the
-// backend by Next.js rewrites in next.config.ts — no CORS required.
-// Set NEXT_PUBLIC_API_URL to a full URL to call the backend directly
-// (requires the backend ALLOWED_ORIGINS to include this app's domain).
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+// The web app uses same-origin requests only.
+// `/auth/*` goes through the Route Handler in `src/app/auth/[...path]/route.ts`
+// so Set-Cookie survives, while `/api/*` and `/admin/*` are forwarded by
+// Next rewrites. This keeps auth httpOnly-cookie based and avoids leaking
+// bearer/refresh tokens into browser storage.
+const API_URL = '';
 
 // ── Timeout Constants ──────────────────────────────────────────────────────
 const API_TIMEOUT = 30_000;      // 30s for standard API calls
@@ -28,75 +29,17 @@ export function setUnauthorizedHandler(fn: () => void) {
 
 // ── Silent refresh ─────────────────────────────────────────────────────────────
 // When a request gets a 401 (expired access token), we attempt one silent
-// refresh via POST /auth/refresh. The refresh token is sent in the request
-// body (primary) AND as an httpOnly cookie (fallback). The body approach
-// bypasses CDN/proxy cookie corruption issues that plagued the cookie-only
-// flow (Cloudflare + Railway CDN + Next.js rewrites can mangle cookie values).
-//
-// If refresh succeeds, the server sets a new auth_token cookie and returns
-// a new refresh token in the response body. We store it for the next refresh.
-//
-// Concurrent 401s are deduplicated: all callers wait for the same refresh
-// promise, then each re-tries their own request once.
+// refresh via POST /auth/refresh. Both the access token and refresh token live
+// in httpOnly cookies set by the backend through the same-origin auth route
+// handler, so the browser automatically sends them on refresh.
 
-// ── Persistent refresh token storage ────────────────────────────────────────
-// The refresh token is stored in localStorage so it survives page reloads.
-// Previously it was in-memory only, which meant that after any full-page
-// navigation (typed URL, bookmark, browser refresh) the token was lost and
-// the client fell back to the httpOnly cookie. If the cookie was corrupted
-// by the Cloudflare/Railway/Next.js proxy chain (a known issue), the refresh
-// would fail with 401 and the user would be logged out.
-//
-// Security note: localStorage IS accessible to XSS, but the auth_token
-// (the actual session credential) remains in an httpOnly cookie. The refresh
-// token alone cannot access API data — it can only obtain a new auth_token.
-// This trade-off (XSS exposure of refresh token vs. functional sessions)
-// is acceptable given the CSP headers already in place.
-const RT_STORAGE_KEY = '_brt'; // short key to avoid detection by scrapers
-const AT_STORAGE_KEY = '_bat'; // access token (JWT) — stored in localStorage
-
-function _loadPersistedRT(): string | null {
-  try { return localStorage.getItem(RT_STORAGE_KEY); } catch { return null; }
-}
-function _persistRT(token: string | null): void {
-  try {
-    if (token) localStorage.setItem(RT_STORAGE_KEY, token);
-    else localStorage.removeItem(RT_STORAGE_KEY);
-  } catch { /* SSR / private browsing */ }
-}
-
-function _loadPersistedAT(): string | null {
-  try { return localStorage.getItem(AT_STORAGE_KEY); } catch { return null; }
-}
-function _persistAT(token: string | null): void {
-  try {
-    if (token) localStorage.setItem(AT_STORAGE_KEY, token);
-    else localStorage.removeItem(AT_STORAGE_KEY);
-  } catch { /* SSR / private browsing */ }
-}
-
-let _refreshToken: string | null = (typeof window !== 'undefined') ? _loadPersistedRT() : null;
-let _accessToken: string | null = (typeof window !== 'undefined') ? _loadPersistedAT() : null;
-
-/** Store the refresh token (called by AuthContext after login). */
+// Compatibility no-ops kept temporarily so older callers can clear session
+// state without writing tokens to browser storage.
 export function setRefreshToken(token: string | null) {
-  _refreshToken = token;
-  _persistRT(token);
+  void token;
 }
-
-/** Store the access token JWT (called by AuthContext after login/refresh). */
 export function setAccessToken(token: string | null) {
-  _accessToken = token;
-  _persistAT(token);
-}
-
-/** Get the current in-memory refresh token. */
-export function getRefreshToken(): string | null {
-  // Re-read from localStorage in case another tab updated it
-  if (!_refreshToken && typeof window !== 'undefined') {
-    _refreshToken = _loadPersistedRT();
-  }
-  return _refreshToken;
+  void token;
 }
 
 // ── Global refresh deduplication ───────────────────────────────────────────
@@ -139,42 +82,14 @@ async function attemptSilentRefresh(): Promise<'ok' | 'expired' | 'network_error
     };
     if (csrfToken) headers['X-XSRF-TOKEN'] = csrfToken;
 
-    // Send refresh token in body (primary) — bypasses cookie proxy corruption.
-    // The httpOnly cookie is also sent automatically as a fallback.
-    // Re-read from localStorage in case _refreshToken was lost (e.g. module
-    // re-initialization) but persisted storage still has it.
-    if (!_refreshToken) _refreshToken = _loadPersistedRT();
-    const bodyPayload: Record<string, string> = {};
-    if (_refreshToken) {
-      bodyPayload.refreshToken = _refreshToken;
-    }
-
     const res = await fetch(`${API_URL}/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
       headers,
-      body: JSON.stringify(bodyPayload),
+      body: JSON.stringify({}),
       signal: controller.signal,
     });
     if (res.ok) {
-      // Extract tokens from the response body and persist to localStorage.
-      // Both access token (JWT) and refresh token are stored so they survive
-      // page reloads — CDN/proxy strips Set-Cookie headers, so httpOnly
-      // cookies cannot be relied upon for session persistence.
-      try {
-        const data = await res.json();
-        if (data.refreshToken) {
-          _refreshToken = data.refreshToken;
-          _persistRT(data.refreshToken);
-        }
-        // The refresh endpoint returns a new JWT in the 'token' field
-        if (data.token) {
-          _accessToken = data.token;
-          _persistAT(data.token);
-        }
-      } catch {
-        // Response body parsing failed — not critical
-      }
       return 'ok';
     }
     // Server explicitly rejected our refresh token — session is truly expired
@@ -201,15 +116,6 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
     ...(options.headers as Record<string, string> || {}),
   };
 
-  // Add Authorization header with JWT from localStorage.
-  // CDN/proxy layers (Cloudflare + Railway) strip Set-Cookie headers from
-  // Route Handler responses, so httpOnly cookies never reach the browser.
-  // The Bearer token from localStorage is the primary auth mechanism.
-  if (!_accessToken) _accessToken = _loadPersistedAT();
-  if (_accessToken && !headers['Authorization']) {
-    headers['Authorization'] = `Bearer ${_accessToken}`;
-  }
-
   // Add CSRF token to non-GET requests for CSRF protection
   const method = (options.method || 'GET').toUpperCase();
   if (method !== 'GET') {
@@ -227,10 +133,8 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
     }
   }
 
-  // credentials: 'include' ensures the auth_token httpOnly cookie is sent on
-  // every request. The cookie is never readable by JavaScript — it is set by
-  // the server on login and cleared on logout. This eliminates the localStorage
-  // XSS risk that exists when storing tokens in client-accessible storage.
+  // credentials: 'include' ensures the auth_token and refresh_token httpOnly
+  // cookies are sent on every request.
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   let res: Response;

@@ -9,7 +9,7 @@ import { PRICING } from '../lib/pricing';
 // ── Data ────────────────────────────────────────────────────────────────────
 
 const features = [
-  { icon: '💰', title: 'Zakat Calculator', desc: 'Multi-madhab nisab (gold or silver standard), live prices, Hawl tracker, and auto-categorized asset breakdown — supporting Hanafi, Shafi&apos;i, Maliki, Hanbali, and AMJA methodologies.' },
+  { icon: '💰', title: 'Zakat Calculator', desc: "Multi-madhab nisab (gold or silver standard), live prices, Hawl tracker, and auto-categorized asset breakdown — supporting Hanafi, Shafi'i, Maliki, Hanbali, and AMJA methodologies." },
   { icon: '🛡️', title: 'Riba Detector', desc: 'Scan transactions to flag interest-bearing activity and stay halal-compliant with automatic alerts.' },
   { icon: '✅', title: 'Halal Stock Screener', desc: '30,000+ stocks screened against AAOIFI Standard 21 — filter by halal or haram with sector breakdown.' },
   { icon: '📊', title: 'Budgets & Analytics', desc: 'Track spending by category and see where every dollar goes with visualized insights and trends.' },
@@ -18,7 +18,7 @@ const features = [
   { icon: '📜', title: 'Wasiyyah & Estate Obligations', desc: 'Record your Islamic will, beneficiaries, and outstanding obligations (Zakat, Kaffarah, loans) for family.' },
   { icon: '🎯', title: 'Savings Goals', desc: 'Set goals for Hajj, emergency funds, or any milestone — with automatic Hajj savings template.' },
   { icon: '⭐', title: 'Barakah Score', desc: 'Your Islamic financial health score (0–100) across Zakat, Riba-free living, Sadaqah, Hawl, and debt.' },
-  { icon: '🕌', title: 'Prayer Times', desc: 'Daily salah schedule for any city worldwide, with next prayer countdown and Jumu&apos;ah times.' },
+  { icon: '🕌', title: 'Prayer Times', desc: "Daily salah schedule for any city worldwide, with next prayer countdown and Jumu'ah times." },
   { icon: '🔄', title: 'Subscription Detector', desc: 'Automatically detect recurring subscriptions from your transactions — flag haram services instantly.' },
   { icon: '🔔', title: 'Smart Islamic Reminders', desc: 'Bill due alerts, Hawl anniversaries, Zakat nisab threshold alerts, and savings milestones built-in.' },
   { icon: '👥', title: 'Shared Family Finances', desc: 'Family plan lets up to 6 members track shared expenses, group transactions, and family Zakat.' },
@@ -91,7 +91,8 @@ const plans = [
       'Financial Summary reports',
       'Export CSV/PDF',
     ],
-    missing: ['Shared family finances'],
+    missing: [],
+    note: 'Need shared household workflows? Family adds up to 6 members with shared finances and family zakat.',
     cta: 'Start Plus',
     ctaHref: '/signup',
     ctaStyle: 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]',
@@ -350,6 +351,11 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
+                {'note' in plan && plan.note ? (
+                  <p className="mt-4 rounded-xl bg-[#FFF8E1] px-3 py-2 text-xs text-gray-600">
+                    {plan.note}
+                  </p>
+                ) : null}
               </div>
             ))}
           </div>
@@ -448,7 +454,9 @@ export default function Home() {
             <div>
               <h4 className="font-semibold text-gray-900 text-sm mb-3">Company</h4>
               <ul className="space-y-2 text-xs text-gray-600">
-                <li><Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link></li>
+                <li><Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link></li>
+                <li><Link href="/methodology" className="hover:text-[#1B5E20] transition">Methodology</Link></li>
+                <li><Link href="/trust" className="hover:text-[#1B5E20] transition">Trust & Security</Link></li>
               </ul>
             </div>
             {/* Legal */}
@@ -458,6 +466,7 @@ export default function Home() {
                 <li><Link href="/privacy" className="hover:text-[#1B5E20] transition">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-[#1B5E20] transition">Terms of Service</Link></li>
                 <li><Link href="/disclaimer" className="hover:text-[#1B5E20] transition">Disclaimer</Link></li>
+                <li><Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link></li>
                 <li><a href="mailto:support@trybarakah.com" className="hover:text-[#1B5E20] transition">Support</a></li>
               </ul>
             </div>
