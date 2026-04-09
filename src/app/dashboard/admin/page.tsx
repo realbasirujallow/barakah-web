@@ -200,9 +200,9 @@ export default function AdminPage() {
 
   useEffect(() => { loadData(0); }, [loadData]);
 
-  // Auto-refresh every 60 seconds
+  // Auto-refresh every 30 minutes
   useEffect(() => {
-    const interval = setInterval(() => loadData(page), 60000);
+    const interval = setInterval(() => loadData(page), 30 * 60 * 1000);
     return () => clearInterval(interval);
   }, [loadData, page]);
 
@@ -357,7 +357,7 @@ export default function AdminPage() {
         <div>
           <h1 className="text-2xl font-bold text-[#1B5E20]">Admin Dashboard</h1>
           <p className="text-xs text-gray-400 mt-1">
-            Last updated: {lastRefreshed.toLocaleTimeString()} · Auto-refreshes every 60s
+            Last updated: {lastRefreshed.toLocaleTimeString()} · Auto-refreshes every 30 minutes
           </p>
         </div>
         <button
