@@ -33,6 +33,57 @@ interface OnboardingTrialSettings {
   durationDays: number;
 }
 
+interface LifecycleRecentEvent {
+  id: number;
+  eventType: string;
+  source?: string;
+  createdAt: number;
+}
+
+interface UserLifecycleSummary {
+  recentEvents?: LifecycleRecentEvent[];
+  countsByType?: Record<string, number>;
+  hasCompletedSetup?: boolean;
+  hasReviewedTransactions?: boolean;
+  hasLinkedBankAccount?: boolean;
+}
+
+interface UserActivity {
+  assets?: number;
+  debts?: number;
+  transactions?: number;
+  budgets?: number;
+  savingsGoals?: number;
+  wasiyyah?: number;
+  wasiyyahObligations?: number;
+  hawlTrackers?: number;
+  sadaqah?: number;
+  waqfContributions?: number;
+  zakatPayments?: number;
+  zakatSnapshots?: number;
+  linkedBankAccounts?: number;
+  lastLoginAt?: number;
+  lastSeenAt?: number;
+  lastPlatform?: string;
+  lastAppVersion?: string;
+  lifecycle?: UserLifecycleSummary;
+}
+
+type ActivityCountKey =
+  | 'assets'
+  | 'debts'
+  | 'transactions'
+  | 'budgets'
+  | 'savingsGoals'
+  | 'wasiyyah'
+  | 'wasiyyahObligations'
+  | 'hawlTrackers'
+  | 'sadaqah'
+  | 'waqfContributions'
+  | 'zakatPayments'
+  | 'zakatSnapshots'
+  | 'linkedBankAccounts';
+
 interface UsersResponse {
   users: AdminUser[];
   count: number;
@@ -104,6 +155,17 @@ function fmtDateMs(unixMs: number | undefined) {
   });
 }
 
+function fmtDateTimeMs(unixMs: number | undefined) {
+  if (!unixMs) return '—';
+  return new Date(unixMs).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 function daysUntil(epochSec: number | undefined) {
   if (!epochSec) return null;
   const diff = epochSec - Math.floor(Date.now() / 1000);
@@ -137,7 +199,7 @@ export default function AdminPage() {
   const [trialSendEmail, setTrialSendEmail] = useState(true);
   const [trialGranting, setTrialGranting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
-  const [userActivity, setUserActivity] = useState<Record<string, number> | null>(null);
+  const [userActivity, setUserActivity] = useState<UserActivity | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts' | 'unverified' | 'lifecycle'>('overview');
   const [onboardingTrial, setOnboardingTrial] = useState<OnboardingTrialSettings | null>(null);
@@ -211,7 +273,7 @@ export default function AdminPage() {
     setSelected(u);
     setDraftPlan(u.plan || 'free');
     setUserActivity(null);
-    api.adminGetUserActivity(u.id).then(d => { if (d && !d.error) setUserActivity(d); }).catch(() => {});
+    api.adminGetUserActivity(u.id).then(d => { if (d && !d.error) setUserActivity(d as UserActivity); }).catch(() => {});
   };
   const closeModal = () => setSelected(null);
 
@@ -348,6 +410,21 @@ export default function AdminPage() {
   }
 
   const alertCount = (overview?.expiringTrialsCount ?? 0) + (overview?.pastDueCount ?? 0);
+  const activityCountKeys: ActivityCountKey[] = [
+    'assets',
+    'debts',
+    'transactions',
+    'budgets',
+    'savingsGoals',
+    'wasiyyah',
+    'wasiyyahObligations',
+    'hawlTrackers',
+    'sadaqah',
+    'waqfContributions',
+    'zakatPayments',
+    'zakatSnapshots',
+    'linkedBankAccounts',
+  ];
 
   /* ──────────────────────── RENDER ──────────────────────── */
   return (
@@ -1249,13 +1326,77 @@ export default function AdminPage() {
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Account Activity</p>
                   <div className="grid grid-cols-3 gap-2 text-center">
-                    {Object.entries(userActivity).map(([k, v]) => (
-                      <div key={k} className="bg-white rounded-lg p-2">
-                        <p className="text-lg font-bold text-[#1B5E20]">{v}</p>
-                        <p className="text-[10px] text-gray-400 capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</p>
+                    {activityCountKeys.map((key) => (
+                      <div key={String(key)} className="bg-white rounded-lg p-2">
+                        <p className="text-lg font-bold text-[#1B5E20]">{userActivity[key] ?? 0}</p>
+                        <p className="text-[10px] text-gray-400 capitalize">{String(key).replace(/([A-Z])/g, ' $1').trim()}</p>
                       </div>
                     ))}
                   </div>
+                  <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+                    <div className="bg-white rounded-lg p-3 border border-gray-100">
+                      <p className="text-gray-400 uppercase tracking-wide">Last login</p>
+                      <p className="text-gray-700 font-medium mt-1">{fmtDateTimeMs(userActivity.lastLoginAt)}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 border border-gray-100">
+                      <p className="text-gray-400 uppercase tracking-wide">Last seen</p>
+                      <p className="text-gray-700 font-medium mt-1">{fmtDateTimeMs(userActivity.lastSeenAt)}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 border border-gray-100">
+                      <p className="text-gray-400 uppercase tracking-wide">Platform</p>
+                      <p className="text-gray-700 font-medium mt-1">{userActivity.lastPlatform || '—'}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 border border-gray-100">
+                      <p className="text-gray-400 uppercase tracking-wide">App version</p>
+                      <p className="text-gray-700 font-medium mt-1">{userActivity.lastAppVersion || '—'}</p>
+                    </div>
+                  </div>
+                  {userActivity.lifecycle && (
+                    <div className="mt-3 space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {[
+                          { label: 'Completed setup', value: userActivity.lifecycle.hasCompletedSetup },
+                          { label: 'Linked bank', value: userActivity.lifecycle.hasLinkedBankAccount },
+                          { label: 'Reviewed transactions', value: userActivity.lifecycle.hasReviewedTransactions },
+                        ].map(item => (
+                          <div key={item.label} className="bg-white rounded-lg border border-gray-100 px-3 py-2">
+                            <p className="text-[10px] uppercase tracking-wide text-gray-400">{item.label}</p>
+                            <p className={`mt-1 text-sm font-semibold ${item.value ? 'text-[#1B5E20]' : 'text-gray-500'}`}>
+                              {item.value ? 'Yes' : 'No'}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                      {userActivity.lifecycle.countsByType && Object.keys(userActivity.lifecycle.countsByType).length > 0 && (
+                        <div className="bg-white rounded-lg border border-gray-100 p-3">
+                          <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-2">Lifecycle events</p>
+                          <div className="flex flex-wrap gap-2">
+                            {Object.entries(userActivity.lifecycle.countsByType).slice(0, 8).map(([eventType, count]) => (
+                              <span key={eventType} className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] text-gray-600">
+                                {eventType.replaceAll('_', ' ')} · {count}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {userActivity.lifecycle.recentEvents && userActivity.lifecycle.recentEvents.length > 0 && (
+                        <div className="bg-white rounded-lg border border-gray-100 p-3">
+                          <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-2">Recent lifecycle activity</p>
+                          <div className="space-y-2">
+                            {userActivity.lifecycle.recentEvents.slice(0, 4).map(event => (
+                              <div key={event.id} className="flex items-center justify-between gap-3 text-xs">
+                                <div>
+                                  <p className="font-medium text-gray-700">{event.eventType.replaceAll('_', ' ')}</p>
+                                  <p className="text-gray-400">{event.source || 'system'}</p>
+                                </div>
+                                <span className="text-gray-400">{fmtDateTimeMs(event.createdAt)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1319,12 +1460,34 @@ export default function AdminPage() {
                   onClick={async () => {
                     if (!selected) return;
                     try {
-                      await api.adminVerifyEmail(selected.id);
+                      const data = await api.adminVerifyEmail(selected.id);
+                      const nextPlan = typeof data?.plan === 'string' ? data.plan : selected.plan;
                       toast('Email verified directly', 'success');
-                      setSelected({ ...selected, emailVerified: true });
+                      setDraftPlan(nextPlan);
+                      setSelected({
+                        ...selected,
+                        emailVerified: true,
+                        plan: nextPlan,
+                        subscriptionStatus: typeof data?.subscriptionStatus === 'string'
+                          ? data.subscriptionStatus
+                          : selected.subscriptionStatus,
+                        planExpiresAt: typeof data?.planExpiresAt === 'number'
+                          ? data.planExpiresAt
+                          : selected.planExpiresAt,
+                      });
                       setUsersData(prev => prev ? {
                         ...prev,
-                        users: prev.users.map(u => u.id === selected.id ? { ...u, emailVerified: true } : u),
+                        users: prev.users.map(u => u.id === selected.id ? {
+                          ...u,
+                          emailVerified: true,
+                          plan: nextPlan,
+                          subscriptionStatus: typeof data?.subscriptionStatus === 'string'
+                            ? data.subscriptionStatus
+                            : u.subscriptionStatus,
+                          planExpiresAt: typeof data?.planExpiresAt === 'number'
+                            ? data.planExpiresAt
+                            : u.planExpiresAt,
+                        } : u),
                       } : prev);
                     } catch (err) {
                       toast(err instanceof Error ? err.message : 'Verification failed', 'error');
