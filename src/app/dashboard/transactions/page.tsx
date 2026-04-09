@@ -37,11 +37,13 @@ const CATEGORIES = [
   'charity', 'zakat', 'sadaqah',
   'business', 'other',
 ];
+const TRANSFER_CATEGORIES = ['transfer', 'savings', 'investment', 'debt_payment', 'other'];
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
 interface Tx {
   id: number; type: string; category: string; amount: number;
   description: string; currency: string; timestamp: number;
+  direction?: string;
   importSource?: string | null;
   linkedAccountId?: number | null;
   sourceAccountName?: string | null;
@@ -54,6 +56,29 @@ interface Tx {
 // Friendly amount string for a transaction, respecting its own stored currency
 function txAmount(tx: Tx, fmt: (n: number) => string): string {
   return fmt(tx.amount);
+}
+
+function categoriesForType(type: string) {
+  if (type === 'income') return CATEGORIES.filter(c => ['income', 'investment', 'savings', 'transfer', 'business', 'other', 'charity', 'gift', 'gifts', 'taxes'].includes(c) || ['salary'].includes(c));
+  if (type === 'transfer') return TRANSFER_CATEGORIES;
+  return CATEGORIES.filter(c => !['income', 'investment', 'savings'].includes(c));
+}
+
+function txPresentation(tx: Tx) {
+  if (tx.type === 'income') {
+    return { amountClass: 'text-green-600', badgeClass: 'bg-green-100 text-green-700', badge: 'Income', sign: '+' };
+  }
+  if (tx.type === 'transfer') {
+    const inflow = tx.direction === 'inflow';
+    const outflow = tx.direction === 'outflow';
+    return {
+      amountClass: 'text-cyan-700',
+      badgeClass: 'bg-cyan-100 text-cyan-700',
+      badge: inflow ? 'Transfer In' : outflow ? 'Transfer Out' : 'Transfer',
+      sign: inflow ? '↔ +' : outflow ? '↔ −' : '↔',
+    };
+  }
+  return { amountClass: 'text-red-600', badgeClass: 'bg-red-100 text-red-700', badge: 'Expense', sign: '−' };
 }
 
 export default function TransactionsPage() {
@@ -81,7 +106,7 @@ export default function TransactionsPage() {
   const { currency: preferredCurrency, fmt } = useCurrency();
 
   const [form, setForm] = useState({
-    type: 'expense', category: 'food', amount: '', description: '', currency: 'USD',
+    type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: 'USD',
     date: new Date().toISOString().slice(0, 10),
   });
   const [formError, setFormError] = useState<string | null>(null);
@@ -120,14 +145,14 @@ export default function TransactionsPage() {
 
   const openAdd = () => {
     setEditTx(null);
-    setForm({ type: 'expense', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10) });
+    setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10) });
     setShowForm(true);
   };
 
   const openEdit = (tx: Tx) => {
     setEditTx(tx);
     const txDate = new Date(tx.timestamp).toISOString().slice(0, 10);
-    setForm({ type: tx.type, category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate });
+    setForm({ type: tx.type, direction: tx.direction || (tx.type === 'income' ? 'inflow' : tx.type === 'transfer' ? 'neutral' : 'outflow'), category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate });
     setShowForm(true);
   };
 
@@ -161,7 +186,7 @@ export default function TransactionsPage() {
       }
       setShowForm(false);
       setEditTx(null);
-      setForm({ type: 'expense', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10) });
+      setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10) });
       load();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : (editTx ? 'Failed to update transaction' : 'Failed to add transaction');
@@ -279,6 +304,7 @@ export default function TransactionsPage() {
 
   const income  = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expense = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const transfers = txs.filter(t => t.type === 'transfer').reduce((s, t) => s + t.amount, 0);
   const allPageSelected = txs.length > 0 && selectedIds.size === txs.length;
   const hasMorePages = totalPages > 1;
 
@@ -301,16 +327,17 @@ export default function TransactionsPage() {
               ? <button onClick={exitSelectMode} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">Cancel</button>
               : <button onClick={() => setSelectMode(true)} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">Select</button>
           )}
-          <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add</button>
+          <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add</button>
         </div>
       </div>
 
       {exportError && <div className="mb-4 bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{exportError}</div>}
 
       {/* ── Summary cards ──────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Income</p><p className="text-xl font-bold text-green-600">{fmt(income)}</p></div>
         <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Expenses</p><p className="text-xl font-bold text-red-600">{fmt(expense)}</p></div>
+        <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Transfers</p><p className="text-xl font-bold text-cyan-700">{fmt(transfers)}</p></div>
         <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Net</p><p className={`text-xl font-bold ${income - expense >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(income - expense)}</p></div>
       </div>
 
@@ -319,7 +346,7 @@ export default function TransactionsPage() {
 
       {/* ── Filter + page-size row ──────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-2 mb-4 items-center">
-        {['all', 'income', 'expense'].map(f => (
+        {['all', 'income', 'expense', 'transfer'].map(f => (
           <button key={f} onClick={() => { setFilter(f); setPage(0); exitSelectMode(); }}
             className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${filter === f ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>{f}</button>
         ))}
@@ -371,7 +398,9 @@ export default function TransactionsPage() {
       {/* ── Transaction list or empty state ────────────────────────────────── */}
       {txs.length > 0 ? (
         <div className="space-y-2">
-          {txs.map(tx => (
+          {txs.map(tx => {
+            const presentation = txPresentation(tx);
+            return (
             <div key={tx.id}
               onClick={selectMode ? () => toggleSelect(tx.id) : undefined}
               className={`bg-white rounded-xl p-4 flex justify-between items-center transition ${selectMode ? 'cursor-pointer' : ''} ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-[#1B5E20] bg-green-50/30' : ''}`}>
@@ -385,6 +414,9 @@ export default function TransactionsPage() {
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-gray-900">{tx.merchantName || tx.description || tx.category}</p>
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${presentation.badgeClass}`}>
+                      {presentation.badge}
+                    </span>
                     {tx.importSource === 'plaid' && (
                       <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                         Linked via Plaid
@@ -405,8 +437,8 @@ export default function TransactionsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <p className={`text-lg font-bold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                  {tx.type === 'income' ? '+' : '−'}{txAmount(tx, fmt)}
+                <p className={`text-lg font-bold ${presentation.amountClass}`}>
+                  {presentation.sign}{txAmount(tx, fmt)}
                 </p>
                 {!selectMode && (
                   <div className="flex items-center gap-2">
@@ -416,13 +448,14 @@ export default function TransactionsPage() {
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-20 bg-gradient-to-b from-white to-gray-50 rounded-2xl border border-gray-100">
           <p className="text-6xl mb-4">📊</p>
           <p className="text-gray-700 font-semibold text-lg mb-2">No transactions yet</p>
-          <p className="text-gray-500 text-sm mb-6">No transactions recorded. Add your first transaction to start tracking your income and expenses.</p>
+          <p className="text-gray-500 text-sm mb-6">No transactions recorded yet. Add your first income, expense, or transfer to start building a clean ledger.</p>
           <button onClick={openAdd} className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-xl hover:bg-[#2E7D32] font-medium text-sm">
             + Add Your First Transaction
           </button>
@@ -449,16 +482,35 @@ export default function TransactionsPage() {
               {/* Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                <select value={form.type} onChange={e => {
+                  const nextType = e.target.value;
+                  setForm({
+                    ...form,
+                    type: nextType,
+                    direction: nextType === 'income' ? 'inflow' : nextType === 'expense' ? 'outflow' : 'neutral',
+                    category: categoriesForType(nextType).includes(form.category) ? form.category : categoriesForType(nextType)[0],
+                  });
+                }} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   <option value="income">Income</option>
                   <option value="expense">Expense</option>
+                  <option value="transfer">Transfer</option>
                 </select>
               </div>
+              {form.type === 'transfer' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Direction</label>
+                  <select value={form.direction} onChange={e => setForm({ ...form, direction: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                    <option value="inflow">Transfer In</option>
+                    <option value="outflow">Transfer Out</option>
+                    <option value="neutral">Internal / Neutral</option>
+                  </select>
+                </div>
+              )}
               {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase())}</option>)}
+                  {categoriesForType(form.type).map(c => <option key={c} value={c}>{c.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase())}</option>)}
                 </select>
               </div>
               {/* Inline form error */}
