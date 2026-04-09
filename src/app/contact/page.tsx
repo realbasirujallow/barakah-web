@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { api } from '../../lib/api';
 
 export default function ContactPage() {
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -35,11 +35,12 @@ export default function ContactPage() {
       await api.contact({
         name: form.name,
         email: form.email,
+        phone: form.phone,
         subject: form.subject,
         message: form.message,
       });
       setStatus('sent');
-      setForm({ name: '', email: '', subject: '', message: '' });
+      setForm({ name: '', email: '', phone: '', subject: '', message: '' });
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
       setStatus('error');
@@ -138,6 +139,16 @@ export default function ContactPage() {
                     placeholder="Ahmad Al-Farsi"
                     value={form.name}
                     onChange={e => setForm({ ...form, name: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Phone number</label>
+                  <input
+                    type="tel"
+                    placeholder="+1 (317) 555-0123"
+                    value={form.phone}
+                    onChange={e => setForm({ ...form, phone: e.target.value })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
                   />
                 </div>

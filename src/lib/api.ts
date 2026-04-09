@@ -875,6 +875,8 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(settings),
     }, API_TIMEOUT, true),
+  getAdminContactSubmissions: () =>
+    apiFetch('/admin/lifecycle/contact-submissions', {}, API_TIMEOUT, true),
 
   // Plaid Bank Linking
   plaidCreateLinkToken: () =>
@@ -998,7 +1000,7 @@ export const api = {
    * name/email are auto-filled by the backend for logged-in users and required
    * from the public contact page for guests.
    */
-  contact: (data: { name?: string; email?: string; subject: string; message: string }) =>
+  contact: (data: { name?: string; email?: string; phone?: string; subject: string; message: string }) =>
     apiFetch('/api/contact', {
       method: 'POST',
       body: JSON.stringify(data),
