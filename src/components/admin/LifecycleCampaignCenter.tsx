@@ -33,6 +33,14 @@ type DraftCampaign = {
   audienceFilters: Filters;
 };
 
+type RetentionSettings = {
+  enabled: boolean;
+  percentOff: number;
+  durationMonths: number;
+  label: string;
+  stripeCouponId: string;
+};
+
 const defaultDraft = (): DraftCampaign => ({
   name: '',
   description: '',
@@ -54,6 +62,14 @@ const defaultDraft = (): DraftCampaign => ({
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => hour);
 
+const defaultRetentionSettings = (): RetentionSettings => ({
+  enabled: true,
+  percentOff: 50,
+  durationMonths: 3,
+  label: 'Stay with Barakah at 50% off for 3 months',
+  stripeCouponId: '',
+});
+
 function toLocalDateTime(value?: number | null) {
   if (!value) return '';
   const date = new Date(value);
@@ -74,7 +90,8 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
   const [overview, setOverview] = useState<Record<string, number> | null>(null);
   const [templates, setTemplates] = useState<Array<Record<string, unknown>>>([]);
   const [campaigns, setCampaigns] = useState<Array<Record<string, unknown>>>([]);
-  const [retentionSettings, setRetentionSettings] = useState<Record<string, unknown> | null>(null);
+  const [retentionSettings, setRetentionSettings] = useState<RetentionSettings>(defaultRetentionSettings);
+  const [retentionStatus, setRetentionStatus] = useState<string | null>(null);
   const [draft, setDraft] = useState<DraftCampaign>(defaultDraft);
   const [savingCampaign, setSavingCampaign] = useState(false);
   const [sendingCampaignId, setSendingCampaignId] = useState<number | null>(null);
@@ -86,18 +103,60 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [overviewData, templatesData, campaignsData, retentionData] = await Promise.all([
+      const [overviewResult, templatesResult, campaignsResult, retentionResult] = await Promise.allSettled([
         api.getAdminLifecycleOverview(),
         api.getAdminLifecycleTemplates(),
         api.getAdminLifecycleCampaigns(),
         api.getAdminRetentionOfferSettings(),
       ]);
-      setOverview((overviewData ?? {}) as Record<string, number>);
-      setTemplates((templatesData?.templates as Array<Record<string, unknown>> | undefined) ?? []);
-      setCampaigns((campaignsData?.campaigns as Array<Record<string, unknown>> | undefined) ?? []);
-      setRetentionSettings((retentionData ?? null) as Record<string, unknown> | null);
-    } catch (err) {
-      toast(err instanceof Error ? err.message : 'Failed to load lifecycle admin data.', 'error');
+
+      if (overviewResult.status === 'fulfilled') {
+        setOverview((overviewResult.value ?? {}) as Record<string, number>);
+      } else {
+        setOverview(prev => prev ?? {
+          incompleteSetup: 0,
+          noLinkedAccounts: 0,
+          inactive7d: 0,
+          trialEndingSoon: 0,
+        });
+      }
+
+      if (templatesResult.status === 'fulfilled') {
+        setTemplates((templatesResult.value?.templates as Array<Record<string, unknown>> | undefined) ?? []);
+      }
+
+      if (campaignsResult.status === 'fulfilled') {
+        setCampaigns((campaignsResult.value?.campaigns as Array<Record<string, unknown>> | undefined) ?? []);
+      }
+
+      if (retentionResult.status === 'fulfilled') {
+        const raw = (retentionResult.value ?? {}) as Record<string, unknown>;
+        setRetentionSettings({
+          enabled: Boolean(raw.enabled ?? true),
+          percentOff: Number(raw.percentOff ?? 50),
+          durationMonths: Number(raw.durationMonths ?? 3),
+          label: String(raw.label ?? defaultRetentionSettings().label),
+          stripeCouponId: String(raw.stripeCouponId ?? ''),
+        });
+        setRetentionStatus(null);
+      } else {
+        setRetentionSettings(prev => ({
+          ...defaultRetentionSettings(),
+          ...prev,
+        }));
+        setRetentionStatus('Saved retention settings could not be loaded right now. Showing safe defaults so you can still configure the offer.');
+      }
+
+      const failedSections = [overviewResult, templatesResult, campaignsResult, retentionResult]
+        .filter(result => result.status === 'rejected').length;
+
+      if (failedSections > 0 && failedSections < 4) {
+        toast('Some lifecycle admin data could not be refreshed. The page kept the sections it could load.', 'error');
+      } else if (failedSections === 4) {
+        toast('Lifecycle admin data is temporarily unavailable. Please try again shortly.', 'error');
+      }
+    } catch {
+      toast('Lifecycle admin data is temporarily unavailable. Please try again shortly.', 'error');
     } finally {
       setLoading(false);
     }
@@ -214,11 +273,17 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
   };
 
   const saveRetentionSettings = async () => {
-    if (!retentionSettings) return;
     setSavingRetention(true);
     try {
       const updated = await api.updateAdminRetentionOfferSettings(retentionSettings);
-      setRetentionSettings(updated as Record<string, unknown>);
+      setRetentionSettings({
+        enabled: Boolean(updated?.enabled ?? true),
+        percentOff: Number(updated?.percentOff ?? retentionSettings.percentOff),
+        durationMonths: Number(updated?.durationMonths ?? retentionSettings.durationMonths),
+        label: String(updated?.label ?? retentionSettings.label),
+        stripeCouponId: String(updated?.stripeCouponId ?? retentionSettings.stripeCouponId),
+      });
+      setRetentionStatus(null);
       toast('Retention offer settings updated.', 'success');
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to save retention settings.', 'error');
@@ -495,69 +560,70 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
 
         <div className="rounded-2xl border bg-white p-5">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Retention Offer</h2>
-          {retentionSettings ? (
-            <div className="space-y-4">
-              <label className="flex items-center justify-between rounded-xl border border-gray-100 px-4 py-3">
-                <div>
-                  <p className="font-medium text-gray-800 text-sm">Enabled</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Show a save offer before Stripe users cancel.</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={Boolean(retentionSettings.enabled)}
-                  onChange={e => setRetentionSettings(prev => prev ? { ...prev, enabled: e.target.checked } : prev)}
-                  className="h-4 w-4 rounded border-gray-300 text-[#1B5E20]"
-                />
-              </label>
-              <label className="text-sm text-gray-600">
-                <span className="mb-2 block font-medium text-gray-800">Offer label</span>
-                <input
-                  value={String(retentionSettings.label || '')}
-                  onChange={e => setRetentionSettings(prev => prev ? { ...prev, label: e.target.value } : prev)}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-                />
-              </label>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="text-sm text-gray-600">
-                  <span className="mb-2 block font-medium text-gray-800">Percent off</span>
-                  <input
-                    type="number"
-                    value={Number(retentionSettings.percentOff ?? 50)}
-                    onChange={e => setRetentionSettings(prev => prev ? { ...prev, percentOff: Number(e.target.value) } : prev)}
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-                  />
-                </label>
-                <label className="text-sm text-gray-600">
-                  <span className="mb-2 block font-medium text-gray-800">Duration (months)</span>
-                  <input
-                    type="number"
-                    value={Number(retentionSettings.durationMonths ?? 3)}
-                    onChange={e => setRetentionSettings(prev => prev ? { ...prev, durationMonths: Number(e.target.value) } : prev)}
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-                  />
-                </label>
+          <div className="space-y-4">
+            {retentionStatus && (
+              <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                {retentionStatus}
+              </p>
+            )}
+            <label className="flex items-center justify-between rounded-xl border border-gray-100 px-4 py-3">
+              <div>
+                <p className="font-medium text-gray-800 text-sm">Enabled</p>
+                <p className="text-xs text-gray-500 mt-0.5">Show a save offer before Stripe users cancel.</p>
               </div>
+              <input
+                type="checkbox"
+                checked={retentionSettings.enabled}
+                onChange={e => setRetentionSettings(prev => ({ ...prev, enabled: e.target.checked }))}
+                className="h-4 w-4 rounded border-gray-300 text-[#1B5E20]"
+              />
+            </label>
+            <label className="text-sm text-gray-600">
+              <span className="mb-2 block font-medium text-gray-800">Offer label</span>
+              <input
+                value={retentionSettings.label}
+                onChange={e => setRetentionSettings(prev => ({ ...prev, label: e.target.value }))}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+              />
+            </label>
+            <div className="grid gap-4 md:grid-cols-2">
               <label className="text-sm text-gray-600">
-                <span className="mb-2 block font-medium text-gray-800">Stripe coupon ID</span>
+                <span className="mb-2 block font-medium text-gray-800">Percent off</span>
                 <input
-                  value={String(retentionSettings.stripeCouponId || '')}
-                  onChange={e => setRetentionSettings(prev => prev ? { ...prev, stripeCouponId: e.target.value } : prev)}
+                  type="number"
+                  value={retentionSettings.percentOff}
+                  onChange={e => setRetentionSettings(prev => ({ ...prev, percentOff: Number(e.target.value) }))}
                   className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-                  placeholder="stay_50_off"
                 />
               </label>
-              <button
-                type="button"
-                onClick={saveRetentionSettings}
-                disabled={savingRetention}
-                className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-60"
-              >
-                {savingRetention ? 'Saving...' : 'Save Retention Offer'}
-              </button>
+              <label className="text-sm text-gray-600">
+                <span className="mb-2 block font-medium text-gray-800">Duration (months)</span>
+                <input
+                  type="number"
+                  value={retentionSettings.durationMonths}
+                  onChange={e => setRetentionSettings(prev => ({ ...prev, durationMonths: Number(e.target.value) }))}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                />
+              </label>
             </div>
-          ) : (
-            <p className="text-sm text-gray-500">Loading retention settings…</p>
-          )}
+            <label className="text-sm text-gray-600">
+              <span className="mb-2 block font-medium text-gray-800">Stripe coupon ID</span>
+              <input
+                value={retentionSettings.stripeCouponId}
+                onChange={e => setRetentionSettings(prev => ({ ...prev, stripeCouponId: e.target.value }))}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                placeholder="stay_50_off"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={saveRetentionSettings}
+              disabled={savingRetention}
+              className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-60"
+            >
+              {savingRetention ? 'Saving...' : 'Save Retention Offer'}
+            </button>
+          </div>
         </div>
       </div>
 
