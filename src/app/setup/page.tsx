@@ -6,7 +6,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
-import { clearPendingPlaidLinkToken, savePendingPlaidLinkToken } from '../../lib/plaid';
+import {
+  clearPendingPlaidLinkToken,
+  getPlaidUiErrorMessage,
+  savePendingPlaidLinkToken,
+} from '../../lib/plaid';
 import { PRICING } from '../../lib/pricing';
 import { hasCompletedGuidedSetup, markGuidedSetupComplete } from '../../lib/setup';
 import { validateStripeUrl } from '../../lib/validateUrl';
@@ -161,8 +165,10 @@ export default function SetupPage() {
       );
       await loadPlaidAccounts();
     } catch (err) {
+      clearPendingPlaidLinkToken();
+      setPlaidLinkToken(null);
       setPlaidLoading(false);
-      setError(err instanceof Error ? err.message : 'Failed to connect your bank account.');
+      setError(getPlaidUiErrorMessage(err, 'exchange'));
     }
   }, [loadPlaidAccounts]);
 
@@ -172,6 +178,8 @@ export default function SetupPage() {
     setPlaidLoading(false);
     if (exitError?.display_message) {
       setError(exitError.display_message);
+    } else if (exitError) {
+      setError(getPlaidUiErrorMessage(exitError, 'start'));
     }
   }, []);
 
@@ -242,6 +250,8 @@ export default function SetupPage() {
       setError('Plaid bank sync is available on Plus and Family. Upgrade to connect accounts.');
       return;
     }
+    clearPendingPlaidLinkToken();
+    setPlaidLinkToken(null);
     setPlaidLoading(true);
     setError('');
     setPlaidMessage('');
@@ -251,10 +261,12 @@ export default function SetupPage() {
         savePendingPlaidLinkToken(data.linkToken as string);
         setPlaidLinkToken(data.linkToken as string);
       } else {
-        throw new Error('Failed to initialize bank linking.');
+        throw new Error("We couldn't start secure bank linking right now. Please try again in a few minutes.");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to initialize bank linking.');
+      clearPendingPlaidLinkToken();
+      setPlaidLinkToken(null);
+      setError(getPlaidUiErrorMessage(err, 'start'));
     } finally {
       setPlaidLoading(false);
     }
