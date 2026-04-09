@@ -824,6 +824,13 @@ export const api = {
   getAdminAnalytics: () => apiFetch('/admin/analytics', {}, API_TIMEOUT, true),
   getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
   getAdminOverview: () => apiFetch('/admin/overview', {}, API_TIMEOUT, true),
+  getAdminOnboardingTrialSettings: () =>
+    apiFetch('/admin/settings/onboarding-trial', {}, API_TIMEOUT, true),
+  updateAdminOnboardingTrialSettings: (settings: { enabled: boolean; plan: string; durationDays: number }) =>
+    apiFetch('/admin/settings/onboarding-trial', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    }, API_TIMEOUT, true),
 
   // Plaid Bank Linking
   plaidCreateLinkToken: () =>

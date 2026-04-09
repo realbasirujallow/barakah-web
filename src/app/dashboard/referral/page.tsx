@@ -6,6 +6,7 @@ import { logError } from '../../../lib/logError';
 interface ReferralData {
   referralCode: string;
   shareUrl: string;
+  referralClicks: number;
   referralCount: number;
   plan: string;
 }
@@ -61,13 +62,17 @@ export default function ReferralPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Refer a Friend</h1>
-      <p className="text-gray-600 mb-8">Share Barakah with friends and family. Help others connect daily money, Islamic obligations, and family clarity in one place.</p>
+      <p className="text-gray-600 mb-8">Share Barakah with friends and family. When someone signs up and verifies their email through your link, you both receive an extra month of Barakah access.</p>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-2xl p-6 text-center">
+          <p className="text-4xl font-bold">{data.referralClicks}</p>
+          <p className="text-sky-100 text-sm mt-1">Referral Link Clicks</p>
+        </div>
         <div className="bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] text-white rounded-2xl p-6 text-center">
           <p className="text-4xl font-bold">{data.referralCount}</p>
-          <p className="text-green-200 text-sm mt-1">Friends Referred</p>
+          <p className="text-green-200 text-sm mt-1">Rewards Triggered</p>
         </div>
         <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-6 text-center">
           <p className="text-4xl font-bold">{data.referralCode}</p>
@@ -158,7 +163,7 @@ export default function ReferralPage() {
             <span className="bg-green-100 text-[#1B5E20] rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">3</span>
             <div>
               <p className="font-medium">Earn rewards</p>
-              <p className="text-gray-500 text-sm">Help grow the Muslim finance community and earn Barakah points.</p>
+              <p className="text-gray-500 text-sm">Once they verify their email, you both receive one extra month automatically.</p>
             </div>
           </div>
         </div>

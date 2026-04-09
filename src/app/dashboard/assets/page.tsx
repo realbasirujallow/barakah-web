@@ -7,7 +7,24 @@ import { logError } from '../../../lib/logError';
 import { safeParse, validateAsset } from '../../../lib/schemas';
 import { useToast } from '../../../lib/toast';
 
-interface Asset { id: number; name: string; type: string; value: number; penaltyRate?: number; taxRate?: number; address?: string; }
+interface Asset {
+  id: number;
+  name: string;
+  type: string;
+  value: number;
+  penaltyRate?: number;
+  taxRate?: number;
+  address?: string;
+  linkedSource?: string | null;
+  linkedAccountId?: number | null;
+  institutionName?: string | null;
+  accountMask?: string | null;
+  accountSubtype?: string | null;
+  currency?: string | null;
+  readOnly?: boolean;
+  lastSyncedAt?: number | null;
+  notes?: string | null;
+}
 
 interface AssetFormState {
   name: string; type: string; value: string;
@@ -106,7 +123,10 @@ export default function AssetsPage() {
         const assetList = Array.isArray(aRaw?.assets) ? aRaw.assets : Array.isArray(aRaw) ? aRaw : [];
         const validatedAssets: Asset[] = [];
         for (const item of assetList) {
-          const result = safeParse(validateAsset, item, `asset/${(item as any)?.id}`);
+          const itemId = typeof item === 'object' && item !== null && 'id' in item
+            ? String((item as { id?: unknown }).id ?? 'unknown')
+            : 'unknown';
+          const result = safeParse(validateAsset, item, `asset/${itemId}`);
           if (result) {
             validatedAssets.push(result as Asset);
           } else {
@@ -125,6 +145,8 @@ export default function AssetsPage() {
   };
   useEffect(() => { load(); }, []);
 
+  const deletableAssets = assets.filter(asset => !asset.readOnly);
+
   const typeLabel = (t: string) => {
     for (const items of Object.values(TYPE_GROUPS)) {
       const found = items.find(i => i.value === t);
@@ -135,6 +157,7 @@ export default function AssetsPage() {
 
   const openAdd = () => { setEditItem(null); setForm(EMPTY_FORM); setSaveError(null); setShowForm(true); };
   const openEdit = (a: Asset) => {
+    if (a.readOnly) return;
     setEditItem(a);
     setForm({
       name: a.name, type: a.type, value: String(a.value),
@@ -220,6 +243,11 @@ export default function AssetsPage() {
   };
 
   const handleDelete = (id: number) => {
+    const asset = assets.find(item => item.id === id);
+    if (asset?.readOnly) {
+      toast('Linked Plaid balances are read-only here. Unlink or resync them from Import.', 'error');
+      return;
+    }
     setConfirmAction({
       message: 'Delete this asset?',
       action: async () => {
@@ -246,10 +274,10 @@ export default function AssetsPage() {
   };
 
   const toggleSelectAll = () => {
-    if (selectedIds.size === assets.length) {
+    if (selectedIds.size === deletableAssets.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(assets.map(a => a.id)));
+      setSelectedIds(new Set(deletableAssets.map(a => a.id)));
     }
   };
 
@@ -294,7 +322,7 @@ export default function AssetsPage() {
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Assets</h1>
         <div className="flex items-center gap-2">
-          {assets.length > 0 && (
+          {deletableAssets.length > 0 && (
             <button
               type="button"
               onClick={() => { setSelectMode(s => !s); setSelectedIds(new Set()); }}
@@ -310,7 +338,7 @@ export default function AssetsPage() {
       {/* Bulk action bar */}
       {selectMode && (
         <div className="flex items-center gap-3 mb-4 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-          <input type="checkbox" checked={selectedIds.size === assets.length && assets.length > 0} onChange={toggleSelectAll} className="w-4 h-4 cursor-pointer" />
+          <input type="checkbox" checked={selectedIds.size === deletableAssets.length && deletableAssets.length > 0} onChange={toggleSelectAll} className="w-4 h-4 cursor-pointer" />
           <span className="text-sm text-gray-600 flex-1">
             {selectedIds.size === 0 ? 'Select assets to delete' : `${selectedIds.size} selected`}
           </span>
@@ -334,9 +362,16 @@ export default function AssetsPage() {
         </div>
       )}
 
+      {assets.some(a => a.linkedSource === 'plaid') && (
+        <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm text-emerald-800 flex items-center justify-between gap-3">
+          <span>Linked Plaid balances now appear here as read-only accounts. Resync or manage them from <strong>Import</strong>.</span>
+          <Link href="/dashboard/import" className="text-emerald-700 font-semibold underline hover:no-underline whitespace-nowrap">Manage Linked Accounts →</Link>
+        </div>
+      )}
+
       <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
         <p className="text-green-100 text-sm">Net Worth</p>
-        <p className="text-4xl font-bold">{fmt((total?.netWorth as number) || (total?.totalWealth as number) || 0)}</p>
+        <p className="text-4xl font-bold">{fmt((total?.netWorthWithLinked as number) || (total?.netWorth as number) || (total?.totalWealthWithLinked as number) || (total?.totalWealth as number) || 0)}</p>
         <div className="flex items-center gap-2 mt-1">
           <p className="text-green-200 text-sm">Zakat {(total?.zakatEligible as boolean) ? 'Eligible' : 'Below Nisab'}</p>
           <span className="text-green-200 text-sm">•</span>
@@ -350,6 +385,11 @@ export default function AssetsPage() {
             </button>
           )}
         </div>
+        {((total?.linkedAssetTotal as number) || 0) > 0 || ((total?.linkedDebtTotal as number) || 0) > 0 ? (
+          <p className="text-xs text-green-100 mt-2">
+            Includes {fmt((total?.linkedAssetTotal as number) || 0)} in linked assets and {fmt((total?.linkedDebtTotal as number) || 0)} in linked debts.
+          </p>
+        ) : null}
       </div>
 
       {showBreakdown && total?.breakdown ? (
@@ -411,15 +451,29 @@ export default function AssetsPage() {
                     <input
                       type="checkbox"
                       checked={selectedIds.has(a.id)}
+                      disabled={a.readOnly}
                       onChange={() => toggleSelect(a.id)}
-                      className="w-4 h-4 cursor-pointer"
+                      className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                       onClick={e => e.stopPropagation()}
                     />
                   )}
                   <div>
-                    <p className="font-semibold text-[#1B5E20]">{a.name}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-[#1B5E20]">{a.name}</p>
+                      {a.readOnly && (
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                          Linked via Plaid
+                        </span>
+                      )}
+                    </div>
                     {a.name.toLowerCase() !== typeLabel(a.type).toLowerCase() && (
                       <p className="text-sm text-gray-500">{typeLabel(a.type)}</p>
+                    )}
+                    {a.readOnly && (
+                      <p className="text-xs text-gray-500">
+                        {[a.institutionName, a.accountSubtype, a.accountMask ? `••${a.accountMask}` : null].filter(Boolean).join(' • ')}
+                        {a.lastSyncedAt ? ` • Synced ${new Date(a.lastSyncedAt).toLocaleDateString()}` : ''}
+                      </p>
                     )}
                     {a.address && (
                       <a href={mapsLink(a.address)} target="_blank" rel="noopener noreferrer"
@@ -433,8 +487,17 @@ export default function AssetsPage() {
                   <p className="text-lg font-bold text-[#1B5E20]">{fmt(a.value)}</p>
                   {!selectMode && (
                     <>
-                      <button type="button" onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
-                      <button type="button" onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                      {!a.readOnly && (
+                        <>
+                          <button type="button" onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
+                          <button type="button" onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                        </>
+                      )}
+                      {a.readOnly && (
+                        <Link href="/dashboard/import" className="text-gray-500 hover:text-[#1B5E20] text-sm border border-gray-300 px-3 py-1 rounded-lg">
+                          Manage
+                        </Link>
+                      )}
                     </>
                   )}
                 </div>
@@ -536,7 +599,7 @@ export default function AssetsPage() {
                   {EDUCATION_TYPES.includes(form.type) ? (
                     <p className="text-xs text-gray-500">
                       529 plans: <strong>qualified</strong> withdrawals (for education) are tax-free &amp; penalty-free — leave both at 0%.
-                      For <strong>non-qualified</strong> withdrawals, set 10% penalty + your income tax rate to zakat only on what you'd actually keep.
+                      For <strong>non-qualified</strong> withdrawals, set 10% penalty + your income tax rate to zakat only on what you&apos;d actually keep.
                     </p>
                   ) : IRA_TYPES.includes(form.type) ? (
                     <p className="text-xs text-gray-500">

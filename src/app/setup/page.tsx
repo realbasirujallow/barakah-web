@@ -25,6 +25,8 @@ interface PlaidAccount {
   accountName: string;
   accountMask: string;
   accountType: string;
+  accountSubtype?: string;
+  accountRole?: string;
   currentBalance: number | null;
   availableBalance: number | null;
   currencyCode: string;
@@ -147,12 +149,19 @@ export default function SetupPage() {
 
   const onPlaidSuccess = useCallback(async (publicToken: string, metadata: { institution: { name: string } | null }) => {
     try {
-      await api.plaidExchangeToken(publicToken, metadata?.institution?.name);
+      const result = await api.plaidExchangeToken(publicToken, metadata?.institution?.name);
       clearPendingPlaidLinkToken();
       setPlaidLinkToken(null);
-      setPlaidMessage('Accounts connected successfully. You can review them below or continue to your setup focus.');
+      setPlaidLoading(false);
+      const imported = Number(result?.transactionsImported || 0);
+      setPlaidMessage(
+        imported > 0
+          ? `Accounts connected and ${imported} transaction(s) imported. You can review them below or continue to your setup focus.`
+          : 'Accounts connected successfully. Balances now appear in Assets or Debts, and you can review them below.',
+      );
       await loadPlaidAccounts();
     } catch (err) {
+      setPlaidLoading(false);
       setError(err instanceof Error ? err.message : 'Failed to connect your bank account.');
     }
   }, [loadPlaidAccounts]);
@@ -160,6 +169,7 @@ export default function SetupPage() {
   const onPlaidExit = useCallback((exitError: { display_message?: string | null } | null) => {
     clearPendingPlaidLinkToken();
     setPlaidLinkToken(null);
+    setPlaidLoading(false);
     if (exitError?.display_message) {
       setError(exitError.display_message);
     }
@@ -177,6 +187,11 @@ export default function SetupPage() {
   }, [open, plaidLinkToken, ready]);
 
   const currentPlan = status?.plan || user?.plan || 'free';
+  const plaidAccess = Boolean(
+    status?.hasSubscription
+      || currentPlan === 'plus'
+      || currentPlan === 'family',
+  );
 
   const handlePlanChoice = async (plan: 'free' | 'plus' | 'family') => {
     if (plan === 'free') {
@@ -223,6 +238,10 @@ export default function SetupPage() {
   };
 
   const handlePlaidConnect = async () => {
+    if (!plaidAccess) {
+      setError('Plaid bank sync is available on Plus and Family. Upgrade to connect accounts.');
+      return;
+    }
     setPlaidLoading(true);
     setError('');
     setPlaidMessage('');
@@ -467,13 +486,29 @@ export default function SetupPage() {
                   )}
 
                   <div className="mt-6 flex flex-wrap gap-3">
-                    <button
-                      onClick={handlePlaidConnect}
-                      disabled={plaidLoading}
-                      className="rounded-2xl bg-[#1B5E20] px-5 py-3 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-50"
-                    >
-                      {plaidLoading ? 'Opening Plaid...' : 'Connect with Plaid'}
-                    </button>
+                    {statusLoading ? (
+                      <button
+                        disabled
+                        className="rounded-2xl bg-gray-200 px-5 py-3 text-sm font-semibold text-gray-500 cursor-not-allowed"
+                      >
+                        Checking access...
+                      </button>
+                    ) : plaidAccess ? (
+                      <button
+                        onClick={handlePlaidConnect}
+                        disabled={plaidLoading}
+                        className="rounded-2xl bg-[#1B5E20] px-5 py-3 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-50"
+                      >
+                        {plaidLoading ? 'Opening Plaid...' : 'Connect with Plaid'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setStep(0)}
+                        className="rounded-2xl border border-[#1B5E20] px-5 py-3 text-sm font-semibold text-[#1B5E20] hover:bg-green-50"
+                      >
+                        Upgrade to Connect
+                      </button>
+                    )}
                     <button
                       onClick={() => setStep(2)}
                       className="rounded-2xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
@@ -481,6 +516,18 @@ export default function SetupPage() {
                       {plaidAccounts.length > 0 ? 'Continue with linked accounts' : 'Skip for now'}
                     </button>
                   </div>
+
+                  {!statusLoading && !plaidAccess && (
+                    <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                      Automatic bank sync is included on Plus and Family. Upgrade above when you&apos;re ready, or keep going with Barakah Free for manual tracking.
+                    </div>
+                  )}
+
+                  {plaidAccess && currentPlan === 'family' && status?.status === 'trialing' && (
+                    <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                      Your current Family trial includes secure bank sync right now, so you can connect accounts during setup without upgrading again.
+                    </div>
+                  )}
                 </div>
 
                 <div className="rounded-3xl border border-gray-200 p-6">
@@ -507,9 +554,14 @@ export default function SetupPage() {
                       <div key={account.id} className="rounded-2xl border border-gray-200 px-4 py-4">
                         <p className="font-semibold text-gray-900">{account.accountName}</p>
                         <p className="text-sm text-gray-500 mt-1">
-                          {account.institutionName} • {account.accountType}
+                          {account.institutionName} • {account.accountType}{account.accountSubtype ? `/${account.accountSubtype}` : ''}
                           {account.accountMask ? ` •••• ${account.accountMask}` : ''}
                         </p>
+                        {account.accountRole && (
+                          <p className="text-xs text-emerald-700 mt-1 font-medium capitalize">
+                            Shows up as a linked {account.accountRole === 'debt' ? 'debt' : 'asset'} in Barakah
+                          </p>
+                        )}
                         <p className="text-sm font-semibold text-gray-900 mt-2">
                           Current balance {formatPlaidBalance(account.currentBalance, account.currencyCode) ?? 'Unavailable'}
                         </p>

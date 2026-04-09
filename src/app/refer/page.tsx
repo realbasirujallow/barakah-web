@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Refer a Friend — Give 1 Free Month, Get 1 Free Month | Barakah',
   description:
-    'Share Barakah with friends and family. When they sign up for Plus, you both get 1 free month of fiqh-aware household finance tools for Muslim families.',
+    'Share Barakah with friends and family. When they sign up and verify their email, you both get 1 free month of fiqh-aware household finance tools for Muslim families.',
   keywords: [
     'barakah referral',
     'islamic finance app referral',
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Refer a Friend — Give 1 Free Month, Get 1 Free Month | Barakah',
     description:
-      'Share Barakah with friends and family. When they sign up for Plus, you both get 1 free month of Barakah.',
+      'Share Barakah with friends and family. When they sign up and verify their email, you both get 1 free month of Barakah.',
     url: 'https://trybarakah.com/refer',
     type: 'website',
   },
@@ -33,7 +33,7 @@ const FaqSchema = {
       name: 'How does the Barakah referral program work?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Share your unique referral code with friends and family. When they sign up for Barakah Plus using your code, both you and your friend each receive 1 free month of Plus.',
+        text: 'Share your unique referral code with friends and family. When they sign up for Barakah using your code and verify their email, both you and your friend each receive 1 extra free month automatically.',
       },
     },
     {
@@ -41,7 +41,7 @@ const FaqSchema = {
       name: 'How many friends can I refer?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'There is no limit to the number of friends you can refer. Each successful referral earns both you and your friend 1 free month of Plus.',
+        text: 'There is no limit to the number of friends you can refer. Each successful referral earns both you and your friend 1 extra free month.',
       },
     },
     {
@@ -49,7 +49,7 @@ const FaqSchema = {
       name: 'Do I need a Plus subscription to refer friends?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'No. Any Barakah user with a free or paid account can refer friends. When your friend signs up for Plus, you will receive 1 free month of Plus as your reward.',
+        text: 'No. Any Barakah user with a free or paid account can refer friends. When your friend signs up and verifies their email, you both receive the referral reward automatically.',
       },
     },
     {
@@ -57,7 +57,7 @@ const FaqSchema = {
       name: 'When do I receive my free month?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Your free month is credited automatically once your referred friend subscribes to the Plus plan. If you already have an active Plus subscription, the free month is added to the end of your current billing cycle.',
+        text: 'Your free month is credited automatically once your referred friend verifies their email address. If you already have an active paid plan or trial, the extra month is added on top of your existing access.',
       },
     },
     {
@@ -65,7 +65,7 @@ const FaqSchema = {
       name: 'Can my friend use any plan?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Your friend needs to subscribe to either Plus or Family plan for the referral reward to activate. Free accounts do not trigger the referral bonus.',
+        text: 'Yes. The referral reward is triggered when your friend signs up through your link and verifies their email address.',
       },
     },
   ],
@@ -84,14 +84,14 @@ const steps = [
     icon: '👤',
     title: 'Friend Signs Up',
     description:
-      'Your friend creates a Barakah account and subscribes to Plus or Family using your referral code at checkout.',
+      'Your friend creates a Barakah account using your referral code and verifies their email address.',
   },
   {
     number: '3',
     icon: '🎉',
     title: 'Both Get 1 Free Month',
     description:
-      'Once your friend subscribes, you both receive 1 free month of Plus automatically. No limits on how many friends you can refer.',
+      'Once your friend verifies their email, you both receive 1 extra free month automatically. No limits on how many friends you can refer.',
   },
 ];
 
@@ -164,8 +164,8 @@ export default function ReferPage() {
             Get 1 Free Month
           </h1>
           <p className="text-lg text-gray-700 max-w-2xl mx-auto mb-8 leading-relaxed">
-            Share Barakah with your friends and family. When they subscribe to
-            Plus, you both receive a free month. Help your community build a
+            Share Barakah with your friends and family. When they sign up and
+            verify their email, you both receive a free month. Help your community build a
             more thoughtful Muslim household finance system while earning rewards.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

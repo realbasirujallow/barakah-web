@@ -84,7 +84,7 @@ function BillingContent() {
   const [status, setStatus] = useState<{ plan: string; status: string; hasSubscription: boolean } | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
-  const [referral, setReferral] = useState<{ referralCode: string; shareUrl: string; referralCount: number } | null>(null);
+  const [referral, setReferral] = useState<{ referralCode: string; shareUrl: string; referralCount: number; referralClicks?: number } | null>(null);
   const [copied, setCopied] = useState(false);
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
@@ -177,7 +177,7 @@ function BillingContent() {
             <span className="inline-block w-32 h-4 bg-gray-200 rounded animate-pulse" />
           ) : (
             <>
-              You're on the{' '}
+              You&apos;re on the{' '}
               <span className="font-semibold capitalize text-gray-700">{currentPlan}</span> plan
               {isPastDue && (
                 <span className="ml-2 text-red-600 font-medium text-sm">
@@ -355,7 +355,7 @@ function BillingContent() {
             <h3 className="font-bold text-gray-800">Refer a Friend — Get 1 Month Free</h3>
           </div>
           <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-            Share your referral link. When a friend signs up and verifies their email, you <strong>both</strong> get 1 free month of Barakah Plus. No credit card needed.
+            Share your referral link. When a friend signs up and verifies their email, you <strong>both</strong> get 1 free month of Barakah access automatically.
           </p>
 
           <div className="flex gap-2 mb-3">
@@ -375,7 +375,13 @@ function BillingContent() {
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span>Your code: <strong className="text-[#1B5E20] font-mono text-sm">{referral.referralCode}</strong></span>
             <span>·</span>
-            <span>Friends referred: <strong>{referral.referralCount}</strong></span>
+            <span>Rewards triggered: <strong>{referral.referralCount}</strong></span>
+            {typeof referral.referralClicks === 'number' && (
+              <>
+                <span>·</span>
+                <span>Clicks: <strong>{referral.referralClicks}</strong></span>
+              </>
+            )}
           </div>
         </div>
       )}

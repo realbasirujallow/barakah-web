@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
@@ -6,7 +7,25 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 
-interface DebtItem { id: number; name: string; type: string; totalAmount: number; remainingAmount: number; monthlyPayment: number; interestRate: number; ribaFree: boolean; lender: string; status: string; }
+interface DebtItem {
+  id: number;
+  name: string;
+  type: string;
+  totalAmount: number;
+  remainingAmount: number;
+  monthlyPayment: number;
+  interestRate: number;
+  ribaFree: boolean;
+  lender: string;
+  status: string;
+  linkedSource?: string | null;
+  linkedAccountId?: number | null;
+  readOnly?: boolean;
+  notes?: string | null;
+  accountMask?: string | null;
+  accountSubtype?: string | null;
+  lastSyncedAt?: number | null;
+}
 
 const TYPES = ['islamic_mortgage', 'conventional_mortgage', 'personal_loan', 'student_loan', 'car_loan', 'qard_hasan', 'credit_card', 'business_loan', 'other'];
 const ISLAMIC_TYPES = ['islamic_mortgage', 'qard_hasan'];
@@ -171,6 +190,11 @@ export default function DebtsPage() {
   };
 
   const handleDelete = (id: number) => {
+    const debt = debts.find(item => item.id === id);
+    if (debt?.readOnly) {
+      toast('Linked Plaid liabilities are read-only here. Manage them from Import instead.', 'error');
+      return;
+    }
     setConfirmAction({
       message: 'Delete this debt?',
       action: async () => {
@@ -196,8 +220,8 @@ export default function DebtsPage() {
   });
 
   const toggleSelectAll = () => {
-    if (selectedIds.size === debts.length) setSelectedIds(new Set());
-    else setSelectedIds(new Set(debts.map(d => d.id)));
+    if (selectedIds.size === deletableActiveDebts.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(deletableActiveDebts.map(d => d.id)));
   };
 
   const handleBulkDelete = () => {
@@ -244,6 +268,7 @@ export default function DebtsPage() {
   const totalDebt  = debts.reduce((s, d) => s + d.remainingAmount, 0);
   const paidOffDebts = debts.filter(d => d.remainingAmount === 0);
   const activeDebts = debts.filter(d => d.remainingAmount > 0);
+  const deletableActiveDebts = activeDebts.filter(d => !d.readOnly);
   const ribaDebts  = activeDebts.filter(d => !d.ribaFree && !ISLAMIC_TYPES.includes(d.type));
   const monthsSavedAvalanche  = projBase.months - projAvalanche.months;
   const interestSavedAvalanche = projBase.totalInterest - projAvalanche.totalInterest;
@@ -276,6 +301,12 @@ export default function DebtsPage() {
             </div>
           )}
 
+          {debts.some(d => d.linkedSource === 'plaid') && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4 text-sm text-emerald-800">
+              Linked Plaid credit and loan balances now appear here as read-only liabilities. Use <Link href="/dashboard/import" className="font-semibold underline">Import</Link> to resync or manage linked accounts.
+            </div>
+          )}
+
           <div className="grid md:grid-cols-2 gap-4 mb-6">
             <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Remaining</p><p className="text-2xl font-bold text-red-600">{fmt(totalDebt)}</p></div>
             <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Monthly Payments</p><p className="text-2xl font-bold text-orange-600">{fmt(totalMinPayment)}</p></div>
@@ -291,8 +322,8 @@ export default function DebtsPage() {
           {activeDebts.length > 0 && (
             <div className="flex items-center gap-3 mb-3 flex-wrap">
               <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
-                <input type="checkbox" checked={selectedIds.size === activeDebts.length && activeDebts.length > 0} onChange={toggleSelectAll} className="w-4 h-4 accent-[#1B5E20] rounded" />
-                {selectedIds.size === activeDebts.length && activeDebts.length > 0 ? 'Deselect all' : 'Select all'}
+                <input type="checkbox" checked={selectedIds.size === deletableActiveDebts.length && deletableActiveDebts.length > 0} onChange={toggleSelectAll} className="w-4 h-4 accent-[#1B5E20] rounded" />
+                {selectedIds.size === deletableActiveDebts.length && deletableActiveDebts.length > 0 ? 'Deselect all' : 'Select all'}
               </label>
               {selectedIds.size > 0 && (
                 <>
@@ -303,7 +334,7 @@ export default function DebtsPage() {
                   <button type="button" onClick={() => setSelectedIds(new Set())} className="text-sm text-gray-500 hover:text-gray-700 border border-gray-300 px-3 py-1 rounded-lg">Clear</button>
                 </>
               )}
-              {selectedIds.size === 0 && activeDebts.length > 1 && (
+              {selectedIds.size === 0 && deletableActiveDebts.length > 1 && (
                 <button type="button" onClick={handleDeleteAll} disabled={bulkDeleting} className="ml-auto text-xs text-red-500 hover:text-red-700 disabled:opacity-50">Delete all</button>
               )}
             </div>
@@ -315,15 +346,22 @@ export default function DebtsPage() {
                 const halal = d.ribaFree || ISLAMIC_TYPES.includes(d.type);
                 return (
                   <div key={d.id} className="flex items-start gap-3">
-                    <input type="checkbox" checked={selectedIds.has(d.id)} onChange={() => toggleSelect(d.id)} className="mt-4 w-4 h-4 accent-[#1B5E20] rounded flex-shrink-0" />
+                    <input type="checkbox" checked={selectedIds.has(d.id)} disabled={d.readOnly} onChange={() => toggleSelect(d.id)} className="mt-4 w-4 h-4 accent-[#1B5E20] rounded flex-shrink-0 disabled:opacity-40" />
                     <div className={`flex-1 bg-white rounded-xl p-4 border ${halal ? 'border-transparent' : 'border-red-200'}`}>
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-semibold text-gray-900">{d.name}</p>
                           <span className={`text-xs px-2 py-0.5 rounded-full ${halal ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{halal ? 'Halal' : 'Riba'}</span>
+                          {d.readOnly && <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Linked via Plaid</span>}
                         </div>
                         <p className="text-sm text-gray-500">{TYPE_LABELS[d.type] || d.type}{d.lender ? ` • ${d.lender}` : ''} • {fmt(d.monthlyPayment)}/mo</p>
+                        {d.readOnly && (
+                          <p className="text-xs text-gray-500">
+                            {[d.accountSubtype, d.accountMask ? `••${d.accountMask}` : null].filter(Boolean).join(' • ')}
+                            {d.lastSyncedAt ? ` • Synced ${new Date(d.lastSyncedAt).toLocaleDateString()}` : ''}
+                          </p>
+                        )}
                         {d.monthlyPayment > 0 && d.remainingAmount > 0 && (
                           <p className="text-xs text-blue-600 font-medium mt-1">
                             ~{Math.ceil(d.remainingAmount / d.monthlyPayment)} months to payoff
@@ -336,9 +374,15 @@ export default function DebtsPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => { setPayModal(d); setPayAmount(String(d.monthlyPayment)); }} className="bg-[#1B5E20] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#2E7D32]">Pay</button>
-                        <button type="button" onClick={() => openEdit(d)} className="text-gray-500 hover:text-[#1B5E20] text-sm border border-gray-300 px-3 py-1 rounded-lg">Edit</button>
-                        <button type="button" onClick={() => handleDelete(d.id)} disabled={deletingId === d.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === d.id ? 'Deleting...' : 'Del'}</button>
+                        {!d.readOnly ? (
+                          <>
+                            <button type="button" onClick={() => { setPayModal(d); setPayAmount(String(d.monthlyPayment)); }} className="bg-[#1B5E20] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#2E7D32]">Pay</button>
+                            <button type="button" onClick={() => openEdit(d)} className="text-gray-500 hover:text-[#1B5E20] text-sm border border-gray-300 px-3 py-1 rounded-lg">Edit</button>
+                            <button type="button" onClick={() => handleDelete(d.id)} disabled={deletingId === d.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === d.id ? 'Deleting...' : 'Del'}</button>
+                          </>
+                        ) : (
+                          <Link href="/dashboard/import" className="text-gray-500 hover:text-[#1B5E20] text-sm border border-gray-300 px-3 py-1 rounded-lg">Manage</Link>
+                        )}
                       </div>
                     </div>
                     <div className="flex justify-between text-sm mb-1">
@@ -375,10 +419,13 @@ export default function DebtsPage() {
                               <p className="font-semibold text-gray-600 line-through">{d.name}</p>
                               <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Paid Off</span>
                               <span className={`text-xs px-2 py-0.5 rounded-full ${halal ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{halal ? 'Halal' : 'Riba'}</span>
+                              {d.readOnly && <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Linked via Plaid</span>}
                             </div>
                             <p className="text-sm text-gray-500">{TYPE_LABELS[d.type] || d.type}{d.lender ? ` • ${d.lender}` : ''}</p>
                           </div>
-                          <button type="button" onClick={() => handleDelete(d.id)} disabled={deletingId === d.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === d.id ? 'Deleting...' : 'Del'}</button>
+                          {!d.readOnly && (
+                            <button type="button" onClick={() => handleDelete(d.id)} disabled={deletingId === d.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === d.id ? 'Deleting...' : 'Del'}</button>
+                          )}
                         </div>
                         <div className="text-sm text-gray-500">Total paid: <span className="font-semibold text-gray-700">{fmt(d.totalAmount)}</span></div>
                       </div>

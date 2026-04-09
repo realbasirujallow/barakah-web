@@ -275,6 +275,14 @@ export interface Asset {
   penaltyRate?: number;
   monthlyPayment?: number;
   notes?: string | null;
+  linkedSource?: string | null;
+  linkedAccountId?: number | null;
+  institutionName?: string | null;
+  accountMask?: string | null;
+  accountSubtype?: string | null;
+  currency?: string | null;
+  readOnly?: boolean;
+  lastSyncedAt?: number | null;
 }
 
 export function validateAsset(data: unknown): ValidationResult<Asset> {
@@ -304,6 +312,14 @@ export function validateAsset(data: unknown): ValidationResult<Asset> {
       penaltyRate: isFiniteNumber(obj.penaltyRate) ? (obj.penaltyRate as number) : undefined,
       monthlyPayment: isFiniteNumber(obj.monthlyPayment) ? (obj.monthlyPayment as number) : undefined,
       notes: (obj.notes as string | null) || undefined,
+      linkedSource: isString(obj.linkedSource) ? (obj.linkedSource as string) : undefined,
+      linkedAccountId: isFiniteNumber(obj.linkedAccountId) ? (obj.linkedAccountId as number) : undefined,
+      institutionName: isString(obj.institutionName) ? (obj.institutionName as string) : undefined,
+      accountMask: isString(obj.accountMask) ? (obj.accountMask as string) : undefined,
+      accountSubtype: isString(obj.accountSubtype) ? (obj.accountSubtype as string) : undefined,
+      currency: isString(obj.currency) ? (obj.currency as string) : undefined,
+      readOnly: isBoolean(obj.readOnly) ? (obj.readOnly as boolean) : false,
+      lastSyncedAt: isFiniteNumber(obj.lastSyncedAt) ? (obj.lastSyncedAt as number) : undefined,
     },
   };
 }
