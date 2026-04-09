@@ -62,6 +62,44 @@ const defaultDraft = (): DraftCampaign => ({
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => hour);
 
+const FALLBACK_TEMPLATES: Array<Record<string, unknown>> = [
+  {
+    key: 'ramadan',
+    channel: 'email',
+    subject: 'Ramadan Mubarak from Barakah',
+    title: 'Ramadan Mubarak',
+    body: 'Ramadan Mubarak, {first_name}.\n\nOpen Barakah to review your zakat readiness, track your sadaqah, and keep your household finances in order this blessed month.',
+  },
+  {
+    key: 'eid_al_fitr',
+    channel: 'email',
+    subject: 'Eid Mubarak from Barakah',
+    title: 'Eid Mubarak',
+    body: 'Eid Mubarak, {first_name}.\n\nMay Allah accept your fasting and good deeds. Open Barakah any time to review your spending, balances, and zakat history.',
+  },
+  {
+    key: 'activation_finish_setup',
+    channel: 'email',
+    subject: 'Finish setting up Barakah',
+    title: 'Your financial home is almost ready',
+    body: 'Assalamu alaykum, {first_name}.\n\nYou already created your Barakah account. Finish setup so we can personalize your dashboard and help you track zakat, budgets, and household finances properly.',
+  },
+  {
+    key: 'activation_link_accounts',
+    channel: 'email',
+    subject: 'Connect your first account in Barakah',
+    title: 'Bring your balances into one place',
+    body: 'Assalamu alaykum, {first_name}.\n\nConnect your bank or card accounts so Barakah can keep your balances, spending, and net worth in sync.',
+  },
+  {
+    key: 'inactive_checkin',
+    channel: 'push',
+    subject: '',
+    title: 'Come back to Barakah',
+    body: 'Your balances, spending, and net worth may have changed since your last visit. Open Barakah for a quick check-in.',
+  },
+];
+
 const defaultRetentionSettings = (): RetentionSettings => ({
   enabled: true,
   percentOff: 50,
@@ -123,6 +161,8 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
 
       if (templatesResult.status === 'fulfilled') {
         setTemplates((templatesResult.value?.templates as Array<Record<string, unknown>> | undefined) ?? []);
+      } else {
+        setTemplates(prev => prev.length > 0 ? prev : FALLBACK_TEMPLATES);
       }
 
       if (campaignsResult.status === 'fulfilled') {
@@ -150,9 +190,7 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
       const failedSections = [overviewResult, templatesResult, campaignsResult, retentionResult]
         .filter(result => result.status === 'rejected').length;
 
-      if (failedSections > 0 && failedSections < 4) {
-        toast('Some lifecycle admin data could not be refreshed. The page kept the sections it could load.', 'error');
-      } else if (failedSections === 4) {
+      if (failedSections === 4) {
         toast('Lifecycle admin data is temporarily unavailable. Please try again shortly.', 'error');
       }
     } catch {
