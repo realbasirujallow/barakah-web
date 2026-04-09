@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sign In to Barakah — Islamic Finance Dashboard',
-  description: 'Log in to your Barakah account to track zakat, manage halal investments, and monitor your Islamic financial goals.',
+  title: 'Sign In to Barakah',
+  description: 'Sign in to Barakah to manage zakat, daily money, family finances, and estate readiness in one fiqh-aware household finance system.',
   robots: { index: false, follow: false },
 };
 

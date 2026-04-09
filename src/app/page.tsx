@@ -269,12 +269,12 @@ export default function Home() {
           {/* Ranked stats */}
           <div className="mt-10 bg-[#1B5E20] rounded-2xl p-8 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-white">
             <div>
-              <p className="text-4xl font-extrabold mb-1">40+</p>
-              <p className="text-green-200 text-sm">Connected workflows across daily money, Islamic obligations, and household planning</p>
+              <p className="text-4xl font-extrabold mb-1">4</p>
+              <p className="text-green-200 text-sm">Madhabs supported for zakat and fiqh-aware settings</p>
             </div>
             <div>
-              <p className="text-4xl font-extrabold mb-1">30,000+</p>
-              <p className="text-green-200 text-sm">Stocks screened for halal compliance alongside zakat, hawl, and household visibility</p>
+              <p className="text-4xl font-extrabold mb-1">85g / 595g</p>
+              <p className="text-green-200 text-sm">Live gold and silver nisab references surfaced throughout the product</p>
             </div>
             <div>
               <p className="text-4xl font-extrabold mb-1">$0</p>
@@ -374,7 +374,7 @@ export default function Home() {
             <p className="text-4xl mb-4">🧮</p>
             <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">Free Zakat Calculator</h2>
             <p className="text-gray-600 max-w-2xl mx-auto mb-8">
-              Calculate your zakat obligation instantly with our free, multi-madhab zakat calculator. Support for gold or silver nisab, live gold prices, and detailed breakdowns by asset type.
+              Calculate your zakat obligation instantly with our free, multi-madhab zakat calculator. Use live gold and silver nisab references, review asset categories clearly, and move into a fuller household finance system only if you need more.
             </p>
             <Link
               href="/zakat-calculator"

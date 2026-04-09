@@ -33,7 +33,7 @@ export function FeedbackWidget() {
     setErrorMsg('');
 
     try {
-      const result = await api.contact(form.subject, form.message);
+      const result = await api.contact({ subject: form.subject, message: form.message });
       if (result?.success) {
         setStatus('sent');
       } else {

@@ -119,6 +119,13 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "public, s-maxage=300, stale-while-revalidate=60" },
         ],
       },
+      {
+        // Public nisab calculator data can be cached briefly at the edge.
+        source: "/api/zakat/info",
+        headers: [
+          { key: "Cache-Control", value: "public, s-maxage=300, stale-while-revalidate=60" },
+        ],
+      },
     ];
   },
 

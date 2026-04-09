@@ -93,6 +93,8 @@ export default function Calculator() {
     nisabSilverGrams?: number;
     nisabGoldThreshold?: number;
     nisabSilverThreshold?: number;
+    goldPriceSource?: string;
+    silverPriceSource?: string;
     staleWarning?: boolean;
   } | null>(null);
   const [pricesLoading, setPricesLoading] = useState(true);
@@ -321,10 +323,10 @@ export default function Calculator() {
               Retirement & Other Assets
             </h3>
             <InputField
-              label="Retirement Accounts (401k, IRA, Roth IRA)"
+              label="Retirement Accounts (net accessible value)"
               field="retirementAccounts"
               value={inputs.retirementAccounts}
-              tooltip="Some scholars include retirement accounts; others exclude them. Check with your local imam."
+              tooltip="Enter the amount you could actually access after estimated taxes and early-withdrawal penalties. Barakah's signed-in dashboard can help estimate that value."
               onChange={handleInputChange}
             />
             <InputField
@@ -374,7 +376,7 @@ export default function Calculator() {
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <h3 className="font-semibold text-amber-900 mb-2">Retirement Account Tax Deductions</h3>
                 <p className="text-sm text-amber-800">
-                  Tax deductions on retirement accounts (401k, IRA, Roth IRA, HSA) are calculated based on your profile state. To ensure accurate calculations, please update your state in <Link href="/profile" className="font-semibold underline hover:no-underline">Profile settings</Link>.
+                  For this public calculator, enter the <strong>net accessible value</strong> of your retirement accounts after estimated taxes and early-withdrawal penalties. If you want Barakah to estimate those deductions using your state profile, create a free account and use the guided zakat dashboard.
                 </p>
               </div>
             )}
@@ -384,7 +386,11 @@ export default function Calculator() {
               <div className={`text-xs font-medium px-3 py-1 rounded-full w-fit ${
                 livePrices ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
               }`}>
-                {livePrices ? '✓ Live prices' : 'Estimated prices'}
+                {livePrices
+                  ? (livePrices.goldPriceSource === 'live' && livePrices.silverPriceSource === 'live'
+                    ? '✓ Live metal prices'
+                    : '✓ Live prices with backup feed protection')
+                  : 'Estimated prices'}
               </div>
             )}
             {pricesLoading && (

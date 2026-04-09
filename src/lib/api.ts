@@ -951,12 +951,13 @@ export const api = {
   // ── Contact / Feedback ──────────────────────────────────────────────────────
   /**
    * Send a feedback or contact message from a logged-in user.
-   * name/email are auto-filled by the backend from the JWT.
+   * name/email are auto-filled by the backend for logged-in users and required
+   * from the public contact page for guests.
    */
-  contact: (subject: string, message: string) =>
+  contact: (data: { name?: string; email?: string; subject: string; message: string }) =>
     apiFetch('/api/contact', {
       method: 'POST',
-      body: JSON.stringify({ subject, message }),
+      body: JSON.stringify(data),
     }),
 
   // ── Referral ────────────────────────────────────────────────────────────────

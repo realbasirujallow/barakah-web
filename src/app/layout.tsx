@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Barakah - Islamic Household Finance & Zakat Platform",
+  title: "Barakah | Islamic Household Finance, Zakat Calculator & Muslim Budgeting App",
   description:
-    "Fiqh-aware household finance for Muslims. Track daily money, zakat, hawl, sadaqah, family budgets, and estate readiness in one Shariah-conscious platform.",
+    "Fiqh-aware household finance for Muslims. Track daily money, zakat, hawl, Muslim family budgets, sadaqah, and estate readiness in one Shariah-conscious platform.",
   keywords: [
     "zakat calculator",
     "islamic finance",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     "wasiyyah planner",
   ],
   openGraph: {
-    title: "Barakah - Islamic Household Finance & Zakat Platform",
+    title: "Barakah | Islamic Household Finance, Zakat Calculator & Muslim Budgeting App",
     description:
       "Track daily money, zakat, hawl, family budgets, and estate readiness in one fiqh-aware platform for Muslim households.",
     url: "https://trybarakah.com",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Barakah - Islamic Household Finance & Zakat Platform",
+    title: "Barakah | Islamic Household Finance, Zakat Calculator & Muslim Budgeting App",
     description:
       "Fiqh-aware finance for Muslim households: zakat, hawl, family budgeting, and estate readiness.",
     images: ["https://trybarakah.com/og-image.png"],
@@ -98,15 +98,18 @@ export default function RootLayout({
     name: 'Barakah - Islamic Household Finance',
     operatingSystem: 'Web, iOS, Android',
     applicationCategory: 'FinanceApplication',
+    featureList: [
+      'Zakat calculator',
+      'Hawl tracking',
+      'Muslim budgeting',
+      'Shared family finance',
+      'Wasiyyah planning',
+      'Prayer times',
+    ],
     offers: {
       '@type': 'Offer',
       price: '0',
       priceCurrency: 'USD',
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      ratingCount: '500',
     },
   };
 
