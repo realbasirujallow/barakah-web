@@ -5,6 +5,7 @@ import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { useCurrency } from '../../../lib/useCurrency';
 import { PRICING } from '../../../lib/pricing';
+import { LifecycleCampaignCenter } from '../../../components/admin/LifecycleCampaignCenter';
 
 /* ──────────────────────────── Types ──────────────────────────── */
 
@@ -138,7 +139,7 @@ export default function AdminPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [userActivity, setUserActivity] = useState<Record<string, number> | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts' | 'unverified'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts' | 'unverified' | 'lifecycle'>('overview');
   const [onboardingTrial, setOnboardingTrial] = useState<OnboardingTrialSettings | null>(null);
   const [trialSettingsSaving, setTrialSettingsSaving] = useState(false);
   const { toast } = useToast();
@@ -394,7 +395,7 @@ export default function AdminPage() {
 
       {/* ── Tab Navigation ── */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
-        {(['overview', 'users', 'alerts', 'unverified'] as const).map(tab => (
+        {(['overview', 'users', 'alerts', 'unverified', 'lifecycle'] as const).map(tab => (
           <button
             key={tab}
             type="button"
@@ -423,6 +424,7 @@ export default function AdminPage() {
                 )}
               </>
             )}
+            {tab === 'lifecycle' && '📬 Lifecycle'}
           </button>
         ))}
       </div>
@@ -1177,6 +1179,10 @@ export default function AdminPage() {
             );
           })()}
         </div>
+      )}
+
+      {activeTab === 'lifecycle' && (
+        <LifecycleCampaignCenter active={activeTab === 'lifecycle'} />
       )}
 
       {/* ══════════════════ USER DETAIL MODAL ══════════════════ */}

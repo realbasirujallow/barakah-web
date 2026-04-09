@@ -287,12 +287,12 @@ export default function InvestmentsPage() {
                       borderRadius: '8px',
                       padding: '10px',
                     }}
-                    formatter={(value: number | string, name: string) => {
+                    formatter={(value?: number | string, name?: string) => {
                       if (name === 'totalValue') return [fmt(Number(value) || 0), 'Portfolio Value'];
-                      return [value, name];
+                      return [String(value ?? ''), String(name ?? '')];
                     }}
-                    labelFormatter={(label: number | string) => {
-                      const d = new Date(String(label));
+                    labelFormatter={(label) => {
+                      const d = new Date(String(label ?? ''));
                       return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                     }}
                   />

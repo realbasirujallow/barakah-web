@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { api, setUnauthorizedHandler, setRefreshToken, setAccessToken } from '../lib/api';
 
 export interface User {
@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   // Keep a ref to router so the unauthorized handler always has the latest
   // reference without needing to be in the effect's dependency array.
@@ -60,12 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   useEffect(() => {
+    const finishLoading = () => {
+      window.setTimeout(() => setIsLoading(false), 0);
+    };
     let savedUser: string | null = null;
     try {
       savedUser = localStorage.getItem(USER_KEY);
     } catch {
       // localStorage is disabled (SSR context, private browsing, etc.)
-      setIsLoading(false);
+      finishLoading();
       return;
     }
 
@@ -88,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!savedUser) {
-      setIsLoading(false);
+      finishLoading();
       return;
     }
 
@@ -101,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         // localStorage access failed
       }
-      setIsLoading(false);
+      finishLoading();
       return;
     }
 
@@ -149,8 +153,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsLoading(false);
         });
       } else {
-        setUser(parsed);
-        setIsLoading(false);
+        window.setTimeout(() => {
+          setUser(parsed);
+          setIsLoading(false);
+        }, 0);
       }
       return;
     }
@@ -214,8 +220,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(parsed);
       setIsLoading(false);
     });
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run ONCE on mount only.
 
   // Sync logout across browser tabs via storage events.
@@ -274,6 +278,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const onVisible = () => {
       if (document.visibilityState !== 'visible') return;
       if (!user) return;
+      api.lifecycleHeartbeat({
+        platform: 'web',
+        appVersion: process.env.NEXT_PUBLIC_APP_VERSION || 'web',
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        route: window.location.pathname,
+      }).catch(() => {});
       // If localStorage was already cleared by another tab, fast-path out.
       try {
         if (!localStorage.getItem(USER_KEY)) {
@@ -297,6 +307,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !pathname) return;
+    const sendHeartbeat = () => api.lifecycleHeartbeat({
+      platform: 'web',
+      appVersion: process.env.NEXT_PUBLIC_APP_VERSION || 'web',
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      route: pathname,
+    }).catch(() => {});
+
+    sendHeartbeat();
+    const interval = window.setInterval(sendHeartbeat, 5 * 60 * 1000);
+    return () => window.clearInterval(interval);
+  }, [pathname, user]);
 
   const login = async (email: string, password: string, rememberMe?: boolean) => {
     const data = await api.login(email, password, rememberMe);
