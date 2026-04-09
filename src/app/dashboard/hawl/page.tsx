@@ -68,7 +68,7 @@ export default function HawlPage() {
   const [hijriInput, setHijriInput] = useState({ year: '', month: '', day: '' });
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const { toast } = useToast();
-  const maxFutureInput = new Date(Date.now() + 355 * 86400000).toISOString().slice(0, 10);
+  const maxStartInput = new Date().toISOString().slice(0, 10);
   const minBackdateInput = new Date(Date.now() - 3650 * 86400000).toISOString().slice(0, 10);
 
   const load = useCallback(() => {
@@ -398,7 +398,7 @@ export default function HawlPage() {
                       <button type="button" onClick={() => setDateInputMode('hijri')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'hijri' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600'}`}>Hijri</button>
                     </div>
                     {dateInputMode === 'gregorian' ? (
-                      <input type="date" value={newStartDate} min={minBackdateInput} max={maxFutureInput} onChange={e => setNewStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm text-gray-900 w-full" />
+                      <input type="date" value={newStartDate} min={minBackdateInput} max={maxStartInput} onChange={e => setNewStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm text-gray-900 w-full" />
                     ) : (
                       <div className="flex gap-2">
                         <input type="number" placeholder="Year (e.g. 1447)" value={hijriInput.year} onChange={e => setHijriInput({ ...hijriInput, year: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
@@ -480,7 +480,7 @@ export default function HawlPage() {
                         <button type="button" onClick={() => setDateInputMode('hijri')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'hijri' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600'}`}>Hijri</button>
                       </div>
                       {dateInputMode === 'gregorian' ? (
-                        <input type="date" value={newStartDate} min={minBackdateInput} max={maxFutureInput} onChange={e => setNewStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm text-gray-900 w-full" />
+                        <input type="date" value={newStartDate} min={minBackdateInput} max={maxStartInput} onChange={e => setNewStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm text-gray-900 w-full" />
                       ) : (
                         <div className="flex gap-2">
                           <input type="number" placeholder="Year (e.g. 1447)" value={hijriInput.year} onChange={e => setHijriInput({ ...hijriInput, year: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
@@ -550,7 +550,7 @@ export default function HawlPage() {
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Nisab Threshold</label>
                 <input type="number" step="0.01" value={form.nisabThreshold} onChange={e => setForm({ ...form, nisabThreshold: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Hawl Start Date <span className="text-gray-400">(optional — defaults to today, backdate if you already held it)</span></label>
-                <input type="date" value={form.startDate} min={minBackdateInput} max={maxFutureInput} onChange={e => setForm({ ...form, startDate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+                <input type="date" value={form.startDate} min={minBackdateInput} max={maxStartInput} onChange={e => setForm({ ...form, startDate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             </div>
             {saveError && <div className="text-sm text-red-600 bg-red-50 p-2 rounded mb-3 mt-3">{saveError}</div>}
             <div className="flex gap-3 mt-6">
