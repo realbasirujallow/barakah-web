@@ -1,7 +1,8 @@
 ﻿'use client';
 import { useState, useRef, useEffect, useCallback, DragEvent } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { PlaidLink } from 'react-plaid-link';
+import { usePlaidLink } from 'react-plaid-link';
 import { api } from '../../../lib/api';
 import { clearPendingPlaidLinkToken, savePendingPlaidLinkToken } from '../../../lib/plaid';
 import { useCurrency } from '../../../lib/useCurrency';
@@ -81,12 +82,21 @@ interface PlaidAccount {
   id: number;
   institutionName: string;
   accountName: string;
+  officialName?: string;
   accountMask: string;
   accountType: string;
+  accountSubtype?: string;
+  accountRole?: string;
   currentBalance: number | null;
   availableBalance: number | null;
   currencyCode: string;
   lastSyncedAt: number | null;
+}
+
+interface SubscriptionStatus {
+  plan: 'free' | 'plus' | 'family';
+  status: string;
+  hasSubscription: boolean;
 }
 
 interface BalancesResult {
@@ -159,6 +169,8 @@ export default function ImportPage() {
   const [plaidAccounts, setPlaidAccounts] = useState<PlaidAccount[]>([]);
   const [plaidSyncing, setPlaidSyncing] = useState<number | null>(null);
   const [plaidMessage, setPlaidMessage] = useState('');
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
+  const [statusLoading, setStatusLoading] = useState(true);
 
   const loadPlaidAccounts = useCallback(async () => {
     try {
@@ -167,7 +179,21 @@ export default function ImportPage() {
     } catch { /* silent */ }
   }, []);
 
-  useEffect(() => { loadPlaidAccounts(); }, [loadPlaidAccounts]);
+  const loadSubscriptionStatus = useCallback(async () => {
+    try {
+      const data = await api.subscriptionStatus();
+      setSubscriptionStatus(data as SubscriptionStatus);
+    } catch {
+      setSubscriptionStatus({ plan: 'free', status: 'inactive', hasSubscription: false });
+    } finally {
+      setStatusLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPlaidAccounts();
+    loadSubscriptionStatus();
+  }, [loadPlaidAccounts, loadSubscriptionStatus]);
 
   useEffect(() => {
     const plaidStatus = searchParams.get('plaid');
@@ -175,7 +201,7 @@ export default function ImportPage() {
     if (!plaidStatus) return;
 
     if (plaidStatus === 'linked') {
-      setPlaidMessage(rawMessage || 'Bank linked successfully! Click "Sync" to import transactions.');
+      setPlaidMessage(rawMessage || 'Bank linked successfully. Balances now appear in Assets or Debts, and synced activity shows in Transactions.');
       loadPlaidAccounts();
     } else if (plaidStatus === 'error') {
       setError(rawMessage || 'Plaid authentication did not complete.');
@@ -185,8 +211,17 @@ export default function ImportPage() {
   }, [loadPlaidAccounts, router, searchParams]);
 
   const [plaidLoading, setPlaidLoading] = useState(false);
+  const plaidAccess = Boolean(
+    subscriptionStatus?.hasSubscription
+      || subscriptionStatus?.plan === 'plus'
+      || subscriptionStatus?.plan === 'family',
+  );
 
   const handlePlaidConnect = async () => {
+    if (!plaidAccess) {
+      setError('Plaid bank sync is available on Plus and Family. Upgrade to connect new accounts.');
+      return;
+    }
     setPlaidLoading(true);
     setError('');
     try {
@@ -206,15 +241,42 @@ export default function ImportPage() {
 
   const onPlaidSuccess = useCallback(async (publicToken: string, metadata: { institution: { name: string; institution_id: string } | null }) => {
     try {
-      await api.plaidExchangeToken(publicToken, metadata?.institution?.name);
+      const result = await api.plaidExchangeToken(publicToken, metadata?.institution?.name);
       clearPendingPlaidLinkToken();
       setPlaidLinkToken(null);
-      setPlaidMessage('Bank linked successfully! Click "Sync" to import transactions.');
-      loadPlaidAccounts();
+      setPlaidLoading(false);
+      const imported = Number(result?.transactionsImported || 0);
+      setPlaidMessage(
+        imported > 0
+          ? `Bank linked and ${imported} transaction(s) imported. Balances now appear in Assets or Debts, and activity shows in Transactions.`
+          : 'Bank linked successfully. Balances now appear in Assets or Debts, and you can sync again anytime from here.',
+      );
+      await loadPlaidAccounts();
     } catch (err) {
+      setPlaidLoading(false);
       setError(err instanceof Error ? err.message : 'Failed to link bank');
     }
   }, [loadPlaidAccounts]);
+
+  const onPlaidExit = useCallback((exitError: { display_message?: string | null } | null) => {
+    clearPendingPlaidLinkToken();
+    setPlaidLinkToken(null);
+    setPlaidLoading(false);
+    if (exitError?.display_message) {
+      setError(exitError.display_message);
+    }
+  }, []);
+
+  const { open, ready } = usePlaidLink({
+    token: plaidLinkToken ?? '',
+    onSuccess: onPlaidSuccess,
+    onExit: onPlaidExit,
+  });
+
+  useEffect(() => {
+    if (!plaidLinkToken || !ready) return;
+    open();
+  }, [open, plaidLinkToken, ready]);
 
   const handlePlaidSync = async (accountId: number) => {
     setPlaidSyncing(accountId);
@@ -373,30 +435,38 @@ export default function ImportPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-[#1B5E20]">Connect Your Bank</h2>
-            <p className="text-sm text-gray-500">Automatically import transactions from your bank account</p>
+            <p className="text-sm text-gray-500">Automatically import balances and transactions from supported institutions.</p>
           </div>
-          {plaidLinkToken ? (
-            <PlaidLink
-              token={plaidLinkToken}
-              onSuccess={onPlaidSuccess}
-              onExit={() => {
-                clearPendingPlaidLinkToken();
-                setPlaidLinkToken(null);
-              }}
-              className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm cursor-pointer"
+          {statusLoading ? (
+            <button
+              disabled
+              className="bg-gray-200 text-gray-500 px-5 py-2.5 rounded-lg font-semibold text-sm cursor-not-allowed"
             >
-              Open Bank Login
-            </PlaidLink>
-          ) : (
+              Checking access...
+            </button>
+          ) : plaidAccess ? (
             <button
               onClick={handlePlaidConnect}
               disabled={plaidLoading}
               className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm disabled:opacity-50"
             >
-              {plaidLoading ? 'Connecting...' : '+ Link Bank Account'}
+              {plaidLoading ? 'Opening Plaid...' : '+ Link Bank Account'}
             </button>
+          ) : (
+            <Link
+              href="/dashboard/billing"
+              className="border border-[#1B5E20] text-[#1B5E20] px-5 py-2.5 rounded-lg font-semibold hover:bg-green-50 transition text-sm"
+            >
+              Upgrade for Plaid
+            </Link>
           )}
         </div>
+
+        {!statusLoading && !plaidAccess && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-4 mb-4 text-sm">
+            Plaid bank sync is available on <strong>Plus</strong> and <strong>Family</strong>. Upgrade to connect new accounts and keep syncing them. If you already linked an account during a trial, you can still view or unlink it below.
+          </div>
+        )}
 
         {plaidMessage && (
           <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg p-3 mb-4 text-sm">{plaidMessage}</div>
@@ -408,7 +478,14 @@ export default function ImportPage() {
                       <div key={acct.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
                         <div>
                           <p className="font-semibold text-gray-900">{acct.institutionName}</p>
-                          <p className="text-sm text-gray-500">{acct.accountName} {acct.accountMask ? `••${acct.accountMask}` : ''} · {acct.accountType}</p>
+                          <p className="text-sm text-gray-500">
+                            {(acct.officialName || acct.accountName)} {acct.accountMask ? `••${acct.accountMask}` : ''} · {acct.accountType}{acct.accountSubtype ? `/${acct.accountSubtype}` : ''}
+                          </p>
+                          {acct.accountRole && (
+                            <p className="text-xs text-emerald-700 mt-1 font-medium capitalize">
+                              Appears as a linked {acct.accountRole === 'debt' ? 'debt' : 'asset'} inside Barakah
+                            </p>
+                          )}
                           <p className="text-sm font-semibold text-gray-900 mt-2">
                             Current balance {formatPlaidBalance(acct.currentBalance, acct.currencyCode) ?? 'Unavailable'}
                           </p>
@@ -424,10 +501,10 @@ export default function ImportPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handlePlaidSync(acct.id)}
-                    disabled={plaidSyncing === acct.id}
+                    disabled={plaidSyncing === acct.id || !plaidAccess}
                     className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#2E7D32] transition disabled:opacity-50"
                   >
-                    {plaidSyncing === acct.id ? 'Syncing...' : 'Sync'}
+                    {plaidSyncing === acct.id ? 'Syncing...' : plaidAccess ? 'Sync' : 'Upgrade to Sync'}
                   </button>
                   <button
                     onClick={() => handlePlaidUnlink(acct.id)}

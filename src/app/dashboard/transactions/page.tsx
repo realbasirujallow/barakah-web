@@ -1,12 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
-import { useAuth } from '../../../context/AuthContext';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
-import Link from 'next/link';
 import { SkeletonPage } from '../SkeletonCard';
 
 // ── Supported currencies ──────────────────────────────────────────────────────
@@ -45,6 +42,13 @@ const PAGE_SIZE_OPTIONS = [20, 50, 100];
 interface Tx {
   id: number; type: string; category: string; amount: number;
   description: string; currency: string; timestamp: number;
+  importSource?: string | null;
+  linkedAccountId?: number | null;
+  sourceAccountName?: string | null;
+  sourceInstitutionName?: string | null;
+  sourceAccountType?: string | null;
+  externalAccountId?: string | null;
+  merchantName?: string | null;
 }
 
 // Friendly amount string for a transaction, respecting its own stored currency
@@ -74,7 +78,6 @@ export default function TransactionsPage() {
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ type: 'single' | 'bulk'; id?: number; count?: number } | null>(null);
 
   const { currency: preferredCurrency, fmt } = useCurrency();
-  const { user } = useAuth();
 
   const [form, setForm] = useState({
     type: 'expense', category: 'food', amount: '', description: '', currency: 'USD',
@@ -372,13 +375,25 @@ export default function TransactionsPage() {
                     className="w-4 h-4 accent-[#1B5E20] rounded flex-shrink-0" />
                 )}
                 <div>
-                  <p className="font-semibold text-gray-900">{tx.description || tx.category}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold text-gray-900">{tx.merchantName || tx.description || tx.category}</p>
+                    {tx.importSource === 'plaid' && (
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                        Linked via Plaid
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-500 capitalize">
                     {tx.category} • {new Date(tx.timestamp).toLocaleDateString()}
                     {tx.currency && tx.currency !== preferredCurrency && (
                       <span className="ml-1 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-mono">{tx.currency}</span>
                     )}
                   </p>
+                  {(tx.sourceInstitutionName || tx.sourceAccountName) && (
+                    <p className="text-xs text-emerald-700 mt-1">
+                      {[tx.sourceInstitutionName, tx.sourceAccountName, tx.sourceAccountType].filter(Boolean).join(' • ')}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-3">

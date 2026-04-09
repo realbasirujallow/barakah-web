@@ -17,12 +17,19 @@ interface AdminUser {
   planExpiresAt?: number;
   emailVerified?: boolean;
   referralCount?: number;
+  referralClickCount?: number;
   hasStripe?: boolean;
   createdAt: number;
   updatedAt?: number;
   country?: string;
   state?: string;
   phoneNumber?: string;
+}
+
+interface OnboardingTrialSettings {
+  enabled: boolean;
+  plan: string;
+  durationDays: number;
 }
 
 interface UsersResponse {
@@ -132,6 +139,8 @@ export default function AdminPage() {
   const [userActivity, setUserActivity] = useState<Record<string, number> | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts' | 'unverified'>('overview');
+  const [onboardingTrial, setOnboardingTrial] = useState<OnboardingTrialSettings | null>(null);
+  const [trialSettingsSaving, setTrialSettingsSaving] = useState(false);
   const { toast } = useToast();
   const { fmt: fmtMoney } = useCurrency();
 
@@ -144,6 +153,7 @@ export default function AdminPage() {
         api.getAdminUsers(p, 50),
         api.getAdminAnalytics().catch(() => null),
         api.getAdminFeatureUsage().catch(() => null),
+        api.getAdminOnboardingTrialSettings().catch(() => null),
       ]);
 
       // Check for 403 from any result
@@ -165,11 +175,13 @@ export default function AdminPage() {
       const usersRes = results[1].status === 'fulfilled' ? results[1].value : null;
       const analyticsRes = results[2].status === 'fulfilled' ? results[2].value : null;
       const featureRes = results[3].status === 'fulfilled' ? results[3].value : null;
+      const onboardingTrialRes = results[4].status === 'fulfilled' ? results[4].value : null;
 
       if (overviewRes) setOverview(overviewRes);
       setUsersData(usersRes);
       if (analyticsRes) setAnalytics(analyticsRes);
       if (featureRes) setFeatureUsage(featureRes);
+      if (onboardingTrialRes) setOnboardingTrial(onboardingTrialRes as OnboardingTrialSettings);
       setLastRefreshed(new Date());
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load admin data';
@@ -261,6 +273,21 @@ export default function AdminPage() {
       toast(err instanceof Error ? err.message : 'Failed to grant trial', 'error');
     } finally {
       setTrialGranting(false);
+    }
+  };
+
+  const handleSaveOnboardingTrial = async () => {
+    if (!onboardingTrial) return;
+    setTrialSettingsSaving(true);
+    try {
+      const updated = await api.updateAdminOnboardingTrialSettings(onboardingTrial);
+      setOnboardingTrial(updated as OnboardingTrialSettings);
+      toast('Onboarding trial settings updated', 'success');
+      loadData(page);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to update onboarding trial settings', 'error');
+    } finally {
+      setTrialSettingsSaving(false);
     }
   };
 
@@ -532,6 +559,70 @@ export default function AdminPage() {
                 <div className="rounded-lg bg-gray-50 px-3 py-2 border">Missing phone: <span className="font-semibold text-gray-800">{overview.usersMissingPhone ?? 0}</span></div>
                 <div className="rounded-lg bg-gray-50 px-3 py-2 border">Missing location: <span className="font-semibold text-gray-800">{overview.usersMissingLocation ?? 0}</span></div>
                 <div className="rounded-lg bg-gray-50 px-3 py-2 border">Total support backlog: <span className="font-semibold text-gray-800">{(overview.unverifiedEmails ?? 0) + (overview.pastDueCount ?? 0) + (overview.expiringTrialsCount ?? 0)}</span></div>
+              </div>
+            </div>
+          )}
+
+          {onboardingTrial && (
+            <div className="bg-white rounded-2xl p-5 border">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div>
+                  <h2 className="font-semibold text-gray-700 text-sm">New Member Trial</h2>
+                  <p className="text-xs text-gray-400 mt-1">Control the automatic access every newly verified account receives.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSaveOnboardingTrial}
+                  disabled={trialSettingsSaving}
+                  className="px-4 py-2 rounded-lg bg-[#1B5E20] text-white text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50"
+                >
+                  {trialSettingsSaving ? 'Saving…' : 'Save Trial Settings'}
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-[0.8fr_0.8fr_1fr] gap-4">
+                <label className="rounded-xl border border-gray-200 px-4 py-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Enabled</p>
+                    <p className="text-xs text-gray-500 mt-1">Automatically grant access after email verification.</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={onboardingTrial.enabled}
+                    onChange={e => setOnboardingTrial(prev => prev ? { ...prev, enabled: e.target.checked } : prev)}
+                    className="h-5 w-5 accent-[#1B5E20]"
+                  />
+                </label>
+                <label className="rounded-xl border border-gray-200 px-4 py-3 block">
+                  <p className="text-sm font-semibold text-gray-900 mb-2">Plan</p>
+                  <select
+                    value={onboardingTrial.plan}
+                    onChange={e => setOnboardingTrial(prev => prev ? { ...prev, plan: e.target.value } : prev)}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900"
+                  >
+                    <option value="plus">Plus</option>
+                    <option value="family">Family</option>
+                  </select>
+                </label>
+                <label className="rounded-xl border border-gray-200 px-4 py-3 block">
+                  <p className="text-sm font-semibold text-gray-900 mb-2">Duration</p>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={onboardingTrial.durationDays}
+                      onChange={e => setOnboardingTrial(prev => prev ? {
+                        ...prev,
+                        durationDays: Math.max(1, Math.min(365, Number(e.target.value) || 1)),
+                      } : prev)}
+                      className="w-28 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900"
+                    />
+                    <span className="text-sm text-gray-500">days</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Current default: {onboardingTrial.enabled ? `${onboardingTrial.plan} for ${onboardingTrial.durationDays} days` : 'disabled'}.
+                  </p>
+                </label>
               </div>
             </div>
           )}
@@ -1075,8 +1166,10 @@ export default function AdminPage() {
                     {(() => { const d = daysUntil(selected.planExpiresAt); return d !== null ? ` (${d <= 0 ? 'expired' : d + 'd'})` : ''; })()}
                   </p>
                 )}
-                {(selected.referralCount ?? 0) > 0 && (
-                  <p className="text-xs text-gray-400 mt-0.5">{selected.referralCount} referral{selected.referralCount! > 1 ? 's' : ''}</p>
+                {((selected.referralCount ?? 0) > 0 || (selected.referralClickCount ?? 0) > 0) && (
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {selected.referralClickCount ?? 0} click{(selected.referralClickCount ?? 0) === 1 ? '' : 's'} • {selected.referralCount ?? 0} reward{(selected.referralCount ?? 0) === 1 ? '' : 's'}
+                  </p>
                 )}
               </div>
               <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
