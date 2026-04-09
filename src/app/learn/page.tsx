@@ -201,10 +201,10 @@ export default function LearnPage() {
             Use Barakah to move from reading to action with fiqh-aware tools for zakat, hawl, budgeting, family visibility, and estate planning.
           </p>
           <Link
-            href="/dashboard"
+            href="/zakat-calculator"
             className="inline-block bg-white text-[#1B5E20] px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition"
           >
-            Go to Calculator
+            Try the Zakat Calculator
           </Link>
         </section>
       </main>

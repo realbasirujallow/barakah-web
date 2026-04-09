@@ -211,7 +211,7 @@ export default function NisabThresholdPage() {
                 <ol className="space-y-2 text-gray-700 text-sm">
                   <li>1. <strong>Know your madhab:</strong> Ask your imam which school of Islamic law you follow (Hanafi, Shafi&apos;i, Maliki, Hanbali)</li>
                   <li>2. <strong>Check your school&apos;s guidance:</strong> Most schools today recommend the gold standard (85g)</li>
-                  <li>3. <strong>When in doubt:</strong> Use the gold standard (85g), which is the safest and most widely accepted</li>
+                  <li>3. <strong>When in doubt:</strong> Use the gold standard (85g) if you follow AMJA-style North American guidance, or ask your imam whether classical silver better fits your fiqh practice</li>
                   <li>4. <strong>Stay consistent:</strong> Once you choose a standard, use the same one year after year for consistency</li>
                 </ol>
               </div>

@@ -9,6 +9,9 @@ interface NisabData {
   nisabSilverGrams: number;
   nisabGoldThreshold: number;
   nisabSilverThreshold: number;
+  goldPriceSource?: string;
+  silverPriceSource?: string;
+  priceAgeMs?: number;
   staleWarning?: boolean;
 }
 
@@ -182,11 +185,25 @@ export default function NisabLivePrices({ variant = 'card' }: NisabLivePricesPro
     );
   }
 
+  const goldSource = data.goldPriceSource ?? 'live';
+  const silverSource = data.silverPriceSource ?? 'live';
+  const usingBackupSource = goldSource !== 'live' || silverSource !== 'live';
+  const ageMinutes = typeof data.priceAgeMs === 'number'
+    ? Math.max(0, Math.round(data.priceAgeMs / 60000))
+    : null;
+
+  let freshnessLabel = 'Updated automatically from live market data';
+  if (usingBackupSource) {
+    freshnessLabel = 'Using a backup pricing source while the live feed refreshes';
+  } else if (ageMinutes != null && ageMinutes > 0) {
+    freshnessLabel = `Updated automatically from market data · ${ageMinutes} min ago`;
+  }
+
   // Default: card variant
   return (
     <div className="bg-gradient-to-br from-green-50 to-amber-50 border border-green-200 rounded-xl p-6 my-6">
       <h3 className="font-bold text-[#1B5E20] mb-1 text-lg">Live Nisab Thresholds</h3>
-      <p className="text-xs text-gray-500 mb-4">Updated automatically from market data</p>
+      <p className="text-xs text-gray-500 mb-4">{freshnessLabel}</p>
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-white rounded-lg p-4 border border-green-100">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Gold ({data.nisabGoldGrams}g)</p>
@@ -199,6 +216,11 @@ export default function NisabLivePrices({ variant = 'card' }: NisabLivePricesPro
           <p className="text-xs text-gray-500">{usdDecimal(data.silverPricePerGram)} / gram</p>
         </div>
       </div>
+      {usingBackupSource && (
+        <p className="text-xs text-amber-700 mt-3">
+          Gold source: {goldSource}. Silver source: {silverSource}.
+        </p>
+      )}
       {data.staleWarning && (
         <p className="text-xs text-amber-600 mt-3">⚠️ Prices may be delayed. Check back later for the latest rates.</p>
       )}

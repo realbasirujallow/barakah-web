@@ -62,7 +62,7 @@ const faqItems = [
   {
     question: 'Is zakat due on retirement accounts (401k, IRA)?',
     answer:
-      'There are three scholarly positions on retirement accounts. The Hanafi school typically excludes them from zakat since you cannot access them freely. The Maliki and Hanbali schools generally include them. Many contemporary scholars recommend consulting your local imam about your specific situation, as tax penalties and restrictions may affect the calculation.',
+      'Scholars differ on retirement accounts because access is restricted and withdrawals can trigger taxes or penalties. A common contemporary approach is to calculate zakat on the amount you could actually access today after estimated taxes and penalties. Because local fatwa practice varies, consult your imam if you follow a specific position.',
   },
   {
     question: 'When should I pay my zakat?',
@@ -77,7 +77,7 @@ const faqItems = [
   {
     question: 'Do I pay zakat on gold jewelry?',
     answer:
-      'This depends on your Islamic school of thought. The Shafii, Maliki, and Hanbali schools typically require zakat on all gold jewelry, even if worn regularly. The Hanafi school often exempts gold jewelry worn by women for personal adornment. Consult with your imam for clarity on your madhab.',
+      'This depends on your Islamic school of thought. In Barakah, the Hanafi and Hanbali settings treat gold and silver jewelry as zakatable, while the Shafii and Maliki settings generally exempt personal jewelry worn regularly. Jewelry kept for storage, resale, or investment is typically treated as zakatable across schools.',
   },
   {
     question: 'How do I calculate zakat on investments and stocks?',
@@ -87,7 +87,7 @@ const faqItems = [
   {
     question: 'What if my wealth fluctuates during the year?',
     answer:
-      'What matters is the value of your wealth on your zakat anniversary date (one lunar year after you first met nisab). Small fluctuations during the year do not require recalculation. However, if you experience a significant change (inheritance, major loss, business sale), consult your imam about how it affects your zakat calculation.',
+      'What matters is whether your zakatable wealth remained above nisab throughout the Hawl. Small day-to-day movements do not usually change anything, but if your wealth genuinely drops below nisab, many scholars treat the Hawl as resetting from the date it rises above nisab again. Barakah helps track that continuity for signed-in users.',
   },
   {
     question: 'Who are the eligible recipients of zakat?',
@@ -146,7 +146,7 @@ export default function ZakatCalculatorPage() {
               {
                 '@type': 'HowToStep',
                 name: 'Apply the 2.5% zakat rate',
-                text: 'Multiply your total zakatable wealth (net wealth above nisab) by 0.025 (2.5%). This gives you the amount of zakat you owe. The 2.5% rate is established in Islamic law and is the standard across all schools of thought.',
+                text: 'If your net zakatable wealth meets or exceeds nisab, multiply your total zakatable wealth by 0.025 (2.5%). This gives you the amount of zakat you owe. The 2.5% rate is established in Islamic law and is the standard across all schools of thought.',
               },
               {
                 '@type': 'HowToStep',
@@ -200,15 +200,15 @@ export default function ZakatCalculatorPage() {
               Free Zakat Calculator 2026
             </h1>
             <p className="text-xl text-gray-700 mb-6 max-w-2xl mx-auto">
-              Calculate your zakat obligation in under 60 seconds. Trusted by thousands of Muslims
-              worldwide for accurate, easy zakat calculations.
+              Calculate your zakat obligation in under 60 seconds with live nisab references,
+              clear asset categories, and fiqh-aware guidance you can actually follow.
             </p>
 
             {/* Trust Badges */}
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
                 <span className="text-green-700 font-bold">✓</span>
-                <span className="text-sm font-medium text-gray-700">AMJA Methodology</span>
+                <span className="text-sm font-medium text-gray-700">Gold-standard nisab default</span>
               </div>
               <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
                 <span className="text-green-700 font-bold">✓</span>
@@ -318,8 +318,8 @@ export default function ZakatCalculatorPage() {
                     Apply the 2.5% zakat rate to zakatable wealth
                   </h3>
                   <p className="text-gray-700 leading-relaxed">
-                    Take your net wealth after debts, subtract the nisab threshold, and multiply
-                    the remaining amount by 2.5% (or 0.025). This is the amount of zakat you owe.
+                    If your net wealth after debts meets or exceeds the nisab threshold, multiply
+                    the full zakatable amount by 2.5% (or 0.025). This is the amount of zakat you owe.
                     The 2.5% rate is unanimous across all four Islamic schools of thought (madhabs)
                     and is established from the Quran and Sunnah.
                   </p>
@@ -340,7 +340,7 @@ export default function ZakatCalculatorPage() {
                   <p className="text-gray-700 leading-relaxed">
                     Distribute your zakat amount to eligible recipients. These are the eight
                     categories specified in the Quran: the poor, the needy, zakat workers,
-                    converting Muslims, freeing slaves, those in debt, those striving in Allah's
+                    converting Muslims, freeing slaves, those in debt, those striving in Allah&apos;s
                     way, and travelers. You cannot give zakat to family members you are obligated to
                     support. Ensure you keep records of your zakat payments for accountability.
                   </p>
@@ -405,25 +405,21 @@ export default function ZakatCalculatorPage() {
             <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
               <h4 className="text-lg font-semibold text-gray-900 mb-3">Retirement Accounts (401k, IRA, Roth IRA)</h4>
               <p className="text-gray-700 mb-3">
-                There are three scholarly positions on retirement accounts:
+                Scholars differ on retirement accounts because access can be restricted and withdrawals can trigger taxes or penalties:
               </p>
               <ul className="space-y-2 text-gray-700 list-disc list-inside">
                 <li>
-                  <strong>Hanafi School:</strong> Excludes retirement accounts since you cannot
-                  access them freely without penalty.
+                  <strong>Accessible-value approach:</strong> Calculate zakat on the amount you could actually access today after estimated taxes and penalties.
                 </li>
                 <li>
-                  <strong>Shafii & Hanbali Schools:</strong> Include them as part of zakatable wealth
-                  at their current balance value.
+                  <strong>Deferred approach:</strong> Some scholars defer zakat until withdrawal because the funds are locked or not fully accessible.
                 </li>
                 <li>
-                  <strong>Maliki School:</strong> Varies based on the nature of restrictions and
-                  access terms.
+                  <strong>Hybrid positions:</strong> Some scholars distinguish between employee contributions, employer match, or different account types.
                 </li>
               </ul>
               <p className="text-sm text-gray-600 mt-3">
-                Many contemporary scholars recommend consulting your local imam to determine which
-                position aligns with your circumstances and madhab.
+                For a precise calculation, Barakah&apos;s signed-in dashboard estimates accessible value using taxes, penalties, and your state profile.
               </p>
             </div>
           </section>
@@ -461,24 +457,22 @@ export default function ZakatCalculatorPage() {
                   <strong>595 grams of silver</strong> at current market price. This currently equals approximately <SilverNisabUSD /> (at <SilverPricePerGram /> per gram).
                 </p>
                 <p className="text-sm text-gray-600">
-                  The silver standard is much lower, as silver is less valuable per unit. According
-                  to the Hanafi, Hanbali, and some Maliki scholars, you may choose either standard.
+                  The silver standard is much lower, as silver is less valuable per unit. It remains the classical Hanafi benchmark and is still used by Muslims who prefer that approach.
                 </p>
               </div>
 
               {/* The Lower of Two Approach */}
               <div className="bg-green-50 border border-green-200 p-6 rounded-lg">
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  Al-Qaradawi's "Lower of Two" Approach
+                  Al-Qaradawi&apos;s &quot;Lower of Two&quot; Approach
                 </h3>
                 <p className="text-gray-700 leading-relaxed">
                   Many contemporary Islamic scholars, including the prominent jurist Yusuf
-                  Al-Qaradawi and the Assembly of Muslim Jurists of America (AMJA), recommend using
+                  Al-Qaradawi, recommend using
                   the <strong>lower of the two nisab amounts</strong> (gold or silver standard) to
-                  be more cautious and ensure zakat is paid when due. This means if the gold standard
-                  is higher, use the gold standard amount. This approach aims to ensure more people
-                  pay zakat and the obligation is not overlooked. Our calculator uses this
-                  methodology.
+                  be more cautious and ensure zakat is paid when due. Barakah&apos;s public calculator
+                  defaults to the gold standard in line with AMJA-style North American guidance, while
+                  signed-in users can choose gold, classical silver, or lower-of-two methodology in their settings.
                 </p>
               </div>
 
@@ -494,9 +488,9 @@ export default function ZakatCalculatorPage() {
                   <p className="font-medium mb-2">Example Timeline:</p>
                   <ul className="space-y-1 list-disc list-inside">
                     <li>April 3, 2026: Your wealth first exceeds the nisab threshold</li>
-                    <li>April 3, 2027: One lunar year has passed (approximately)</li>
-                    <li>By April 3, 2027: You must pay your zakat</li>
-                    <li>The amount owed is 2.5% of your wealth on April 3, 2027</li>
+                    <li>About 354 days later: your Hawl anniversary arrives</li>
+                    <li>At that time: review whether your wealth stayed above nisab throughout the year</li>
+                    <li>If it did, pay 2.5% of your zakatable wealth on that Hawl date</li>
                   </ul>
                 </div>
               </div>
@@ -535,9 +529,9 @@ export default function ZakatCalculatorPage() {
               Ready to Track Your Zakat Automatically?
             </h2>
             <p className="text-lg text-green-100 mb-8 max-w-2xl mx-auto">
-              Join thousands of Muslims using Barakah to calculate, track, and manage their zakat
-              with confidence. Our zakat tracker helps you monitor your wealth throughout the year
-              and never miss a payment.
+              Create a free Barakah account to save your setup, monitor Hawl continuity, and keep
+              your zakat records in one place. Upgrade only if you want connected accounts and the
+              fuller household finance system.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">

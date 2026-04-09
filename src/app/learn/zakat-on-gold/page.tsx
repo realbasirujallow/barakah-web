@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import NisabLivePrices, { GoldPricePerGram, GoldNisabUSD, SilverNisabUSD } from '../../../components/NisabLivePrices';
+import NisabLivePrices, { GoldPricePerGram, GoldNisabUSD } from '../../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
   title: 'Zakat on Gold & Jewelry: Complete 2026 Guide | Barakah',
@@ -34,7 +34,7 @@ const FaqSchema = {
       name: 'Is gold jewelry zakatable?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'According to most scholars (Shafi\'i, Maliki, Hanbali schools), gold jewelry is zakatable if it reaches the nisab threshold. Some Hanafi scholars consider jewelry intended for personal wear as exempt, but this is a minority position. It is safer to include jewelry in your zakat calculations.',
+        text: 'This depends on the school of fiqh you follow. In Barakah\'s fiqh settings, Hanafi and Hanbali calculations treat gold and silver jewelry as zakatable, while Shafi\'i and Maliki settings generally exempt personal jewelry worn regularly. Jewelry held for storage, resale, or investment is generally treated as zakatable.',
       },
     },
     {
@@ -116,7 +116,7 @@ export default function ZakatOnGoldPage() {
             <section id="nisab" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">What is the Nisab for Gold?</h2>
               <p className="text-gray-700 leading-relaxed">
-                The nisab (minimum threshold) for gold is the amount you must possess for zakat to become obligatory. According to the Islamic Fiqh Academy (AMJA) — the most widely followed modern standard — the nisab for gold is <strong>85 grams</strong> (approximately 2.747 troy ounces).
+                The nisab (minimum threshold) for gold is the amount you must possess for zakat to become obligatory. A widely used contemporary standard, including AMJA guidance for North America, is <strong>85 grams</strong> (approximately 2.747 troy ounces).
               </p>
               <p className="text-gray-700 leading-relaxed">
                 At the current market price of <GoldPricePerGram /> per gram, this equates to approximately <GoldNisabUSD />. Gold prices fluctuate daily, so always use today&apos;s market rate.
@@ -163,29 +163,29 @@ export default function ZakatOnGoldPage() {
 
               <div className="space-y-4 my-6">
                 <div className="border-l-4 border-[#1B5E20] bg-green-50 p-4 rounded">
-                  <h3 className="font-bold text-[#1B5E20] mb-2">Shafi'i, Maliki, and Hanbali Schools</h3>
+                  <h3 className="font-bold text-[#1B5E20] mb-2">Hanafi and Hanbali Settings</h3>
                   <p className="text-gray-700 text-sm">
-                    <strong>Jewelry IS zakatable.</strong> These schools consider all gold jewelry as wealth subject to zakat, regardless of whether it is worn regularly or stored. This is the majority position among Muslim scholars globally.
+                    <strong>Jewelry is generally treated as zakatable.</strong> In Barakah&apos;s fiqh settings, these approaches count gold and silver jewelry as part of zakatable wealth even if it is worn regularly.
                   </p>
                 </div>
 
                 <div className="border-l-4 border-blue-600 bg-blue-50 p-4 rounded">
-                  <h3 className="font-bold text-blue-900 mb-2">Hanafi School (Minority View)</h3>
+                  <h3 className="font-bold text-blue-900 mb-2">Shafi&apos;i and Maliki Settings</h3>
                   <p className="text-gray-700 text-sm">
-                    Some Hanafi scholars traditionally exempted jewelry intended for personal wear from zakat. However, many modern Hanafi scholars and the majority of Hanafi jurists today agree that all gold jewelry is zakatable to maintain consistency with other schools.
+                    <strong>Personal jewelry worn regularly is generally exempt.</strong> Jewelry held for savings, resale, or investment is still treated as zakatable.
                   </p>
                 </div>
               </div>
 
               <p className="text-gray-700 leading-relaxed font-semibold bg-yellow-50 border border-yellow-200 p-4 rounded">
-                <strong>Recommendation:</strong> To be safe and follow the majority scholarly position, include all gold jewelry in your zakat calculations, regardless of school of thought. This ensures your zakat is valid and accepted, in shaa Allah.
+                <strong>Recommendation:</strong> Follow the fiqh guidance you trust and stay consistent. If you are unsure, ask a qualified imam whether your regularly worn jewelry should be counted or exempted.
               </p>
             </section>
 
             <section id="comparison" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Gold vs Silver Nisab</h2>
               <p className="text-gray-700 leading-relaxed">
-                Islamic law establishes nisab thresholds for both gold and silver. Here's how they compare:
+                Islamic law establishes nisab thresholds for both gold and silver. Here&apos;s how they compare:
               </p>
 
               {/* Live comparison table — values fetched from API */}
@@ -195,8 +195,8 @@ export default function ZakatOnGoldPage() {
                 <h3 className="font-bold text-[#1B5E20] mb-3">Which Should You Use?</h3>
                 <ul className="space-y-2 text-gray-700">
                   <li><strong className="text-[#1B5E20]">Gold Standard (85g):</strong> Use this if you follow the AMJA recommendation or most contemporary scholars.</li>
-                  <li><strong className="text-[#1B5E20]">Silver Standard (595g):</strong> Use if you follow classical Hanafi jurisprudence. Some scholars apply the "lower of two" approach, using whichever nisab is lower at the time of calculation.</li>
-                  <li><strong className="text-[#1B5E20]">Al-Qaradawi's Position:</strong> Many modern scholars recommend using the lower threshold to ensure zakat is definitely due, maximizing compliance.</li>
+                  <li><strong className="text-[#1B5E20]">Silver Standard (595g):</strong> Use if you follow classical Hanafi jurisprudence. Some scholars apply the &quot;lower of two&quot; approach, using whichever nisab is lower at the time of calculation.</li>
+                  <li><strong className="text-[#1B5E20]">Al-Qaradawi&apos;s Position:</strong> Many modern scholars recommend using the lower threshold to ensure zakat is definitely due, maximizing compliance.</li>
                 </ul>
               </div>
             </section>
@@ -214,7 +214,7 @@ export default function ZakatOnGoldPage() {
                   <p className="text-gray-700"><strong className="text-red-600">Not checking the lunar year:</strong> Zakat is due after possessing nisab for one complete Islamic (lunar) year. Many calculate it on the Gregorian calendar by mistake.</p>
                 </div>
                 <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-                  <p className="text-gray-700"><strong className="text-red-600">Excluding jewelry in savings:</strong> Some people only count coins or bars but forget stored jewelry. Remember to include all gold items.</p>
+                  <p className="text-gray-700"><strong className="text-red-600">Excluding stored jewelry:</strong> Some people only count coins or bars but forget jewelry they keep for savings, resale, or long-term storage. If your fiqh position treats that jewelry as wealth, include it.</p>
                 </div>
                 <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
                   <p className="text-gray-700"><strong className="text-red-600">Confusing resale value with market price:</strong> Use the current spot price of gold, not what a jeweler would pay for it (which is typically 20-30% less).</p>
@@ -242,7 +242,7 @@ export default function ZakatOnGoldPage() {
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Can I pay zakat on gold in cash instead of physical gold?</h3>
                 <p className="text-gray-700 text-sm">
-                  Yes, you may pay the equivalent cash value of the gold's market price. Many scholars prefer this for convenience, and Barakah's calculator lets you convert and pay directly through the app.
+                  Yes, you may pay the equivalent cash value of the gold&apos;s market price. Many scholars prefer this for convenience, and Barakah&apos;s calculator helps you convert your metal holdings into a clear cash zakat amount.
                 </p>
               </div>
 
@@ -254,7 +254,7 @@ export default function ZakatOnGoldPage() {
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="font-bold text-[#1B5E20] mb-2">Q: Do I include gold I'm holding for someone else?</h3>
+                <h3 className="font-bold text-[#1B5E20] mb-2">Q: Do I include gold I&apos;m holding for someone else?</h3>
                 <p className="text-gray-700 text-sm">
                   No. If you are holding gold on trust for another person (as a custodian), you are not responsible for zakat on it. The owner must pay zakat. However, if it is a loan or you have ownership rights, you must include it.
                 </p>
@@ -265,10 +265,10 @@ export default function ZakatOnGoldPage() {
             <div className="bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] rounded-xl p-8 text-white mt-12 space-y-4">
               <h2 className="text-2xl font-bold">Ready to Calculate Your Zakat on Gold?</h2>
               <p className="text-green-100">
-                Use Barakah's intelligent zakat calculator to compute your obligations across all asset classes with real-time gold prices.
+                Use Barakah&apos;s intelligent zakat calculator to compute your obligations across all asset classes with real-time gold prices.
               </p>
               <Link
-                href="/dashboard"
+                href="/zakat-calculator"
                 className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition"
               >
                 Open Zakat Calculator

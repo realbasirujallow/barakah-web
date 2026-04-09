@@ -32,11 +32,16 @@ export default function ContactPage() {
     }
 
     try {
-      await api.contact(form.subject, form.message);
+      await api.contact({
+        name: form.name,
+        email: form.email,
+        subject: form.subject,
+        message: form.message,
+      });
       setStatus('sent');
       setForm({ name: '', email: '', subject: '', message: '' });
-    } catch (err: any) {
-      setErrorMsg(err?.message || 'Something went wrong. Please try again.');
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
       setStatus('error');
     }
   };
