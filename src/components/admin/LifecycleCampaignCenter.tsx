@@ -41,6 +41,17 @@ type RetentionSettings = {
   stripeCouponId: string;
 };
 
+type ContactSubmission = {
+  id: number;
+  name: string;
+  email: string;
+  phoneNumber?: string;
+  subject: string;
+  message: string;
+  source: string;
+  createdAt: number;
+};
+
 const defaultDraft = (): DraftCampaign => ({
   name: '',
   description: '',
@@ -128,6 +139,7 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
   const [overview, setOverview] = useState<Record<string, number> | null>(null);
   const [templates, setTemplates] = useState<Array<Record<string, unknown>>>([]);
   const [campaigns, setCampaigns] = useState<Array<Record<string, unknown>>>([]);
+  const [contactSubmissions, setContactSubmissions] = useState<ContactSubmission[]>([]);
   const [retentionSettings, setRetentionSettings] = useState<RetentionSettings>(defaultRetentionSettings);
   const [retentionStatus, setRetentionStatus] = useState<string | null>(null);
   const [draft, setDraft] = useState<DraftCampaign>(defaultDraft);
@@ -141,11 +153,12 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [overviewResult, templatesResult, campaignsResult, retentionResult] = await Promise.allSettled([
+      const [overviewResult, templatesResult, campaignsResult, retentionResult, contactSubmissionsResult] = await Promise.allSettled([
         api.getAdminLifecycleOverview(),
         api.getAdminLifecycleTemplates(),
         api.getAdminLifecycleCampaigns(),
         api.getAdminRetentionOfferSettings(),
+        api.getAdminContactSubmissions(),
       ]);
 
       if (overviewResult.status === 'fulfilled') {
@@ -187,10 +200,14 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
         setRetentionStatus('Saved retention settings could not be loaded right now. Showing safe defaults so you can still configure the offer.');
       }
 
-      const failedSections = [overviewResult, templatesResult, campaignsResult, retentionResult]
+      if (contactSubmissionsResult.status === 'fulfilled') {
+        setContactSubmissions(((contactSubmissionsResult.value?.submissions as ContactSubmission[] | undefined) ?? []).slice(0, 20));
+      }
+
+      const failedSections = [overviewResult, templatesResult, campaignsResult, retentionResult, contactSubmissionsResult]
         .filter(result => result.status === 'rejected').length;
 
-      if (failedSections === 4) {
+      if (failedSections >= 4) {
         toast('Lifecycle admin data is temporarily unavailable. Please try again shortly.', 'error');
       }
     } catch {
@@ -760,6 +777,53 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="rounded-2xl border bg-white p-5">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Recent Feedback & Leads</h2>
+            <p className="text-sm text-gray-500 mt-1">Keep a clean list of people who reached out so support and outreach never depend on a single inbox.</p>
+          </div>
+        </div>
+
+        {contactSubmissions.length > 0 ? (
+          <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50 text-gray-500">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium">Contact</th>
+                  <th className="px-3 py-2 text-left font-medium">Subject</th>
+                  <th className="px-3 py-2 text-left font-medium">Source</th>
+                  <th className="px-3 py-2 text-left font-medium">Received</th>
+                </tr>
+              </thead>
+              <tbody>
+                {contactSubmissions.map(submission => (
+                  <tr key={submission.id} className="border-t border-gray-100 align-top">
+                    <td className="px-3 py-3">
+                      <p className="font-medium text-gray-900">{submission.name || 'Anonymous'}</p>
+                      <a href={`mailto:${submission.email}`} className="text-[#1B5E20] hover:underline">{submission.email}</a>
+                      {submission.phoneNumber ? (
+                        <p className="text-xs text-gray-500 mt-1">{submission.phoneNumber}</p>
+                      ) : null}
+                    </td>
+                    <td className="px-3 py-3 text-gray-700">
+                      <p className="font-medium text-gray-900">{submission.subject}</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-gray-500">{submission.message}</p>
+                    </td>
+                    <td className="px-3 py-3 text-gray-700 capitalize">{submission.source}</td>
+                    <td className="px-3 py-3 text-gray-500">{new Date(submission.createdAt).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-gray-200 p-6 text-sm text-gray-500">
+            No contact or feedback submissions yet. Once users start writing in, their details will show up here for support and outreach follow-up.
+          </div>
+        )}
       </div>
     </div>
   );

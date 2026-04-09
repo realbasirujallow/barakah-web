@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
@@ -7,6 +7,8 @@ import { useToast } from '../../../lib/toast';
 interface BillItem {
   id: number; name: string; category: string; amount: number;
   frequency: string; dueDay: number; paid: boolean; nextDueDate: number;
+  readOnly?: boolean; linkedSource?: string | null; description?: string;
+  sourceLabel?: string; minimumPaymentDue?: number; statementBalance?: number;
 }
 
 const FREQS = ['weekly', 'monthly', 'quarterly', 'yearly', 'one_time'];
@@ -20,6 +22,7 @@ const CATEGORIES: { value: string; label: string; icon: string }[] = [
   { value: 'healthcare',     label: 'Healthcare',      icon: '🏥' },
   { value: 'education',      label: 'Education',       icon: '📚' },
   { value: 'transport',      label: 'Transport',       icon: '🚗' },
+  { value: 'debt',           label: 'Debt Payment',    icon: '💳' },
   { value: 'charity',        label: 'Charity / Zakat', icon: '🤲' },
   { value: 'other',          label: 'Other',           icon: '📋' },
 ];
@@ -60,7 +63,7 @@ export default function BillsPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const { toast } = useToast();
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     api.getBills()
       .then(d => {
@@ -72,9 +75,9 @@ export default function BillsPage() {
       })
       .catch(() => toast('Failed to load bills', 'error'))
       .finally(() => setLoading(false));
-  };
+  }, [toast]);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   const openAdd = () => {
     setEditBill(null);
@@ -188,7 +191,7 @@ export default function BillsPage() {
     return s + b.amount;
   }, 0);
 
-  const BillRow = ({ b, showStatus = false }: { b: BillItem; showStatus?: boolean }) => {
+  const BillRow = ({ b }: { b: BillItem }) => {
     const days = getDaysUntilDue(b);
     const isOverdue  = b.nextDueDate && b.nextDueDate < now && !b.paid;
     const isUpcoming = !isOverdue && days !== null && days <= 7 && !b.paid;
@@ -208,24 +211,29 @@ export default function BillsPage() {
               {CAT_MAP[b.category]?.label ?? b.category} • {b.frequency}
               {b.nextDueDate && !b.paid && (
                 <span className={`ml-2 font-medium ${isOverdue ? 'text-red-600' : isUpcoming ? 'text-orange-600' : 'text-gray-500'}`}>
-                  • {isOverdue ? `Overdue (${formatDueDate(b)})` : `Due ${formatDueDate(b)}${days !== null && days <= 7 ? ` (${days}d)` : ''}`}
+                  • {isOverdue ? `Overdue (${formatDueDate(b)})` : days === 0 ? `Due today (${formatDueDate(b)})` : `Due ${formatDueDate(b)}${days !== null && days <= 7 ? ` (${days}d)` : ''}`}
                 </span>
               )}
               {b.paid && <span className="ml-2 text-green-600 font-medium">✓ Paid</span>}
             </p>
+            {b.readOnly && (
+              <p className="text-xs text-gray-400 mt-1">
+                {b.sourceLabel ?? 'Linked reminder'}{b.description ? ` • ${b.description}` : ''}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
           <p className={`text-lg font-bold ${b.paid ? 'text-green-600' : isOverdue ? 'text-red-600' : 'text-gray-700'}`}>
             {fmt(b.amount)}
           </p>
-          {!b.paid && (
+          {!b.paid && !b.readOnly && (
             <button type="button" onClick={() => handlePaid(b.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 whitespace-nowrap">
               ✓ Paid
             </button>
           )}
-          <button type="button" onClick={() => openEdit(b)} className="text-gray-400 hover:text-[#1B5E20] text-sm px-1">✏️</button>
-          <button type="button" onClick={() => handleDelete(b.id)} disabled={deletingId === b.id} className="text-gray-400 hover:text-red-600 text-sm px-1 disabled:opacity-50" title={deletingId === b.id ? 'Deleting...' : 'Delete'}>{deletingId === b.id ? '⏳' : '🗑️'}</button>
+          {!b.readOnly && <button type="button" onClick={() => openEdit(b)} className="text-gray-400 hover:text-[#1B5E20] text-sm px-1">✏️</button>}
+          {!b.readOnly && <button type="button" onClick={() => handleDelete(b.id)} disabled={deletingId === b.id} className="text-gray-400 hover:text-red-600 text-sm px-1 disabled:opacity-50" title={deletingId === b.id ? 'Deleting...' : 'Delete'}>{deletingId === b.id ? '⏳' : '🗑️'}</button>}
         </div>
       </div>
     );
