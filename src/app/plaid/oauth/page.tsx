@@ -7,6 +7,7 @@ import { usePlaidLink } from 'react-plaid-link';
 import { api } from '../../../lib/api';
 import {
   clearPendingPlaidLinkToken,
+  getPlaidUiErrorMessage,
   readPendingPlaidLinkToken,
 } from '../../../lib/plaid';
 
@@ -33,7 +34,7 @@ export default function PlaidOauthPage() {
       clearPendingPlaidLinkToken();
       finishWithRedirect(
         'error',
-        err instanceof Error ? err.message : 'Failed to link bank account.',
+        getPlaidUiErrorMessage(err, 'exchange'),
       );
     }
   }, [finishWithRedirect]);
@@ -42,7 +43,9 @@ export default function PlaidOauthPage() {
     clearPendingPlaidLinkToken();
     finishWithRedirect(
       'error',
-      error?.display_message || 'Plaid authentication was canceled before completion.',
+      error?.display_message || (error
+        ? getPlaidUiErrorMessage(error, 'start')
+        : 'Plaid authentication was canceled before completion.'),
     );
   }, [finishWithRedirect]);
 

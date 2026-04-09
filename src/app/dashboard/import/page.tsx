@@ -4,7 +4,11 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePlaidLink } from 'react-plaid-link';
 import { api } from '../../../lib/api';
-import { clearPendingPlaidLinkToken, savePendingPlaidLinkToken } from '../../../lib/plaid';
+import {
+  clearPendingPlaidLinkToken,
+  getPlaidUiErrorMessage,
+  savePendingPlaidLinkToken,
+} from '../../../lib/plaid';
 import { useCurrency } from '../../../lib/useCurrency';
 
 /* -- Asset / Debt type options (match the assets + debts pages) ------------ */
@@ -222,18 +226,23 @@ export default function ImportPage() {
       setError('Plaid bank sync is available on Plus and Family. Upgrade to connect new accounts.');
       return;
     }
+    clearPendingPlaidLinkToken();
+    setPlaidLinkToken(null);
     setPlaidLoading(true);
     setError('');
+    setPlaidMessage('');
     try {
       const data = await api.plaidCreateLinkToken();
       if (data?.linkToken) {
         savePendingPlaidLinkToken(data.linkToken);
         setPlaidLinkToken(data.linkToken);
       } else {
-        setError('Failed to get link token from Plaid');
+        throw new Error("We couldn't start secure bank linking right now. Please try again in a few minutes.");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to initialize bank linking');
+      clearPendingPlaidLinkToken();
+      setPlaidLinkToken(null);
+      setError(getPlaidUiErrorMessage(err, 'start'));
     } finally {
       setPlaidLoading(false);
     }
@@ -253,8 +262,10 @@ export default function ImportPage() {
       );
       await loadPlaidAccounts();
     } catch (err) {
+      clearPendingPlaidLinkToken();
+      setPlaidLinkToken(null);
       setPlaidLoading(false);
-      setError(err instanceof Error ? err.message : 'Failed to link bank');
+      setError(getPlaidUiErrorMessage(err, 'exchange'));
     }
   }, [loadPlaidAccounts]);
 
@@ -264,6 +275,8 @@ export default function ImportPage() {
     setPlaidLoading(false);
     if (exitError?.display_message) {
       setError(exitError.display_message);
+    } else if (exitError) {
+      setError(getPlaidUiErrorMessage(exitError, 'start'));
     }
   }, []);
 
@@ -286,7 +299,7 @@ export default function ImportPage() {
       setPlaidMessage(`Imported ${result?.added || 0} new transaction(s)`);
       loadPlaidAccounts();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sync failed');
+      setError(getPlaidUiErrorMessage(err, 'sync'));
     } finally {
       setPlaidSyncing(null);
     }
@@ -299,7 +312,7 @@ export default function ImportPage() {
       loadPlaidAccounts();
       setPlaidMessage('Account unlinked');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to unlink');
+      setError(getPlaidUiErrorMessage(err, 'unlink'));
     }
   };
   const [deltaStats, setDeltaStats] = useState<DeltaStats>({
