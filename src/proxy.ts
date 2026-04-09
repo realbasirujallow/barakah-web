@@ -9,17 +9,16 @@ import type { NextRequest } from 'next/server';
  * unauthenticated users from downloading protected page JS bundles.
  *
  * Session cookies (auth_token, refresh_token) are httpOnly and set by
- * the Route Handler at /auth/[...path]/route.ts. The client also stores
- * a refresh token in localStorage (_brt) for body-based refresh.
+ * the Route Handler at /auth/[...path]/route.ts.
  *
  * The proxy does NOT aggressively redirect — it allows through any request
- * that might have a valid session (cookies OR localStorage-based refresh).
- * Only truly fresh visitors with zero session indicators are redirected.
+ * that might have a valid session cookie. Only auth pages use this proxy,
+ * and protected dashboard routes rely on the cookie-backed client/session
+ * checks after hydration.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasAuthToken    = request.cookies.has('auth_token');
-  const hasRefreshToken = request.cookies.has('refresh_token');
 
   // ── Auth pages: redirect to dashboard if clearly logged in ──────────
   const isAuthPage =
@@ -42,16 +41,9 @@ export function proxy(request: NextRequest) {
   }
 
   // ── Protected routes ────────────────────────────────────────────────
-  // Allow through if ANY session indicator exists (auth cookie, refresh
-  // cookie). If neither cookie exists, the user MAY still have a valid
-  // session via localStorage _brt — let client-side AuthContext handle it.
-  // Only redirect if we're confident there's no session at all.
-  //
-  // Note: We intentionally do NOT redirect here. The client-side
-  // AuthContext will attempt a body-based refresh using localStorage,
-  // and only redirect to /login if that also fails. This prevents the
-  // "session expired on hard refresh" issue where cookies are set by
-  // fetch() but not yet visible to the proxy on the next navigation.
+  // Note: We intentionally do NOT redirect protected routes here. The
+  // client-side AuthContext verifies the cookie-backed session and handles
+  // refresh/logout after hydration.
 
   return NextResponse.next();
 }

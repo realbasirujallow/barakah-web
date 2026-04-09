@@ -29,6 +29,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/refer`, changeFrequency: 'monthly', priority: 0.7 },
 
     // Legal & info pages
+    { url: `${baseUrl}/methodology`, changeFrequency: 'monthly', priority: 0.75 },
+    { url: `${baseUrl}/trust`, changeFrequency: 'monthly', priority: 0.75 },
     { url: `${baseUrl}/contact`, changeFrequency: 'yearly', priority: 0.4 },
     { url: `${baseUrl}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${baseUrl}/terms`, changeFrequency: 'yearly', priority: 0.3 },
