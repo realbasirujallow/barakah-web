@@ -5,9 +5,9 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 
 // ── Configuration ──────────────────────────────────────────────────────────
-const SESSION_TIMEOUT_MS  = 30 * 60 * 1000; // 30 minutes
+const SESSION_TIMEOUT_MS  = 45 * 60 * 1000; // 45 minutes
 const WARNING_BEFORE_MS   =  5 * 60 * 1000; // Show warning 5 minutes before timeout
-const WARNING_AT_MS       = SESSION_TIMEOUT_MS - WARNING_BEFORE_MS; // 25 minutes
+const WARNING_AT_MS       = SESSION_TIMEOUT_MS - WARNING_BEFORE_MS; // 40 minutes
 const ACTIVITY_EVENTS     = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove'] as const;
 const THROTTLE_MS         = 60_000; // Only update activity timestamp once per minute
 
@@ -15,7 +15,7 @@ const LAST_ACTIVITY_KEY = 'last_activity_ts';
 
 /**
  * SessionTimeoutModal — tracks user inactivity and shows a countdown modal
- * at 25 minutes. If the user doesn't extend, they're logged out at 30 minutes.
+ * at 40 minutes. If the user doesn't extend, they're logged out at 45 minutes.
  * Extending the session calls api.refresh() to keep the server-side cookies alive.
  */
 export function SessionTimeoutModal() {
@@ -45,7 +45,7 @@ export function SessionTimeoutModal() {
     lastActivityRef.current = now;
     try { localStorage.setItem(LAST_ACTIVITY_KEY, String(now)); } catch { /* SSR safety */ }
 
-    // Timer 1: show warning at 25 minutes
+    // Timer 1: show warning at 40 minutes
     warningTimerRef.current = setTimeout(() => {
       setShowWarning(true);
       setCountdown(WARNING_BEFORE_MS / 1000);
@@ -58,7 +58,7 @@ export function SessionTimeoutModal() {
         });
       }, 1000);
 
-      // Timer 2: auto-logout at 30 minutes (5 min after warning)
+      // Timer 2: auto-logout at 45 minutes (5 min after warning)
       logoutTimerRef.current = setTimeout(() => {
         setShowWarning(false);
         logout('logout');
@@ -186,7 +186,7 @@ export function SessionTimeoutModal() {
         </div>
 
         <p className="text-xs text-gray-400 mt-4">
-          For your security, inactive sessions are automatically ended after 30 minutes.
+          For your security, inactive sessions are automatically ended after 45 minutes.
         </p>
       </div>
     </div>

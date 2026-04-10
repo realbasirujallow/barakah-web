@@ -245,7 +245,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </footer>
       </div>
 
-      {/* Session timeout warning — auto-logout after 30 min of inactivity */}
+      {/* Session timeout warning — remind at 40 min and auto-logout after 45 min of inactivity */}
       <SessionTimeoutModal />
 
       {/* Floating feedback widget — visible on all dashboard pages */}
