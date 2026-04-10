@@ -339,17 +339,17 @@ export default function DashboardPage() {
       {/* ── Spending + Budget Row ─────────────────────────────────────────── */}
       <div className="grid md:grid-cols-2 gap-4 mb-6">
         {/* Spending Summary */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <div>
+        <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="min-w-0">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Spending This Month</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-gray-900 truncate">
                 {widgets?.spending ? fmt(widgets.spending.thisMonth) : loading ? '...' : fmt(0)}
               </p>
             </div>
             {widgets?.spending && widgets.spending.lastMonth > 0 && (
-              <div className={`text-xs font-semibold px-2.5 py-1 rounded-full ${widgets.spending.changePercent <= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                {widgets.spending.changePercent <= 0 ? '▼' : '▲'} {Math.abs(widgets.spending.changePercent) > 999 ? '999+' : Math.abs(widgets.spending.changePercent).toFixed(1)}% vs last month
+              <div className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${widgets.spending.changePercent <= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {widgets.spending.changePercent <= 0 ? '▼' : '▲'} {Math.abs(widgets.spending.changePercent) > 999 ? '999+' : Math.abs(widgets.spending.changePercent).toFixed(1)}%
               </div>
             )}
           </div>
@@ -358,13 +358,13 @@ export default function DashboardPage() {
               {widgets.spending.topCategories.slice(0, 4).map((cat, i) => {
                 const max = widgets.spending!.topCategories[0]?.amount || 1;
                 return (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-sm w-5">{CATEGORY_ICONS[cat.category] || '📋'}</span>
-                    <span className="text-sm text-gray-700 w-24 truncate capitalize">{cat.category.replace(/_/g, ' ')}</span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-2">
+                  <div key={i} className="flex items-center gap-2 min-w-0">
+                    <span className="text-sm flex-shrink-0">{CATEGORY_ICONS[cat.category] || '📋'}</span>
+                    <span className="text-xs text-gray-700 w-16 md:w-24 truncate capitalize flex-shrink-0">{cat.category.replace(/_/g, ' ')}</span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-2 min-w-0">
                       <div className="bg-[#1B5E20] rounded-full h-2 transition-all" style={{ width: `${Math.min((cat.amount / max) * 100, 100)}%` }} />
                     </div>
-                    <span className="text-sm font-medium text-gray-900 w-20 text-right">{fmt(cat.amount)}</span>
+                    <span className="text-xs font-medium text-gray-900 flex-shrink-0 text-right">{fmt(cat.amount)}</span>
                   </div>
                 );
               })}
@@ -433,7 +433,7 @@ export default function DashboardPage() {
       {/* ── Recent Transactions + Upcoming Bills Row ──────────────────────── */}
       <div className="grid md:grid-cols-2 gap-4 mb-6">
         {/* Recent Transactions */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100">
+        <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Recent Transactions</p>
             <Link href="/dashboard/transactions" className="text-sm text-[#1B5E20] font-medium hover:underline">View all</Link>
