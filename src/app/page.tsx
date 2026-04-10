@@ -33,6 +33,9 @@ const learningResources = [
   { title: 'Nisab Threshold', href: '/learn/nisab-threshold', desc: 'Understand the nisab threshold and how it\'s calculated with current gold prices.' },
   { title: 'Zakat Al-Fitr', href: '/learn/zakat-al-fitr', desc: 'Master Zakat Al-Fitr, the charity given at the end of Ramadan.' },
   { title: 'Islamic Finance Basics', href: '/learn/islamic-finance-basics', desc: 'Learn the fundamentals of Islamic finance principles and halal investing.' },
+  { title: 'Riba Elimination Guide', href: '/learn/riba-elimination', desc: 'Step-by-step guide to removing interest from mortgages, credit cards, and loans.' },
+  { title: 'Madhab & Your Finances', href: '/learn/madhab-finance', desc: 'How Hanafi, Shafi\'i, Maliki, and Hanbali rulings affect zakat and estate planning.' },
+  { title: 'Islamic Inheritance (Faraid)', href: '/faraid-calculator', desc: 'Calculate Quranic inheritance shares for all heirs with automatic Awl and Radd.' },
 ];
 
 const plans = [
@@ -387,6 +390,25 @@ export default function Home() {
               className="inline-block bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition shadow"
             >
               Try Zakat Calculator Now
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Faraid Calculator ── */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-4xl mb-4">⚖️</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">Free Islamic Inheritance Calculator</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto mb-8">
+              Calculate Faraid (Islamic inheritance distribution) per Quran 4:11-12. Supports all Quranic heirs with automatic Awl, Radd, and blocking rules. The only calculator that respects your madhab.
+            </p>
+            <Link
+              href="/faraid-calculator"
+              className="inline-block bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition shadow"
+            >
+              Try Faraid Calculator
             </Link>
           </div>
         </div>
