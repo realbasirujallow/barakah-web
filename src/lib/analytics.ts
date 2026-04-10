@@ -60,3 +60,57 @@ export function trackFeatureUse(feature: string) {
 export function trackReferralShare(method: string) {
   trackEvent('share', { method, content_type: 'referral' });
 }
+
+// ── Funnel Events ────────────────────────────────────────────────────────
+// These track the critical user journey:
+//   visitor → signup → setup_complete → first_sync → first_zakat → weekly_return → paid
+
+/** Track setup completion (3-step wizard finished) */
+export function trackSetupComplete(plan: string) {
+  trackEvent('setup_complete', { plan });
+}
+
+/** Track first bank account link via Plaid */
+export function trackFirstAccountLink(institution: string) {
+  trackEvent('first_account_link', { institution });
+}
+
+/** Track first zakat calculation */
+export function trackFirstZakatCalc(amount: number, methodology: string) {
+  trackEvent('first_zakat_calc', { amount, methodology });
+}
+
+/** Track demo data loaded (onboarding) */
+export function trackDemoDataLoaded() {
+  trackEvent('demo_data_loaded', {});
+}
+
+/** Track weekly return (called on dashboard load if user has been away > 5 days) */
+export function trackWeeklyReturn(daysSinceLastVisit: number) {
+  trackEvent('weekly_return', { days_since_last: daysSinceLastVisit });
+}
+
+/** Track trial started */
+export function trackTrialStarted(plan: string, durationDays: number) {
+  trackEvent('trial_started', { plan, duration_days: durationDays });
+}
+
+/** Track trial expired */
+export function trackTrialExpired(plan: string) {
+  trackEvent('trial_expired', { plan });
+}
+
+/** Track page-level feature engagement */
+export function trackPageView(page: string) {
+  trackEvent('page_view_custom', { page_name: page });
+}
+
+/** Track zakat payment recorded */
+export function trackZakatPayment(amount: number, lunarYear: number) {
+  trackEvent('zakat_payment', { amount, lunar_year: lunarYear });
+}
+
+/** Track Islamic obligation action (sadaqah, waqf, wasiyyah) */
+export function trackIbadahAction(type: string, amount?: number) {
+  trackEvent('ibadah_action', { type, amount });
+}
