@@ -348,8 +348,8 @@ export default function DashboardPage() {
               </p>
             </div>
             {widgets?.spending && widgets.spending.lastMonth > 0 && (
-              <div className={`text-sm font-semibold px-2.5 py-1 rounded-full ${widgets.spending.changePercent <= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                {widgets.spending.changePercent <= 0 ? '▼' : '▲'} {Math.abs(widgets.spending.changePercent)}% vs last month
+              <div className={`text-xs font-semibold px-2.5 py-1 rounded-full ${widgets.spending.changePercent <= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {widgets.spending.changePercent <= 0 ? '▼' : '▲'} {Math.abs(widgets.spending.changePercent) > 999 ? '999+' : Math.abs(widgets.spending.changePercent).toFixed(1)}% vs last month
               </div>
             )}
           </div>
@@ -390,8 +390,10 @@ export default function DashboardPage() {
               )}
             </div>
             {widgets?.budgetOverview && widgets.budgetOverview.totalBudgeted > 0 && (
-              <span className="text-sm font-semibold text-gray-500">
-                {fmt(widgets.budgetOverview.totalRemaining)} left
+              <span className={`text-sm font-semibold ${widgets.budgetOverview.totalRemaining < 0 ? 'text-red-600' : 'text-gray-500'}`}>
+                {widgets.budgetOverview.totalRemaining < 0
+                  ? `${fmt(Math.abs(widgets.budgetOverview.totalRemaining))} over budget`
+                  : `${fmt(widgets.budgetOverview.totalRemaining)} left`}
               </span>
             )}
           </div>
