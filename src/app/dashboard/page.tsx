@@ -275,9 +275,23 @@ export default function DashboardPage() {
           <p className="text-gray-500 text-sm mb-4 max-w-md mx-auto">
             Link your accounts to automatically track spending, monitor your net worth, and calculate zakat with precision.
           </p>
-          <Link href="/dashboard/import" className="inline-block bg-[#1B5E20] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
-            Connect Accounts
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/dashboard/import" className="inline-block bg-[#1B5E20] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
+              Connect Accounts
+            </Link>
+            <button
+              onClick={async () => {
+                try {
+                  await api.seedDemoData();
+                  window.location.reload();
+                } catch { toast('Could not load sample data.', 'error'); }
+              }}
+              className="inline-block border border-[#1B5E20] text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition"
+            >
+              Load Sample Data to Explore
+            </button>
+          </div>
+          <p className="text-gray-400 text-xs mt-3">Sample data lets you explore every feature. Replace with real data anytime.</p>
         </div>
       )}
 

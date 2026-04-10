@@ -391,6 +391,7 @@ export default function Home() {
             >
               Try Zakat Calculator Now
             </Link>
+            <p className="text-gray-400 text-sm mt-3">No signup required — try it free in 30 seconds</p>
           </div>
         </div>
       </section>
@@ -410,6 +411,7 @@ export default function Home() {
             >
               Try Faraid Calculator
             </Link>
+            <p className="text-gray-400 text-sm mt-3">No signup required — calculate Islamic inheritance instantly</p>
           </div>
         </div>
       </section>
