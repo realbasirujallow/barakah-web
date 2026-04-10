@@ -296,7 +296,7 @@ export default function DashboardPage() {
       )}
 
       {/* ── Summary Cards Row ─────────────────────────────────────────────── */}
-      <div className={`grid gap-4 mb-6 ${hasInvestmentPulse ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+      <div role="region" aria-label="Financial summary" className={`grid gap-4 mb-6 ${hasInvestmentPulse ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
         <div className="bg-gradient-to-br from-[#1B5E20] to-green-600 rounded-2xl p-5 text-white relative">
           <p className="text-green-200 text-sm flex items-center justify-between">
             Net Worth
@@ -351,7 +351,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Spending + Budget Row ─────────────────────────────────────────── */}
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
+      <div role="region" aria-label="Spending and budget overview" className="grid md:grid-cols-2 gap-4 mb-6">
         {/* Spending Summary */}
         <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between gap-2 mb-3">
@@ -445,7 +445,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Recent Transactions + Upcoming Bills Row ──────────────────────── */}
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
+      <div role="region" aria-label="Recent transactions and upcoming bills" className="grid md:grid-cols-2 gap-4 mb-6">
         {/* Recent Transactions */}
         <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between mb-3">
