@@ -25,8 +25,17 @@ export function SessionTimeoutModal() {
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const logoutTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef    = useRef<ReturnType<typeof setInterval> | null>(null);
-  const lastActivityRef = useRef(Date.now());
+  const logoutDeadlineRef = useRef<number | null>(null);
   const throttleRef     = useRef(0);
+
+  const readLastActivity = useCallback(() => {
+    try {
+      const stored = parseInt(localStorage.getItem(LAST_ACTIVITY_KEY) || '0', 10);
+      return stored > 0 ? stored : Date.now();
+    } catch {
+      return Date.now();
+    }
+  }, []);
 
   // ── Reset all timers ───────────────────────────────────────────────────
   const clearAllTimers = useCallback(() => {
@@ -36,35 +45,61 @@ export function SessionTimeoutModal() {
     warningTimerRef.current = null;
     logoutTimerRef.current  = null;
     countdownRef.current    = null;
+    logoutDeadlineRef.current = null;
   }, []);
 
-  // ── Start the idle timers from now ─────────────────────────────────────
-  const startTimers = useCallback(() => {
+  const scheduleFromActivity = useCallback((lastActivityTs: number) => {
     clearAllTimers();
     const now = Date.now();
-    lastActivityRef.current = now;
-    try { localStorage.setItem(LAST_ACTIVITY_KEY, String(now)); } catch { /* SSR safety */ }
+    const elapsed = now - lastActivityTs;
+    const remainingUntilWarning = WARNING_AT_MS - elapsed;
+    const remainingUntilLogout = SESSION_TIMEOUT_MS - elapsed;
 
-    // Timer 1: show warning at 40 minutes
-    warningTimerRef.current = setTimeout(() => {
+    if (remainingUntilLogout <= 0) {
+      setShowWarning(false);
+      logout('logout');
+      return;
+    }
+
+    if (remainingUntilWarning <= 0) {
       setShowWarning(true);
-      setCountdown(WARNING_BEFORE_MS / 1000);
+      logoutDeadlineRef.current = now + remainingUntilLogout;
+      setCountdown(Math.max(0, Math.ceil(remainingUntilLogout / 1000)));
 
-      // Start the 1-second countdown display
       countdownRef.current = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) return 0;
-          return prev - 1;
-        });
+        const deadline = logoutDeadlineRef.current;
+        if (!deadline) return;
+        const nextSeconds = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        setCountdown(nextSeconds);
       }, 1000);
 
-      // Timer 2: auto-logout at 45 minutes (5 min after warning)
       logoutTimerRef.current = setTimeout(() => {
+        const latestActivity = readLastActivity();
+        if (Date.now() - latestActivity < SESSION_TIMEOUT_MS) {
+          setShowWarning(false);
+          scheduleFromActivity(latestActivity);
+          return;
+        }
         setShowWarning(false);
         logout('logout');
-      }, WARNING_BEFORE_MS);
-    }, WARNING_AT_MS);
-  }, [clearAllTimers, logout]);
+      }, remainingUntilLogout);
+      return;
+    }
+
+    setShowWarning(false);
+    warningTimerRef.current = setTimeout(() => {
+      const latestActivity = readLastActivity();
+      scheduleFromActivity(latestActivity);
+    }, remainingUntilWarning);
+  }, [clearAllTimers, logout, readLastActivity]);
+
+  const persistActivity = useCallback((ts: number) => {
+    try {
+      localStorage.setItem(LAST_ACTIVITY_KEY, String(ts));
+    } catch {
+      // localStorage unavailable
+    }
+  }, []);
 
   // ── Handle user activity ───────────────────────────────────────────────
   const handleActivity = useCallback(() => {
@@ -76,8 +111,9 @@ export function SessionTimeoutModal() {
     if (now - throttleRef.current < THROTTLE_MS) return;
     throttleRef.current = now;
 
-    startTimers();
-  }, [showWarning, startTimers]);
+    persistActivity(now);
+    scheduleFromActivity(now);
+  }, [persistActivity, scheduleFromActivity, showWarning]);
 
   // ── Extend session (user clicked "Stay Logged In") ────────────────────
   const extendSession = useCallback(async () => {
@@ -94,27 +130,16 @@ export function SessionTimeoutModal() {
       // Refresh failed — session may already be expired
     }
 
-    startTimers();
-  }, [clearAllTimers, startTimers]);
+    const now = Date.now();
+    persistActivity(now);
+    scheduleFromActivity(now);
+  }, [clearAllTimers, persistActivity, scheduleFromActivity]);
 
   // ── Set up activity listeners ──────────────────────────────────────────
   useEffect(() => {
     if (!user) return;
 
-    // Check if there's a recent activity timestamp (e.g. from another tab)
-    try {
-      const stored = parseInt(localStorage.getItem(LAST_ACTIVITY_KEY) || '0', 10);
-      if (stored > 0) {
-        const elapsed = Date.now() - stored;
-        if (elapsed >= SESSION_TIMEOUT_MS) {
-          // Already timed out while away
-          logout('logout');
-          return;
-        }
-      }
-    } catch { /* SSR safety */ }
-
-    startTimers();
+    scheduleFromActivity(readLastActivity());
 
     // Attach activity listeners
     const handler = () => handleActivity();
@@ -134,13 +159,26 @@ export function SessionTimeoutModal() {
   // Sync across tabs: if activity happens in another tab, pick it up
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key === LAST_ACTIVITY_KEY && e.newValue && !showWarning) {
-        startTimers();
+      if (e.key === LAST_ACTIVITY_KEY && e.newValue) {
+        const syncedTs = parseInt(e.newValue, 10);
+        if (syncedTs > 0) {
+          setShowWarning(false);
+          scheduleFromActivity(syncedTs);
+        }
       }
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
-  }, [showWarning, startTimers]);
+  }, [scheduleFromActivity]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible' || !user) return;
+      scheduleFromActivity(readLastActivity());
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [readLastActivity, scheduleFromActivity, user]);
 
   // Don't render anything if user isn't logged in or warning isn't showing
   if (!user || !showWarning) return null;
