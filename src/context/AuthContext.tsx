@@ -33,6 +33,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 // The JWT itself is stored exclusively in an httpOnly cookie — never in
 // localStorage — so JavaScript (including any XSS payload) cannot read it.
 const USER_KEY = 'user';
+const LAST_ACTIVITY_KEY = 'last_activity_ts';
 
 // How long after a successful refresh before we allow another proactive refresh.
 // Reduced to 30 seconds so the auth_token cookie stays fresh even during
@@ -78,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(REFRESH_TS_KEY);
-        localStorage.removeItem('last_activity_ts');
+        localStorage.removeItem(LAST_ACTIVITY_KEY);
       } catch {
         // localStorage access failed, continue with cleanup
       }
@@ -331,6 +332,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     localStorage.setItem(USER_KEY, JSON.stringify(profile));
     localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
     setUser(profile);
   };
 
@@ -351,7 +353,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(REFRESH_TS_KEY);
-      localStorage.removeItem('last_activity_ts');
+      localStorage.removeItem(LAST_ACTIVITY_KEY);
     } catch {
       // localStorage access failed
     }
