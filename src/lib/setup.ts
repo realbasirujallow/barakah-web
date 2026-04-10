@@ -15,8 +15,3 @@ export function markGuidedSetupComplete(userId: string) {
   window.localStorage.setItem(getSetupKey(userId), 'true');
   window.localStorage.setItem(ONBOARDING_KEY, 'true');
 }
-
-export function clearGuidedSetup(userId: string) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.removeItem(getSetupKey(userId));
-}

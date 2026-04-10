@@ -36,14 +36,6 @@ export function trackLogin(method = 'email') {
   trackEvent('login', { method });
 }
 
-/** Track when user views billing/upgrade page */
-export function trackViewBilling(currentPlan: string) {
-  trackEvent('begin_checkout', {
-    currency: 'USD',
-    items: [{ item_name: `Upgrade from ${currentPlan}` }],
-  });
-}
-
 /** Track plan upgrade (purchase event for GA4 revenue tracking) */
 export function trackUpgrade(plan: string, billingCycle: 'monthly' | 'yearly', value: number) {
   trackEvent('purchase', {
@@ -62,11 +54,6 @@ export function trackUpgrade(plan: string, billingCycle: 'monthly' | 'yearly', v
 /** Track feature usage (for engagement analysis) */
 export function trackFeatureUse(feature: string) {
   trackEvent('feature_use', { feature_name: feature });
-}
-
-/** Track zakat calculation */
-export function trackZakatCalculation(methodology: string, madhab: string) {
-  trackEvent('zakat_calculated', { methodology, madhab });
 }
 
 /** Track referral share */
