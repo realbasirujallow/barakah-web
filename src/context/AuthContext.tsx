@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      */
     const syncPlan = async (u: User): Promise<User> => {
       try {
-        const data = await api.getProfile();
+        const data = await api.getProfile(true);
         if (data?.plan) {
           const updated: User = { ...u, plan: data.plan as User['plan'], planExpiresAt: data.planExpiresAt ?? null };
           localStorage.setItem(USER_KEY, JSON.stringify(updated));
@@ -187,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // the real logout flow.
         console.debug('Proactive refresh returned expired — verifying auth_token with profile check');
         try {
-          const data = await api.getProfile();
+          const data = await api.getProfile(true);
           if (data?.plan && parsed) {
             const updated: User = { ...parsed, plan: data.plan as User['plan'], planExpiresAt: data.planExpiresAt ?? null };
             try { localStorage.setItem(USER_KEY, JSON.stringify(updated)); } catch { /* SSR */ }
@@ -294,7 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch { /* SSR safety */ }
       if (!isProtectedPath(window.location.pathname)) return;
       // Otherwise do a lightweight server check.
-      api.getProfile().catch((err: unknown) => {
+      api.getProfile(true).catch((err: unknown) => {
         // Profile fetch failed (likely 401) — the global unauthorized
         // handler will clean up and redirect. Log for debugging.
         if (err instanceof Error) {
