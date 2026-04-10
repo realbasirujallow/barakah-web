@@ -102,13 +102,28 @@ const articles: ArticleCard[] = [
     description: 'Complete guide to Islamic inheritance law, the 1/3 bequest rule, Faraid shares, and using Barakah\'s Wasiyyah planner.',
     readTime: 12,
   },
+  {
+    slug: 'riba-elimination',
+    category: 'Islamic Finance',
+    title: 'How to Eliminate Riba from Your Finances',
+    description: 'Step-by-step guide to identifying and removing interest from mortgages, credit cards, loans, and savings. Halal alternatives included.',
+    readTime: 10,
+  },
+  {
+    slug: 'madhab-finance',
+    category: 'Fiqh' as ArticleCard['category'],
+    title: 'How Your Madhab Affects Your Finances',
+    description: 'Compare Hanafi, Shafi\'i, Maliki & Hanbali rulings on zakat, jewelry, hawl, debt deduction, and wasiyyah rules.',
+    readTime: 8,
+  },
 ];
 
-const categoryColors: Record<ArticleCard['category'], { bg: string; text: string }> = {
+const categoryColors: Record<string, { bg: string; text: string }> = {
   Zakat: { bg: 'bg-green-100', text: 'text-[#1B5E20]' },
   'Islamic Finance': { bg: 'bg-blue-100', text: 'text-blue-700' },
   'Halal Investing': { bg: 'bg-purple-100', text: 'text-purple-700' },
   Planning: { bg: 'bg-amber-100', text: 'text-amber-700' },
+  Fiqh: { bg: 'bg-teal-100', text: 'text-teal-700' },
 };
 
 export default function LearnPage() {

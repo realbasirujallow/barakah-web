@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // High-value SEO tools
     { url: `${baseUrl}/zakat-calculator`, changeFrequency: 'weekly', priority: 0.95 },
+    { url: `${baseUrl}/faraid-calculator`, changeFrequency: 'weekly', priority: 0.9 },
 
     // Learn hub + articles (primary SEO content)
     { url: `${baseUrl}/learn`, changeFrequency: 'weekly', priority: 0.9 },
@@ -24,6 +25,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/nisab-threshold`, changeFrequency: 'monthly', priority: 0.85 },
     { url: `${baseUrl}/learn/zakat-al-fitr`, changeFrequency: 'monthly', priority: 0.85 },
     { url: `${baseUrl}/learn/islamic-finance-basics`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${baseUrl}/learn/riba-elimination`, changeFrequency: 'monthly', priority: 0.85 },
+    { url: `${baseUrl}/learn/madhab-finance`, changeFrequency: 'monthly', priority: 0.85 },
 
     // Referral
     { url: `${baseUrl}/refer`, changeFrequency: 'monthly', priority: 0.7 },
