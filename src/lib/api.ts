@@ -478,6 +478,10 @@ export const api = {
     apiFetch(`/api/budgets/${id}`, { method: 'DELETE' }),
   copyBudget: (fromMonth: number, fromYear: number, toMonth: number, toYear: number) =>
     apiFetch('/api/budgets/copy-month', { method: 'POST', body: JSON.stringify({ fromMonth, fromYear, toMonth, toYear }) }),
+  /** Safe-to-spend: how much free money is left this month after bills + budgets. */
+  getSafeToSpend: () => apiFetch('/api/budgets/safe-to-spend'),
+  /** Cash-flow forecast for next N months. */
+  getCashFlowForecast: (months = 3) => apiFetch(`/api/budgets/forecast?months=${months}`),
 
   // Debts
   getDebts: () => apiFetch('/api/debts/list'),
