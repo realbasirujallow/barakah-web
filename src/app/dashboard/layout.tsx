@@ -21,8 +21,10 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
   { href: '/dashboard/bills', icon: '🔔', label: 'Bills' },
   { href: '/dashboard/budget', icon: '📊', label: 'Budget' },
   { href: '/dashboard/debts', icon: '💳', label: 'Debts' },
+  { href: '/dashboard/faraid', icon: '⚖️', label: 'Faraid Calculator', gate: 'plus' },
   { href: '/dashboard/fiqh', icon: '📚', label: 'Fiqh Settings' },
   { href: '/dashboard/hawl', icon: '⏰', label: 'Hawl Tracker' },
+  { href: '/dashboard/ibadah', icon: '🕋', label: 'Ibadah Finance' },
   { href: '/dashboard/import', icon: '📥', label: 'Import Data' },
   { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications' },
   { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times' },
@@ -60,11 +62,11 @@ const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> 
   },
   islamic: {
     label: 'Islamic',
-    items: ['Fiqh Settings', 'Hawl Tracker', 'Prayer Times', 'Ramadan Mode', 'Retirement Zakat', 'Sadaqah', 'Zakat'],
+    items: ['Ibadah Finance', 'Fiqh Settings', 'Hawl Tracker', 'Prayer Times', 'Ramadan Mode', 'Retirement Zakat', 'Sadaqah', 'Zakat'],
   },
   premium: {
     label: 'Premium',
-    items: ['Analytics', 'Auto-Categorize', 'Barakah Score', 'Financial Summary', 'Stock Screener', 'Investments', 'Net Worth', 'Riba Detector', 'Shared Finances', 'Subscription Detector', 'Waqf', 'Wasiyyah'],
+    items: ['Analytics', 'Auto-Categorize', 'Barakah Score', 'Faraid Calculator', 'Financial Summary', 'Stock Screener', 'Investments', 'Net Worth', 'Riba Detector', 'Shared Finances', 'Subscription Detector', 'Waqf', 'Wasiyyah'],
   },
   account: {
     label: 'Account',

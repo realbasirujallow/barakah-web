@@ -510,6 +510,14 @@ export const api = {
   deleteWasiyyahObligation: (id: number) =>
     apiFetch(`/api/wasiyyah/obligations/${id}`, { method: 'DELETE' }),
 
+  /** Faraid (Islamic Inheritance) Calculator */
+  calculateFaraid: (data: Record<string, unknown>) =>
+    apiFetch('/api/wasiyyah/calculate-faraid', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Ibadah Finance Dashboard — aggregated Islamic obligations summary */
+  getIbadahSummary: () =>
+    apiFetch('/api/ibadah/summary'),
+
   // Waqf
   getWaqf: () => apiFetch('/api/waqf/list'),
   addWaqf: (data: Record<string, unknown>) =>
@@ -534,6 +542,18 @@ export const api = {
   getRibaPurificationStatus: () => apiFetch('/api/zakat/purification-status'),
   recordRibaPurification: (amount: number, notes?: string) =>
     apiFetch('/api/zakat/record-purification', { method: 'POST', body: JSON.stringify({ amount, notes }) }),
+
+  // Riba Elimination Journey
+  getRibaJourneySummary: () => apiFetch('/api/riba/journey/summary'),
+  getRibaJourneyGoals: () => apiFetch('/api/riba/journey/goals'),
+  createRibaGoal: (data: Record<string, unknown>) =>
+    apiFetch('/api/riba/journey/goals', { method: 'POST', body: JSON.stringify(data) }),
+  updateRibaGoal: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/riba/journey/goals/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  eliminateRibaGoal: (id: number) =>
+    apiFetch(`/api/riba/journey/goals/${id}/eliminate`, { method: 'POST' }),
+  getRibaMilestones: () => apiFetch('/api/riba/journey/milestones'),
+  getRibaGoalSuggestions: () => apiFetch('/api/riba/journey/suggestions'),
 
   // Auto-Categorize
   reviewCategories: () => apiFetch('/api/categorize/review'),
