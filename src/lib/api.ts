@@ -452,6 +452,12 @@ export const api = {
     apiFetch(`/api/transactions/${id}`, { method: 'DELETE' }),
   bulkDeleteTransactions: (ids: number[]) =>
     apiFetch('/api/transactions/bulk', { method: 'DELETE', body: JSON.stringify({ ids }) }),
+  /** Get transactions needing review (uncategorized/imported). */
+  getReviewQueue: (page = 0, size = 50) =>
+    apiFetch(`/api/transactions/review-queue?page=${page}&size=${size}`),
+  /** Bulk-categorize multiple transactions. */
+  bulkCategorize: (ids: number[], category: string) =>
+    apiFetch('/api/transactions/bulk-categorize', { method: 'POST', body: JSON.stringify({ ids, category, reviewStatus: 'reviewed' }) }),
   deleteAllTransactions: (type?: string) => {
     const params = type ? `?type=${encodeURIComponent(type)}` : '';
     return apiFetch(`/api/transactions/all${params}`, { method: 'DELETE' });
