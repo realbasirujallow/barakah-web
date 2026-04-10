@@ -9,6 +9,7 @@ import {
   getPlaidUiErrorMessage,
   savePendingPlaidLinkToken,
 } from '../../../lib/plaid';
+import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useCurrency } from '../../../lib/useCurrency';
 
 /* -- Asset / Debt type options (match the assets + debts pages) ------------ */
@@ -215,11 +216,7 @@ export default function ImportPage() {
   }, [loadPlaidAccounts, router, searchParams]);
 
   const [plaidLoading, setPlaidLoading] = useState(false);
-  const plaidAccess = Boolean(
-    subscriptionStatus?.hasSubscription
-      || subscriptionStatus?.plan === 'plus'
-      || subscriptionStatus?.plan === 'family',
-  );
+  const plaidAccess = hasPaidSyncAccess(subscriptionStatus);
 
   const handlePlaidConnect = async () => {
     if (!plaidAccess) {

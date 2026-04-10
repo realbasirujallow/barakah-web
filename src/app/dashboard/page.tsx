@@ -13,6 +13,8 @@ interface IslamicEvent { name: string; daysAway: number; hijriDate: string; appr
 interface HijriData { hijriDate: string; hijriMonthName: string; isRamadan: boolean; upcomingEvents: IslamicEvent[]; }
 interface HawlDue { dueCount: number; upcomingCount: number; due: Array<{ assetName: string; zakatAmount: number }>; }
 interface AssetTotal { netWorth?: number; totalWealth?: number; zakatDue?: number; zakatRemaining?: number; zakatPaid?: number; zakatFullyPaid?: boolean; zakatEligible?: boolean; currentLunarYear?: number; }
+interface PortfolioSummary { totalValue: number; totalGainLoss: number; totalGainLossPct: number; }
+interface PortfolioHistorySnapshot { date: string; dayGainLoss: number; dayGainLossPercent: number; }
 
 // Safe localStorage helpers
 const safeGetItem = (key: string): string | null => {
@@ -30,6 +32,8 @@ export default function DashboardPage() {
   const [hijri, setHijri] = useState<HijriData | null>(null);
   const [hawlDue, setHawlDue] = useState<HawlDue | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(() => !safeGetItem('barakah_onboarded'));
+  const [portfolioSummary, setPortfolioSummary] = useState<PortfolioSummary | null>(null);
+  const [latestPortfolioSnapshot, setLatestPortfolioSnapshot] = useState<PortfolioHistorySnapshot | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -44,10 +48,12 @@ export default function DashboardPage() {
     let cancelled = false;
 
     const loadDashboard = async () => {
-      const [assetResult, hijriResult, hawlResult] = await Promise.allSettled([
+      const [assetResult, hijriResult, hawlResult, portfolioResult, portfolioHistoryResult] = await Promise.allSettled([
         api.getAssetTotal(),
         api.getIslamicCalendarToday(),
         api.getHawlDue(30),
+        api.getPortfolioSummary(),
+        api.getPortfolioHistory(2),
       ]);
 
       if (cancelled) return;
@@ -56,6 +62,17 @@ export default function DashboardPage() {
       else toast('Failed to load dashboard data. Please refresh.', 'error');
       if (hijriResult.status === 'fulfilled') setHijri(hijriResult.value as HijriData);
       if (hawlResult.status === 'fulfilled') setHawlDue(hawlResult.value as typeof hawlDue);
+      if (portfolioResult.status === 'fulfilled') {
+        const data = portfolioResult.value as PortfolioSummary;
+        if ((data?.totalValue || 0) > 0) {
+          setPortfolioSummary(data);
+        }
+      }
+      if (portfolioHistoryResult.status === 'fulfilled') {
+        const historyPayload = portfolioHistoryResult.value as { history?: PortfolioHistorySnapshot[] };
+        const history = Array.isArray(historyPayload?.history) ? historyPayload.history : [];
+        setLatestPortfolioSnapshot(history.length > 0 ? history[history.length - 1] : null);
+      }
       setLoading(false);
     };
 
@@ -102,6 +119,9 @@ export default function DashboardPage() {
     { href: '/dashboard/wasiyyah', icon: '📜', label: 'Wasiyyah', desc: 'Islamic will' },
     { href: '/dashboard/zakat', icon: '🕌', label: 'Zakat', desc: 'Calculate zakat due' },
   ];
+  const hasInvestmentPulse = (portfolioSummary?.totalValue || 0) > 0;
+  const dayMove = latestPortfolioSnapshot?.dayGainLoss ?? 0;
+  const dayMovePct = latestPortfolioSnapshot?.dayGainLossPercent ?? 0;
 
   return (
     <div>
@@ -207,7 +227,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
+      <div className={`grid gap-6 mb-8 ${hasInvestmentPulse ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
         <div className="bg-gradient-to-br from-[#1B5E20] to-green-600 rounded-2xl p-6 text-white relative">
           <p className="text-green-200 text-sm flex items-center justify-between">
             Net Worth
@@ -240,6 +260,23 @@ export default function DashboardPage() {
             {loading ? '...' : (totals?.zakatEligible ? 'Yes' : 'Not Yet')}
           </p>
         </div>
+        {hasInvestmentPulse && (
+          <Link
+            href="/dashboard/investments"
+            className="block bg-gradient-to-br from-slate-900 to-slate-700 rounded-2xl p-6 text-white hover:shadow-lg transition"
+          >
+            <p className="text-slate-200 text-sm">Today&apos;s Market Move</p>
+            <p className={`text-3xl font-bold mt-1 ${dayMove >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+              {dayMove >= 0 ? '+' : ''}{fmt(dayMove)}
+            </p>
+            <p className="text-slate-200 text-xs mt-2">
+              {dayMovePct >= 0 ? '+' : ''}{dayMovePct.toFixed(2)}% today
+            </p>
+            <p className="text-slate-300 text-xs mt-3">
+              Portfolio value: {fmt(portfolioSummary?.totalValue || 0)}
+            </p>
+          </Link>
+        )}
       </div>
 
       {/* Feature cards grid */}

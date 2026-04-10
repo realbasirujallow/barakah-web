@@ -22,6 +22,7 @@ interface CommunicationPreferences {
   notificationsEnabled: boolean;
   zakatReminders: boolean;
   emailMarketingOptIn: boolean;
+  dailyBalanceEmailsOptIn: boolean;
   seasonalGreetingsOptIn: boolean;
   pushMarketingOptIn: boolean;
   timeZone: string;
@@ -711,13 +712,14 @@ export default function ProfilePage() {
         <div className="bg-white rounded-2xl shadow-sm p-6 mt-4 border border-gray-100">
           <h2 className="text-lg font-bold text-gray-800 mb-2">Communication Preferences</h2>
           <p className="text-sm text-gray-500 mb-4">
-            Control onboarding emails, Ramadan and Eid greetings, push nudges, and your quiet hours.
+            Control onboarding emails, optional daily balance digests, Ramadan and Eid greetings, push nudges, and your quiet hours.
           </p>
           <div className="space-y-3">
             {[
               ['notificationsEnabled', 'Core notifications', 'Important account, billing, and in-app alerts.'],
               ['zakatReminders', 'Zakat reminders', 'Operational reminders tied to zakat and Hawl readiness.'],
               ['emailMarketingOptIn', 'Email journeys', 'Helpful onboarding, inactivity, and upgrade emails.'],
+              ['dailyBalanceEmailsOptIn', 'Daily balance emails', 'Optional account activity digests after synced balances or unusual items are detected.'],
               ['seasonalGreetingsOptIn', 'Ramadan and Eid greetings', 'Seasonal messages and holiday check-ins.'],
               ['pushMarketingOptIn', 'Push nudges', 'Push reminders about balances, net worth, and setup progress.'],
             ].map(([key, title, subtitle]) => (

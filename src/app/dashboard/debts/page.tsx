@@ -1,8 +1,9 @@
 'use client';
 import Link from 'next/link';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
+import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
@@ -35,6 +36,12 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const emptyForm = { name: '', type: 'qard_hasan', totalAmount: '', remainingAmount: '', monthlyPayment: '', interestRate: '0', lender: '', ribaFree: true };
+
+interface SubscriptionStatus {
+  plan: 'free' | 'plus' | 'family';
+  status: string;
+  hasSubscription: boolean;
+}
 
 /* ── Payoff simulation ──────────────────────────────────────────── */
 interface SimDebt { id: number; name: string; balance: number; monthlyPayment: number; rate: number; }
@@ -110,24 +117,31 @@ export default function DebtsPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const { toast } = useToast();
   const { symbol } = useCurrency();
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
-    api.getDebts()
-      .then(d => {
-        if (d?.error) {
-          toast(d.error as string, 'error');
+    Promise.allSettled([api.getDebts(), api.subscriptionStatus()])
+      .then(results => {
+        const debtResult = results[0].status === 'fulfilled' ? results[0].value : null;
+        const subscriptionResult = results[1].status === 'fulfilled' ? results[1].value : null;
+        setSubscriptionStatus(
+          subscriptionResult
+            ? (subscriptionResult as SubscriptionStatus)
+            : { plan: 'free', status: 'inactive', hasSubscription: false },
+        );
+        if (debtResult?.error) {
+          toast(debtResult.error as string, 'error');
           return;
         }
-        setDebts(Array.isArray(d?.debts) ? d.debts : Array.isArray(d) ? d : []);
+        setDebts(Array.isArray(debtResult?.debts) ? debtResult.debts : Array.isArray(debtResult) ? debtResult : []);
       })
       .catch(() => { toast('Failed to load debts', 'error'); })
       .finally(() => setLoading(false));
-  };
-  useEffect(() => { load(); }, []);
+  }, [toast]);
+  useEffect(() => { load(); }, [load]);
 
   const openAdd = () => { setEditDebt(null); setForm(emptyForm); setSaveError(null); setShowForm(true); };
   const openEdit = (d: DebtItem) => {
@@ -140,24 +154,24 @@ export default function DebtsPage() {
   const isHalal = isIslamic || form.ribaFree;
 
   const handleSave = async () => {
-    setSaving(true); setSaveError(null); setFormError(null);
+    setSaving(true); setSaveError(null);
     try {
       const totalAmt = parseFloat(form.totalAmount);
-      if (!Number.isFinite(totalAmt) || totalAmt <= 0) { const msg = 'Total amount must be a positive number'; setFormError(msg); toast(msg, 'error'); setSaving(false); return; }
+      if (!Number.isFinite(totalAmt) || totalAmt <= 0) { const msg = 'Total amount must be a positive number'; setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
       const MAX_VALUE = 1_000_000_000;
-      if (totalAmt > MAX_VALUE) { const msg = `Debt amount cannot exceed ${symbol}${MAX_VALUE.toLocaleString()}`; setFormError(msg); toast(msg, 'error'); setSaving(false); return; }
+      if (totalAmt > MAX_VALUE) { const msg = `Debt amount cannot exceed ${symbol}${MAX_VALUE.toLocaleString()}`; setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
       if (!/^\d+(\.\d{1,2})?$/.test(form.totalAmount.trim())) {
         const msg = 'Please enter an amount with up to 2 decimal places';
-        setFormError(msg); toast(msg, 'error');
+        setSaveError(msg); toast(msg, 'error');
         setSaving(false);
         return;
       }
       const monthlyPay = parseFloat(form.monthlyPayment || '0');
-      if (!Number.isFinite(monthlyPay) || monthlyPay < 0) { const msg = 'Monthly payment must be a non-negative number'; setFormError(msg); toast(msg, 'error'); setSaving(false); return; }
+      if (!Number.isFinite(monthlyPay) || monthlyPay < 0) { const msg = 'Monthly payment must be a non-negative number'; setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
       const remainingAmt = parseFloat(form.remainingAmount || form.totalAmount);
-      if (!Number.isFinite(remainingAmt) || remainingAmt < 0) { const msg = 'Remaining amount must be non-negative'; setFormError(msg); toast(msg, 'error'); setSaving(false); return; }
+      if (!Number.isFinite(remainingAmt) || remainingAmt < 0) { const msg = 'Remaining amount must be non-negative'; setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
       const intRate = parseFloat(form.interestRate || '0');
-      if (!Number.isFinite(intRate) || intRate < 0) { const msg = 'Interest rate must be non-negative'; setFormError(msg); toast(msg, 'error'); setSaving(false); return; }
+      if (!Number.isFinite(intRate) || intRate < 0) { const msg = 'Interest rate must be non-negative'; setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
       const payload = { ...form, totalAmount: totalAmt, remainingAmount: remainingAmt, monthlyPayment: monthlyPay, interestRate: intRate, ribaFree: isHalal };
       const result = editDebt ? await api.updateDebt(editDebt.id, payload) : await api.addDebt(payload);
       if (result?.error) throw new Error(result.error);
@@ -215,7 +229,8 @@ export default function DebtsPage() {
 
   const toggleSelect = (id: number) => setSelectedIds(prev => {
     const next = new Set(prev);
-    next.has(id) ? next.delete(id) : next.add(id);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
     return next;
   });
 
@@ -270,6 +285,8 @@ export default function DebtsPage() {
   const activeDebts = debts.filter(d => d.remainingAmount > 0);
   const deletableActiveDebts = activeDebts.filter(d => !d.readOnly);
   const ribaDebts  = activeDebts.filter(d => !d.ribaFree && !ISLAMIC_TYPES.includes(d.type));
+  const hasLinkedPlaidDebts = debts.some(d => d.linkedSource === 'plaid' || d.readOnly);
+  const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus);
   const monthsSavedAvalanche  = projBase.months - projAvalanche.months;
   const interestSavedAvalanche = projBase.totalInterest - projAvalanche.totalInterest;
   const monthsSavedSnowball   = projBase.months - projSnowball.months;
@@ -290,6 +307,45 @@ export default function DebtsPage() {
             {t === 'debts' ? '📋 My Debts' : '🔮 Payoff Projector'}
           </button>
         ))}
+      </div>
+
+      <div className={`mb-4 rounded-2xl border p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between ${
+        plaidSyncAccess ? 'bg-[#F7FBF7] border-green-200' : 'bg-amber-50 border-amber-200'
+      }`}>
+        <div>
+          <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-[#1B5E20]' : 'text-amber-900'}`}>
+            {hasLinkedPlaidDebts
+              ? (plaidSyncAccess ? 'Keep card and loan balances fresh.' : 'Your linked liabilities are visible, but syncing is paused.')
+              : 'Connect cards and loans for a fuller debt view.'}
+          </p>
+          <p className={`text-sm mt-1 ${plaidSyncAccess ? 'text-gray-600' : 'text-amber-800'}`}>
+            {hasLinkedPlaidDebts
+              ? (plaidSyncAccess
+                ? 'Use Import to refresh due dates, statement balances, and new liability activity.'
+                : 'Upgrade to Plus or Family to keep synced due dates and liability updates flowing in.')
+              : (plaidSyncAccess
+                ? 'Link credit cards and loans so balances and upcoming dues stay current without manual entry.'
+                : 'Plaid syncing now lives on Plus and Family. Upgrade when you want automatic liability tracking.')}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/import"
+            className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+              plaidSyncAccess ? 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
+            }`}
+          >
+            {hasLinkedPlaidDebts ? 'Manage Linked Accounts' : 'Connect Accounts'}
+          </Link>
+          {!plaidSyncAccess && (
+            <Link
+              href="/dashboard/billing"
+              className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32]"
+            >
+              Upgrade to Keep Syncing
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* ── DEBTS TAB ── */}

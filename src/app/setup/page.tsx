@@ -13,6 +13,7 @@ import {
 } from '../../lib/plaid';
 import { PRICING } from '../../lib/pricing';
 import { hasCompletedGuidedSetup, markGuidedSetupComplete } from '../../lib/setup';
+import { hasPaidSyncAccess } from '../../lib/subscription';
 import { validateStripeUrl } from '../../lib/validateUrl';
 
 type BillingCycle = 'monthly' | 'yearly';
@@ -195,11 +196,7 @@ export default function SetupPage() {
   }, [open, plaidLinkToken, ready]);
 
   const currentPlan = status?.plan || user?.plan || 'free';
-  const plaidAccess = Boolean(
-    status?.hasSubscription
-      || currentPlan === 'plus'
-      || currentPlan === 'family',
-  );
+  const plaidAccess = hasPaidSyncAccess(status);
 
   const handlePlanChoice = async (plan: 'free' | 'plus' | 'family') => {
     if (plan === 'free') {

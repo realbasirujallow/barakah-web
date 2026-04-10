@@ -1,6 +1,8 @@
 'use client';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
+import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
@@ -53,6 +55,12 @@ interface Tx {
   merchantName?: string | null;
 }
 
+interface SubscriptionStatus {
+  plan: 'free' | 'plus' | 'family';
+  status: string;
+  hasSubscription: boolean;
+}
+
 // Friendly amount string for a transaction, respecting its own stored currency
 function txAmount(tx: Tx, fmt: (n: number) => string): string {
   return fmt(tx.amount);
@@ -102,6 +110,7 @@ export default function TransactionsPage() {
   const [selectAllPages, setSelectAllPages] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ type: 'single' | 'bulk'; id?: number; count?: number } | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
 
   const { currency: preferredCurrency, fmt } = useCurrency();
 
@@ -121,12 +130,26 @@ export default function TransactionsPage() {
   const load = () => {
     setLoading(true);
     setError(null);
-    api.getTransactions(filter === 'all' ? undefined : filter, page, pageSize)
-      .then(d => {
-        if (d?.error) { toast(d.error, 'error'); setError(d.error); return; }
-        setTxs(Array.isArray(d?.transactions) ? d.transactions : []);
-        setTotalPages(d?.totalPages || 0);
-        setTotalElements(d?.totalElements || 0);
+    Promise.allSettled([
+      api.getTransactions(filter === 'all' ? undefined : filter, page, pageSize),
+      api.subscriptionStatus(),
+    ])
+      .then(results => {
+        const transactionsResult = results[0].status === 'fulfilled' ? results[0].value : null;
+        const subscriptionResult = results[1].status === 'fulfilled' ? results[1].value : null;
+        setSubscriptionStatus(
+          subscriptionResult
+            ? (subscriptionResult as SubscriptionStatus)
+            : { plan: 'free', status: 'inactive', hasSubscription: false },
+        );
+        if (transactionsResult?.error) {
+          toast(transactionsResult.error, 'error');
+          setError(transactionsResult.error);
+          return;
+        }
+        setTxs(Array.isArray(transactionsResult?.transactions) ? transactionsResult.transactions : []);
+        setTotalPages(transactionsResult?.totalPages || 0);
+        setTotalElements(transactionsResult?.totalElements || 0);
       })
       .catch(() => {
         toast('Failed to load transactions', 'error');
@@ -307,6 +330,8 @@ export default function TransactionsPage() {
   const transfers = txs.filter(t => t.type === 'transfer').reduce((s, t) => s + t.amount, 0);
   const allPageSelected = txs.length > 0 && selectedIds.size === txs.length;
   const hasMorePages = totalPages > 1;
+  const hasLinkedPlaidTransactions = txs.some(tx => tx.importSource === 'plaid');
+  const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus);
 
   return (
     <div>
@@ -332,6 +357,45 @@ export default function TransactionsPage() {
       </div>
 
       {exportError && <div className="mb-4 bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{exportError}</div>}
+
+      <div className={`mb-4 rounded-2xl border p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between ${
+        plaidSyncAccess ? 'bg-[#F7FBF7] border-green-200' : 'bg-amber-50 border-amber-200'
+      }`}>
+        <div>
+          <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-[#1B5E20]' : 'text-amber-900'}`}>
+            {hasLinkedPlaidTransactions
+              ? (plaidSyncAccess ? 'Keep your transaction feed alive.' : 'Your imported feed is visible, but syncing is paused.')
+              : 'Connect your accounts to stop manual ledger work.'}
+          </p>
+          <p className={`text-sm mt-1 ${plaidSyncAccess ? 'text-gray-600' : 'text-amber-800'}`}>
+            {hasLinkedPlaidTransactions
+              ? (plaidSyncAccess
+                ? 'Open Import to resync fresh bank activity, salaries, subscriptions, and transfers.'
+                : 'Upgrade to Plus or Family to keep your linked activity syncing after trial access ends.')
+              : (plaidSyncAccess
+                ? 'Plaid turns this page into a live ledger instead of a manual list.'
+                : 'Plaid syncing now lives on Plus and Family. Upgrade when you want fresh balances and transaction flow here.')}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/import"
+            className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+              plaidSyncAccess ? 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
+            }`}
+          >
+            {hasLinkedPlaidTransactions ? 'Manage Linked Accounts' : 'Connect Accounts'}
+          </Link>
+          {!plaidSyncAccess && (
+            <Link
+              href="/dashboard/billing"
+              className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32]"
+            >
+              Upgrade to Keep Syncing
+            </Link>
+          )}
+        </div>
+      </div>
 
       {/* ── Summary cards ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
