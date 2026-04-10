@@ -33,15 +33,6 @@ export function setUnauthorizedHandler(fn: () => void) {
 // in httpOnly cookies set by the backend through the same-origin auth route
 // handler, so the browser automatically sends them on refresh.
 
-// Compatibility no-ops kept temporarily so older callers can clear session
-// state without writing tokens to browser storage.
-export function setRefreshToken(token: string | null) {
-  void token;
-}
-export function setAccessToken(token: string | null) {
-  void token;
-}
-
 // ── Global refresh deduplication ───────────────────────────────────────────
 // ALL callers (proactive refresh in AuthContext, layout navigation refresh,
 // background interval, and 401 retry) go through this single gate. Only one
