@@ -189,7 +189,14 @@ export default function ImportPage() {
       const data = await api.subscriptionStatus();
       setSubscriptionStatus(data as SubscriptionStatus);
     } catch {
-      setSubscriptionStatus({ plan: 'free', status: 'inactive', hasSubscription: false });
+      // Retry once after a short delay — the first call can fail during token refresh
+      try {
+        await new Promise(r => setTimeout(r, 2000));
+        const data = await api.subscriptionStatus();
+        setSubscriptionStatus(data as SubscriptionStatus);
+      } catch {
+        setSubscriptionStatus({ plan: 'free', status: 'inactive', hasSubscription: false });
+      }
     } finally {
       setStatusLoading(false);
     }
@@ -219,6 +226,7 @@ export default function ImportPage() {
   const plaidAccess = hasPaidSyncAccess(subscriptionStatus);
 
   const handlePlaidConnect = async () => {
+    if (statusLoading) return;
     if (!plaidAccess) {
       setError('Plaid bank sync is available on Plus and Family. Upgrade to connect new accounts.');
       return;
@@ -473,8 +481,35 @@ export default function ImportPage() {
         </div>
 
         {!statusLoading && !plaidAccess && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-4 mb-4 text-sm">
-            Plaid bank sync is available on <strong>Plus</strong> and <strong>Family</strong>. Upgrade to connect new accounts and keep syncing them. If you already linked an account during a trial, you can still view or unlink it below.
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5 mb-4">
+            <h3 className="text-lg font-bold text-[#1B5E20] mb-2">Upgrade to Connect Your Bank</h3>
+            <p className="text-sm text-gray-600 mb-3">
+              Automatically sync balances, transactions, and bills from your bank accounts.
+            </p>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <span className="text-green-600">&#10003;</span> Auto-sync balances daily
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <span className="text-green-600">&#10003;</span> Import transactions
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <span className="text-green-600">&#10003;</span> Track bills &amp; due dates
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <span className="text-green-600">&#10003;</span> Detect subscriptions
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Link
+                href="/dashboard/billing"
+                className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#2E7D32] transition"
+              >
+                View Plans &amp; Upgrade
+              </Link>
+            </div>
+            {/* Existing accounts accessible below */}
+            <p className="text-xs text-gray-400 mt-3">If you linked accounts during a trial, you can still view or unlink them below.</p>
           </div>
         )}
 

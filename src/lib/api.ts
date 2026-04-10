@@ -901,6 +901,10 @@ export const api = {
   openPortal: () =>
     apiFetch('/api/stripe/portal', { method: 'POST' }),
 
+  /** Aggregated dashboard widget data (spending, budget, transactions, bills, net worth). */
+  getDashboardWidgets: () =>
+    apiFetch('/api/dashboard/widgets'),
+
   /** Current subscription status for the logged-in user. */
   subscriptionStatus: () =>
     apiFetch('/api/stripe/status'),
