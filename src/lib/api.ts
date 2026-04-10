@@ -636,7 +636,7 @@ export const api = {
 
   // Push notifications — register FCM device token
   registerFcmToken: (token: string) =>
-    apiFetch('/api/notifications/fcm-token', { method: 'POST', body: JSON.stringify({ token }) }),
+    apiFetch('/api/notifications/fcm-token', { method: 'POST', body: JSON.stringify({ token }) }, API_TIMEOUT, true),
 
   // Live Prices
   getCryptoPrice: (symbol: string) => apiFetch(`/api/prices/crypto/${symbol}`),
@@ -717,7 +717,7 @@ export const api = {
     apiFetch('/api/ramadan/goals', { method: 'PUT', body: JSON.stringify(data) }),
 
   // Profile
-  getProfile: () => apiFetch('/auth/profile'),
+  getProfile: (suppressUnauthorized = false) => apiFetch('/auth/profile', {}, API_TIMEOUT, suppressUnauthorized),
   updateProfile: (data: Record<string, unknown>) =>
     apiFetch('/auth/update-profile', { method: 'PUT', body: JSON.stringify(data) }),
   deleteAccount: () =>
@@ -729,21 +729,23 @@ export const api = {
   getBarakahScore: () => apiFetch('/api/barakah-score'),
 
   // Notifications
-  getNotifications: (page = 0) => apiFetch(`/api/notifications?page=${page}`),
-  getUnreadNotifications: () => apiFetch('/api/notifications/unread'),
+  getNotifications: (page = 0, suppressUnauthorized = false) =>
+    apiFetch(`/api/notifications?page=${page}`, {}, API_TIMEOUT, suppressUnauthorized),
+  getUnreadNotifications: (suppressUnauthorized = false) =>
+    apiFetch('/api/notifications/unread', {}, API_TIMEOUT, suppressUnauthorized),
   markNotificationRead: (id: number) =>
-    apiFetch(`/api/notifications/${id}/read`, { method: 'PUT' }),
+    apiFetch(`/api/notifications/${id}/read`, { method: 'PUT' }, API_TIMEOUT, true),
   markAllNotificationsRead: () =>
-    apiFetch('/api/notifications/read-all', { method: 'PUT' }),
+    apiFetch('/api/notifications/read-all', { method: 'PUT' }, API_TIMEOUT, true),
   deleteNotification: (id: number) =>
-    apiFetch(`/api/notifications/${id}`, { method: 'DELETE' }),
+    apiFetch(`/api/notifications/${id}`, { method: 'DELETE' }, API_TIMEOUT, true),
 
   // Preferences & lifecycle
   getPreferences: () => apiFetch('/api/preferences'),
   updatePreferences: (data: Record<string, unknown>) =>
     apiFetch('/api/preferences', { method: 'PUT', body: JSON.stringify(data) }),
   lifecycleHeartbeat: (data: { platform?: string; appVersion?: string; timeZone?: string; route?: string }) =>
-    apiFetch('/api/lifecycle/heartbeat', { method: 'POST', body: JSON.stringify(data) }),
+    apiFetch('/api/lifecycle/heartbeat', { method: 'POST', body: JSON.stringify(data) }, API_TIMEOUT, true),
   lifecycleTrackEvent: (eventType: string, metadata?: Record<string, unknown>, source = 'web') =>
     apiFetch('/api/lifecycle/events', {
       method: 'POST',
