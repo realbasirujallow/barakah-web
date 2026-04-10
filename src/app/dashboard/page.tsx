@@ -25,7 +25,7 @@ interface MiniTransaction { id: number; description: string; merchantName: strin
 interface RecentTransactionsWidget { transactions: MiniTransaction[]; totalCount: number; }
 interface BillItem { id: number; name: string; amount: number; category: string; dueDay: number; frequency: string; paid: boolean; nextDueDate: number; overdue: boolean; dueInDays: number; }
 interface UpcomingBillsWidget { bills: BillItem[]; upcomingItems: Array<Record<string, unknown>>; totalMonthlyBills: number; upcomingCount: number; overdueCount: number; }
-interface NetWorthHistoryPoint { snapshotDate: number; netWorth: number; }
+interface NetWorthHistoryPoint { date: number; netWorth: number; }
 interface NetWorthMiniWidget { currentNetWorth: number; totalAssets: number; totalDebts: number; changeAmount: number; changePercent: number; history: NetWorthHistoryPoint[]; }
 interface DashboardWidgets { spending: SpendingWidget | null; budgetOverview: BudgetWidget | null; recentTransactions: RecentTransactionsWidget | null; upcomingBills: UpcomingBillsWidget | null; netWorthMini: NetWorthMiniWidget | null; }
 
@@ -211,6 +211,60 @@ export default function DashboardPage() {
           {getGreeting().text}{user?.name ? `, ${user.name}` : ''}
         </p>
         <p className="text-green-100 text-sm mt-1">Welcome back to Barakah. May your finances be blessed with barakah.</p>
+      </div>
+
+      {/* ── Islamic Calendar + Zakat Reminders Row ─────────────────────────── */}
+      <div className="grid md:grid-cols-2 gap-4 mb-6">
+        {/* Hijri Date + Upcoming Events */}
+        {hijri && (
+          <div className="bg-white rounded-2xl p-5 border border-green-100">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Islamic Date</p>
+                <p className="text-lg font-bold text-[#1B5E20]">{hijri.hijriDate}</p>
+              </div>
+              <span className="text-3xl">🕌</span>
+            </div>
+            {hijri.upcomingEvents.length > 0 && (
+              <div className="border-t border-green-50 pt-3 mt-2 space-y-2">
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Upcoming</p>
+                {hijri.upcomingEvents.slice(0, 3).map((e, i) => (
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-800 font-medium">{e.name}</span>
+                    <span className="text-gray-500 text-xs">
+                      {e.daysAway === 0 ? 'Today!' : e.daysAway === 1 ? 'Tomorrow' : `${e.daysAway} days`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {/* Hawl/Zakat Reminders */}
+        {hawlDue && (hawlDue.dueCount > 0 || hawlDue.upcomingCount > 0) && (
+          <div className={`rounded-2xl p-5 border ${hawlDue.dueCount > 0 ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-100'}`}>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Zakat Reminders</p>
+                {hawlDue.dueCount > 0 ? (
+                  <p className="text-lg font-bold text-amber-700">{hawlDue.dueCount} asset{hawlDue.dueCount !== 1 ? 's' : ''} — Zakat due now!</p>
+                ) : (
+                  <p className="text-lg font-bold text-[#1B5E20]">{hawlDue.upcomingCount} coming up</p>
+                )}
+              </div>
+              <span className="text-3xl">⏰</span>
+            </div>
+            {hawlDue.due?.slice(0, 2).map((h: Record<string, unknown>, i: number) => (
+              <div key={i} className="flex items-center justify-between text-sm mt-1 bg-white/60 rounded-lg px-3 py-2">
+                <span className="font-medium text-gray-800">{h.assetName as string}</span>
+                <span className="text-amber-700 font-bold">{fmt((h.zakatAmount as number) || 0)} due</span>
+              </div>
+            ))}
+            <Link href="/dashboard/hawl" className="inline-block mt-3 text-sm font-medium text-[#1B5E20] hover:underline">
+              View Hawl Tracker →
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Empty-state CTA for new users */}
@@ -478,7 +532,7 @@ export default function DashboardPage() {
             <div className="h-40 mt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={widgets.netWorthMini.history.map((p) => ({
-                  date: new Date(p.snapshotDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                  date: new Date(p.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
                   netWorth: p.netWorth,
                 }))}>
                   <defs>
@@ -497,60 +551,6 @@ export default function DashboardPage() {
           )}
         </div>
       )}
-
-      {/* ── Islamic Calendar + Zakat Reminders Row ─────────────────────────── */}
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
-        {/* Hijri Date + Upcoming Events */}
-        {hijri && (
-          <div className="bg-white rounded-2xl p-5 border border-green-100">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide">Islamic Date</p>
-                <p className="text-lg font-bold text-[#1B5E20]">{hijri.hijriDate}</p>
-              </div>
-              <span className="text-3xl">🕌</span>
-            </div>
-            {hijri.upcomingEvents.length > 0 && (
-              <div className="border-t border-green-50 pt-3 mt-2 space-y-2">
-                <p className="text-xs text-gray-500 uppercase tracking-wide">Upcoming</p>
-                {hijri.upcomingEvents.slice(0, 3).map((e, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-800 font-medium">{e.name}</span>
-                    <span className="text-gray-500 text-xs">
-                      {e.daysAway === 0 ? 'Today!' : e.daysAway === 1 ? 'Tomorrow' : `${e.daysAway} days`}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        {/* Hawl/Zakat Reminders */}
-        {hawlDue && (hawlDue.dueCount > 0 || hawlDue.upcomingCount > 0) && (
-          <div className={`rounded-2xl p-5 border ${hawlDue.dueCount > 0 ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-100'}`}>
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide">Zakat Reminders</p>
-                {hawlDue.dueCount > 0 ? (
-                  <p className="text-lg font-bold text-amber-700">{hawlDue.dueCount} asset{hawlDue.dueCount !== 1 ? 's' : ''} — Zakat due now!</p>
-                ) : (
-                  <p className="text-lg font-bold text-[#1B5E20]">{hawlDue.upcomingCount} coming up</p>
-                )}
-              </div>
-              <span className="text-3xl">⏰</span>
-            </div>
-            {hawlDue.due?.slice(0, 2).map((h: Record<string, unknown>, i: number) => (
-              <div key={i} className="flex items-center justify-between text-sm mt-1 bg-white/60 rounded-lg px-3 py-2">
-                <span className="font-medium text-gray-800">{h.assetName as string}</span>
-                <span className="text-amber-700 font-bold">{fmt((h.zakatAmount as number) || 0)} due</span>
-              </div>
-            ))}
-            <Link href="/dashboard/hawl" className="inline-block mt-3 text-sm font-medium text-[#1B5E20] hover:underline">
-              View Hawl Tracker →
-            </Link>
-          </div>
-        )}
-      </div>
 
       {/* Quick Actions */}
       <div className="mb-6">
