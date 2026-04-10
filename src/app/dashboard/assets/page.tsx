@@ -5,6 +5,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { logError } from '../../../lib/logError';
 import { safeParse, validateAsset } from '../../../lib/schemas';
+import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useToast } from '../../../lib/toast';
 
 interface Asset {
@@ -29,6 +30,12 @@ interface Asset {
 interface AssetFormState {
   name: string; type: string; value: string;
   penaltyRate: string; taxRate: string; address: string;
+}
+
+interface SubscriptionStatus {
+  plan: 'free' | 'plus' | 'family';
+  status: string;
+  hasSubscription: boolean;
 }
 
 const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
@@ -99,14 +106,22 @@ export default function AssetsPage() {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
 
   const load = () => {
     setLoading(true);
     setLoadError(null);
-    Promise.allSettled([api.getAssets(), api.getAssetTotal()])
+    Promise.allSettled([api.getAssets(), api.getAssetTotal(), api.subscriptionStatus()])
       .then((results) => {
         const aRaw = results[0].status === 'fulfilled' ? results[0].value : null;
         const tRaw = results[1].status === 'fulfilled' ? results[1].value : null;
+        const subscriptionRaw = results[2].status === 'fulfilled' ? results[2].value : null;
+
+        setSubscriptionStatus(
+          subscriptionRaw
+            ? (subscriptionRaw as SubscriptionStatus)
+            : { plan: 'free', status: 'inactive', hasSubscription: false },
+        );
 
         if (aRaw?.error) {
           logError(new Error(aRaw.error), { context: 'Asset API error' });
@@ -146,6 +161,8 @@ export default function AssetsPage() {
   useEffect(() => { load(); }, []);
 
   const deletableAssets = assets.filter(asset => !asset.readOnly);
+  const hasLinkedPlaidAssets = assets.some(asset => asset.linkedSource === 'plaid' || asset.readOnly);
+  const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus);
 
   const typeLabel = (t: string) => {
     for (const items of Object.values(TYPE_GROUPS)) {
@@ -332,6 +349,45 @@ export default function AssetsPage() {
             </button>
           )}
           <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm">+ Add Asset</button>
+        </div>
+      </div>
+
+      <div className={`mb-4 rounded-2xl border p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between ${
+        plaidSyncAccess ? 'bg-[#F7FBF7] border-green-200' : 'bg-amber-50 border-amber-200'
+      }`}>
+        <div>
+          <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-[#1B5E20]' : 'text-amber-900'}`}>
+            {hasLinkedPlaidAssets
+              ? (plaidSyncAccess ? 'Keep your linked balances fresh.' : 'Your linked balances are visible, but syncing is paused.')
+              : 'Connect bank and investment accounts.'}
+          </p>
+          <p className={`text-sm mt-1 ${plaidSyncAccess ? 'text-gray-600' : 'text-amber-800'}`}>
+            {hasLinkedPlaidAssets
+              ? (plaidSyncAccess
+                ? 'Resync Plaid balances and routes from Import so this page stays current.'
+                : 'Upgrade to Plus or Family to keep syncing balances and new activity after your trial ends.')
+              : (plaidSyncAccess
+                ? 'Link Plaid accounts so cash, brokerage, and retirement balances land here without manual entry.'
+                : 'Plaid account sync now lives on Plus and Family. Upgrade when you want live balances instead of manual updates.')}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/import"
+            className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+              plaidSyncAccess ? 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
+            }`}
+          >
+            {hasLinkedPlaidAssets ? 'Manage Linked Accounts' : 'Connect Accounts'}
+          </Link>
+          {!plaidSyncAccess && (
+            <Link
+              href="/dashboard/billing"
+              className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32]"
+            >
+              Upgrade to Keep Syncing
+            </Link>
+          )}
         </div>
       </div>
 
