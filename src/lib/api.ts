@@ -993,6 +993,10 @@ export const api = {
   getDashboardWidgets: () =>
     apiFetch('/api/dashboard/widgets'),
 
+  /** Seed sample demo data for new users (one-time). */
+  seedDemoData: () =>
+    apiFetch('/api/onboarding/seed-demo', { method: 'POST' }),
+
   /** Current subscription status for the logged-in user. */
   subscriptionStatus: () =>
     apiFetch('/api/stripe/status'),
