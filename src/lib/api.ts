@@ -56,6 +56,35 @@ function deduplicatedRefresh(): Promise<RefreshResult> {
   return _activeRefreshPromise;
 }
 
+async function verifySessionStillValid(): Promise<boolean> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const res = await fetch(`${API_URL}/auth/profile`, {
+      method: 'GET',
+      credentials: 'include',
+      signal: controller.signal,
+      headers: { Accept: 'application/json' },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function extractErrorMessage(res: Response, fallback: string): Promise<string> {
+  const text = await res.text();
+  if (!text) return fallback;
+  try {
+    const json = JSON.parse(text);
+    return json.error || json.message || fallback;
+  } catch {
+    return text.length < 200 ? text : fallback;
+  }
+}
+
 /**
  * Calls POST /auth/refresh directly (bypasses apiFetch to avoid recursion).
  * Returns: 'ok' if refresh succeeded, 'expired' if server rejected (401/403),
@@ -162,6 +191,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
                            endpoint.startsWith('/auth/verify-email') ||
                            endpoint.startsWith('/auth/resend-verification');
     if (res.status === 401 && !isAuthEndpoint) {
+      const originalUnauthorizedResponse = res.clone();
       // Use the global deduplication gate — all concurrent 401s share one
       // refresh request, preventing the rotation death spiral.
       const refreshResult = await deduplicatedRefresh();
@@ -189,9 +219,17 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
             if (!retryText) return null;
             try { return JSON.parse(retryText); } catch { throw new Error('Unexpected server response.'); }
           }
-          // Retry also failed — fall through to the unauthorized handler
-        } catch {
+          if (retryRes.status !== 401) {
+            throw new Error(await extractErrorMessage(retryRes, `API error ${retryRes.status}`));
+          }
+          const sessionStillValid = await verifySessionStillValid();
+          if (sessionStillValid) {
+            throw new Error(await extractErrorMessage(retryRes, 'We could not complete that request. Please try again.'));
+          }
+          // Retry also failed with 401 and the session is genuinely gone — fall through to the unauthorized handler
+        } catch (retryErr) {
           clearTimeout(retryTimeout);
+          throw retryErr;
         }
       }
 
@@ -201,6 +239,11 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
         throw new Error('Network error — please check your connection and try again.');
       }
 
+      const sessionStillValid = await verifySessionStillValid();
+      if (sessionStillValid) {
+        throw new Error(await extractErrorMessage(originalUnauthorizedResponse, 'We could not complete that request. Please try again.'));
+      }
+
       // Refresh returned 'expired' or retry after 'ok' also failed — session is gone.
       // Only fire the global logout if the caller hasn't opted out.
       if (!suppressUnauthorized && onUnauthorizedCallback) onUnauthorizedCallback();
@@ -208,18 +251,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
     }
     // ── End silent refresh ─────────────────────────────────────────────────
 
-    const text = await res.text();
-    // Try to extract a user-friendly message from the JSON error body
-    let msg = `API error ${res.status}`;
-    if (text) {
-      try {
-        const json = JSON.parse(text);
-        msg = json.error || json.message || msg;
-      } catch {
-        msg = text.length < 200 ? text : msg;
-      }
-    }
-    throw new Error(msg);
+    throw new Error(await extractErrorMessage(res, `API error ${res.status}`));
   }
 
   const text = await res.text();
@@ -261,15 +293,15 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
       if (refreshResult === 'ok') {
         const r2 = await fetch(`${API_URL}${endpoint}`, { method: 'POST', body: formData, credentials: 'include' });
         if (r2.ok) { const t = await r2.text(); if (!t) return null; try { return JSON.parse(t); } catch { throw new Error('Unexpected server response.'); } }
+        if (r2.status !== 401) throw new Error(await extractErrorMessage(r2, `Upload error ${r2.status}`));
+        if (await verifySessionStillValid()) throw new Error(await extractErrorMessage(r2, 'Upload failed. Please try again.'));
       }
       if (refreshResult === 'network_error') throw new Error('Network error — please check your connection and try again.');
+      if (await verifySessionStillValid()) throw new Error('Upload failed. Please try again.');
       if (onUnauthorizedCallback) onUnauthorizedCallback();
       throw new Error('Your session has expired. Please log in again.');
     }
-    const text = await res.text();
-    let msg = `Upload error ${res.status}`;
-    if (text) { try { const j = JSON.parse(text); msg = j.error || j.message || msg; } catch { /* ignore */ } }
-    throw new Error(msg);
+    throw new Error(await extractErrorMessage(res, `Upload error ${res.status}`));
   }
 
   const text = await res.text();
@@ -308,8 +340,11 @@ export async function apiDownload(endpoint: string, filename: string): Promise<v
           document.body.appendChild(a2); a2.click(); document.body.removeChild(a2); URL.revokeObjectURL(url2);
           return;
         }
+        if (r2.status !== 401) throw new Error(`Download failed (${r2.status})`);
+        if (await verifySessionStillValid()) throw new Error('Download failed. Please try again.');
       }
       if (refreshResult === 'network_error') throw new Error('Network error — please check your connection and try again.');
+      if (await verifySessionStillValid()) throw new Error('Download failed. Please try again.');
       if (onUnauthorizedCallback) onUnauthorizedCallback();
       throw new Error('Your session has expired. Please log in again.');
     }
