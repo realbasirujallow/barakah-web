@@ -1,7 +1,7 @@
 'use client';
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { api, setUnauthorizedHandler } from '../lib/api';
+import { api, setRefreshToken, setUnauthorizedHandler } from '../lib/api';
 
 export interface User {
   id: string;
@@ -83,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         // localStorage access failed, continue with cleanup
       }
+      setRefreshToken(null);
       setUser(null);
       if (typeof window !== 'undefined' && isProtectedPath(window.location.pathname)) {
         routerRef.current.push('/login?reason=expired');
@@ -333,6 +334,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(USER_KEY, JSON.stringify(profile));
     localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
     localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
+    setRefreshToken(typeof data.refreshToken === 'string'
+      ? data.refreshToken
+      : (typeof data.refresh_token === 'string' ? data.refresh_token : null));
     setUser(profile);
   };
 
@@ -357,6 +361,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // localStorage access failed
     }
+    setRefreshToken(null);
     setUser(null);
     const query = reason ? `?reason=${reason}` : '';
     routerRef.current.push(`/login${query}`);

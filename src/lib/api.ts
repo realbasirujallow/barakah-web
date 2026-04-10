@@ -10,6 +10,7 @@ const API_TIMEOUT = 30_000;      // 30s for standard API calls
 const UPLOAD_TIMEOUT = 60_000;   // 60s for file uploads
 const DOWNLOAD_TIMEOUT = 30_000; // 30s for file downloads
 const IMPORT_TIMEOUT = 300_000;  // 5min for large imports (chunked)
+const REFRESH_FALLBACK_KEY = 'barakah_refresh_fallback';
 
 // ── CSRF Token Helper ──────────────────────────────────────────────────────
 function getCsrfToken(): string | null {
@@ -25,6 +26,29 @@ let onUnauthorizedCallback: (() => void) | null = null;
 
 export function setUnauthorizedHandler(fn: () => void) {
   onUnauthorizedCallback = fn;
+}
+
+export function setRefreshToken(token: string | null) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (token && token.trim()) {
+      window.sessionStorage.setItem(REFRESH_FALLBACK_KEY, token);
+    } else {
+      window.sessionStorage.removeItem(REFRESH_FALLBACK_KEY);
+    }
+  } catch {
+    // sessionStorage unavailable — cookies remain the primary path
+  }
+}
+
+function getRefreshTokenFallback(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const token = window.sessionStorage.getItem(REFRESH_FALLBACK_KEY);
+    return token && token.trim() ? token : null;
+  } catch {
+    return null;
+  }
 }
 
 // ── Silent refresh ─────────────────────────────────────────────────────────────
@@ -97,6 +121,7 @@ async function attemptSilentRefresh(): Promise<'ok' | 'expired' | 'network_error
   const timeout = setTimeout(() => controller.abort(), 10_000); // 10s timeout
   try {
     const csrfToken = getCsrfToken();
+    const refreshTokenFallback = getRefreshTokenFallback();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -106,10 +131,22 @@ async function attemptSilentRefresh(): Promise<'ok' | 'expired' | 'network_error
       method: 'POST',
       credentials: 'include',
       headers,
-      body: JSON.stringify({}),
+      body: JSON.stringify(refreshTokenFallback ? { refreshToken: refreshTokenFallback } : {}),
       signal: controller.signal,
     });
     if (res.ok) {
+      try {
+        const text = await res.text();
+        if (text) {
+          const json = JSON.parse(text);
+          const rotated = typeof json.refreshToken === 'string'
+            ? json.refreshToken
+            : (typeof json.refresh_token === 'string' ? json.refresh_token : null);
+          if (rotated) setRefreshToken(rotated);
+        }
+      } catch {
+        // Ignore parsing/storage issues — cookies may still have refreshed
+      }
       return 'ok';
     }
     // Server explicitly rejected our refresh token — session is truly expired
@@ -247,6 +284,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
       // Refresh returned 'expired' or retry after 'ok' also failed — session is gone.
       // Only fire the global logout if the caller hasn't opted out.
       if (!suppressUnauthorized && onUnauthorizedCallback) onUnauthorizedCallback();
+      setRefreshToken(null);
       throw new Error('Your session has expired. Please log in again.');
     }
     // ── End silent refresh ─────────────────────────────────────────────────
@@ -299,6 +337,7 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
       if (refreshResult === 'network_error') throw new Error('Network error — please check your connection and try again.');
       if (await verifySessionStillValid()) throw new Error('Upload failed. Please try again.');
       if (onUnauthorizedCallback) onUnauthorizedCallback();
+      setRefreshToken(null);
       throw new Error('Your session has expired. Please log in again.');
     }
     throw new Error(await extractErrorMessage(res, `Upload error ${res.status}`));
@@ -346,6 +385,7 @@ export async function apiDownload(endpoint: string, filename: string): Promise<v
       if (refreshResult === 'network_error') throw new Error('Network error — please check your connection and try again.');
       if (await verifySessionStillValid()) throw new Error('Download failed. Please try again.');
       if (onUnauthorizedCallback) onUnauthorizedCallback();
+      setRefreshToken(null);
       throw new Error('Your session has expired. Please log in again.');
     }
     throw new Error(`Download failed (${res.status})`);
