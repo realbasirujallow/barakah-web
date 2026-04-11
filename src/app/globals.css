@@ -68,3 +68,40 @@ nav a, nav button { min-height: 2.5rem; }
   color: var(--text-primary) !important;
   border-color: var(--border-color) !important;
 }
+
+/* Additional dark overrides for dashboard patterns */
+.dark .bg-white\/50, .dark .bg-white\/80 { background-color: rgba(26, 46, 29, 0.8) !important; }
+.dark .bg-\[#FFF3CD\] { background-color: #2a3a1e !important; }
+.dark .bg-green-50 { background-color: #152018 !important; }
+.dark .bg-green-100 { background-color: #1a2e1d !important; }
+.dark .bg-amber-50 { background-color: #2a2a16 !important; }
+.dark .bg-amber-100 { background-color: #332e18 !important; }
+.dark .bg-red-50 { background-color: #2a1616 !important; }
+.dark .bg-blue-50 { background-color: #161a2a !important; }
+.dark .bg-purple-50 { background-color: #201a2a !important; }
+.dark .shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,0.3) !important; }
+.dark .shadow-md { box-shadow: 0 4px 6px rgba(0,0,0,0.4) !important; }
+.dark .text-\[#1B5E20\] { color: #4ade80 !important; }
+.dark .border-\[#1B5E20\] { border-color: #4ade80 !important; }
+.dark .bg-\[#1B5E20\] { background-color: #166534 !important; }
+.dark .hover\:bg-\[#2E7D32\]:hover { background-color: #15803d !important; }
+.dark .hover\:bg-green-50:hover { background-color: #152018 !important; }
+.dark .hover\:bg-gray-50:hover { background-color: #152018 !important; }
+.dark .hover\:bg-gray-100:hover { background-color: #1a2e1d !important; }
+.dark .ring-\[#1B5E20\] { --tw-ring-color: #4ade80 !important; }
+.dark .focus\:border-\[#1B5E20\]:focus { border-color: #4ade80 !important; }
+.dark .focus\:ring-\[#1B5E20\]:focus { --tw-ring-color: #4ade80 !important; }
+.dark .divide-gray-100 > :not(:last-child) { border-color: #1f3024 !important; }
+.dark .divide-gray-200 > :not(:last-child) { border-color: var(--border-color) !important; }
+.dark table thead tr { background-color: #152018 !important; }
+.dark table tbody tr:hover { background-color: #152018 !important; }
+.dark .rounded-2xl { border-color: var(--border-color); }
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar { width: 8px; }
+.dark ::-webkit-scrollbar-track { background: #0f1a12; }
+.dark ::-webkit-scrollbar-thumb { background: #2d4a32; border-radius: 4px; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #3d5a42; }
+
+/* Placeholder text in dark mode */
+.dark ::placeholder { color: #4b5563 !important; }

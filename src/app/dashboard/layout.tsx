@@ -79,6 +79,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Sync dark mode state with DOM on mount
+  useEffect(() => {
+    setDarkMode(document.documentElement.classList.contains('dark'));
+  }, []);
+
+  const toggleDarkMode = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    document.documentElement.classList.toggle('dark', next);
+    try { localStorage.setItem('barakah_dark_mode', String(next)); } catch {}
+  };
   const [expandedSections, setExpandedSections] = useState<Record<SidebarSection, boolean>>({
     finance: true,
     islamic: true,
@@ -228,6 +241,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           {renderSection('account')}
         </nav>
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-green-800">
+          <button
+            onClick={toggleDarkMode}
+            className="w-full text-left px-4 py-2 text-green-300 hover:text-white text-sm transition flex items-center gap-2 mb-1"
+            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {darkMode ? '☀️' : '🌙'} {darkMode ? 'Light Mode' : 'Dark Mode'}
+          </button>
           <button onClick={() => logout('logout')} className="w-full text-left px-4 py-2 text-green-300 hover:text-white text-sm transition">
             &#x2192; Sign Out
           </button>
@@ -249,6 +269,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </button>
           <div className="flex items-center gap-4">
             {headerDate && <span className="text-xs text-gray-500 hidden md:block">📅 {headerDate}</span>}
+            <button
+              onClick={toggleDarkMode}
+              className="text-gray-500 hover:text-[#1B5E20] text-lg transition"
+              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {darkMode ? '☀️' : '🌙'}
+            </button>
             <NotificationBell />
             <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-[#1B5E20]">{user.name}</span></p>
           </div>
