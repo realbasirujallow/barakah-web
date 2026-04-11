@@ -40,15 +40,19 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(dashboardUrl);
   }
 
-  // ── Protected routes ────────────────────────────────────────────────
-  // Note: We intentionally do NOT redirect protected routes here. The
-  // client-side AuthContext verifies the cookie-backed session and handles
-  // refresh/logout after hydration.
+  // ── Protected routes: redirect if clearly not logged in ──────────
+  const isProtectedRoute = pathname.startsWith('/dashboard');
+  if (isProtectedRoute && !hasAuthToken) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/login';
+    loginUrl.searchParams.set('reason', 'expired');
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
+  }
 
   return NextResponse.next();
 }
 
 export const config = {
-  // Only run proxy on auth pages (redirect logged-in users away from login)
-  matcher: ['/login', '/signup'],
+  matcher: ['/login', '/signup', '/dashboard/:path*'],
 };

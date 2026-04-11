@@ -102,6 +102,8 @@ export default function TransactionsPage() {
   const [editTx, setEditTx]     = useState<Tx | null>(null);
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [searchDebounce, setSearchDebounce] = useState('');
   const [exportingCsv, setExportingCsv] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -133,12 +135,18 @@ export default function TransactionsPage() {
 
   const { toast } = useToast();
 
+  // Debounce search input (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => { setSearchDebounce(search); setPage(0); }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const load = () => {
     setLoading(true);
     setError(null);
     const txPromise = filter === 'needs_review'
       ? api.getReviewQueue(page, pageSize)
-      : api.getTransactions(filter === 'all' ? undefined : filter, page, pageSize);
+      : api.getTransactions(filter === 'all' ? undefined : filter, page, pageSize, searchDebounce || undefined);
     Promise.allSettled([
       txPromise,
       api.subscriptionStatus(),
@@ -171,7 +179,7 @@ export default function TransactionsPage() {
       })
       .finally(() => setLoading(false));
   };
-  useEffect(() => { load(); }, [filter, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [filter, page, pageSize, searchDebounce]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (reviewedTrackedRef.current || txs.length === 0) return;
     reviewedTrackedRef.current = true;
@@ -439,6 +447,17 @@ export default function TransactionsPage() {
           )}
         </button>
         {totalElements > 0 && <span className="text-sm text-gray-500">{totalElements} total</span>}
+        <input
+          id="tx-search"
+          type="text"
+          placeholder="Search transactions..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="ml-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none w-40 sm:w-56"
+        />
+        {search && (
+          <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600 text-sm">✕</button>
+        )}
         <div className="ml-auto flex items-center gap-1.5">
           <span className="text-xs text-gray-500">Show:</span>
           {PAGE_SIZE_OPTIONS.map(n => (
