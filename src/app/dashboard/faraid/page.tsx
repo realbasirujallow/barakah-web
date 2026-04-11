@@ -70,12 +70,85 @@ interface FormData {
   numMaternalSiblings: number;
 }
 
+const EMPTY_BLOCKING_RULES: BlockingRules = {
+  siblingsBlocked: false,
+  siblingBlockedBy: '',
+  maternalSiblingsBlocked: false,
+  maternalBlockedBy: '',
+};
+
 /* ── Pie chart colour palette (green-based) ────────────────────────── */
 
 const COLORS = [
   '#1B5E20', '#2E7D32', '#388E3C', '#43A047', '#4CAF50',
   '#66BB6A', '#81C784', '#A5D6A7', '#C8E6C9', '#E8F5E9',
 ];
+
+function numberOr(value: unknown, fallback = 0) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function stringOr(value: unknown, fallback = '') {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function normalizeShareEntry(value: unknown): ShareEntry {
+  const raw = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+  return {
+    heir: stringOr(raw.heir, 'Heir'),
+    relationship: stringOr(raw.relationship),
+    share: numberOr(raw.share),
+    reason: stringOr(raw.reason),
+  };
+}
+
+function normalizeAdjustedShare(value: unknown): AdjustedShare {
+  const raw = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+  return {
+    heir: stringOr(raw.heir, 'Heir'),
+    adjustedShare: numberOr(raw.adjustedShare),
+    amount: numberOr(raw.amount),
+    share: numberOr(raw.share),
+    reason: stringOr(raw.reason),
+    relationship: stringOr(raw.relationship),
+  };
+}
+
+function normalizeBlockingRules(value: unknown): BlockingRules {
+  const raw = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+  return {
+    siblingsBlocked: Boolean(raw.siblingsBlocked),
+    siblingBlockedBy: stringOr(raw.siblingBlockedBy),
+    maternalSiblingsBlocked: Boolean(raw.maternalSiblingsBlocked),
+    maternalBlockedBy: stringOr(raw.maternalBlockedBy),
+  };
+}
+
+function normalizeFaraidResult(value: unknown): FaraidResult | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const raw = value as Record<string, unknown>;
+
+  return {
+    shares: Array.isArray(raw.shares) ? raw.shares.map(normalizeShareEntry) : [],
+    blockingRules: normalizeBlockingRules(raw.blockingRules),
+    estateValue: numberOr(raw.estateValue),
+    afterFuneralExpenses: numberOr(raw.afterFuneralExpenses),
+    afterDebts: numberOr(raw.afterDebts),
+    wasiyyahApplied: numberOr(raw.wasiyyahApplied),
+    wasiyyahCapped: Boolean(raw.wasiyyahCapped),
+    distributableEstate: numberOr(raw.distributableEstate),
+    adjustedShares: Array.isArray(raw.adjustedShares) ? raw.adjustedShares.map(normalizeAdjustedShare) : [],
+    awlApplied: Boolean(raw.awlApplied),
+    raddApplied: Boolean(raw.raddApplied),
+    message: stringOr(raw.message),
+    faraid: Boolean(raw.faraid),
+    madhab: stringOr(raw.madhab),
+    source: stringOr(raw.source),
+  };
+}
 
 /* ── Component ─────────────────────────────────────────────────────── */
 
@@ -133,7 +206,13 @@ export default function FaraidPage() {
       if (res?.error) {
         toast(res.error, 'error');
       } else {
-        setResult(res);
+        const normalized = normalizeFaraidResult(res);
+        if (!normalized) {
+          toast('The Faraid response was incomplete. Please try again.', 'error');
+          setResult(null);
+          return;
+        }
+        setResult(normalized);
       }
     } catch {
       toast('Failed to calculate Faraid distribution', 'error');
@@ -173,6 +252,7 @@ export default function FaraidPage() {
     name: s.heir,
     value: s.amount,
   })) ?? [];
+  const blockingRules = result?.blockingRules ?? EMPTY_BLOCKING_RULES;
 
   /* ── Render ───────────────────────────────────────────────────────── */
 
@@ -416,20 +496,20 @@ export default function FaraidPage() {
           )}
 
           {/* Blocking Rules */}
-          {(result.blockingRules.siblingsBlocked || result.blockingRules.maternalSiblingsBlocked) && (
+          {(blockingRules.siblingsBlocked || blockingRules.maternalSiblingsBlocked) && (
             <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-3">
               <h2 className="text-lg font-semibold text-[#1B5E20] mb-2">Blocking Rules</h2>
-              {result.blockingRules.siblingsBlocked && (
+              {blockingRules.siblingsBlocked && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700">
                   <span className="font-semibold">Siblings blocked</span> by{' '}
-                  <span className="text-[#1B5E20] font-medium">{result.blockingRules.siblingBlockedBy}</span>.
+                  <span className="text-[#1B5E20] font-medium">{blockingRules.siblingBlockedBy || 'closer heirs'}</span>.
                   In Islamic inheritance law, certain closer relatives exclude more distant ones from inheriting.
                 </div>
               )}
-              {result.blockingRules.maternalSiblingsBlocked && (
+              {blockingRules.maternalSiblingsBlocked && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700">
                   <span className="font-semibold">Maternal siblings blocked</span> by{' '}
-                  <span className="text-[#1B5E20] font-medium">{result.blockingRules.maternalBlockedBy}</span>.
+                  <span className="text-[#1B5E20] font-medium">{blockingRules.maternalBlockedBy || 'closer heirs'}</span>.
                   Maternal half-siblings are excluded when certain relatives are present.
                 </div>
               )}
