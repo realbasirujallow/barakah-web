@@ -128,6 +128,33 @@ export const WASIYYAH_OBLIGATION_TYPES = [
   'ZAKAT', 'KAFFARAH', 'UNPAID_LOAN', 'PROMISED_SADAQAH', 'MISSED_PRAYER_FIDYA', 'CUSTOM',
 ] as const;
 
+// ── Waqf Statuses ────────────────────────────────────────────────────────────
+
+export const WAQF_STATUSES = ['active', 'completed', 'cancelled'] as const;
+
+// ── Notification Types ───────────────────────────────────────────────────────
+
+export const NOTIFICATION_TYPES = [
+  'bill_due', 'hawl_complete', 'wasiyyah_reminder', 'budget_alert',
+  'savings_milestone', 'zakat_due', 'system', 'general',
+] as const;
+
+// ── Subscription Plans ───────────────────────────────────────────────────────
+
+export const SUBSCRIPTION_PLANS = ['free', 'plus', 'family'] as const;
+export const SUBSCRIPTION_ACTIVE_STATUSES = ['active', 'trial', 'trialing', 'past_due'] as const;
+
+// ── Fiqh Schools ─────────────────────────────────────────────────────────────
+
+export const FIQH_SCHOOLS = ['HANAFI', 'SHAFII', 'MALIKI', 'HANBALI', 'GENERAL'] as const;
+
+// ── Riba Source Types ────────────────────────────────────────────────────────
+
+export const RIBA_SOURCE_TYPES = [
+  'MORTGAGE', 'CREDIT_CARD', 'PERSONAL_LOAN', 'CAR_LOAN',
+  'STUDENT_LOAN', 'SAVINGS_INTEREST', 'INVESTMENT_INTEREST', 'OTHER',
+] as const;
+
 // ── Currencies ───────────────────────────────────────────────────────────────
 
 export const CURRENCIES = [
