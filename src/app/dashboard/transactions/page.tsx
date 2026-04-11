@@ -53,6 +53,9 @@ interface Tx {
   sourceAccountType?: string | null;
   externalAccountId?: string | null;
   merchantName?: string | null;
+  tags?: string | null;
+  notes?: string | null;
+  reviewStatus?: string | null;
 }
 
 interface SubscriptionStatus {
@@ -111,12 +114,14 @@ export default function TransactionsPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ type: 'single' | 'bulk'; id?: number; count?: number } | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
+  const [reviewCount, setReviewCount] = useState(0);
 
   const { currency: preferredCurrency, fmt } = useCurrency();
 
   const [form, setForm] = useState({
     type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: 'USD',
     date: new Date().toISOString().slice(0, 10),
+    tags: '', notes: '',
   });
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -130,18 +135,26 @@ export default function TransactionsPage() {
   const load = () => {
     setLoading(true);
     setError(null);
+    const txPromise = filter === 'needs_review'
+      ? api.getReviewQueue(page, pageSize)
+      : api.getTransactions(filter === 'all' ? undefined : filter, page, pageSize);
     Promise.allSettled([
-      api.getTransactions(filter === 'all' ? undefined : filter, page, pageSize),
+      txPromise,
       api.subscriptionStatus(),
+      api.getReviewQueue(0, 1),
     ])
       .then(results => {
         const transactionsResult = results[0].status === 'fulfilled' ? results[0].value : null;
         const subscriptionResult = results[1].status === 'fulfilled' ? results[1].value : null;
+        const reviewResult = results[2].status === 'fulfilled' ? results[2].value : null;
         setSubscriptionStatus(
           subscriptionResult
             ? (subscriptionResult as SubscriptionStatus)
             : { plan: 'free', status: 'inactive', hasSubscription: false },
         );
+        if (reviewResult?.totalElements != null) {
+          setReviewCount(reviewResult.totalElements);
+        }
         if (transactionsResult?.error) {
           toast(transactionsResult.error, 'error');
           setError(transactionsResult.error);
@@ -168,14 +181,14 @@ export default function TransactionsPage() {
 
   const openAdd = () => {
     setEditTx(null);
-    setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10) });
+    setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10), tags: '', notes: '' });
     setShowForm(true);
   };
 
   const openEdit = (tx: Tx) => {
     setEditTx(tx);
     const txDate = new Date(tx.timestamp).toISOString().slice(0, 10);
-    setForm({ type: tx.type, direction: tx.direction || (tx.type === 'income' ? 'inflow' : tx.type === 'transfer' ? 'neutral' : 'outflow'), category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate });
+    setForm({ type: tx.type, direction: tx.direction || (tx.type === 'income' ? 'inflow' : tx.type === 'transfer' ? 'neutral' : 'outflow'), category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate, tags: tx.tags || '', notes: tx.notes || '' });
     setShowForm(true);
   };
 
@@ -209,7 +222,7 @@ export default function TransactionsPage() {
       }
       setShowForm(false);
       setEditTx(null);
-      setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10) });
+      setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10), tags: '', notes: '' });
       load();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : (editTx ? 'Failed to update transaction' : 'Failed to add transaction');
@@ -414,6 +427,15 @@ export default function TransactionsPage() {
           <button key={f} onClick={() => { setFilter(f); setPage(0); exitSelectMode(); }}
             className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${filter === f ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>{f}</button>
         ))}
+        <button onClick={() => { setFilter('needs_review'); setPage(0); exitSelectMode(); }}
+          className={`px-3 py-1 rounded-lg text-sm font-medium flex items-center gap-1.5 ${filter === 'needs_review' ? 'bg-amber-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>
+          Needs Review
+          {reviewCount > 0 && (
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${filter === 'needs_review' ? 'bg-white text-amber-700' : 'bg-amber-100 text-amber-700'}`}>
+              {reviewCount}
+            </span>
+          )}
+        </button>
         {totalElements > 0 && <span className="text-sm text-gray-500">{totalElements} total</span>}
         <div className="ml-auto flex items-center gap-1.5">
           <span className="text-xs text-gray-500">Show:</span>
@@ -477,10 +499,18 @@ export default function TransactionsPage() {
                 )}
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-gray-900">{tx.merchantName || tx.description || tx.category}</p>
+                    <p className="font-semibold text-gray-900">
+                      {tx.merchantName ? <><span className="font-bold">{tx.merchantName}</span>{tx.description && tx.description !== tx.merchantName ? <span className="font-normal text-gray-500 text-sm ml-1">— {tx.description}</span> : ''}</> : (tx.description || tx.category)}
+                      {tx.notes && <span className="ml-1 text-sm" title={tx.notes}>📝</span>}
+                    </p>
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${presentation.badgeClass}`}>
                       {presentation.badge}
                     </span>
+                    {tx.reviewStatus === 'needs_review' && (
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                        Review
+                      </span>
+                    )}
                     {tx.importSource === 'plaid' && (
                       <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                         Linked via Plaid
@@ -493,6 +523,15 @@ export default function TransactionsPage() {
                       <span className="ml-1 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-mono">{tx.currency}</span>
                     )}
                   </p>
+                  {tx.tags && tx.tags.trim() !== '' && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {tx.tags.split(',').map(tag => tag.trim()).filter(Boolean).map((tag, i) => (
+                        <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-[#1B5E20]">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {(tx.sourceInstitutionName || tx.sourceAccountName) && (
                     <p className="text-xs text-emerald-700 mt-1">
                       {[tx.sourceInstitutionName, tx.sourceAccountName, tx.sourceAccountType].filter(Boolean).join(' • ')}
@@ -611,6 +650,19 @@ export default function TransactionsPage() {
                 <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
                   max={new Date().toISOString().slice(0, 10)}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" />
+              </div>
+              {/* Tags */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+                <input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="Tags (comma-separated, e.g. ramadan, groceries)" />
+              </div>
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
+                  rows={2}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none" placeholder="Notes (optional)" />
               </div>
             </div>
             <div className="flex gap-3 mt-6">

@@ -68,6 +68,7 @@ export default function DashboardPage() {
   const [portfolioSummary, setPortfolioSummary] = useState<PortfolioSummary | null>(null);
   const [latestPortfolioSnapshot, setLatestPortfolioSnapshot] = useState<PortfolioHistorySnapshot | null>(null);
   const [widgets, setWidgets] = useState<DashboardWidgets | null>(null);
+  const [safeToSpend, setSafeToSpend] = useState<{safeToSpend: number; dailySafeToSpend?: number; totalIncome: number; totalSpent: number; totalBillsDue: number; totalBudgeted: number; daysRemainingInMonth: number} | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -82,13 +83,14 @@ export default function DashboardPage() {
     let cancelled = false;
 
     const loadDashboard = async () => {
-      const [assetResult, hijriResult, hawlResult, portfolioResult, portfolioHistoryResult, widgetResult] = await Promise.allSettled([
+      const [assetResult, hijriResult, hawlResult, portfolioResult, portfolioHistoryResult, widgetResult, safeToSpendResult] = await Promise.allSettled([
         api.getAssetTotal(),
         api.getIslamicCalendarToday(),
         api.getHawlDue(30),
         api.getPortfolioSummary(),
         api.getPortfolioHistory(2),
         api.getDashboardWidgets(),
+        api.getSafeToSpend(),
       ]);
 
       if (cancelled) return;
@@ -110,6 +112,9 @@ export default function DashboardPage() {
       }
       if (widgetResult.status === 'fulfilled') {
         setWidgets(widgetResult.value as DashboardWidgets);
+      }
+      if (safeToSpendResult.status === 'fulfilled') {
+        setSafeToSpend(safeToSpendResult.value as typeof safeToSpend);
       }
       setLoading(false);
     };
@@ -443,6 +448,34 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* ── Safe to Spend ──────────────────────────────────────────────── */}
+      {safeToSpend && (
+        <div className="bg-white rounded-2xl p-5 border border-gray-100 mb-6">
+          <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Safe to Spend</p>
+          <p className={`text-3xl font-bold ${safeToSpend.safeToSpend > 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {fmt(safeToSpend.safeToSpend)}
+          </p>
+          {safeToSpend.safeToSpend > 0 ? (
+            <p className="text-sm text-gray-500 mt-1">
+              {fmt(safeToSpend.dailySafeToSpend ?? (safeToSpend.daysRemainingInMonth > 0 ? safeToSpend.safeToSpend / safeToSpend.daysRemainingInMonth : 0))} per day for {safeToSpend.daysRemainingInMonth} days remaining
+            </p>
+          ) : (
+            <p className="text-sm text-red-500 mt-1 font-medium">You&apos;ve exceeded your budget this month</p>
+          )}
+          <div className="flex items-center gap-2 text-xs text-gray-400 mt-3 flex-wrap">
+            <span>{fmt(safeToSpend.totalIncome)} income</span>
+            <span>-</span>
+            <span>{fmt(safeToSpend.totalBillsDue)} bills</span>
+            <span>-</span>
+            <span>{fmt(safeToSpend.totalSpent)} spent</span>
+            <span>=</span>
+            <span className={`font-semibold ${safeToSpend.safeToSpend > 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {fmt(safeToSpend.safeToSpend)}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* ── Recent Transactions + Upcoming Bills Row ──────────────────────── */}
       <div role="region" aria-label="Recent transactions and upcoming bills" className="grid md:grid-cols-2 gap-4 mb-6">
