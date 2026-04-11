@@ -92,6 +92,10 @@ export default function ZakatPage() {
   // FEATURE 3: PDF Export
   const [exporting, setExporting] = useState(false);
 
+  // FEATURE 6: Calculation Receipt
+  const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
+  const [receiptLoading, setReceiptLoading] = useState(false);
+
   // FEATURE 5: Scholarly References
   const [scholarlyReferences, setScholarlyReferences] = useState<Record<string, unknown>[]>([]);
   const [loadingReferences, setLoadingReferences] = useState(false);
@@ -371,6 +375,23 @@ export default function ZakatPage() {
     return () => clearTimeout(timer);
   }, [householdSize, tab]);
 
+  // FEATURE 6: Load Calculation Receipt
+  const handleViewReceipt = async () => {
+    setReceiptLoading(true);
+    try {
+      const data = await api.getZakatReceipt();
+      if (data) {
+        setReceipt(data as Record<string, unknown>);
+      } else {
+        toast('No receipt data available', 'error');
+      }
+    } catch (err) {
+      logError(err, { context: 'Failed to load zakat receipt' });
+      toast('Failed to load receipt. Please try again.', 'error');
+    }
+    setReceiptLoading(false);
+  };
+
   // FEATURE 3: PDF Export
   const handleExportPDF = async () => {
     try {
@@ -510,14 +531,24 @@ export default function ZakatPage() {
             {hideZakat ? 'Show' : 'Hide'}
           </button>
           {tab === 'calculator' && (
-            <button
-              onClick={handleExportPDF}
-              disabled={exporting}
-              className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 disabled:opacity-50 font-medium"
-              title="Export as PDF"
-            >
-              {exporting ? 'Exporting...' : 'Export PDF'}
-            </button>
+            <>
+              <button
+                onClick={handleViewReceipt}
+                disabled={receiptLoading}
+                className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-lg hover:bg-green-200 disabled:opacity-50 font-medium"
+                title="View calculation receipt"
+              >
+                {receiptLoading ? 'Loading...' : 'View Receipt'}
+              </button>
+              <button
+                onClick={handleExportPDF}
+                disabled={exporting}
+                className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 disabled:opacity-50 font-medium"
+                title="Export as PDF"
+              >
+                {exporting ? 'Exporting...' : 'Export PDF'}
+              </button>
+            </>
           )}
           <div className="flex bg-gray-100 rounded-lg p-1 flex-wrap">
             <button onClick={() => setTab('calculator')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'calculator' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Overview</button>
@@ -1069,6 +1100,185 @@ export default function ZakatPage() {
       ) : (
         <div className="text-center py-12">
           <p className="text-gray-400">Unknown tab</p>
+        </div>
+      )}
+
+      {/* Calculation Receipt Section */}
+      {receipt && (
+        <div className="mt-8 border-2 border-green-600 rounded-2xl bg-white shadow-lg overflow-hidden print:shadow-none print:border print:rounded-none">
+          {/* Receipt Header */}
+          <div className="bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] px-6 py-5 text-white">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-xl font-bold">Zakat Calculation Receipt</h2>
+                <p className="text-green-100 text-sm mt-1">Barakah Islamic Finance Platform</p>
+              </div>
+              <div className="text-right text-sm text-green-100">
+                <p>Lunar Year: {((receipt.paymentStatus as Record<string, unknown>)?.currentLunarYear as number) || lunarYear} AH</p>
+                <p>Generated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* Methodology Section */}
+            {receipt.methodology ? (
+              <div>
+                <h3 className="text-sm font-bold text-[#1B5E20] uppercase tracking-wide mb-3 border-b border-green-200 pb-2">Methodology</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { label: 'Madhab', value: String((receipt.methodology as Record<string, unknown>)?.madhab ?? 'N/A') },
+                    { label: 'Nisab Method', value: String((receipt.methodology as Record<string, unknown>)?.nisabMethodology ?? 'N/A').replace(/_/g, ' ') },
+                    { label: 'Gold Threshold', value: (receipt.methodology as Record<string, unknown>)?.goldThreshold != null ? fmt(Number((receipt.methodology as Record<string, unknown>).goldThreshold)) : 'N/A' },
+                    { label: 'Silver Threshold', value: (receipt.methodology as Record<string, unknown>)?.silverThreshold != null ? fmt(Number((receipt.methodology as Record<string, unknown>).silverThreshold)) : 'N/A' },
+                    { label: 'Zakat Rate', value: (receipt.methodology as Record<string, unknown>)?.zakatRate != null ? `${(Number((receipt.methodology as Record<string, unknown>).zakatRate) * 100).toFixed(1)}%` : '2.5%' },
+                  ].map((item, idx) => (
+                    <div key={idx} className="bg-green-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 font-medium">{item.label}</p>
+                      <p className="text-sm font-semibold text-gray-800 mt-0.5">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Fiqh Rules Applied */}
+            {receipt.fiqhRules ? (
+              <div>
+                <h3 className="text-sm font-bold text-[#1B5E20] uppercase tracking-wide mb-3 border-b border-green-200 pb-2">Fiqh Rules Applied</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { label: 'Jewelry Zakatable', value: (receipt.fiqhRules as Record<string, unknown>)?.jewelryZakatable ? 'Yes' : 'No' },
+                    { label: 'Fitr Type', value: String((receipt.fiqhRules as Record<string, unknown>)?.fitrType ?? 'N/A').replace(/_/g, ' ') },
+                    { label: 'Debt Deduction', value: String((receipt.fiqhRules as Record<string, unknown>)?.debtDeductionMethod ?? 'N/A').replace(/_/g, ' ') },
+                    { label: 'Retirement Method', value: String((receipt.fiqhRules as Record<string, unknown>)?.retirementMethod ?? 'N/A').replace(/_/g, ' ') },
+                  ].map((item, idx) => (
+                    <div key={idx} className="bg-amber-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 font-medium">{item.label}</p>
+                      <p className="text-sm font-semibold text-gray-800 mt-0.5 capitalize">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {/* 10-Step Calculation Trace */}
+            {receipt.calculationTrace ? (() => {
+              const trace = receipt.calculationTrace as Record<string, unknown>;
+              const steps = [
+                { num: 1, label: 'Total Wealth', key: 'step1_totalWealth' },
+                { num: 2, label: 'Non-Zakatable Wealth', key: 'step2_nonZakatableWealth' },
+                { num: 3, label: 'Gross Zakatable', key: 'step3_grossZakatable' },
+                { num: 4, label: 'Deductible Debt', key: 'step4_deductibleDebt' },
+                { num: 5, label: 'Net Zakatable', key: 'step5_netZakatable' },
+                { num: 6, label: 'Nisab Threshold', key: 'step6_nisabThreshold' },
+                { num: 7, label: 'Zakat Eligible', key: 'step7_zakatEligible', isBool: true },
+                { num: 8, label: 'Zakat Due', key: 'step8_zakatDue' },
+                { num: 9, label: 'Paid', key: 'step9_paid' },
+                { num: 10, label: 'Remaining', key: 'step10_remaining' },
+              ];
+              return (
+                <div>
+                  <h3 className="text-sm font-bold text-[#1B5E20] uppercase tracking-wide mb-3 border-b border-green-200 pb-2">10-Step Calculation Trace</h3>
+                  <div className="bg-gray-50 rounded-xl overflow-hidden">
+                    {steps.map((step, idx) => {
+                      const raw = trace[step.key];
+                      let displayValue: string;
+                      if (step.isBool) {
+                        displayValue = raw ? 'Yes' : 'No';
+                      } else {
+                        displayValue = raw != null ? fmt(Number(raw)) : '--';
+                      }
+                      const isHighlight = step.num === 8 || step.num === 10;
+                      return (
+                        <div
+                          key={step.num}
+                          className={`flex items-center justify-between px-4 py-3 ${idx < steps.length - 1 ? 'border-b border-gray-200' : ''} ${isHighlight ? 'bg-green-50' : ''}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${isHighlight ? 'bg-[#1B5E20] text-white' : 'bg-gray-200 text-gray-600'}`}>
+                              {step.num}
+                            </span>
+                            <span className={`text-sm ${isHighlight ? 'font-semibold text-[#1B5E20]' : 'text-gray-700'}`}>{step.label}</span>
+                          </div>
+                          <span className={`text-sm font-mono ${isHighlight ? 'font-bold text-[#1B5E20] text-base' : 'text-gray-800'}`}>
+                            {displayValue}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })() : null}
+
+            {/* Payment Status */}
+            {receipt.paymentStatus ? (
+              <div>
+                <h3 className="text-sm font-bold text-[#1B5E20] uppercase tracking-wide mb-3 border-b border-green-200 pb-2">Payment Status</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-green-50 rounded-lg p-4 text-center">
+                    <p className="text-xs text-gray-500 font-medium">Lunar Year</p>
+                    <p className="text-lg font-bold text-[#1B5E20] mt-1">{String((receipt.paymentStatus as Record<string, unknown>)?.currentLunarYear ?? lunarYear)} AH</p>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-4 text-center">
+                    <p className="text-xs text-gray-500 font-medium">Zakat Paid</p>
+                    <p className="text-lg font-bold text-[#1B5E20] mt-1">{fmt(Number((receipt.paymentStatus as Record<string, unknown>)?.zakatPaid) || 0)}</p>
+                  </div>
+                  <div className="bg-amber-50 rounded-lg p-4 text-center">
+                    <p className="text-xs text-gray-500 font-medium">Remaining</p>
+                    <p className="text-lg font-bold text-amber-700 mt-1">{fmt(Number((receipt.paymentStatus as Record<string, unknown>)?.zakatRemaining ?? (receipt.paymentStatus as Record<string, unknown>)?.remaining) || 0)}</p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {/* References */}
+            {receipt.references ? (
+              <div>
+                <h3 className="text-sm font-bold text-[#1B5E20] uppercase tracking-wide mb-3 border-b border-green-200 pb-2">References</h3>
+                <div className="space-y-2">
+                  {Array.isArray((receipt.references as Record<string, unknown>)?.quran) && ((receipt.references as Record<string, unknown>).quran as string[]).map((verse: string, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 bg-green-50 rounded-lg p-3">
+                      <span className="text-green-700 font-bold text-sm shrink-0">Quran</span>
+                      <p className="text-sm text-gray-700 italic">{String(verse)}</p>
+                    </div>
+                  ))}
+                  {(receipt.references as Record<string, unknown>)?.hadith ? (
+                    <div className="flex items-start gap-2 bg-amber-50 rounded-lg p-3">
+                      <span className="text-amber-700 font-bold text-sm shrink-0">Hadith</span>
+                      <p className="text-sm text-gray-700 italic">{String((receipt.references as Record<string, unknown>).hadith)}</p>
+                    </div>
+                  ) : null}
+                  {(receipt.references as Record<string, unknown>)?.disclaimer ? (
+                    <p className="text-xs text-gray-500 mt-2 italic">{String((receipt.references as Record<string, unknown>).disclaimer)}</p>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Footer / Disclaimer */}
+            <div className="border-t border-gray-200 pt-4 text-center">
+              <p className="text-xs text-gray-400">This receipt is generated by Barakah Islamic Finance Platform for informational purposes.</p>
+              <p className="text-xs text-gray-400 mt-1">Consult a qualified Islamic scholar (mufti) regarding your specific zakat obligation.</p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 justify-center pt-2 print:hidden">
+              <button
+                onClick={() => setReceipt(null)}
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium text-sm"
+              >
+                Close Receipt
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="px-6 py-2 bg-[#1B5E20] text-white rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
+              >
+                Print Receipt
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
