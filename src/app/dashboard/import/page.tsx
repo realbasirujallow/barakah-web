@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePlaidLink } from 'react-plaid-link';
 import { api } from '../../../lib/api';
+import { useAuth } from '../../../context/AuthContext';
 import {
   clearPendingPlaidLinkToken,
   getPlaidUiErrorMessage,
@@ -149,6 +150,7 @@ function formatPlaidBalance(value: number | null | undefined, currencyCode = 'US
 
 export default function ImportPage() {
   const { fmt } = useCurrency();
+  const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>('upload');
@@ -223,7 +225,10 @@ export default function ImportPage() {
   }, [loadPlaidAccounts, router, searchParams]);
 
   const [plaidLoading, setPlaidLoading] = useState(false);
-  const plaidAccess = hasPaidSyncAccess(subscriptionStatus);
+  // Primary: check subscription status API. Fallback: check user plan from auth context.
+  // This prevents paid users from seeing upgrade prompts if the /api/stripe/status call fails.
+  const plaidAccess = hasPaidSyncAccess(subscriptionStatus)
+    || (user?.plan === 'plus' || user?.plan === 'family');
 
   const handlePlaidConnect = async () => {
     if (statusLoading) return;

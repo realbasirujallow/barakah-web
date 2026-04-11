@@ -25,7 +25,7 @@ export const PRICING = {
 
 /** Free plan features. */
 export const FREE_FEATURES = [
-  'Up to 50 transactions/month',
+  'Up to 25 transactions/month',
   'Basic zakat calculator (live nisab)',
   'Hawl tracker',
   'Prayer times (any city)',

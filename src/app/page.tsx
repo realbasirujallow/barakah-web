@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { PRICING, FREE_FEATURES, PLUS_FEATURES, FAMILY_FEATURES } from '../lib/pricing';
+import { PRICING, FREE_FEATURES, PLUS_FEATURES, FAMILY_FEATURES, COMPETITOR_COMPARISON } from '../lib/pricing';
 
 // ── Data ────────────────────────────────────────────────────────────────────
 
@@ -329,11 +329,47 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Compare link */}
-          <div className="text-center mt-10">
-            <Link href="/pricing" className="text-[#1B5E20] font-semibold hover:underline">
-              See how Barakah compares to Monarch, YNAB, and Zoya →
-            </Link>
+          {/* Competitor Comparison Table */}
+          <div className="mt-16">
+            <h3 className="text-xl md:text-2xl font-bold text-center text-[#1B5E20] mb-2">How Barakah Compares</h3>
+            <p className="text-center text-gray-500 mb-8">Same powerful budgeting. Plus Islamic finance tools no one else has.</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500">Feature</th>
+                    <th className="py-3 px-4 bg-[#1B5E20] text-white font-bold rounded-tl-lg">Barakah Plus</th>
+                    <th className="py-3 px-4 font-medium text-gray-500">Monarch</th>
+                    <th className="py-3 px-4 font-medium text-gray-500">YNAB</th>
+                    <th className="py-3 px-4 font-medium text-gray-500 rounded-tr-lg">Zoya</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPETITOR_COMPARISON.map((row, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'bg-gray-50' : ''}>
+                      <td className="py-2.5 px-4 text-gray-700">{row.feature}</td>
+                      <td className="py-2.5 px-4 text-center bg-green-50 font-semibold text-[#1B5E20]">
+                        {typeof row.barakah === 'boolean' ? (row.barakah ? '✓' : '✗') : row.barakah}
+                      </td>
+                      <td className="py-2.5 px-4 text-center text-gray-500">
+                        {typeof row.monarch === 'boolean' ? (row.monarch ? '✓' : <span className="text-red-400">✗</span>) : row.monarch}
+                      </td>
+                      <td className="py-2.5 px-4 text-center text-gray-500">
+                        {typeof row.ynab === 'boolean' ? (row.ynab ? '✓' : <span className="text-red-400">✗</span>) : row.ynab}
+                      </td>
+                      <td className="py-2.5 px-4 text-center text-gray-500">
+                        {typeof row.zoya === 'boolean' ? (row.zoya ? '✓' : <span className="text-red-400">✗</span>) : row.zoya}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="text-center mt-6">
+              <Link href="/pricing" className="text-[#1B5E20] font-semibold hover:underline">
+                View full pricing details →
+              </Link>
+            </div>
           </div>
         </div>
       </section>

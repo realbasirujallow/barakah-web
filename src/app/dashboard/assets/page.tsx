@@ -6,6 +6,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { logError } from '../../../lib/logError';
 import { safeParse, validateAsset } from '../../../lib/schemas';
 import { hasPaidSyncAccess } from '../../../lib/subscription';
+import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
 
 interface Asset {
@@ -162,7 +163,8 @@ export default function AssetsPage() {
 
   const deletableAssets = assets.filter(asset => !asset.readOnly);
   const hasLinkedPlaidAssets = assets.some(asset => asset.linkedSource === 'plaid' || asset.readOnly);
-  const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus);
+  const { user } = useAuth();
+  const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus) || (user?.plan === 'plus' || user?.plan === 'family');
 
   const typeLabel = (t: string) => {
     for (const items of Object.values(TYPE_GROUPS)) {

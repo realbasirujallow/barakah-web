@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { hasPaidSyncAccess } from '../../../lib/subscription';
+import { useAuth } from '../../../context/AuthContext';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
@@ -344,7 +345,8 @@ export default function TransactionsPage() {
   const allPageSelected = txs.length > 0 && selectedIds.size === txs.length;
   const hasMorePages = totalPages > 1;
   const hasLinkedPlaidTransactions = txs.some(tx => tx.importSource === 'plaid');
-  const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus);
+  const { user } = useAuth();
+  const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus) || (user?.plan === 'plus' || user?.plan === 'family');
 
   return (
     <div>
