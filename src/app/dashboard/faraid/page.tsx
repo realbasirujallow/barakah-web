@@ -22,6 +22,9 @@ interface AdjustedShare {
   heir: string;
   adjustedShare: number;
   amount: number;
+  share?: number;
+  reason?: string;
+  relationship?: string;
 }
 
 interface BlockingRules {
@@ -342,7 +345,6 @@ export default function FaraidPage() {
                 </thead>
                 <tbody>
                   {result.adjustedShares.map((adj, i) => {
-                    const share = result.shares.find((s) => s.heir === adj.heir);
                     return (
                       <tr key={i} className="border-b border-gray-50">
                         <td className="py-3 pr-4 font-medium text-gray-900">{adj.heir}</td>
@@ -353,7 +355,7 @@ export default function FaraidPage() {
                           {fmt(adj.amount)}
                         </td>
                         <td className="py-3 text-gray-500 text-xs">
-                          {share?.reason ?? '-'}
+                          {adj.reason ?? '-'}
                         </td>
                       </tr>
                     );
