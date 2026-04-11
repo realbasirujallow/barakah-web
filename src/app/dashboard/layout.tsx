@@ -115,6 +115,26 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   }, [isLoading, router, user]);
 
+  // ── Keyboard shortcuts ───────────────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Cmd+K (Mac) or Ctrl+K (Win/Linux) → focus transaction search
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('tx-search') as HTMLInputElement | null;
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        } else {
+          // Navigate to transactions page if not already there
+          router.push('/dashboard/transactions');
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [router]);
+
   // ── NOTE: Proactive refresh removed from layout ──────────────────────────
   // Previously this layout fired api.refresh() on every pathname change.
   // This caused a "rotation death spiral": the layout and AuthContext both

@@ -105,7 +105,8 @@ async function extractErrorMessage(res: Response, fallback: string): Promise<str
     const json = JSON.parse(text);
     return json.error || json.message || fallback;
   } catch {
-    return text.length < 200 ? text : fallback;
+    // Never show raw server text to users — could contain stack traces or internal paths
+    return fallback;
   }
 }
 
@@ -436,11 +437,12 @@ export const api = {
     apiFetch(`/api/assets/${id}`, { method: 'DELETE' }),
 
   // Transactions
-  getTransactions: (type?: string, page?: number, size?: number) => {
+  getTransactions: (type?: string, page?: number, size?: number, search?: string) => {
     const params = new URLSearchParams();
     if (type) params.set('type', type);
     if (page !== undefined) params.set('page', String(page));
     if (size !== undefined) params.set('size', String(size));
+    if (search) params.set('search', search);
     return apiFetch(`/api/transactions/list?${params}`);
   },
   getTransactionUsage: () => apiFetch('/api/transactions/usage'),
