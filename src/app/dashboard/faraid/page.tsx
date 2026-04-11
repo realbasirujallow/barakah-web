@@ -319,7 +319,7 @@ export default function FaraidPage() {
               <FlowArrow />
               <FlowCard label="After Debts" amount={result.afterDebts} />
               <FlowArrow />
-              <FlowCard label="After Wasiyyah" amount={result.distributableEstate + result.wasiyyahApplied === result.afterDebts ? result.afterDebts : result.afterDebts - result.wasiyyahApplied} />
+              <FlowCard label="After Wasiyyah" amount={result.afterDebts - (result.wasiyyahApplied || 0)} />
               <FlowArrow />
               <FlowCard label="Distributable" amount={result.distributableEstate} highlight />
             </div>
