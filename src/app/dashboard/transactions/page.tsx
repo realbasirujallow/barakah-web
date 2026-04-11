@@ -488,7 +488,7 @@ export default function TransactionsPage() {
                     )}
                   </div>
                   <p className="text-sm text-gray-500 capitalize">
-                    {tx.category} • {new Date(tx.timestamp).toLocaleDateString()}
+                    {tx.category?.replace(/_/g, ' ')} • {new Date(tx.timestamp).toLocaleDateString()}
                     {tx.currency && tx.currency !== preferredCurrency && (
                       <span className="ml-1 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-mono">{tx.currency}</span>
                     )}
