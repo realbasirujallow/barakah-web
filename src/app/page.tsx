@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { PRICING } from '../lib/pricing';
+import { PRICING, FREE_FEATURES, PLUS_FEATURES, FAMILY_FEATURES } from '../lib/pricing';
 
 // ── Data ────────────────────────────────────────────────────────────────────
 
@@ -46,27 +46,15 @@ const plans = [
     annual: null,
     color: 'border-gray-200',
     badge: null,
-    features: [
-      'Up to 25 transactions/month',
-      'Zakat calculator (live nisab)',
-      'Hawl tracker',
-      'Prayer times (any city)',
-      'Budgets & bills tracking',
-      'Savings goals',
-      'Sadaqah tracking',
-      'Ramadan Mode',
-      'Recurring transactions',
-      'Smart Islamic reminders',
-    ],
+    features: [...FREE_FEATURES],
     missing: [
+      'Bank account sync',
+      'Riba Elimination Journey',
+      'Faraid Calculator',
+      'Zakat receipts',
+      'Safe-to-spend',
       'Halal screener',
-      'Subscription detector',
-      'Riba detector',
-      'Auto-categorize',
-      'Investments & net worth',
-      'Wasiyyah & Waqf',
-      'Barakah Score & analytics',
-      'Export CSV/PDF',
+      'Barakah Score',
       'Shared finances',
     ],
     cta: 'Get Started Free',
@@ -80,23 +68,10 @@ const plans = [
     annual: `${PRICING.plus.yearly}/yr · save 17%`,
     color: 'border-[#1B5E20] ring-2 ring-[#1B5E20]',
     badge: 'Most Popular',
-    features: [
-      'All Free features',
-      'Unlimited transactions',
-      'Halal stock screener (30,000+ stocks)',
-      'Subscription detector (flag haram services)',
-      'Riba detector',
-      'Auto-categorize transactions',
-      'Investments & net worth',
-      'Wasiyyah & Waqf planning',
-      'Barakah Score & analytics',
-      'Debt Payoff Projector',
-      'Financial Summary reports',
-      'Export CSV/PDF',
-    ],
+    features: [...PLUS_FEATURES],
     missing: [],
-    note: 'Need shared household workflows? Family adds up to 6 members with shared finances and family zakat.',
-    cta: 'Start Plus',
+    note: 'Need shared household workflows? Family adds up to 6 members with household zakat visibility and estate continuity.',
+    cta: 'Start 30-Day Free Trial',
     ctaHref: '/signup',
     ctaStyle: 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]',
   },
@@ -106,17 +81,8 @@ const plans = [
     period: PRICING.family.monthlyPeriod,
     annual: `${PRICING.family.yearly}/yr · save 34%`,
     color: 'border-purple-300',
-    badge: null,
-    features: [
-      'Everything in Plus',
-      'Shared finances (up to 6 members)',
-      'Family Zakat management',
-      'Shared budgets & goals',
-      'Family Estate Visibility (see each other\u2019s wills & endowments)',
-      'Shared expense splitting',
-      'Family financial summary',
-      'Priority support',
-    ],
+    badge: 'For Households',
+    features: [...FAMILY_FEATURES],
     missing: [],
     cta: 'Start Family',
     ctaHref: '/signup',
@@ -361,6 +327,13 @@ export default function Home() {
                 ) : null}
               </div>
             ))}
+          </div>
+
+          {/* Compare link */}
+          <div className="text-center mt-10">
+            <Link href="/pricing" className="text-[#1B5E20] font-semibold hover:underline">
+              See how Barakah compares to Monarch, YNAB, and Zoya →
+            </Link>
           </div>
         </div>
       </section>
