@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { trackDemoDataLoaded } from '../../lib/analytics';
 import { fmt } from '../../lib/format';
 import { useToast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
@@ -288,6 +289,7 @@ export default function DashboardPage() {
               onClick={async () => {
                 try {
                   await api.seedDemoData();
+                  trackDemoDataLoaded();
                   window.location.reload();
                 } catch { toast('Could not load sample data.', 'error'); }
               }}

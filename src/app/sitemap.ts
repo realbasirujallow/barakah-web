@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // High-value SEO tools
     { url: `${baseUrl}/zakat-calculator`, changeFrequency: 'weekly', priority: 0.95 },
     { url: `${baseUrl}/faraid-calculator`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${baseUrl}/pricing`, changeFrequency: 'monthly', priority: 0.9 },
 
     // Learn hub + articles (primary SEO content)
     { url: `${baseUrl}/learn`, changeFrequency: 'weekly', priority: 0.9 },
