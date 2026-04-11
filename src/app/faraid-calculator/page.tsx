@@ -451,6 +451,18 @@ export default function FaraidCalculatorPage() {
             </div>
           </section>
 
+          {/* Backed by Quran & Sunnah */}
+          <section className="bg-green-900 rounded-xl p-8 mb-12 text-white text-center">
+            <p className="text-xs uppercase tracking-wider font-semibold text-green-300 mb-3">Grounded in Quran &amp; Sunnah</p>
+            <blockquote className="text-lg md:text-xl font-semibold mb-3 leading-relaxed italic max-w-2xl mx-auto">
+              &ldquo;Allah commands you regarding your children: the share of the male shall be twice that of the female&rdquo;
+            </blockquote>
+            <p className="text-green-300 text-sm font-medium">Quran 4:11</p>
+            <p className="text-green-200 text-xs mt-4 max-w-xl mx-auto">
+              Barakah&apos;s faraid engine implements the inheritance rules prescribed in Surah An-Nisa (4:11-12, 4:176) with automatic Awl, Radd, and blocking rules. We are a calculation tool — not a fatwa service. Consult a qualified scholar for specific rulings.
+            </p>
+          </section>
+
           {/* CTA Section */}
           <section className="bg-gradient-to-r from-green-700 to-green-800 rounded-xl shadow-lg p-12 text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-4">

@@ -525,8 +525,11 @@ export const api = {
     apiFetch(`/api/hawl/${id}/mark-paid`, { method: 'POST' }),
   deleteHawl: (id: number) =>
     apiFetch(`/api/hawl/${id}`, { method: 'DELETE' }),
-  resetHawl: (id: number) =>
-    apiFetch(`/api/hawl/${id}/reset`, { method: 'POST' }),
+  resetHawl: (id: number, reason?: string, note?: string) =>
+    apiFetch(`/api/hawl/${id}/reset`, {
+      method: 'POST',
+      body: JSON.stringify({ reason, note }),
+    }),
   lockHawlZakat: (id: number) =>
     apiFetch(`/api/hawl/${id}/lock-zakat`, { method: 'POST' }),
   unlockHawlZakat: (id: number) =>
@@ -535,6 +538,12 @@ export const api = {
     apiFetch('/api/hawl/import-assets', { method: 'POST' }),
   updateHawlStartDate: (id: number, data: Record<string, unknown>) =>
     apiFetch(`/api/hawl/${id}/start-date`, { method: 'PUT', body: JSON.stringify(data) }),
+  setHawlManualWealth: (amount: number, note?: string) =>
+    apiFetch('/api/hawl/manual-wealth', {
+      method: 'POST',
+      body: JSON.stringify({ amount, note }),
+    }),
+  getHawlHistory: () => apiFetch('/api/hawl/history'),
 
   // Sadaqah
   getSadaqah: () => apiFetch('/api/sadaqah/list'),
@@ -850,6 +859,12 @@ export const api = {
     apiFetch(`/admin/users/${userId}/verify-email`, { method: 'POST' }, API_TIMEOUT, true),
   adminGetUserActivity: (userId: number) =>
     apiFetch(`/admin/users/${userId}/activity`, {}, API_TIMEOUT, true),
+  adminGetUserHawlReport: (userId: number) =>
+    apiFetch(`/admin/users/${userId}/hawl-report`, {}, API_TIMEOUT, true),
+  adminGetDeletedUsers: (page = 0, size = 50) =>
+    apiFetch(`/admin/deleted-users?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
+  adminGetChurnAnalysis: () =>
+    apiFetch('/admin/churn-analysis', {}, API_TIMEOUT, true),
   getAdminAnalytics: () => apiFetch('/admin/analytics', {}, API_TIMEOUT, true),
   getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
   getAdminOverview: () => apiFetch('/admin/overview', {}, API_TIMEOUT, true),

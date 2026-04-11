@@ -523,6 +523,18 @@ export default function ZakatCalculatorPage() {
             </div>
           </section>
 
+          {/* Backed by Quran & Sunnah */}
+          <section className="bg-green-900 rounded-xl p-8 mb-12 text-white text-center">
+            <p className="text-xs uppercase tracking-wider font-semibold text-green-300 mb-3">Grounded in Quran &amp; Sunnah</p>
+            <blockquote className="text-lg md:text-xl font-semibold mb-3 leading-relaxed italic max-w-2xl mx-auto">
+              &ldquo;Take from their wealth a charity by which you purify them and cause them increase&rdquo;
+            </blockquote>
+            <p className="text-green-300 text-sm font-medium">Quran 9:103</p>
+            <p className="text-green-200 text-xs mt-4 max-w-xl mx-auto">
+              Barakah&apos;s zakat engine is built on Quranic obligations and classical fiqh across Hanafi, Shafi&apos;i, Maliki, and Hanbali schools. We are a calculation tool — not a fatwa service. Consult a qualified scholar for specific rulings.
+            </p>
+          </section>
+
           {/* CTA Section */}
           <section className="bg-gradient-to-r from-green-700 to-green-800 rounded-xl shadow-lg p-12 text-center">
             <h2 className="text-3xl font-bold text-white mb-4">

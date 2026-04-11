@@ -17,11 +17,20 @@ interface AdminUser {
   subscriptionStatus?: string;
   planExpiresAt?: number;
   emailVerified?: boolean;
+  emailVerifiedAt?: number;
   referralCount?: number;
   referralClickCount?: number;
   hasStripe?: boolean;
   createdAt: number;
   updatedAt?: number;
+  lastLoginAt?: number;
+  lastSeenAt?: number;
+  lastPlatform?: string;
+  lastAppVersion?: string;
+  lastLoginIp?: string;
+  signupIp?: string;
+  signupSource?: string;
+  loginCount?: number;
   country?: string;
   state?: string;
   phoneNumber?: string;
@@ -163,6 +172,22 @@ function fmtDateTimeMs(unixMs: number | undefined) {
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
+}
+
+/** Full-precision timestamp for admin troubleshooting: Jan 15, 2026 3:42:15 PM */
+function fmtFullTs(unixMs: number | undefined) {
+  if (!unixMs) return '—';
+  return new Date(unixMs).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
   });
 }
 
@@ -201,7 +226,11 @@ export default function AdminPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [userActivity, setUserActivity] = useState<UserActivity | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts' | 'unverified' | 'lifecycle'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts' | 'unverified' | 'lifecycle' | 'deleted'>('overview');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [deletedUsers, setDeletedUsers] = useState<any[] | null>(null);
+  const [deletedUsersLoading, setDeletedUsersLoading] = useState(false);
+  const [churnData, setChurnData] = useState<Record<string, number> | null>(null);
   const [onboardingTrial, setOnboardingTrial] = useState<OnboardingTrialSettings | null>(null);
   const [trialSettingsSaving, setTrialSettingsSaving] = useState(false);
   const { toast } = useToast();
@@ -472,7 +501,7 @@ export default function AdminPage() {
 
       {/* ── Tab Navigation ── */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
-        {(['overview', 'users', 'alerts', 'unverified', 'lifecycle'] as const).map(tab => (
+        {(['overview', 'users', 'alerts', 'unverified', 'lifecycle', 'deleted'] as const).map(tab => (
           <button
             key={tab}
             type="button"
@@ -502,6 +531,7 @@ export default function AdminPage() {
               </>
             )}
             {tab === 'lifecycle' && '📬 Lifecycle'}
+            {tab === 'deleted' && '🗑️ Deleted Users'}
           </button>
         ))}
       </div>
@@ -981,8 +1011,14 @@ export default function AdminPage() {
                           u.plan,
                           u.subscriptionStatus || 'inactive',
                           u.emailVerified === false ? 'No' : 'Yes',
+                          fmtFullTs(u.emailVerifiedAt),
                           [u.state, u.country].filter(Boolean).join(', '),
-                          fmtDateMs(u.createdAt),
+                          fmtFullTs(u.createdAt),
+                          u.signupSource || '',
+                          u.signupIp || '',
+                          fmtFullTs(u.lastLoginAt),
+                          u.lastLoginIp || '',
+                          String(u.loginCount ?? 0),
                         ].join(','))).join('\n');
                       const blob = new Blob([csv], { type: 'text/csv' });
                       const url = URL.createObjectURL(blob);
@@ -1004,21 +1040,22 @@ export default function AdminPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 text-left text-gray-500 text-xs uppercase tracking-wide">
-                    <th className="px-4 py-3">ID</th>
-                    <th className="px-4 py-3">User</th>
-                    <th className="px-4 py-3">Phone</th>
-                    <th className="px-4 py-3">Plan</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Verified</th>
-                    <th className="px-4 py-3">Location</th>
-                    <th className="px-4 py-3">Joined</th>
-                    <th className="px-4 py-3"></th>
+                    <th className="px-3 py-3">ID</th>
+                    <th className="px-3 py-3">User</th>
+                    <th className="px-3 py-3">Plan</th>
+                    <th className="px-3 py-3">Verified</th>
+                    <th className="px-3 py-3">Location</th>
+                    <th className="px-3 py-3">Signed Up</th>
+                    <th className="px-3 py-3">Last Login</th>
+                    <th className="px-3 py-3">Login IP</th>
+                    <th className="px-3 py-3">Logins</th>
+                    <th className="px-3 py-3"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="text-center py-10 text-gray-400">
+                      <td colSpan={10} className="text-center py-10 text-gray-400">
                         {search ? 'No users match your search.' : userFilter !== 'all' ? 'No users match this filter on the current page.' : 'No users found.'}
                       </td>
                     </tr>
@@ -1028,31 +1065,43 @@ export default function AdminPage() {
                       const subInfo = SUB_STATUS_LABELS[u.subscriptionStatus ?? 'inactive'] ?? SUB_STATUS_LABELS.inactive;
                       return (
                         <tr key={u.id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => openUser(u)}>
-                          <td className="px-4 py-3 text-gray-400 font-mono text-xs">{u.id}</td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-3 text-gray-400 font-mono text-xs">{u.id}</td>
+                          <td className="px-3 py-3">
                             <p className="font-medium text-gray-900 text-sm">{u.name || '—'}</p>
                             <p className="text-xs text-gray-400">{u.email}</p>
                           </td>
-                          <td className="px-4 py-3 text-xs text-gray-600">
-                            {u.phoneNumber ? <a href={`tel:${u.phoneNumber}`} className="text-[#1B5E20] hover:underline">{u.phoneNumber}</a> : <span className="text-gray-300">—</span>}
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-1">
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span>
+                              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${subInfo.color}`}>{subInfo.label}</span>
+                            </div>
                           </td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${subInfo.color}`}>{subInfo.label}</span>
-                          </td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-3">
                             {u.emailVerified === false
                               ? <span className="text-red-500 text-xs font-medium">✗ No</span>
-                              : <span className="text-green-500 text-xs font-medium">✓ Yes</span>
+                              : <div>
+                                  <span className="text-green-500 text-xs font-medium">✓ Yes</span>
+                                  {u.emailVerifiedAt && <p className="text-[10px] text-gray-400">{fmtFullTs(u.emailVerifiedAt)}</p>}
+                                </div>
                             }
                           </td>
-                          <td className="px-4 py-3 text-xs text-gray-500">
+                          <td className="px-3 py-3 text-xs text-gray-500">
                             {u.state && u.country ? `${u.state}, ${u.country}` : u.country || u.state || '—'}
                           </td>
-                          <td className="px-4 py-3 text-gray-400 text-xs">{fmtDateMs(u.createdAt)}</td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-3 py-3 text-gray-500 text-xs">
+                            <p>{fmtFullTs(u.createdAt)}</p>
+                            {u.signupSource && <p className="text-[10px] text-gray-400">{u.signupSource}</p>}
+                          </td>
+                          <td className="px-3 py-3 text-gray-500 text-xs">
+                            {u.lastLoginAt ? fmtFullTs(u.lastLoginAt) : '—'}
+                          </td>
+                          <td className="px-3 py-3 text-gray-400 font-mono text-[10px]">
+                            {u.lastLoginIp || '—'}
+                          </td>
+                          <td className="px-3 py-3 text-center text-xs text-gray-500">
+                            {u.loginCount ?? 0}
+                          </td>
+                          <td className="px-3 py-3 text-right">
                             <span className="text-[#1B5E20] text-xs font-medium">View →</span>
                           </td>
                         </tr>
@@ -1262,6 +1311,104 @@ export default function AdminPage() {
         <LifecycleCampaignCenter active={activeTab === 'lifecycle'} />
       )}
 
+      {/* ══════════════════ DELETED USERS TAB ══════════════════ */}
+      {activeTab === 'deleted' && (
+        <div className="bg-white rounded-2xl p-6 border border-gray-200">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Deleted User Archive</h2>
+              <p className="text-sm text-gray-500">Contact info preserved for remarketing and churn analysis.</p>
+            </div>
+            <button
+              onClick={async () => {
+                setDeletedUsersLoading(true);
+                try {
+                  const [usersRes, churnRes] = await Promise.all([
+                    api.adminGetDeletedUsers(),
+                    api.adminGetChurnAnalysis(),
+                  ]);
+                  setDeletedUsers(usersRes?.users ?? []);
+                  setChurnData(churnRes ?? null);
+                } catch { toast('Failed to load deleted users', 'error'); }
+                finally { setDeletedUsersLoading(false); }
+              }}
+              disabled={deletedUsersLoading}
+              className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50"
+            >
+              {deletedUsersLoading ? 'Loading...' : deletedUsers ? 'Refresh' : 'Load Deleted Users'}
+            </button>
+          </div>
+
+          {/* Churn breakdown */}
+          {churnData && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              <div className="bg-gray-50 rounded-xl p-3 text-center">
+                <p className="text-2xl font-bold text-gray-900">{churnData.total_deleted ?? 0}</p>
+                <p className="text-[10px] text-gray-500 uppercase">Total Deleted</p>
+              </div>
+              <div className="bg-green-50 rounded-xl p-3 text-center">
+                <p className="text-2xl font-bold text-[#1B5E20]">{churnData.remarketing_eligible ?? 0}</p>
+                <p className="text-[10px] text-gray-500 uppercase">Remarketing Eligible</p>
+              </div>
+              {['too_expensive', 'not_enough_features', 'found_alternative', 'not_using', 'privacy', 'other'].map(reason => (
+                <div key={reason} className="bg-gray-50 rounded-lg p-2 text-center">
+                  <p className="text-lg font-bold text-gray-700">{churnData[reason] ?? 0}</p>
+                  <p className="text-[9px] text-gray-400 capitalize">{reason.replace(/_/g, ' ')}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Deleted users table */}
+          {deletedUsers && deletedUsers.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 text-left text-gray-500 text-xs uppercase tracking-wide">
+                    <th className="px-3 py-3">User</th>
+                    <th className="px-3 py-3">Plan</th>
+                    <th className="px-3 py-3">Reason</th>
+                    <th className="px-3 py-3">Deleted</th>
+                    <th className="px-3 py-3">Source</th>
+                    <th className="px-3 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {deletedUsers.map((u, i) => (
+                    <tr key={i} className="hover:bg-gray-50">
+                      <td className="px-3 py-3">
+                        <p className="font-medium text-gray-900 text-sm">{String(u.fullName || '—')}</p>
+                        <p className="text-xs text-gray-400">{String(u.email || '')}</p>
+                        {u.phoneNumber && <p className="text-xs text-gray-400">{String(u.phoneNumber)}</p>}
+                      </td>
+                      <td className="px-3 py-3 text-xs">{String(u.planAtDeletion || 'free')}</td>
+                      <td className="px-3 py-3 text-xs text-gray-600">
+                        {u.deletionReason ? String(u.deletionReason).replace(/_/g, ' ') : <span className="text-gray-300">—</span>}
+                        {u.deletionNote && <p className="text-[10px] text-gray-400 italic mt-0.5">{String(u.deletionNote)}</p>}
+                      </td>
+                      <td className="px-3 py-3 text-xs text-gray-500">{u.deletionDate ? fmtFullTs(Number(u.deletionDate)) : '—'}</td>
+                      <td className="px-3 py-3 text-xs">{String(u.deletionSource || '')}</td>
+                      <td className="px-3 py-3">
+                        {u.reactivated
+                          ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-700">Returned</span>
+                          : u.remarketingOptedOut
+                            ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-500">Opted Out</span>
+                            : <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">Remarket</span>
+                        }
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {deletedUsers && deletedUsers.length === 0 && (
+            <p className="text-center py-10 text-gray-400">No deleted users yet.</p>
+          )}
+        </div>
+      )}
+
       {/* ══════════════════ USER DETAIL MODAL ══════════════════ */}
       {selected && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeModal}>
@@ -1277,7 +1424,7 @@ export default function AdminPage() {
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-xs text-gray-400">ID: {selected.id}</span>
                   <span className="text-xs text-gray-400">·</span>
-                  <span className="text-xs text-gray-400">Joined {fmtDateMs(selected.createdAt)}</span>
+                  <span className="text-xs text-gray-400">Joined {fmtFullTs(selected.createdAt)}</span>
                 </div>
                 {(selected.country || selected.state) && (
                   <div className="flex items-center gap-2 mt-1">
@@ -1286,6 +1433,12 @@ export default function AdminPage() {
                       {selected.state && selected.country ? `${selected.state}, ${selected.country}` : selected.country || selected.state}
                     </span>
                   </div>
+                )}
+                {selected.signupIp && (
+                  <p className="text-xs text-gray-400 mt-0.5">Signup IP: <span className="font-mono">{selected.signupIp}</span></p>
+                )}
+                {selected.signupSource && (
+                  <p className="text-xs text-gray-400 mt-0.5">Signup via: {selected.signupSource}</p>
                 )}
                 <div className="flex gap-1.5 mt-2">
                   {(() => {
@@ -1349,6 +1502,24 @@ export default function AdminPage() {
                     <div className="bg-white rounded-lg p-3 border border-gray-100">
                       <p className="text-gray-400 uppercase tracking-wide">App version</p>
                       <p className="text-gray-700 font-medium mt-1">{userActivity.lastAppVersion || '—'}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
+                    <div className="bg-white rounded-lg p-3 border border-gray-100">
+                      <p className="text-gray-400 uppercase tracking-wide">Login IP</p>
+                      <p className="text-gray-700 font-mono font-medium mt-1 text-[11px]">{(userActivity as Record<string, unknown>).lastLoginIp as string || '—'}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 border border-gray-100">
+                      <p className="text-gray-400 uppercase tracking-wide">Total logins</p>
+                      <p className="text-gray-700 font-medium mt-1">{(userActivity as Record<string, unknown>).loginCount as number ?? 0}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 border border-gray-100">
+                      <p className="text-gray-400 uppercase tracking-wide">Email verified</p>
+                      <p className="text-gray-700 font-medium mt-1 text-[11px]">{fmtFullTs((userActivity as Record<string, unknown>).emailVerifiedAt as number | undefined)}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 border border-gray-100">
+                      <p className="text-gray-400 uppercase tracking-wide">Signup IP</p>
+                      <p className="text-gray-700 font-mono font-medium mt-1 text-[11px]">{(userActivity as Record<string, unknown>).signupIp as string || '—'}</p>
                     </div>
                   </div>
                   {userActivity.lifecycle && (
@@ -1424,6 +1595,30 @@ export default function AdminPage() {
                 {draftPlan !== selected.plan && (
                   <p className="text-xs text-amber-600 mt-1">⚠ Unsaved — click Save to apply the plan change.</p>
                 )}
+              </div>
+
+              {/* Hawl/Nisab Debug Report */}
+              <div className="border-t pt-5">
+                <p className="text-sm font-medium text-gray-700 mb-1">Hawl / Nisab Debug</p>
+                <p className="text-xs text-gray-500 mb-3">View daily nisab snapshots, hawl tracker history, and nisab drop timeline for customer support.</p>
+                <button
+                  onClick={async () => {
+                    try {
+                      const report = await api.adminGetUserHawlReport(selected.id);
+                      const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `hawl-report-user-${selected.id}-${new Date().toISOString().slice(0, 10)}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      toast(`Hawl report downloaded (${report?.totalTrackers ?? 0} trackers, ${report?.snapshotCount ?? 0} snapshots, ${report?.daysBelowNisab ?? 0} days below nisab)`, 'success');
+                    } catch { toast('Failed to fetch hawl report', 'error'); }
+                  }}
+                  className="w-full py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition"
+                >
+                  Download Hawl Debug Report (JSON)
+                </button>
               </div>
 
               {/* Password reset */}
