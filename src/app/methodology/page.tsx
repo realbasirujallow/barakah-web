@@ -61,6 +61,18 @@ export default function MethodologyPage() {
           ))}
         </div>
 
+        {/* Backed by Quran & Sunnah */}
+        <section className="mt-8 rounded-2xl bg-green-900 p-6 text-white text-center">
+          <p className="text-xs uppercase tracking-wider font-semibold text-green-300 mb-3">Grounded in Quran &amp; Sunnah</p>
+          <blockquote className="text-base md:text-lg font-semibold mb-3 leading-relaxed italic max-w-2xl mx-auto">
+            &ldquo;And establish prayer and give zakat, and whatever good you put forward for yourselves — you will find it with Allah&rdquo;
+          </blockquote>
+          <p className="text-green-300 text-sm font-medium">Quran 2:110</p>
+          <p className="text-green-200 text-xs mt-3 max-w-xl mx-auto">
+            Every calculation in Barakah is rooted in Quranic commands and classical jurisprudence. We surface methodology transparently so you can verify our approach against your own scholarship.
+          </p>
+        </section>
+
         <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="mb-3 text-2xl font-bold text-[#1B5E20]">Important Boundaries</h2>
           <ul className="space-y-3 text-sm leading-7 text-gray-700">

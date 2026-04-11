@@ -67,6 +67,18 @@ export default function HawlPage() {
   const [dateInputMode, setDateInputMode] = useState<'gregorian' | 'hijri'>('gregorian');
   const [hijriInput, setHijriInput] = useState({ year: '', month: '', day: '' });
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
+  // Reset with reason
+  const [resetModal, setResetModal] = useState<{ id: number } | null>(null);
+  const [resetReason, setResetReason] = useState('nisab_drop');
+  const [resetNote, setResetNote] = useState('');
+  // Manual wealth adjustment
+  const [manualWealth, setManualWealth] = useState('');
+  const [manualWealthNote, setManualWealthNote] = useState('');
+  const [manualWealthSaving, setManualWealthSaving] = useState(false);
+  // History
+  const [historyItems, setHistoryItems] = useState<HawlItem[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const { toast } = useToast();
   const maxStartInput = new Date().toISOString().slice(0, 10);
   const minBackdateInput = new Date(Date.now() - 3650 * 86400000).toISOString().slice(0, 10);
@@ -148,18 +160,51 @@ export default function HawlPage() {
   }, [allPaidMessage]);
 
   const handleReset = (id: number) => {
-    setConfirmAction({
-      message: 'Reset this Hawl? This will start a new 354-day cycle from today and mark zakat as unpaid for this asset.',
-      action: async () => {
-        try {
-          await api.resetHawl(id);
-          toast('Hawl reset — new cycle started', 'success');
-          load();
-        } catch {
-          toast('Failed to reset hawl', 'error');
-        }
-      }
-    });
+    setResetModal({ id });
+    setResetReason('nisab_drop');
+    setResetNote('');
+  };
+
+  const handleResetConfirm = async () => {
+    if (!resetModal) return;
+    try {
+      await api.resetHawl(resetModal.id, resetReason, resetNote || undefined);
+      toast('Hawl reset — new cycle started', 'success');
+      setResetModal(null);
+      load();
+    } catch {
+      toast('Failed to reset hawl', 'error');
+    }
+  };
+
+  const loadHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      const d = await api.getHawlHistory();
+      setHistoryItems(Array.isArray(d?.history) ? d.history : []);
+    } catch {
+      toast('Failed to load history', 'error');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const handleManualWealth = async () => {
+    const amount = parseFloat(manualWealth);
+    if (isNaN(amount) || amount < 0) {
+      toast('Enter a valid amount', 'error');
+      return;
+    }
+    setManualWealthSaving(true);
+    try {
+      await api.setHawlManualWealth(amount, manualWealthNote || undefined);
+      toast('External wealth recorded — nisab recalculated', 'success');
+      load();
+    } catch {
+      toast('Failed to save', 'error');
+    } finally {
+      setManualWealthSaving(false);
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -522,6 +567,71 @@ export default function HawlPage() {
         </div>
       )}
 
+      {/* ── Manual Wealth Adjustment ── */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-200 mt-6">
+        <h3 className="text-sm font-bold text-[#1B5E20] uppercase tracking-wide mb-3">External Wealth (Not Tracked in Barakah)</h3>
+        <p className="text-xs text-gray-500 mb-3">Cash at home, overseas accounts, or other wealth that affects whether you meet the nisab threshold.</p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input type="number" step="0.01" min="0" placeholder="Amount (e.g. 5000)" value={manualWealth} onChange={e => setManualWealth(e.target.value)} className="flex-1 border rounded-lg px-3 py-2 text-gray-900 text-sm" />
+          <input type="text" placeholder="Note (optional)" value={manualWealthNote} onChange={e => setManualWealthNote(e.target.value)} className="flex-1 border rounded-lg px-3 py-2 text-gray-900 text-sm" maxLength={200} />
+          <button type="button" onClick={handleManualWealth} disabled={manualWealthSaving || !manualWealth} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50 whitespace-nowrap">{manualWealthSaving ? 'Saving...' : 'Update'}</button>
+        </div>
+      </div>
+
+      {/* ── Hawl History ── */}
+      <div className="mt-6">
+        <button
+          type="button"
+          onClick={() => { setShowHistory(!showHistory); if (!showHistory && historyItems.length === 0) loadHistory(); }}
+          className="text-sm font-semibold text-[#1B5E20] hover:underline flex items-center gap-1"
+        >
+          {showHistory ? '▾' : '▸'} Past Hawl Cycles ({historyItems.length || '...'})
+        </button>
+        {showHistory && (
+          <div className="mt-3 space-y-3">
+            {historyLoading ? (
+              <p className="text-sm text-gray-400">Loading history...</p>
+            ) : historyItems.length === 0 ? (
+              <p className="text-sm text-gray-400">No past cycles yet.</p>
+            ) : (
+              historyItems.map(item => {
+                const itemAny = item as unknown as Record<string, unknown>;
+                const status = (itemAny.historyStatus as string) || 'unknown';
+                const reason = itemAny.resetReason as string;
+                const note = itemAny.resetNote as string;
+                const statusColors: Record<string, string> = {
+                  paid: 'bg-green-100 text-green-700',
+                  reset: 'bg-amber-100 text-amber-700',
+                  deleted: 'bg-gray-100 text-gray-500',
+                  deactivated: 'bg-blue-100 text-blue-700',
+                };
+                const startHijri = toHijri(new Date(item.hawlStartDate));
+                const endHijri = toHijri(new Date(item.hawlEndDate));
+                return (
+                  <div key={item.id} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <span className="font-semibold text-gray-900 text-sm">{item.assetName}</span>
+                        <span className="text-xs text-gray-400 ml-2">{item.assetType}</span>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusColors[status] || 'bg-gray-100 text-gray-500'}`}>
+                        {status === 'paid' ? 'Zakat Paid' : status === 'reset' ? 'Reset' : status === 'deleted' ? 'Deleted' : 'Ended'}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-600 space-y-1">
+                      <p>{fmt(item.amount)} · Zakat: {fmt(item.zakatAmount)}</p>
+                      <p>{startHijri.day} {startHijri.monthName} {startHijri.year} AH → {endHijri.day} {endHijri.monthName} {endHijri.year} AH</p>
+                      {reason && reason !== 'nisab_drop' && <p className="text-amber-600">Reason: {reason.replace(/_/g, ' ')}</p>}
+                      {note && <p className="italic text-gray-500">&ldquo;{note}&rdquo;</p>}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+      </div>
+
       {confirmAction && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
@@ -529,6 +639,37 @@ export default function HawlPage() {
             <div className="flex gap-3">
               <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset with Reason Modal */}
+      {resetModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Reset Hawl Cycle</h3>
+            <p className="text-sm text-gray-600 mb-4">This will start a new 354-day cycle from today. Why are you resetting?</p>
+            <div className="space-y-3 mb-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Reason</label>
+                <select value={resetReason} onChange={e => setResetReason(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm text-gray-900">
+                  <option value="nisab_drop">Wealth dropped below nisab</option>
+                  <option value="sold_asset">Sold the asset</option>
+                  <option value="gave_gift">Gave as gift / sadaqah</option>
+                  <option value="debt_paid">Paid off a debt</option>
+                  <option value="correction">Date/amount correction</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Note (optional)</label>
+                <textarea value={resetNote} onChange={e => setResetNote(e.target.value)} rows={2} maxLength={500} placeholder="e.g. Sold gold ring in March" className="w-full border rounded-lg px-3 py-2 text-sm text-gray-900" />
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setResetModal(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={handleResetConfirm} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Reset Hawl</button>
             </div>
           </div>
         </div>
