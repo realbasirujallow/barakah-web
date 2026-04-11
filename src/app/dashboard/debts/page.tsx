@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { hasPaidSyncAccess } from '../../../lib/subscription';
+import { useAuth } from '../../../context/AuthContext';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
@@ -286,7 +287,8 @@ export default function DebtsPage() {
   const deletableActiveDebts = activeDebts.filter(d => !d.readOnly);
   const ribaDebts  = activeDebts.filter(d => !d.ribaFree && !ISLAMIC_TYPES.includes(d.type));
   const hasLinkedPlaidDebts = debts.some(d => d.linkedSource === 'plaid' || d.readOnly);
-  const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus);
+  const { user } = useAuth();
+  const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus) || (user?.plan === 'plus' || user?.plan === 'family');
   const monthsSavedAvalanche  = projBase.months - projAvalanche.months;
   const interestSavedAvalanche = projBase.totalInterest - projAvalanche.totalInterest;
   const monthsSavedSnowball   = projBase.months - projSnowball.months;
