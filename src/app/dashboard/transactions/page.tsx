@@ -205,8 +205,8 @@ export default function TransactionsPage() {
         setSaving(false);
         return;
       }
-      if (amt > 10000000) {
-        const msg = 'Transaction amount cannot exceed 10,000,000';
+      if (amt > 100000) {
+        const msg = 'Transaction amount cannot exceed $100,000';
         setFormError(msg);
         toast(msg, 'error');
         setSaving(false);
