@@ -240,56 +240,40 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Islamic Calendar + Zakat Reminders Row ─────────────────────────── */}
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
-        {/* Hijri Date + Upcoming Events */}
+      {/* ── Islamic Calendar + Zakat Reminders (compact row above grid) ────── */}
+      <div className="grid md:grid-cols-2 gap-4 mb-4">
         {hijri && (
-          <div className="bg-white rounded-2xl p-5 border border-green-100">
-            <div className="flex items-center justify-between mb-3">
+          <div className="bg-white rounded-xl p-4 border border-gray-200">
+            <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Islamic Date</p>
-                <p className="text-lg font-bold text-[#1B5E20]">{hijri.hijriDate}</p>
+                <p className="text-base font-bold text-[#1B5E20]">{hijri.hijriDate}</p>
               </div>
-              <span className="text-3xl">🕌</span>
+              {hijri.upcomingEvents.length > 0 && (
+                <div className="text-right">
+                  {hijri.upcomingEvents.slice(0, 2).map((e, i) => (
+                    <p key={i} className="text-xs text-gray-500">
+                      <span className="font-medium text-gray-700">{e.name}</span> · {e.daysAway}d
+                    </p>
+                  ))}
+                </div>
+              )}
             </div>
-            {hijri.upcomingEvents.length > 0 && (
-              <div className="border-t border-green-50 pt-3 mt-2 space-y-2">
-                <p className="text-xs text-gray-500 uppercase tracking-wide">Upcoming</p>
-                {hijri.upcomingEvents.slice(0, 3).map((e, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-800 font-medium">{e.name}</span>
-                    <span className="text-gray-500 text-xs">
-                      {e.daysAway === 0 ? 'Today!' : e.daysAway === 1 ? 'Tomorrow' : `${e.daysAway} days`}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
-        {/* Hawl/Zakat Reminders */}
         {hawlDue && (hawlDue.dueCount > 0 || hawlDue.upcomingCount > 0) && (
-          <div className={`rounded-2xl p-5 border ${hawlDue.dueCount > 0 ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-100'}`}>
-            <div className="flex items-center justify-between mb-3">
+          <div className={`rounded-xl p-4 border ${hawlDue.dueCount > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-200'}`}>
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide">Zakat Reminders</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Hawl / Zakat</p>
                 {hawlDue.dueCount > 0 ? (
-                  <p className="text-lg font-bold text-amber-700">{hawlDue.dueCount} asset{hawlDue.dueCount !== 1 ? 's' : ''} — Zakat due now!</p>
+                  <p className="text-base font-bold text-amber-700">{hawlDue.dueCount} due now</p>
                 ) : (
-                  <p className="text-lg font-bold text-[#1B5E20]">{hawlDue.upcomingCount} coming up</p>
+                  <p className="text-base font-bold text-[#1B5E20]">{hawlDue.upcomingCount} upcoming</p>
                 )}
               </div>
-              <span className="text-3xl">⏰</span>
+              <Link href="/dashboard/hawl" className="text-xs text-[#1B5E20] font-medium hover:underline">View →</Link>
             </div>
-            {hawlDue.due?.slice(0, 2).map((h: Record<string, unknown>, i: number) => (
-              <div key={i} className="flex items-center justify-between text-sm mt-1 bg-white/60 rounded-lg px-3 py-2">
-                <span className="font-medium text-gray-800">{h.assetName as string}</span>
-                <span className="text-amber-700 font-bold">{fmt((h.zakatAmount as number) || 0)} due</span>
-              </div>
-            ))}
-            <Link href="/dashboard/hawl" className="inline-block mt-3 text-sm font-medium text-[#1B5E20] hover:underline">
-              View Hawl Tracker →
-            </Link>
           </div>
         )}
       </div>
@@ -323,69 +307,66 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ══════════════ TWO-COLUMN LAYOUT (Monarch-style density) ══════════════ */}
-      <div className="grid lg:grid-cols-[58fr_42fr] gap-4 mb-6">
+      {/* ══════════════ TWO-COLUMN LAYOUT ══════════════ */}
+      <div className="grid lg:grid-cols-[3fr_2fr] gap-6 mb-6">
 
       {/* ── LEFT COLUMN ─────────────────────────────────────────────────────── */}
-      <div className="space-y-4">
+      <div className="space-y-5">
 
       {/* ── Summary Cards Row ─────────────────────────────────────────────── */}
-      <div role="region" aria-label="Financial summary" className={`grid gap-3 ${hasInvestmentPulse ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-3'}`}>
-        <div className="bg-gradient-to-br from-[#1B5E20] to-green-600 rounded-2xl p-5 text-white relative">
-          <p className="text-green-200 text-sm flex items-center justify-between">
-            Net Worth
-            <button onClick={toggleHideNetWorth} className="ml-2 text-xs underline text-green-100 hover:text-white">{hideNetWorth ? 'Show' : 'Hide'}</button>
-          </p>
-          <p className="text-2xl font-bold mt-1">
+      <div role="region" aria-label="Financial summary" className={`grid gap-4 ${hasInvestmentPulse ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-3'}`}>
+        <div className="bg-white rounded-xl p-4 border border-gray-200">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs text-gray-500 uppercase tracking-wide">Net Worth</p>
+            <button onClick={toggleHideNetWorth} className="text-[10px] text-gray-400 hover:text-gray-600">{hideNetWorth ? 'Show' : 'Hide'}</button>
+          </div>
+          <p className="text-xl font-bold text-gray-900">
             {hideNetWorth ? '••••••' : (loading ? '...' : fmt(netWorthValue))}
           </p>
           {!hideNetWorth && widgets?.netWorthMini?.changeAmount != null && (
-            <p className={`text-xs mt-1 ${(widgets.netWorthMini.changeAmount || 0) >= 0 ? 'text-emerald-200' : 'text-rose-200'}`}>
-              {(widgets.netWorthMini.changeAmount || 0) >= 0 ? '▲' : '▼'} {fmt(Math.abs(widgets.netWorthMini.changeAmount || 0))} ({(widgets.netWorthMini.changePercent || 0).toFixed(1)}%) 90d
+            <p className={`text-xs mt-1 font-medium ${(widgets.netWorthMini.changeAmount || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {(widgets.netWorthMini.changeAmount || 0) >= 0 ? '▲' : '▼'} {fmt(Math.abs(widgets.netWorthMini.changeAmount || 0))} ({(widgets.netWorthMini.changePercent || 0).toFixed(1)}%)
             </p>
           )}
         </div>
-        <div className={`bg-gradient-to-br ${totals?.zakatFullyPaid ? 'from-green-600 to-emerald-500' : 'from-amber-600 to-yellow-500'} rounded-2xl p-5 text-white`}>
-          <p className={`${totals?.zakatFullyPaid ? 'text-green-100' : 'text-amber-100'} text-sm flex items-center justify-between`}>
-            <span>Zakat Due {totals?.currentLunarYear ? `(${totals.currentLunarYear} AH)` : ''}</span>
-            <span className="flex items-center gap-2">
-              {Boolean(totals?.zakatFullyPaid) && <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">PAID</span>}
-              <button onClick={toggleHideZakat} className="text-xs underline opacity-70 hover:opacity-100">{hideZakat ? 'Show' : 'Hide'}</button>
-            </span>
-          </p>
-          <p className="text-2xl font-bold mt-1">
+        <div className="bg-white rounded-xl p-4 border border-gray-200">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs text-gray-500 uppercase tracking-wide">Zakat Due</p>
+            <div className="flex items-center gap-1">
+              {Boolean(totals?.zakatFullyPaid) && <span className="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">PAID</span>}
+              <button onClick={toggleHideZakat} className="text-[10px] text-gray-400 hover:text-gray-600">{hideZakat ? 'Show' : 'Hide'}</button>
+            </div>
+          </div>
+          <p className={`text-xl font-bold ${totals?.zakatFullyPaid ? 'text-green-600' : 'text-amber-600'}`}>
             {hideZakat ? '••••••' : (loading ? '...' : fmt((totals?.zakatRemaining as number) ?? (totals?.zakatDue as number) ?? 0))}
           </p>
           {!hideZakat && !loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid) && (
-            <p className={`${totals?.zakatFullyPaid ? 'text-green-200' : 'text-amber-200'} text-xs mt-1`}>
+            <p className="text-xs text-gray-500 mt-1">
               Paid: {fmt((totals?.zakatPaid as number) || 0)} of {fmt((totals?.zakatDue as number) || 0)}
             </p>
           )}
         </div>
-        <div className="bg-gradient-to-br from-teal-600 to-cyan-500 rounded-2xl p-5 text-white">
-          <p className="text-teal-100 text-sm">Zakat Eligible</p>
-          <p className="text-2xl font-bold mt-1">
+        <div className="bg-white rounded-xl p-4 border border-gray-200">
+          <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Zakat Eligible</p>
+          <p className={`text-xl font-bold ${totals?.zakatEligible ? 'text-green-600' : 'text-gray-400'}`}>
             {loading ? '...' : (totals?.zakatEligible ? 'Yes' : 'Not Yet')}
           </p>
         </div>
         {hasInvestmentPulse && (
-          <Link
-            href="/dashboard/investments"
-            className="block bg-gradient-to-br from-slate-900 to-slate-700 rounded-2xl p-5 text-white hover:shadow-lg transition"
-          >
-            <p className="text-slate-300 text-sm">Today&apos;s Market Move</p>
-            <p className={`text-2xl font-bold mt-1 ${dayMove >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+          <Link href="/dashboard/investments" className="block bg-white rounded-xl p-4 border border-gray-200 hover:border-gray-300 transition">
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Market Today</p>
+            <p className={`text-xl font-bold ${dayMove >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {dayMove >= 0 ? '+' : ''}{fmt(dayMove)}
             </p>
-            <p className="text-slate-300 text-xs mt-1">
-              {dayMovePct >= 0 ? '+' : ''}{dayMovePct.toFixed(2)}% &middot; {fmt(portfolioSummary?.totalValue || 0)}
+            <p className="text-xs text-gray-500 mt-1">
+              {dayMovePct >= 0 ? '+' : ''}{dayMovePct.toFixed(2)}% · {fmt(portfolioSummary?.totalValue || 0)}
             </p>
           </Link>
         )}
       </div>
 
       {/* ── Spending + Budget ──────────────────────────────────────────────── */}
-      <div role="region" aria-label="Spending and budget overview" className="grid grid-cols-2 gap-3">
+      <div role="region" aria-label="Spending and budget overview" className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Spending Summary */}
         <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between gap-2 mb-3">
