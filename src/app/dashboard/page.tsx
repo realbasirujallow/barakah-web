@@ -70,6 +70,7 @@ export default function DashboardPage() {
   const [latestPortfolioSnapshot, setLatestPortfolioSnapshot] = useState<PortfolioHistorySnapshot | null>(null);
   const [widgets, setWidgets] = useState<DashboardWidgets | null>(null);
   const [safeToSpend, setSafeToSpend] = useState<{safeToSpend: number; dailySafeToSpend?: number; totalIncome: number; totalSpent: number; totalBillsDue: number; totalBudgeted: number; daysRemainingInMonth: number} | null>(null);
+  const [insights, setInsights] = useState<{type: string; severity: string; title: string; body: string}[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -84,7 +85,7 @@ export default function DashboardPage() {
     let cancelled = false;
 
     const loadDashboard = async () => {
-      const [assetResult, hijriResult, hawlResult, portfolioResult, portfolioHistoryResult, widgetResult, safeToSpendResult] = await Promise.allSettled([
+      const [assetResult, hijriResult, hawlResult, portfolioResult, portfolioHistoryResult, widgetResult, safeToSpendResult, insightsResult] = await Promise.allSettled([
         api.getAssetTotal(),
         api.getIslamicCalendarToday(),
         api.getHawlDue(30),
@@ -92,6 +93,7 @@ export default function DashboardPage() {
         api.getPortfolioHistory(2),
         api.getDashboardWidgets(),
         api.getSafeToSpend(),
+        api.getDashboardInsights(),
       ]);
 
       if (cancelled) return;
@@ -116,6 +118,9 @@ export default function DashboardPage() {
       }
       if (safeToSpendResult.status === 'fulfilled') {
         setSafeToSpend(safeToSpendResult.value as typeof safeToSpend);
+      }
+      if (insightsResult.status === 'fulfilled' && Array.isArray(insightsResult.value?.insights)) {
+        setInsights(insightsResult.value.insights);
       }
       setLoading(false);
     };
@@ -450,6 +455,27 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* ── Insights ─────────────────────────────────────────────────── */}
+      {insights.length > 0 && (
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {insights.slice(0, 4).map((insight, i) => {
+            const colors: Record<string, string> = {
+              good: 'border-green-200 bg-green-50 text-green-800',
+              warning: 'border-amber-200 bg-amber-50 text-amber-800',
+              action: 'border-red-200 bg-red-50 text-red-800',
+              info: 'border-blue-200 bg-blue-50 text-blue-800',
+            };
+            const icons: Record<string, string> = { good: '📈', warning: '⚠️', action: '🔴', info: '💡' };
+            return (
+              <div key={i} className={`rounded-xl border p-4 ${colors[insight.severity] || colors.info}`}>
+                <p className="text-xs font-semibold uppercase tracking-wide mb-1">{icons[insight.severity] || '💡'} {insight.title}</p>
+                <p className="text-sm leading-relaxed">{insight.body}</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── Safe to Spend ──────────────────────────────────────────────── */}
       {safeToSpend && (
