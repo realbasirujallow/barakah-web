@@ -3,16 +3,16 @@ import Link from 'next/link';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
-  title: 'Zakat on 401(k) — How to Calculate Zakat on Retirement Accounts | Barakah',
-  description: 'Learn the scholarly positions on zakat for 401(k), IRA, Roth IRA, and other retirement accounts. Calculate your accessible value and zakat obligation.',
-  alternates: { canonical: 'https://trybarakah.com/learn/zakat-on-401k' },
+  title: 'Zakat on Rental Property Income — Islamic Ruling & Calculator | Barakah',
+  description: 'Understand whether rental property income is subject to zakat, how different scholars approach it, and how to calculate your obligation on real estate investments.',
+  alternates: { canonical: 'https://trybarakah.com/learn/zakat-on-rental-property' },
 };
 
 export default function Page() {
   const faqJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [{"@type":"Question","name":"Do I pay zakat on my employer match?","acceptedAnswer":{"@type":"Answer","text":"Most scholars say yes — the employer match is wealth you own even if you did not contribute it directly."}},{"@type":"Question","name":"What about Roth IRA?","acceptedAnswer":{"@type":"Answer","text":"Roth IRAs are funded with after-tax money. You can withdraw contributions (not earnings) penalty-free. Scholars generally treat the contribution portion as fully zakatable."}}],
+    mainEntity: [{"@type":"Question","name":"Do I pay zakat on my home?","acceptedAnswer":{"@type":"Answer","text":"No. Your primary residence is exempt from zakat across all schools of Islamic jurisprudence."}},{"@type":"Question","name":"What about a second home or vacation property?","acceptedAnswer":{"@type":"Answer","text":"If it is for personal use, it is exempt. If it generates rental income, the income is zakatable. If it is held for resale, the full market value is zakatable."}}],
   };
 
   return (
@@ -25,34 +25,34 @@ export default function Page() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Zakat on 401(k) Retirement Accounts</span>
+            <span className="text-gray-600">Zakat on Rental Property</span>
           </nav>
-          <h1 className="text-4xl font-bold text-gray-900 mb-6">Zakat on 401(k) Retirement Accounts</h1>
-          <p className="text-lg text-gray-700 leading-relaxed mb-8">Retirement accounts like 401(k)s, IRAs, and Roth IRAs present a unique zakat challenge because the money is restricted — early withdrawals trigger taxes and penalties. Scholars offer three main approaches.</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-6">Zakat on Rental Property</h1>
+          <p className="text-lg text-gray-700 leading-relaxed mb-8">Rental property is one of the most debated topics in Islamic zakat law. The property itself (your primary home or rental buildings) is generally NOT zakatable, but the rental income you receive IS zakatable once it enters your savings.</p>
           
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Three Scholarly Approaches</h2>
-            <p className="text-gray-700 leading-relaxed">1. Full Accessible Value (AMJA/Majority): Calculate zakat on what you could access today after estimated taxes and penalties. 2. Employer Match Only: Only the employer-contributed portion is zakatable since you did not earn it from labor. 3. Deferred Until Withdrawal: Pay zakat when you actually withdraw funds.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Is the Property Itself Zakatable?</h2>
+            <p className="text-gray-700 leading-relaxed">No. Real estate held for personal use or rental income is not subject to zakat on the property value. Only real estate held for resale (trading) is zakatable on its market value. This is the position of all four madhabs.</p>
           </section>
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">How to Calculate (Accessible Value)</h2>
-            <p className="text-gray-700 leading-relaxed">Take your current 401(k) balance. Subtract estimated federal tax (~22%), state tax (~5%), and early withdrawal penalty (~10%). The result is your accessible value. Multiply by 2.5% for your zakat.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Is Rental Income Zakatable?</h2>
+            <p className="text-gray-700 leading-relaxed">Yes. Once rental income is received and enters your bank account or savings, it becomes part of your overall zakatable wealth. If your total liquid wealth (including rental income) exceeds nisab on your hawl date, zakat is due on the entire amount.</p>
           </section>
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Example Calculation</h2>
-            <p className="text-gray-700 leading-relaxed">401(k) balance: $100,000. Estimated taxes + penalty: ~$37,000. Accessible value: $63,000. If your total wealth exceeds nisab: Zakat = $63,000 x 2.5% = $1,575.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Investment Property Held for Resale</h2>
+            <p className="text-gray-700 leading-relaxed">If you purchased property with the intention to flip or resell it, the full market value of the property is zakatable — similar to business inventory. This applies to real estate investors and developers.</p>
           </section>
           
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
             <div className="space-y-4">
               <details className="border rounded-lg">
-                <summary className="p-4 cursor-pointer font-semibold text-gray-900 hover:text-green-700">Do I pay zakat on my employer match?</summary>
-                <div className="px-4 pb-4 text-gray-700">Most scholars say yes — the employer match is wealth you own even if you did not contribute it directly.</div>
+                <summary className="p-4 cursor-pointer font-semibold text-gray-900 hover:text-green-700">Do I pay zakat on my home?</summary>
+                <div className="px-4 pb-4 text-gray-700">No. Your primary residence is exempt from zakat across all schools of Islamic jurisprudence.</div>
               </details>
               <details className="border rounded-lg">
-                <summary className="p-4 cursor-pointer font-semibold text-gray-900 hover:text-green-700">What about Roth IRA?</summary>
-                <div className="px-4 pb-4 text-gray-700">Roth IRAs are funded with after-tax money. You can withdraw contributions (not earnings) penalty-free. Scholars generally treat the contribution portion as fully zakatable.</div>
+                <summary className="p-4 cursor-pointer font-semibold text-gray-900 hover:text-green-700">What about a second home or vacation property?</summary>
+                <div className="px-4 pb-4 text-gray-700">If it is for personal use, it is exempt. If it generates rental income, the income is zakatable. If it is held for resale, the full market value is zakatable.</div>
               </details>
             </div>
           </section>

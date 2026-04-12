@@ -537,7 +537,7 @@ export default function Home() {
               </div>
             </a>
             <a
-              href="https://play.google.com/store/apps/details?id=com.barakah.app"
+              href="https://play.google.com/store/apps/details?id=com.trybarakah.app"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition shadow"
