@@ -215,14 +215,30 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Greeting section */}
-      <div className="mb-6 p-6 bg-gradient-to-r from-[#1B5E20] to-green-600 rounded-2xl text-white">
-        <p className="text-lg font-semibold flex items-center gap-2">
-          <span className="text-2xl">{getGreeting().emoji}</span>
+      {/* ── Compact Greeting (single line, Monarch-style) ─────────────────── */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-base font-semibold text-gray-900 flex items-center gap-2">
+          <span>{getGreeting().emoji}</span>
           {getGreeting().text}{user?.name ? `, ${user.name}` : ''}
+          {hijri?.hijriDate && (
+            <span className="text-gray-400 font-normal text-sm ml-2">· {hijri.hijriDate}</span>
+          )}
         </p>
-        <p className="text-green-100 text-sm mt-1">Welcome back to Barakah. May your finances be blessed with barakah.</p>
       </div>
+
+      {/* ── Weekly Insight Banner (like Monarch's Weekly Recap) ────────────── */}
+      {insights.length > 0 && (
+        <div className="mb-4 bg-green-50 border border-green-100 rounded-xl px-4 py-3 flex items-center gap-3">
+          <span className="text-lg">{insights[0].severity === 'good' ? '📈' : insights[0].severity === 'warning' ? '⚠️' : '💡'}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-green-900 font-medium truncate">{insights[0].body}</p>
+            {insights.length > 1 && (
+              <p className="text-xs text-green-600 mt-0.5">{insights.length - 1} more insight{insights.length > 2 ? 's' : ''}</p>
+            )}
+          </div>
+          <Link href="/dashboard/barakah-score" className="text-xs text-[#1B5E20] font-semibold hover:underline flex-shrink-0">View all →</Link>
+        </div>
+      )}
 
       {/* ── Islamic Calendar + Zakat Reminders Row ─────────────────────────── */}
       <div className="grid md:grid-cols-2 gap-4 mb-6">
@@ -307,8 +323,14 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* ══════════════ TWO-COLUMN LAYOUT (Monarch-style density) ══════════════ */}
+      <div className="grid lg:grid-cols-[58fr_42fr] gap-4 mb-6">
+
+      {/* ── LEFT COLUMN ─────────────────────────────────────────────────────── */}
+      <div className="space-y-4">
+
       {/* ── Summary Cards Row ─────────────────────────────────────────────── */}
-      <div role="region" aria-label="Financial summary" className={`grid gap-4 mb-6 ${hasInvestmentPulse ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+      <div role="region" aria-label="Financial summary" className={`grid gap-3 ${hasInvestmentPulse ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-3'}`}>
         <div className="bg-gradient-to-br from-[#1B5E20] to-green-600 rounded-2xl p-5 text-white relative">
           <p className="text-green-200 text-sm flex items-center justify-between">
             Net Worth
@@ -362,8 +384,8 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ── Spending + Budget Row ─────────────────────────────────────────── */}
-      <div role="region" aria-label="Spending and budget overview" className="grid md:grid-cols-2 gap-4 mb-6">
+      {/* ── Spending + Budget ──────────────────────────────────────────────── */}
+      <div role="region" aria-label="Spending and budget overview" className="grid grid-cols-2 gap-3">
         {/* Spending Summary */}
         <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between gap-2 mb-3">
@@ -456,27 +478,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Insights ─────────────────────────────────────────────────── */}
-      {insights.length > 0 && (
-        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {insights.slice(0, 4).map((insight, i) => {
-            const colors: Record<string, string> = {
-              good: 'border-green-200 bg-green-50 text-green-800',
-              warning: 'border-amber-200 bg-amber-50 text-amber-800',
-              action: 'border-red-200 bg-red-50 text-red-800',
-              info: 'border-blue-200 bg-blue-50 text-blue-800',
-            };
-            const icons: Record<string, string> = { good: '📈', warning: '⚠️', action: '🔴', info: '💡' };
-            return (
-              <div key={i} className={`rounded-xl border p-4 ${colors[insight.severity] || colors.info}`}>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-1">{icons[insight.severity] || '💡'} {insight.title}</p>
-                <p className="text-sm leading-relaxed">{insight.body}</p>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
       {/* ── Safe to Spend ──────────────────────────────────────────────── */}
       {safeToSpend && (
         <div className="bg-white rounded-2xl p-5 border border-gray-100 mb-6">
@@ -505,8 +506,53 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Recent Transactions + Upcoming Bills Row ──────────────────────── */}
-      <div role="region" aria-label="Recent transactions and upcoming bills" className="grid md:grid-cols-2 gap-4 mb-6">
+      {/* ── Net Worth Trend (in left column) ───────────────────────────────── */}
+      {widgets?.netWorthMini && widgets.netWorthMini.history && widgets.netWorthMini.history.length > 1 && (
+        <div className="bg-white rounded-2xl p-4 border border-gray-100">
+          <div className="flex items-center justify-between mb-1">
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Net Worth — 90 Days</p>
+              <div className="flex items-baseline gap-2 mt-1">
+                <p className="text-xl font-bold text-gray-900">
+                  {hideNetWorth ? '••••••' : fmt(widgets.netWorthMini.currentNetWorth)}
+                </p>
+                {!hideNetWorth && (
+                  <span className={`text-xs font-semibold ${(widgets.netWorthMini.changeAmount || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {(widgets.netWorthMini.changeAmount || 0) >= 0 ? '▲' : '▼'} {fmt(Math.abs(widgets.netWorthMini.changeAmount || 0))} ({(widgets.netWorthMini.changePercent || 0).toFixed(1)}%)
+                  </span>
+                )}
+              </div>
+            </div>
+            <Link href="/dashboard/net-worth" className="text-xs text-[#1B5E20] font-medium hover:underline">Details →</Link>
+          </div>
+          {!hideNetWorth && (
+            <div className="h-32 mt-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={widgets.netWorthMini.history.map((p) => ({
+                  date: new Date(p.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                  netWorth: p.netWorth,
+                }))}>
+                  <defs>
+                    <linearGradient id="nwGradientLeft" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#1B5E20" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#1B5E20" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                  <YAxis hide domain={['dataMin', 'dataMax']} />
+                  <Tooltip formatter={(value) => [fmt(Number(value)), 'Net Worth']} labelStyle={{ fontSize: 11 }} />
+                  <Area type="monotone" dataKey="netWorth" stroke="#1B5E20" strokeWidth={2} fill="url(#nwGradientLeft)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+      )}
+
+      </div>{/* END LEFT COLUMN */}
+
+      {/* ── RIGHT COLUMN ────────────────────────────────────────────────────── */}
+      <div className="space-y-4">
         {/* Recent Transactions */}
         <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between mb-3">
@@ -584,50 +630,9 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
-      </div>
 
-      {/* ── Net Worth Mini-Chart ──────────────────────────────────────────── */}
-      {widgets?.netWorthMini && widgets.netWorthMini.history && widgets.netWorthMini.history.length > 1 && (
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 mb-6">
-          <div className="flex items-center justify-between mb-1">
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Net Worth Trend — 90 Days</p>
-              <div className="flex items-baseline gap-3 mt-1">
-                <p className="text-2xl font-bold text-gray-900">
-                  {hideNetWorth ? '••••••' : fmt(widgets.netWorthMini.currentNetWorth)}
-                </p>
-                {!hideNetWorth && (
-                  <span className={`text-sm font-semibold ${(widgets.netWorthMini.changeAmount || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {(widgets.netWorthMini.changeAmount || 0) >= 0 ? '▲' : '▼'} {fmt(Math.abs(widgets.netWorthMini.changeAmount || 0))} ({(widgets.netWorthMini.changePercent || 0).toFixed(1)}%)
-                  </span>
-                )}
-              </div>
-            </div>
-            <Link href="/dashboard/net-worth" className="text-sm text-[#1B5E20] font-medium hover:underline">Details →</Link>
-          </div>
-          {!hideNetWorth && (
-            <div className="h-40 mt-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={widgets.netWorthMini.history.map((p) => ({
-                  date: new Date(p.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-                  netWorth: p.netWorth,
-                }))}>
-                  <defs>
-                    <linearGradient id="nwGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1B5E20" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#1B5E20" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                  <YAxis hide domain={['dataMin', 'dataMax']} />
-                  <Tooltip formatter={(value) => [fmt(Number(value)), 'Net Worth']} labelStyle={{ fontSize: 12 }} />
-                  <Area type="monotone" dataKey="netWorth" stroke="#1B5E20" strokeWidth={2} fill="url(#nwGradient)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
-      )}
+      </div>{/* END RIGHT COLUMN */}
+      </div>{/* END TWO-COLUMN GRID */}
 
       {/* Quick Actions */}
       <div className="mb-6">
