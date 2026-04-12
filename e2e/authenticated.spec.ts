@@ -56,7 +56,41 @@ test.describe('Authenticated API Tests', () => {
       headers: auth(),
       data: { totalWealth: 50000, nisabType: 'gold' },
     });
-    expect([200, 400].includes(res.status())).toBeTruthy();
+    expect(res.ok()).toBeTruthy();
+    const data = await res.json();
+    expect(data.eligible).toBe(true);
+    expect(data.zakatDue).toBeGreaterThan(0);
+    expect(data.hawlRequired).toBe(true);
+    expect(data.nisabThreshold).toBeGreaterThan(0);
+  });
+
+  test('zakat calculate with debt deduction', async ({ request }) => {
+    await ensureToken(request);
+    test.skip(!token, 'Login rate-limited');
+    const res = await request.post(`${API}/api/zakat/calculate`, {
+      headers: auth(),
+      data: { totalWealth: 50000, nisabType: 'gold', deductibleDebt: 20000, debtMonthlyPayment: 500 },
+    });
+    expect(res.ok()).toBeTruthy();
+    const data = await res.json();
+    expect(data.eligible).toBe(true);
+    // Debt deduction amount depends on user's fiqh config:
+    // "full_balance" → deductedDebt = 20000
+    // "annual_installment" → deductedDebt = 500 * 12 = 6000
+    expect(data.deductedDebt).toBeGreaterThan(0);
+    expect(data.zakatableWealth).toBeLessThan(50000);
+  });
+
+  test('zakat calculate below nisab returns not eligible', async ({ request }) => {
+    await ensureToken(request);
+    test.skip(!token, 'Login rate-limited');
+    const res = await request.post(`${API}/api/zakat/calculate`, {
+      headers: auth(),
+      data: { totalWealth: 100, nisabType: 'gold' },
+    });
+    expect(res.ok()).toBeTruthy();
+    const data = await res.json();
+    expect(data.eligible).toBe(false);
   });
 
   test('hawl list returns trackers', async ({ request }) => {
