@@ -576,6 +576,21 @@ export default function ZakatCalculatorPage() {
             </div>
           </section>
 
+          {/* Referral CTA */}
+          <section className="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-8 text-center">
+            <p className="text-3xl mb-3">🎁</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Know Someone Who Needs This?</h2>
+            <p className="text-gray-600 mb-4 max-w-lg mx-auto">
+              Share Barakah with a friend or family member. When they sign up, you both get 1 free month of Plus.
+            </p>
+            <Link
+              href="/signup"
+              className="inline-block bg-green-700 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-800 transition"
+            >
+              Share Barakah — Both Get 1 Month Free
+            </Link>
+          </section>
+
           {/* Additional Resources */}
           <section className="mt-12 bg-white rounded-xl shadow-md p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Additional Resources</h2>

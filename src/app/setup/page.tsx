@@ -38,7 +38,7 @@ interface PlaidAccount {
   lastSyncedAt: number | null;
 }
 
-const STEP_LABELS = ['Choose Plan', 'Connect Accounts', 'Pick Your Focus'] as const;
+const STEP_LABELS = ['Connect Accounts', 'Choose Plan', 'Pick Your Focus'] as const;
 
 function formatPlaidBalance(value: number | null | undefined, currencyCode = 'USD') {
   if (value == null || Number.isNaN(Number(value))) return null;
@@ -400,7 +400,7 @@ export default function SetupPage() {
               </div>
             )}
 
-            {step === 0 && (
+            {step === 1 && ( /* Plan selection — now step 1 */
               <div className="space-y-8">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                   <div>
@@ -473,7 +473,7 @@ export default function SetupPage() {
               </div>
             )}
 
-            {step === 1 && (
+            {step === 0 && ( /* Connect accounts — first step */
               <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
                 <div className="rounded-3xl border border-green-100 bg-[#F9FCF9] p-6">
                   <p className="text-sm font-semibold text-[#1B5E20]">Connect your accounts</p>
