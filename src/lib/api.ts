@@ -1023,6 +1023,22 @@ export const api = {
   getDashboardWidgets: () =>
     apiFetch('/api/dashboard/widgets'),
 
+  /** Personalized financial insights (spending trends, nisab streak, zakat estimates, etc.). */
+  getDashboardInsights: () =>
+    apiFetch('/api/dashboard/insights'),
+
+  /** Start churn save flow — returns personalized save offers. */
+  startChurnSaveFlow: () =>
+    apiFetch('/api/churn/start', { method: 'POST' }),
+
+  /** Pause subscription for N months. */
+  pauseSubscription: (months: number, reason?: string) =>
+    apiFetch('/api/churn/pause', { method: 'POST', body: JSON.stringify({ months, reason }) }),
+
+  /** Record exit survey on cancel. */
+  recordExitSurvey: (reason: string, detail?: string) =>
+    apiFetch('/api/churn/exit-survey', { method: 'POST', body: JSON.stringify({ reason, detail, offeredPause: true, offeredDowngrade: true, offeredDiscount: true }) }),
+
   /** Seed sample demo data for new users (one-time). */
   seedDemoData: () =>
     apiFetch('/api/onboarding/seed-demo', { method: 'POST' }),
