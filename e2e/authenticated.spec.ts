@@ -156,7 +156,7 @@ test.describe('Authenticated API Tests', () => {
   test('referral info returns code', async ({ request }) => {
     await ensureToken(request);
     test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/referral/info`, { headers: auth() });
+    const res = await request.get(`${API}/api/referral/code`, { headers: auth() });
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data).toHaveProperty('referralCode');
