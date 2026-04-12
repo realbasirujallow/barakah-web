@@ -121,6 +121,7 @@ export default function DebtsPage() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const { toast } = useToast();
   const { symbol } = useCurrency();
+  const { user } = useAuth();
 
   const load = useCallback(() => {
     setLoading(true);
@@ -287,7 +288,6 @@ export default function DebtsPage() {
   const deletableActiveDebts = activeDebts.filter(d => !d.readOnly);
   const ribaDebts  = activeDebts.filter(d => !d.ribaFree && !ISLAMIC_TYPES.includes(d.type));
   const hasLinkedPlaidDebts = debts.some(d => d.linkedSource === 'plaid' || d.readOnly);
-  const { user } = useAuth();
   const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus) || (user?.plan === 'plus' || user?.plan === 'family');
   const monthsSavedAvalanche  = projBase.months - projAvalanche.months;
   const interestSavedAvalanche = projBase.totalInterest - projAvalanche.totalInterest;
