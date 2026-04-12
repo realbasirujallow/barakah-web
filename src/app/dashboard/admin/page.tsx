@@ -432,7 +432,7 @@ export default function AdminPage() {
         <p className="text-5xl mb-4">🔒</p>
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Admin Access Required</h1>
         <p className="text-gray-500 max-w-sm">
-          Your account is not in the <code className="bg-gray-100 px-1 rounded text-sm">ADMIN_USER_IDS</code> environment variable.
+          You do not have permission to access this page. Contact your administrator if you believe this is an error.
         </p>
       </div>
     );
