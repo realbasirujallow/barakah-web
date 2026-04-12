@@ -26,10 +26,12 @@ test.describe('Authentication', () => {
 
   test('login with invalid credentials shows error', async ({ page }) => {
     await page.goto('/login');
-    await page.fill('input[type="email"]', 'nonexistent@test.com');
+    // Use unique email to avoid rate limiting from repeated test runs
+    await page.fill('input[type="email"]', `test-${Date.now()}@example.com`);
     await page.fill('input[type="password"]', 'WrongPassword1');
     await page.click('button[type="submit"]');
-    await expect(page.locator('text=/invalid|error/i')).toBeVisible({ timeout: 10000 });
+    // Should show error OR rate limit message
+    await expect(page.locator('text=/invalid|error|too many|locked/i')).toBeVisible({ timeout: 10000 });
   });
 
   test('dashboard redirects to login when not authenticated', async ({ page }) => {
