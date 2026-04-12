@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 const API = process.env.E2E_API_URL || 'https://trybarakah.com';
-const EMAIL = 'applereview@trybarakah.com';
-const PASSWORD = 'ReviewBarakah2026!';
+const EMAIL = process.env.E2E_EMAIL || '';
+const PASSWORD = process.env.E2E_PASSWORD || '';
 
 // Login once and reuse token across tests
 let token = '';
