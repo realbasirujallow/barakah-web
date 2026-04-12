@@ -56,11 +56,9 @@ const TYPE_OPTIONS = [
   { value: 'transfer', label: 'Transfer' },
 ];
 
-const CATEGORY_OPTIONS = [
-  '', 'food', 'transportation', 'shopping', 'utilities', 'housing', 'healthcare',
-  'education', 'entertainment', 'subscription', 'charity', 'income', 'investment',
-  'transfer', 'interest', 'debt_payment', 'taxes', 'travel', 'other',
-];
+// Use canonical categories from DomainConstants (single source of truth)
+import { TRANSACTION_CATEGORIES } from '../../../lib/constants';
+const CATEGORY_OPTIONS = ['', ...TRANSACTION_CATEGORIES];
 
 const DEFAULT_RULE_FORM = {
   name: '',

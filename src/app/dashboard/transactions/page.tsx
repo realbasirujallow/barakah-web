@@ -134,6 +134,7 @@ export default function TransactionsPage() {
   }, [preferredCurrency]);
 
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Debounce search input (300ms)
   useEffect(() => {
@@ -353,7 +354,6 @@ export default function TransactionsPage() {
   const allPageSelected = txs.length > 0 && selectedIds.size === txs.length;
   const hasMorePages = totalPages > 1;
   const hasLinkedPlaidTransactions = txs.some(tx => tx.importSource === 'plaid');
-  const { user } = useAuth();
   const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus) || (user?.plan === 'plus' || user?.plan === 'family');
 
   return (
