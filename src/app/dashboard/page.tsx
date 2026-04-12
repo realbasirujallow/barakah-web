@@ -307,14 +307,8 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ══════════════ TWO-COLUMN LAYOUT ══════════════ */}
-      <div className="grid lg:grid-cols-[3fr_2fr] gap-6 mb-6">
-
-      {/* ── LEFT COLUMN ─────────────────────────────────────────────────────── */}
-      <div className="space-y-5">
-
-      {/* ── Summary Cards Row ─────────────────────────────────────────────── */}
-      <div role="region" aria-label="Financial summary" className={`grid gap-4 ${hasInvestmentPulse ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-3'}`}>
+      {/* ── Summary Cards (full width, above grid) ──────────────────────── */}
+      <div role="region" aria-label="Financial summary" className={`grid gap-4 mb-5 ${hasInvestmentPulse ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`}>
         <div className="bg-white rounded-xl p-4 border border-gray-200">
           <div className="flex items-center justify-between mb-1">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Net Worth</p>
@@ -364,6 +358,12 @@ export default function DashboardPage() {
           </Link>
         )}
       </div>
+
+      {/* ══════════════ TWO-COLUMN LAYOUT ══════════════ */}
+      <div className="grid lg:grid-cols-[3fr_2fr] gap-6 mb-6">
+
+      {/* ── LEFT COLUMN ─────────────────────────────────────────────────────── */}
+      <div className="space-y-5">
 
       {/* ── Spending + Budget ──────────────────────────────────────────────── */}
       <div role="region" aria-label="Spending and budget overview" className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -533,7 +533,7 @@ export default function DashboardPage() {
       </div>{/* END LEFT COLUMN */}
 
       {/* ── RIGHT COLUMN ────────────────────────────────────────────────────── */}
-      <div className="space-y-4">
+      <div className="space-y-4 min-w-0">
         {/* Recent Transactions */}
         <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between mb-3">
