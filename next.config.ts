@@ -202,3 +202,6 @@ export default withSentryConfig(nextConfig, {
     },
   },
 });
+
+// Image optimization — Next.js serves optimized images automatically
+// This acts as a built-in CDN with WebP conversion and lazy loading
