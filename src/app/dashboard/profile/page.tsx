@@ -77,6 +77,7 @@ export default function ProfilePage() {
   // Location form
   const [locationForm, setLocationForm] = useState({ country: '', state: '' });
   const [savingLocation, setSavingLocation] = useState(false);
+  const [downloadingData, setDownloadingData] = useState(false);
   const [locationMsg, setLocationMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Password form
@@ -797,7 +798,9 @@ export default function ProfilePage() {
         </p>
         <button
           type="button"
+          disabled={downloadingData}
           onClick={async () => {
+            setDownloadingData(true);
             try {
               const data = await api.exportData();
               const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -805,11 +808,11 @@ export default function ProfilePage() {
               const a = document.createElement('a');
               a.href = url; a.download = 'barakah-data-export.json'; a.click();
               URL.revokeObjectURL(url);
-            } catch { toast('Failed to export data. Please try again.', 'error'); }
+            } catch { toast('Failed to export data. Please try again.', 'error'); } finally { setDownloadingData(false); }
           }}
-          className="text-[#1B5E20] border border-[#1B5E20] px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition"
+          className="text-[#1B5E20] border border-[#1B5E20] px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition disabled:opacity-50"
         >
-          📥 Download My Data
+          {downloadingData ? 'Downloading...' : '📥 Download My Data'}
         </button>
       </div>
 
