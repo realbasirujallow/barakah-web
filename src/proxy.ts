@@ -43,6 +43,17 @@ export function proxy(request: NextRequest) {
   // ── Protected routes: redirect if clearly not logged in ──────────
   const isProtectedRoute = pathname.startsWith('/dashboard');
   if (isProtectedRoute && !hasAuthToken) {
+    // Detect bots (Googlebot, Bingbot, etc.) — return 403 + noindex
+    // instead of redirect chain that pollutes search index
+    const ua = request.headers.get('user-agent') || '';
+    const isBot = /googlebot|bingbot|yandexbot|duckduckbot|baiduspider|slurp|facebookexternalhit|twitterbot|linkedinbot|bot|crawler|spider/i.test(ua);
+    if (isBot) {
+      return new NextResponse('This page requires authentication.', {
+        status: 403,
+        headers: { 'X-Robots-Tag': 'noindex, nofollow' },
+      });
+    }
+
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.searchParams.set('reason', 'expired');
