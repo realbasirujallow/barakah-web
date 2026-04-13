@@ -131,8 +131,8 @@ export default function BudgetPage() {
       else result = await api.addBudget(data);
       if (result?.error) throw new Error(result.error);
       setShowForm(false); load();
-    } catch (err: any) {
-      setSaveError(err?.message || 'Failed to save budget. Please try again.');
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save budget. Please try again.');
     }
     setSaving(false);
   };

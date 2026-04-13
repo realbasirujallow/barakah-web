@@ -88,7 +88,7 @@ export default function IslamicFinanceBasicsPage() {
               <div className="inline-block bg-green-100 text-[#1B5E20] px-3 py-1 rounded-full text-xs font-semibold mb-2">
                 Islamic Finance Guide
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-[#1B5E20]">Islamic Finance 101: A Beginner's Guide to Halal Money</h1>
+              <h1 className="text-4xl md:text-5xl font-bold text-[#1B5E20]">Islamic Finance 101: A Beginner&apos;s Guide to Halal Money</h1>
               <p className="text-lg text-gray-700">Master the core principles of Islamic finance and learn how to manage your money ethically according to Islamic values.</p>
               <div className="flex items-center gap-4 text-sm text-gray-600 border-t border-gray-200 pt-4">
                 <span>By Barakah Editorial Team</span>
@@ -166,7 +166,7 @@ export default function IslamicFinanceBasicsPage() {
             <section id="riba" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">No Riba: Interest & Usury</h2>
               <p className="text-gray-700 leading-relaxed">
-                Riba literally means "excess" or "growth." In Islamic finance, it refers to interest — the predetermined increase in money that creates inequality between lender and borrower.
+                Riba literally means &quot;excess&quot; or &quot;growth.&quot; In Islamic finance, it refers to interest — the predetermined increase in money that creates inequality between lender and borrower.
               </p>
 
               <div className="bg-red-50 border border-red-200 rounded-lg p-6 my-6">
@@ -199,7 +199,7 @@ export default function IslamicFinanceBasicsPage() {
                 <li>Terms are unclear or ambiguous</li>
                 <li>One party has hidden information the other lacks</li>
                 <li>Risk is concealed or unknown</li>
-                <li>The subject matter doesn't exist or cannot be verified</li>
+                <li>The subject matter doesn&apos;t exist or cannot be verified</li>
               </ul>
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 my-6">
@@ -284,7 +284,7 @@ export default function IslamicFinanceBasicsPage() {
               </div>
 
               <p className="text-gray-700 leading-relaxed">
-                <strong>Barakah's halal screener</strong> helps you identify which stocks are Sharia-compliant and build an ethical portfolio aligned with your values.
+                <strong>Barakah&apos;s halal screener</strong> helps you identify which stocks are Sharia-compliant and build an ethical portfolio aligned with your values.
               </p>
             </section>
 
@@ -328,16 +328,16 @@ export default function IslamicFinanceBasicsPage() {
                 <h3 className="font-bold text-amber-900 mb-4">5 Steps to Align Your Finances</h3>
                 <ol className="space-y-3 text-gray-700 text-sm">
                   <li>
-                    <strong className="text-amber-900">1. Educate yourself:</strong> Learn Islamic finance principles (you're doing this now!)
+                    <strong className="text-amber-900">1. Educate yourself:</strong> Learn Islamic finance principles (you&apos;re doing this now!)
                   </li>
                   <li>
                     <strong className="text-amber-900">2. Audit your accounts:</strong> Review your current bank accounts, investments, and loans. Are they halal?
                   </li>
                   <li>
-                    <strong className="text-amber-900">3. Calculate your zakat:</strong> Use Barakah's calculator to determine what you owe and plan to pay it
+                    <strong className="text-amber-900">3. Calculate your zakat:</strong> Use Barakah&apos;s calculator to determine what you owe and plan to pay it
                   </li>
                   <li>
-                    <strong className="text-amber-900">4. Transition gradually:</strong> Don't try to change everything overnight. Start with new savings accounts or investments
+                    <strong className="text-amber-900">4. Transition gradually:</strong> Don&apos;t try to change everything overnight. Start with new savings accounts or investments
                   </li>
                   <li>
                     <strong className="text-amber-900">5. Build a plan:</strong> Create a personal Islamic finance plan aligned with your goals and values

@@ -256,7 +256,7 @@ export default function FiqhSettingsPage() {
               <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div>
                   <p className="font-semibold text-[#1B5E20]">Wasiyyah Exceed Third with Consent</p>
-                  <p className="text-sm text-gray-600 mt-1">Allow bequests exceeding 1/3 with heirs' consent</p>
+                  <p className="text-sm text-gray-600 mt-1">Allow bequests exceeding 1/3 with heirs&apos; consent</p>
                 </div>
                 <input
                   type="checkbox"

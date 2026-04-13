@@ -1338,7 +1338,7 @@ export default function ZakatPage() {
                   className="mt-1 w-4 h-4"
                 />
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900 text-sm">I understand this is my religious obligation (Qur'an 9:60)</p>
+                  <p className="font-medium text-gray-900 text-sm">I understand this is my religious obligation (Qur&apos;an 9:60)</p>
                   <p className="text-xs text-gray-500 mt-0.5">Zakat is a pillar of Islam — give with sincere intention</p>
                 </div>
               </label>
