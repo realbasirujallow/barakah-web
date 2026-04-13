@@ -7,6 +7,7 @@ import { useToast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 import OnboardingWizard from '../../components/OnboardingWizard';
+import ReferralPromptModal, { useReferralPrompt } from '../../components/ReferralPromptModal';
 import { TransactionUsageMeter } from '../../components/TransactionUsageMeter';
 import { PRICING } from '../../lib/pricing';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -73,6 +74,8 @@ export default function DashboardPage() {
   const [insights, setInsights] = useState<{type: string; severity: string; title: string; body: string}[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { show: showReferralPrompt, dismiss: dismissReferralPrompt } = useReferralPrompt();
+  const [referralBannerDismissed, setReferralBannerDismissed] = useState(() => safeGetItem('barakah_referral_banner_dismissed') === 'true');
 
   const getGreeting = (): { text: string; emoji: string } => {
     const hour = new Date().getHours();
@@ -181,6 +184,7 @@ export default function DashboardPage() {
     <div>
       {/* Onboarding Wizard for first-time users */}
       {showOnboarding && <OnboardingWizard onComplete={() => setShowOnboarding(false)} />}
+      {!showOnboarding && showReferralPrompt && <ReferralPromptModal onDismiss={dismissReferralPrompt} />}
 
       {/* Trial Expired Banner */}
       {isTrialExpired && (
@@ -238,6 +242,30 @@ export default function DashboardPage() {
             )}
           </div>
           <Link href="/dashboard/barakah-score" className="text-xs text-[#1B5E20] font-semibold hover:underline flex-shrink-0">View all →</Link>
+        </div>
+      )}
+
+      {/* ── Referral Banner (dismissible, shows until first successful referral) ── */}
+      {!referralBannerDismissed && !showReferralPrompt && (
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🤝</span>
+            <p className="text-sm text-green-800 font-medium">
+              Invite family to Barakah — you both get a <strong>free month</strong>
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Link href="/dashboard/referral" className="bg-[#1B5E20] text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-[#2E7D32] transition">
+              Share
+            </Link>
+            <button
+              onClick={() => { safeSetItem('barakah_referral_banner_dismissed', 'true'); setReferralBannerDismissed(true); }}
+              className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+              aria-label="Dismiss referral banner"
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
 
