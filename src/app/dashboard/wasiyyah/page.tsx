@@ -40,6 +40,7 @@ function WasiyyahPageContent() {
   const [form, setForm]             = useState({ beneficiaryName: '', relationship: '', sharePercentage: '', shareType: 'percentage', notes: '' });
   const [obForm, setObForm]         = useState(() => ({ type: 'ZAKAT', amount: '', currency: currencyCode || '', description: '', recipient: '', notes: '' }));
   const [saving, setSaving]         = useState(false);
+  const [exporting, setExporting]   = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<{ type: 'beneficiary' | 'obligation'; id: number } | null>(null);
   const [formError, setFormError]   = useState<string | null>(null);
   const loadingRef = useRef(false);
@@ -202,10 +203,11 @@ function WasiyyahPageContent() {
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={async () => { try { await api.downloadWasiyyahPdf(); } catch (err) { toast(err instanceof Error ? err.message : 'Failed to export PDF', 'error'); } }}
-            className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium flex items-center gap-1"
+            disabled={exporting}
+            onClick={async () => { setExporting(true); try { await api.downloadWasiyyahPdf(); } catch (err) { toast(err instanceof Error ? err.message : 'Failed to export PDF', 'error'); } finally { setExporting(false); } }}
+            className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium flex items-center gap-1 disabled:opacity-50"
           >
-            📄 Export PDF
+            {exporting ? 'Exporting...' : '📄 Export PDF'}
           </button>
           <button
             type="button"
