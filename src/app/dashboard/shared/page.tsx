@@ -128,7 +128,8 @@ export default function SharedPage() {
       api.getEstateSharingStatus(),
     ])
       .then((results) => {
-        const val = (i: number) => results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<unknown>).value : null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const val = (i: number): any => results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<any>).value : null;
         const detail = val(0);
         const s = val(1);
         const t = val(2);

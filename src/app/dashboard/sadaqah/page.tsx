@@ -13,10 +13,10 @@ interface Stats { totalDonated: number; donationCount: number; thisMonthTotal: n
 function mapStats(raw: Record<string, unknown>): Stats | null {
   if (!raw) return null;
   // Backend may use totalAllTime/totalDonated, totalDonations/donationCount, thisMonth/thisMonthTotal
-  const totalDonated = raw.totalDonated ?? raw.totalAllTime ?? 0;
-  const donationCount = raw.donationCount ?? raw.totalDonations ?? 0;
-  const thisMonthTotal = raw.thisMonthTotal ?? raw.thisMonth ?? 0;
-  let topCategory = raw.topCategory || 'N/A';
+  const totalDonated = Number(raw.totalDonated ?? raw.totalAllTime ?? 0);
+  const donationCount = Number(raw.donationCount ?? raw.totalDonations ?? 0);
+  const thisMonthTotal = Number(raw.thisMonthTotal ?? raw.thisMonth ?? 0);
+  let topCategory = String(raw.topCategory || 'N/A');
   // Derive top category from byCategory map if not provided directly
   if (topCategory === 'N/A' && raw.byCategory && typeof raw.byCategory === 'object') {
     const entries = Object.entries(raw.byCategory) as [string, number][];
