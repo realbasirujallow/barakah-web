@@ -41,8 +41,8 @@ export const TRANSACTION_CATEGORIES = [
   'income', 'salary', 'business',
   // Islamic
   'charity', 'zakat', 'sadaqah',
-  // Transfers
-  'transfer',
+  // Transfers & Refunds
+  'transfer', 'refund',
   // Catch-all
   'uncategorized', 'other',
 ] as const;
