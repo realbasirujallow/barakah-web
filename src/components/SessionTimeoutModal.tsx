@@ -5,9 +5,9 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 
 // ── Configuration ──────────────────────────────────────────────────────────
-const SESSION_TIMEOUT_MS  = 45 * 60 * 1000; // 45 minutes
+const SESSION_TIMEOUT_MS  = 60 * 60 * 1000; // 60 minutes (1 hour idle timeout)
 const WARNING_BEFORE_MS   =  5 * 60 * 1000; // Show warning 5 minutes before timeout
-const WARNING_AT_MS       = SESSION_TIMEOUT_MS - WARNING_BEFORE_MS; // 40 minutes
+const WARNING_AT_MS       = SESSION_TIMEOUT_MS - WARNING_BEFORE_MS; // 55 minutes
 const ACTIVITY_EVENTS     = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove'] as const;
 const THROTTLE_MS         = 60_000; // Only update activity timestamp once per minute
 
