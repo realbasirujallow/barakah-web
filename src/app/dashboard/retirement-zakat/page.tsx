@@ -207,7 +207,7 @@ export default function RetirementZakatPage() {
           <div className="lg:col-span-2">
             {!results ? (
               <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-                <p className="text-gray-600">Enter your account details and click "Calculate Zakat" to see the three scholarly positions.</p>
+                <p className="text-gray-600">Enter your account details and click &quot;Calculate Zakat&quot; to see the three scholarly positions.</p>
               </div>
             ) : (
               <>

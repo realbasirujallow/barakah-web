@@ -173,7 +173,8 @@ export default function DashboardPage() {
   const dayMove = latestPortfolioSnapshot?.dayGainLoss ?? 0;
   const dayMovePct = latestPortfolioSnapshot?.dayGainLossPercent ?? 0;
   const netWorthValue = (totals?.netWorth as number) || (totals?.totalWealth as number) || 0;
-  const isTrialExpired = user?.plan === 'free' && user?.planExpiresAt && user.planExpiresAt < Date.now() / 1000;
+  const [currentTimestamp] = useState(() => Date.now() / 1000);
+  const isTrialExpired = user?.plan === 'free' && user?.planExpiresAt && user.planExpiresAt < currentTimestamp;
   const hasNoData = !loading && netWorthValue === 0 && !widgets?.recentTransactions?.transactions?.length;
 
   return (

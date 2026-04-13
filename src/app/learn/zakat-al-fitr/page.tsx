@@ -128,7 +128,7 @@ export default function ZakatAlFitrPage() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Hadith Reference</h3>
                 <p className="text-gray-700 text-sm italic">
-                  "The Messenger of Allah (peace be upon him) enjoined Zakat al-Fitr on every Muslim, slave or free, male or female, small or big, and it is one sa' of dates or barley." — Sahih Bukhari (1503)
+                  &quot;The Messenger of Allah (peace be upon him) enjoined Zakat al-Fitr on every Muslim, slave or free, male or female, small or big, and it is one sa&apos; of dates or barley.&quot; — Sahih Bukhari (1503)
                 </p>
               </div>
             </section>
@@ -136,15 +136,15 @@ export default function ZakatAlFitrPage() {
             <section id="how-much" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">How Much to Pay</h2>
               <p className="text-gray-700 leading-relaxed">
-                The amount of zakat al-fitr is <strong>one sa'</strong> per person. A sa' is a traditional Islamic unit of measurement:
+                The amount of zakat al-fitr is <strong>one sa&apos;</strong> per person. A sa&apos; is a traditional Islamic unit of measurement:
               </p>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 my-6">
-                <h3 className="font-bold text-blue-900 mb-3">What is One Sa'?</h3>
+                <h3 className="font-bold text-blue-900 mb-3">What is One Sa&apos;?</h3>
                 <ul className="space-y-2 text-gray-700 text-sm">
                   <li><strong className="text-blue-900">Modern metric equivalent:</strong> Approximately 2.25 kilograms (kg) or 4.75 pounds (lbs)</li>
                   <li><strong className="text-blue-900">Volume measure:</strong> About 4-5 cups or 1 gallon</li>
-                  <li><strong className="text-blue-900">Types of food:</strong> A sa' of dates, barley, wheat, raisins, or any basic grain that was common in 7th-century Arabia</li>
+                  <li><strong className="text-blue-900">Types of food:</strong> A sa&apos; of dates, barley, wheat, raisins, or any basic grain that was common in 7th-century Arabia</li>
                 </ul>
               </div>
 
@@ -233,7 +233,7 @@ export default function ZakatAlFitrPage() {
                 <h3 className="font-bold text-blue-900 mb-3">Special Cases</h3>
                 <div className="space-y-3 text-gray-700 text-sm">
                   <p>
-                    <strong className="text-blue-900">Children:</strong> Parents or guardians pay on behalf of children (even newborns). This is based on the hadith mentioning zakat al-fitr on "slave or free, male or female, small or big."
+                    <strong className="text-blue-900">Children:</strong> Parents or guardians pay on behalf of children (even newborns). This is based on the hadith mentioning zakat al-fitr on &quot;slave or free, male or female, small or big.&quot;
                   </p>
                   <p>
                     <strong className="text-blue-900">Servants/employees:</strong> The employer typically pays, though the servant may pay their own share if they wish.
@@ -242,7 +242,7 @@ export default function ZakatAlFitrPage() {
                     <strong className="text-blue-900">Elderly/ill:</strong> Still obligatory. If they cannot pay themselves, a family member may pay on their behalf.
                   </p>
                   <p>
-                    <strong className="text-blue-900">Non-fasters:</strong> Even if someone didn't fast Ramadan (due to valid reasons or travel), they still owe zakat al-fitr.
+                    <strong className="text-blue-900">Non-fasters:</strong> Even if someone didn&apos;t fast Ramadan (due to valid reasons or travel), they still owe zakat al-fitr.
                   </p>
                 </div>
               </div>
@@ -260,7 +260,7 @@ export default function ZakatAlFitrPage() {
               </ul>
 
               <p className="text-gray-700 leading-relaxed mt-4">
-                <strong>Note:</strong> Zakat al-fitr is distinct from zakat al-mal. You cannot use zakat al-fitr amounts for non-poor recipients (like students, mosques, or da'wah projects), though other forms of sadaqah (voluntary charity) may go to those categories.
+                <strong>Note:</strong> Zakat al-fitr is distinct from zakat al-mal. You cannot use zakat al-fitr amounts for non-poor recipients (like students, mosques, or da&apos;wah projects), though other forms of sadaqah (voluntary charity) may go to those categories.
               </p>
             </section>
 
@@ -288,7 +288,7 @@ export default function ZakatAlFitrPage() {
                     </tr>
                     <tr className="bg-white">
                       <td className="border border-gray-300 p-3 font-semibold">Amount</td>
-                      <td className="border border-gray-300 p-3">1 sa' of food per person (~2.25kg)</td>
+                      <td className="border border-gray-300 p-3">1 sa&apos; of food per person (~2.25kg)</td>
                       <td className="border border-gray-300 p-3">2.5% of total wealth</td>
                     </tr>
                     <tr className="bg-gray-50">
@@ -317,7 +317,7 @@ export default function ZakatAlFitrPage() {
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="font-bold text-[#1B5E20] mb-2">Q: What if I can't find the specific food mentioned (dates, barley)?</h3>
+                <h3 className="font-bold text-[#1B5E20] mb-2">Q: What if I can&apos;t find the specific food mentioned (dates, barley)?</h3>
                 <p className="text-gray-700 text-sm">
                   Use the monetary equivalent of any basic food. In modern times, rice, wheat flour, or other staple foods are acceptable. The intent is to ensure the poor have food for Eid, not to be strictly limited to historical foods.
                 </p>
@@ -326,7 +326,7 @@ export default function ZakatAlFitrPage() {
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Can I combine zakat al-fitr with zakat al-mal donations?</h3>
                 <p className="text-gray-700 text-sm">
-                  While both go to the poor, they are technically separate obligations. It's best to track them separately to ensure you fulfill both properly. However, if you give generously to the poor beyond the nisab, this is acceptable practice.
+                  While both go to the poor, they are technically separate obligations. It&apos;s best to track them separately to ensure you fulfill both properly. However, if you give generously to the poor beyond the nisab, this is acceptable practice.
                 </p>
               </div>
 

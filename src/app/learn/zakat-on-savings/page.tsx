@@ -250,7 +250,7 @@ export default function ZakatOnSavingsPage() {
             <section id="emergency-fund" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">What About Emergency Funds?</h2>
               <p className="text-gray-700 leading-relaxed">
-                Many Muslims set aside emergency funds (often 3-6 months of living expenses) for unexpected hardships. A common question is: "Can I exclude my emergency fund from zakat?"
+                Many Muslims set aside emergency funds (often 3-6 months of living expenses) for unexpected hardships. A common question is: &quot;Can I exclude my emergency fund from zakat?&quot;
               </p>
               <p className="text-gray-700 leading-relaxed font-semibold">
                 <strong className="text-red-600">Short answer: No.</strong> Emergency funds are still your wealth and are fully zakatable.
@@ -282,7 +282,7 @@ export default function ZakatOnSavingsPage() {
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: What if my savings dip below nisab partway through the year?</h3>
                 <p className="text-gray-700 text-sm">
-                  If you drop below nisab, you do not owe zakat that year. However, when you return above nisab, a new one-year period starts. This is called the "gap rule" in Islamic jurisprudence.
+                  If you drop below nisab, you do not owe zakat that year. However, when you return above nisab, a new one-year period starts. This is called the &quot;gap rule&quot; in Islamic jurisprudence.
                 </p>
               </div>
 
@@ -294,7 +294,7 @@ export default function ZakatOnSavingsPage() {
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="font-bold text-[#1B5E20] mb-2">Q: Do I owe zakat on money I'm holding for someone else?</h3>
+                <h3 className="font-bold text-[#1B5E20] mb-2">Q: Do I owe zakat on money I&apos;m holding for someone else?</h3>
                 <p className="text-gray-700 text-sm">
                   No. If you are holding savings on trust for another person (like money for a child or as a custodian), you are not responsible for zakat. The owner of the funds must pay zakat. However, if the money is yours, you must include it.
                 </p>
@@ -315,7 +315,7 @@ export default function ZakatOnSavingsPage() {
             <div className="bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] rounded-xl p-8 text-white mt-12 space-y-4">
               <h2 className="text-2xl font-bold">Calculate Your Savings Zakat Today</h2>
               <p className="text-green-100">
-                Barakah's zakat calculator makes it easy to determine your obligation on savings accounts and other assets.
+                Barakah&apos;s zakat calculator makes it easy to determine your obligation on savings accounts and other assets.
               </p>
               <Link
                 href="/dashboard"

@@ -10,7 +10,7 @@ interface SadaqahItem { id: number; amount: number; recipientName: string; categ
 interface Stats { totalDonated: number; donationCount: number; thisMonthTotal: number; topCategory: string; }
 
 // Map backend stats response fields to frontend Stats interface
-function mapStats(raw: any): Stats | null {
+function mapStats(raw: Record<string, unknown>): Stats | null {
   if (!raw) return null;
   // Backend may use totalAllTime/totalDonated, totalDonations/donationCount, thisMonth/thisMonthTotal
   const totalDonated = raw.totalDonated ?? raw.totalAllTime ?? 0;
@@ -84,7 +84,7 @@ function SadaqahContent() {
       await api.addSadaqah({ ...form, amount: amt });
       setShowForm(false); setForm({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false }); load();
       toast('Sadaqah recorded', 'success');
-    } catch (err: any) { toast(err?.message || 'Failed to save sadaqah', 'error'); }
+    } catch (err: unknown) { toast(err instanceof Error ? err.message : 'Failed to save sadaqah', 'error'); }
     setSaving(false);
   };
 
@@ -125,7 +125,7 @@ function SadaqahContent() {
       } else {
         toast('Could not initiate donation. Please try again.', 'error');
       }
-    } catch (err: any) { toast(err?.message || 'Failed to process donation', 'error'); }
+    } catch (err: unknown) { toast(err instanceof Error ? err.message : 'Failed to process donation', 'error'); }
     setDonating(false);
   };
 

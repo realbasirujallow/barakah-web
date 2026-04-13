@@ -116,7 +116,7 @@ export default function ZakatOnRetirementAccountsPage() {
                 Retirement accounts like 401(k)s and IRAs present a unique challenge in Islamic finance. Unlike cash savings or gold, retirement accounts have restricted access: withdrawing funds early triggers penalties and income taxes. This creates debate among scholars about how to calculate zakat.
               </p>
               <p className="text-gray-700 leading-relaxed">
-                The core question is: <strong>Is wealth "accessible" if accessing it incurs significant costs?</strong> Different schools of thought have reached different conclusions, all with legitimate scholarly backing.
+                The core question is: <strong>Is wealth &quot;accessible&quot; if accessing it incurs significant costs?</strong> Different schools of thought have reached different conclusions, all with legitimate scholarly backing.
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-amber-900 mb-2">Important</h3>
@@ -141,7 +141,7 @@ export default function ZakatOnRetirementAccountsPage() {
                   <li>1. Start with your current 401(k) or IRA balance</li>
                   <li>2. Calculate the estimated tax liability (typically 22-35% for federal income tax)</li>
                   <li>3. Add early withdrawal penalties (10% if under age 59½)</li>
-                  <li>4. Subtract total from balance to find "net accessible value"</li>
+                  <li>4. Subtract total from balance to find &quot;net accessible value&quot;</li>
                   <li>5. Pay zakat (2.5%) on the net value if it exceeds nisab</li>
                 </ol>
               </div>
@@ -203,7 +203,7 @@ export default function ZakatOnRetirementAccountsPage() {
             <section id="position3" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Position 3: On Withdrawal Only (Maal Ghayr Mustaqarr)</h2>
               <p className="text-gray-700 leading-relaxed">
-                <strong>Scholarly basis:</strong> The concept of "māl ghayr mustaqarr" (unstable/locked wealth)
+                <strong>Scholarly basis:</strong> The concept of &quot;māl ghayr mustaqarr&quot; (unstable/locked wealth)
               </p>
               <p className="text-gray-700 leading-relaxed">
                 This position treats locked retirement funds as wealth that is not yet fully yours until withdrawn. Zakat is only due on funds once they become accessible (during distribution years or after age 59½).
@@ -248,7 +248,7 @@ export default function ZakatOnRetirementAccountsPage() {
                     These accounts have dedicated educational purposes and restricted access:
                   </p>
                   <ul className="space-y-2 text-gray-700 text-sm">
-                    <li><strong>Designated purpose:</strong> Funds are earmarked for a specific child's education, which is a valid Islamic obligation (providing for dependents)</li>
+                    <li><strong>Designated purpose:</strong> Funds are earmarked for a specific child&apos;s education, which is a valid Islamic obligation (providing for dependents)</li>
                     <li><strong>Many scholars exempt:</strong> Since funds cannot be freely withdrawn without penalty and are for a specific familial obligation, some scholars consider them outside the scope of regular zakat</li>
                     <li><strong>Conservative approach:</strong> If you want to ensure full compliance, apply Position 1 (with penalties deducted)</li>
                   </ul>
@@ -259,7 +259,7 @@ export default function ZakatOnRetirementAccountsPage() {
             <section id="roth" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Special Consideration: Roth IRA</h2>
               <p className="text-gray-700 leading-relaxed">
-                Roth IRAs have a unique feature: you can withdraw your contributions (but not earnings) penalty-free at any time. This makes them somewhat more "accessible" than traditional 401(k)s or IRAs.
+                Roth IRAs have a unique feature: you can withdraw your contributions (but not earnings) penalty-free at any time. This makes them somewhat more &quot;accessible&quot; than traditional 401(k)s or IRAs.
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-amber-900 mb-3">Roth IRA Approach</h3>
@@ -277,12 +277,12 @@ export default function ZakatOnRetirementAccountsPage() {
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Which position should I follow?</h3>
                 <p className="text-gray-700 text-sm">
-                  Consult with your local imam or qualified Islamic finance advisor. AMJA (Position 1) is the most widely recommended by major Islamic organizations in North America. However, all three positions are legitimate. Choose based on your madhab (school) and advisor's guidance.
+                  Consult with your local imam or qualified Islamic finance advisor. AMJA (Position 1) is the most widely recommended by major Islamic organizations in North America. However, all three positions are legitimate. Choose based on your madhab (school) and advisor&apos;s guidance.
                 </p>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="font-bold text-[#1B5E20] mb-2">Q: Can I backpay zakat if I haven't been calculating it?</h3>
+                <h3 className="font-bold text-[#1B5E20] mb-2">Q: Can I backpay zakat if I haven&apos;t been calculating it?</h3>
                 <p className="text-gray-700 text-sm">
                   Yes. If you realize you owe zakat on retirement accounts, you should backpay for as many years as you have clear records. However, for years beyond reasonable recollection, many scholars allow you to begin paying zakat going forward. Consult an imam for guidance based on your specific situation.
                 </p>
@@ -291,14 +291,14 @@ export default function ZakatOnRetirementAccountsPage() {
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: What if I take a loan against my 401(k)?</h3>
                 <p className="text-gray-700 text-sm">
-                  If you have borrowed from your 401(k), the borrowed portion is technically no longer in the account. Calculate zakat on the remaining balance. When you repay the loan, it re-enters your account and becomes zakatable again. Consult Barakah's calculator for help tracking loan balances.
+                  If you have borrowed from your 401(k), the borrowed portion is technically no longer in the account. Calculate zakat on the remaining balance. When you repay the loan, it re-enters your account and becomes zakatable again. Consult Barakah&apos;s calculator for help tracking loan balances.
                 </p>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: How does employer match affect zakat?</h3>
                 <p className="text-gray-700 text-sm">
-                  In Position 1, employer match is included. In Position 2, it's the only part that's zakatable. In Position 3, no zakat on employer match until withdrawal. Track your employer contributions separately for clarity when calculating zakat.
+                  In Position 1, employer match is included. In Position 2, it&apos;s the only part that&apos;s zakatable. In Position 3, no zakat on employer match until withdrawal. Track your employer contributions separately for clarity when calculating zakat.
                 </p>
               </div>
 
@@ -314,7 +314,7 @@ export default function ZakatOnRetirementAccountsPage() {
             <div className="bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] rounded-xl p-8 text-white mt-12 space-y-4">
               <h2 className="text-2xl font-bold">Simplify Your Retirement Account Zakat</h2>
               <p className="text-green-100">
-                Barakah's calculator guides you through all three positions and helps you compute the correct amount based on your chosen approach.
+                Barakah&apos;s calculator guides you through all three positions and helps you compute the correct amount based on your chosen approach.
               </p>
               <Link
                 href="/dashboard"
