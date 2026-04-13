@@ -28,27 +28,21 @@ export function setUnauthorizedHandler(fn: () => void) {
   onUnauthorizedCallback = fn;
 }
 
-export function setRefreshToken(token: string | null) {
+/**
+ * Refresh token storage removed for security.
+ * Auth relies exclusively on httpOnly cookies set by the backend.
+ * These functions are kept as no-ops to avoid breaking call sites.
+ */
+export function setRefreshToken(_token: string | null) {
+  // No-op: refresh token lives only in httpOnly cookies, never in JS-accessible storage.
+  // Clearing any legacy storage that might still exist from older versions.
   if (typeof window === 'undefined') return;
-  try {
-    if (token && token.trim()) {
-      window.sessionStorage.setItem(REFRESH_FALLBACK_KEY, token);
-    } else {
-      window.sessionStorage.removeItem(REFRESH_FALLBACK_KEY);
-    }
-  } catch {
-    // sessionStorage unavailable — cookies remain the primary path
-  }
+  try { window.sessionStorage.removeItem(REFRESH_FALLBACK_KEY); } catch { /* ignore */ }
 }
 
 function getRefreshTokenFallback(): string | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const token = window.sessionStorage.getItem(REFRESH_FALLBACK_KEY);
-    return token && token.trim() ? token : null;
-  } catch {
-    return null;
-  }
+  // No-op: always return null — cookies are the sole auth mechanism.
+  return null;
 }
 
 // ── Silent refresh ─────────────────────────────────────────────────────────────
