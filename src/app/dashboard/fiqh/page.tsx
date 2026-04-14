@@ -34,6 +34,9 @@ export default function FiqhSettingsPage() {
 
   // Form state
   const [selectedMadhab, setSelectedMadhab] = useState('');
+  const [nisabMethodology, setNisabMethodology] = useState<string>('');
+  const [nisabThresholdUsd, setNisabThresholdUsd] = useState<number | null>(null);
+  const [savingNisab, setSavingNisab] = useState(false);
   const [rules, setRules] = useState({
     jewelryZakatable: false,
     fitrType: '',
@@ -49,9 +52,10 @@ export default function FiqhSettingsPage() {
     const loadData = async () => {
       setLoading(true);
       try {
-        const [configData, schoolsData] = await Promise.all([
+        const [configData, schoolsData, nisabData] = await Promise.all([
           api.getFiqhConfig(),
           api.getFiqhSchools(),
+          api.getNisabMethodology().catch(() => null),
         ]);
         if (configData) {
           setConfig(configData);
@@ -68,6 +72,11 @@ export default function FiqhSettingsPage() {
         }
         if (schoolsData && Array.isArray(schoolsData)) {
           setSchools(schoolsData);
+        }
+        if (nisabData && typeof nisabData === 'object') {
+          const data = nisabData as { methodology?: string; nisabThreshold?: number };
+          setNisabMethodology(data.methodology || 'AMJA_GOLD');
+          if (typeof data.nisabThreshold === 'number') setNisabThresholdUsd(data.nisabThreshold);
         }
       } catch (err) {
         logError(err, { context: 'Failed to load fiqh config' });
@@ -109,6 +118,24 @@ export default function FiqhSettingsPage() {
       setSelectedMadhab(config.madhab || '');
     }
     setSaving(false);
+  };
+
+  const handleNisabChange = async (methodology: string) => {
+    setSavingNisab(true);
+    const previous = nisabMethodology;
+    setNisabMethodology(methodology);
+    try {
+      const result = await api.setNisabMethodology(methodology) as { nisabThreshold?: number } | null;
+      if (result && typeof result.nisabThreshold === 'number') {
+        setNisabThresholdUsd(result.nisabThreshold);
+      }
+      toast('Nisab methodology updated.', 'success');
+    } catch (err) {
+      logError(err, { context: 'Failed to update nisab methodology' });
+      setNisabMethodology(previous);
+      toast('Failed to update nisab methodology. Please try again.', 'error');
+    }
+    setSavingNisab(false);
   };
 
   const handleRuleChange = (key: keyof typeof rules, value: boolean | string) => {
@@ -215,6 +242,50 @@ export default function FiqhSettingsPage() {
             ) : (
               <p className="text-gray-600">No schools of thought available.</p>
             )}
+
+            {/* Nisab Methodology — separate setting from madhab */}
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <h2 className="text-2xl font-bold text-[#1B5E20] mb-2">Nisab Threshold Methodology</h2>
+              <p className="text-sm text-gray-600 mb-2">
+                Choose how Barakah calculates the nisab threshold (the minimum wealth above which zakat becomes obligatory).
+                This is a <strong>separate setting</strong> from your madhab — picking a school above does not auto-set this.
+              </p>
+              {nisabThresholdUsd != null && (
+                <p className="text-sm text-emerald-700 mb-4">
+                  Current nisab at live metal prices: <span className="font-bold">${nisabThresholdUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </p>
+              )}
+              <div className="space-y-3">
+                {[
+                  { value: 'AMJA_GOLD', title: 'Gold Standard (AMJA)', desc: '85g gold. Recommended by AMJA, ISNA, and the Fiqh Council of North America for North American Muslims. Most contemporary scholars.' },
+                  { value: 'CLASSICAL_SILVER', title: 'Silver Standard (Classical Hanafi)', desc: '595g silver. Classical Hanafi position — more conservative; lower threshold means more people qualify to pay zakat.' },
+                  { value: 'LOWER_OF_TWO', title: 'Lower of Gold/Silver (Al-Qaradawi)', desc: 'Whichever is lower at current market prices. Most conservative — typically follows silver since silver is much cheaper per gram than gold.' },
+                ].map(opt => (
+                  <label
+                    key={opt.value}
+                    className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition ${
+                      nisabMethodology === opt.value
+                        ? 'border-[#1B5E20] bg-green-50 ring-1 ring-[#1B5E20]'
+                        : 'border-gray-200 hover:border-green-700 hover:bg-green-50'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="nisabMethodology"
+                      value={opt.value}
+                      checked={nisabMethodology === opt.value}
+                      onChange={() => handleNisabChange(opt.value)}
+                      disabled={savingNisab}
+                      className="mt-1 w-5 h-5 text-[#1B5E20] accent-[#1B5E20]"
+                    />
+                    <div className="flex-1">
+                      <p className="font-semibold text-[#1B5E20]">{opt.title}</p>
+                      <p className="text-sm text-gray-600 mt-1">{opt.desc}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
