@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { PRICING, FREE_FEATURES, PLUS_FEATURES, FAMILY_FEATURES, COMPETITOR_COMPARISON } from '../lib/pricing';
 
 // ── Data ────────────────────────────────────────────────────────────────────
@@ -424,12 +425,19 @@ export default function Home() {
           </div>
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
             <div className="flex flex-col md:flex-row gap-8 items-start">
-              <div className="flex-shrink-0 w-20 h-20 bg-[#1B5E20] rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                BJ
+              <div className="flex-shrink-0 w-20 h-20 rounded-full overflow-hidden ring-2 ring-[#1B5E20]/20">
+                <Image
+                  src="/basiru-jallow.png"
+                  alt="Basiru Jallow"
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                  priority
+                />
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-gray-900 mb-1">Basiru Jallow</h3>
-                <p className="text-sm text-[#1B5E20] font-semibold mb-3">Founder & Lead Developer</p>
+                <p className="text-sm text-[#1B5E20] font-semibold mb-3">Founder & Senior Security Engineer</p>
                 <p className="text-sm text-gray-600 leading-relaxed mb-4">
                   10+ years in enterprise cybersecurity and identity governance. Former Senior SailPoint Developer at Deloitte GPS supporting the Social Security Administration, and cybersecurity lead at CBRE Group (Fortune 200). Full-stack engineer across Java, Python, TypeScript, and Flutter. Built Barakah to give Muslim households the same caliber of secure, well-engineered financial tools that Fortune 500 companies rely on — with security practices from the identity and access management industry.
                 </p>
