@@ -118,14 +118,17 @@ export function PlanGate({ required, featureName, description, children }: PlanG
       <div className="flex flex-col items-center justify-center min-h-[80vh] px-6 py-12 bg-gradient-to-b from-green-50 to-white">
         {/* Header */}
         <div className="text-center mb-12 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-6 bg-green-100 text-[#1B5E20]">
-            🔒 Premium Feature
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-6 bg-amber-100 text-amber-800">
+            🔒 {featureName} is a Plus feature
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Unlock <span className="text-[#1B5E20]">{featureName}</span>
+            Unlock <span className="text-[#1B5E20]">{featureName}</span> and the rest of Plus
           </h1>
           <p className="text-gray-600 text-lg">
-            {description ?? featureDescriptions[featureName] ?? `Choose a plan to access ${featureName} and all other premium features.`}
+            {description ?? featureDescriptions[featureName] ?? `${featureName} comes with every other Plus feature — unlimited transactions, bank sync, halal screener, Barakah Score, and more.`}
+          </p>
+          <p className="text-sm text-[#1B5E20] font-semibold mt-4">
+            New accounts get 7 days of Plus free &mdash; no card required. Already past your trial? Keep going for less than the cost of a coffee a week.
           </p>
         </div>
 

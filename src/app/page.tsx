@@ -72,7 +72,7 @@ const plans = [
     features: [...PLUS_FEATURES],
     missing: [],
     note: 'Need shared household workflows? Family adds up to 6 members with household zakat visibility and estate continuity.',
-    cta: 'Start 30-Day Free Trial',
+    cta: 'Start 7-Day Free Trial',
     ctaHref: '/signup',
     ctaStyle: 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]',
   },
@@ -160,24 +160,24 @@ export default function Home() {
       {/* ── Hero ── */}
       <section className="flex flex-col items-center justify-center text-center px-6 py-24">
         <p className="text-5xl mb-4">🌙</p>
-        <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] leading-tight mb-4">
-          Islamic Household Finance,<br className="hidden sm:block" /> Built Around Real Life
-        </h1>
         <p className="text-xs text-[#1B5E20] font-semibold mb-6 inline-block bg-green-50 px-4 py-2 rounded-full border border-[#1B5E20]">
-          ✨ Fiqh-aware money management for Muslim households
+          ✨ 7 days of Plus free with every signup &middot; no credit card
         </p>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] leading-tight mb-4">
+          The money app<br className="hidden sm:block" /> built for Muslim households
+        </h1>
         <p className="text-gray-600 text-lg max-w-xl mx-auto mb-8">
-          Barakah helps Muslim households manage daily money, zakat, hawl, giving, and estate planning in one Shariah-aware system built for shared responsibilities, family clarity, and long-term continuity.
+          Zakat, hawl, halal investing, budgets, and estate planning in one place &mdash; with fiqh rules built in, so every number you see already respects your deen.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold text-base hover:bg-[#2E7D32] transition shadow">
-            Create Free Account
+            Start 7-Day Free Trial
           </Link>
           <Link href="/login" className="bg-white text-[#1B5E20] border border-[#1B5E20] px-8 py-3.5 rounded-xl font-bold text-base hover:bg-green-50 transition">
             Sign In
           </Link>
         </div>
-        <p className="text-xs text-gray-400 mt-4">Start free · Upgrade only if you need more · Your data is yours</p>
+        <p className="text-xs text-gray-400 mt-4">Plus tier free for 7 days &middot; Drops to free plan after &middot; Your data is yours</p>
       </section>
 
       {/* ── Trust Indicators Bar ── */}

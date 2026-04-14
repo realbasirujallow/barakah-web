@@ -45,7 +45,7 @@ const faqItems = [
   {
     question: 'Is there a free trial?',
     answer:
-      'Yes, 30-day Plus trial on signup. No credit card required.',
+      'Yes. Every signup gets 7 days of Barakah Plus free, no credit card required. You can cancel or downgrade at any point; if you do nothing, your account drops to Free when the trial ends.',
   },
   {
     question: 'Can I switch plans?',
@@ -186,7 +186,7 @@ export default function PricingPage() {
                 href="/signup"
                 className="block w-full text-center bg-green-700 hover:bg-green-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
               >
-                Start 30-Day Free Trial
+                Start 7-Day Free Trial
               </Link>
             </div>
 
@@ -337,11 +337,10 @@ export default function PricingPage() {
           {/* Bottom CTA Section */}
           <section className="bg-gradient-to-r from-green-800 to-green-900 rounded-2xl shadow-lg p-12 text-center">
             <h2 className="text-3xl font-bold text-white mb-4">
-              Start your 30-day free trial
+              Start your 7-day free Plus trial
             </h2>
             <p className="text-lg text-green-100 mb-8 max-w-2xl mx-auto">
-              No credit card required. Get full access to Barakah Plus for 30 days and see why
-              thousands of Muslims trust Barakah for their finances.
+              No credit card required. Every new account gets 7 days of Barakah Plus on the house &mdash; run a zakat calc, link an account, and see why Muslim households choose Barakah over Monarch, YNAB, or Zoya.
             </p>
             <Link
               href="/signup"
