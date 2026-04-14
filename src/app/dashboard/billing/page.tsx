@@ -6,6 +6,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { PRICING } from '../../../lib/pricing';
+import { trackPaywallViewed, trackUpgradeStarted } from '../../../lib/analytics';
 
 // ── Plan tier ranking ────────────────────────────────────────────────────────
 const PLAN_TIER: Record<string, number> = { free: 0, plus: 1, family: 2 };
@@ -125,6 +126,11 @@ function BillingContent() {
     api.getReferralCode()
       .then(setReferral)
       .catch(() => null);
+
+    // Fire paywall_viewed — user landed on a page with upgrade CTAs.
+    // Pairs with the backend PAYWALL_SHOWN event (which only fires on 403s)
+    // to give full impression + click visibility.
+    try { trackPaywallViewed('billing_page'); } catch { /* GA4 unavailable */ }
   }, []);
 
   const copyCode = () => {
@@ -137,6 +143,10 @@ function BillingContent() {
 
   const handleUpgrade = async (plan: 'plus' | 'family') => {
     setLoading(plan);
+    // Fire upgrade_started before we touch Stripe — this is the click
+    // intent, separate from the final 'purchase' (trackUpgrade) event
+    // which only fires after Stripe confirms.
+    try { trackUpgradeStarted(plan, billing, 'billing_page'); } catch { /* GA4 unavailable */ }
     try {
       // Existing subscribers: upgrade/downgrade in-place (no redirect needed).
       // New subscribers (free plan): get redirected to Stripe Checkout.
