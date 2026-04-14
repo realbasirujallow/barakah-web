@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api, setRefreshToken, setUnauthorizedHandler } from '../lib/api';
+import { trackLogin, trackSignUp } from '../lib/analytics';
 
 export interface User {
   id: string;
@@ -338,10 +339,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ? data.refreshToken
       : (typeof data.refresh_token === 'string' ? data.refresh_token : null));
     setUser(profile);
+    // Fire GA4 login event — analytics must never break auth.
+    try { trackLogin('email'); } catch { /* GA4 may be blocked or unavailable */ }
   };
 
   const signup = async (name: string, email: string, password: string, state: string, country: string, referralCode?: string, phoneNumber?: string) => {
     await api.signup(name, email, password, state, country, referralCode, phoneNumber);
+    // Fire GA4 sign_up event. Backend also fires USER_SIGNED_UP; this covers
+    // the client-side side of the funnel (e.g., for ads/attribution).
+    try { trackSignUp('email'); } catch { /* GA4 may be blocked or unavailable */ }
   };
 
   const logout = async (reason?: 'logout' | 'deleted') => {

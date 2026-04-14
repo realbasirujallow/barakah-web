@@ -7,6 +7,12 @@ import { usePlaidLink } from 'react-plaid-link';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
 import {
+  trackPaywallViewed,
+  trackSetupComplete,
+  trackSetupSkipped,
+  trackUpgradeStarted,
+} from '../../lib/analytics';
+import {
   clearPendingPlaidLinkToken,
   getPlaidUiErrorMessage,
   savePendingPlaidLinkToken,
@@ -152,6 +158,14 @@ export default function SetupPage() {
     loadPlaidAccounts();
   }, [isLoading, loadPlaidAccounts, loadSubscriptionStatus, router, user]);
 
+  // Fire paywall_viewed when user lands on the plan-selection step.
+  // Only fire once per step entry — the useEffect dependency on `step`
+  // will rerun when the user moves between steps.
+  useEffect(() => {
+    if (step !== 1) return;
+    try { trackPaywallViewed('setup_wizard'); } catch { /* GA4 unavailable */ }
+  }, [step]);
+
   const onPlaidSuccess = useCallback(async (publicToken: string, metadata: { institution: { name: string } | null }) => {
     try {
       const result = await api.plaidExchangeToken(publicToken, metadata?.institution?.name);
@@ -212,6 +226,10 @@ export default function SetupPage() {
 
     setPlanLoading(plan);
     setError('');
+    // Fire upgrade_started on click intent (before Stripe redirect).
+    // The final 'purchase' GA4 event only fires after Stripe confirms,
+    // so this click→checkout drop-off is essential for funnel analysis.
+    try { trackUpgradeStarted(plan, billing, 'setup_wizard'); } catch { /* GA4 unavailable */ }
     try {
       const result = await api.upgradeSubscription(plan, billing, {
         successPath: '/setup?checkout=success&step=connect',
@@ -269,17 +287,26 @@ export default function SetupPage() {
     }
   };
 
-  const finishSetup = async (href: string) => {
+  const finishSetup = async (href: string, options?: { skipped?: boolean; skipFromStep?: string }) => {
     if (!user) return;
     try {
       await api.lifecycleTrackEvent('setup_completed', {
         destination: href,
         plan: currentPlan,
         linkedAccounts: plaidAccounts.length,
+        skipped: options?.skipped ?? false,
       }, 'web_setup');
     } catch {
       // Local completion still keeps the user moving if the tracking call fails.
     }
+    // Client-side GA4 events — pair with backend SETUP_COMPLETED.
+    try {
+      if (options?.skipped) {
+        trackSetupSkipped(options.skipFromStep ?? 'unknown');
+      } else {
+        trackSetupComplete(currentPlan);
+      }
+    } catch { /* GA4 unavailable */ }
     markGuidedSetupComplete(user.id);
     router.replace(href);
   };
@@ -348,7 +375,7 @@ export default function SetupPage() {
             🌙 Barakah
           </Link>
           <button
-            onClick={() => finishSetup('/dashboard')}
+            onClick={() => finishSetup('/dashboard', { skipped: true, skipFromStep: `step_${step}` })}
             className="text-sm font-medium text-gray-500 hover:text-[#1B5E20]"
           >
             Set up later

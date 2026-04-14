@@ -114,3 +114,28 @@ export function trackZakatPayment(amount: number, lunarYear: number) {
 export function trackIbadahAction(type: string, amount?: number) {
   trackEvent('ibadah_action', { type, amount });
 }
+
+// ── Conversion-funnel Events (complement backend lifecycle events) ───────
+// These capture UI-side milestones the backend can't see:
+//   - paywall_viewed: user landed on a page showing upgrade CTAs
+//   - upgrade_started: user clicked an upgrade button (before Stripe redirect)
+//   - setup_skipped: user bailed out of guided setup
+
+/** Track paywall impression — user saw upgrade CTAs */
+export function trackPaywallViewed(source: string) {
+  trackEvent('paywall_viewed', { source });
+}
+
+/** Track upgrade click — user initiated checkout (may or may not complete) */
+export function trackUpgradeStarted(
+  plan: 'plus' | 'family',
+  billingCycle: 'monthly' | 'yearly',
+  source: string,
+) {
+  trackEvent('upgrade_started', { plan, billing_cycle: billingCycle, source });
+}
+
+/** Track setup skip — user opted out of guided setup */
+export function trackSetupSkipped(step: string) {
+  trackEvent('setup_skipped', { step });
+}
