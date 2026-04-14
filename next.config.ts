@@ -126,6 +126,26 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "public, s-maxage=300, stale-while-revalidate=60" },
         ],
       },
+      {
+        // Apple App Site Association — iOS strictly requires
+        // application/json for Universal Links to work. Without this header,
+        // the file is served as octet-stream and iOS silently rejects it.
+        // Apple also serves it from the bare /apple-app-site-association path
+        // (legacy), so we route both. Cache short so a team-ID change can
+        // propagate without a 24h CDN flush.
+        source: "/.well-known/apple-app-site-association",
+        headers: [
+          { key: "Content-Type", value: "application/json" },
+          { key: "Cache-Control", value: "public, max-age=300" },
+        ],
+      },
+      {
+        source: "/apple-app-site-association",
+        headers: [
+          { key: "Content-Type", value: "application/json" },
+          { key: "Cache-Control", value: "public, max-age=300" },
+        ],
+      },
     ];
   },
 
@@ -149,6 +169,14 @@ const nextConfig: NextConfig = {
         {
           source: "/ingest/:path*",
           destination: "https://us.i.posthog.com/:path*",
+        },
+        // Apple App Site Association legacy path — Apple checks both
+        // /.well-known/apple-app-site-association (preferred) and
+        // /apple-app-site-association (legacy). Map the legacy path to the
+        // canonical file in /public/.well-known so we keep one source of truth.
+        {
+          source: "/apple-app-site-association",
+          destination: "/.well-known/apple-app-site-association",
         },
       ],
       fallback: [],

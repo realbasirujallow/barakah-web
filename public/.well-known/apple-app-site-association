@@ -3,8 +3,12 @@
     "apps": [],
     "details": [
       {
-        "appID": "REPLACE_WITH_TEAM_ID.com.trybarakah.app",
-        "paths": ["/auth/*"]
+        "appID": "KABA6D28EZ.com.trybarakah.app",
+        "paths": [
+          "/auth/*",
+          "/family/join",
+          "/family/join/*"
+        ]
       }
     ]
   }
