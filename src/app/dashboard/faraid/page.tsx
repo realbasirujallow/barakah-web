@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
@@ -177,6 +177,59 @@ export default function FaraidPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<FaraidResult | null>(null);
   const [educationOpen, setEducationOpen] = useState(false);
+  const [prefilled, setPrefilled] = useState(false);
+
+  // Auto-prefill heirs from the user's Household profile. Reads the
+  // HouseholdController /api/household response and maps:
+  //   - spouse (single one) → hasHusband/hasWife based on user.gender
+  //   - son → numSons++, daughter → numDaughters++
+  //   - father/mother → hasFather / hasMother
+  // The user can still edit any field before calculating. A banner shows
+  // when prefill was applied so they can verify the data matches reality.
+  useEffect(() => {
+    let cancelled = false;
+    interface PrefillMember { relationship?: string; gender?: string | null }
+    interface PrefillResp { gender?: string | null; members?: PrefillMember[] }
+    (async () => {
+      try {
+        const h = await api.getHousehold() as PrefillResp;
+        if (cancelled || !h) return;
+        const userGender = String(h.gender || '').toLowerCase();
+        const members: PrefillMember[] = Array.isArray(h.members) ? h.members : [];
+        let sons = 0, daughters = 0, spouses = 0;
+        let father = false, mother = false;
+        for (const m of members) {
+          switch (String(m?.relationship || '').toLowerCase()) {
+            case 'son': sons++; break;
+            case 'daughter': daughters++; break;
+            case 'spouse': spouses++; break;
+            case 'father': father = true; break;
+            case 'mother': mother = true; break;
+            default: break;
+          }
+        }
+        // Spouse direction depends on the caller's own gender:
+        // a male user's surviving spouse is a wife, a female's is a husband.
+        const hasWife = spouses > 0 && userGender === 'male';
+        const hasHusband = spouses > 0 && userGender === 'female';
+        if (sons > 0 || daughters > 0 || spouses > 0 || father || mother) {
+          setForm((prev) => ({
+            ...prev,
+            numSons: sons,
+            numDaughters: daughters,
+            hasWife,
+            hasHusband,
+            hasFather: father,
+            hasMother: mother,
+          }));
+          setPrefilled(true);
+        }
+      } catch {
+        // Household API might not be available on older deploys — silently skip.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   /* ── Helpers ───────────────────────────────────────────────────────── */
 
@@ -263,6 +316,22 @@ export default function FaraidPage() {
         <h1 className="text-2xl font-bold text-[#1B5E20]">Faraid Calculator</h1>
         <p className="text-gray-500 mt-1">Islamic Inheritance Distribution</p>
       </div>
+
+      {prefilled && (
+        <div className="bg-green-50 border border-green-200 text-green-900 rounded-xl px-4 py-3 text-sm flex items-center justify-between gap-3">
+          <span>
+            ✨ Heirs pre-filled from your <Link href="/dashboard/profile" className="underline font-semibold">Household profile</Link>. Adjust any field before calculating if something changed.
+          </span>
+          <button
+            type="button"
+            onClick={() => setPrefilled(false)}
+            className="text-green-800 hover:text-green-900 text-xl leading-none"
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* ── Form ─────────────────────────────────────────────────────── */}
       <div className="grid md:grid-cols-2 gap-6">

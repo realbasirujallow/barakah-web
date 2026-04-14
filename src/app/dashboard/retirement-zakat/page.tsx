@@ -51,7 +51,12 @@ export default function RetirementZakatPage() {
   // Form state
   const [balance, setBalance] = useState('');
   const [accountType, setAccountType] = useState('401k');
-  // Employer match removed — users enter total balance (includes employer contributions)
+  // Employer match % — portion of the balance from employer contributions, used
+  // by the "Employer Match Only" scholarly method. Without this input the
+  // employer-match card always showed $0 and was confusing. The total
+  // balance field still includes employer contributions; this just tells
+  // the calc how much of it came from the employer.
+  const [employerMatchPercent, setEmployerMatchPercent] = useState('');
   const [state, setState] = useState('');
 
   // Results state
@@ -83,10 +88,18 @@ export default function RetirementZakatPage() {
 
     setLoading(true);
     try {
+      // Clamp the employer-match input: blank or non-numeric means 0
+      // (no visible effect on the Employer Match Only card). 0-100 window
+      // enforced so a typo doesn't overreport zakat.
+      const empParsed = Number.parseFloat(employerMatchPercent);
+      const empClamped = Number.isFinite(empParsed)
+        ? Math.max(0, Math.min(100, empParsed))
+        : 0;
+
       const data = {
         balance: parseFloat(balance),
         accountType,
-        employerMatchPercent: 0, // Not used — total balance already includes employer match
+        employerMatchPercent: empClamped,
         state: state || '',
       };
 
@@ -166,6 +179,26 @@ export default function RetirementZakatPage() {
                     <option value="simple_ira">SIMPLE IRA</option>
                     <option value="pension">Pension</option>
                   </select>
+                </div>
+
+                {/* Employer Match — optional, unlocks the Employer Match Only card */}
+                <div>
+                  <label className="block text-sm font-semibold text-[#1B5E20] mb-2">
+                    Employer Contribution (%) — optional
+                  </label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    max="100"
+                    value={employerMatchPercent}
+                    onChange={(e) => setEmployerMatchPercent(e.target.value)}
+                    placeholder="e.g. 25"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Share of the balance that came from your employer (match, profit-share, pension contributions). Leave blank if unsure — needed for the &quot;Employer Match Only&quot; scholarly method below.
+                  </p>
                 </div>
 
                 {/* State */}

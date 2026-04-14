@@ -6,6 +6,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { saveCurrencyPreference } from '../../../lib/useCurrency';
 import { PRICING } from '../../../lib/pricing';
+import HouseholdSection from '../../../components/HouseholdSection';
 
 interface ProfileData {
   userId: number;
@@ -546,6 +547,13 @@ export default function ProfilePage() {
             {savingLocation ? 'Saving...' : 'Update Location'}
           </button>
         </div>
+      </div>
+
+      {/* Household — spouse, dependents, gender, DOB, marital status.
+          Drives Faraid inheritance prefill and the zakat classifier's
+          women's-personal-jewelry exemption (Shafi'i/Maliki). */}
+      <div className="mb-4">
+        <HouseholdSection />
       </div>
 
       {/* Change Password */}

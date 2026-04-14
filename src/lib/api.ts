@@ -1129,6 +1129,19 @@ export const api = {
   getReferralCode: () => apiFetch('/api/referral/code'),
   trackReferralClick: (code: string) => apiFetch(`/api/referrals/click/${encodeURIComponent(code)}`, { method: 'POST' }),
 
+  // ── Household profile (gender/DOB/marital + dependents/spouse) ─────────────
+  // Drives Faraid prefill, Wasiyyah beneficiary suggestions, and the gender-
+  // aware gold jewelry fiqh classifier. See HouseholdController.java.
+  getHousehold: () => apiFetch('/api/household'),
+  updateHouseholdProfile: (data: { gender?: string | null; dateOfBirth?: number | null; maritalStatus?: string | null }) =>
+    apiFetch('/api/household/profile', { method: 'PUT', body: JSON.stringify(data) }),
+  createHouseholdMember: (data: { relationship: string; fullName: string; dateOfBirth?: number | null; gender?: string | null; notes?: string | null }) =>
+    apiFetch('/api/household/members', { method: 'POST', body: JSON.stringify(data) }),
+  updateHouseholdMember: (id: number, data: { relationship?: string; fullName?: string; dateOfBirth?: number | null; gender?: string | null; notes?: string | null }) =>
+    apiFetch(`/api/household/members/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteHouseholdMember: (id: number) =>
+    apiFetch(`/api/household/members/${id}`, { method: 'DELETE' }),
+
   // ── Family Plan ─────────────────────────────────────────────────────────────
   // Owner can invite up to 5 additional members onto a single Family subscription.
   // See FamilyController.java for the server contract; preview is public (no auth).

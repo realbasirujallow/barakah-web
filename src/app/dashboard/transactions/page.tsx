@@ -503,7 +503,16 @@ export default function TransactionsPage() {
       )}
 
       {/* ── Transaction list or empty state ────────────────────────────────── */}
-      {txs.length > 0 ? (
+      {loading && txs.length === 0 ? (
+        // Gate on loading so the empty-state banner doesn't flash for the
+        // one render cycle between initial mount and the first API response.
+        // Regression QA caught this — "No transactions yet" appeared for
+        // users who had data in the DB.
+        <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 text-gray-500">
+          <p className="text-4xl mb-3">⏳</p>
+          Loading your transactions…
+        </div>
+      ) : txs.length > 0 ? (
         <div className="space-y-2">
           {txs.map(tx => {
             const presentation = txPresentation(tx);
