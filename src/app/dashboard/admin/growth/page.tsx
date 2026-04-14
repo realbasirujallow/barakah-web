@@ -42,6 +42,17 @@ export default function GrowthPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] p-4 sm:p-8">
       <div className="max-w-5xl mx-auto">
+        {/* Back link — always the first thing on the page so returning to the
+            main admin dashboard is a one-click action. Matches the standard
+            breadcrumb style so users don't have to look for it. */}
+        <Link
+          href="/dashboard/admin"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1B5E20] hover:underline mb-4"
+        >
+          <span aria-hidden="true">←</span>
+          Back to Admin Dashboard
+        </Link>
+
         <div className="mb-6 flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-bold text-[#1B5E20]">Growth metrics</h1>
@@ -50,20 +61,12 @@ export default function GrowthPage() {
               All numbers are live — no caching — and roll up the same way as <code className="text-xs bg-white px-1 py-0.5 rounded">GET /admin/growth</code>.
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Link
-              href="/dashboard/admin"
-              className="text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50 transition"
-            >
-              ← Admin
-            </Link>
-            <Link
-              href="/dashboard/admin/funnel"
-              className="text-sm font-medium text-[#1B5E20] bg-white border border-[#1B5E20] rounded-lg px-4 py-2 hover:bg-green-50 transition"
-            >
-              View conversion funnel →
-            </Link>
-          </div>
+          <Link
+            href="/dashboard/admin/funnel"
+            className="text-sm font-medium text-[#1B5E20] bg-white border border-[#1B5E20] rounded-lg px-4 py-2 hover:bg-green-50 transition"
+          >
+            View conversion funnel →
+          </Link>
         </div>
 
         {loading && (
