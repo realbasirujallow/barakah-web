@@ -81,7 +81,10 @@ function WasiyyahPageContent() {
             };
             validatedBeneficiaries.push(component);
           } else {
-            console.warn('Skipped invalid beneficiary:', item);
+            const itemId = typeof item === 'object' && item !== null && 'id' in item
+              ? String((item as { id?: unknown }).id ?? 'unknown')
+              : 'unknown';
+            console.warn(`Skipped invalid beneficiary (id=${itemId})`);
           }
         }
       }

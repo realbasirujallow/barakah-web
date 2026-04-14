@@ -26,8 +26,9 @@ describe('DomainConstants', () => {
     expect(TRANSACTION_TYPES).toContain('transfer');
   });
 
-  it('has 42 transaction categories', () => {
-    expect(TRANSACTION_CATEGORIES.length).toBe(42);
+  it('has 43 transaction categories', () => {
+    expect(TRANSACTION_CATEGORIES.length).toBe(43);
+    expect(TRANSACTION_CATEGORIES).toContain('refund');
   });
 
   it('has 9 debt types', () => {

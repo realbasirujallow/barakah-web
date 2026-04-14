@@ -146,7 +146,7 @@ export default function AssetsPage() {
           if (result) {
             validatedAssets.push(result as Asset);
           } else {
-            console.warn('Skipped invalid asset:', item);
+            console.warn(`Skipped invalid asset (id=${itemId})`);
           }
         }
 
