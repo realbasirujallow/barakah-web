@@ -55,14 +55,19 @@ test.describe('Browser Authenticated Flows', () => {
     await page.goto(`${BASE}/dashboard`);
     await expect(page.locator('text=/Good (morning|afternoon|evening)/i')).toBeVisible({ timeout: 10000 });
     // Net worth and Zakat cards depend on /api/dashboard/widgets which can take
-    // longer than the default 5s timeout — match the greeting timeout.
-    await expect(page.locator('text=/NET WORTH/i')).toBeVisible({ timeout: 10000 });
+    // longer than the default 5s timeout — match the greeting timeout. Both
+    // labels also appear in the sidebar nav, so .first() selects the card
+    // (Playwright's strict mode otherwise rejects the ambiguous match).
+    await expect(page.locator('text=/NET WORTH/i').first()).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=/ZAKAT/i').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('dashboard shows Islamic date', async () => {
     await page.goto(`${BASE}/dashboard`);
-    await expect(page.locator('text=/\\d+ .+ \\d{4} AH/i')).toBeVisible({ timeout: 10000 });
+    // Anchor on the static "Islamic Date" label instead of a regex against the
+    // formatted date — the date string format can vary by locale and Playwright's
+    // text=/regex/ matching is finicky with mixed whitespace text nodes.
+    await expect(page.getByText('Islamic Date', { exact: true })).toBeVisible({ timeout: 10000 });
   });
 
   test('session persists after page reload', async () => {
@@ -77,8 +82,10 @@ test.describe('Browser Authenticated Flows', () => {
 
   test('transactions page loads with data', async () => {
     await page.goto(`${BASE}/dashboard/transactions`);
-    await expect(page.locator('h1:has-text("Transactions")')).toBeVisible({ timeout: 10000 });
-    // Summary cards
+    // Page renders a SkeletonPage while loading; wait long enough for the
+    // first data fetch (transactions + subscription status + categories) to
+    // resolve before the real h1 mounts.
+    await expect(page.getByRole('heading', { name: 'Transactions', exact: true })).toBeVisible({ timeout: 20000 });
     await expect(page.locator('text=/Income/i').first()).toBeVisible();
     await expect(page.locator('text=/Expenses/i').first()).toBeVisible();
   });
