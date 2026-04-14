@@ -29,20 +29,65 @@ export function setUnauthorizedHandler(fn: () => void) {
 }
 
 /**
- * Refresh token storage removed for security.
- * Auth relies exclusively on httpOnly cookies set by the backend.
- * These functions are kept as no-ops to avoid breaking call sites.
+ * Refresh token sessionStorage fallback — INTENTIONAL, do not remove.
+ *
+ * Why this exists despite the obvious "store tokens only in httpOnly
+ * cookies" rule:
+ *
+ *   The backend (api.trybarakah.com) sits behind Railway + a CDN/proxy
+ *   chain that is NOT reliable about forwarding Set-Cookie headers in
+ *   every code path. The web client has had two regressions where users
+ *   were logged out within seconds of signing in because:
+ *     1. /auth/login set the auth_token + refresh_token cookies, but the
+ *        Set-Cookie headers got stripped before reaching the browser.
+ *     2. The next API call had no auth_token cookie → 401 → silent
+ *        refresh attempted → no refresh_token cookie → 'expired' → logout.
+ *
+ *   The backend deliberately also returns the refresh token in the
+ *   /auth/login and /auth/refresh response bodies as a fallback (see the
+ *   AuthController comments). The web client must capture it and send it
+ *   back in the body of /auth/refresh requests when the cookie is missing.
+ *
+ *   sessionStorage scope:
+ *     - Per-tab, per-origin (not shared across tabs or other origins)
+ *     - Cleared when the tab closes
+ *     - JS-accessible (XSS-readable)
+ *
+ *   The XSS exposure is the trade-off we accept. Mitigations:
+ *     - Strict CSP in next.config.ts blocks most script injection
+ *     - The token is refresh-only (medium-impact if leaked, NOT the
+ *       access token which would be high-impact)
+ *     - On logout / 401-cascade, we proactively clear it
+ *     - Schemas validation + extractErrorMessage prevent server text
+ *       from being rendered as HTML
+ *
+ *   Removing this fallback was tried in commit 8334bad and silently
+ *   reintroduced the "frequent logout" UX bug. Don't do it again
+ *   without first proving the cookie path is reliable end-to-end in
+ *   production (Railway internal routing, CDN, Next.js rewrites).
  */
-export function setRefreshToken(_token: string | null) {
-  // No-op: refresh token lives only in httpOnly cookies, never in JS-accessible storage.
-  // Clearing any legacy storage that might still exist from older versions.
+export function setRefreshToken(token: string | null) {
   if (typeof window === 'undefined') return;
-  try { window.sessionStorage.removeItem(REFRESH_FALLBACK_KEY); } catch { /* ignore */ }
+  try {
+    if (token && token.trim()) {
+      window.sessionStorage.setItem(REFRESH_FALLBACK_KEY, token);
+    } else {
+      window.sessionStorage.removeItem(REFRESH_FALLBACK_KEY);
+    }
+  } catch {
+    // sessionStorage unavailable (private browsing, quota) — cookies
+    // remain the primary path; we just won't have a fallback for this tab.
+  }
 }
 
 function getRefreshTokenFallback(): string | null {
-  // No-op: always return null — cookies are the sole auth mechanism.
-  return null;
+  if (typeof window === 'undefined') return null;
+  try {
+    const token = window.sessionStorage.getItem(REFRESH_FALLBACK_KEY);
+    return token && token.trim() ? token : null;
+  } catch {
+    return null;
+  }
 }
 
 // ── Silent refresh ─────────────────────────────────────────────────────────────
