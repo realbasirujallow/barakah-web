@@ -139,7 +139,12 @@ export function SessionTimeoutModal() {
   useEffect(() => {
     if (!user) return;
 
-    scheduleFromActivity(readLastActivity());
+    // Force-reset activity timestamp on login to prevent stale-timestamp logout loop.
+    // The login function sets this too, but React batching can cause the effect to
+    // read a stale value. Writing it here guarantees freshness.
+    const now = Date.now();
+    persistActivity(now);
+    scheduleFromActivity(now);
 
     // Attach activity listeners
     const handler = () => handleActivity();
