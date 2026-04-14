@@ -169,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // it will continue working for all API calls. Only the 401 handler in
     // apiFetch should trigger a logout (when the auth_token truly expires and
     // the refresh also fails).
-    api.refresh().then(async (result: 'ok' | 'expired' | 'network_error') => {
+    api.refresh().then(async (result: 'ok' | 'expired' | 'rate_limited' | 'network_error') => {
       if (result === 'ok') {
         try {
           localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));

@@ -58,7 +58,12 @@ function getRefreshTokenFallback(): string | null {
 // for the same promise. This prevents the "rotation death spiral" where two
 // simultaneous refresh requests each try to rotate the same token — the
 // first succeeds but the second uses the now-revoked token and fails.
-type RefreshResult = 'ok' | 'expired' | 'network_error';
+//
+// 'rate_limited' is distinct from 'expired' — the session is NOT invalidated,
+// the auth backend is just throttling our refresh attempts. Treat it like
+// 'network_error' (don't logout); the next API call will trigger a fresh
+// refresh once the rate-limit window passes.
+type RefreshResult = 'ok' | 'expired' | 'rate_limited' | 'network_error';
 let _activeRefreshPromise: Promise<RefreshResult> | null = null;
 
 /**
@@ -107,11 +112,12 @@ async function extractErrorMessage(res: Response, fallback: string): Promise<str
 /**
  * Calls POST /auth/refresh directly (bypasses apiFetch to avoid recursion).
  * Returns: 'ok' if refresh succeeded, 'expired' if server rejected (401/403),
+ * 'rate_limited' if the server returned 429 (auth backend throttled),
  * 'network_error' if the request failed due to connectivity.
  * This distinction is critical: 'expired' should trigger logout,
- * 'network_error' should NOT (the session may still be valid).
+ * 'rate_limited' and 'network_error' should NOT (the session may still be valid).
  */
-async function attemptSilentRefresh(): Promise<'ok' | 'expired' | 'network_error'> {
+async function attemptSilentRefresh(): Promise<RefreshResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000); // 10s timeout
   try {
@@ -146,6 +152,8 @@ async function attemptSilentRefresh(): Promise<'ok' | 'expired' | 'network_error
     }
     // Server explicitly rejected our refresh token — session is truly expired
     if (res.status === 401 || res.status === 403) return 'expired';
+    // Auth backend is rate-limiting us — session may still be valid, do NOT logout
+    if (res.status === 429) return 'rate_limited';
     // Other server errors (500, etc.) — treat as transient, don't logout
     return 'network_error';
   } catch {
@@ -271,6 +279,13 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
         throw new Error('Network error — please check your connection and try again.');
       }
 
+      if (refreshResult === 'rate_limited') {
+        // Auth backend throttled the refresh — do NOT logout. Surface a clear
+        // message so the user understands this isn't a session problem and
+        // a retry in a moment will work.
+        throw new Error('Too many requests right now. Please wait a moment and try again.');
+      }
+
       const sessionStillValid = await verifySessionStillValid();
       if (sessionStillValid) {
         throw new Error(await extractErrorMessage(originalUnauthorizedResponse, 'We could not complete that request. Please try again.'));
@@ -281,6 +296,13 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
       if (!suppressUnauthorized && onUnauthorizedCallback) onUnauthorizedCallback();
       setRefreshToken(null);
       throw new Error('Your session has expired. Please log in again.');
+    }
+
+    // 429 from a non-auth endpoint should never be misclassified as a session
+    // problem — surface a clear rate-limit message instead of the generic
+    // "API error 429" string.
+    if (res.status === 429) {
+      throw new Error('Too many requests right now. Please wait a moment and try again.');
     }
     // ── End silent refresh ─────────────────────────────────────────────────
 
@@ -330,6 +352,7 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
         if (await verifySessionStillValid()) throw new Error(await extractErrorMessage(r2, 'Upload failed. Please try again.'));
       }
       if (refreshResult === 'network_error') throw new Error('Network error — please check your connection and try again.');
+      if (refreshResult === 'rate_limited') throw new Error('Too many requests right now. Please wait a moment and try again.');
       if (await verifySessionStillValid()) throw new Error('Upload failed. Please try again.');
       if (onUnauthorizedCallback) onUnauthorizedCallback();
       setRefreshToken(null);

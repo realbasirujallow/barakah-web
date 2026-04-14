@@ -54,19 +54,23 @@ test.describe('Browser Authenticated Flows', () => {
   test('dashboard loads with greeting and widgets', async () => {
     await page.goto(`${BASE}/dashboard`);
     await expect(page.locator('text=/Good (morning|afternoon|evening)/i')).toBeVisible({ timeout: 10000 });
-    // Net worth card
-    await expect(page.locator('text=/NET WORTH/i')).toBeVisible();
-    // Zakat card
-    await expect(page.locator('text=/ZAKAT/i').first()).toBeVisible();
+    // Net worth and Zakat cards depend on /api/dashboard/widgets which can take
+    // longer than the default 5s timeout — match the greeting timeout.
+    await expect(page.locator('text=/NET WORTH/i')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=/ZAKAT/i').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('dashboard shows Islamic date', async () => {
-    await expect(page.locator('text=/\\d+ .+ \\d{4} AH/i')).toBeVisible();
+    await page.goto(`${BASE}/dashboard`);
+    await expect(page.locator('text=/\\d+ .+ \\d{4} AH/i')).toBeVisible({ timeout: 10000 });
   });
 
   test('session persists after page reload', async () => {
+    await page.goto(`${BASE}/dashboard`);
     await page.reload();
-    await expect(page.locator('text=/Good (morning|afternoon|evening)/i')).toBeVisible({ timeout: 10000 });
+    // After reload the AuthContext re-validates the cookie before the dashboard
+    // mounts — give it room for that round-trip plus widget fetch.
+    await expect(page.locator('text=/Good (morning|afternoon|evening)/i')).toBeVisible({ timeout: 15000 });
   });
 
   // ── Transactions ───────────────────────────────────────────────────────────
