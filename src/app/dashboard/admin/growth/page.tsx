@@ -50,12 +50,20 @@ export default function GrowthPage() {
               All numbers are live — no caching — and roll up the same way as <code className="text-xs bg-white px-1 py-0.5 rounded">GET /admin/growth</code>.
             </p>
           </div>
-          <Link
-            href="/dashboard/admin/funnel"
-            className="text-sm font-medium text-[#1B5E20] bg-white border border-[#1B5E20] rounded-lg px-4 py-2 hover:bg-green-50 transition"
-          >
-            View conversion funnel →
-          </Link>
+          <div className="flex gap-2 flex-wrap">
+            <Link
+              href="/dashboard/admin"
+              className="text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50 transition"
+            >
+              ← Admin
+            </Link>
+            <Link
+              href="/dashboard/admin/funnel"
+              className="text-sm font-medium text-[#1B5E20] bg-white border border-[#1B5E20] rounded-lg px-4 py-2 hover:bg-green-50 transition"
+            >
+              View conversion funnel →
+            </Link>
+          </div>
         </div>
 
         {loading && (
