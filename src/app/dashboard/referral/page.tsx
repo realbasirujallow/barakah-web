@@ -2,6 +2,15 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
+import { trackReferralShare } from '../../../lib/analytics';
+
+// Fire both the GA4 share event and the backend REFERRAL_SHARED lifecycle
+// event so the admin viral-loop funnel reflects this surface.
+function fireShare(method: string, source: string) {
+  try { trackReferralShare(method); } catch { /* GA4 unavailable */ }
+  api.lifecycleTrackEvent?.('referral_shared', { method, source }, 'web')
+    .catch(() => { /* analytics must never break the share UI */ });
+}
 
 interface ReferralData {
   referralCode: string;
@@ -32,6 +41,7 @@ export default function ReferralPage() {
     navigator.clipboard.writeText(data.shareUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      fireShare('copy', 'referral_page');
     }).catch(() => {});
   };
 
@@ -41,7 +51,7 @@ export default function ReferralPage() {
       title: 'Join Barakah — Islamic Finance Tracker',
       text: 'Build a more thoughtful Muslim household finance system with Barakah. Sign up with my referral link!',
       url: data.shareUrl,
-    }).catch(() => {});
+    }).then(() => fireShare('native', 'referral_page')).catch(() => {});
   };
 
   if (loading) return (
@@ -118,7 +128,7 @@ export default function ReferralPage() {
           href={`https://wa.me/?text=${encodeURIComponent('Build a more thoughtful Muslim household finance system with Barakah! ' + data.shareUrl)}`}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => { import('../../../lib/analytics').then(m => m.trackReferralShare('whatsapp')); }}
+          onClick={() => fireShare('whatsapp', 'referral_page')}
           className="flex items-center justify-center gap-2 bg-green-500 text-white rounded-xl py-3 px-4 hover:bg-green-600 transition text-sm font-medium"
         >
           💬 WhatsApp
@@ -127,14 +137,14 @@ export default function ReferralPage() {
           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('Build a more thoughtful Muslim household finance system with Barakah! 🌙 ' + data.shareUrl)}`}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => { import('../../../lib/analytics').then(m => m.trackReferralShare('twitter')); }}
+          onClick={() => fireShare('twitter', 'referral_page')}
           className="flex items-center justify-center gap-2 bg-sky-500 text-white rounded-xl py-3 px-4 hover:bg-sky-600 transition text-sm font-medium"
         >
           🐦 Twitter
         </a>
         <a
           href={`mailto:?subject=${encodeURIComponent('Check out Barakah — Islamic Household Finance')}&body=${encodeURIComponent('Assalamu Alaikum!\n\nI\'ve been using Barakah to organize daily money, zakat, and family financial responsibilities in one place, and thought you might like it too.\n\nSign up here: ' + data.shareUrl)}`}
-          onClick={() => { import('../../../lib/analytics').then(m => m.trackReferralShare('email')); }}
+          onClick={() => fireShare('email', 'referral_page')}
           className="flex items-center justify-center gap-2 bg-gray-600 text-white rounded-xl py-3 px-4 hover:bg-gray-700 transition text-sm font-medium"
         >
           ✉️ Email

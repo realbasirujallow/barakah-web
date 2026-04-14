@@ -5,6 +5,7 @@ import { fmt, toHijri } from '../../../lib/format';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 import { safeParse, safeParseWithFallback, validateZakatCalculation, validateZakatPaymentsResponse, validateNisabInfo, formatTimeAgo } from '../../../lib/schemas';
+import ShareReceiptButton from '../../../components/ShareReceiptButton';
 
 interface ZakatCalculation {
   zakatDue?: number;
@@ -1264,7 +1265,7 @@ export default function ZakatPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3 justify-center pt-2 print:hidden">
+            <div className="flex flex-wrap gap-3 justify-center pt-2 print:hidden">
               <button
                 onClick={() => setReceipt(null)}
                 className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium text-sm"
@@ -1277,6 +1278,15 @@ export default function ZakatPage() {
               >
                 Print Receipt
               </button>
+              {/* Viral loop: zakat is often paid once a year and Muslims naturally
+                  share the act with family. Offering a share right on the receipt
+                  captures that intent with the user's referral code attached. */}
+              <ShareReceiptButton
+                source="zakat_receipt"
+                title="I just calculated my zakat with Barakah"
+                pitch="Assalamu alaykum — I just calculated my zakat with Barakah. Nisab, hawl, retirement accounts, deductible debt — all handled. It made something I used to dread feel easy, and there's a free trial."
+                label="Share with family"
+              />
             </div>
           </div>
         </div>
