@@ -516,11 +516,12 @@ function SignupContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <Link href="/" className="text-3xl font-bold text-[#1B5E20]">&#127769; Barakah</Link>
-          <p className="text-gray-500 mt-2">Create your free account</p>
+          <p className="text-gray-600 mt-3 font-semibold">Create your account &mdash; get 7 days of Plus on us</p>
+          <p className="text-xs text-gray-500 mt-2">No credit card &middot; Zakat calculator &middot; Bank sync &middot; Halal screener</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-8">
