@@ -9,6 +9,7 @@ import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
 import { SessionTimeoutModal } from '../../components/SessionTimeoutModal';
 import OnboardingTour from '../../components/OnboardingTour';
+import TrialBanner from '../../components/TrialBanner';
 import { hasCompletedGuidedSetup } from '../../lib/setup';
 
 // 'plus' = Plus or Family plan required | 'family' = Family plan only
@@ -282,6 +283,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
         <main className="flex-1 p-6 overflow-auto">
           <ToastProvider>
+            <TrialBanner />
             {children}
           </ToastProvider>
         </main>
