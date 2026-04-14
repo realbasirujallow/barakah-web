@@ -120,6 +120,23 @@ export default function FiqhSettingsPage() {
     setSaving(false);
   };
 
+  /**
+   * Returns the nisab methodology that pairs with each school's
+   * classical/published position. Used to suggest (never auto-apply)
+   * a matching nisab when the user changes their madhab. Mirrors
+   * FiqhConfig.naturalNisabMethodologyFor() on the backend.
+   */
+  const naturalNisabFor = (madhab: string): string => {
+    if (madhab === 'HANAFI') return 'CLASSICAL_SILVER';
+    return 'AMJA_GOLD';
+  };
+
+  const naturalNisabLabel = (key: string): string => {
+    if (key === 'CLASSICAL_SILVER') return 'Silver Standard (Classical Hanafi)';
+    if (key === 'LOWER_OF_TWO') return 'Lower of Gold/Silver (Al-Qaradawi)';
+    return 'Gold Standard (AMJA)';
+  };
+
   const handleNisabChange = async (methodology: string) => {
     setSavingNisab(true);
     const previous = nisabMethodology;
@@ -241,6 +258,34 @@ export default function FiqhSettingsPage() {
               </div>
             ) : (
               <p className="text-gray-600">No schools of thought available.</p>
+            )}
+
+            {/* Nisab suggestion banner — appears when the user's current
+                nisab methodology doesn't match the natural default for the
+                school they just selected. We never auto-apply, so the user
+                keeps an explicit choice they made earlier. */}
+            {selectedMadhab && nisabMethodology &&
+              naturalNisabFor(selectedMadhab) !== nisabMethodology && (
+              <div className="mt-6 p-4 border border-amber-300 bg-amber-50 rounded-lg">
+                <p className="text-sm text-amber-900 font-medium">
+                  Your nisab methodology ({naturalNisabLabel(nisabMethodology)}) doesn&apos;t match the
+                  classical position for {selectedMadhab === 'GENERAL' ? 'AMJA' : selectedMadhab.charAt(0) + selectedMadhab.slice(1).toLowerCase()}
+                  {' '}({naturalNisabLabel(naturalNisabFor(selectedMadhab))}).
+                </p>
+                <p className="text-xs text-amber-800 mt-1">
+                  {selectedMadhab === 'HANAFI'
+                    ? 'Classical Hanafi position uses 200 dirhams of silver as the operative nisab.'
+                    : 'AMJA, ISNA, and the Fiqh Council of North America recommend 85g gold for North American Muslims.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handleNisabChange(naturalNisabFor(selectedMadhab))}
+                  disabled={savingNisab}
+                  className="mt-3 px-4 py-2 bg-amber-700 text-white rounded-lg text-sm font-medium hover:bg-amber-800 disabled:opacity-50"
+                >
+                  Switch to {naturalNisabLabel(naturalNisabFor(selectedMadhab))}
+                </button>
+              </div>
             )}
 
             {/* Nisab Methodology — separate setting from madhab */}
