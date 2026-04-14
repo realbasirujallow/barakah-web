@@ -82,26 +82,38 @@ test.describe('Browser Authenticated Flows', () => {
 
   test('transactions page loads with data', async () => {
     await page.goto(`${BASE}/dashboard/transactions`);
-    // Page renders a SkeletonPage while loading; wait long enough for the
-    // first data fetch (transactions + subscription status + categories) to
-    // resolve before the real h1 mounts.
-    await expect(page.getByRole('heading', { name: 'Transactions', exact: true })).toBeVisible({ timeout: 20000 });
-    await expect(page.locator('text=/Income/i').first()).toBeVisible();
-    await expect(page.locator('text=/Expenses/i').first()).toBeVisible();
+    // Page renders a SkeletonPage while loading. The transactions list query
+    // for accounts with a long history (e.g. the App Store reviewer with
+    // years of seed data) can take 25-30s; bumped from 20s after the
+    // 2026-04-14 CI run flaked at exactly 20s.
+    await expect(page.getByRole('heading', { name: 'Transactions', exact: true }))
+        .toBeVisible({ timeout: 30000 });
+    await expect(page.locator('text=/Income/i').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=/Expenses/i').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('transaction search works in browser', async () => {
+    // Run our own goto so this test doesn't depend on the previous one
+    // landing on /dashboard/transactions — Playwright runs tests in
+    // declaration order but a previous failure cascading into this test
+    // produces an unrelated "input not found" error.
+    await page.goto(`${BASE}/dashboard/transactions`);
+    await expect(page.getByRole('heading', { name: 'Transactions', exact: true }))
+        .toBeVisible({ timeout: 30000 });
     await page.fill('input[placeholder*="Search"]', 'QA');
     await page.waitForTimeout(500);
-    await expect(page.locator('text=/QA/i').first()).toBeVisible();
+    await expect(page.locator('text=/QA/i').first()).toBeVisible({ timeout: 5000 });
   });
 
   // ── Assets ─────────────────────────────────────────────────────────────────
 
   test('assets page loads', async () => {
     await page.goto(`${BASE}/dashboard/assets`);
-    await expect(page.locator('h1:has-text("Assets")')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('text=/Net Worth/i').first()).toBeVisible();
+    // Use getByRole heading instead of h1:has-text — more resilient to wrapper
+    // tags around the heading text and consistent with the transactions test.
+    await expect(page.getByRole('heading', { name: /^Assets$/i }))
+        .toBeVisible({ timeout: 15000 });
+    await expect(page.locator('text=/Net Worth/i').first()).toBeVisible({ timeout: 10000 });
   });
 
   // ── Debts ──────────────────────────────────────────────────────────────────
