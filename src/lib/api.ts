@@ -932,6 +932,8 @@ export const api = {
   getAdminAnalytics: () => apiFetch('/admin/analytics', {}, API_TIMEOUT, true),
   getAdminFunnel: (days = 30) =>
     apiFetch(`/admin/funnel?days=${days}`, {}, API_TIMEOUT, true),
+  getAdminGrowth: () =>
+    apiFetch('/admin/growth', {}, API_TIMEOUT, true),
   getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
   getAdminOverview: () => apiFetch('/admin/overview', {}, API_TIMEOUT, true),
   getAdminOnboardingTrialSettings: () =>

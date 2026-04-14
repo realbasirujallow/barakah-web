@@ -32,6 +32,13 @@ interface FunnelResponse {
   topPaywallEndpoints: { endpoint: string; count: number }[];
 }
 
+interface GrowthResponse {
+  activeUsers: { dau: number; wau: number; mau: number };
+  trialConversion: { granted30d: number; upgraded30d: number; rate: number };
+  revenueBySource: { source: string; plan: string; users: number; mrrUsd: number }[];
+  totals: { activePlus: number; activeFamily: number; mrrUsd: number; arrUsd: number };
+}
+
 const WINDOW_OPTIONS = [7, 30, 90, 180, 365] as const;
 
 function pct(n: number) {
@@ -39,10 +46,20 @@ function pct(n: number) {
   return `${(n * 100).toFixed(1)}%`;
 }
 
+function usd(n: number) {
+  if (!Number.isFinite(n)) return '—';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
 export default function FunnelPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<FunnelResponse | null>(null);
+  const [growth, setGrowth] = useState<GrowthResponse | null>(null);
   const [days, setDays] = useState<number>(30);
 
   useEffect(() => {
@@ -62,6 +79,16 @@ export default function FunnelPage() {
     load();
     return () => { cancelled = true; };
   }, [days, toast]);
+
+  // Growth metrics don't depend on the window selector — they're always
+  // rolling-30d / point-in-time counts. Fetch once on mount.
+  useEffect(() => {
+    let cancelled = false;
+    api.getAdminGrowth()
+      .then((res) => { if (!cancelled) setGrowth(res as GrowthResponse); })
+      .catch((err) => logError(err, { context: 'Failed to load growth metrics' }));
+    return () => { cancelled = true; };
+  }, []);
 
   const maxCount = data ? Math.max(...data.stages.map(s => s.count), 1) : 1;
 
@@ -95,6 +122,75 @@ export default function FunnelPage() {
         {loading && (
           <div className="bg-white rounded-xl p-8 text-center text-gray-600 shadow-sm">
             Loading funnel…
+          </div>
+        )}
+
+        {/* Growth KPIs — independent of the funnel window. Rendered above
+            the conversion-rate cards so the CEO sees today's state first:
+            who's active, what we're earning, how trials are converting. */}
+        {growth && (
+          <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
+            <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Growth snapshot</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">DAU / WAU / MAU</p>
+                <p className="text-lg font-bold text-[#1B5E20] mt-1">
+                  {growth.activeUsers.dau.toLocaleString()}
+                  <span className="text-gray-400 font-normal"> / </span>
+                  {growth.activeUsers.wau.toLocaleString()}
+                  <span className="text-gray-400 font-normal"> / </span>
+                  {growth.activeUsers.mau.toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">distinct users active in 1d / 7d / 30d</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Trial conversion</p>
+                <p className="text-lg font-bold text-[#1B5E20] mt-1">{pct(growth.trialConversion.rate)}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {growth.trialConversion.upgraded30d.toLocaleString()}/{growth.trialConversion.granted30d.toLocaleString()} last 30d
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">MRR</p>
+                <p className="text-lg font-bold text-[#1B5E20] mt-1">{usd(growth.totals.mrrUsd)}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {growth.totals.activePlus.toLocaleString()} Plus · {growth.totals.activeFamily.toLocaleString()} Family
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">ARR</p>
+                <p className="text-lg font-bold text-[#1B5E20] mt-1">{usd(growth.totals.arrUsd)}</p>
+                <p className="text-xs text-gray-500 mt-1">annualized run-rate</p>
+              </div>
+            </div>
+
+            {growth.revenueBySource.length > 0 && (
+              <div className="mt-5 pt-5 border-t border-gray-100">
+                <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Revenue by source</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs text-gray-500 border-b border-gray-100">
+                        <th className="py-2">Source</th>
+                        <th className="py-2">Plan</th>
+                        <th className="py-2 text-right">Users</th>
+                        <th className="py-2 text-right">MRR</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {growth.revenueBySource.map((row, i) => (
+                        <tr key={i} className="border-b border-gray-50 last:border-b-0">
+                          <td className="py-1.5 font-mono text-xs">{row.source}</td>
+                          <td className="py-1.5 capitalize">{row.plan}</td>
+                          <td className="py-1.5 text-right">{row.users.toLocaleString()}</td>
+                          <td className="py-1.5 text-right font-semibold text-[#1B5E20]">{usd(row.mrrUsd)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
