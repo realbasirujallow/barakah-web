@@ -172,35 +172,44 @@ test.describe('Browser Authenticated Flows', () => {
 
   test('zakat calculator loads with live data', async () => {
     await page.goto(`${BASE}/dashboard/zakat`);
-    await expect(page.locator('text=/Zakat Calculator/i')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('text=/Nisab Threshold/i')).toBeVisible();
-    await expect(page.locator('text=/2\\.5%/i')).toBeVisible();
+    // The string "Zakat" appears in the sidebar nav too — .first() picks the
+    // page heading. Same pattern fixed earlier for NET WORTH and Transactions.
+    await expect(page.locator('text=/Zakat Calculator/i').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=/Nisab Threshold/i').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=/2\\.5%/i').first()).toBeVisible({ timeout: 10000 });
   });
 
   // ── Hawl Tracker ───────────────────────────────────────────────────────────
 
   test('hawl tracker loads', async () => {
     await page.goto(`${BASE}/dashboard/hawl`);
-    await expect(page.locator('text=/Hawl Tracker/i')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('text=/Islamic Guidance on Hawl/i')).toBeVisible();
+    // "Hawl Tracker" also matches the sidebar nav link — pick the first
+    // (the page heading renders before the sidebar in DOM order).
+    await expect(page.locator('text=/Hawl Tracker/i').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=/Islamic Guidance on Hawl/i').first()).toBeVisible({ timeout: 10000 });
   });
 
   // ── Prayer Times ───────────────────────────────────────────────────────────
 
   test('prayer times loads', async () => {
     await page.goto(`${BASE}/dashboard/prayer-times`);
-    await expect(page.locator('text=/Prayer Times/i')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('text=/Fajr/i')).toBeVisible();
-    await expect(page.locator('text=/Maghrib/i')).toBeVisible();
+    // Sidebar nav also contains "Prayer Times".
+    await expect(page.locator('text=/Prayer Times/i').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=/Fajr/i').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=/Maghrib/i').first()).toBeVisible({ timeout: 10000 });
   });
 
   // ── Fiqh Settings ──────────────────────────────────────────────────────────
 
   test('fiqh settings loads with madhab options', async () => {
     await page.goto(`${BASE}/dashboard/fiqh`);
-    await expect(page.locator('text=/Fiqh Settings/i')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('text=/Hanafi/i')).toBeVisible();
-    await expect(page.locator('text=/Shafi/i')).toBeVisible();
+    // Sidebar nav also contains "Fiqh Settings". Use .first() to disambiguate.
+    // For Hanafi/Shafi: today there's a school-of-thought picker AND a Nisab
+    // section that mentions the same school names — multiple matches in the
+    // page itself, so .first() picks the most prominent occurrence.
+    await expect(page.locator('text=/Fiqh Settings/i').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=/Hanafi/i').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=/Shafi/i').first()).toBeVisible({ timeout: 10000 });
   });
 
   // ── Wasiyyah ───────────────────────────────────────────────────────────────
