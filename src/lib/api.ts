@@ -1129,6 +1129,24 @@ export const api = {
   getReferralCode: () => apiFetch('/api/referral/code'),
   trackReferralClick: (code: string) => apiFetch(`/api/referrals/click/${encodeURIComponent(code)}`, { method: 'POST' }),
 
+  // ── Family Plan ─────────────────────────────────────────────────────────────
+  // Owner can invite up to 5 additional members onto a single Family subscription.
+  // See FamilyController.java for the server contract; preview is public (no auth).
+  getFamily: () => apiFetch('/api/family'),
+  createFamilyInvite: (email: string) =>
+    apiFetch('/api/family/invites', { method: 'POST', body: JSON.stringify({ email }) }),
+  listFamilyInvites: () => apiFetch('/api/family/invites'),
+  cancelFamilyInvite: (inviteId: number) =>
+    apiFetch(`/api/family/invites/${inviteId}`, { method: 'DELETE' }),
+  listFamilyMembers: () => apiFetch('/api/family/members'),
+  removeFamilyMember: (userId: number) =>
+    apiFetch(`/api/family/members/${userId}`, { method: 'DELETE' }),
+  leaveFamily: () => apiFetch('/api/family/leave', { method: 'POST' }),
+  acceptFamilyInvite: (token: string) =>
+    apiFetch('/api/family/accept', { method: 'POST', body: JSON.stringify({ token }) }),
+  previewFamilyInvite: (token: string) =>
+    apiFetch(`/api/family/invite/preview?token=${encodeURIComponent(token)}`),
+
   // ── Assets bulk delete ───────────────────────────────────────────────────────
   bulkDeleteAssets: (ids: number[]) =>
     apiFetch('/api/assets/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
