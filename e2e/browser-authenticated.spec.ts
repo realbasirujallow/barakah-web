@@ -24,10 +24,33 @@ test.describe('Browser Authenticated Flows', () => {
     // Wait for any post-login redirect (dashboard, setup, or rate-limit error)
     await page.waitForTimeout(5000);
 
+    // Mark guided setup as completed in localStorage so the dashboard layout
+    // doesn't redirect every navigation back to /setup. Without this, fresh
+    // browser contexts (which Playwright creates per run) start with empty
+    // localStorage; the layout's `if (!hasCompletedGuidedSetup(user.id))
+    // router.replace('/setup')` guard then catches every navigation. The key
+    // format mirrors `lib/setup.ts::SETUP_KEY_PREFIX`.
+    try {
+      const userJson = await page.evaluate(() => window.localStorage.getItem('user'));
+      if (userJson) {
+        const userId = (JSON.parse(userJson) as { id?: string })?.id;
+        if (userId) {
+          await page.evaluate((id) => {
+            window.localStorage.setItem(`barakah_guided_setup_v1:${id}`, 'true');
+            window.localStorage.setItem('barakah_onboarded', 'true');
+          }, userId);
+        }
+      }
+    } catch {
+      // localStorage / page state quirk — tests may still pass if guided
+      // setup happens to already be marked complete server-side.
+    }
+
     // Check if we landed on an authenticated page
     const url = page.url();
     if (url.includes('/dashboard') || url.includes('/setup')) {
-      // If setup flow, go directly to dashboard
+      // If setup flow, go directly to dashboard. With the localStorage flag
+      // now set above, the layout no longer redirects back.
       if (url.includes('/setup')) {
         await page.goto(`${BASE}/dashboard`);
         await page.waitForTimeout(3000);
