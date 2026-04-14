@@ -148,18 +148,35 @@ export default function FamilyPage() {
         </p>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
           <p className="text-6xl mb-4">👨‍👩‍👧‍👦</p>
-          <p className="text-gray-700 mb-6">
-            {user?.plan === 'free'
-              ? 'You\u2019re on the Free plan today.'
-              : 'You\u2019re on Barakah Plus today.'}
-            {' '}Upgrade to Family to invite up to 5 household members.
-          </p>
-          <Link
-            href="/dashboard/billing"
-            className="inline-block bg-[#1B5E20] text-white py-3 px-6 rounded-xl font-semibold hover:bg-[#2E7D32] transition"
-          >
-            Upgrade to Family — $14.99/mo
-          </Link>
+          {user?.plan === 'family' ? (
+            <>
+              <p className="text-gray-700 mb-6">
+                Your Family plan is active — setting up your household now. Refresh this page in a moment to invite members.
+              </p>
+              <button
+                type="button"
+                onClick={() => load()}
+                className="inline-block bg-[#1B5E20] text-white py-3 px-6 rounded-xl font-semibold hover:bg-[#2E7D32] transition"
+              >
+                Refresh household
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-700 mb-6">
+                {user?.plan === 'free'
+                  ? 'You\u2019re on the Free plan today.'
+                  : 'You\u2019re on Barakah Plus today.'}
+                {' '}Upgrade to Family to invite up to 5 household members.
+              </p>
+              <Link
+                href="/dashboard/billing"
+                className="inline-block bg-[#1B5E20] text-white py-3 px-6 rounded-xl font-semibold hover:bg-[#2E7D32] transition"
+              >
+                Upgrade to Family — $14.99/mo
+              </Link>
+            </>
+          )}
         </div>
       </div>
     );

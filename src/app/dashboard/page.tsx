@@ -405,9 +405,14 @@ export default function DashboardPage() {
                 {widgets?.spending ? fmt(widgets.spending.thisMonth) : loading ? '...' : fmt(0)}
               </p>
             </div>
-            {widgets?.spending && widgets.spending.lastMonth > 0 && (
+            {widgets?.spending && widgets.spending.lastMonth >= 50 && (
+              // Only surface the MoM comparison once last month had meaningful
+              // spending ($50+). Under that, the % comparison is misleading
+              // (used to render "▲ 999+%" every time a new account started).
+              // Above the threshold we still cap at 500% so a genuine spike
+              // doesn't explode the pill.
               <div className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${widgets.spending.changePercent <= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                {widgets.spending.changePercent <= 0 ? '▼' : '▲'} {Math.abs(widgets.spending.changePercent) > 999 ? '999+' : Math.abs(widgets.spending.changePercent).toFixed(1)}%
+                {widgets.spending.changePercent <= 0 ? '▼' : '▲'} {Math.abs(widgets.spending.changePercent) > 500 ? '500+' : Math.abs(widgets.spending.changePercent).toFixed(1)}%
               </div>
             )}
           </div>
