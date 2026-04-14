@@ -24,12 +24,16 @@ test.describe('Browser Authenticated Flows', () => {
     // Wait for any post-login redirect (dashboard, setup, or rate-limit error)
     await page.waitForTimeout(5000);
 
-    // Mark guided setup as completed in localStorage so the dashboard layout
-    // doesn't redirect every navigation back to /setup. Without this, fresh
-    // browser contexts (which Playwright creates per run) start with empty
-    // localStorage; the layout's `if (!hasCompletedGuidedSetup(user.id))
-    // router.replace('/setup')` guard then catches every navigation. The key
-    // format mirrors `lib/setup.ts::SETUP_KEY_PREFIX`.
+    // Mark guided setup as completed AND mark the post-onboarding referral
+    // prompt as already shown — both flags live in localStorage and would
+    // otherwise gate the dashboard with redirects / modal intercepts that
+    // break browser-test interactions.
+    //   - barakah_guided_setup_v1:<id> — without this, the dashboard layout
+    //     redirects every navigation back to /setup.
+    //   - barakah_referral_prompted    — without this, the post-onboarding
+    //     ReferralPromptModal renders as a fixed-inset z-50 overlay that
+    //     intercepts clicks, blocking the logout test (and any future test
+    //     that needs to click sidebar items).
     try {
       const userJson = await page.evaluate(() => window.localStorage.getItem('user'));
       if (userJson) {
@@ -38,6 +42,7 @@ test.describe('Browser Authenticated Flows', () => {
           await page.evaluate((id) => {
             window.localStorage.setItem(`barakah_guided_setup_v1:${id}`, 'true');
             window.localStorage.setItem('barakah_onboarded', 'true');
+            window.localStorage.setItem('barakah_referral_prompted', 'true');
           }, userId);
         }
       }
