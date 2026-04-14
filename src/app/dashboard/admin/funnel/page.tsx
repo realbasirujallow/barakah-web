@@ -103,8 +103,14 @@ export default function FunnelPage() {
               </button>
             ))}
             <Link
+              href="/dashboard/admin"
+              className="ml-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition"
+            >
+              ← Admin
+            </Link>
+            <Link
               href="/dashboard/admin/growth"
-              className="ml-2 text-sm font-medium text-[#1B5E20] bg-white border border-[#1B5E20] rounded-lg px-3 py-1.5 hover:bg-green-50 transition"
+              className="text-sm font-medium text-[#1B5E20] bg-white border border-[#1B5E20] rounded-lg px-3 py-1.5 hover:bg-green-50 transition"
             >
               Growth view →
             </Link>

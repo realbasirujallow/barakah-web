@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { useCurrency } from '../../../lib/useCurrency';
@@ -459,20 +460,36 @@ export default function AdminPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-start justify-between mb-6 gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-[#1B5E20]">Admin Dashboard</h1>
           <p className="text-xs text-gray-400 mt-1">
             Last updated: {lastRefreshed.toLocaleTimeString()} · Auto-refreshes every 30 minutes
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => loadData(page)}
-          className="px-4 py-2 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-[#2E7D32] transition font-medium"
-        >
-          ↻ Refresh
-        </button>
+        {/* Sibling dashboards live on their own routes (conversion funnel + growth
+            KPIs) — surface direct links here so admins don't have to know the URLs. */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href="/dashboard/admin/funnel"
+            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+          >
+            📉 Funnel
+          </Link>
+          <Link
+            href="/dashboard/admin/growth"
+            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+          >
+            📈 Growth
+          </Link>
+          <button
+            type="button"
+            onClick={() => loadData(page)}
+            className="px-4 py-2 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-[#2E7D32] transition font-medium"
+          >
+            ↻ Refresh
+          </button>
+        </div>
       </div>
 
       {/* ── Alerts Banner ── */}
