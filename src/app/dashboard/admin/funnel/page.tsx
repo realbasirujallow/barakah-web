@@ -81,6 +81,18 @@ export default function FunnelPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] p-4 sm:p-8">
       <div className="max-w-5xl mx-auto">
+        {/* Back link — always the first thing on the page so returning to the
+            main admin dashboard is a one-click action from anywhere on the
+            scroll. The icon + plain text style matches standard breadcrumb
+            patterns so users don't have to hunt for it. */}
+        <Link
+          href="/dashboard/admin"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1B5E20] hover:underline mb-4"
+        >
+          <span aria-hidden="true">←</span>
+          Back to Admin Dashboard
+        </Link>
+
         <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-bold text-[#1B5E20]">Conversion Funnel</h1>
@@ -103,14 +115,8 @@ export default function FunnelPage() {
               </button>
             ))}
             <Link
-              href="/dashboard/admin"
-              className="ml-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition"
-            >
-              ← Admin
-            </Link>
-            <Link
               href="/dashboard/admin/growth"
-              className="text-sm font-medium text-[#1B5E20] bg-white border border-[#1B5E20] rounded-lg px-3 py-1.5 hover:bg-green-50 transition"
+              className="ml-2 text-sm font-medium text-[#1B5E20] bg-white border border-[#1B5E20] rounded-lg px-3 py-1.5 hover:bg-green-50 transition"
             >
               Growth view →
             </Link>
