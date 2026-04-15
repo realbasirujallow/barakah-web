@@ -32,7 +32,7 @@ interface CommunicationPreferences {
 }
 
 const PLAN_INFO: Record<string, { label: string; color: string; bg: string; desc: string }> = {
-  free:   { label: 'Free',   color: 'text-gray-600',   bg: 'bg-gray-100',    desc: 'Basic features, up to 25 transactions/month.' },
+  free:   { label: 'Free',   color: 'text-gray-600',   bg: 'bg-gray-100',    desc: 'Basic features, up to 10 transactions/month.' },
   plus:   { label: 'Plus',   color: 'text-blue-700',   bg: 'bg-blue-100',    desc: 'Unlimited transactions, all Islamic finance tools.' },
   family: { label: 'Family', color: 'text-purple-700', bg: 'bg-purple-100',  desc: 'Everything in Plus, shared finances for up to 6 members.' },
 };

@@ -257,8 +257,8 @@ export default function MintAlternativeForMuslimsPage() {
               <p className="text-3xl font-extrabold text-gray-900 mb-3">$0 <span className="text-sm font-normal text-gray-500">forever</span></p>
               <ul className="text-sm text-gray-600 space-y-1.5">
                 <li>✅ Full zakat calculator</li>
-                <li>✅ Manual transaction tracking</li>
-                <li>✅ Budgets & savings goals</li>
+                <li>✅ Manual transactions (10/month)</li>
+                <li>✅ Budgets & bills tracking</li>
                 <li>✅ Hawl tracker</li>
                 <li>✅ No data selling — ever</li>
               </ul>

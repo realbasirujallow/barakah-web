@@ -31,8 +31,8 @@ const PLANS = [
     yearlySaving: null,
     color: 'gray',
     features: [
-      '25 transactions per month',
-      'Budgets, bills & savings goals',
+      '10 transactions per month',
+      'Budgets & bills tracking',
       'Zakat calculator & Hawl tracker',
       'Prayer times & Ramadan Mode',
       'Sadaqah tracking',

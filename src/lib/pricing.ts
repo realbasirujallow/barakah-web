@@ -25,12 +25,11 @@ export const PRICING = {
 
 /** Free plan features. */
 export const FREE_FEATURES = [
-  'Up to 25 transactions/month',
+  'Up to 10 transactions/month',
   'Basic zakat calculator (live nisab)',
   'Hawl tracker',
   'Prayer times (any city)',
   'Budgets & bills tracking',
-  'Savings goals',
   'Sadaqah tracking',
   'Ramadan Mode',
   'Islamic calendar & events',

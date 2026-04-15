@@ -78,9 +78,9 @@ export function PlanGate({ required, featureName, description, children }: PlanG
   // Plan features data
   const planFeatures = {
     free: [
-      '25 transactions/month',
+      '10 transactions/month',
       'Zakat Calculator + Hawl Tracker',
-      'Budgets, bills & savings goals',
+      'Budgets & bills tracking',
       'Sadaqah tracking',
       'Prayer times & Ramadan Mode',
       'Recurring transactions',
