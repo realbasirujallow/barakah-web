@@ -194,6 +194,8 @@ export default function PrayerTimesPage() {
     if (!c.trim() || !co.trim()) return;
     setLoading(true); setError(null);
     try {
+      // Use the browser's local calendar date. City-based endpoints don't need
+      // a timezonestring — Aladhan looks it up from the geocoded city.
       const today = new Date();
       const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
       const url = `https://api.aladhan.com/v1/timingsByCity/${dateStr}?city=${encodeURIComponent(c)}&country=${encodeURIComponent(co)}&method=${m}`;
@@ -219,12 +221,32 @@ export default function PrayerTimesPage() {
     setLoading(false);
   }, []);
 
-  const fetchTimesByCoordinates = useCallback(async (latitude: number, longitude: number, m: number, label = 'Current Location') => {
+  const fetchTimesByCoordinates = useCallback(async (latitude: number, longitude: number, m: number, label = 'Current Location', preferredZone?: string | null) => {
     setLoading(true);
     setError(null);
     try {
-      const today = new Date();
-      const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+      // Use the calendar date at the praying location, not on the user's
+      // device. A traveller in PST at 11pm checking London's Isha is already
+      // past midnight in London — without this adjustment the API would
+      // return yesterday's times. If we know the IANA zone from a previous
+      // call for these coords (or the caller passed one), format the current
+      // instant in that zone; otherwise fall back to the device date.
+      const nowInstant = new Date();
+      let dateStr: string;
+      try {
+        const zone = preferredZone ?? null;
+        if (zone) {
+          const parts = new Intl.DateTimeFormat('en-GB', {
+            year: 'numeric', month: '2-digit', day: '2-digit', timeZone: zone,
+          }).formatToParts(nowInstant);
+          const get = (k: string) => parts.find(p => p.type === k)?.value ?? '';
+          dateStr = `${parseInt(get('day'), 10)}-${parseInt(get('month'), 10)}-${get('year')}`;
+        } else {
+          dateStr = `${nowInstant.getDate()}-${nowInstant.getMonth() + 1}-${nowInstant.getFullYear()}`;
+        }
+      } catch {
+        dateStr = `${nowInstant.getDate()}-${nowInstant.getMonth() + 1}-${nowInstant.getFullYear()}`;
+      }
       const url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${latitude}&longitude=${longitude}&method=${m}`;
       const res = await fetch(url);
       if (!res.ok) {
@@ -274,9 +296,10 @@ export default function PrayerTimesPage() {
           typeof parsed.longitude === 'number'
         ) {
           const label = typeof parsed.label === 'string' ? parsed.label : 'Saved Location';
+          const savedZone = typeof parsed.timeZone === 'string' ? parsed.timeZone : null;
           setCity(`${parsed.latitude.toFixed(4)}, ${parsed.longitude.toFixed(4)}`);
           setCountry('GPS');
-          fetchTimesByCoordinates(parsed.latitude, parsed.longitude, savedMethod, label);
+          fetchTimesByCoordinates(parsed.latitude, parsed.longitude, savedMethod, label, savedZone);
           return;
         }
 
@@ -288,7 +311,8 @@ export default function PrayerTimesPage() {
           if (match) {
             const latitude = Number(match[1]);
             const longitude = Number(match[2]);
-            fetchTimesByCoordinates(latitude, longitude, savedMethod, 'Saved Location');
+            const savedZone = typeof parsed.timeZone === 'string' ? parsed.timeZone : null;
+            fetchTimesByCoordinates(latitude, longitude, savedMethod, 'Saved Location', savedZone);
             return;
           }
         }
