@@ -190,14 +190,30 @@ export default function PrayerTimesPage() {
     safeSetItem('prayerTimesLocation', JSON.stringify(location));
   };
 
-  const fetchTimes = useCallback(async (c: string, co: string, m: number) => {
+  const fetchTimes = useCallback(async (c: string, co: string, m: number, preferredZone?: string | null) => {
     if (!c.trim() || !co.trim()) return;
     setLoading(true); setError(null);
     try {
-      // Use the browser's local calendar date. City-based endpoints don't need
-      // a timezonestring — Aladhan looks it up from the geocoded city.
-      const today = new Date();
-      const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+      // Use the calendar date at the praying location, not the device's local
+      // date. A user in PST at 11 PM checking London's Isha would otherwise get
+      // yesterday's schedule (London is already past midnight). If we have the
+      // IANA zone from a prior fetch for this city, apply the same
+      // Intl.DateTimeFormat approach used by the coordinate path.
+      const nowInstant = new Date();
+      let dateStr: string;
+      try {
+        if (preferredZone) {
+          const parts = new Intl.DateTimeFormat('en-GB', {
+            year: 'numeric', month: '2-digit', day: '2-digit', timeZone: preferredZone,
+          }).formatToParts(nowInstant);
+          const get = (k: string) => parts.find(p => p.type === k)?.value ?? '';
+          dateStr = `${parseInt(get('day'), 10)}-${parseInt(get('month'), 10)}-${get('year')}`;
+        } else {
+          dateStr = `${nowInstant.getDate()}-${nowInstant.getMonth() + 1}-${nowInstant.getFullYear()}`;
+        }
+      } catch {
+        dateStr = `${nowInstant.getDate()}-${nowInstant.getMonth() + 1}-${nowInstant.getFullYear()}`;
+      }
       const url = `https://api.aladhan.com/v1/timingsByCity/${dateStr}?city=${encodeURIComponent(c)}&country=${encodeURIComponent(co)}&method=${m}`;
       const res  = await fetch(url);
       if (!res.ok) {
@@ -320,7 +336,8 @@ export default function PrayerTimesPage() {
         if (typeof parsed.city === 'string' && typeof parsed.country === 'string') {
           setCity(parsed.city);
           setCountry(parsed.country);
-          fetchTimes(parsed.city, parsed.country, savedMethod);
+          const savedZone = typeof parsed.timeZone === 'string' ? parsed.timeZone : null;
+          fetchTimes(parsed.city, parsed.country, savedMethod, savedZone);
         }
       } catch (err) {
         console.warn('Failed to restore saved prayer location:', err);
