@@ -4,8 +4,6 @@ import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
-import { useRouter } from 'next/navigation';
-
 interface HalalResult { symbol: string; name: string; isHalal: boolean; reason: string; sector: string; debtRatio?: number; }
 interface StockStats { totalStocks: number; halalCount: number; haramCount: number; sectorCount: number; }
 interface DetailResult { symbol: string; name: string; status: string; reason: string; sector: string; debtRatio?: number; }
@@ -14,7 +12,6 @@ const PAGE_SIZE = 50;
 
 export default function HalalPage() {
   const { user, isLoading } = useAuth();
-  const router = useRouter();
   const { toast } = useToast();
   const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
 
@@ -41,12 +38,6 @@ export default function HalalPage() {
   const [sectors, setSectors] = useState<{ sector: string; count: number }[]>([]);
 
   // Debounce search for screener filtering
-  useEffect(() => {
-    if (!isLoading && user && !hasPaidAccess) {
-      router.replace('/dashboard/billing');
-    }
-  }, [hasPaidAccess, isLoading, router, user]);
-
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 400);
     return () => clearTimeout(t);

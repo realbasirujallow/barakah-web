@@ -301,7 +301,7 @@ export default function FaraidPage() {
 
   /* ── Pie data ─────────────────────────────────────────────────────── */
 
-  const pieData = result?.adjustedShares.map((s) => ({
+  const pieData = result?.adjustedShares?.map((s) => ({
     name: s.heir,
     value: s.amount,
   })) ?? [];
@@ -493,7 +493,7 @@ export default function FaraidPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {result.adjustedShares.map((adj, i) => {
+                  {(result.adjustedShares ?? []).map((adj, i) => {
                     return (
                       <tr key={i} className="border-b border-gray-50">
                         <td className="py-3 pr-4 font-medium text-gray-900">{adj.heir}</td>
