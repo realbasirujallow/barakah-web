@@ -320,7 +320,7 @@ export default function SetupPage() {
       badge: currentPlan === 'free' ? 'Current Plan' : null,
       description: 'Explore the essentials first, then upgrade when you want automatic workflows and deeper planning.',
       features: [
-        'Budgets, bills, and savings',
+        'Budgets & bills tracking',
         'Zakat calculator and Hawl tracker',
         'Prayer times and Ramadan tools',
       ],

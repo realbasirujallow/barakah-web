@@ -15,7 +15,7 @@ interface UsageData {
 
 /**
  * Transaction usage meter for free-plan users.
- * Shows "X of 25 transactions used this month" with a progress bar.
+ * Shows "X of 10 transactions used this month" with a progress bar.
  * Displays upgrade prompt when approaching or at the limit.
  *
  * Usage: <TransactionUsageMeter /> — renders nothing for Plus/Family users.
