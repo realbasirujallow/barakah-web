@@ -141,34 +141,39 @@ export default function ZakatPage() {
         const perPerson = fitr.perPerson;
         const mapped: Record<string, unknown> = { ...fitr };
 
-        // Validate response shape
-        if (totalDue && typeof totalDue === 'object' && totalDue !== null && 'recommended' in totalDue) {
-          mapped.totalDue = (totalDue as Record<string, number>).recommended ?? (totalDue as Record<string, number>).minimum ?? 0;
-          mapped.minimumTotal = (totalDue as Record<string, number>).minimum ?? 0;
-          mapped.recommendedTotal = (totalDue as Record<string, number>).recommended ?? 0;
-          mapped.generousTotal = (totalDue as Record<string, number>).generous ?? 0;
+        // Validate response shape — defensive parsing, never throws, always falls back to zero
+        const totalDueObj = (totalDue && typeof totalDue === 'object') ? totalDue as Record<string, unknown> : null;
+        if (totalDueObj !== null) {
+          const rec = typeof totalDueObj.recommended === 'number' ? totalDueObj.recommended : 0;
+          const min = typeof totalDueObj.minimum === 'number' ? totalDueObj.minimum : 0;
+          const gen = typeof totalDueObj.generous === 'number' ? totalDueObj.generous : 0;
+          mapped.totalDue = rec || min || 0;
+          mapped.minimumTotal = min;
+          mapped.recommendedTotal = rec;
+          mapped.generousTotal = gen;
         } else if (typeof totalDue === 'number') {
           mapped.totalDue = totalDue;
         } else {
-          logError(new Error('Unexpected fitr response shape'), { context: 'fitr-response-validation', data: fitr });
-          // Use safe defaults
+          // Unknown shape — silently fall back to zero values
           mapped.totalDue = 0;
         }
-        if (perPerson && typeof perPerson === 'object') {
-          mapped.minimumAmount = (perPerson as Record<string, number>).minimum ?? 0;
-          mapped.recommendedAmount = (perPerson as Record<string, number>).recommended ?? 0;
-          mapped.generousAmount = (perPerson as Record<string, number>).generous ?? 0;
+        const perPersonObj = (perPerson && typeof perPerson === 'object') ? perPerson as Record<string, unknown> : null;
+        if (perPersonObj !== null) {
+          mapped.minimumAmount = typeof perPersonObj.minimum === 'number' ? perPersonObj.minimum : 0;
+          mapped.recommendedAmount = typeof perPersonObj.recommended === 'number' ? perPersonObj.recommended : 0;
+          mapped.generousAmount = typeof perPersonObj.generous === 'number' ? perPersonObj.generous : 0;
         }
         // Map citation fields
-        const citations = fitr.citations as Record<string, string> | undefined;
+        const citationsRaw = fitr?.citations;
+        const citations = (citationsRaw && typeof citationsRaw === 'object') ? citationsRaw as Record<string, unknown> : null;
         if (citations) {
-          mapped.hadithCitation = citations.hadith ?? '';
-          mapped.deadline = fitr.deadline ?? citations.ruling ?? '';
+          mapped.hadithCitation = typeof citations.hadith === 'string' ? citations.hadith : '';
+          mapped.deadline = typeof fitr?.deadline === 'string' ? fitr.deadline : (typeof citations.ruling === 'string' ? citations.ruling : '');
         }
         // Map eligibleRecipients array to string
-        const recipients = fitr.eligibleRecipients as string[] | undefined;
+        const recipients = fitr?.eligibleRecipients;
         if (Array.isArray(recipients)) {
-          mapped.eligibleRecipients = recipients.join(', ');
+          mapped.eligibleRecipients = recipients.filter(r => typeof r === 'string').join(', ');
         }
 
         setFitrData(mapped);

@@ -1498,7 +1498,7 @@ export default function AdminPage() {
                   <div className="grid grid-cols-3 gap-2 text-center">
                     {activityCountKeys.map((key) => (
                       <div key={String(key)} className="bg-white rounded-lg p-2">
-                        <p className="text-lg font-bold text-[#1B5E20]">{userActivity[key] ?? 0}</p>
+                        <p className="text-lg font-bold text-[#1B5E20]">{typeof userActivity[key] === 'number' ? userActivity[key] : null}</p>
                         <p className="text-[10px] text-gray-400 capitalize">{String(key).replace(/([A-Z])/g, ' $1').trim()}</p>
                       </div>
                     ))}
