@@ -977,6 +977,13 @@ export const api = {
     }, API_TIMEOUT, true),
   getAdminContactSubmissions: () =>
     apiFetch('/admin/lifecycle/contact-submissions', {}, API_TIMEOUT, true),
+  getAdminNotificationTemplates: () =>
+    apiFetch('/admin/notifications/templates', {}, API_TIMEOUT, true),
+  broadcastPushNotification: (payload: { title: string; body: string; route?: string; filter?: string }) =>
+    apiFetch('/admin/notifications/broadcast', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }, API_TIMEOUT, true),
 
   // Plaid Bank Linking
   plaidCreateLinkToken: () =>
