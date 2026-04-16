@@ -120,17 +120,19 @@ function BillingContent() {
   };
 
   useEffect(() => {
+    let cancelled = false;
     loadStatus()
-      .finally(() => setStatusLoading(false));
+      .finally(() => { if (!cancelled) setStatusLoading(false); });
 
     api.getReferralCode()
-      .then(setReferral)
+      .then(d => { if (!cancelled) setReferral(d); })
       .catch(() => null);
 
     // Fire paywall_viewed — user landed on a page with upgrade CTAs.
     // Pairs with the backend PAYWALL_SHOWN event (which only fires on 403s)
     // to give full impression + click visibility.
     try { trackPaywallViewed('billing_page'); } catch { /* GA4 unavailable */ }
+    return () => { cancelled = true; };
   }, []);
 
   const copyCode = () => {

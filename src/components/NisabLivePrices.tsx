@@ -38,10 +38,13 @@ export function useNisabData() {
   const [loading, setLoading] = useState(!_cache);
 
   useEffect(() => {
+    let cancelled = false;
     fetchNisab().then(d => {
+      if (cancelled) return;
       if (d) setData(d);
       setLoading(false);
     });
+    return () => { cancelled = true; };
   }, []);
 
   return { data, loading };
