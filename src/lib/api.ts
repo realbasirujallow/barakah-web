@@ -637,6 +637,9 @@ export const api = {
   calculateFaraid: (data: Record<string, unknown>) =>
     apiFetch('/api/wasiyyah/calculate-faraid', { method: 'POST', body: JSON.stringify(data) }),
 
+  /** Islamic inheritance shares by relationship (Surah An-Nisa 4:11-12) */
+  getIslamicShares: () => apiFetch('/api/wasiyyah/islamic-shares'),
+
   /** Zakat calculation receipt — full transparency of every input and decision. */
   getZakatReceipt: () => apiFetch('/api/zakat/receipt'),
 
