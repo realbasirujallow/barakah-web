@@ -193,7 +193,7 @@ export default function MuslimHouseholdBudgetPage() {
           <div className="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-5 mb-10">
             <p className="font-semibold text-amber-900 mb-1">📌 Important Islamic Finance Principle</p>
             <p className="text-amber-800 text-sm leading-relaxed">
-              In Islam, a wife has no obligation to contribute her income to household expenses. Nafaqah (provision for the household) is the husband's responsibility. A wife may choose to contribute, but her income belongs to her alone. This guide presents a general household template — adjust based on your family's agreement and each partner's obligations.
+              In Islam, a wife has no obligation to contribute her income to household expenses. Nafaqah (provision for the household) is the husband&apos;s responsibility. A wife may choose to contribute, but her income belongs to her alone. This guide presents a general household template — adjust based on your family&apos;s agreement and each partner&apos;s obligations.
             </p>
           </div>
 

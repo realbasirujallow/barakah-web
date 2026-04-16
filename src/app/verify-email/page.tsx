@@ -20,6 +20,7 @@ function VerifyEmailContent() {
       setResendStatus('sent');
     } catch {
       setResendStatus('idle');
+      setMessage('Failed to resend verification email. Please try again.');
     }
   };
 

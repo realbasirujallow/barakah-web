@@ -20,15 +20,6 @@ interface LedgerEntry {
   [key: string]: unknown;
 }
 
-interface LedgerResponse {
-  entries?: LedgerEntry[];
-  total?: number;
-  page?: number;
-  size?: number;
-  totalPages?: number;
-  [key: string]: unknown;
-}
-
 const ENTRY_TYPES = [
   { value: '', label: 'All Types' },
   { value: 'ASSET_ADDED', label: 'Asset Added' },
@@ -71,7 +62,7 @@ export default function AuditLedgerPage() {
       try {
         let result;
         if (selectedType) {
-          result = await api.getLedgerByType(selectedType);
+          result = await api.getLedgerByType(selectedType, page, PAGE_SIZE);
         } else {
           result = await api.getFinancialLedger(page, PAGE_SIZE);
         }
@@ -100,8 +91,15 @@ export default function AuditLedgerPage() {
   const formatDate = (dateVal: unknown): string => {
     if (!dateVal) return 'N/A';
     try {
-      const date = typeof dateVal === 'number' ? new Date(dateVal) : new Date(String(dateVal));
-      return date.toLocaleDateString('en-US', {
+      let ms: number;
+      if (typeof dateVal === 'number') {
+        // Backend stores createdAt as epoch seconds; threshold < 10^10 distinguishes
+        // seconds (current year ≈ 1.7×10^9) from milliseconds (≈ 1.7×10^12).
+        ms = dateVal < 10_000_000_000 ? dateVal * 1000 : dateVal;
+      } else {
+        ms = new Date(String(dateVal)).getTime();
+      }
+      return new Date(ms).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -113,12 +111,12 @@ export default function AuditLedgerPage() {
     }
   };
 
-  const formatAmount = (amount: unknown, currency: unknown): string => {
+  const formatAmount = (amount: unknown, _currency: unknown): string => {
     if (amount === undefined || amount === null) return 'N/A';
     try {
       const num = typeof amount === 'string' ? parseFloat(amount) : Number(amount);
-      const curr = String(currency || 'USD');
-      return `${fmt(num)} ${curr}`;
+      // fmt() already includes the currency symbol — do not append a separate code.
+      return fmt(num);
     } catch {
       return String(amount);
     }

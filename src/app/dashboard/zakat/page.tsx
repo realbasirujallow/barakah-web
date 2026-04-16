@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { fmt, toHijri } from '../../../lib/format';
 import { logError } from '../../../lib/logError';
@@ -130,7 +130,7 @@ export default function ZakatPage() {
     safeSetItem('hideZakat', next ? 'true' : 'false');
   };
 
-  const loadZakatAlFitr = async () => {
+  const loadZakatAlFitr = useCallback(async () => {
     setLoadingFitr(true);
     try {
       const fitr = await api.getZakatAlFitr(householdSize, 'USD');
@@ -183,7 +183,7 @@ export default function ZakatPage() {
       logError(err, { context: 'Failed to load zakat al-fitr' });
     }
     setLoadingFitr(false);
-  };
+  }, [householdSize]);
 
   const loadScholarlyReferences = async () => {
     setLoadingReferences(true);
@@ -207,21 +207,25 @@ export default function ZakatPage() {
         api.getZakatPayments(), // load all years; filter by lunarYear after we know it
         api.getNisabInfo().catch(() => null),  // non-critical — live gold price display
         api.getNisabMethodologies().catch(() => null), // FEATURE 1: methodologies
+        api.getNisabMethodology().catch(() => null),   // user's current methodology preference
       ]);
       const zakatRaw = results[0].status === 'fulfilled' ? results[0].value : null;
       const paymentsRaw = results[1].status === 'fulfilled' ? results[1].value : null;
       const nisabRaw = results[2].status === 'fulfilled' ? results[2].value : null;
       const methodologiesRaw = results[3].status === 'fulfilled' ? results[3].value : null;
+      const methodologyPrefRaw = results[4].status === 'fulfilled' ? results[4].value : null;
 
       // Validate zakat data
       const zakatData = safeParse(validateZakatCalculation, zakatRaw, 'zakat/calculate');
       if (!zakatData && zakatRaw?.error) {
         logError(new Error(zakatRaw.error as string), { context: 'Zakat API error' });
+        setLoadError(String(zakatRaw.error) || 'Failed to load zakat data. Please try refreshing.');
         setLoading(false);
         return;
       }
       if (zakatRaw?.error) {
         logError(new Error(zakatRaw.error as string), { context: 'Zakat API error' });
+        setLoadError(String(zakatRaw.error) || 'Failed to load zakat data. Please try refreshing.');
         setLoading(false);
         return;
       }
@@ -253,13 +257,10 @@ export default function ZakatPage() {
         }));
         setNisabMethodologies(normalized);
       }
-      // Load user's current methodology preference from backend
-      try {
-        const currentPref = await api.getNisabMethodology();
-        if (currentPref?.methodology) {
-          setSelectedMethodology(currentPref.methodology as string);
-        }
-      } catch { /* default to AMJA_GOLD if preference fetch fails */ }
+      // Apply user's current methodology preference (fetched in parallel above)
+      if (methodologyPrefRaw?.methodology) {
+        setSelectedMethodology(methodologyPrefRaw.methodology as string);
+      }
 
       setData(zakatRaw as ZakatCalculation);
 
@@ -375,11 +376,11 @@ export default function ZakatPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (tab === 'fitr' && householdSize > 0) {
-        loadZakatAlFitr();
+        void loadZakatAlFitr();
       }
     }, 300); // 300ms debounce
     return () => clearTimeout(timer);
-  }, [householdSize, tab]);
+  }, [householdSize, loadZakatAlFitr, tab]);
 
   // FEATURE 6: Load Calculation Receipt
   const handleViewReceipt = async () => {
@@ -493,11 +494,15 @@ export default function ZakatPage() {
         </html>
       `;
 
+      // Assign onload BEFORE document.write/close so the handler isn't missed
+      // if the blank-window load fires synchronously after close().
+      printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      };
       printWindow.document.write(printContent);
       printWindow.document.close();
-      setTimeout(() => {
-        printWindow.print();
-      }, 500);
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to export report', 'error');
     } finally {

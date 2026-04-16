@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePlaidLink } from 'react-plaid-link';
 import { api } from '../../../lib/api';
+import { useAuth } from '../../../context/AuthContext';
 import {
   clearPendingPlaidLinkToken,
   getPlaidUiErrorMessage,
@@ -13,7 +14,15 @@ import {
 
 export default function PlaidOauthPage() {
   const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
   const [token] = useState<string | null>(() => readPendingPlaidLinkToken());
+
+  // Redirect unauthenticated visitors to login before doing anything with Plaid.
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login');
+    }
+  }, [authLoading, user, router]);
 
   const receivedRedirectUri = useMemo(() => {
     if (typeof window === 'undefined') return undefined;
@@ -65,6 +74,9 @@ export default function PlaidOauthPage() {
     if (!token || !ready) return;
     open();
   }, [open, ready, token]);
+
+  // Show nothing while auth is resolving or user is being redirected to login.
+  if (authLoading || !user) return null;
 
   return (
     <main className="min-h-screen bg-[#F7FAF7] flex items-center justify-center px-6">

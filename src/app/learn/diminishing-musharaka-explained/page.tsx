@@ -91,7 +91,7 @@ export default function Page() {
             Gatehouse Bank (UK), and others.
           </p>
           <p className="text-gray-500 text-sm mb-8">
-            <em>Arabic: Musharaka Mutanaqisa (مشاركة متناقصة) — literally "diminishing partnership."</em>
+            <em>Arabic: Musharaka Mutanaqisa (مشاركة متناقصة) — literally &ldquo;diminishing partnership.&rdquo;</em>
           </p>
 
           {/* Quick definition */}

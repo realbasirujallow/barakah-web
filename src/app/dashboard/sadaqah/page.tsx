@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { api } from '../../../lib/api';
@@ -51,7 +51,7 @@ function SadaqahContent() {
 
   const searchParams = useSearchParams();
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     Promise.allSettled([api.getSadaqah(), api.getSadaqahStats()])
       .then((results) => {
@@ -62,15 +62,15 @@ function SadaqahContent() {
         setStats(mapStats(s));
       })
       .catch(() => { toast('Failed to load sadaqah records', 'error'); }).finally(() => setLoading(false));
-  };
-  useEffect(() => { load(); }, []);
+  }, [toast]);
+  useEffect(() => { load(); }, [load]);
 
   // Show success toast if redirected back from Stripe
   useEffect(() => {
     if (searchParams.get('donated') === 'true') {
       toast('JazakAllahu Khayran! Your sadaqah has been received. May Allah accept it.', 'success');
     }
-  }, [searchParams]);
+  }, [searchParams, toast]);
 
   const handleSave = async () => {
     setSaving(true);

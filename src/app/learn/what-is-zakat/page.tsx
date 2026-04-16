@@ -188,7 +188,7 @@ export default function WhatIsZakatPage() {
             Allah mentions zakat alongside salah (prayer) over 30 times in the Quran, underscoring its equal importance in Muslim practice. It is described as a right of the poor over the wealth of the rich — not a voluntary donation, but an obligation of faith.
           </p>
           <blockquote className="border-l-4 border-[#1B5E20] pl-4 py-2 my-6 text-gray-700 italic bg-green-50 rounded-r-lg pr-4">
-            "And establish prayer and give zakat and bow with those who bow [in worship]." — Quran 2:43
+            &ldquo;And establish prayer and give zakat and bow with those who bow [in worship].&rdquo; — Quran 2:43
           </blockquote>
 
           {/* The Five Pillars */}

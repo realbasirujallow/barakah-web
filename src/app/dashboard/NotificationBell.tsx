@@ -75,12 +75,15 @@ export function NotificationBell() {
   }, []);
 
   const markRead = async (id: number) => {
+    const prevNotifications = notifications;
+    const prevUnread = unreadCount;
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - 1));
     try {
       await api.markNotificationRead(id);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch {
-      // Silent error handling — read status not critical
+      setNotifications(prevNotifications);
+      setUnreadCount(prevUnread);
     }
   };
 
@@ -96,15 +99,16 @@ export function NotificationBell() {
 
   const deleteOne = async (id: number, e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
+    const prevNotifications = notifications;
+    const prevUnread = unreadCount;
+    const removed = notifications.find(n => n.id === id);
+    if (removed && !removed.read) setUnreadCount(c => Math.max(0, c - 1));
+    setNotifications(prev => prev.filter(n => n.id !== id));
     try {
       await api.deleteNotification(id);
-      setNotifications(prev => {
-        const removed = prev.find(n => n.id === id);
-        if (removed && !removed.read) setUnreadCount(c => Math.max(0, c - 1));
-        return prev.filter(n => n.id !== id);
-      });
     } catch {
-      // Silent error handling — deletion failure will be apparent to user
+      setNotifications(prevNotifications);
+      setUnreadCount(prevUnread);
     }
   };
 

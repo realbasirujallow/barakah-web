@@ -164,7 +164,7 @@ export default function RibaFreeMortgagePage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Why a Conventional Mortgage Is Haram</h2>
             <div className="bg-red-50 border-l-4 border-red-600 rounded-r-xl p-5 mb-6">
               <p className="text-red-800 italic text-sm">
-                "O you who believe! Fear Allah and give up what remains of riba, if you are believers. And if you do not, then be informed of a war [against you] from Allah and His Messenger." — Quran 2:278–279
+                &ldquo;O you who believe! Fear Allah and give up what remains of riba, if you are believers. And if you do not, then be informed of a war [against you] from Allah and His Messenger.&rdquo; — Quran 2:278–279
               </p>
             </div>
             <p className="text-gray-700 leading-relaxed mb-4">
@@ -255,7 +255,7 @@ export default function RibaFreeMortgagePage() {
               </table>
             </div>
             <p className="text-xs text-gray-400 mt-3">
-              ⚠️ Always verify current Sharia compliance certification with the provider's Sharia supervisory board before signing. This table is for informational purposes only.
+              ⚠️ Always verify current Sharia compliance certification with the provider&apos;s Sharia supervisory board before signing. This table is for informational purposes only.
             </p>
           </section>
 
@@ -281,7 +281,7 @@ export default function RibaFreeMortgagePage() {
           {/* CTA */}
           <div className="bg-green-700 rounded-2xl p-8 text-center text-white mb-10">
             <h2 className="text-2xl font-bold mb-3">Track Your Riba Exposure with Barakah — Free</h2>
-            <p className="text-green-100 mb-6">Barakah's riba detector flags all interest-bearing accounts, calculates purification amounts, and maps your journey to riba-free finances.</p>
+            <p className="text-green-100 mb-6">Barakah&apos;s riba detector flags all interest-bearing accounts, calculates purification amounts, and maps your journey to riba-free finances.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition">Start Free — No Card Needed</Link>
               <Link href="/learn/is-my-mortgage-halal" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Is My Mortgage Halal?</Link>

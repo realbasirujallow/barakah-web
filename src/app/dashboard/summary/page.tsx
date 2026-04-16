@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
@@ -89,7 +89,7 @@ export default function SummaryPage() {
   const [copied, setCopied]         = useState(false);
   const { toast } = useToast();
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const results = await Promise.allSettled([
@@ -105,9 +105,9 @@ export default function SummaryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [months, period, toast]);
 
-  useEffect(() => { load(); }, [period, months]);
+  useEffect(() => { void load(); }, [load]);
 
   const handleCopy = () => {
     if (!summary) return;

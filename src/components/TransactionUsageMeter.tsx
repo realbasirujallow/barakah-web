@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth, hasAccess } from '../context/AuthContext';
 import { api } from '../lib/api';
 

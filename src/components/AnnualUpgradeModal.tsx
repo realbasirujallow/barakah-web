@@ -15,7 +15,7 @@
  * upgrade flow.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
@@ -37,6 +37,9 @@ function safeSet(key: string, value: string) {
 export default function AnnualUpgradeModal() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  // Keep a ref to the pending timer so the useEffect cleanup can always cancel it,
+  // even if the component unmounts while the API call is still in-flight.
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!user || (user.plan !== 'plus' && user.plan !== 'family')) return;
@@ -45,9 +48,12 @@ export default function AnnualUpgradeModal() {
     const dismissedUntil = safeGet(MODAL_DISMISSED_UNTIL_KEY);
     if (dismissedUntil && Date.now() < parseInt(dismissedUntil, 10)) return;
 
+    let cancelled = false;
+
     // Verify subscription is truly active (not trialing) via API
     api.subscriptionStatus()
       .then((data) => {
+        if (cancelled) return;
         const s = data as { plan: string; status: string; hasSubscription: boolean };
         if (s.status !== 'active' || !s.hasSubscription) return;
         if (s.plan !== 'plus' && s.plan !== 'family') return;
@@ -62,10 +68,18 @@ export default function AnnualUpgradeModal() {
         if (daysOnPlan < MIN_AGE_DAYS) return; // Too new — don't bother yet
 
         // Schedule the modal to appear after SESSION_DELAY_MS of this session
-        const timer = window.setTimeout(() => setOpen(true), SESSION_DELAY_MS);
-        return () => window.clearTimeout(timer);
+        timerRef.current = window.setTimeout(() => setOpen(true), SESSION_DELAY_MS);
       })
       .catch(() => { /* silently ignore */ });
+
+    // Cleanup: cancel the in-flight timer and flag the async callback as stale
+    return () => {
+      cancelled = true;
+      if (timerRef.current !== null) {
+        window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
   }, [user]);
 
   const handleDismiss = () => {

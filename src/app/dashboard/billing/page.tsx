@@ -168,9 +168,10 @@ function BillingContent() {
         await refreshPlan();
         // Track upgrade conversion in GA4
         const { trackUpgrade } = await import('../../../lib/analytics');
-        const price = billing === 'yearly'
-          ? (plan === 'family' ? 119.99 : 79.99)
-          : (plan === 'family' ? 14.99 : 9.99);
+        const priceStr = billing === 'yearly'
+          ? (plan === 'family' ? PRICING.family.yearly : PRICING.plus.yearly)
+          : (plan === 'family' ? PRICING.family.monthly : PRICING.plus.monthly);
+        const price = parseFloat(priceStr.replace(/[^0-9.]/g, ''));
         trackUpgrade(plan, billing, price);
         toast('Plan updated! You\u2019re now on ' + (plan === 'family' ? 'Barakah Family' : 'Barakah Plus'), 'success');
         setLoading(null);

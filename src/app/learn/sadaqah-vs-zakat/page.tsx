@@ -173,11 +173,11 @@ export default function SadaqahVsZakatPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Zakat: The Third Pillar of Islam</h2>
             <div className="bg-green-50 border-l-4 border-green-700 rounded-r-xl p-5 mb-5">
               <p className="text-green-800 italic text-sm">
-                "And establish prayer and give zakat, and whatever good you put forward for yourselves — you will find it with Allah." — Quran 2:110
+                &ldquo;And establish prayer and give zakat, and whatever good you put forward for yourselves — you will find it with Allah.&rdquo; — Quran 2:110
               </p>
             </div>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Zakat is one of the Five Pillars of Islam — an obligatory annual act of worship that purifies your wealth and fulfills the right of the poor upon the wealthy. Scholars describe it as "a right of the poor upon the rich" — not charity, but an obligation owed.
+              Zakat is one of the Five Pillars of Islam — an obligatory annual act of worship that purifies your wealth and fulfills the right of the poor upon the wealthy. Scholars describe it as &ldquo;a right of the poor upon the rich&rdquo; — not charity, but an obligation owed.
             </p>
             <div className="grid sm:grid-cols-2 gap-4 mb-5">
               {[
@@ -202,7 +202,7 @@ export default function SadaqahVsZakatPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Sadaqah: Voluntary Charity With Immense Reward</h2>
             <div className="bg-purple-50 border-l-4 border-purple-600 rounded-r-xl p-5 mb-5">
               <p className="text-purple-800 italic text-sm">
-                "Indeed, the men who give in sadaqah and the women who give in sadaqah and have lent Allah a goodly loan — it will be multiplied for them, and they will have a noble reward." — Quran 57:18
+                &ldquo;Indeed, the men who give in sadaqah and the women who give in sadaqah and have lent Allah a goodly loan — it will be multiplied for them, and they will have a noble reward.&rdquo; — Quran 57:18
               </p>
             </div>
             <p className="text-gray-700 leading-relaxed mb-6">

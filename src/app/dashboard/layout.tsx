@@ -84,12 +84,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof document !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
-    }
-    return false;
-  });
+  // Start with false (matches SSR) and sync from the DOM after hydration
+  // to avoid a React hydration mismatch when dark mode was set on a previous session.
+  const [darkMode, setDarkMode] = useState(false);
+  useEffect(() => {
+    setDarkMode(document.documentElement.classList.contains('dark'));
+  }, []);
 
   const toggleDarkMode = () => {
     const next = !darkMode;

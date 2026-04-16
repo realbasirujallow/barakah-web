@@ -205,7 +205,7 @@ export default function HalalBudgetingPage() {
               The Quran and Sunnah provide a complete framework for financial management. Every halal budget should be built on these six foundations.
             </p>
             <div className="space-y-5">
-              {islamicBudgetPrinciples.map((p, i) => (
+              {islamicBudgetPrinciples.map((p) => (
                 <div key={p.title} className="border border-gray-200 rounded-2xl p-5 flex gap-4">
                   <div className="text-3xl flex-shrink-0">{p.icon}</div>
                   <div>

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import NisabLivePrices, { GoldNisabUSD } from '../../../components/NisabLivePrices';
+import { GoldNisabUSD } from '../../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
   title: 'Zakat on Savings & Bank Accounts: How to Calculate in 2026 | Barakah',
