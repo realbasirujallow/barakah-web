@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -8,7 +8,9 @@ import { hasCompletedGuidedSetup } from '../../lib/setup';
 
 const REMEMBERED_EMAIL_KEY = 'barakah_remembered_email';
 
-export default function LoginPage() {
+// BUG FIX: useSearchParams() requires a <Suspense> boundary in Next.js App Router.
+// Split into LoginForm (uses searchParams) and LoginPage (wraps with Suspense).
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
@@ -58,9 +60,7 @@ export default function LoginPage() {
         }
       } catch { /* incognito safety */ }
       await login(email, password, rememberMe);
-      // Track login in GA4
-      const { trackLogin } = await import('../../lib/analytics');
-      trackLogin('email');
+      // BUG FIX: removed duplicate trackLogin() call — AuthContext.login() already fires it
       let nextRoute = '/setup';
       try {
         const savedUser = localStorage.getItem('user');
@@ -218,5 +218,17 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#FFF8E1]">
+        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api } from '../../../../lib/api';
 import { useToast } from '../../../../lib/toast';
 import { logError } from '../../../../lib/logError';
+import { useAuth } from '../../../../context/AuthContext';
 import GrowthSnapshot, { type GrowthResponse } from '../../../../components/admin/GrowthSnapshot';
 
 /**
@@ -18,8 +20,21 @@ import GrowthSnapshot, { type GrowthResponse } from '../../../../components/admi
  */
 export default function GrowthPage() {
   const { toast } = useToast();
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [growth, setGrowth] = useState<GrowthResponse | null>(null);
+
+  // BUG FIX: frontend admin-role guard — redirect non-admins before any API call
+  useEffect(() => {
+    if (!isAuthLoading && user && (user as { role?: string }).role !== 'admin') {
+      router.replace('/dashboard');
+    }
+  }, [isAuthLoading, user, router]);
+
+  if (!isAuthLoading && user && (user as { role?: string }).role !== 'admin') {
+    return null;
+  }
 
   useEffect(() => {
     let cancelled = false;

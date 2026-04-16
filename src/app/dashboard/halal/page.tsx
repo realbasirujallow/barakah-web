@@ -119,10 +119,27 @@ export default function HalalPage() {
     setChecking(false);
   };
 
-  if (isLoading || (user && !hasPaidAccess)) {
+  // BUG FIX: split loading and plan-gate into separate conditions so free
+  // users get an upgrade CTA instead of an infinite spinner
+  if (isLoading) {
     return (
       <div className="flex justify-center py-20">
         <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (user && !hasPaidAccess) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold text-[#1B5E20] mb-4">Halal Stock Screener</h1>
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
+          <p className="text-amber-800 font-semibold mb-2">Plus or Family plan required</p>
+          <p className="text-amber-700 text-sm mb-4">Upgrade to screen stocks for Shariah compliance, view sector breakdowns, and more.</p>
+          <a href="/pricing" className="inline-block bg-[#1B5E20] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition-colors">
+            View Plans
+          </a>
+        </div>
       </div>
     );
   }

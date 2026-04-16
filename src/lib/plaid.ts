@@ -1,20 +1,32 @@
 const PLAID_LINK_TOKEN_STORAGE_KEY = 'barakah_plaid_link_token';
+// BUG FIX: track token timestamp so stale tokens (>28 min) are not reused
+const PLAID_LINK_TOKEN_TS_KEY = 'barakah_plaid_link_token_ts';
+const PLAID_TOKEN_TTL_MS = 28 * 60 * 1000; // 28 minutes (Plaid tokens expire after 30)
 
 type PlaidPhase = 'start' | 'exchange' | 'sync' | 'unlink';
 
 export function savePendingPlaidLinkToken(token: string) {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(PLAID_LINK_TOKEN_STORAGE_KEY, token);
+  window.localStorage.setItem(PLAID_LINK_TOKEN_TS_KEY, String(Date.now()));
 }
 
 export function readPendingPlaidLinkToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem(PLAID_LINK_TOKEN_STORAGE_KEY);
+  const token = window.localStorage.getItem(PLAID_LINK_TOKEN_STORAGE_KEY);
+  const ts = window.localStorage.getItem(PLAID_LINK_TOKEN_TS_KEY);
+  if (!token || !ts) return null;
+  if (Date.now() - parseInt(ts, 10) > PLAID_TOKEN_TTL_MS) {
+    clearPendingPlaidLinkToken(); // token expired — caller must request a fresh one
+    return null;
+  }
+  return token;
 }
 
 export function clearPendingPlaidLinkToken() {
   if (typeof window === 'undefined') return;
   window.localStorage.removeItem(PLAID_LINK_TOKEN_STORAGE_KEY);
+  window.localStorage.removeItem(PLAID_LINK_TOKEN_TS_KEY);
 }
 
 function extractPlaidErrorMessage(error: unknown): string {

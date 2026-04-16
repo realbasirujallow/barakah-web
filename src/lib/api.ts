@@ -370,6 +370,11 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
   const formData = new FormData();
   formData.append(fieldName, file);
 
+  // BUG FIX: include CSRF token so upload endpoints are protected consistently
+  const csrfToken = getCsrfToken();
+  const uploadHeaders: Record<string, string> = {};
+  if (csrfToken) uploadHeaders['X-XSRF-TOKEN'] = csrfToken;
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT);
   let res: Response;
@@ -378,6 +383,7 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
       method: 'POST',
       body: formData,
       credentials: 'include',
+      headers: uploadHeaders,
       signal: controller.signal,
     });
   } catch (err: unknown) {
@@ -1050,13 +1056,14 @@ export const api = {
     for (let i = 0; i < allTxns.length; i += chunkSize) {
       const chunk = allTxns.slice(i, i + chunkSize);
       const chunkPayload = { format: 'transactions', transactions: chunk };
+      // BUG FIX: guard against null response body (e.g. 204 No Content)
       const data = await apiFetch('/api/import/monarch/execute', {
         method: 'POST', body: JSON.stringify(chunkPayload),
-      }, IMPORT_TIMEOUT);
-      if (data.error) allErrors.push(data.error);
-      totalCreated += data.transactionsCreated || 0;
-      totalSkipped += data.skipped || 0;
-      if (data.errors) allErrors.push(...data.errors);
+      }, IMPORT_TIMEOUT) ?? {};
+      if (data?.error) allErrors.push(data.error);
+      totalCreated += data?.transactionsCreated || 0;
+      totalSkipped += data?.skipped || 0;
+      if (data?.errors) allErrors.push(...data.errors);
     }
 
     return {
@@ -1205,21 +1212,10 @@ export const api = {
   getHawlDue: (days = 30) => apiFetch(`/api/hawl/due?days=${days}`),
 
   // ── Wasiyyah PDF Export ─────────────────────────────────────────────────────
-  downloadWasiyyahPdf: async () => {
-    const resp = await fetch(`${API_URL}/api/wasiyyah/export/pdf`, {
-      credentials: 'include',
-    });
-    if (!resp.ok) throw new Error('Failed to download PDF');
-    const blob = await resp.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `wasiyyah_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  },
+  // BUG FIX: use apiDownload() instead of raw fetch() so auth/CSRF/timeout/retry
+  // are all handled consistently with the rest of the API surface.
+  downloadWasiyyahPdf: () =>
+    apiDownload('/api/wasiyyah/export/pdf', `wasiyyah_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.pdf`),
 
   // ── Sadaqah / Donation to Barakah ────────────────────────────────────────────
   /**
