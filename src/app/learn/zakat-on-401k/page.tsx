@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Script from 'next/script';
+import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
   title: 'Zakat on 401(k) — How to Calculate Zakat on Retirement Accounts | Barakah',
@@ -56,6 +57,8 @@ export default function Page() {
               </details>
             </div>
           </section>
+          <RamadanEmailCapture source="learn-zakat-on-401k" variant="inline" />
+
           <div className="mt-12 bg-green-50 rounded-2xl p-8 text-center">
             <h2 className="text-2xl font-bold text-green-800 mb-3">Calculate Your Zakat Now</h2>
             <p className="text-gray-600 mb-6">Use our free, multi-madhab zakat calculator with live gold prices.</p>
