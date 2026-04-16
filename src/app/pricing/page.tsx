@@ -131,67 +131,37 @@ export default function PricingPage() {
                 <thead>
                   <tr className="border-b border-gray-200">
                     <th className="text-left py-4 px-6 font-semibold text-gray-900">Feature</th>
-                    <th className="text-center py-4 px-4 font-semibold text-white bg-green-700 rounded-tl-none">
-                      Barakah Plus
-                    </th>
+                    <th className="text-center py-4 px-4 font-semibold text-white bg-green-700">Barakah Plus</th>
                     <th className="text-center py-4 px-4 font-semibold text-gray-900">Monarch</th>
                     <th className="text-center py-4 px-4 font-semibold text-gray-900">YNAB</th>
                     <th className="text-center py-4 px-4 font-semibold text-gray-900">Zoya</th>
+                    <th className="text-center py-4 px-4 font-semibold text-gray-900">Copilot</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {COMPETITOR_COMPARISON.map((row, idx) => (
-                    <tr
-                      key={idx}
-                      className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
-                    >
-                      <td className="py-3 px-6 text-gray-700 font-medium">{row.feature}</td>
-                      <td className="py-3 px-4 text-center bg-green-50 font-semibold">
-                        {typeof row.barakah === 'boolean' ? (
-                          row.barakah ? (
-                            <span className="text-green-700 text-lg">&#10003;</span>
-                          ) : (
-                            <span className="text-red-400 text-lg">&#10007;</span>
-                          )
+                  {COMPETITOR_COMPARISON.map((row, idx) => {
+                    const cell = (val: boolean | string, highlight = false) => (
+                      <td className={`py-3 px-4 text-center ${highlight ? 'bg-green-50 font-semibold' : ''}`}>
+                        {typeof val === 'boolean' ? (
+                          val
+                            ? <span className={`text-lg ${highlight ? 'text-green-700' : 'text-green-600'}`}>&#10003;</span>
+                            : <span className="text-red-400 text-lg">&#10007;</span>
                         ) : (
-                          <span className="text-green-800 font-bold">{row.barakah}</span>
+                          <span className={highlight ? 'text-green-800 font-bold' : 'text-gray-700'}>{val}</span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-center">
-                        {typeof row.monarch === 'boolean' ? (
-                          row.monarch ? (
-                            <span className="text-green-600 text-lg">&#10003;</span>
-                          ) : (
-                            <span className="text-red-400 text-lg">&#10007;</span>
-                          )
-                        ) : (
-                          <span className="text-gray-700">{row.monarch}</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        {typeof row.ynab === 'boolean' ? (
-                          row.ynab ? (
-                            <span className="text-green-600 text-lg">&#10003;</span>
-                          ) : (
-                            <span className="text-red-400 text-lg">&#10007;</span>
-                          )
-                        ) : (
-                          <span className="text-gray-700">{row.ynab}</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        {typeof row.zoya === 'boolean' ? (
-                          row.zoya ? (
-                            <span className="text-green-600 text-lg">&#10003;</span>
-                          ) : (
-                            <span className="text-red-400 text-lg">&#10007;</span>
-                          )
-                        ) : (
-                          <span className="text-gray-700">{row.zoya}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                    );
+                    return (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                        <td className="py-3 px-6 text-gray-700 font-medium">{row.feature}</td>
+                        {cell(row.barakah, true)}
+                        {cell(row.monarch)}
+                        {cell(row.ynab)}
+                        {cell(row.zoya)}
+                        {cell(row.copilot)}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

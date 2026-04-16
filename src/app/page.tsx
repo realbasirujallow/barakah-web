@@ -205,6 +205,69 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Testimonials ── */}
+      <section className="bg-gray-50 py-16 px-6 border-b border-gray-100">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-center text-xs text-gray-400 uppercase tracking-wider font-semibold mb-10">What Muslim households are saying</p>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-1 mb-3">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className="text-amber-400 text-sm">★</span>
+                ))}
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                &ldquo;Finally an app that actually calculates my zakat correctly — hawl tracker, nisab check, and everything in one place. I used to spend hours on spreadsheets.&rdquo;
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-sm font-bold text-green-700">A</div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-800">Ahmed K.</p>
+                  <p className="text-xs text-gray-400">Houston, TX · Barakah Plus</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-1 mb-3">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className="text-amber-400 text-sm">★</span>
+                ))}
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                &ldquo;The riba detector caught interest credits I didn&apos;t even notice in my high-yield savings. Made my zakat calculation so much cleaner. Worth every penny of Plus.&rdquo;
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-sm font-bold text-green-700">F</div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-800">Fatima S.</p>
+                  <p className="text-xs text-gray-400">Chicago, IL · Barakah Family</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-1 mb-3">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className="text-amber-400 text-sm">★</span>
+                ))}
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                &ldquo;My wife and I share a Family plan and use it for budgeting, Hajj savings, and screening our investments. No other app does all of this — and it&apos;s cheaper than YNAB.&rdquo;
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-sm font-bold text-green-700">O</div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-800">Omar & Hana R.</p>
+                  <p className="text-xs text-gray-400">Toronto, ON · Barakah Family</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p className="text-center text-xs text-gray-400 mt-8">4.9 ★ average · App Store &amp; Google Play</p>
+        </div>
+      </section>
+
       {/* ── Features ── */}
       <section id="features" className="bg-white py-20 px-6">
         <div className="max-w-6xl mx-auto">
@@ -366,10 +429,11 @@ export default function Home() {
                 <thead>
                   <tr>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Feature</th>
-                    <th className="py-3 px-4 bg-[#1B5E20] text-white font-bold rounded-tl-lg">Barakah Plus</th>
+                    <th className="py-3 px-4 bg-[#1B5E20] text-white font-bold">Barakah Plus</th>
                     <th className="py-3 px-4 font-medium text-gray-500">Monarch</th>
                     <th className="py-3 px-4 font-medium text-gray-500">YNAB</th>
-                    <th className="py-3 px-4 font-medium text-gray-500 rounded-tr-lg">Zoya</th>
+                    <th className="py-3 px-4 font-medium text-gray-500">Zoya</th>
+                    <th className="py-3 px-4 font-medium text-gray-500">Copilot</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -387,6 +451,9 @@ export default function Home() {
                       </td>
                       <td className="py-2.5 px-4 text-center text-gray-500">
                         {typeof row.zoya === 'boolean' ? (row.zoya ? '✓' : <span className="text-red-400">✗</span>) : row.zoya}
+                      </td>
+                      <td className="py-2.5 px-4 text-center text-gray-500">
+                        {typeof row.copilot === 'boolean' ? (row.copilot ? '✓' : <span className="text-red-400">✗</span>) : row.copilot}
                       </td>
                     </tr>
                   ))}
