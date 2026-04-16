@@ -7,7 +7,15 @@ import { useToast } from '../../../lib/toast';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import { safeParse, validateWasiyyahBeneficiary } from '../../../lib/schemas';
 
-interface Beneficiary { id: number; beneficiaryName: string; relationship: string; sharePercentage: number; shareType: string; notes: string; }
+interface Beneficiary {
+  id: number;
+  beneficiaryName: string;
+  relationship: string;
+  sharePercentage: number;
+  shareType: 'fixed' | 'voluntary' | 'percentage';
+  notes: string;
+  assetDescription?: string;
+}
 interface Obligation { id: number; type: string; amount: number; currency: string; description: string; recipient?: string; notes?: string; status: string; }
 interface WasiyyahBeneficiaryApiItem {
   id: number;
@@ -17,7 +25,23 @@ interface WasiyyahBeneficiaryApiItem {
   sharePercentage: number;
   shareType: string;
   notes?: string;
+  assetDescription?: string;
 }
+interface IslamicSharesMap { [relationship: string]: string; }
+
+const RELATIONSHIPS = [
+  { value: 'spouse',     label: 'Spouse',     emoji: '💑' },
+  { value: 'son',        label: 'Son',         emoji: '👦' },
+  { value: 'daughter',   label: 'Daughter',    emoji: '👧' },
+  { value: 'father',     label: 'Father',      emoji: '👨' },
+  { value: 'mother',     label: 'Mother',      emoji: '👩' },
+  { value: 'brother',    label: 'Brother',     emoji: '🧑' },
+  { value: 'sister',     label: 'Sister',      emoji: '🧒' },
+  { value: 'grandchild', label: 'Grandchild',  emoji: '🍼' },
+  { value: 'uncle',      label: 'Uncle',       emoji: '🧔' },
+  { value: 'aunt',       label: 'Aunt',        emoji: '👩‍🦳' },
+  { value: 'other',      label: 'Other',       emoji: '🤝' },
+];
 
 const OBLIGATION_TYPES = [
   { value: 'ZAKAT',               label: 'Unpaid Zakat',          emoji: '🕌', desc: 'Zakat that is owed but not yet given' },
@@ -28,17 +52,37 @@ const OBLIGATION_TYPES = [
   { value: 'CUSTOM',              label: 'Other Obligation',      emoji: '📋', desc: 'Any other Islamic or personal obligation' },
 ];
 
+function relEmoji(rel: string) {
+  return RELATIONSHIPS.find(r => r.value === rel)?.emoji ?? '🤝';
+}
+
 function WasiyyahPageContent() {
   const { toast } = useToast();
   const { currency: currencyCode } = useCurrency();
   const [items, setItems]           = useState<Beneficiary[]>([]);
   const [obligations, setObligations] = useState<Obligation[]>([]);
+  const [islamicShares, setIslamicShares] = useState<IslamicSharesMap>({});
   const [loading, setLoading]       = useState(true);
   const [tab, setTab]               = useState<'beneficiaries' | 'obligations'>('beneficiaries');
   const [showForm, setShowForm]     = useState(false);
   const [showObForm, setShowObForm] = useState(false);
-  const [form, setForm]             = useState({ beneficiaryName: '', relationship: '', sharePercentage: '', shareType: 'percentage', notes: '' });
-  const [obForm, setObForm]         = useState(() => ({ type: 'ZAKAT', amount: '', currency: currencyCode || '', description: '', recipient: '', notes: '' }));
+  const [showSharesInfo, setShowSharesInfo] = useState(false);
+  const [form, setForm]             = useState({
+    beneficiaryName: '',
+    relationship: 'spouse',
+    sharePercentage: '',
+    shareType: 'voluntary' as 'fixed' | 'voluntary',
+    assetDescription: '',
+    notes: '',
+  });
+  const [obForm, setObForm] = useState(() => ({
+    type: 'ZAKAT',
+    amount: '',
+    currency: currencyCode || 'USD',
+    description: '',
+    recipient: '',
+    notes: '',
+  }));
   const [saving, setSaving]         = useState(false);
   const [exporting, setExporting]   = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<{ type: 'beneficiary' | 'obligation'; id: number } | null>(null);
@@ -46,15 +90,17 @@ function WasiyyahPageContent() {
   const loadingRef = useRef(false);
 
   const load = useCallback(() => {
-    if (loadingRef.current) return; // Prevent concurrent loads
+    if (loadingRef.current) return;
     loadingRef.current = true;
     setLoading(true);
     Promise.allSettled([
       api.getWasiyyah(),
       api.getWasiyyahObligations(),
+      api.getIslamicShares(),
     ]).then((results) => {
       const bRaw = results[0].status === 'fulfilled' ? results[0].value : null;
       const oRaw = results[1].status === 'fulfilled' ? results[1].value : null;
+      const sRaw = results[2].status === 'fulfilled' ? results[2].value : null;
 
       if (bRaw?.error || oRaw?.error) {
         toast(bRaw?.error || oRaw?.error, 'error');
@@ -66,72 +112,81 @@ function WasiyyahPageContent() {
       const validatedBeneficiaries: Beneficiary[] = [];
       if (Array.isArray(bList)) {
         for (const item of bList as WasiyyahBeneficiaryApiItem[]) {
-          // Adapt response field names to schema (beneficiaryName -> name)
           const adapted = { ...item, name: item.beneficiaryName || item.name };
           const result = safeParse(validateWasiyyahBeneficiary, adapted, `beneficiary/${item.id}`);
           if (result) {
-            // Map back to component's interface (name -> beneficiaryName)
-            const component: Beneficiary = {
+            validatedBeneficiaries.push({
               id: result.id,
               beneficiaryName: result.name,
               relationship: result.relationship,
               sharePercentage: result.sharePercentage,
-              shareType: result.shareType,
+              shareType: (result.shareType as 'fixed' | 'voluntary' | 'percentage') || 'voluntary',
               notes: result.notes || '',
-            };
-            validatedBeneficiaries.push(component);
+              assetDescription: item.assetDescription,
+            });
           } else {
             const itemId = typeof item === 'object' && item !== null && 'id' in item
-              ? String((item as { id?: unknown }).id ?? 'unknown')
-              : 'unknown';
+              ? String((item as { id?: unknown }).id ?? 'unknown') : 'unknown';
             console.warn(`Skipped invalid beneficiary (id=${itemId})`);
           }
         }
       }
 
       const oList = oRaw?.obligations;
+      const sharesMap: IslamicSharesMap = sRaw?.shares ?? {};
       setItems(validatedBeneficiaries);
       setObligations(Array.isArray(oList) ? oList : []);
+      setIslamicShares(sharesMap);
     }).catch(() => toast('Failed to load wasiyyah data', 'error'))
       .finally(() => {
         setLoading(false);
         loadingRef.current = false;
       });
   }, [toast]);
+
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      load();
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
+    const id = window.setTimeout(() => load(), 0);
+    return () => window.clearTimeout(id);
   }, [load]);
+
+  // Derived share totals (mirrors Flutter)
+  const fixedShareTotal     = items.filter(b => b.shareType === 'fixed').reduce((s, b) => s + b.sharePercentage, 0);
+  const voluntaryShareTotal = items.filter(b => b.shareType !== 'fixed').reduce((s, b) => s + b.sharePercentage, 0);
+  const voluntaryRemaining  = Math.max(0, 33.33 - voluntaryShareTotal);
 
   const handleSave = async () => {
     setSaving(true);
     setFormError(null);
     try {
       const share = parseFloat(form.sharePercentage);
-      if (!share || share <= 0 || share > 33.33) {
-        const msg = 'Share percentage must be > 0 and <= 33.33%';
+      if (!share || share <= 0) {
+        const msg = 'Share percentage must be greater than 0';
         setFormError(msg); toast(msg, 'error'); setSaving(false); return;
       }
-      // Enforce total wasiyyah 1/3 cap: calculate total existing share + new share
-      const totalExistingShare = items.reduce((sum, b) => sum + (b.sharePercentage || 0), 0);
-      const totalWithNew = totalExistingShare + share;
-      if (totalWithNew > 33.33) {
-        const msg = `Total wasiyyah would be ${totalWithNew.toFixed(2)}%, which exceeds the Islamic 1/3 limit. Current beneficiaries use ${totalExistingShare.toFixed(2)}%, so maximum new share is ${Math.max(0, (33.33 - totalExistingShare)).toFixed(2)}%.`;
-        setFormError(msg); toast(msg, 'error'); setSaving(false); return;
+      if (form.shareType === 'voluntary') {
+        if (share > 33.33) {
+          const msg = 'Voluntary bequests are limited to 33.33% (1/3 of estate) per Islamic law';
+          setFormError(msg); toast(msg, 'error'); setSaving(false); return;
+        }
+        if (voluntaryShareTotal + share > 33.33) {
+          const msg = `Total voluntary share would be ${(voluntaryShareTotal + share).toFixed(2)}%, exceeding the 1/3 limit. You have ${voluntaryRemaining.toFixed(2)}% remaining.`;
+          setFormError(msg); toast(msg, 'error'); setSaving(false); return;
+        }
       }
-      await api.addWasiyyah({ ...form, sharePercentage: share });
+      await api.addWasiyyah({
+        beneficiaryName: form.beneficiaryName,
+        relationship: form.relationship,
+        sharePercentage: share,
+        shareType: form.shareType,
+        assetDescription: form.assetDescription || undefined,
+        notes: form.notes || undefined,
+      });
       toast('Beneficiary added', 'success');
       setShowForm(false);
-      setForm({ beneficiaryName: '', relationship: '', sharePercentage: '', shareType: 'percentage', notes: '' });
+      setForm({ beneficiaryName: '', relationship: 'spouse', sharePercentage: '', shareType: 'voluntary', assetDescription: '', notes: '' });
       load();
     } catch { toast('Failed to add beneficiary', 'error'); }
     setSaving(false);
-  };
-
-  const handleDelete = (id: number) => {
-    setDeleteConfirmId({ type: 'beneficiary', id });
   };
 
   const confirmDeleteItem = async () => {
@@ -147,30 +202,21 @@ function WasiyyahPageContent() {
         toast('Obligation removed', 'success');
       }
       load();
-    } catch {
-      toast(`Failed to remove ${type}`, 'error');
-    }
+    } catch { toast(`Failed to remove ${type}`, 'error'); }
   };
 
   const handleObSave = async () => {
     setSaving(true);
     try {
       const obAmt = parseFloat(obForm.amount);
-      if (!obAmt || obAmt <= 0) { toast('Obligation amount must be greater than zero', 'error'); setSaving(false); return; }
-      await api.addWasiyyahObligation({
-        ...obForm,
-        amount: obAmt,
-      });
+      if (!obAmt || obAmt <= 0) { toast('Amount must be greater than zero', 'error'); setSaving(false); return; }
+      await api.addWasiyyahObligation({ ...obForm, amount: obAmt });
       toast('Obligation recorded', 'success');
       setShowObForm(false);
       setObForm({ type: 'ZAKAT', amount: '', currency: currencyCode, description: '', recipient: '', notes: '' });
       load();
     } catch { toast('Failed to record obligation', 'error'); }
     setSaving(false);
-  };
-
-  const handleObDelete = (id: number) => {
-    setDeleteConfirmId({ type: 'obligation', id });
   };
 
   const markFulfilled = async (ob: Obligation) => {
@@ -181,7 +227,6 @@ function WasiyyahPageContent() {
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
 
-  const totalShare   = items.reduce((s, b) => s + (b.sharePercentage || 0), 0);
   const totalPending = obligations.filter(o => o.status === 'pending').reduce((s, o) => s + o.amount, 0);
 
   return (
@@ -193,7 +238,6 @@ function WasiyyahPageContent() {
           <p className="text-sm text-green-800 font-medium">Share your Wasiyyah with family</p>
           <p className="text-xs text-green-600 mt-1">
             Family plan members can view each other&apos;s wills and estate plans through Shared Finances.
-            Your sharing is currently managed in the Estate tab.
           </p>
         </div>
         <a href="/dashboard/shared" className="text-xs text-[#1B5E20] font-semibold hover:underline whitespace-nowrap self-center">
@@ -204,13 +248,27 @@ function WasiyyahPageContent() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Wasiyyah (Islamic Will)</h1>
         <div className="flex gap-2">
+          {/* Islamic Shares Info button */}
+          <button
+            type="button"
+            onClick={() => setShowSharesInfo(true)}
+            title="Islamic Inheritance Guide"
+            className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium"
+          >
+            📖 Guide
+          </button>
           <button
             type="button"
             disabled={exporting}
-            onClick={async () => { setExporting(true); try { await api.downloadWasiyyahPdf(); } catch (err) { toast(err instanceof Error ? err.message : 'Failed to export PDF', 'error'); } finally { setExporting(false); } }}
+            onClick={async () => {
+              setExporting(true);
+              try { await api.downloadWasiyyahPdf(); }
+              catch (err) { toast(err instanceof Error ? err.message : 'Failed to export PDF', 'error'); }
+              finally { setExporting(false); }
+            }}
             className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium flex items-center gap-1 disabled:opacity-50"
           >
-            {exporting ? 'Exporting...' : '📄 Export PDF'}
+            {exporting ? 'Exporting...' : '📄 PDF'}
           </button>
           <button
             type="button"
@@ -231,10 +289,12 @@ function WasiyyahPageContent() {
             onClick={() => setTab(t)}
             role="tab"
             aria-selected={tab === t}
-            aria-label={t === 'beneficiaries' ? 'View beneficiaries' : 'View obligations'}
             className={`px-5 py-2 rounded-full text-sm font-semibold transition ${tab === t ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
           >
-            {t === 'beneficiaries' ? '📜 Beneficiaries' : `⚖️ Obligations${obligations.filter(o=>o.status==='pending').length > 0 ? ` (${obligations.filter(o=>o.status==='pending').length})` : ''}`}
+            {t === 'beneficiaries'
+              ? `📜 Beneficiaries (${items.length})`
+              : `⚖️ Obligations${obligations.filter(o => o.status === 'pending').length > 0 ? ` (${obligations.filter(o => o.status === 'pending').length})` : ''}`
+            }
           </button>
         ))}
       </div>
@@ -242,60 +302,123 @@ function WasiyyahPageContent() {
       {/* ── Beneficiaries Tab ── */}
       {tab === 'beneficiaries' && (
         <>
-          <div className="bg-gradient-to-r from-purple-700 to-indigo-600 rounded-2xl p-6 text-white mb-6">
-            <p className="text-purple-200 text-sm">Total Share Allocated</p>
-            <p className="text-4xl font-bold">{totalShare.toFixed(1)}%</p>
-            <p className="text-purple-200 text-sm mt-1">{totalShare <= 33.3 ? '✅ Within the 1/3 Sunnah limit' : `⚠️ Exceeds the 1/3 Sunnah limit by ${(totalShare - 33.3).toFixed(1)}%`}</p>
-            <div className="w-full bg-purple-900/40 rounded-full h-3 mt-3">
-              <div className={`h-3 rounded-full ${totalShare <= 33.3 ? 'bg-green-400' : 'bg-red-400'}`} style={{ width: `${Math.min(totalShare, 100)}%` }} />
+          {/* Estate Distribution Summary — mirrors Flutter 3-column card */}
+          <div className="bg-gradient-to-r from-[#1B5E20] to-teal-700 rounded-2xl p-6 text-white mb-6">
+            <p className="text-green-200 text-sm mb-3">Estate Distribution</p>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-2xl font-bold">{fixedShareTotal.toFixed(1)}%</p>
+                <p className="text-green-200 text-xs mt-0.5">Fixed (Fard)</p>
+              </div>
+              <div className="border-x border-white/30">
+                <p className="text-2xl font-bold">{voluntaryShareTotal.toFixed(1)}%</p>
+                <p className="text-green-200 text-xs mt-0.5">Voluntary</p>
+              </div>
+              <div>
+                <p className={`text-2xl font-bold ${voluntaryRemaining <= 0 ? 'text-red-300' : ''}`}>
+                  {voluntaryRemaining.toFixed(1)}%
+                </p>
+                <p className="text-green-200 text-xs mt-0.5">Vol. Remaining</p>
+              </div>
             </div>
-            <div className="flex justify-between text-xs text-purple-300 mt-1"><span>0%</span><span>33.3%</span><span>100%</span></div>
+            <div className="w-full bg-white/20 rounded-full h-2 mt-4">
+              <div
+                className={`h-2 rounded-full ${(fixedShareTotal + voluntaryShareTotal) > 100 ? 'bg-red-400' : 'bg-white'}`}
+                style={{ width: `${Math.min(fixedShareTotal + voluntaryShareTotal, 100)}%` }}
+              />
+            </div>
+            <p className="text-green-200 text-xs mt-1 text-right">
+              {(fixedShareTotal + voluntaryShareTotal).toFixed(1)}% allocated total
+            </p>
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm text-amber-900 mb-6 space-y-3">
-            <h3 className="font-bold text-base">📖 Islamic Guidance on Wasiyyah</h3>
-            <p>
-              <strong>The 1/3 Rule:</strong> Sa&apos;d ibn Abi Waqqas (رضي الله عنه) said: <em>&quot;I was ill and the Prophet (ﷺ) visited me. I said, &apos;O Messenger of Allah, may I bequeath all my wealth?&apos; He said, &apos;No.&apos; I said, &apos;Then half?&apos; He said, &apos;No.&apos; I said, &apos;Then one-third?&apos; He said, &apos;One-third, and one-third is a lot.&apos;&quot;</em> — <strong>Sahih al-Bukhari 2742, Sahih Muslim 1628</strong>
-            </p>
-            <p>
-              <strong>No Bequest to Heirs:</strong> The Prophet (ﷺ) said: <em>&quot;Allah has given every deserving person his right, so there is no bequest for an heir.&quot;</em> — <strong>Sunan Abu Dawud 2870, Sunan al-Tirmidhi 2120</strong>
-            </p>
-            <p>
-              <strong>Obligation:</strong> Ibn Umar (رضي الله عنه) reported that the Messenger of Allah (ﷺ) said: <em>&quot;It is not right for a Muslim who has something to bequeath to sleep two nights without having his will written down.&quot;</em> — <strong>Sahih al-Bukhari 2738</strong>
-            </p>
-            <p className="text-xs text-amber-700">Fixed-share heirs (spouse, children, parents) receive their Quranic portions (Surah An-Nisa 4:11-12) automatically. Voluntary bequests are only for non-heirs.</p>
+          {/* 1/3 voluntary limit note */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-2">
+              <span className="text-amber-600 mt-0.5">ℹ️</span>
+              <div className="text-sm text-amber-900">
+                <strong>Voluntary bequests are limited to 1/3 (33.33%)</strong> of your estate per Islamic law (Sahih al-Bukhari 2742).
+                Fixed (Fard) shares follow the Quranic schedule and are not capped.
+              </div>
+            </div>
           </div>
 
-          {totalShare > 33.3 && items.length > 0 && (
+          {/* Hadith guidance (collapsible) */}
+          <details className="bg-amber-50 border border-amber-200 rounded-xl mb-6 group">
+            <summary className="flex items-center justify-between px-5 py-4 cursor-pointer select-none">
+              <span className="font-bold text-amber-900 text-sm">📖 Islamic Guidance on Wasiyyah</span>
+              <span className="text-amber-600 group-open:rotate-180 transition-transform">▾</span>
+            </summary>
+            <div className="px-5 pb-5 space-y-3 text-sm text-amber-900">
+              <p>
+                <strong>The 1/3 Rule:</strong> Sa&apos;d ibn Abi Waqqas (رضي الله عنه) said: <em>&quot;I was ill and the Prophet (ﷺ) visited me. I said, &apos;O Messenger of Allah, may I bequeath all my wealth?&apos; He said, &apos;No.&apos; I said, &apos;Then half?&apos; He said, &apos;No.&apos; I said, &apos;Then one-third?&apos; He said, &apos;One-third, and one-third is a lot.&apos;&quot;</em> — <strong>Sahih al-Bukhari 2742</strong>
+              </p>
+              <p>
+                <strong>No Bequest to Heirs:</strong> <em>&quot;Allah has given every deserving person his right, so there is no bequest for an heir.&quot;</em> — <strong>Sunan Abu Dawud 2870</strong>
+              </p>
+              <p>
+                <strong>Obligation:</strong> <em>&quot;It is not right for a Muslim who has something to bequeath to sleep two nights without having his will written down.&quot;</em> — <strong>Sahih al-Bukhari 2738</strong>
+              </p>
+              <p className="text-xs text-amber-700">Fixed-share heirs (spouse, children, parents) receive their Quranic portions (Surah An-Nisa 4:11-12) automatically. Voluntary bequests are only for non-heirs.</p>
+            </div>
+          </details>
+
+          {/* Over-limit warning */}
+          {voluntaryShareTotal > 33.33 && items.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-800 mb-6">
-              <strong>How to fix:</strong> Your total allocation is {totalShare.toFixed(1)}%, which is {(totalShare - 33.3).toFixed(1)}% over the Sunnah limit.
-              Consider reducing the share of your largest beneficiary
+              <strong>Over voluntary limit:</strong> {voluntaryShareTotal.toFixed(1)}% is {(voluntaryShareTotal - 33.33).toFixed(1)}% over the 1/3 Sunnah limit.
               {(() => {
-                const largest = [...items].sort((a, b) => b.sharePercentage - a.sharePercentage)[0];
-                const excess = totalShare - 33.3;
-                return largest ? ` ("${largest.beneficiaryName}" at ${largest.sharePercentage}%) by at least ${excess.toFixed(1)}%` : '';
+                const largest = [...items.filter(b => b.shareType !== 'fixed')].sort((a, b) => b.sharePercentage - a.sharePercentage)[0];
+                const excess = voluntaryShareTotal - 33.33;
+                return largest ? ` Reduce "${largest.beneficiaryName}" (${largest.sharePercentage}%) by at least ${excess.toFixed(1)}%.` : '';
               })()}
-              , or remove a beneficiary to bring the total within the Islamic 1/3 limit.
             </div>
           )}
 
+          {/* Beneficiary list */}
           {items.length > 0 ? (
             <div className="space-y-3">
-              {items.map(b => (
-                <div key={b.id} className="bg-white rounded-2xl shadow-sm p-6 flex justify-between items-center" role="listitem">
-                  <div>
-                    <p className="font-semibold text-[#1B5E20]">{b.beneficiaryName}</p>
-                    <p className="text-sm text-gray-500">{b.relationship}{b.notes ? ` • ${b.notes}` : ''}</p>
+              {items.map(b => {
+                const isFixed = b.shareType === 'fixed';
+                return (
+                  <div key={b.id} className="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-4" role="listitem">
+                    <div className={`w-11 h-11 rounded-full flex items-center justify-center text-xl flex-shrink-0 ${isFixed ? 'bg-green-100' : 'bg-orange-100'}`}>
+                      {relEmoji(b.relationship)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-[#1B5E20]">{b.beneficiaryName}</p>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isFixed ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
+                          {isFixed ? 'FARD' : 'VOLUNTARY'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500 capitalize">
+                        {b.relationship}{b.assetDescription ? ` · ${b.assetDescription}` : ''}{b.notes ? ` · ${b.notes}` : ''}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <p className={`text-2xl font-bold ${isFixed ? 'text-[#1B5E20]' : 'text-orange-600'}`}>
+                        {b.sharePercentage}%
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmId({ type: 'beneficiary', id: b.id })}
+                        aria-label={`Delete beneficiary ${b.beneficiaryName}`}
+                        className="text-gray-300 hover:text-red-500 transition text-lg"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <p className="text-2xl font-bold text-purple-600" aria-label={`Share: ${b.sharePercentage} percent`}>{b.sharePercentage}%</p>
-                    <button type="button" onClick={() => handleDelete(b.id)} aria-label={`Delete beneficiary ${b.beneficiaryName}`} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
-            <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-3">📜</p><p>No beneficiaries yet. Planning your estate is a Sunnah.</p></div>
+            <div className="text-center py-16 text-gray-400">
+              <p className="text-4xl mb-3">📜</p>
+              <p className="font-medium text-gray-600">No beneficiaries yet.</p>
+              <p className="text-sm mt-1">Planning your estate is a Sunnah.</p>
+            </div>
           )}
         </>
       )}
@@ -303,7 +426,6 @@ function WasiyyahPageContent() {
       {/* ── Obligations Tab ── */}
       {tab === 'obligations' && (
         <>
-          {/* Summary card */}
           <div className="bg-gradient-to-r from-amber-700 to-orange-600 rounded-2xl p-6 text-white mb-6">
             <p className="text-amber-200 text-sm">Total Pending Obligations</p>
             <p className="text-4xl font-bold">{fmt(totalPending)}</p>
@@ -313,7 +435,8 @@ function WasiyyahPageContent() {
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 mb-6">
-            <strong>What are Obligations?</strong> These are Islamic duties (Wajibat) — such as unpaid Zakat, Kaffarah, or loans — that must be settled in full from your estate <em>before</em> any inheritance is distributed. Unlike Wasiyyah, they are not subject to the 1/3 limit.
+            <strong>What are Obligations?</strong> Islamic duties (Wajibat) — unpaid Zakat, Kaffarah, loans etc. — that must be settled
+            in full from your estate <em>before</em> any inheritance is distributed. Not subject to the 1/3 limit.
           </div>
 
           {obligations.length > 0 ? (
@@ -321,10 +444,10 @@ function WasiyyahPageContent() {
               {obligations.map(ob => {
                 const typeInfo = OBLIGATION_TYPES.find(t => t.value === ob.type) ?? OBLIGATION_TYPES[OBLIGATION_TYPES.length - 1];
                 return (
-                  <div key={ob.id} className={`bg-white rounded-2xl shadow-sm p-6 border-l-4 ${ob.status === 'fulfilled' ? 'border-green-400 opacity-60' : 'border-amber-400'}`} role="listitem">
-                    <div className="flex justify-between items-start">
+                  <div key={ob.id} className={`bg-white rounded-2xl shadow-sm p-5 border-l-4 ${ob.status === 'fulfilled' ? 'border-green-400 opacity-60' : 'border-amber-400'}`} role="listitem">
+                    <div className="flex justify-between items-start gap-4">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className="text-lg">{typeInfo.emoji}</span>
                           <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-0.5 rounded-full">{typeInfo.label}</span>
                           {ob.status === 'fulfilled' && <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">✓ Fulfilled</span>}
@@ -332,28 +455,24 @@ function WasiyyahPageContent() {
                         <p className="font-semibold text-gray-800 truncate">{ob.description}</p>
                         {ob.recipient && <p className="text-sm text-gray-500">→ {ob.recipient}</p>}
                         {ob.notes && <p className="text-xs text-gray-400 mt-1 italic">{ob.notes}</p>}
-                      </div>
-                      <div className="ml-4 text-right flex-shrink-0">
-                        <p className="text-xl font-bold text-amber-700" aria-label={`Amount: ${fmt(ob.amount, ob.currency)}`}>{fmt(ob.amount, ob.currency)}</p>
-                        <div className="flex gap-2 mt-2 justify-end">
+                        <div className="flex gap-3 mt-3">
                           <button
                             type="button"
                             onClick={() => markFulfilled(ob)}
-                            aria-label={`${ob.status === 'pending' ? 'Mark' : 'Unmark'} obligation fulfilled`}
                             className="text-xs text-[#1B5E20] hover:underline font-medium"
                           >
-                            {ob.status === 'pending' ? 'Mark fulfilled' : 'Mark pending'}
+                            {ob.status === 'pending' ? '✓ Mark fulfilled' : '↩ Mark pending'}
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleObDelete(ob.id)}
-                            aria-label={`Delete obligation`}
+                            onClick={() => setDeleteConfirmId({ type: 'obligation', id: ob.id })}
                             className="text-xs text-gray-400 hover:text-red-600"
                           >
-                            Del
+                            Delete
                           </button>
                         </div>
                       </div>
+                      <p className="text-xl font-bold text-amber-700 flex-shrink-0">{fmt(ob.amount, ob.currency)}</p>
                     </div>
                   </div>
                 );
@@ -363,16 +482,60 @@ function WasiyyahPageContent() {
             <div className="text-center py-16 text-gray-400">
               <p className="text-4xl mb-3">⚖️</p>
               <p className="font-medium text-gray-600">No obligations recorded.</p>
-              <p className="text-sm mt-1">If you have unpaid Zakat, loans, or other Islamic duties, record them here so your family can fulfil them on your behalf.</p>
+              <p className="text-sm mt-1">If you have unpaid Zakat, loans, or other Islamic duties, record them here.</p>
             </div>
           )}
         </>
       )}
 
-      {/* Add Beneficiary Modal */}
+      {/* ── Islamic Shares Info Modal ── */}
+      {showSharesInfo && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-2xl">📖</span>
+              <h2 className="text-xl font-bold text-[#1B5E20]">Islamic Inheritance Guide</h2>
+            </div>
+            <p className="text-sm font-semibold text-[#1B5E20] mb-3">
+              Qur&apos;anic Inheritance Shares (Surah An-Nisa 4:11-12)
+            </p>
+            {Object.keys(islamicShares).length > 0 ? (
+              <div className="space-y-2 mb-4">
+                {Object.entries(islamicShares).map(([rel, desc]) => (
+                  <div key={rel} className="flex gap-3 items-start py-2 border-b border-gray-100 last:border-0">
+                    <span className="text-xl flex-shrink-0">{relEmoji(rel)}</span>
+                    <div>
+                      <p className="font-semibold text-gray-800 capitalize">{rel}</p>
+                      <p className="text-sm text-gray-600">{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 mb-4">Quranic share data unavailable.</p>
+            )}
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-800 mb-4">
+              <strong className="block mb-1">Important Disclaimer</strong>
+              These calculations provide general guidance based on Qur&apos;anic shares (Surah An-Nisa 4:11-12).
+              Actual inheritance depends on: (1) complete family composition, (2) presence of &apos;Asaba (male residuary heirs),
+              (3) your madhab, (4) local laws. <strong>Consult a qualified Islamic scholar (Mufti) and legal
+              professional for your specific situation before finalizing any estate distribution.</strong>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSharesInfo(false)}
+              className="w-full bg-[#1B5E20] text-white rounded-lg py-2.5 font-medium hover:bg-[#2E7D32]"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Add Beneficiary Modal ── */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Beneficiary</h2>
             {formError && (
               <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg mb-4">
@@ -380,51 +543,89 @@ function WasiyyahPageContent() {
               </div>
             )}
             <div className="space-y-4">
+              {/* Name */}
               <div>
-                <label htmlFor="beneficiary-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <label htmlFor="ben-name" className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
                 <input
-                  id="beneficiary-name"
+                  id="ben-name"
                   value={form.beneficiaryName}
                   onChange={e => setForm({ ...form, beneficiaryName: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
                   placeholder="Full name"
-                  aria-label="Beneficiary name"
                 />
               </div>
+
+              {/* Relationship dropdown with emoji */}
               <div>
-                <label htmlFor="beneficiary-relationship" className="block text-sm font-medium text-gray-700 mb-1">Relationship</label>
-                <input
-                  id="beneficiary-relationship"
+                <label htmlFor="ben-rel" className="block text-sm font-medium text-gray-700 mb-1">Relationship *</label>
+                <select
+                  id="ben-rel"
                   value={form.relationship}
                   onChange={e => setForm({ ...form, relationship: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                  placeholder="e.g. Nephew, Charity"
-                  aria-label="Relationship to beneficiary"
-                />
+                >
+                  {RELATIONSHIPS.map(r => (
+                    <option key={r.value} value={r.value}>{r.emoji} {r.label}</option>
+                  ))}
+                </select>
               </div>
+
+              {/* Share type + percentage in a row */}
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label htmlFor="ben-share" className="block text-sm font-medium text-gray-700 mb-1">Share % *</label>
+                  <input
+                    id="ben-share"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    value={form.sharePercentage}
+                    onChange={e => setForm({ ...form, sharePercentage: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                    placeholder="10"
+                  />
+                </div>
+                <div className="w-44">
+                  <label htmlFor="ben-type" className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                  <select
+                    id="ben-type"
+                    value={form.shareType}
+                    onChange={e => setForm({ ...form, shareType: e.target.value as 'fixed' | 'voluntary' })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm"
+                  >
+                    <option value="fixed">Fixed (Fard)</option>
+                    <option value="voluntary">Voluntary</option>
+                  </select>
+                </div>
+              </div>
+              {form.shareType === 'voluntary' && (
+                <p className="text-xs text-orange-600 -mt-2">
+                  Remaining voluntary: <strong>{voluntaryRemaining.toFixed(1)}%</strong>
+                </p>
+              )}
+
+              {/* Asset Description */}
               <div>
-                <label htmlFor="share-percentage" className="block text-sm font-medium text-gray-700 mb-1">Share Percentage</label>
+                <label htmlFor="ben-asset" className="block text-sm font-medium text-gray-700 mb-1">Asset Description (optional)</label>
                 <input
-                  id="share-percentage"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="100"
-                  value={form.sharePercentage}
-                  onChange={e => setForm({ ...form, sharePercentage: e.target.value })}
+                  id="ben-asset"
+                  value={form.assetDescription}
+                  onChange={e => setForm({ ...form, assetDescription: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                  placeholder="10"
-                  aria-label="Share percentage"
+                  placeholder="e.g. Property at 12 Oak Street, savings account"
                 />
               </div>
+
+              {/* Notes */}
               <div>
-                <label htmlFor="beneficiary-notes" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <label htmlFor="ben-notes" className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
                 <input
-                  id="beneficiary-notes"
+                  id="ben-notes"
                   value={form.notes}
                   onChange={e => setForm({ ...form, notes: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                  aria-label="Additional notes"
+                  placeholder="Any additional instructions"
                 />
               </div>
             </div>
@@ -432,38 +633,24 @@ function WasiyyahPageContent() {
               <button
                 type="button"
                 onClick={() => { setShowForm(false); setFormError(null); }}
-                aria-label="Cancel adding beneficiary"
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
-              {(() => {
-                const currentTotal = items.reduce((s, b) => s + (b.sharePercentage || 0), 0);
-                const newShare = parseFloat(form.sharePercentage) || 0;
-                const wouldExceed = currentTotal + newShare > 33.33 && currentTotal < 33.33;
-                const alreadyOver = currentTotal >= 33.33;
-                return (
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={saving || !form.beneficiaryName || !form.sharePercentage}
-                    aria-label="Add beneficiary"
-                    className={`flex-1 rounded-lg py-2 disabled:opacity-50 ${
-                      alreadyOver || wouldExceed
-                        ? 'bg-amber-600 text-white hover:bg-amber-700'
-                        : 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]'
-                    }`}
-                  >
-                    {saving ? 'Saving...' : alreadyOver ? `Add (Over 1/3 Limit)` : wouldExceed ? `Add (Exceeds 1/3)` : 'Add'}
-                  </button>
-                );
-              })()}
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving || !form.beneficiaryName || !form.sharePercentage}
+                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Add Beneficiary'}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Add Obligation Modal */}
+      {/* ── Add Obligation Modal ── */}
       {showObForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -472,26 +659,28 @@ function WasiyyahPageContent() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Type of Obligation</label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-wrap gap-2">
                   {OBLIGATION_TYPES.map(t => (
-                    <button key={t.value} type="button" onClick={() => setObForm({ ...obForm, type: t.value })}
-                      className={`flex items-center gap-2 p-2.5 rounded-xl border-2 text-left transition ${obForm.type === t.value ? 'border-[#1B5E20] bg-green-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                      <span className="text-lg">{t.emoji}</span>
-                      <span className="text-xs font-medium text-gray-700 leading-tight">{t.label}</span>
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setObForm({ ...obForm, type: t.value })}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium transition ${obForm.type === t.value ? 'bg-[#1B5E20] border-[#1B5E20] text-white' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                    >
+                      <span>{t.emoji}</span> {t.label}
                     </button>
                   ))}
                 </div>
                 <p className="text-xs text-gray-500 mt-2 italic">{OBLIGATION_TYPES.find(t => t.value === obForm.type)?.desc}</p>
               </div>
               <div>
-                <label htmlFor="ob-description" className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                <label htmlFor="ob-desc" className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
                 <input
-                  id="ob-description"
+                  id="ob-desc"
                   value={obForm.description}
                   onChange={e => setObForm({ ...obForm, description: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
                   placeholder={obForm.type === 'ZAKAT' ? 'e.g. Zakat for 2024 — held back due to illness' : obForm.type === 'UNPAID_LOAN' ? 'e.g. £500 borrowed from Ahmed in 2022' : 'Brief description'}
-                  aria-label="Obligation description"
                 />
               </div>
               <div className="flex gap-3">
@@ -506,7 +695,6 @@ function WasiyyahPageContent() {
                     onChange={e => setObForm({ ...obForm, amount: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
                     placeholder="0.00"
-                    aria-label="Obligation amount"
                   />
                 </div>
                 <div className="w-28">
@@ -516,50 +704,39 @@ function WasiyyahPageContent() {
                     value={obForm.currency}
                     onChange={e => setObForm({ ...obForm, currency: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm"
-                    aria-label="Currency"
                   >
                     {['USD','GBP','EUR','SAR','AED','CAD','AUD','PKR','MYR','BDT','NGN','EGP'].map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
               </div>
               <div>
-                <label htmlFor="ob-recipient" className="block text-sm font-medium text-gray-700 mb-1">Who should receive this?</label>
+                <label htmlFor="ob-recipient" className="block text-sm font-medium text-gray-700 mb-1">Who should receive this? (optional)</label>
                 <input
                   id="ob-recipient"
                   value={obForm.recipient}
                   onChange={e => setObForm({ ...obForm, recipient: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
                   placeholder="e.g. Local mosque, Ahmed ibn Ibrahim"
-                  aria-label="Recipient name"
                 />
               </div>
               <div>
-                <label htmlFor="ob-notes" className="block text-sm font-medium text-gray-700 mb-1">Additional Notes (for family)</label>
+                <label htmlFor="ob-notes" className="block text-sm font-medium text-gray-700 mb-1">Notes for family (optional)</label>
                 <textarea
                   id="ob-notes"
                   value={obForm.notes}
                   onChange={e => setObForm({ ...obForm, notes: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none"
                   rows={3}
-                  placeholder="Any context your family needs to know to fulfil this obligation..."
-                  aria-label="Additional notes"
+                  placeholder="Any context your family needs to fulfil this obligation..."
                 />
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button
-                type="button"
-                onClick={() => setShowObForm(false)}
-                aria-label="Cancel recording obligation"
-                className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
+              <button type="button" onClick={() => setShowObForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button
                 type="button"
                 onClick={handleObSave}
                 disabled={saving || !obForm.description || !obForm.amount}
-                aria-label="Record obligation"
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Record Obligation'}
@@ -569,15 +746,15 @@ function WasiyyahPageContent() {
         </div>
       )}
 
-      {/* ── Delete confirmation modal ─────────────────────────────────── */}
+      {/* ── Delete Confirmation Modal ── */}
       {deleteConfirmId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <div className="flex items-start gap-3 mb-4">
               <span className="text-2xl">🗑️</span>
-              <div className="flex-1">
+              <div>
                 <h3 className="font-bold text-gray-900">Remove {deleteConfirmId.type}?</h3>
-                <p className="text-sm text-gray-600 mt-1">This {deleteConfirmId.type} will be permanently removed from your wasiyyah.</p>
+                <p className="text-sm text-gray-600 mt-1">This will be permanently removed from your wasiyyah.</p>
               </div>
             </div>
             <div className="flex gap-3">
