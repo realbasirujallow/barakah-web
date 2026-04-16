@@ -72,7 +72,21 @@ export default function ReferralPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Refer a Friend</h1>
-      <p className="text-gray-600 mb-8">Share Barakah with friends and family. When someone signs up and verifies their email through your link, you both receive an extra month of Barakah access.</p>
+      <p className="text-gray-600 mb-4">Share Barakah with friends and family.</p>
+
+      {/* Reward summary cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <div className="bg-gradient-to-br from-[#1B5E20] to-teal-700 text-white rounded-2xl p-5">
+          <p className="text-3xl mb-2">🎁</p>
+          <p className="font-bold text-lg">You earn</p>
+          <p className="text-green-200 text-sm mt-1">A free extra month of Barakah access — automatically applied once your friend verifies their email.</p>
+        </div>
+        <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-5">
+          <p className="text-3xl mb-2">💰</p>
+          <p className="font-bold text-lg">They get first month for $4.99</p>
+          <p className="text-amber-100 text-sm mt-1">Your friend gets Barakah Plus for just $4.99 instead of $9.99 — 50% off their first month, automatically applied at checkout.</p>
+        </div>
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -173,7 +187,7 @@ export default function ReferralPage() {
             <span className="bg-green-100 text-[#1B5E20] rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">3</span>
             <div>
               <p className="font-medium">Earn rewards</p>
-              <p className="text-gray-500 text-sm">Once they verify their email, you both receive one extra month automatically.</p>
+              <p className="text-gray-500 text-sm">Once they verify their email, <strong>you earn a free extra month</strong> and <strong>they get their first paid month for $4.99</strong> — automatically applied at checkout.</p>
             </div>
           </div>
         </div>

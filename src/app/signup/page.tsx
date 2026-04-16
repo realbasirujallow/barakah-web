@@ -659,7 +659,13 @@ function SignupContent() {
               maxLength={8}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 font-mono uppercase placeholder:normal-case placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
             />
-            <p className="text-xs text-gray-400 mt-1">Have a friend&apos;s code? Both of you get 1 free month of Plus. 🎁</p>
+            {referralCode.length === 8 ? (
+              <p className="text-xs text-amber-700 font-medium mt-1 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">
+                🎁 Referral code applied — your first month will be just <strong>$4.99</strong> instead of $9.99.
+              </p>
+            ) : (
+              <p className="text-xs text-gray-400 mt-1">Have a friend&apos;s code? You get your first month for $4.99 — they earn a free month. 🎁</p>
+            )}
           </div>
 
           <p className="text-center text-xs text-gray-600 mb-6">
