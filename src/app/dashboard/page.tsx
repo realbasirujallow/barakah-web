@@ -251,7 +251,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2">
             <span className="text-lg">🤝</span>
             <p className="text-sm text-green-800 font-medium">
-              Invite family to Barakah — you both get a <strong>free month</strong>
+              Invite family to Barakah — they get <strong>first month for $4.99</strong>, you get a free month
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
