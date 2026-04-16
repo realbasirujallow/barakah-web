@@ -1,58 +1,124 @@
-import Link from 'next/link';
+'use client';
 
-const IOS_URL = 'https://apps.apple.com/us/app/barakah-islamic-finance/id6761279229';
+import { useEffect, useState } from 'react';
+
+const IOS_URL     = 'https://apps.apple.com/us/app/barakah-islamic-finance/id6761279229';
 const ANDROID_URL = 'https://play.google.com/store/apps/details?id=com.trybarakah.app';
+const WEB_URL     = '/dashboard';
+const DEEP_LINK   = 'barakah://open';
+
+type Platform = 'ios' | 'android' | 'web';
+
+function detectPlatform(): Platform {
+  if (typeof navigator === 'undefined') return 'web';
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/i.test(ua)) return 'ios';
+  if (/Android/i.test(ua)) return 'android';
+  return 'web';
+}
+
+function getFallbackUrl(platform: Platform): string {
+  if (platform === 'ios') return IOS_URL;
+  if (platform === 'android') return ANDROID_URL;
+  return WEB_URL;
+}
 
 export default function OpenBarakahPage() {
+  const [status, setStatus] = useState<'trying' | 'fallback'>('trying');
+  const [platform, setPlatform] = useState<Platform>('web');
+
+  useEffect(() => {
+    const p = detectPlatform();
+    setPlatform(p);
+
+    // Desktop: skip the deep-link dance and go straight to the web dashboard
+    if (p === 'web') {
+      window.location.replace(WEB_URL);
+      return;
+    }
+
+    // Mobile: try the custom scheme deep link.
+    // If the app is installed the OS will hand off to it and the page becomes
+    // hidden (visibilitychange). If the page stays visible for 2.5 s the app
+    // is not installed, so we bounce to the correct store.
+    const fallback = getFallbackUrl(p);
+    const timer = setTimeout(() => {
+      setStatus('fallback');
+      window.location.replace(fallback);
+    }, 2500);
+
+    const onHidden = () => {
+      if (document.visibilityState === 'hidden') {
+        clearTimeout(timer);
+      }
+    };
+    document.addEventListener('visibilitychange', onHidden);
+
+    // Trigger the deep link
+    window.location.href = DEEP_LINK;
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onHidden);
+    };
+  }, []);
+
+  const storeLabel =
+    platform === 'ios' ? 'App Store' :
+    platform === 'android' ? 'Google Play' :
+    'web dashboard';
+
   return (
-    <main className="min-h-screen bg-[#FFF8E1] px-6 py-12">
-      <div className="mx-auto max-w-3xl rounded-[32px] border border-[#1B5E20]/10 bg-white p-8 shadow-sm md:p-12">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#1B5E20]/70">Barakah</p>
-        <h1 className="mt-4 text-3xl font-bold text-[#1B5E20] md:text-4xl">Open Barakah the way that fits your day</h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-gray-600">
-          Use the Barakah app to stay close to your balances, transactions, zakat readiness, and household finances on the go.
-          If you are at your desk, the web dashboard is ready too.
-        </p>
-
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <a
-            href={IOS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-2xl border border-[#1B5E20]/10 bg-[#F8FBF6] p-5 transition hover:-translate-y-0.5 hover:border-[#1B5E20]/30"
-          >
-            <p className="text-sm font-semibold text-[#1B5E20]">iPhone & iPad</p>
-            <p className="mt-2 text-lg font-bold text-gray-900">Open on the App Store</p>
-            <p className="mt-2 text-sm leading-6 text-gray-500">Best for people who want Barakah close at hand throughout the day.</p>
-          </a>
-
-          <a
-            href={ANDROID_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-2xl border border-[#1B5E20]/10 bg-[#F8FBF6] p-5 transition hover:-translate-y-0.5 hover:border-[#1B5E20]/30"
-          >
-            <p className="text-sm font-semibold text-[#1B5E20]">Android</p>
-            <p className="mt-2 text-lg font-bold text-gray-900">Open on Google Play</p>
-            <p className="mt-2 text-sm leading-6 text-gray-500">Good for daily check-ins, quick syncs, and payment reminders on the move.</p>
-          </a>
-
-          <Link
-            href="/dashboard"
-            className="rounded-2xl border border-[#1B5E20]/10 bg-[#FFFDF5] p-5 transition hover:-translate-y-0.5 hover:border-[#1B5E20]/30"
-          >
-            <p className="text-sm font-semibold text-[#1B5E20]">Web</p>
-            <p className="mt-2 text-lg font-bold text-gray-900">Use Barakah on the web</p>
-            <p className="mt-2 text-sm leading-6 text-gray-500">Best when you want the full dashboard, admin tools, or a larger-screen review.</p>
-          </Link>
+    <main className="min-h-screen bg-[#FFF8E1] flex items-center justify-center px-6">
+      <div className="mx-auto max-w-sm text-center">
+        <div className="w-16 h-16 rounded-2xl bg-[#1B5E20] flex items-center justify-center mx-auto mb-6">
+          <span className="text-white text-2xl font-bold">B</span>
         </div>
 
-        <div className="mt-8 rounded-2xl bg-[#F8FBF6] p-5">
-          <p className="text-sm font-semibold text-[#1B5E20]">One quick tip</p>
-          <p className="mt-2 text-sm leading-6 text-gray-600">
-            Barakah becomes much more helpful once your main accounts are connected and transactions start syncing in.
-            That is when budgets, due dates, net worth, zakat readiness, and spending insights become part of your regular routine.
-          </p>
+        {status === 'trying' ? (
+          <>
+            <h1 className="text-xl font-bold text-[#1B5E20]">Opening Barakah…</h1>
+            <p className="mt-2 text-sm text-gray-500">
+              {platform === 'web'
+                ? 'Taking you to your dashboard.'
+                : 'If the app does not open, we will take you to the ' + storeLabel + '.'}
+            </p>
+            <div className="mt-6 flex justify-center">
+              <div className="w-6 h-6 border-2 border-[#1B5E20] border-t-transparent rounded-full animate-spin" />
+            </div>
+          </>
+        ) : (
+          <>
+            <h1 className="text-xl font-bold text-[#1B5E20]">Taking you to the {storeLabel}</h1>
+            <p className="mt-2 text-sm text-gray-500">
+              Get the Barakah app to manage your finances on the go.
+            </p>
+          </>
+        )}
+
+        {/* Manual fallback links shown after a short delay */}
+        <div className="mt-8 flex flex-col gap-3">
+          {platform !== 'web' && (
+            <a
+              href={DEEP_LINK}
+              className="rounded-xl bg-[#1B5E20] px-4 py-3 text-sm font-semibold text-white"
+            >
+              Open in app
+            </a>
+          )}
+          {platform === 'ios' && (
+            <a href={IOS_URL} className="rounded-xl border border-[#1B5E20]/20 px-4 py-3 text-sm font-semibold text-[#1B5E20]">
+              Download on the App Store
+            </a>
+          )}
+          {platform === 'android' && (
+            <a href={ANDROID_URL} className="rounded-xl border border-[#1B5E20]/20 px-4 py-3 text-sm font-semibold text-[#1B5E20]">
+              Get it on Google Play
+            </a>
+          )}
+          <a href={WEB_URL} className="text-sm text-gray-400 underline underline-offset-2">
+            Use Barakah on the web instead
+          </a>
         </div>
       </div>
     </main>
