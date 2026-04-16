@@ -33,6 +33,40 @@ type DraftCampaign = {
   audienceFilters: Filters;
 };
 
+type QuickBroadcast = {
+  title: string;
+  body: string;
+  route: string;
+  filter: 'all' | 'plus' | 'family' | 'free';
+};
+
+const PUSH_PRESETS: Array<{ label: string; title: string; body: string; route: string }> = [
+  {
+    label: 'Link accounts',
+    title: 'Get more from Barakah',
+    body: 'Connect your bank or card accounts so your balances, spending, and net worth stay in sync automatically.',
+    route: '/dashboard',
+  },
+  {
+    label: 'Zakat reminder',
+    title: 'Have you calculated your zakat?',
+    body: 'With live nisab prices and multi-madhab support, calculate your zakat obligation in under a minute.',
+    route: '/zakat',
+  },
+  {
+    label: 'Ramadan',
+    title: 'Ramadan Mubarak from Barakah',
+    body: 'Review your zakat readiness, track sadaqah, and plan your Ramadan budget — all in one place.',
+    route: '/dashboard',
+  },
+  {
+    label: 'Check-in',
+    title: 'Your finances may have changed',
+    body: 'Your balances, spending, and net worth may have updated since your last visit. Open Barakah for a quick check.',
+    route: '/dashboard',
+  },
+];
+
 type RetentionSettings = {
   enabled: boolean;
   percentOff: number;
@@ -149,6 +183,16 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
   const [deliveries, setDeliveries] = useState<Record<number, Array<Record<string, unknown>>>>({});
   const [testEmail, setTestEmail] = useState('');
   const [savingRetention, setSavingRetention] = useState(false);
+
+  const [quickBroadcast, setQuickBroadcast] = useState<QuickBroadcast>({
+    title: '',
+    body: '',
+    route: '/dashboard',
+    filter: 'all',
+  });
+  const [broadcastConfirm, setBroadcastConfirm] = useState(false);
+  const [sendingBroadcast, setSendingBroadcast] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState<{ sent: number; skipped: number } | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -327,6 +371,25 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
     }
   };
 
+  const sendBroadcast = async () => {
+    if (!quickBroadcast.title.trim() || !quickBroadcast.body.trim()) {
+      toast('Title and body are required.', 'error');
+      return;
+    }
+    setSendingBroadcast(true);
+    setBroadcastResult(null);
+    try {
+      const result = await api.broadcastPushNotification(quickBroadcast);
+      setBroadcastResult({ sent: result?.sent ?? 0, skipped: result?.skipped ?? 0 });
+      setBroadcastConfirm(false);
+      toast(`Push sent to ${result?.sent ?? 0} devices.`, 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Broadcast failed.', 'error');
+    } finally {
+      setSendingBroadcast(false);
+    }
+  };
+
   const saveRetentionSettings = async () => {
     setSavingRetention(true);
     try {
@@ -349,6 +412,123 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
 
   return (
     <div className="space-y-6">
+
+      {/* ── Quick Push Broadcast ──────────────────────────────────────────── */}
+      <div className="rounded-2xl border bg-white p-5">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Quick Push Broadcast</h2>
+            <p className="text-sm text-gray-500 mt-1">Send a push notification directly to app users. No draft required.</p>
+          </div>
+          {broadcastResult && (
+            <span className="rounded-full bg-green-50 border border-green-200 px-3 py-1 text-xs font-semibold text-green-700">
+              ✓ Sent to {broadcastResult.sent} devices
+            </span>
+          )}
+        </div>
+
+        {/* Presets */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {PUSH_PRESETS.map(preset => (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => {
+                setQuickBroadcast(prev => ({ ...prev, title: preset.title, body: preset.body, route: preset.route }));
+                setBroadcastConfirm(false);
+                setBroadcastResult(null);
+              }}
+              className="rounded-full border border-[#1B5E20]/20 bg-[#F8FBF6] px-3 py-1.5 text-xs font-medium text-[#1B5E20] hover:bg-[#E8F5E9]"
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="text-sm text-gray-600">
+            <span className="mb-2 block font-medium text-gray-800">Title</span>
+            <input
+              value={quickBroadcast.title}
+              onChange={e => { setQuickBroadcast(prev => ({ ...prev, title: e.target.value })); setBroadcastConfirm(false); }}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+              placeholder="Get more from Barakah"
+            />
+          </label>
+          <label className="text-sm text-gray-600">
+            <span className="mb-2 block font-medium text-gray-800">Audience</span>
+            <select
+              value={quickBroadcast.filter}
+              onChange={e => { setQuickBroadcast(prev => ({ ...prev, filter: e.target.value as QuickBroadcast['filter'] })); setBroadcastConfirm(false); }}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+            >
+              <option value="all">Everyone</option>
+              <option value="plus">Plus + Family</option>
+              <option value="family">Family only</option>
+              <option value="free">Free plan only</option>
+            </select>
+          </label>
+          <label className="text-sm text-gray-600 md:col-span-2">
+            <span className="mb-2 block font-medium text-gray-800">Body</span>
+            <textarea
+              value={quickBroadcast.body}
+              onChange={e => { setQuickBroadcast(prev => ({ ...prev, body: e.target.value })); setBroadcastConfirm(false); }}
+              rows={3}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+              placeholder="Connect your bank or card accounts so your balances stay in sync."
+            />
+          </label>
+          <label className="text-sm text-gray-600">
+            <span className="mb-2 block font-medium text-gray-800">Deep-link route</span>
+            <input
+              value={quickBroadcast.route}
+              onChange={e => setQuickBroadcast(prev => ({ ...prev, route: e.target.value }))}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+              placeholder="/dashboard"
+            />
+          </label>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          {!broadcastConfirm ? (
+            <button
+              type="button"
+              disabled={!quickBroadcast.title.trim() || !quickBroadcast.body.trim()}
+              onClick={() => setBroadcastConfirm(true)}
+              className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-50"
+            >
+              Send Push
+            </button>
+          ) : (
+            <>
+              <span className="text-sm text-amber-700 font-medium">
+                Send to{' '}
+                <strong>
+                  {quickBroadcast.filter === 'all' ? 'all users' :
+                   quickBroadcast.filter === 'plus' ? 'Plus + Family' :
+                   quickBroadcast.filter === 'family' ? 'Family users' : 'Free users'}
+                </strong>?
+              </span>
+              <button
+                type="button"
+                onClick={sendBroadcast}
+                disabled={sendingBroadcast}
+                className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-60"
+              >
+                {sendingBroadcast ? 'Sending…' : 'Yes, send now'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setBroadcastConfirm(false)}
+                className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-4">
         {[
           ['Incomplete Setup', overview?.incompleteSetup ?? 0],
