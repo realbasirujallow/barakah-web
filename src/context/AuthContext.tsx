@@ -63,8 +63,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   useEffect(() => {
+    // HIGH BUG FIX: cancellation flag so rapid unmount (e.g. fast-navigation) does
+    // not call setUser/setIsLoading on an already-unmounted context provider.
+    let cancelled = false;
     const finishLoading = () => {
-      window.setTimeout(() => setIsLoading(false), 0);
+      window.setTimeout(() => { if (!cancelled) setIsLoading(false); }, 0);
     };
     let savedUser: string | null = null;
     try {
@@ -149,11 +152,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // plus/family users aren't incorrectly locked out.
       if (planMissing) {
         syncPlan(parsed!).then(u => {
+          if (cancelled) return;
           setUser(u);
           setIsLoading(false);
         });
       } else {
         window.setTimeout(() => {
+          if (cancelled) return;
           setUser(parsed);
           setIsLoading(false);
         }, 0);
@@ -171,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // apiFetch should trigger a logout (when the auth_token truly expires and
     // the refresh also fails).
     api.refresh().then(async (result: 'ok' | 'expired' | 'rate_limited' | 'network_error') => {
+      if (cancelled) return;
       if (result === 'ok') {
         try {
           localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
@@ -209,6 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setIsLoading(false);
     }).catch((err: unknown) => {
+      if (cancelled) return;
       // Network error on mount (offline) — keep stale profile for offline mode.
       // Log error for debugging: distinguish network errors from auth errors.
       if (err instanceof Error) {
@@ -220,6 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(parsed);
       setIsLoading(false);
     });
+    return () => { cancelled = true; };
   }, []); // Run ONCE on mount only.
 
   // Sync logout across browser tabs via storage events.

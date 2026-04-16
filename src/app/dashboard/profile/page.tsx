@@ -177,7 +177,11 @@ export default function ProfilePage() {
         fullName: nameForm.fullName,
         email: nameForm.email,
       });
-      setProfile(prev => prev ? { ...prev, ...updated } : prev);
+      if (updated && typeof updated === 'object') {
+        setProfile(prev => prev ? { ...prev, ...(updated as Partial<ProfileData>) } : prev);
+      } else {
+        loadProfile();
+      }
       setNameMsg({ type: 'success', text: 'Profile updated successfully.' });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Failed to update profile.';
@@ -194,7 +198,11 @@ export default function ProfilePage() {
         country: locationForm.country,
         state: locationForm.country === 'US' ? locationForm.state : '',
       });
-      setProfile(prev => prev ? { ...prev, ...updated } : prev);
+      if (updated && typeof updated === 'object') {
+        setProfile(prev => prev ? { ...prev, ...(updated as Partial<ProfileData>) } : prev);
+      } else {
+        loadProfile();
+      }
       setLocationMsg({ type: 'success', text: 'Location updated successfully.' });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Failed to update location.';

@@ -329,14 +329,14 @@ export default function TransactionsPage() {
   const handleExportCsv = async () => {
     setExportingCsv(true); setExportError(null);
     try { await api.downloadTransactionsCsv(); }
-    catch { toast('CSV export failed', 'error'); setExportError('CSV export failed. Please try again.'); }
+    catch (err) { console.error('CSV export failed', err); toast('CSV export failed', 'error'); setExportError('CSV export failed. Please try again.'); }
     setExportingCsv(false);
   };
 
   const handleExportPdf = async () => {
     setExportingPdf(true); setExportError(null);
     try { await api.downloadTransactionsPdf(); }
-    catch { toast('PDF export failed', 'error'); setExportError('PDF export failed. Please try again.'); }
+    catch (err) { console.error('PDF export failed', err); toast('PDF export failed', 'error'); setExportError('PDF export failed. Please try again.'); }
     setExportingPdf(false);
   };
 
