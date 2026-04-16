@@ -11,6 +11,7 @@ import { SessionTimeoutModal } from '../../components/SessionTimeoutModal';
 import OnboardingTour from '../../components/OnboardingTour';
 import TrialBanner from '../../components/TrialBanner';
 import AnnualUpgradeBanner from '../../components/AnnualUpgradeBanner';
+import AnnualUpgradeModal from '../../components/AnnualUpgradeModal';
 import { hasCompletedGuidedSetup } from '../../lib/setup';
 
 // 'plus' = Plus or Family plan required | 'family' = Family plan only
@@ -302,6 +303,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Session timeout warning — remind at 40 min and auto-logout after 45 min of inactivity */}
       <SessionTimeoutModal />
+
+      {/* Annual upgrade modal — shown mid-session to monthly Plus/Family subscribers active 30+ days */}
+      <AnnualUpgradeModal />
 
       {/* Floating feedback widget — visible on all dashboard pages */}
       <FeedbackWidget />
