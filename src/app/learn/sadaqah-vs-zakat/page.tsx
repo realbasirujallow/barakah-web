@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
   title: 'Sadaqah vs Zakat — Key Differences Every Muslim Must Know | Barakah',
@@ -258,6 +259,9 @@ export default function SadaqahVsZakatPage() {
               ))}
             </div>
           </section>
+
+          {/* Ramadan email capture */}
+          <RamadanEmailCapture source="learn-sadaqah-vs-zakat" variant="inline" />
 
           {/* CTA */}
           <div className="bg-green-700 rounded-2xl p-8 text-center text-white mb-10">

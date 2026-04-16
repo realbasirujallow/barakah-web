@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
   title: 'How Much Zakat Do I Owe? 2026 Step-by-Step Calculation Guide | Barakah',
@@ -297,6 +298,9 @@ export default function HowMuchZakatPage() {
               ))}
             </div>
           </section>
+
+          {/* Ramadan email capture */}
+          <RamadanEmailCapture source="learn-how-much-zakat" variant="inline" />
 
           {/* CTA */}
           <div className="bg-green-700 rounded-2xl p-8 text-center text-white mb-10">

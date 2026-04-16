@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
   title: 'Riba-Free Mortgage 2026 — Halal Islamic Home Financing Options for Muslims | Barakah',
@@ -273,6 +274,9 @@ export default function RibaFreeMortgagePage() {
               ))}
             </div>
           </section>
+
+          {/* Ramadan email capture */}
+          <RamadanEmailCapture source="learn-riba-free-mortgage" variant="inline" />
 
           {/* CTA */}
           <div className="bg-green-700 rounded-2xl p-8 text-center text-white mb-10">

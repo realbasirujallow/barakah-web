@@ -323,19 +323,31 @@ function BillingContent() {
       )}
 
       {/* Billing toggle */}
-      <div className="flex items-center justify-center gap-3 mb-6">
-        <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
-        <button
-          onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
-          className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
-        >
-          <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-7' : ''}`} />
-        </button>
-        <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>
-          Yearly
-        </span>
-        {billing === 'yearly' && (
-          <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save up to 34%</span>
+      <div className="flex flex-col items-center mb-6 gap-2">
+        <div className="flex items-center gap-3">
+          <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
+          <button
+            onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
+            className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
+            aria-label={billing === 'yearly' ? 'Switch to monthly billing' : 'Switch to annual billing'}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-7' : ''}`} />
+          </button>
+          <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>
+            Yearly
+          </span>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full transition-colors ${
+            billing === 'yearly'
+              ? 'text-green-700 bg-green-100'
+              : 'text-amber-700 bg-amber-100 animate-pulse'
+          }`}>
+            {billing === 'yearly' ? 'Save up to 34%' : '🎁 GET 2 MONTHS FREE'}
+          </span>
+        </div>
+        {billing === 'monthly' && (
+          <p className="text-xs text-gray-500">
+            Switch to annual and save ${(9.99 * 12 - 99).toFixed(0)} on Plus or ${(14.99 * 12 - 119).toFixed(0)} on Family per year.
+          </p>
         )}
       </div>
 
