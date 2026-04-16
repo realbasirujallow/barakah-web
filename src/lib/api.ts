@@ -991,10 +991,18 @@ export const api = {
     apiFetch(`/api/plaid/accounts/${linkedAccountId}`, { method: 'DELETE' }),
 
   // Exports
-  downloadTransactionsCsv: () =>
-    apiDownload('/api/transactions/export/csv', 'transactions.csv'),
-  downloadTransactionsPdf: () =>
-    apiDownload('/api/transactions/export/pdf', 'transactions.pdf'),
+  downloadTransactionsCsv: (period = 'month') => {
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    return apiDownload(`/api/transactions/export/csv?period=${period}`, `barakah_transactions_${date}.csv`);
+  },
+  downloadTransactionsPdf: (period = 'month') => {
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    return apiDownload(`/api/transactions/export/pdf?period=${period}`, `barakah_transactions_${date}.pdf`);
+  },
+  downloadZakatReport: () => {
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    return apiDownload('/api/zakat/export-report', `barakah_zakat_${date}.pdf`);
+  },
 
   // Import (Monarch Money — Balances or Transactions CSV)
   monarchPreview: (file: File) =>
