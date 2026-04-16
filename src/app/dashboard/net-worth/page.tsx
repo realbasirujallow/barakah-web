@@ -181,8 +181,9 @@ export default function NetWorthPage() {
         {PERIODS.map(p => (
           <button
             key={p.key}
-            onClick={() => { setPeriod(p.key); load(p.key); }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+            onClick={() => { if (!loading) { setPeriod(p.key); void load(p.key); } }}
+            disabled={loading}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed ${
               period === p.key
                 ? 'bg-[#1B5E20] text-white'
                 : 'bg-white text-gray-600 hover:bg-gray-100'

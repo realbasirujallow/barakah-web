@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
@@ -99,6 +99,10 @@ export default function SharedPage() {
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const { toast } = useToast();
 
+  // Track which group's detail load is currently in-flight so stale results
+  // from a previous selection don't overwrite data for a newer one.
+  const loadingForGroupRef = useRef<number | null>(null);
+
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
@@ -115,6 +119,7 @@ export default function SharedPage() {
   };
 
   const loadGroupDetail = (group: Group) => {
+    loadingForGroupRef.current = group.id;
     setActiveGroup(group);
     setLoadingDetail(true);
     setActiveTab('expenses');
@@ -128,6 +133,8 @@ export default function SharedPage() {
       api.getEstateSharingStatus(),
     ])
       .then((results) => {
+        // Discard stale results if user has already switched to a different group
+        if (loadingForGroupRef.current !== group.id) return;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const val = (i: number): any => results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<any>).value : null;
         const detail = val(0);
