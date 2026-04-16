@@ -51,8 +51,15 @@ export default function NetWorthPage() {
     setLoading(true);
     setError('');
     try {
-      // Auto-take a snapshot on each visit (like Flutter apps)
-      try { await api.takeNetWorthSnapshot(); } catch { /* ignore */ }
+      // BUG FIX: only snapshot once per day to avoid duplicate entries
+      const today = new Date().toISOString().slice(0, 10);
+      const lastSnap = typeof window !== 'undefined' ? localStorage.getItem('barakah_last_nw_snapshot') : null;
+      if (lastSnap !== today) {
+        try {
+          await api.takeNetWorthSnapshot();
+          if (typeof window !== 'undefined') localStorage.setItem('barakah_last_nw_snapshot', today);
+        } catch { /* ignore */ }
+      }
 
       const d = await api.getNetWorthHistory(selectedPeriod || period);
       setCurrentNetWorth(d.currentNetWorth ?? 0);
@@ -79,18 +86,18 @@ export default function NetWorthPage() {
     setLoading(false);
   }, [period]);
 
+  // BUG FIX: merged into one effect so free users don't trigger API calls before redirect
   useEffect(() => {
-    if (!isLoading && user && !hasPaidAccess) {
+    if (isLoading) return;
+    if (user && !hasPaidAccess) {
       router.replace('/dashboard/billing');
+      return;
     }
-  }, [hasPaidAccess, isLoading, router, user]);
-
-  useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       void load();
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [load]);
+  }, [isLoading, hasPaidAccess, user, router, load]);
 
   const takeSnapshot = async () => {
     setSnapping(true);

@@ -233,7 +233,7 @@ export default function ProfilePage() {
     setDeleteMsg(null);
     try {
       await api.deleteAccount();
-      logout('deleted');
+      await logout('deleted'); // BUG FIX: await async logout to prevent stale auth state
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Failed to delete account.';
       setDeleteMsg({ type: 'error', text: msg });

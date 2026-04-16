@@ -49,12 +49,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/zakat-on-rental-property`,   changeFrequency: 'monthly', priority: 0.88 },
 
     // ── Islamic investing / halal ─────────────────────────────────────────────
-    { url: `${baseUrl}/learn/halal-stocks`,               changeFrequency: 'monthly', priority: 0.90, lastModified: now },
-    { url: `${baseUrl}/learn/halal-stock-screener`,       changeFrequency: 'monthly', priority: 0.88 },
-    { url: `${baseUrl}/learn/halal-investing-guide`,      changeFrequency: 'monthly', priority: 0.92, lastModified: now },
-    { url: `${baseUrl}/learn/is-my-mortgage-halal`,       changeFrequency: 'monthly', priority: 0.88 },
-    { url: `${baseUrl}/learn/riba-free-mortgage`,         changeFrequency: 'monthly', priority: 0.88 },
-    { url: `${baseUrl}/learn/riba-elimination`,           changeFrequency: 'monthly', priority: 0.88 },
+    { url: `${baseUrl}/learn/halal-stocks`,                       changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/learn/halal-stock-screener`,               changeFrequency: 'monthly', priority: 0.88 },
+    { url: `${baseUrl}/learn/halal-investing-guide`,              changeFrequency: 'monthly', priority: 0.92, lastModified: now },
+    { url: `${baseUrl}/learn/is-my-mortgage-halal`,               changeFrequency: 'monthly', priority: 0.88 },
+    { url: `${baseUrl}/learn/halal-mortgage-providers-usa`,       changeFrequency: 'monthly', priority: 0.87 },
+    { url: `${baseUrl}/learn/diminishing-musharaka-explained`,    changeFrequency: 'monthly', priority: 0.85 },
+    { url: `${baseUrl}/learn/riba-free-mortgage`,                 changeFrequency: 'monthly', priority: 0.88 },
+    { url: `${baseUrl}/learn/riba-elimination`,                   changeFrequency: 'monthly', priority: 0.88 },
 
     // ── Budgeting & household finance ─────────────────────────────────────────
     { url: `${baseUrl}/learn/halal-budgeting`,            changeFrequency: 'monthly', priority: 0.88 },
@@ -73,6 +75,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/islamic-finance-app`,        changeFrequency: 'monthly', priority: 0.90, lastModified: now },
     { url: `${baseUrl}/learn/mint-alternative-for-muslims`, changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/islamic-budgeting-app`,      changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+
+    // ── Auth pages ───────────────────────────────────────────────────────────
+    { url: `${baseUrl}/login`,      changeFrequency: 'monthly', priority: 0.60 },
+    { url: `${baseUrl}/signup`,     changeFrequency: 'monthly', priority: 0.80, lastModified: now },
 
     // ── Legal & contact ───────────────────────────────────────────────────────
     { url: `${baseUrl}/contact`,    changeFrequency: 'yearly', priority: 0.40 },

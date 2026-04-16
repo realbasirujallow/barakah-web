@@ -338,6 +338,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRefreshToken(typeof data.refreshToken === 'string'
       ? data.refreshToken
       : (typeof data.refresh_token === 'string' ? data.refresh_token : null));
+    _intentionalLogout = false; // BUG FIX: reset so expired-session redirect works after re-login
     setUser(profile);
     // Fire GA4 login event — analytics must never break auth.
     try { trackLogin('email'); } catch { /* GA4 may be blocked or unavailable */ }
