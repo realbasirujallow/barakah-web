@@ -984,6 +984,8 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
     }, API_TIMEOUT, true),
+  getBroadcastStats: (broadcastId: string) =>
+    apiFetch(`/admin/notifications/broadcast/${broadcastId}/stats`, {}, API_TIMEOUT, true),
 
   // Plaid Bank Linking
   plaidCreateLinkToken: () =>
