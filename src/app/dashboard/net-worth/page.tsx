@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -42,6 +42,9 @@ export default function NetWorthPage() {
   const [changeAmount, setChangeAmount] = useState(0);
   const [changePercent, setChangePercent] = useState(0);
 
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
+
   const formatDate = (epoch: number) => {
     const ms = epoch < 1e12 ? epoch * 1000 : epoch;
     return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -62,6 +65,7 @@ export default function NetWorthPage() {
       }
 
       const d = await api.getNetWorthHistory(selectedPeriod || period);
+      if (!mountedRef.current) return;
       setCurrentNetWorth(d.currentNetWorth ?? 0);
       setTotalAssets(d.totalAssets ?? 0);
       setTotalDebts(d.totalDebts ?? 0);
@@ -81,9 +85,9 @@ export default function NetWorthPage() {
       snapshots.sort((a, b) => b.date - a.date);
       setHistory(snapshots);
     } catch {
-      setError('Could not load net worth data.');
+      if (mountedRef.current) setError('Could not load net worth data.');
     }
-    setLoading(false);
+    if (mountedRef.current) setLoading(false);
   }, [period]);
 
   // BUG FIX: merged into one effect so free users don't trigger API calls before redirect
@@ -103,11 +107,11 @@ export default function NetWorthPage() {
     setSnapping(true);
     try {
       await api.takeNetWorthSnapshot();
-      await load();
+      if (mountedRef.current) await load();
     } catch {
-      setError('Failed to take snapshot. Make sure you have assets tracked.');
+      if (mountedRef.current) setError('Failed to take snapshot. Make sure you have assets tracked.');
     }
-    setSnapping(false);
+    if (mountedRef.current) setSnapping(false);
   };
 
   const changePositive = changeAmount >= 0;

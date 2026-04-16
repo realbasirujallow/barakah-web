@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { fmt, toHijri } from '../../../lib/format';
 import { logError } from '../../../lib/logError';
@@ -74,6 +74,7 @@ export default function ZakatPage() {
   const [showChecklist, setShowChecklist] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showMabrook, setShowMabrook] = useState(false);
+  const shownMabrookRef = useRef(false);
   const [form, setForm] = useState({ amount: '', recipient: '', notes: '' });
   const [hideZakat, setHideZakat] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -290,9 +291,10 @@ export default function ZakatPage() {
   const fulfilled = zakatDue !== null && zakatEligible && totalPaid >= zakatDue && zakatDue > 0;
   const fulfillmentPct = zakatDue !== null && zakatDue > 0 ? Math.min(1, totalPaid / zakatDue) : 0;
 
-  // Show Mabrook dialog if zakat is fulfilled
+  // Show Mabrook dialog once per session when zakat is first fulfilled
   useEffect(() => {
-    if (fulfilled && zakatDue !== null && zakatDue > 0) {
+    if (fulfilled && zakatDue !== null && zakatDue > 0 && !shownMabrookRef.current) {
+      shownMabrookRef.current = true;
       setShowMabrook(true);
     }
   }, [fulfilled, zakatDue]);
