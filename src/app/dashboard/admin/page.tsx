@@ -129,6 +129,8 @@ interface Overview {
   paidUsers: number;
   activePlus: number;
   activeFamily: number;
+  subscribedPlus: number;
+  subscribedFamily: number;
   mrr: number;
   arr: number;
   conversionRate: number;
@@ -610,7 +612,7 @@ export default function AdminPage() {
               <div className="bg-white rounded-2xl p-5 border">
                 <p className="text-gray-400 text-xs font-medium mb-1">Paying Subscribers</p>
                 <p className="text-3xl font-bold text-gray-800">{overview.paidUsers}</p>
-                <p className="text-gray-400 text-xs mt-1">{overview.activePlus} Plus · {overview.activeFamily} Family</p>
+                <p className="text-gray-400 text-xs mt-1">{overview.subscribedPlus} Plus · {overview.subscribedFamily} Family</p>
               </div>
               <div className="bg-white rounded-2xl p-5 border">
                 <p className="text-gray-400 text-xs font-medium mb-1">New Users Today</p>
