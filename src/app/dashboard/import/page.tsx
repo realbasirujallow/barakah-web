@@ -175,6 +175,7 @@ export default function ImportPage() {
   const [plaidLinkToken, setPlaidLinkToken] = useState<string | null>(null);
   const [plaidAccounts, setPlaidAccounts] = useState<PlaidAccount[]>([]);
   const [plaidSyncing, setPlaidSyncing] = useState<number | null>(null);
+  const [plaidSyncingAll, setPlaidSyncingAll] = useState(false);
   const [plaidMessage, setPlaidMessage] = useState('');
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
@@ -312,6 +313,27 @@ export default function ImportPage() {
       setError(getPlaidUiErrorMessage(err, 'sync'));
     } finally {
       setPlaidSyncing(null);
+    }
+  };
+
+  const handlePlaidSyncAll = async () => {
+    if (!plaidAccess || plaidAccounts.length === 0) return;
+    setPlaidSyncingAll(true);
+    setPlaidMessage('');
+    setError('');
+    try {
+      const result = await api.plaidSyncAll();
+      const total = result?.totalAdded ?? 0;
+      setPlaidMessage(
+        total > 0
+          ? `Synced all accounts — ${total} new transaction(s) imported`
+          : 'All accounts synced — no new transactions'
+      );
+      loadPlaidAccounts();
+    } catch (err) {
+      setError(getPlaidUiErrorMessage(err, 'sync'));
+    } finally {
+      setPlaidSyncingAll(false);
     }
   };
 
@@ -460,29 +482,44 @@ export default function ImportPage() {
             <h2 className="text-lg font-bold text-[#1B5E20]">Connect Your Bank</h2>
             <p className="text-sm text-gray-500">Automatically import balances and transactions from supported institutions.</p>
           </div>
-          {statusLoading ? (
-            <button
-              disabled
-              className="bg-gray-200 text-gray-500 px-5 py-2.5 rounded-lg font-semibold text-sm cursor-not-allowed"
-            >
-              Checking access...
-            </button>
-          ) : plaidAccess ? (
-            <button
-              onClick={handlePlaidConnect}
-              disabled={plaidLoading}
-              className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm disabled:opacity-50"
-            >
-              {plaidLoading ? 'Opening Plaid...' : '+ Link Bank Account'}
-            </button>
-          ) : (
-            <Link
-              href="/dashboard/billing"
-              className="border border-[#1B5E20] text-[#1B5E20] px-5 py-2.5 rounded-lg font-semibold hover:bg-green-50 transition text-sm"
-            >
-              Upgrade for Plaid
-            </Link>
-          )}
+          <div className="flex items-center gap-2">
+            {plaidAccounts.length > 1 && plaidAccess && (
+              <button
+                onClick={handlePlaidSyncAll}
+                disabled={plaidSyncingAll || plaidSyncing !== null}
+                className="border border-[#1B5E20] text-[#1B5E20] px-4 py-2.5 rounded-lg font-semibold hover:bg-green-50 transition text-sm disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {plaidSyncingAll ? (
+                  <><span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-green-700 border-t-transparent rounded-full" />Syncing all…</>
+                ) : (
+                  <>🔄 Sync All</>
+                )}
+              </button>
+            )}
+            {statusLoading ? (
+              <button
+                disabled
+                className="bg-gray-200 text-gray-500 px-5 py-2.5 rounded-lg font-semibold text-sm cursor-not-allowed"
+              >
+                Checking access...
+              </button>
+            ) : plaidAccess ? (
+              <button
+                onClick={handlePlaidConnect}
+                disabled={plaidLoading}
+                className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm disabled:opacity-50"
+              >
+                {plaidLoading ? 'Opening Plaid...' : '+ Link Bank Account'}
+              </button>
+            ) : (
+              <Link
+                href="/dashboard/billing"
+                className="border border-[#1B5E20] text-[#1B5E20] px-5 py-2.5 rounded-lg font-semibold hover:bg-green-50 transition text-sm"
+              >
+                Upgrade for Plaid
+              </Link>
+            )}
+          </div>
         </div>
 
         {!statusLoading && !plaidAccess && (
@@ -551,7 +588,7 @@ export default function ImportPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handlePlaidSync(acct.id)}
-                    disabled={plaidSyncing === acct.id || !plaidAccess}
+                    disabled={plaidSyncing === acct.id || plaidSyncingAll || !plaidAccess}
                     className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#2E7D32] transition disabled:opacity-50"
                   >
                     {plaidSyncing === acct.id ? 'Syncing...' : plaidAccess ? 'Sync' : 'Upgrade to Sync'}

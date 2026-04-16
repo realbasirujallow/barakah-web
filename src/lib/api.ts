@@ -980,6 +980,8 @@ export const api = {
     apiFetch('/api/plaid/exchange-token', { method: 'POST', body: JSON.stringify({ publicToken, institutionName }) }),
   plaidSync: (linkedAccountId: number) =>
     apiFetch(`/api/plaid/sync/${linkedAccountId}`, { method: 'POST' }),
+  plaidSyncAll: () =>
+    apiFetch('/api/plaid/sync-all', { method: 'POST' }),
   plaidGetAccounts: () =>
     apiFetch('/api/plaid/accounts'),
   plaidUnlinkAccount: (linkedAccountId: number) =>
