@@ -33,6 +33,16 @@ type DraftCampaign = {
   audienceFilters: Filters;
 };
 
+type BroadcastStats = {
+  broadcastId: string;
+  delivered: number;
+  failed: number;
+  noToken: number;
+  opened: number;
+  openRate: number;
+  notOpened: Array<{ userId: number; email: string; fullName: string }>;
+};
+
 type RetentionSettings = {
   enabled: boolean;
   percentOff: number;
@@ -149,6 +159,9 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
   const [deliveries, setDeliveries] = useState<Record<number, Array<Record<string, unknown>>>>({});
   const [testEmail, setTestEmail] = useState('');
   const [savingRetention, setSavingRetention] = useState(false);
+  const [broadcastStats, setBroadcastStats] = useState<BroadcastStats | null>(null);
+  const [lastBroadcastId, setLastBroadcastId] = useState<string | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -329,6 +342,7 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
 
   const saveCampaignAndSend = async () => {
     setSavingCampaign(true);
+    setBroadcastStats(null);
     try {
       const saved = await api.saveAdminLifecycleCampaign({
         ...draft,
@@ -336,7 +350,13 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
       });
       const id = (saved as Record<string, unknown>)?.id as number | undefined;
       if (id) {
-        await api.sendAdminLifecycleCampaign(id);
+        const result = await api.sendAdminLifecycleCampaign(id);
+        const bid = (result as Record<string, unknown>)?.broadcastId as string | undefined;
+        if (bid) {
+          setLastBroadcastId(bid);
+          // Poll stats after a short delay to let FCM finish the batch
+          setTimeout(() => loadBroadcastStats(bid), 4000);
+        }
         toast('Campaign sent.', 'success');
       } else {
         toast('Saved but could not send — find it in the list below.', 'error');
@@ -347,6 +367,18 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
       toast(err instanceof Error ? err.message : 'Failed to save & send.', 'error');
     } finally {
       setSavingCampaign(false);
+    }
+  };
+
+  const loadBroadcastStats = async (broadcastId: string) => {
+    setLoadingStats(true);
+    try {
+      const result = await api.getBroadcastStats(broadcastId);
+      setBroadcastStats(result as BroadcastStats);
+    } catch {
+      // non-fatal — stats may not be ready yet
+    } finally {
+      setLoadingStats(false);
     }
   };
 
@@ -812,6 +844,100 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
           )}
         </div>
       </div>
+
+      {/* ── Broadcast Delivery & Open Stats ────────────────────────────────── */}
+      {(broadcastStats || loadingStats || lastBroadcastId) && (
+        <div className="rounded-2xl border bg-white p-5">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Broadcast Results</h2>
+              <p className="text-xs text-gray-400 mt-0.5 font-mono">{lastBroadcastId}</p>
+            </div>
+            {lastBroadcastId && (
+              <button
+                type="button"
+                onClick={() => loadBroadcastStats(lastBroadcastId)}
+                disabled={loadingStats}
+                className="text-sm font-medium text-[#1B5E20] hover:underline disabled:opacity-60"
+              >
+                {loadingStats ? 'Refreshing…' : 'Refresh'}
+              </button>
+            )}
+          </div>
+
+          {loadingStats && !broadcastStats && (
+            <p className="text-sm text-gray-400">Loading stats — FCM batches can take a few seconds…</p>
+          )}
+
+          {broadcastStats && (
+            <>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-5 mb-5">
+                {[
+                  { label: 'Delivered', value: broadcastStats.delivered, color: 'text-green-700' },
+                  { label: 'Opened', value: broadcastStats.opened, color: 'text-blue-700' },
+                  { label: 'Open rate', value: `${broadcastStats.openRate}%`, color: 'text-[#1B5E20]' },
+                  { label: 'Failed', value: broadcastStats.failed, color: 'text-red-600' },
+                  { label: 'No token', value: broadcastStats.noToken, color: 'text-gray-400' },
+                ].map(({ label, value, color }) => (
+                  <div key={label} className="rounded-xl border bg-gray-50 p-3 text-center">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{label}</p>
+                    <p className={`mt-1 text-2xl font-bold ${color}`}>{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {broadcastStats.notOpened.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-semibold text-gray-800">
+                      Did not open ({broadcastStats.notOpened.length})
+                      <span className="ml-2 text-xs font-normal text-gray-400">— retarget with a follow-up email or campaign</span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const csv = ['email,name', ...broadcastStats.notOpened.map(u => `${u.email},${u.fullName}`)].join('\n');
+                        const blob = new Blob([csv], { type: 'text/csv' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `not-opened-${lastBroadcastId?.slice(0, 8)}.csv`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="text-xs font-medium text-[#1B5E20] hover:underline"
+                    >
+                      Export CSV
+                    </button>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto rounded-xl border border-gray-100">
+                    <table className="min-w-full text-sm">
+                      <thead className="sticky top-0 bg-gray-50 text-gray-500">
+                        <tr>
+                          <th className="px-3 py-2 text-left font-medium">Name</th>
+                          <th className="px-3 py-2 text-left font-medium">Email</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {broadcastStats.notOpened.map(u => (
+                          <tr key={u.userId} className="border-t border-gray-50 hover:bg-gray-50">
+                            <td className="px-3 py-2 text-gray-700">{u.fullName || '—'}</td>
+                            <td className="px-3 py-2 text-gray-500">{u.email}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {broadcastStats.notOpened.length === 0 && broadcastStats.delivered > 0 && (
+                <p className="text-sm text-gray-500">Everyone who received the notification has opened it.</p>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       <div className="rounded-2xl border bg-white p-5">
         <div className="flex items-center justify-between gap-3 mb-4">
