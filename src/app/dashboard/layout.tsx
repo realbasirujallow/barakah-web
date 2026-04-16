@@ -35,6 +35,7 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
   { href: '/dashboard/ramadan', icon: '🌙', label: 'Ramadan Mode' },
   { href: '/dashboard/recurring', icon: '🔁', label: 'Recurring' },
   { href: '/dashboard/referral', icon: '🎁', label: 'Refer a Friend' },
+  { href: '/dashboard/reports', icon: '📊', label: 'Reports' },
   { href: '/dashboard/retirement-zakat', icon: '🏦', label: 'Retirement Zakat' },
   { href: '/dashboard/sadaqah', icon: '🤲', label: 'Sadaqah' },
   { href: '/dashboard/savings', icon: '🎯', label: 'Savings Goals' },
