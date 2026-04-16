@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
 import { toHijri } from '../../../lib/format';
+import { ErrorBoundary } from '../../../components/ErrorBoundary';
 
 interface HawlItem {
   id: number;
@@ -36,7 +37,7 @@ const DATE_FORMAT: Intl.DateTimeFormatOptions = {
   year: 'numeric'
 };
 
-export default function HawlPage() {
+function HawlPageContent() {
   const [items, setItems] = useState<HawlItem[]>([]);
   const [nextDueDate, setNextDueDate] = useState<number | null>(null);
   const [nextDueAsset, setNextDueAsset] = useState<string>('');
@@ -702,5 +703,16 @@ export default function HawlPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Wrap the page content in an ErrorBoundary so an unexpected rendering error
+// (e.g. malformed API date that breaks toHijri) shows a recoverable error card
+// instead of crashing the whole dashboard.
+export default function HawlPage() {
+  return (
+    <ErrorBoundary>
+      <HawlPageContent />
+    </ErrorBoundary>
   );
 }

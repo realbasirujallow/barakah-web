@@ -524,9 +524,10 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
           title: draft.title || draft.name,
           body: draft.body,
           route: '/dashboard',
-          filter: draft.audienceFilters?.plans?.length
-            ? draft.audienceFilters.plans[0]
-            : undefined,
+          // BUG FIX: pass the full audienceFilters so all selected plans (and
+          // other criteria) reach the backend — previously only plans[0] was
+          // sent, silently dropping every other selected plan.
+          filters: draft.audienceFilters,
         });
         const bid = (result as Record<string, unknown>)?.broadcastId as string | undefined;
         if (bid) {

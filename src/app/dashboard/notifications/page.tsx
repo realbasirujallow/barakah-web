@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../../lib/api';
+import { useToast } from '../../../lib/toast';
 
 interface Notification {
   id: number;
@@ -27,20 +28,30 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const { toast } = useToast();
 
   const load = useCallback(async (p: number) => {
     setLoading(true);
+    setLoadError(null);
     try {
       const data = await api.getNotifications(p);
-      if (data?.error) return;
+      if (data?.error) {
+        // BUG FIX: surface API-level errors instead of silently returning
+        setLoadError(String(data.error));
+        return;
+      }
       setNotifications(Array.isArray(data?.notifications) ? data.notifications : []);
       setUnreadCount(data?.unreadCount || 0);
       setTotalPages(data?.totalPages || 1);
       setPage(p);
-    } catch { /* notifications are non-critical — fail silently */ }
-    finally { setLoading(false); }
+    } catch {
+      // BUG FIX: show error UI instead of silently swallowing — the user is
+      // on the notifications page specifically to read these.
+      setLoadError('Failed to load notifications. Please try again.');
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(0); }, [load]);
@@ -51,7 +62,8 @@ export default function NotificationsPage() {
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch {
-      console.warn('Failed to mark notification as read');
+      // BUG FIX: show toast so the user knows the action didn't persist
+      toast('Failed to mark notification as read', 'error');
     }
   };
 
@@ -61,7 +73,8 @@ export default function NotificationsPage() {
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch {
-      console.warn('Failed to mark all notifications as read');
+      // BUG FIX: show toast instead of silent console.warn
+      toast('Failed to mark all as read', 'error');
     }
   };
 
@@ -72,7 +85,8 @@ export default function NotificationsPage() {
       if (removed && !removed.read) setUnreadCount(c => Math.max(0, c - 1));
       setNotifications(prev => prev.filter(n => n.id !== id));
     } catch {
-      console.warn('Failed to delete notification');
+      // BUG FIX: show toast instead of silent console.warn
+      toast('Failed to delete notification', 'error');
     }
   };
 
@@ -96,11 +110,24 @@ export default function NotificationsPage() {
         )}
       </div>
 
+      {loadError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-center justify-between gap-3">
+          <p className="text-sm text-red-700">{loadError}</p>
+          <button
+            type="button"
+            onClick={() => load(page)}
+            className="text-sm font-semibold text-red-700 underline hover:no-underline flex-shrink-0"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
         </div>
-      ) : notifications.length === 0 ? (
+      ) : !loadError && notifications.length === 0 ? (
         <div className="text-center py-20 text-gray-400">
           <p className="text-4xl mb-3">🔔</p>
           <p>No notifications yet. We&apos;ll let you know when something needs your attention.</p>

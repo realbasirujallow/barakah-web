@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth, hasAccess } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { validateStripeUrl } from '../lib/validateUrl';
+import { useToast } from '../lib/toast';
 import { ReactNode } from 'react';
 
 import { PRICING } from '../lib/pricing';
@@ -24,7 +25,8 @@ interface PlanGateProps {
  * Free users see a comparison of Plus vs Family plans. Paid users see the children normally.
  */
 export function PlanGate({ required, featureName, description, children }: PlanGateProps) {
-  const { user } = useAuth();
+  const { user, refreshPlan } = useAuth();
+  const { toast } = useToast();
   const [upgrading, setUpgrading] = useState<'plus' | 'family' | null>(null);
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
@@ -43,17 +45,23 @@ export function PlanGate({ required, featureName, description, children }: PlanG
         if (validateStripeUrl(result.url)) {
           window.location.href = result.url;
         } else {
-          alert('Invalid Stripe URL. Please contact support.');
+          // BUG FIX: use toast instead of blocking alert()
+          toast('Invalid payment URL. Please contact support.', 'error');
           setUpgrading(null);
         }
       } else if (result?.success) {
-        window.location.reload();
+        // BUG FIX: refresh plan from /auth/profile instead of a hard reload —
+        // avoids full navigation while still syncing the new plan into context.
+        await refreshPlan();
+        setUpgrading(null);
       } else {
-        alert('Something went wrong. Please try via the Billing page.');
+        // BUG FIX: use toast instead of blocking alert()
+        toast('Something went wrong. Please try via the Billing page.', 'error');
         setUpgrading(null);
       }
     } catch {
-      alert('Something went wrong. Please try via the Billing page.');
+      // BUG FIX: use toast instead of blocking alert()
+      toast('Something went wrong. Please try via the Billing page.', 'error');
       setUpgrading(null);
     }
   };
@@ -222,7 +230,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
         <p className="text-xs text-gray-400">
           Already upgraded?{' '}
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => { refreshPlan().catch(() => {}); }}
             className="underline hover:no-underline text-[#1B5E20] font-semibold"
           >
             Refresh the page
@@ -313,7 +321,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
         <p className="text-xs text-gray-400">
           Already upgraded?{' '}
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => { refreshPlan().catch(() => {}); }}
             className="underline hover:no-underline text-[#1B5E20] font-semibold"
           >
             Refresh the page
