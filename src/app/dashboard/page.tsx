@@ -241,7 +241,7 @@ export default function DashboardPage() {
               <p className="text-xs text-green-600 mt-0.5">{insights.length - 1} more insight{insights.length > 2 ? 's' : ''}</p>
             )}
           </div>
-          <Link href="/dashboard/barakah-score" className="text-xs text-[#1B5E20] font-semibold hover:underline flex-shrink-0">View all →</Link>
+          <Link href="/dashboard/analytics" className="text-xs text-[#1B5E20] font-semibold hover:underline flex-shrink-0">View all →</Link>
         </div>
       )}
 
