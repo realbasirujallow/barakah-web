@@ -666,6 +666,22 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Upgrade nudge for free plan — above the feature grid so it can't be missed */}
+      {user?.plan === 'free' && (
+        <div className="bg-gradient-to-r from-[#1B5E20] to-green-600 rounded-xl p-4 flex items-center justify-between gap-4">
+          <div className="text-white min-w-0">
+            <p className="font-bold text-sm sm:text-base">🌙 Unlock Barakah Plus — from {PRICING.plus.monthly}/mo</p>
+            <p className="text-green-200 text-xs mt-0.5">Unlimited transactions · Bank sync · Halal screener · Zakat autopilot</p>
+          </div>
+          <Link
+            href="/dashboard/billing"
+            className="bg-white text-[#1B5E20] px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-50 transition flex-shrink-0"
+          >
+            Upgrade
+          </Link>
+        </div>
+      )}
+
       {/* Feature cards grid */}
       <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Explore Features</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

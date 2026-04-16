@@ -1,9 +1,11 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
 import { SkeletonPage } from '../SkeletonCard';
+import { useAuth } from '../../../context/AuthContext';
 
 interface Goal { id: number; name: string; category: string; targetAmount: number; currentAmount: number; description: string; deadline: number | null; }
 const CATS = ['hajj', 'umrah', 'emergency', 'education', 'wedding', 'home', 'vehicle', 'business', 'retirement', 'other'];
@@ -17,6 +19,7 @@ function getMilestone(pct: number): '50' | '75' | '100' | null {
 }
 
 export default function SavingsPage() {
+  const { user } = useAuth();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -145,6 +148,33 @@ export default function SavingsPage() {
 
   // ── Skeleton loading ────────────────────────────────────────────────────────
   if (loading) return <SkeletonPage summaryCount={1} listCount={3} />;
+
+  // ── Plus plan gate ──────────────────────────────────────────────────────────
+  if (user?.plan === 'free') {
+    return (
+      <div className="max-w-xl mx-auto mt-12 text-center px-4">
+        <div className="text-5xl mb-4">🎯</div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Savings Goals</h1>
+        <p className="text-gray-600 mb-6">
+          Set goals for Hajj, emergency fund, education, and more — and track your progress toward each one.
+          Available on Barakah Plus.
+        </p>
+        <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6 text-left space-y-2">
+          <p className="font-semibold text-green-800 text-sm">✓ Set unlimited savings goals</p>
+          <p className="font-semibold text-green-800 text-sm">✓ Track progress with milestone alerts</p>
+          <p className="font-semibold text-green-800 text-sm">✓ Categories: Hajj, Umrah, Education, Home, and more</p>
+          <p className="font-semibold text-green-800 text-sm">✓ Contribute and see remaining balance at a glance</p>
+        </div>
+        <Link
+          href="/dashboard/billing"
+          className="inline-block bg-[#1B5E20] text-white px-8 py-3 rounded-xl font-bold hover:bg-green-800 transition"
+        >
+          Upgrade to Plus — from $9.99/mo
+        </Link>
+        <p className="text-xs text-gray-400 mt-3">7-day free trial · No credit card required</p>
+      </div>
+    );
+  }
 
   const totalSaved  = goals.reduce((s, g) => s + g.currentAmount, 0);
   const totalTarget = goals.reduce((s, g) => s + g.targetAmount, 0);
