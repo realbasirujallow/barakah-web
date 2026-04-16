@@ -56,6 +56,11 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
     rate: d.interestRate || 0,
   }));
 
+  // BUG FIX: if total monthly capacity is zero, the loop makes no progress —
+  // skip all 600 iterations and report as "unknown" (months: 0).
+  const totalCapacity = debts.reduce((s, d) => s + d.monthlyPayment, 0) + extra;
+  if (totalCapacity <= 0) return { months: 0, totalInterest: 0 };
+
   if (strategy === 'avalanche') debts = [...debts].sort((a, b) => b.rate - a.rate);
   else debts = [...debts].sort((a, b) => a.balance - b.balance);
 
@@ -65,6 +70,7 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
 
   while (debts.some(d => d.balance > 0.01) && month < MAX) {
     month++;
+    let totalPaid = 0;
     // Accrue monthly interest
     debts.forEach(d => {
       if (d.balance > 0) {
@@ -79,6 +85,7 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
       if (d.balance > 0) {
         const pay = Math.min(d.monthlyPayment, d.balance);
         d.balance = Math.max(0, d.balance - pay);
+        totalPaid += pay;
       }
     });
     // Apply extra to first debt in sorted order
@@ -88,8 +95,12 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
         const pay = Math.min(left, d.balance);
         d.balance = Math.max(0, d.balance - pay);
         left -= pay;
+        totalPaid += pay;
       }
     }
+    // BUG FIX: if no payment was applied this month, balances will never
+    // decrease — break early rather than burning 600 - month iterations.
+    if (totalPaid <= 0) break;
   }
   return { months: month, totalInterest };
 }
