@@ -78,7 +78,10 @@ export default function BudgetPage() {
 
   const load = () => {
     setLoading(true);
-    api.getBudgets()
+    // BUG FIX: pass the viewed month/year so the API returns only those
+    // budgets instead of all history — was fetching entire budget history and
+    // filtering client-side, which grows with each month the user has data.
+    api.getBudgets(viewMonth, viewYear)
       .then(d => {
         if (d?.error) {
           toast(d.error as string, 'error');
@@ -91,7 +94,7 @@ export default function BudgetPage() {
       .catch(() => { toast('Failed to load budgets', 'error'); })
       .finally(() => setLoading(false));
   };
-  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [viewMonth, viewYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openAdd = () => {
     setEditItem(null);
