@@ -15,7 +15,7 @@ const LAST_ACTIVITY_KEY = 'last_activity_ts';
 
 /**
  * SessionTimeoutModal — tracks user inactivity and shows a countdown modal
- * at 40 minutes. If the user doesn't extend, they're logged out at 45 minutes.
+ * at 55 minutes. If the user doesn't extend, they're logged out at 60 minutes.
  * Extending the session calls api.refresh() to keep the server-side cookies alive.
  */
 export function SessionTimeoutModal() {

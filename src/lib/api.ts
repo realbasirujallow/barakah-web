@@ -471,6 +471,14 @@ export async function apiDownload(endpoint: string, filename: string): Promise<v
   URL.revokeObjectURL(url);
 }
 
+// ── subscriptionStatus in-flight deduplication ─────────────────────────────
+// TrialBanner, AnnualUpgradeModal, AnnualUpgradeBanner, and billing/page all
+// call subscriptionStatus() on mount. Without deduplication they fire several
+// identical concurrent requests. Sharing one in-flight Promise is enough —
+// the reference is cleared as soon as the request settles so the next
+// independent call (e.g. after a plan change) always hits the network fresh.
+let _subStatusInFlight: Promise<unknown> | null = null;
+
 export const api = {
   // Auth
   login: (email: string, password: string, rememberMe = false) =>
@@ -1164,8 +1172,14 @@ export const api = {
     apiFetch('/api/onboarding/seed-demo', { method: 'POST' }),
 
   /** Current subscription status for the logged-in user. */
-  subscriptionStatus: () =>
-    apiFetch('/api/stripe/status'),
+  subscriptionStatus: () => {
+    if (!_subStatusInFlight) {
+      _subStatusInFlight = apiFetch('/api/stripe/status').finally(() => {
+        _subStatusInFlight = null;
+      });
+    }
+    return _subStatusInFlight;
+  },
 
   // ── Contact / Feedback ──────────────────────────────────────────────────────
   /**

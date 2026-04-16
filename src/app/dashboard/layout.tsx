@@ -301,7 +301,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </footer>
       </div>
 
-      {/* Session timeout warning — remind at 40 min and auto-logout after 45 min of inactivity */}
+      {/* Session timeout warning — remind at 55 min and auto-logout after 60 min of inactivity */}
       <SessionTimeoutModal />
 
       {/* Annual upgrade modal — shown mid-session to monthly Plus/Family subscribers active 30+ days */}
