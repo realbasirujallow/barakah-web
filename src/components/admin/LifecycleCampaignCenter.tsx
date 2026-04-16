@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { useToast } from '../../lib/toast';
 
@@ -84,40 +84,190 @@ const defaultDraft = (): DraftCampaign => ({
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => hour);
 
 const FALLBACK_TEMPLATES: Array<Record<string, unknown>> = [
-  {
-    key: 'ramadan',
-    channel: 'email',
-    subject: 'Ramadan Mubarak from Barakah',
-    title: 'Ramadan Mubarak',
-    body: 'Ramadan Mubarak, {first_name}.\n\nOpen Barakah to review your zakat readiness, track your sadaqah, and keep your household finances in order this blessed month.',
-  },
-  {
-    key: 'eid_al_fitr',
-    channel: 'email',
-    subject: 'Eid Mubarak from Barakah',
-    title: 'Eid Mubarak',
-    body: 'Eid Mubarak, {first_name}.\n\nMay Allah accept your fasting and good deeds. Open Barakah any time to review your spending, balances, and zakat history.',
-  },
+  // ── Activation ──────────────────────────────────────────────────────────
   {
     key: 'activation_finish_setup',
+    label: 'Finish Setup',
+    category: 'Activation',
+    emoji: '🏠',
+    description: 'Nudge users who created an account but never finished onboarding.',
     channel: 'email',
-    subject: 'Finish setting up Barakah',
+    subject: 'Your Barakah dashboard is almost ready',
     title: 'Your financial home is almost ready',
-    body: 'Assalamu alaykum, {first_name}.\n\nYou already created your Barakah account. Finish setup so we can personalize your dashboard and help you track zakat, budgets, and household finances properly.',
+    body: `Assalamu alaykum, {first_name}.\n\nYou already created your Barakah account — but your dashboard is still empty.\n\nFinish the 2-minute setup so Barakah can personalise your zakat, budget, and net-worth tracking the way you need it.\n\nTap below to finish where you left off.`,
   },
   {
     key: 'activation_link_accounts',
+    label: 'Link Your Accounts (Email)',
+    category: 'Activation',
+    emoji: '🔗',
+    description: 'Encourage users who completed setup but haven\'t connected a bank or card.',
     channel: 'email',
-    subject: 'Connect your first account in Barakah',
+    subject: 'Unlock the full power of Barakah — connect your accounts',
     title: 'Bring your balances into one place',
-    body: 'Assalamu alaykum, {first_name}.\n\nConnect your bank or card accounts so Barakah can keep your balances, spending, and net worth in sync.',
+    body: `Assalamu alaykum, {first_name}.\n\nBarakah is most powerful when it can see your real balances. Right now your dashboard shows estimates — connect your bank or card accounts via Plaid and Barakah will:\n\n• Keep your balances and spending updated automatically\n• Calculate your zakat on actual assets (not guesses)\n• Show your true net worth in one screen\n• Flag unusual spending before it becomes a problem\n\nIt takes about 60 seconds. Your credentials go directly to your bank — Barakah never sees them.\n\nTap below to connect your first account.`,
   },
   {
+    key: 'activation_link_accounts_push',
+    label: 'Link Your Accounts (Push)',
+    category: 'Activation',
+    emoji: '🔗',
+    description: 'Push version — short nudge to link a bank or card.',
+    channel: 'push',
+    subject: '',
+    title: 'Connect your accounts for accurate zakat & budgets',
+    body: 'Your dashboard is ready. Link a bank or card so Barakah can track your real balances, zakat, and net worth automatically.',
+  },
+  {
+    key: 'activation_feature_tour',
+    label: 'What Barakah Offers',
+    category: 'Activation',
+    emoji: '✨',
+    description: 'Educate new users on all features — great for the week-1 email.',
+    channel: 'email',
+    subject: 'Here is everything Barakah can do for you',
+    title: 'Here is everything Barakah can do for you',
+    body: `Assalamu alaykum, {first_name}.\n\nWelcome to Barakah. Here is a quick tour of what is waiting for you:\n\n🔗 Connected Accounts — Link your bank, cards, or investment accounts via Plaid. Barakah keeps everything in sync so you never have to manually enter balances again.\n\n🕌 Zakat Calculator — Barakah calculates your zakatable assets automatically based on your real balances. No spreadsheets, no guessing.\n\n📊 Halal Budget — Set monthly spending limits by category. Barakah flags when you are close so you can stay intentional.\n\n💰 Net Worth Dashboard — See every asset and liability in one screen. Watch your net worth grow month by month.\n\n📅 Hawl Tracker — Track the one-year anniversary of your nisab so you never miss a zakat obligation.\n\n🤲 Sadaqah & Charity Log — Record voluntary giving and see your full charitable giving history.\n\n📜 Islamic Finance Guidance — Built-in fiqh notes so you can make halal financial decisions with confidence.\n\nAll of this is waiting for you inside the app. Open Barakah now and start from the dashboard.`,
+  },
+
+  // ── Feature Discovery ────────────────────────────────────────────────────
+  {
+    key: 'feature_zakat',
+    label: 'Discover: Zakat Calculator',
+    category: 'Feature Discovery',
+    emoji: '🕌',
+    description: 'Remind users about the zakat tracker — good for mid-Ramadan or after nisab.',
+    channel: 'push',
+    subject: '',
+    title: 'Your zakat calculation is ready',
+    body: 'Open Barakah to see your current zakatable assets and whether you have reached nisab this year.',
+  },
+  {
+    key: 'feature_net_worth',
+    label: 'Discover: Net Worth',
+    category: 'Feature Discovery',
+    emoji: '📈',
+    description: 'Push users to the net worth screen — works well after account linking.',
+    channel: 'push',
+    subject: '',
+    title: 'See your full financial picture',
+    body: 'Your net worth dashboard is live. Open Barakah to see every asset, liability, and how your wealth has changed this month.',
+  },
+  {
+    key: 'feature_budget',
+    label: 'Discover: Halal Budgeting',
+    category: 'Feature Discovery',
+    emoji: '📊',
+    description: 'Introduce budgeting to users who have transactions but no budget set.',
+    channel: 'email',
+    subject: 'You are spending — but do you have a halal budget?',
+    title: 'Set a halal budget in 2 minutes',
+    body: `Assalamu alaykum, {first_name}.\n\nYou have been using Barakah to track your spending — great start. The next step is setting a monthly budget so you can be intentional about every dirham (or dollar).\n\nBarakah lets you set halal spending limits by category — groceries, dining, entertainment, sadaqah — and will alert you when you are getting close.\n\nIt takes about 2 minutes to set up. Open the Budgets section in Barakah and try it now.`,
+  },
+  {
+    key: 'feature_hawl',
+    label: 'Discover: Hawl Tracker',
+    category: 'Feature Discovery',
+    emoji: '📅',
+    description: 'Educate users about the hawl tracker — great for non-Ramadan zakat reminders.',
+    channel: 'email',
+    subject: 'Are you tracking your hawl? Barakah can do it for you',
+    title: 'Never miss your zakat hawl again',
+    body: `Assalamu alaykum, {first_name}.\n\nZakat is only due after your wealth has been above nisab for one full lunar year — that period is called the hawl.\n\nMost Muslims either guess at the date or miss it entirely. Barakah tracks your hawl automatically based on when your assets first crossed nisab, and will remind you when your zakat due date is approaching.\n\nOpen Barakah and visit the Hawl section to set your start date. One minute of setup means you will never miss the obligation again.`,
+  },
+
+  // ── Re-engagement ────────────────────────────────────────────────────────
+  {
     key: 'inactive_checkin',
+    label: 'Check-In Nudge (Push)',
+    category: 'Re-engagement',
+    emoji: '👋',
+    description: 'Push reminder for users inactive 7–30 days.',
     channel: 'push',
     subject: '',
     title: 'Come back to Barakah',
-    body: 'Your balances, spending, and net worth may have changed since your last visit. Open Barakah for a quick check-in.',
+    body: 'Your balances, spending, and net worth may have changed. Open Barakah for a quick check-in — it only takes a minute.',
+  },
+  {
+    key: 'inactive_checkin_email',
+    label: 'Check-In Nudge (Email)',
+    category: 'Re-engagement',
+    emoji: '👋',
+    description: 'Email version of the check-in nudge — more detail, better for 14+ day inactive users.',
+    channel: 'email',
+    subject: 'We saved your seat — come back to Barakah',
+    title: 'Your finances did not pause. Your tracking should not either.',
+    body: `Assalamu alaykum, {first_name}.\n\nIt has been a little while since your last visit. A lot can change in a week — new transactions, balance shifts, progress toward your zakat.\n\nBarakah has been tracking everything. Come back and spend 2 minutes reviewing where you stand:\n\n• Your balances are up to date\n• Any new spending has been categorised\n• Your zakat estimate has been recalculated\n\nOpen Barakah now. Everything is exactly as you left it — plus whatever happened while you were away.`,
+  },
+  {
+    key: 'winback_30d',
+    label: 'Win-Back (30 Days Inactive)',
+    category: 'Re-engagement',
+    emoji: '🤝',
+    description: 'Stronger email for users gone 30+ days — remind them of the value, offer help.',
+    channel: 'email',
+    subject: 'Barakah misses you — is everything okay?',
+    title: 'We want to make sure Barakah is working for you',
+    body: `Assalamu alaykum, {first_name}.\n\nYou signed up for Barakah a while ago and we noticed it has been some time since your last visit.\n\nWe want to make sure Barakah is actually useful for you — not just another app collecting dust.\n\nIf something is not working, or you are not sure how to get the most out of it, reply to this email and we will help personally.\n\nIf life just got busy — that is okay too. Come back whenever you are ready. Your account and data are safe and waiting.\n\nMay Allah make it easy for you.`,
+  },
+
+  // ── Islamic Calendar ─────────────────────────────────────────────────────
+  {
+    key: 'ramadan',
+    label: 'Ramadan Mubarak',
+    category: 'Islamic Calendar',
+    emoji: '🌙',
+    description: 'Ramadan greeting with a zakat and sadaqah call to action.',
+    channel: 'email',
+    subject: 'Ramadan Mubarak from Barakah',
+    title: 'Ramadan Mubarak',
+    body: `Ramadan Mubarak, {first_name}.\n\nMay Allah accept your fasting, prayers, and good deeds this blessed month.\n\nRamadan is the best time to review your finances with intention. Open Barakah to:\n\n• Check your zakat readiness before Eid\n• Log your sadaqah and charitable giving\n• Review your spending and reset your budget for the month\n\nMay this Ramadan bring barakah into every corner of your life.`,
+  },
+  {
+    key: 'eid_al_fitr',
+    label: 'Eid al-Fitr Mubarak',
+    category: 'Islamic Calendar',
+    emoji: '🌟',
+    description: 'Eid greeting after Ramadan — light and celebratory.',
+    channel: 'email',
+    subject: 'Eid Mubarak from Barakah',
+    title: 'Eid Mubarak — Taqabbal Allahu Minna wa Minkum',
+    body: `Eid Mubarak, {first_name}.\n\nTaqabbal Allahu Minna wa Minkum — may Allah accept from us and from you.\n\nMay this Eid bring joy, peace, and abundance to you and your family. Open Barakah any time to review your Ramadan spending, sadaqah log, and zakat history.`,
+  },
+  {
+    key: 'dhul_hijja',
+    label: 'Dhul Hijja / Eid al-Adha',
+    category: 'Islamic Calendar',
+    emoji: '🕋',
+    description: 'Dhul Hijja greeting — emphasises the best 10 days and qurbani planning.',
+    channel: 'email',
+    subject: 'The best 10 days of the year are here',
+    title: 'Dhul Hijja: the best 10 days of the year',
+    body: `Assalamu alaykum, {first_name}.\n\nThe blessed days of Dhul Hijja are upon us. The Prophet \uFD3F said there are no days in which righteous deeds are more beloved to Allah than these ten days.\n\nUse this time wisely — and use Barakah to:\n\n• Budget for your qurbani (Eid al-Adha sacrifice)\n• Review your zakat and any outstanding obligations\n• Log your sadaqah and acts of generosity\n\nMay Allah accept your deeds and grant you and your family a blessed Eid al-Adha.`,
+  },
+
+  // ── Upgrade / Trials ─────────────────────────────────────────────────────
+  {
+    key: 'trial_ending',
+    label: 'Trial Ending Soon',
+    category: 'Upgrade',
+    emoji: '⏰',
+    description: 'Email for users whose free trial ends in 3–5 days.',
+    channel: 'email',
+    subject: 'Your Barakah trial ends soon — here is what you keep',
+    title: 'Your trial ends in a few days',
+    body: `Assalamu alaykum, {first_name}.\n\nYour Barakah Plus trial is ending soon. We wanted to make sure you know what happens next.\n\nIf you subscribe before your trial ends, you keep:\n\n✅ All your linked accounts and transaction history\n✅ Your zakat calculations and hawl tracking\n✅ Your budgets, net worth history, and sadaqah log\n✅ Full access to all Barakah Plus features\n\nIf you do not subscribe, your account switches to the free plan and some features will be limited — but your data is safe.\n\nSubscribe now to keep the full Barakah experience. JazakAllahu khairan for trying it.`,
+  },
+  {
+    key: 'upgrade_to_plus',
+    label: 'Upgrade to Plus (Free Users)',
+    category: 'Upgrade',
+    emoji: '⬆️',
+    description: 'Nudge free users to upgrade — highlight what they are missing.',
+    channel: 'email',
+    subject: 'You are one step away from the full Barakah experience',
+    title: 'Unlock the full Barakah experience',
+    body: `Assalamu alaykum, {first_name}.\n\nYou are using Barakah Free — alhamdulillah, it is a great start.\n\nBarakah Plus takes it further:\n\n🔗 Link unlimited bank and card accounts via Plaid\n📊 Unlimited budget categories\n📅 Hawl tracking and automatic zakat calculation on real assets\n📈 Full net worth history and trends\n🤲 Sadaqah log with annual summary\n\nFor less than a coffee a month, you can manage your finances the way Islam intended.\n\nTap below to upgrade — and if you have any questions about whether Plus is right for you, just reply to this email.`,
   },
 ];
 
@@ -143,6 +293,26 @@ function fromLocalDateTime(value: string) {
   return Number.isNaN(parsed.getTime()) ? null : parsed.getTime();
 }
 
+// Derive unique categories in the order they first appear
+function getCategories(templateList: Array<Record<string, unknown>>): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const t of templateList) {
+    const cat = String(t.category || 'Other');
+    if (!seen.has(cat)) {
+      seen.add(cat);
+      out.push(cat);
+    }
+  }
+  return out;
+}
+
+const CHANNEL_BADGE: Record<string, string> = {
+  email: 'bg-blue-100 text-blue-700',
+  push: 'bg-amber-100 text-amber-700',
+  in_app: 'bg-purple-100 text-purple-700',
+};
+
 export function LifecycleCampaignCenter({ active }: { active: boolean }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -162,6 +332,9 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
   const [broadcastStats, setBroadcastStats] = useState<BroadcastStats | null>(null);
   const [lastBroadcastId, setLastBroadcastId] = useState<string | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
+
+  // Ref for scrolling to the campaign form
+  const campaignFormRef = useRef<HTMLDivElement>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -424,26 +597,112 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
     }
   };
 
+  // ── Quick-action helpers ─────────────────────────────────────────────────
+  const scrollToForm = () => {
+    campaignFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const applyStatCardAction = (
+    filterPatch: Partial<Filters>,
+    templateKey?: string,
+  ) => {
+    setDraft(prev => {
+      const next: DraftCampaign = {
+        ...prev,
+        audienceFilters: { ...prev.audienceFilters, ...filterPatch },
+      };
+      if (templateKey) {
+        const tpl = templates.find(t => String(t.key) === templateKey);
+        next.templateKey = templateKey;
+        if (tpl) {
+          next.channel = String(tpl.channel || prev.channel) as DraftCampaign['channel'];
+          next.subject = String(tpl.subject || '');
+          next.title = String(tpl.title || '');
+          next.body = String(tpl.body || '');
+        }
+      }
+      return next;
+    });
+    scrollToForm();
+  };
+
+  const STAT_CARDS: Array<{
+    label: string;
+    valueKey: string;
+    filterPatch: Partial<Filters>;
+    templateKey?: string;
+    color: string;
+    actionLabel: string;
+  }> = [
+    {
+      label: 'Incomplete Setup',
+      valueKey: 'incompleteSetup',
+      filterPatch: { hasCompletedSetup: false as unknown as boolean },
+      color: 'text-amber-600',
+      actionLabel: 'Target →',
+    },
+    {
+      label: 'No Linked Accounts',
+      valueKey: 'noLinkedAccounts',
+      filterPatch: { hasLinkedAccounts: false as unknown as boolean },
+      templateKey: 'activation_link_accounts_push',
+      color: 'text-blue-600',
+      actionLabel: 'Target →',
+    },
+    {
+      label: 'Inactive 7d',
+      valueKey: 'inactive7d',
+      filterPatch: { inactiveDaysMin: 7 },
+      templateKey: 'inactive_checkin',
+      color: 'text-orange-600',
+      actionLabel: 'Target →',
+    },
+    {
+      label: 'Trials Ending Soon',
+      valueKey: 'trialEndingSoon',
+      filterPatch: { trialEndingWithinDays: 7 },
+      templateKey: 'trial_ending',
+      color: 'text-red-600',
+      actionLabel: 'Target →',
+    },
+  ];
+
+  const categories = useMemo(() => getCategories(templates), [templates]);
+  const isPush = draft.channel === 'push';
+  const isEmail = draft.channel === 'email';
+  const bodyLength = draft.body.length;
+  const pushOverLimit = isPush && bodyLength > 110;
+
   return (
     <div className="space-y-6">
 
+      {/* ── Overview stat cards ─────────────────────────────────────────────── */}
       <div className="grid gap-4 md:grid-cols-4">
-        {[
-          ['Incomplete Setup', overview?.incompleteSetup ?? 0],
-          ['No Linked Accounts', overview?.noLinkedAccounts ?? 0],
-          ['Inactive 7d', overview?.inactive7d ?? 0],
-          ['Trials Ending Soon', overview?.trialEndingSoon ?? 0],
-        ].map(([label, value]) => (
-          <div key={label} className="rounded-2xl border bg-white p-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{label}</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{Number(value).toLocaleString()}</p>
+        {STAT_CARDS.map(card => (
+          <div key={card.label} className="rounded-2xl border bg-white p-5 flex flex-col justify-between">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{card.label}</p>
+              <p className={`mt-2 text-3xl font-bold ${card.color}`}>
+                {Number(overview?.[card.valueKey as string] ?? 0).toLocaleString()}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => applyStatCardAction(card.filterPatch, card.templateKey)}
+              className="mt-3 self-start rounded-lg bg-gray-50 border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-[#F1F8E9] hover:border-[#1B5E20] hover:text-[#1B5E20] transition-colors"
+            >
+              {card.actionLabel}
+            </button>
           </div>
         ))}
       </div>
 
+      {/* ── Campaign Center + Retention Offer ───────────────────────────────── */}
       <div className="grid gap-6 xl:grid-cols-[1.2fr,0.8fr]">
-        <div className="rounded-2xl border bg-white p-5">
-          <div className="flex items-center justify-between gap-3 mb-4">
+
+        {/* Campaign Center panel */}
+        <div ref={campaignFormRef} className="rounded-2xl border bg-white p-5">
+          <div className="flex items-center justify-between gap-3 mb-5">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Campaign Center</h2>
               <p className="text-sm text-gray-500 mt-1">Build Ramadan greetings, activation journeys, win-back nudges, and scheduled broadcasts.</p>
@@ -457,250 +716,332 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
             </button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="text-sm text-gray-600">
-              <span className="mb-2 block font-medium text-gray-800">Campaign name</span>
-              <input
-                value={draft.name}
-                onChange={e => setDraft(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-                placeholder="Ramadan Mubarak 2026"
-              />
-            </label>
-            <label className="text-sm text-gray-600">
-              <span className="mb-2 block font-medium text-gray-800">Template</span>
-              <select
-                value={draft.templateKey}
-                onChange={e => setDraft(prev => ({ ...prev, templateKey: e.target.value, subject: '', title: '', body: '' }))}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-              >
-                <option value="">Custom</option>
-                {templates.map(template => (
-                  <option key={String(template.key)} value={String(template.key)}>{String(template.key)}</option>
-                ))}
-              </select>
-            </label>
-            <label className="text-sm text-gray-600">
-              <span className="mb-2 block font-medium text-gray-800">Channel</span>
-              <select
-                value={draft.channel}
-                onChange={e => setDraft(prev => ({ ...prev, channel: e.target.value as DraftCampaign['channel'] }))}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-              >
-                <option value="email">Email</option>
-                <option value="push">Push</option>
-                <option value="in_app">In-App</option>
-              </select>
-            </label>
-            <label className="text-sm text-gray-600">
-              <span className="mb-2 block font-medium text-gray-800">Status</span>
-              <select
-                value={draft.status}
-                onChange={e => setDraft(prev => ({ ...prev, status: e.target.value as DraftCampaign['status'] }))}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-              >
-                <option value="draft">Draft</option>
-                <option value="scheduled">Scheduled</option>
-              </select>
-            </label>
+          {/* ── Template gallery ─────────────────────────────────────────────── */}
+          <div className="mb-5">
+            <p className="text-sm font-semibold text-gray-800 mb-3">Pick a template</p>
+            <div className="space-y-4">
+              {/* Custom / blank option */}
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-400 mb-2">Custom</p>
+                <button
+                  type="button"
+                  onClick={() => setDraft(prev => ({ ...prev, templateKey: '', subject: '', title: '', body: '' }))}
+                  className={`rounded-xl border p-3 text-left w-44 transition-colors ${
+                    draft.templateKey === ''
+                      ? 'border-[#1B5E20] ring-2 ring-[#1B5E20]/20 bg-[#F1F8E9]'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-gray-800">✏️ Custom</p>
+                  <p className="text-xs text-gray-400 mt-1">Write from scratch</p>
+                </button>
+              </div>
+
+              {categories.map(category => {
+                const categoryTemplates = templates.filter(t => String(t.category || 'Other') === category);
+                return (
+                  <div key={category}>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400 mb-2">{category}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {categoryTemplates.map(tpl => {
+                        const key = String(tpl.key || '');
+                        const label = String(tpl.label || key);
+                        const emoji = String(tpl.emoji || '📄');
+                        const channel = String(tpl.channel || 'email');
+                        const description = String(tpl.description || '');
+                        const isSelected = draft.templateKey === key;
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => {
+                              setDraft(prev => ({
+                                ...prev,
+                                templateKey: key,
+                                channel: channel as DraftCampaign['channel'],
+                                subject: String(tpl.subject || ''),
+                                title: String(tpl.title || ''),
+                                body: String(tpl.body || ''),
+                              }));
+                            }}
+                            className={`rounded-xl border p-3 text-left w-52 transition-colors flex-shrink-0 ${
+                              isSelected
+                                ? 'border-[#1B5E20] ring-2 ring-[#1B5E20]/20 bg-[#F1F8E9]'
+                                : 'border-gray-200 bg-white hover:border-gray-300'
+                            }`}
+                          >
+                            <p className="text-sm font-semibold text-gray-800 leading-tight">
+                              {emoji} {label}
+                            </p>
+                            <div className="mt-1.5 flex items-center gap-1.5">
+                              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${CHANNEL_BADGE[channel] ?? 'bg-gray-100 text-gray-600'}`}>
+                                {channel}
+                              </span>
+                            </div>
+                            <p className="mt-1.5 text-[11px] text-gray-400 line-clamp-2 leading-snug">{description}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {draft.status === 'scheduled' && (
-            <label className="mt-4 block text-sm text-gray-600">
-              <span className="mb-2 block font-medium text-gray-800">Scheduled for</span>
-              <input
-                type="datetime-local"
-                value={draft.scheduledAt}
-                onChange={e => setDraft(prev => ({ ...prev, scheduledAt: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-              />
-            </label>
-          )}
-
-          <div className="grid gap-4 md:grid-cols-2 mt-4">
-            <label className="text-sm text-gray-600 md:col-span-2">
-              <span className="mb-2 block font-medium text-gray-800">Description</span>
-              <input
-                value={draft.description}
-                onChange={e => setDraft(prev => ({ ...prev, description: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-                placeholder="Optional internal notes for your team"
-              />
-            </label>
-            <label className="text-sm text-gray-600">
-              <span className="mb-2 block font-medium text-gray-800">Subject</span>
-              <input
-                value={draft.subject}
-                onChange={e => setDraft(prev => ({ ...prev, subject: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-              />
-            </label>
-            <label className="text-sm text-gray-600">
-              <span className="mb-2 block font-medium text-gray-800">Title</span>
-              <input
-                value={draft.title}
-                onChange={e => setDraft(prev => ({ ...prev, title: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-              />
-            </label>
-            <label className="text-sm text-gray-600 md:col-span-2">
-              <span className="mb-2 block font-medium text-gray-800">Body</span>
-              <textarea
-                value={draft.body}
-                onChange={e => setDraft(prev => ({ ...prev, body: e.target.value }))}
-                rows={6}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-              />
-            </label>
-          </div>
-
-          <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4">
-            <p className="text-sm font-semibold text-gray-800 mb-3">Audience filters</p>
+          {/* ── Form fields ──────────────────────────────────────────────────── */}
+          <div className="border-t border-gray-100 pt-5">
             <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-400 mb-2">Plans</p>
-                <div className="flex flex-wrap gap-2">
-                  {['free', 'plus', 'family'].map(plan => (
-                    <button
-                      key={plan}
-                      type="button"
-                      onClick={() => toggleStringFilter('plans', plan)}
-                      className={`rounded-full px-3 py-1.5 text-xs font-medium ${
-                        draft.audienceFilters.plans.includes(plan)
-                          ? 'bg-[#1B5E20] text-white'
-                          : 'bg-white text-gray-600 border border-gray-200'
-                      }`}
-                    >
-                      {plan}
-                    </button>
+              <label className="text-sm text-gray-600">
+                <span className="mb-2 block font-medium text-gray-800">Campaign name</span>
+                <input
+                  value={draft.name}
+                  onChange={e => setDraft(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                  placeholder="e.g. Link Accounts — April 2026"
+                />
+              </label>
+              <label className="text-sm text-gray-600">
+                <span className="mb-2 block font-medium text-gray-800">Channel</span>
+                <select
+                  value={draft.channel}
+                  onChange={e => setDraft(prev => ({ ...prev, channel: e.target.value as DraftCampaign['channel'] }))}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                >
+                  <option value="email">Email</option>
+                  <option value="push">Push</option>
+                  <option value="in_app">In-App</option>
+                </select>
+              </label>
+              <label className="text-sm text-gray-600">
+                <span className="mb-2 block font-medium text-gray-800">Status</span>
+                <select
+                  value={draft.status}
+                  onChange={e => setDraft(prev => ({ ...prev, status: e.target.value as DraftCampaign['status'] }))}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="scheduled">Scheduled</option>
+                </select>
+              </label>
+            </div>
+
+            {draft.status === 'scheduled' && (
+              <label className="mt-4 block text-sm text-gray-600">
+                <span className="mb-2 block font-medium text-gray-800">Scheduled for</span>
+                <input
+                  type="datetime-local"
+                  value={draft.scheduledAt}
+                  onChange={e => setDraft(prev => ({ ...prev, scheduledAt: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                />
+              </label>
+            )}
+
+            <div className="grid gap-4 md:grid-cols-2 mt-4">
+              <label className="text-sm text-gray-600 md:col-span-2">
+                <span className="mb-2 block font-medium text-gray-800">Description</span>
+                <input
+                  value={draft.description}
+                  onChange={e => setDraft(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                  placeholder="Optional internal notes for your team"
+                />
+              </label>
+
+              {/* Subject — only shown for email */}
+              {isEmail && (
+                <label className="text-sm text-gray-600">
+                  <span className="mb-2 block font-medium text-gray-800">Subject</span>
+                  <input
+                    value={draft.subject}
+                    onChange={e => setDraft(prev => ({ ...prev, subject: e.target.value }))}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                  />
+                </label>
+              )}
+
+              <label className="text-sm text-gray-600">
+                <span className="mb-2 block font-medium text-gray-800">Title</span>
+                <input
+                  value={draft.title}
+                  onChange={e => setDraft(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                />
+              </label>
+
+              <label className="text-sm text-gray-600 md:col-span-2">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="font-medium text-gray-800">Body</span>
+                  {isPush && (
+                    <span className={`text-xs font-medium tabular-nums ${pushOverLimit ? 'text-orange-500' : 'text-gray-400'}`}>
+                      {bodyLength} / 110{pushOverLimit ? ' — keep it shorter for best delivery' : ''}
+                    </span>
+                  )}
+                </div>
+                <textarea
+                  value={draft.body}
+                  onChange={e => setDraft(prev => ({ ...prev, body: e.target.value }))}
+                  rows={6}
+                  className={`w-full rounded-xl border px-3 py-2 outline-none focus:ring-1 ${
+                    pushOverLimit
+                      ? 'border-orange-400 focus:border-orange-400 focus:ring-orange-400'
+                      : 'border-gray-200 focus:border-[#1B5E20] focus:ring-[#1B5E20]'
+                  }`}
+                />
+              </label>
+            </div>
+
+            {/* ── Audience filters ───────────────────────────────────────────── */}
+            <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-sm font-semibold text-gray-800 mb-3">Audience filters</p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-400 mb-2">Plans</p>
+                  <div className="flex flex-wrap gap-2">
+                    {['free', 'plus', 'family'].map(plan => (
+                      <button
+                        key={plan}
+                        type="button"
+                        onClick={() => toggleStringFilter('plans', plan)}
+                        className={`rounded-full px-3 py-1.5 text-xs font-medium ${
+                          draft.audienceFilters.plans.includes(plan)
+                            ? 'bg-[#1B5E20] text-white'
+                            : 'bg-white text-gray-600 border border-gray-200'
+                        }`}
+                      >
+                        {plan}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-400 mb-2">Subscription status</p>
+                  <div className="flex flex-wrap gap-2">
+                    {['active', 'trial', 'trialing', 'past_due', 'inactive', 'canceled'].map(status => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() => toggleStringFilter('subscriptionStatuses', status)}
+                        className={`rounded-full px-3 py-1.5 text-xs font-medium ${
+                          draft.audienceFilters.subscriptionStatuses.includes(status)
+                            ? 'bg-[#1B5E20] text-white'
+                            : 'bg-white text-gray-600 border border-gray-200'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <label className="text-sm text-gray-600">
+                  <span className="mb-2 block font-medium text-gray-800">Inactive at least (days)</span>
+                  <input
+                    type="number"
+                    value={draft.audienceFilters.inactiveDaysMin ?? ''}
+                    onChange={e => updateFilter('inactiveDaysMin', e.target.value ? Number(e.target.value) : undefined)}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                  />
+                </label>
+                <label className="text-sm text-gray-600">
+                  <span className="mb-2 block font-medium text-gray-800">Inactive no more than (days)</span>
+                  <input
+                    type="number"
+                    value={draft.audienceFilters.inactiveDaysMax ?? ''}
+                    onChange={e => updateFilter('inactiveDaysMax', e.target.value ? Number(e.target.value) : undefined)}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                  />
+                </label>
+                <label className="text-sm text-gray-600">
+                  <span className="mb-2 block font-medium text-gray-800">Trial ending within days</span>
+                  <input
+                    type="number"
+                    value={draft.audienceFilters.trialEndingWithinDays ?? ''}
+                    onChange={e => updateFilter('trialEndingWithinDays', e.target.value ? Number(e.target.value) : undefined)}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                  />
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    ['hasCompletedSetup', 'Completed Setup'],
+                    ['hasLinkedAccounts', 'Linked Accounts'],
+                    ['hasTransactions', 'Has Transactions'],
+                  ].map(([key, label]) => (
+                    <label key={key} className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(draft.audienceFilters[key as keyof Filters])}
+                        onChange={e => updateFilter(key as keyof Filters, e.target.checked)}
+                        className="mr-2"
+                      />
+                      {label}
+                    </label>
                   ))}
                 </div>
               </div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-400 mb-2">Subscription status</p>
-                <div className="flex flex-wrap gap-2">
-                  {['active', 'trial', 'trialing', 'past_due', 'inactive', 'canceled'].map(status => (
-                    <button
-                      key={status}
-                      type="button"
-                      onClick={() => toggleStringFilter('subscriptionStatuses', status)}
-                      className={`rounded-full px-3 py-1.5 text-xs font-medium ${
-                        draft.audienceFilters.subscriptionStatuses.includes(status)
-                          ? 'bg-[#1B5E20] text-white'
-                          : 'bg-white text-gray-600 border border-gray-200'
-                      }`}
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <label className="text-sm text-gray-600">
-                <span className="mb-2 block font-medium text-gray-800">Inactive at least (days)</span>
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+              <label className="flex items-center gap-2 text-sm text-gray-600">
                 <input
-                  type="number"
-                  value={draft.audienceFilters.inactiveDaysMin ?? ''}
-                  onChange={e => updateFilter('inactiveDaysMin', e.target.value ? Number(e.target.value) : undefined)}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                  type="checkbox"
+                  checked={draft.sendInUserTimezone}
+                  onChange={e => setDraft(prev => ({ ...prev, sendInUserTimezone: e.target.checked }))}
+                  className="h-4 w-4 rounded border-gray-300 text-[#1B5E20]"
                 />
+                Send in user timezone and respect quiet hours
               </label>
-              <label className="text-sm text-gray-600">
-                <span className="mb-2 block font-medium text-gray-800">Inactive no more than (days)</span>
-                <input
-                  type="number"
-                  value={draft.audienceFilters.inactiveDaysMax ?? ''}
-                  onChange={e => updateFilter('inactiveDaysMax', e.target.value ? Number(e.target.value) : undefined)}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-                />
-              </label>
-              <label className="text-sm text-gray-600">
-                <span className="mb-2 block font-medium text-gray-800">Trial ending within days</span>
-                <input
-                  type="number"
-                  value={draft.audienceFilters.trialEndingWithinDays ?? ''}
-                  onChange={e => updateFilter('trialEndingWithinDays', e.target.value ? Number(e.target.value) : undefined)}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-                />
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  ['hasCompletedSetup', 'Completed Setup'],
-                  ['hasLinkedAccounts', 'Linked Accounts'],
-                  ['hasTransactions', 'Has Transactions'],
-                ].map(([key, label]) => (
-                  <label key={key} className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(draft.audienceFilters[key as keyof Filters])}
-                      onChange={e => updateFilter(key as keyof Filters, e.target.checked)}
-                      className="mr-2"
-                    />
-                    {label}
-                  </label>
-                ))}
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span>Quiet hours</span>
+                <select
+                  value={draft.quietHoursStart}
+                  onChange={e => setDraft(prev => ({ ...prev, quietHoursStart: Number(e.target.value) }))}
+                  className="rounded-lg border border-gray-200 px-2 py-1"
+                >
+                  {HOUR_OPTIONS.map(hour => <option key={hour} value={hour}>{hour.toString().padStart(2, '0')}:00</option>)}
+                </select>
+                <span>to</span>
+                <select
+                  value={draft.quietHoursEnd}
+                  onChange={e => setDraft(prev => ({ ...prev, quietHoursEnd: Number(e.target.value) }))}
+                  className="rounded-lg border border-gray-200 px-2 py-1"
+                >
+                  {HOUR_OPTIONS.map(hour => <option key={hour} value={hour}>{hour.toString().padStart(2, '0')}:00</option>)}
+                </select>
               </div>
             </div>
-          </div>
 
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-            <label className="flex items-center gap-2 text-sm text-gray-600">
-              <input
-                type="checkbox"
-                checked={draft.sendInUserTimezone}
-                onChange={e => setDraft(prev => ({ ...prev, sendInUserTimezone: e.target.checked }))}
-                className="h-4 w-4 rounded border-gray-300 text-[#1B5E20]"
-              />
-              Send in user timezone and respect quiet hours
-            </label>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>Quiet hours</span>
-              <select
-                value={draft.quietHoursStart}
-                onChange={e => setDraft(prev => ({ ...prev, quietHoursStart: Number(e.target.value) }))}
-                className="rounded-lg border border-gray-200 px-2 py-1"
-              >
-                {HOUR_OPTIONS.map(hour => <option key={hour} value={hour}>{hour.toString().padStart(2, '0')}:00</option>)}
-              </select>
-              <span>to</span>
-              <select
-                value={draft.quietHoursEnd}
-                onChange={e => setDraft(prev => ({ ...prev, quietHoursEnd: Number(e.target.value) }))}
-                className="rounded-lg border border-gray-200 px-2 py-1"
-              >
-                {HOUR_OPTIONS.map(hour => <option key={hour} value={hour}>{hour.toString().padStart(2, '0')}:00</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            {draft.status !== 'scheduled' && (
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              {draft.status !== 'scheduled' && (
+                <button
+                  type="button"
+                  onClick={saveCampaignAndSend}
+                  disabled={savingCampaign || !draft.name.trim() || (!draft.body.trim() && !draft.templateKey)}
+                  className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-60"
+                >
+                  {savingCampaign ? 'Sending...' : 'Save & Send Now'}
+                </button>
+              )}
               <button
                 type="button"
-                onClick={saveCampaignAndSend}
+                onClick={saveCampaign}
                 disabled={savingCampaign || !draft.name.trim() || (!draft.body.trim() && !draft.templateKey)}
-                className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-60"
+                className="rounded-xl border border-[#1B5E20] px-4 py-2 text-sm font-semibold text-[#1B5E20] hover:bg-[#F1F8E9] disabled:opacity-60"
               >
-                {savingCampaign ? 'Sending...' : 'Save & Send Now'}
+                {savingCampaign ? 'Saving...' : draft.status === 'scheduled' ? 'Save Scheduled Campaign' : 'Save Draft'}
               </button>
-            )}
-            <button
-              type="button"
-              onClick={saveCampaign}
-              disabled={savingCampaign || !draft.name.trim() || (!draft.body.trim() && !draft.templateKey)}
-              className="rounded-xl border border-[#1B5E20] px-4 py-2 text-sm font-semibold text-[#1B5E20] hover:bg-[#F1F8E9] disabled:opacity-60"
-            >
-              {savingCampaign ? 'Saving...' : draft.status === 'scheduled' ? 'Save Scheduled Campaign' : 'Save Draft'}
-            </button>
-            <input
-              type="email"
-              value={testEmail}
-              onChange={e => setTestEmail(e.target.value)}
-              placeholder="test@example.com"
-              className="min-w-52 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
-            />
+              <input
+                type="email"
+                value={testEmail}
+                onChange={e => setTestEmail(e.target.value)}
+                placeholder="test@example.com"
+                className="min-w-52 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+              />
+            </div>
           </div>
         </div>
 
+        {/* ── Retention Offer panel (unchanged) ───────────────────────────────── */}
         <div className="rounded-2xl border bg-white p-5">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Retention Offer</h2>
           <div className="space-y-4">
@@ -770,6 +1111,7 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
         </div>
       </div>
 
+      {/* ── Recent Lifecycle Campaigns ──────────────────────────────────────── */}
       <div className="rounded-2xl border bg-white p-5">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div>
@@ -861,7 +1203,7 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
           })}
           {!campaigns.length && (
             <div className="rounded-2xl border border-dashed border-gray-200 p-6 text-sm text-gray-500">
-              No lifecycle campaigns yet. Save a draft on the left to start building Ramadan greetings, activation journeys, or win-back campaigns.
+              No campaigns yet — pick a template above to create your first one.
             </div>
           )}
         </div>
@@ -961,6 +1303,7 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
         </div>
       )}
 
+      {/* ── Recent Feedback & Leads ─────────────────────────────────────────── */}
       <div className="rounded-2xl border bg-white p-5">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div>
