@@ -343,7 +343,11 @@ export default function RibaPage() {
   };
 
   // ── Auth / loading gates ────────────────────────────────────────────────────
-  if (isLoading || (user && !hasPaidAccess)) {
+  // LOW BUG FIX: split combined condition so free users see nothing (null) while
+  // the redirect fires instead of a spinner flash. Combined `isLoading || !hasPaidAccess`
+  // caused the spinner to render briefly before router.replace completed.
+  if (!isLoading && user && !hasPaidAccess) return null;
+  if (isLoading) {
     return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
   }
 

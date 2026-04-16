@@ -88,7 +88,7 @@ const emptyHoldingForm = { symbol: '', name: '', quantity: '', averageCost: '', 
 
 export default function InvestmentsPage() {
   const { toast } = useToast();
-  const { fmt } = useCurrency();
+  const { fmt, symbol } = useCurrency();
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [assetAccounts, setAssetAccounts] = useState<AssetAccount[]>([]);
@@ -278,7 +278,7 @@ export default function InvestmentsPage() {
                   <YAxis
                     tick={{ fontSize: 12, fill: '#6b7280' }}
                     stroke="#d1d5db"
-                    tickFormatter={(value: number) => `$${(value / 1000).toFixed(0)}k`}
+                    tickFormatter={(value: number) => `${symbol}${(value / 1000).toFixed(0)}k`}
                   />
                   <Tooltip
                     contentStyle={{
