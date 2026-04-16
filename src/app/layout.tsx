@@ -207,17 +207,17 @@ export default function RootLayout({
         {/* Organization Schema */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema).replace(/<\//g, '<\\/') }}
         />
         {/* Software Application Schema */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema).replace(/<\//g, '<\\/') }}
         />
         {/* WebSite Schema (enables Google Sitelinks Search Box) */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema).replace(/<\//g, '<\\/') }}
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>

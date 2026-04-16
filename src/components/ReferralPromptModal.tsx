@@ -40,8 +40,12 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
     api.getReferralCode().then((data: Record<string, unknown>) => {
       if (data?.referralCode) setCode(data.referralCode as string);
       if (data?.shareUrl) setShareUrl(data.shareUrl as string);
-    }).catch(() => { /* referral code will be empty — still show modal */ });
-  }, []);
+    }).catch(() => {
+      // BUG FIX: if we can't load the referral code, there's nothing useful
+      // to show — auto-dismiss rather than leaving a broken empty modal.
+      onDismiss();
+    });
+  }, [onDismiss]);
 
   const handleCopy = async () => {
     if (!shareUrl) return;

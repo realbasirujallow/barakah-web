@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api } from '../../../../lib/api';
 import { useToast } from '../../../../lib/toast';
 import { logError } from '../../../../lib/logError';
+import { useAuth } from '../../../../context/AuthContext';
 import GrowthSnapshot, { type GrowthResponse } from '../../../../components/admin/GrowthSnapshot';
 
 /**
@@ -43,10 +45,23 @@ function pct(n: number) {
 
 export default function FunnelPage() {
   const { toast } = useToast();
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<FunnelResponse | null>(null);
   const [growth, setGrowth] = useState<GrowthResponse | null>(null);
   const [days, setDays] = useState<number>(30);
+
+  // Frontend admin-role guard — redirect non-admins before any API call
+  useEffect(() => {
+    if (!isAuthLoading && user && (user as { role?: string }).role !== 'admin') {
+      router.replace('/dashboard');
+    }
+  }, [isAuthLoading, user, router]);
+
+  if (!isAuthLoading && user && (user as { role?: string }).role !== 'admin') {
+    return null;
+  }
 
   useEffect(() => {
     let cancelled = false;
