@@ -485,8 +485,14 @@ export const api = {
   // genuine session expiry from transient connectivity issues.
   // Uses deduplicatedRefresh() so concurrent callers share one request.
   refresh: () => deduplicatedRefresh(),
+  // CWE-598 fix: send the token in the POST body, not as a GET URL parameter.
+  // GET query params are captured in server access logs, CDN logs, proxy logs,
+  // and browser history — all of which are poor places for a sensitive secret.
   verifyEmail: (token: string) =>
-    apiFetch(`/auth/verify-email?token=${encodeURIComponent(token)}`),
+    apiFetch('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
   resendVerification: (email: string) =>
     apiFetch('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) }),
   forgotPassword: (email: string) =>

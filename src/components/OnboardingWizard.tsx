@@ -49,22 +49,37 @@ const steps = [
   },
 ];
 
+const STEP_KEY = 'barakah_onboarding_step';
+
 export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
-  const [step, setStep] = useState(0);
+  // BUG FIX: persist the current step so navigating to an action destination
+  // and returning resumes from where the user left off rather than resetting
+  // to step 0 or permanently dismissing the wizard.
+  const [step, setStep] = useState(() => {
+    try { return Math.min(Number(localStorage.getItem(STEP_KEY) || '0'), steps.length - 1); } catch { return 0; }
+  });
   const current = steps[step];
   const isLast = step === steps.length - 1;
 
   const handleNext = () => {
     if (isLast) {
-      try { localStorage.setItem('barakah_onboarded', 'true'); } catch {}
+      try {
+        localStorage.setItem('barakah_onboarded', 'true');
+        localStorage.removeItem(STEP_KEY);
+      } catch {}
       onComplete();
     } else {
-      setStep(step + 1);
+      const next = step + 1;
+      try { localStorage.setItem(STEP_KEY, String(next)); } catch {}
+      setStep(next);
     }
   };
 
   const handleSkip = () => {
-    try { localStorage.setItem('barakah_onboarded', 'true'); } catch {}
+    try {
+      localStorage.setItem('barakah_onboarded', 'true');
+      localStorage.removeItem(STEP_KEY);
+    } catch {}
     onComplete();
   };
 
@@ -86,7 +101,10 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
           <p className="text-gray-700 text-sm leading-relaxed mb-5">{current.body}</p>
 
           {current.action && (
-            <Link href={current.action.href} onClick={handleSkip}
+            // BUG FIX: was onClick={handleSkip} which permanently dismissed
+            // the wizard; now advances to the next step so returning to the
+            // dashboard after visiting the linked feature resumes from step N+1.
+            <Link href={current.action.href} onClick={handleNext}
               className="inline-block bg-green-50 text-[#1B5E20] px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-100 border border-green-200 transition mb-2">
               {current.action.label} →
             </Link>
