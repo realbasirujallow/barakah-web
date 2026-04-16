@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { fmt } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { useAuth } from '../../../context/AuthContext';
 import Link from 'next/link';
@@ -155,6 +156,7 @@ function normalizeFaraidResult(value: unknown): FaraidResult | null {
 export default function FaraidPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { symbol: currencySymbol } = useCurrency();
 
   const [form, setForm] = useState<FormData>({
     estateValue: 0,
@@ -339,10 +341,10 @@ export default function FaraidPage() {
         <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-5">
           <h2 className="text-lg font-semibold text-[#1B5E20]">Estate Details</h2>
 
-          <CurrencyInput label="Total Estate Value" value={form.estateValue} onChange={(v) => setNumber('estateValue', v)} />
-          <CurrencyInput label="Funeral Expenses" value={form.funeralExpenses} onChange={(v) => setNumber('funeralExpenses', v)} />
-          <CurrencyInput label="Outstanding Debts" value={form.debts} onChange={(v) => setNumber('debts', v)} />
-          <CurrencyInput label="Wasiyyah (Bequest) Amount" value={form.wasiyyahAmount} onChange={(v) => setNumber('wasiyyahAmount', v)} />
+          <CurrencyInput label="Total Estate Value" value={form.estateValue} onChange={(v) => setNumber('estateValue', v)} symbol={currencySymbol} />
+          <CurrencyInput label="Funeral Expenses" value={form.funeralExpenses} onChange={(v) => setNumber('funeralExpenses', v)} symbol={currencySymbol} />
+          <CurrencyInput label="Outstanding Debts" value={form.debts} onChange={(v) => setNumber('debts', v)} symbol={currencySymbol} />
+          <CurrencyInput label="Wasiyyah (Bequest) Amount" value={form.wasiyyahAmount} onChange={(v) => setNumber('wasiyyahAmount', v)} symbol={currencySymbol} />
         </div>
 
         {/* Right — Heirs */}
@@ -447,7 +449,9 @@ export default function FaraidPage() {
       </div>
 
       {/* Calculate button */}
+      {/* LOW BUG FIX: explicit type="button" prevents accidental form submission */}
       <button
+        type="button"
         onClick={calculate}
         disabled={loading}
         className="w-full bg-[#1B5E20] text-white font-semibold py-3.5 rounded-xl hover:bg-[#2E7D32] transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -653,16 +657,19 @@ function CurrencyInput({
   label,
   value,
   onChange,
+  symbol = '$',
 }: {
   label: string;
   value: number;
   onChange: (v: string) => void;
+  symbol?: string;
 }) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+        {/* HIGH BUG FIX: use dynamic currency symbol instead of hardcoded $ */}
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">{symbol}</span>
         <input
           type="number"
           min={0}

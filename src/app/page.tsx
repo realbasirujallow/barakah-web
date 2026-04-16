@@ -121,7 +121,7 @@ export default function Home() {
           <span className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</span>
           <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
             <a href="#features" className="hover:text-[#1B5E20] transition">Features</a>
-            <a href="/pricing" className="hover:text-[#1B5E20] transition">Pricing</a>
+            <Link href="/pricing" className="hover:text-[#1B5E20] transition">Pricing</Link>
             <Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link>
             <Link href="/trust" className="hover:text-[#1B5E20] transition">Trust</Link>
             <Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link>
@@ -148,7 +148,7 @@ export default function Home() {
           <div className="md:hidden bg-white border-t border-gray-100">
             <nav className="max-w-6xl mx-auto px-6 py-4 flex flex-col gap-3 text-sm text-gray-600">
               <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Features</a>
-              <a href="/pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Pricing</a>
+              <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Pricing</Link>
               <Link href="/learn" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Learn</Link>
               <Link href="/trust" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Trust</Link>
               <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Contact</Link>

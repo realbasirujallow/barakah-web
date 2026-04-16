@@ -322,8 +322,14 @@ export default function AssetsPage() {
     });
   };
 
-  const mapsUrl = (address: string) =>
-    `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}&q=${encodeURIComponent(address)}`;
+  // MEDIUM BUG FIX: guard against missing Maps API key. When key is absent the
+  // embed API returns a Google error page inside the iframe — return null instead
+  // so callers can render a fallback rather than showing a broken frame.
+  const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const mapsUrl = (address: string): string | null =>
+    mapsApiKey
+      ? `https://www.google.com/maps/embed/v1/place?key=${mapsApiKey}&q=${encodeURIComponent(address)}`
+      : null;
 
   const mapsLink = (address: string) =>
     `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
@@ -562,15 +568,19 @@ export default function AssetsPage() {
               </div>
               {a.address && ADDRESS_TYPES.includes(a.type) && (
                 <div className="border-t">
-                  <iframe
-                    width="100%"
-                    height="200"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    allowFullScreen
-                    sandbox="allow-scripts allow-same-origin"
-                    src={mapsUrl(a.address)}
-                  />
+                  {mapsUrl(a.address) ? (
+                    <iframe
+                      width="100%"
+                      height="200"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      allowFullScreen
+                      sandbox="allow-scripts allow-same-origin"
+                      src={mapsUrl(a.address)!}
+                    />
+                  ) : (
+                    <p className="text-xs text-gray-400 italic py-2 px-3">Map unavailable</p>
+                  )}
                 </div>
               )}
             </div>
@@ -625,11 +635,15 @@ export default function AssetsPage() {
                     placeholder="e.g. 123 Main St, Austin, TX 78701" />
                   {form.address && (
                     <div className="mt-2 rounded-lg overflow-hidden border">
-                      <iframe
-                        width="100%" height="180" style={{ border: 0 }} loading="lazy" allowFullScreen
-                        sandbox="allow-scripts allow-same-origin"
-                        src={mapsUrl(form.address)}
-                      />
+                      {mapsUrl(form.address) ? (
+                        <iframe
+                          width="100%" height="180" style={{ border: 0 }} loading="lazy" allowFullScreen
+                          sandbox="allow-scripts allow-same-origin"
+                          src={mapsUrl(form.address)!}
+                        />
+                      ) : (
+                        <p className="text-xs text-gray-400 italic py-2 px-3">Map unavailable</p>
+                      )}
                     </div>
                   )}
                   <p className="text-xs text-gray-400 mt-1">Address is used for map display only. Enter your estimated value above.</p>

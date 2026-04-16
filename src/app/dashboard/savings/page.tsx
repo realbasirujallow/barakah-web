@@ -146,10 +146,10 @@ export default function SavingsPage() {
     });
   };
 
-  // ── Skeleton loading ────────────────────────────────────────────────────────
-  if (loading) return <SkeletonPage summaryCount={1} listCount={3} />;
-
   // ── Plus plan gate ──────────────────────────────────────────────────────────
+  // MEDIUM BUG FIX: check plan gate BEFORE skeleton so free users never see a
+  // skeleton flash before the upgrade prompt. Skeleton was previously rendered
+  // first, causing a jarring UI flicker on every visit for non-paying users.
   if (user?.plan === 'free') {
     return (
       <div className="max-w-xl mx-auto mt-12 text-center px-4">
@@ -175,6 +175,9 @@ export default function SavingsPage() {
       </div>
     );
   }
+
+  // ── Skeleton loading (after plan gate so free users never see the flash) ────
+  if (loading) return <SkeletonPage summaryCount={1} listCount={3} />;
 
   const totalSaved  = goals.reduce((s, g) => s + g.currentAmount, 0);
   const totalTarget = goals.reduce((s, g) => s + g.targetAmount, 0);
