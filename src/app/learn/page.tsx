@@ -185,8 +185,22 @@ const articles: ArticleCard[] = [
     slug: 'is-my-mortgage-halal',
     category: 'Islamic Finance',
     title: 'Is My Mortgage Halal?',
-    description: 'Conventional mortgage vs Islamic home financing — murabaha, ijara, and diminishing musharakah structures explained.',
+    description: 'Conventional mortgage vs Islamic home financing — murabaha, ijara, and diminishing musharaka structures explained.',
     readTime: 9,
+  },
+  {
+    slug: 'halal-mortgage-providers-usa',
+    category: 'Islamic Finance',
+    title: 'Halal Mortgage Providers in the USA (2025)',
+    description: 'Compare Guidance Residential, UIF, Ameen Housing, Devon Bank, and Lariba on structure, availability, and Shariah credentials.',
+    readTime: 8,
+  },
+  {
+    slug: 'diminishing-musharaka-explained',
+    category: 'Islamic Finance',
+    title: 'Diminishing Musharaka Explained',
+    description: 'Step-by-step: how the most popular Shariah-compliant home financing structure works, with a worked example and comparison table.',
+    readTime: 10,
   },
   {
     slug: 'halal-budgeting',
