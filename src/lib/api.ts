@@ -985,7 +985,24 @@ export const api = {
     apiFetch('/admin/lifecycle/contact-submissions', {}, API_TIMEOUT, true),
   getAdminNotificationTemplates: () =>
     apiFetch('/admin/notifications/templates', {}, API_TIMEOUT, true),
-  broadcastPushNotification: (payload: { title: string; body: string; route?: string; filter?: string }) =>
+  broadcastPushNotification: (payload: {
+    title: string;
+    body: string;
+    route?: string;
+    /** @deprecated use `filters` — passes only a single plan string, ignored when `filters` is set */
+    filter?: string;
+    /** Full audience criteria. When provided, replaces the legacy `filter` field. */
+    filters?: {
+      plans?: string[];
+      subscriptionStatuses?: string[];
+      hasCompletedSetup?: boolean;
+      hasLinkedAccounts?: boolean;
+      hasTransactions?: boolean;
+      inactiveDaysMin?: number;
+      inactiveDaysMax?: number;
+      trialEndingWithinDays?: number;
+    };
+  }) =>
     apiFetch('/admin/notifications/broadcast', {
       method: 'POST',
       body: JSON.stringify(payload),

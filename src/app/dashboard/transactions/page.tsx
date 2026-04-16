@@ -192,6 +192,9 @@ export default function TransactionsPage() {
   const openAdd = () => {
     setEditTx(null);
     setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10), tags: '', notes: '' });
+    // BUG FIX: clear any stale validation error from a previous (failed) save
+    // so it does not immediately show when the modal opens on a fresh attempt.
+    setFormError(null);
     setShowForm(true);
   };
 
@@ -199,6 +202,8 @@ export default function TransactionsPage() {
     setEditTx(tx);
     const txDate = new Date(tx.timestamp).toISOString().slice(0, 10);
     setForm({ type: tx.type, direction: tx.direction || (tx.type === 'income' ? 'inflow' : tx.type === 'transfer' ? 'neutral' : 'outflow'), category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate, tags: tx.tags || '', notes: tx.notes || '' });
+    // BUG FIX: clear stale form error when editing a different transaction
+    setFormError(null);
     setShowForm(true);
   };
 

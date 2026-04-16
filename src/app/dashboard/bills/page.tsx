@@ -52,6 +52,90 @@ function formatDueDate(bill: BillItem): string {
 
 const emptyForm = { name: '', category: 'utilities', amount: '', frequency: 'monthly', dueDay: '1' };
 
+// ─── BillRow ── hoisted to module scope to prevent React from treating it as a
+// new component type on every parent re-render (which would unmount/remount all
+// bill rows and lose their focus / animation state).
+interface BillRowProps {
+  b: BillItem;
+  now: number;
+  deletingId: number | null;
+  onPaid: (id: number) => void;
+  onEdit: (b: BillItem) => void;
+  onDelete: (id: number) => void;
+}
+
+function BillRow({ b, now, deletingId, onPaid, onEdit, onDelete }: BillRowProps) {
+  const days = getDaysUntilDue(b);
+  const isOverdue  = b.nextDueDate && b.nextDueDate < now && !b.paid;
+  const isUpcoming = !isOverdue && days !== null && days <= 7 && !b.paid;
+
+  return (
+    <div className={`bg-white rounded-2xl shadow-sm p-6 flex justify-between items-center border-l-4 ${
+      b.paid ? 'border-green-400 bg-green-50' :
+      isOverdue ? 'border-red-500' :
+      isUpcoming ? 'border-orange-400' :
+      'border-gray-200'
+    }`}>
+      <div className="flex items-center gap-3">
+        <span className="text-2xl">{getCatIcon(b.category)}</span>
+        <div>
+          <p className="font-semibold text-gray-900">{b.name}</p>
+          <p className="text-sm text-gray-500 capitalize">
+            {CAT_MAP[b.category]?.label ?? b.category} • {b.frequency}
+            {b.nextDueDate && !b.paid && (
+              <span className={`ml-2 font-medium ${isOverdue ? 'text-red-600' : isUpcoming ? 'text-orange-600' : 'text-gray-500'}`}>
+                • {isOverdue ? `Overdue (${formatDueDate(b)})` : days === 0 ? `Due today (${formatDueDate(b)})` : `Due ${formatDueDate(b)}${days !== null && days <= 7 ? ` (${days}d)` : ''}`}
+              </span>
+            )}
+            {b.paid && <span className="ml-2 text-green-600 font-medium">✓ Paid</span>}
+          </p>
+          {b.readOnly && (
+            <p className="text-xs text-gray-400 mt-1">
+              {b.sourceLabel ?? 'Linked reminder'}{b.description ? ` • ${b.description}` : ''}
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <p className={`text-lg font-bold ${b.paid ? 'text-green-600' : isOverdue ? 'text-red-600' : 'text-gray-700'}`}>
+          {fmt(b.amount)}
+        </p>
+        {!b.paid && !b.readOnly && (
+          <button type="button" onClick={() => onPaid(b.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 whitespace-nowrap">
+            ✓ Paid
+          </button>
+        )}
+        {!b.readOnly && <button type="button" onClick={() => onEdit(b)} className="text-gray-400 hover:text-[#1B5E20] text-sm px-1">✏️</button>}
+        {!b.readOnly && <button type="button" onClick={() => onDelete(b.id)} disabled={deletingId === b.id} className="text-gray-400 hover:text-red-600 text-sm px-1 disabled:opacity-50" title={deletingId === b.id ? 'Deleting...' : 'Delete'}>{deletingId === b.id ? '⏳' : '🗑️'}</button>}
+      </div>
+    </div>
+  );
+}
+
+// ─── Section ── hoisted alongside BillRow for the same reason.
+interface SectionProps {
+  title: string;
+  items: BillItem[];
+  color: string;
+  now: number;
+  deletingId: number | null;
+  onPaid: (id: number) => void;
+  onEdit: (b: BillItem) => void;
+  onDelete: (id: number) => void;
+}
+
+function Section({ title, items, color, now, deletingId, onPaid, onEdit, onDelete }: SectionProps) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mb-6">
+      <h2 className={`text-base font-semibold mb-3 ${color}`}>{title} <span className="text-gray-400 font-normal">({items.length})</span></h2>
+      <div className="space-y-2">
+        {items.map(b => <BillRow key={b.id} b={b} now={now} deletingId={deletingId} onPaid={onPaid} onEdit={onEdit} onDelete={onDelete} />)}
+      </div>
+    </div>
+  );
+}
+
 export default function BillsPage() {
   const [bills, setBills]           = useState<BillItem[]>([]);
   const [loading, setLoading]       = useState(true);
@@ -191,66 +275,6 @@ export default function BillsPage() {
     return s + b.amount;
   }, 0);
 
-  const BillRow = ({ b }: { b: BillItem }) => {
-    const days = getDaysUntilDue(b);
-    const isOverdue  = b.nextDueDate && b.nextDueDate < now && !b.paid;
-    const isUpcoming = !isOverdue && days !== null && days <= 7 && !b.paid;
-
-    return (
-      <div className={`bg-white rounded-2xl shadow-sm p-6 flex justify-between items-center border-l-4 ${
-        b.paid ? 'border-green-400 bg-green-50' :
-        isOverdue ? 'border-red-500' :
-        isUpcoming ? 'border-orange-400' :
-        'border-gray-200'
-      }`}>
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{getCatIcon(b.category)}</span>
-          <div>
-            <p className="font-semibold text-gray-900">{b.name}</p>
-            <p className="text-sm text-gray-500 capitalize">
-              {CAT_MAP[b.category]?.label ?? b.category} • {b.frequency}
-              {b.nextDueDate && !b.paid && (
-                <span className={`ml-2 font-medium ${isOverdue ? 'text-red-600' : isUpcoming ? 'text-orange-600' : 'text-gray-500'}`}>
-                  • {isOverdue ? `Overdue (${formatDueDate(b)})` : days === 0 ? `Due today (${formatDueDate(b)})` : `Due ${formatDueDate(b)}${days !== null && days <= 7 ? ` (${days}d)` : ''}`}
-                </span>
-              )}
-              {b.paid && <span className="ml-2 text-green-600 font-medium">✓ Paid</span>}
-            </p>
-            {b.readOnly && (
-              <p className="text-xs text-gray-400 mt-1">
-                {b.sourceLabel ?? 'Linked reminder'}{b.description ? ` • ${b.description}` : ''}
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <p className={`text-lg font-bold ${b.paid ? 'text-green-600' : isOverdue ? 'text-red-600' : 'text-gray-700'}`}>
-            {fmt(b.amount)}
-          </p>
-          {!b.paid && !b.readOnly && (
-            <button type="button" onClick={() => handlePaid(b.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 whitespace-nowrap">
-              ✓ Paid
-            </button>
-          )}
-          {!b.readOnly && <button type="button" onClick={() => openEdit(b)} className="text-gray-400 hover:text-[#1B5E20] text-sm px-1">✏️</button>}
-          {!b.readOnly && <button type="button" onClick={() => handleDelete(b.id)} disabled={deletingId === b.id} className="text-gray-400 hover:text-red-600 text-sm px-1 disabled:opacity-50" title={deletingId === b.id ? 'Deleting...' : 'Delete'}>{deletingId === b.id ? '⏳' : '🗑️'}</button>}
-        </div>
-      </div>
-    );
-  };
-
-  const Section = ({ title, items, color }: { title: string; items: BillItem[]; color: string }) => {
-    if (items.length === 0) return null;
-    return (
-      <div className="mb-6">
-        <h2 className={`text-base font-semibold mb-3 ${color}`}>{title} <span className="text-gray-400 font-normal">({items.length})</span></h2>
-        <div className="space-y-2">
-          {items.map(b => <BillRow key={b.id} b={b} />)}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -290,11 +314,11 @@ export default function BillsPage() {
       )}
 
       {/* Sections */}
-      <Section title="🔴 Overdue"      items={overdue}   color="text-red-700" />
-      <Section title="🟠 Due This Week" items={upcoming}  color="text-orange-600" />
-      <Section title="🗓️ Upcoming"     items={future}    color="text-gray-700" />
-      <Section title="📋 Scheduled"    items={noDueDate} color="text-gray-500" />
-      <Section title="✅ Paid"          items={paid}      color="text-green-700" />
+      <Section title="🔴 Overdue"      items={overdue}   color="text-red-700"    now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
+      <Section title="🟠 Due This Week" items={upcoming}  color="text-orange-600" now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
+      <Section title="🗓️ Upcoming"     items={future}    color="text-gray-700"   now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
+      <Section title="📋 Scheduled"    items={noDueDate} color="text-gray-500"   now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
+      <Section title="✅ Paid"          items={paid}      color="text-green-700"  now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
 
       {bills.length === 0 && (
         <div className="text-center py-16 text-gray-400">
