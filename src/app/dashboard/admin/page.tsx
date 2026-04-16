@@ -50,6 +50,23 @@ interface LifecycleRecentEvent {
   createdAt: number;
 }
 
+interface EmailLogEntry {
+  id: number;
+  userId?: number;
+  toEmail: string;
+  emailType: string;
+  subject?: string;
+  status: 'sent' | 'failed';
+  errorMessage?: string;
+  createdAt: number;
+}
+
+interface EmailLogStats {
+  totalSent: number;
+  totalFailed: number;
+  totalElements: number;
+}
+
 interface UserLifecycleSummary {
   recentEvents?: LifecycleRecentEvent[];
   countsByType?: Record<string, number>;
@@ -227,11 +244,15 @@ export default function AdminPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [userActivity, setUserActivity] = useState<UserActivity | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts' | 'unverified' | 'lifecycle' | 'deleted'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts' | 'unverified' | 'lifecycle' | 'deleted' | 'email-log'>('overview');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [deletedUsers, setDeletedUsers] = useState<any[] | null>(null);
   const [deletedUsersLoading, setDeletedUsersLoading] = useState(false);
   const [churnData, setChurnData] = useState<Record<string, number> | null>(null);
+  const [emailLog, setEmailLog] = useState<EmailLogEntry[] | null>(null);
+  const [emailLogStats, setEmailLogStats] = useState<EmailLogStats | null>(null);
+  const [emailLogLoading, setEmailLogLoading] = useState(false);
+  const [emailLogFilter, setEmailLogFilter] = useState<'all' | 'sent' | 'failed'>('all');
   const [onboardingTrial, setOnboardingTrial] = useState<OnboardingTrialSettings | null>(null);
   const [trialSettingsSaving, setTrialSettingsSaving] = useState(false);
   const { toast } = useToast();
@@ -247,9 +268,10 @@ export default function AdminPage() {
         api.getAdminAnalytics().catch(() => null),
         api.getAdminFeatureUsage().catch(() => null),
         api.getAdminOnboardingTrialSettings().catch(() => null),
+        api.adminGetEmailLog('all', 0, 1).catch(() => null),  // just for stats
       ]);
 
-      // Check for 403 from any result
+      // Check for auth errors from any result
       for (const r of results) {
         if (r.status === 'rejected') {
           const msg = r.reason instanceof Error ? r.reason.message : String(r.reason);
@@ -261,6 +283,11 @@ export default function AdminPage() {
             setSessionExpired(true);
             return;
           }
+          // Show toast for unhandled server errors (500, network issues, etc.)
+          // but only for the users call which is critical
+          if (r === results[1]) {
+            toast(msg, 'error');
+          }
         }
       }
 
@@ -269,12 +296,14 @@ export default function AdminPage() {
       const analyticsRes = results[2].status === 'fulfilled' ? results[2].value : null;
       const featureRes = results[3].status === 'fulfilled' ? results[3].value : null;
       const onboardingTrialRes = results[4].status === 'fulfilled' ? results[4].value : null;
+      const emailLogStatsRes = results[5].status === 'fulfilled' ? results[5].value : null;
 
       if (overviewRes) setOverview(overviewRes);
       setUsersData(usersRes);
       if (analyticsRes) setAnalytics(analyticsRes);
       if (featureRes) setFeatureUsage(featureRes);
       if (onboardingTrialRes) setOnboardingTrial(onboardingTrialRes as OnboardingTrialSettings);
+      if (emailLogStatsRes) setEmailLogStats({ totalSent: emailLogStatsRes.totalSent ?? 0, totalFailed: emailLogStatsRes.totalFailed ?? 0, totalElements: emailLogStatsRes.totalElements ?? 0 });
       setLastRefreshed(new Date());
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load admin data';
@@ -517,13 +546,13 @@ export default function AdminPage() {
       )}
 
       {/* ── Tab Navigation ── */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
-        {(['overview', 'users', 'alerts', 'unverified', 'lifecycle', 'deleted'] as const).map(tab => (
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 overflow-x-auto">
+        {(['overview', 'users', 'alerts', 'unverified', 'lifecycle', 'deleted', 'email-log'] as const).map(tab => (
           <button
             key={tab}
             type="button"
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition ${
+            className={`flex-none whitespace-nowrap py-2 px-3 rounded-lg text-sm font-medium transition min-w-fit ${
               activeTab === tab
                 ? 'bg-white text-[#1B5E20] shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
@@ -548,7 +577,15 @@ export default function AdminPage() {
               </>
             )}
             {tab === 'lifecycle' && '📬 Lifecycle'}
-            {tab === 'deleted' && '🗑️ Deleted Users'}
+            {tab === 'deleted' && '🗑️ Deleted'}
+            {tab === 'email-log' && (
+              <>
+                ✉️ Email Log
+                {(emailLogStats?.totalFailed ?? 0) > 0 && (
+                  <span className="ml-1.5 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">{emailLogStats!.totalFailed}</span>
+                )}
+              </>
+            )}
           </button>
         ))}
       </div>
@@ -1423,6 +1460,133 @@ export default function AdminPage() {
           {deletedUsers && deletedUsers.length === 0 && (
             <p className="text-center py-10 text-gray-400">No deleted users yet.</p>
           )}
+        </div>
+      )}
+
+      {/* ══════════════════ EMAIL LOG TAB ══════════════════ */}
+      {activeTab === 'email-log' && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl p-5 border">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Email Delivery Log</h2>
+                <p className="text-sm text-gray-500">All emails sent: verification, lifecycle, dunning, password reset.</p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {(['all', 'sent', 'failed'] as const).map(f => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setEmailLogFilter(f)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                      emailLogFilter === f
+                        ? f === 'failed' ? 'bg-red-600 text-white' : 'bg-[#1B5E20] text-white'
+                        : 'bg-white text-gray-600 border border-gray-200 hover:border-[#1B5E20]'
+                    }`}
+                  >
+                    {f === 'all' ? 'All' : f === 'sent' ? '✓ Sent' : '✗ Failed'}
+                    {f === 'failed' && (emailLogStats?.totalFailed ?? 0) > 0 && (
+                      <span className="ml-1 bg-red-100 text-red-700 px-1 rounded">{emailLogStats!.totalFailed}</span>
+                    )}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  disabled={emailLogLoading}
+                  onClick={async () => {
+                    setEmailLogLoading(true);
+                    try {
+                      const res = await api.adminGetEmailLog(emailLogFilter);
+                      setEmailLog(res?.entries ?? []);
+                      setEmailLogStats({
+                        totalSent: res?.totalSent ?? 0,
+                        totalFailed: res?.totalFailed ?? 0,
+                        totalElements: res?.totalElements ?? 0,
+                      });
+                    } catch (err) {
+                      toast(err instanceof Error ? err.message : 'Failed to load email log', 'error');
+                    } finally {
+                      setEmailLogLoading(false);
+                    }
+                  }}
+                  className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50"
+                >
+                  {emailLogLoading ? 'Loading...' : emailLog ? 'Refresh' : 'Load Email Log'}
+                </button>
+              </div>
+            </div>
+
+            {emailLogStats && (
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="bg-green-50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-[#1B5E20]">{emailLogStats.totalSent.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">Sent Successfully</p>
+                </div>
+                <div className="bg-red-50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-red-600">{emailLogStats.totalFailed.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">Failed</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-gray-800">{emailLogStats.totalElements.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">Total Records</p>
+                </div>
+              </div>
+            )}
+
+            {!emailLog ? (
+              <div className="text-center py-12 text-gray-400">
+                <p className="text-4xl mb-3">✉️</p>
+                <p className="font-medium">Click &quot;Load Email Log&quot; to see email delivery history</p>
+                <p className="text-sm mt-1">Shows all outbound emails: verification, lifecycle, dunning, etc.</p>
+              </div>
+            ) : emailLog.length === 0 ? (
+              <div className="text-center py-8 text-gray-400">
+                <p>No email records found{emailLogFilter !== 'all' ? ` for filter: ${emailLogFilter}` : ''}.</p>
+                {emailLogFilter !== 'all' && (
+                  <button onClick={() => setEmailLogFilter('all')} className="text-[#1B5E20] underline text-sm mt-2">Show all</button>
+                )}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wide">
+                      <th className="px-3 py-3">Recipient</th>
+                      <th className="px-3 py-3">Type</th>
+                      <th className="px-3 py-3">Subject</th>
+                      <th className="px-3 py-3">Status</th>
+                      <th className="px-3 py-3">Sent At</th>
+                      <th className="px-3 py-3">Error</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {emailLog.map(entry => (
+                      <tr key={entry.id} className={`hover:bg-gray-50 ${entry.status === 'failed' ? 'bg-red-50' : ''}`}>
+                        <td className="px-3 py-2 text-xs font-mono text-gray-700">{entry.toEmail}</td>
+                        <td className="px-3 py-2">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                            {entry.emailType}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-xs text-gray-600 max-w-xs truncate">{entry.subject || '—'}</td>
+                        <td className="px-3 py-2">
+                          {entry.status === 'sent' ? (
+                            <span className="text-green-600 font-semibold text-xs">✓ Sent</span>
+                          ) : (
+                            <span className="text-red-600 font-semibold text-xs">✗ Failed</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-xs text-gray-500">{fmtDateTimeMs(entry.createdAt)}</td>
+                        <td className="px-3 py-2 text-xs text-red-500 max-w-xs truncate" title={entry.errorMessage}>
+                          {entry.errorMessage || '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

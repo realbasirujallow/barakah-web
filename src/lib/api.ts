@@ -932,6 +932,8 @@ export const api = {
     apiFetch(`/admin/deleted-users?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
   adminGetChurnAnalysis: () =>
     apiFetch('/admin/churn-analysis', {}, API_TIMEOUT, true),
+  adminGetEmailLog: (status: string = 'all', page: number = 0, size: number = 100) =>
+    apiFetch(`/admin/email-log?status=${status}&page=${page}&size=${size}`, {}, API_TIMEOUT, true),
   getAdminAnalytics: () => apiFetch('/admin/analytics', {}, API_TIMEOUT, true),
   getAdminFunnel: (days = 30) =>
     apiFetch(`/admin/funnel?days=${days}`, {}, API_TIMEOUT, true),
