@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
 import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useAuth } from '../../../context/AuthContext';
 import { useCurrency } from '../../../lib/useCurrency';
@@ -131,7 +130,7 @@ export default function DebtsPage() {
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const { toast } = useToast();
-  const { symbol } = useCurrency();
+  const { symbol, fmt } = useCurrency();
   const { user } = useAuth();
 
   const load = useCallback(() => {

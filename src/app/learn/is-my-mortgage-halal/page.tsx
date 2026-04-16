@@ -109,7 +109,7 @@ export default function Page() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">What Makes a Conventional Mortgage Haram?</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               Conventional mortgages charge interest on borrowed money. In Islamic finance, this is called <strong>riba</strong> — literally
-              "increase" or "growth." The Quran states:
+              &nbsp;&ldquo;increase&rdquo; or &ldquo;growth.&rdquo; The Quran states:
             </p>
             <blockquote className="bg-amber-50 border-l-4 border-amber-500 px-5 py-4 rounded-r-xl text-gray-800 italic mb-4 text-sm leading-relaxed">
               &ldquo;Those who consume riba will not stand [on the Day of Resurrection] except as one stands who is being beaten by Satan into insanity…
@@ -154,7 +154,7 @@ export default function Page() {
                 </p>
                 <p className="text-sm text-gray-500">
                   <strong>Used by:</strong> Ameen Housing (US), Al Rayan Bank (UK)<br />
-                  <strong>Watch out for:</strong> Ensure rent reviews are transparent and not simply "interest by another name."
+                  <strong>Watch out for:</strong> Ensure rent reviews are transparent and not simply &ldquo;interest by another name.&rdquo;
                 </p>
               </div>
 

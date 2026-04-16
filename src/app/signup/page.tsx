@@ -695,7 +695,7 @@ function SignupContent() {
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<div />}>
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 animate-pulse" />}>
       <SignupContent />
     </Suspense>
   );

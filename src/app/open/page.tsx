@@ -25,11 +25,9 @@ function getFallbackUrl(platform: Platform): string {
 
 export default function OpenBarakahPage() {
   const [status, setStatus] = useState<'trying' | 'fallback'>('trying');
-  const [platform, setPlatform] = useState<Platform>('web');
 
   useEffect(() => {
     const p = detectPlatform();
-    setPlatform(p);
 
     // Desktop: skip the deep-link dance and go straight to the web dashboard
     if (p === 'web') {
@@ -63,11 +61,6 @@ export default function OpenBarakahPage() {
     };
   }, []);
 
-  const storeLabel =
-    platform === 'ios' ? 'App Store' :
-    platform === 'android' ? 'Google Play' :
-    'web dashboard';
-
   return (
     <main className="min-h-screen bg-[#FFF8E1] flex items-center justify-center px-6">
       <div className="mx-auto max-w-sm text-center">
@@ -79,9 +72,7 @@ export default function OpenBarakahPage() {
           <>
             <h1 className="text-xl font-bold text-[#1B5E20]">Opening Barakah…</h1>
             <p className="mt-2 text-sm text-gray-500">
-              {platform === 'web'
-                ? 'Taking you to your dashboard.'
-                : 'If the app does not open, we will take you to the ' + storeLabel + '.'}
+              If the app does not open, we will take you to the right download page or the web dashboard.
             </p>
             <div className="mt-6 flex justify-center">
               <div className="w-6 h-6 border-2 border-[#1B5E20] border-t-transparent rounded-full animate-spin" />
@@ -89,33 +80,27 @@ export default function OpenBarakahPage() {
           </>
         ) : (
           <>
-            <h1 className="text-xl font-bold text-[#1B5E20]">Taking you to the {storeLabel}</h1>
+            <h1 className="text-xl font-bold text-[#1B5E20]">Taking you to Barakah</h1>
             <p className="mt-2 text-sm text-gray-500">
               Get the Barakah app to manage your finances on the go.
             </p>
           </>
         )}
 
-        {/* Manual fallback links shown after a short delay */}
+        {/* Manual fallback links shown while the deep link is resolving. */}
         <div className="mt-8 flex flex-col gap-3">
-          {platform !== 'web' && (
-            <a
-              href={DEEP_LINK}
-              className="rounded-xl bg-[#1B5E20] px-4 py-3 text-sm font-semibold text-white"
-            >
-              Open in app
-            </a>
-          )}
-          {platform === 'ios' && (
-            <a href={IOS_URL} className="rounded-xl border border-[#1B5E20]/20 px-4 py-3 text-sm font-semibold text-[#1B5E20]">
-              Download on the App Store
-            </a>
-          )}
-          {platform === 'android' && (
-            <a href={ANDROID_URL} className="rounded-xl border border-[#1B5E20]/20 px-4 py-3 text-sm font-semibold text-[#1B5E20]">
-              Get it on Google Play
-            </a>
-          )}
+          <a
+            href={DEEP_LINK}
+            className="rounded-xl bg-[#1B5E20] px-4 py-3 text-sm font-semibold text-white"
+          >
+            Open in app
+          </a>
+          <a href={IOS_URL} className="rounded-xl border border-[#1B5E20]/20 px-4 py-3 text-sm font-semibold text-[#1B5E20]">
+            Download on the App Store
+          </a>
+          <a href={ANDROID_URL} className="rounded-xl border border-[#1B5E20]/20 px-4 py-3 text-sm font-semibold text-[#1B5E20]">
+            Get it on Google Play
+          </a>
           <a href={WEB_URL} className="text-sm text-gray-400 underline underline-offset-2">
             Use Barakah on the web instead
           </a>

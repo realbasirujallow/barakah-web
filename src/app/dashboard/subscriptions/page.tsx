@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { api } from '../../../lib/api';
+import { useCurrency } from '../../../lib/useCurrency';
 
 interface Subscription {
   name: string;
@@ -24,6 +25,7 @@ interface HaramFlag {
 }
 
 export default function SubscriptionsPage() {
+  const { fmt } = useCurrency();
   const [loading, setLoading] = useState(true);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [haramFlags, setHaramFlags] = useState<HaramFlag[]>([]);
@@ -131,12 +133,12 @@ export default function SubscriptionsPage() {
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
           <p className="text-sm text-gray-500 dark:text-gray-400">Monthly Cost</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">${totalMonthly.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{fmt(totalMonthly)}</p>
           <p className="text-xs text-gray-400">estimated</p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
           <p className="text-sm text-gray-500 dark:text-gray-400">Yearly Cost</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">${totalYearly.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{fmt(totalYearly)}</p>
           <p className="text-xs text-gray-400">estimated</p>
         </div>
         <div className={`rounded-xl p-4 shadow-sm ${haramFlags.length > 0 ? 'bg-red-50 dark:bg-red-900/20' : 'bg-green-50 dark:bg-green-900/20'}`}>
@@ -170,7 +172,7 @@ export default function SubscriptionsPage() {
                   <p className="font-medium text-gray-900 dark:text-white">{flag.subscription}</p>
                   <p className="text-sm text-red-600">{flag.reason}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    ${flag.amount.toFixed(2)} / {flag.frequency}
+                    {fmt(flag.amount)} / {flag.frequency}
                   </p>
                 </div>
               </div>
@@ -205,7 +207,7 @@ export default function SubscriptionsPage() {
                       <div className="text-xs text-gray-400">{sub.category}</div>
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                      ${sub.amount.toFixed(2)}
+                      {fmt(sub.amount)}
                     </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
                       {frequencyLabel(sub.frequency)}

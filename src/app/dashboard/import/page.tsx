@@ -1,5 +1,5 @@
 ﻿'use client';
-import { useState, useRef, useEffect, useCallback, DragEvent } from 'react';
+import { Suspense, useState, useRef, useEffect, useCallback, DragEvent } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePlaidLink } from 'react-plaid-link';
@@ -148,7 +148,7 @@ function formatPlaidBalance(value: number | null | undefined, currencyCode = 'US
   }
 }
 
-export default function ImportPage() {
+function ImportPageInner() {
   const { fmt } = useCurrency();
   const { user } = useAuth();
   const router = useRouter();
@@ -893,6 +893,14 @@ export default function ImportPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ImportPage() {
+  return (
+    <Suspense fallback={<div className="p-8 animate-pulse text-gray-400">Loading...</div>}>
+      <ImportPageInner />
+    </Suspense>
   );
 }
 

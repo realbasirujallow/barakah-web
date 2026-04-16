@@ -38,7 +38,7 @@ const PLAN_INFO: Record<string, { label: string; color: string; bg: string; desc
 };
 
 export default function ProfilePage() {
-  const { logout } = useAuth();
+  const { logout, refreshPlan } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -59,7 +59,7 @@ export default function ProfilePage() {
         }
       } else if (result?.success) {
         toast('Plan updated successfully!', 'success');
-        window.location.reload(); // Existing subscriber — plan switched
+        await refreshPlan(); // Existing subscriber — plan switched
       } else {
         toast('Something went wrong. Please try again.', 'error');
         setUpgradingPlan(null);

@@ -168,7 +168,7 @@ export default function HowMuchZakatPage() {
           {/* CTA to Calculator */}
           <div className="bg-green-700 rounded-2xl p-6 mb-10 flex flex-col sm:flex-row items-center gap-4">
             <div className="flex-1 text-white">
-              <p className="font-bold text-lg">Skip the math — use Barakah's free calculator</p>
+              <p className="font-bold text-lg">Skip the math — use Barakah&apos;s free calculator</p>
               <p className="text-green-100 text-sm">Multi-madhab, live gold and silver prices, 8 asset categories. Result in 60 seconds.</p>
             </div>
             <Link href="/zakat-calculator" className="flex-shrink-0 bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition whitespace-nowrap">
@@ -306,7 +306,7 @@ export default function HowMuchZakatPage() {
           <div className="bg-green-700 rounded-2xl p-8 text-center text-white mb-10">
             <h2 className="text-2xl font-bold mb-3">Calculate Your Exact Zakat — Free</h2>
             <p className="text-green-100 mb-6">
-              Barakah's multi-madhab zakat calculator handles gold prices, stock ratios, debt deductions, and hawl tracking automatically.
+              Barakah&apos;s multi-madhab zakat calculator handles gold prices, stock ratios, debt deductions, and hawl tracking automatically.
             </p>
             <Link href="/zakat-calculator" className="inline-block bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition">
               Open Zakat Calculator →

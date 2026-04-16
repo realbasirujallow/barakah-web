@@ -51,19 +51,20 @@ export default function FunnelPage() {
   const [data, setData] = useState<FunnelResponse | null>(null);
   const [growth, setGrowth] = useState<GrowthResponse | null>(null);
   const [days, setDays] = useState<number>(30);
+  const isAdmin = (user as { role?: string } | null)?.role === 'admin';
 
   // Frontend admin-role guard — redirect non-admins before any API call
   useEffect(() => {
-    if (!isAuthLoading && user && (user as { role?: string }).role !== 'admin') {
+    if (!isAuthLoading && user && !isAdmin) {
       router.replace('/dashboard');
     }
-  }, [isAuthLoading, user, router]);
-
-  if (!isAuthLoading && user && (user as { role?: string }).role !== 'admin') {
-    return null;
-  }
+  }, [isAdmin, isAuthLoading, router, user]);
 
   useEffect(() => {
+    if (isAuthLoading || !user || !isAdmin) {
+      return;
+    }
+
     let cancelled = false;
     const load = async () => {
       setLoading(true);
@@ -79,17 +80,25 @@ export default function FunnelPage() {
     };
     load();
     return () => { cancelled = true; };
-  }, [days, toast]);
+  }, [days, isAdmin, isAuthLoading, toast, user]);
 
   // Growth metrics don't depend on the window selector — they're always
   // rolling-30d / point-in-time counts. Fetch once on mount.
   useEffect(() => {
+    if (isAuthLoading || !user || !isAdmin) {
+      return;
+    }
+
     let cancelled = false;
     api.getAdminGrowth()
       .then((res) => { if (!cancelled) setGrowth(res as GrowthResponse); })
       .catch((err) => logError(err, { context: 'Failed to load growth metrics' }));
     return () => { cancelled = true; };
-  }, []);
+  }, [isAdmin, isAuthLoading, user]);
+
+  if (!isAuthLoading && user && !isAdmin) {
+    return null;
+  }
 
   const maxCount = data ? Math.max(...data.stages.map(s => s.count), 1) : 1;
 

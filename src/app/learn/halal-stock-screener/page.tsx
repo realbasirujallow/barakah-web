@@ -133,7 +133,7 @@ export default function HalalStockScreenerPage() {
               Halal Stock Screener 2026 — Screen 30,000+ Stocks for Islamic Compliance
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed mb-6">
-              Screening stocks for halal compliance means checking both the company's business activities and its financial ratios against AAOIFI Standard 21. This guide explains exactly how the screen works and how to use Barakah's free halal stock screener.
+              Screening stocks for halal compliance means checking both the company&apos;s business activities and its financial ratios against AAOIFI Standard 21. This guide explains exactly how the screen works and how to use Barakah&apos;s free halal stock screener.
             </p>
             <div className="flex flex-wrap gap-4 text-sm text-gray-500">
               <span>📅 Updated April 2026</span>
@@ -163,7 +163,7 @@ export default function HalalStockScreenerPage() {
             <h3 className="font-bold text-gray-900 mb-4">Stage 1: Business Screen</h3>
             <div className="bg-red-50 rounded-2xl p-5 mb-6">
               <p className="font-semibold text-red-800 mb-3">❌ Immediately Haram — Fail on Primary Business Activity</p>
-              <p className="text-sm text-red-700 mb-4">If a company's primary revenue comes from any of these activities, it is haram regardless of financial ratios:</p>
+              <p className="text-sm text-red-700 mb-4">If a company&apos;s primary revenue comes from any of these activities, it is haram regardless of financial ratios:</p>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>

@@ -241,6 +241,7 @@ export default function TransactionsPage() {
       load();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : (editTx ? 'Failed to update transaction' : 'Failed to add transaction');
+      setFormError(errorMsg);
       toast(errorMsg, 'error');
     }
     setSaving(false);

@@ -229,7 +229,7 @@ export function SessionTimeoutModal() {
         </div>
 
         <p className="text-xs text-gray-400 mt-4">
-          For your security, inactive sessions are automatically ended after 45 minutes.
+          For your security, inactive sessions are automatically ended after 60 minutes.
         </p>
       </div>
     </div>

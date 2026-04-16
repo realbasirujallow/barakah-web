@@ -1,7 +1,7 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 
 interface RecurringTx {
@@ -28,14 +28,58 @@ function formatDate(epoch: number) {
   return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+// Defined outside RecurringPage to avoid recreating the component type on every render.
+// Recreating causes React to unmount/remount on each parent re-render, losing focus/state.
+interface TxRowProps {
+  tx: RecurringTx;
+  fmt: (v: number) => string;
+  toggling: number | null;
+  onToggle: (id: number) => void;
+}
+function TxRow({ tx, fmt, toggling, onToggle }: TxRowProps) {
+  const catIcon = CAT_ICONS[tx.category] ?? '📋';
+  return (
+    <div className={`flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 ${!tx.recurringActive ? 'opacity-50' : ''}`}>
+      <div className="flex items-center gap-3">
+        <span className="text-2xl">{catIcon}</span>
+        <div>
+          <p className="font-medium text-gray-900 text-sm">{tx.description || 'No description'}</p>
+          <p className="text-xs text-gray-500 capitalize">
+            {tx.category} • Last: {formatDate(tx.date)}
+            {tx.frequency && <span className="ml-1">• {tx.frequency}</span>}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <p className={`text-sm font-bold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+          {tx.type === 'income' ? '+' : '-'}{fmt(Math.abs(tx.amount))}
+        </p>
+        <button
+          onClick={() => onToggle(tx.id)}
+          disabled={toggling === tx.id}
+          title={tx.recurringActive ? 'Pause recurring' : 'Resume recurring'}
+          className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors focus:outline-none ${
+            tx.recurringActive ? 'bg-[#1B5E20]' : 'bg-gray-300'
+          } disabled:opacity-60`}
+        >
+          <span className={`inline-block w-4 h-4 bg-white rounded-full shadow transform transition-transform ${
+            tx.recurringActive ? 'translate-x-6' : 'translate-x-1'
+          }`} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function RecurringPage() {
   const [transactions, setTransactions] = useState<RecurringTx[]>([]);
   const [loading, setLoading]           = useState(true);
   const [processing, setProcessing]     = useState(false);
   const [toggling, setToggling]         = useState<number | null>(null);
   const { toast } = useToast();
+  const { fmt } = useCurrency();
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api.getRecurringTransactions();
@@ -45,9 +89,9 @@ export default function RecurringPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { void load(); }, [load]);
 
   const handleToggle = async (id: number) => {
     setToggling(id);
@@ -89,43 +133,6 @@ export default function RecurringPage() {
     const amt = t.type === 'income' ? t.amount : -t.amount;
     return sum + amt;
   }, 0);
-
-  const TxRow = ({ tx }: { tx: RecurringTx }) => {
-    const isIncome = tx.type === 'income' || tx.amount < 0 === false && tx.type !== 'expense';
-    const catIcon = CAT_ICONS[tx.category] ?? '📋';
-
-    return (
-      <div className={`flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 ${!tx.recurringActive ? 'opacity-50' : ''}`}>
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{catIcon}</span>
-          <div>
-            <p className="font-medium text-gray-900 text-sm">{tx.description || 'No description'}</p>
-            <p className="text-xs text-gray-500 capitalize">
-              {tx.category} • Last: {formatDate(tx.date)}
-              {tx.frequency && <span className="ml-1">• {tx.frequency}</span>}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <p className={`text-sm font-bold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-            {tx.type === 'income' ? '+' : '-'}{fmt(Math.abs(tx.amount))}
-          </p>
-          <button
-            onClick={() => handleToggle(tx.id)}
-            disabled={toggling === tx.id}
-            title={tx.recurringActive ? 'Pause recurring' : 'Resume recurring'}
-            className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors focus:outline-none ${
-              tx.recurringActive ? 'bg-[#1B5E20]' : 'bg-gray-300'
-            } disabled:opacity-60`}
-          >
-            <span className={`inline-block w-4 h-4 bg-white rounded-full shadow transform transition-transform ${
-              tx.recurringActive ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -174,7 +181,7 @@ export default function RecurringPage() {
             <h2 className="font-semibold text-[#1B5E20]">Active ({active.length})</h2>
             <span className="text-xs text-gray-400">Toggle to pause</span>
           </div>
-          {active.map(tx => <TxRow key={tx.id} tx={tx} />)}
+          {active.map(tx => <TxRow key={tx.id} tx={tx} fmt={fmt} toggling={toggling} onToggle={handleToggle} />)}
         </div>
       )}
 
@@ -184,7 +191,7 @@ export default function RecurringPage() {
           <div className="px-5 py-3 border-b border-gray-100">
             <h2 className="font-semibold text-gray-500">Paused ({inactive.length})</h2>
           </div>
-          {inactive.map(tx => <TxRow key={tx.id} tx={tx} />)}
+          {inactive.map(tx => <TxRow key={tx.id} tx={tx} fmt={fmt} toggling={toggling} onToggle={handleToggle} />)}
         </div>
       )}
 

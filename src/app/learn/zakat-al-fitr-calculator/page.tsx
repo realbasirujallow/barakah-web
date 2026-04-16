@@ -155,7 +155,7 @@ export default function ZakatAlFitrCalculatorPage() {
 
           {/* Calculator Helper */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Calculate Your Family's Zakat al-Fitr</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Calculate Your Family&apos;s Zakat al-Fitr</h2>
             <div className="border border-gray-200 rounded-2xl overflow-hidden">
               <div className="bg-green-700 px-5 py-3 text-white font-bold">Simple Calculation</div>
               <div className="p-5">
@@ -165,7 +165,7 @@ export default function ZakatAlFitrCalculatorPage() {
                   <p className="text-gray-600 mt-2">Example: 4 family members × $12 = <strong className="text-green-700">$48 total</strong></p>
                 </div>
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                  <p className="font-semibold text-amber-800 text-sm mb-1">⚠️ Check Your Local Organization's Amount</p>
+                  <p className="font-semibold text-amber-800 text-sm mb-1">⚠️ Check Your Local Organization&apos;s Amount</p>
                   <p className="text-xs text-amber-700">The exact dollar amount varies by community and year based on grain prices. Check with your local masjid, ISNA, ICNA, or your Islamic center for the official 2026 amount in your area.</p>
                 </div>
               </div>
@@ -182,7 +182,7 @@ export default function ZakatAlFitrCalculatorPage() {
                     <th className="text-left p-3 font-semibold text-gray-700 border-b">Question</th>
                     <th className="p-3 font-semibold text-green-700 border-b">Hanafi</th>
                     <th className="p-3 font-semibold text-blue-600 border-b">Maliki</th>
-                    <th className="p-3 font-semibold text-purple-600 border-b">Shafi'i</th>
+                    <th className="p-3 font-semibold text-purple-600 border-b">Shafi&apos;i</th>
                     <th className="p-3 font-semibold text-orange-600 border-b">Hanbali</th>
                   </tr>
                 </thead>
@@ -246,13 +246,13 @@ export default function ZakatAlFitrCalculatorPage() {
             <div className="space-y-4">
               <div className="bg-green-50 border-l-4 border-green-700 rounded-r-xl p-5">
                 <p className="italic text-green-800 text-sm mb-2">
-                  "The Messenger of Allah (ﷺ) made Zakat al-Fitr obligatory — one sa' of dates or one sa' of barley — on every free person and slave, male and female, young and old among the Muslims. And he commanded it to be paid before the people went out to the (Eid) prayer." — Sahih Bukhari 1503
+                  &ldquo;The Messenger of Allah (ﷺ) made Zakat al-Fitr obligatory — one sa&apos; of dates or one sa&apos; of barley — on every free person and slave, male and female, young and old among the Muslims. And he commanded it to be paid before the people went out to the (Eid) prayer.&rdquo; — Sahih Bukhari 1503
                 </p>
                 <p className="text-xs text-green-700">Narrated by Ibn Umar (رضي الله عنه)</p>
               </div>
               <div className="bg-green-50 border-l-4 border-green-600 rounded-r-xl p-5">
                 <p className="italic text-green-800 text-sm mb-2">
-                  "Whoever pays it before the prayer, it is accepted zakat. And whoever pays it after the prayer, it is one of the charitable donations (sadaqah)." — Abu Dawud 1609
+                  &ldquo;Whoever pays it before the prayer, it is accepted zakat. And whoever pays it after the prayer, it is one of the charitable donations (sadaqah).&rdquo; — Abu Dawud 1609
                 </p>
                 <p className="text-xs text-green-700">Narrated by Ibn Abbas (رضي الله عنه)</p>
               </div>

@@ -46,8 +46,8 @@ export async function POST(req: NextRequest) {
     // }
     // ────────────────────────────────────────────────────────────────────────
 
-    // Always log the lead server-side for internal tracking
-    console.log(`[email-capture] source=${source} email=${email}`);
+    // Log source only — omit email to avoid PII in server log aggregators
+    console.log(`[email-capture] source=${source} captured=1`);
 
     return NextResponse.json({ ok: true });
   } catch (err) {

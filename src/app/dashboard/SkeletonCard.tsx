@@ -16,10 +16,21 @@ export function SkeletonCard({ lines = 2, className = '' }: { lines?: number; cl
   );
 }
 
+// Lookup table keeps complete class strings visible to Tailwind's JIT scanner
+// so grid-cols-* variants are never purged in production builds.
+const GRID_COLS: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+  5: 'grid-cols-5',
+  6: 'grid-cols-6',
+};
+
 /** A row of summary stat cards (income / expense / net, etc.) */
 export function SkeletonSummaryRow({ count = 3 }: { count?: number }) {
   return (
-    <div className={`grid grid-cols-${count} gap-4 mb-6`}>
+    <div className={`grid ${GRID_COLS[count] ?? 'grid-cols-3'} gap-4 mb-6`}>
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="bg-white rounded-xl p-4 animate-pulse">
           <div className="h-3 bg-gray-200 rounded w-1/2 mb-2" />

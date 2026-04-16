@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
@@ -94,7 +94,7 @@ const focusOptions = [
   },
 ];
 
-export default function SetupPage() {
+function SetupPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading, refreshPlan } = useAuth();
@@ -548,7 +548,7 @@ export default function SetupPage() {
                       </button>
                     ) : (
                       <button
-                        onClick={() => setStep(0)}
+                        onClick={() => setStep(1)}
                         className="rounded-2xl border border-[#1B5E20] px-5 py-3 text-sm font-semibold text-[#1B5E20] hover:bg-green-50"
                       >
                         Upgrade to Connect
@@ -658,5 +658,13 @@ export default function SetupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SetupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F5F9F5] animate-pulse" />}>
+      <SetupPageInner />
+    </Suspense>
   );
 }

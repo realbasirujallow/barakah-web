@@ -161,14 +161,20 @@ export default function InvestmentsPage() {
 
   const handleAddHolding = async () => {
     if (!addHoldingFor) return;
+    const quantity = parseFloat(holdingForm.quantity);
+    const averageCost = parseFloat(holdingForm.averageCost);
+    const currentPrice = parseFloat(holdingForm.currentPrice || holdingForm.averageCost);
+    if (isNaN(quantity) || quantity <= 0) { toast('Please enter a valid quantity', 'error'); return; }
+    if (isNaN(averageCost) || averageCost < 0) { toast('Please enter a valid average cost', 'error'); return; }
+    if (isNaN(currentPrice) || currentPrice < 0) { toast('Please enter a valid current price', 'error'); return; }
     setSavingHolding(true);
     try {
       await api.addHolding(addHoldingFor, {
         symbol: holdingForm.symbol.toUpperCase(),
         name: holdingForm.name,
-        quantity: parseFloat(holdingForm.quantity),
-        averageCost: parseFloat(holdingForm.averageCost),
-        currentPrice: parseFloat(holdingForm.currentPrice || holdingForm.averageCost),
+        quantity,
+        averageCost,
+        currentPrice,
       });
       setAddHoldingFor(null);
       setHoldingForm(emptyHoldingForm);

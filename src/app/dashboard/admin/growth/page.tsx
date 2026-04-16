@@ -24,19 +24,20 @@ export default function GrowthPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [growth, setGrowth] = useState<GrowthResponse | null>(null);
+  const isAdmin = (user as { role?: string } | null)?.role === 'admin';
 
   // BUG FIX: frontend admin-role guard — redirect non-admins before any API call
   useEffect(() => {
-    if (!isAuthLoading && user && (user as { role?: string }).role !== 'admin') {
+    if (!isAuthLoading && user && !isAdmin) {
       router.replace('/dashboard');
     }
-  }, [isAuthLoading, user, router]);
-
-  if (!isAuthLoading && user && (user as { role?: string }).role !== 'admin') {
-    return null;
-  }
+  }, [isAdmin, isAuthLoading, router, user]);
 
   useEffect(() => {
+    if (isAuthLoading || !user || !isAdmin) {
+      return;
+    }
+
     let cancelled = false;
     const load = async () => {
       setLoading(true);
@@ -52,7 +53,11 @@ export default function GrowthPage() {
     };
     load();
     return () => { cancelled = true; };
-  }, [toast]);
+  }, [isAdmin, isAuthLoading, toast, user]);
+
+  if (!isAuthLoading && user && !isAdmin) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] p-4 sm:p-8">

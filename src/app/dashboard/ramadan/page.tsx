@@ -85,13 +85,11 @@ export default function RamadanPage() {
   const [dailyNafila, setDailyNafila]   = useState<boolean[]>(Array(30).fill(false));
   const [expandDua, setExpandDua]       = useState<number | null>(null);
   const [syncStatus, setSyncStatus]     = useState<'idle' | 'saving' | 'synced' | 'error'>('idle');
-  const [isLoading, setIsLoading]       = useState(true);
   const { toast } = useToast();
 
   // Load goals from server on mount
   useEffect(() => {
     const loadGoals = async () => {
-      setIsLoading(true);
       try {
         const data = await api.getRamadanGoals();
         if (data) {
@@ -124,7 +122,7 @@ export default function RamadanPage() {
             setCustomGoalDraft({ label: 'Notes', amount: '' });
           }
         }
-      } catch (err) {
+      } catch {
         // Fall back to localStorage if offline
         const cached = safeGetItem('ramadan_goals');
         if (cached) {
@@ -138,7 +136,6 @@ export default function RamadanPage() {
           }
         }
       }
-      setIsLoading(false);
     };
     loadGoals();
   }, []);
@@ -173,7 +170,7 @@ export default function RamadanPage() {
       });
       setSyncStatus('synced');
       setTimeout(() => setSyncStatus('idle'), 3000);
-    } catch (err) {
+    } catch {
       setSyncStatus('error');
       toast('Failed to sync goals', 'error');
       setTimeout(() => setSyncStatus('idle'), 3000);
@@ -201,8 +198,6 @@ export default function RamadanPage() {
   };
 
   const nafilaCount   = dailyNafila.filter(Boolean).length;
-  const nafilaDaysSet = ramadan.inRamadan ? ramadan.day : 0;
-
   return (
     <div className="max-w-2xl mx-auto">
       {/* Header */}

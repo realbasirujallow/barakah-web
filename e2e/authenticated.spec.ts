@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type APIRequestContext } from '@playwright/test';
 
 const API = process.env.E2E_API_URL || 'https://trybarakah.com';
 const EMAIL = process.env.E2E_EMAIL || '';
@@ -7,7 +7,7 @@ const PASSWORD = process.env.E2E_PASSWORD || '';
 // Login once and reuse token across tests
 let token = '';
 
-async function ensureToken(request: any) {
+async function ensureToken(request: APIRequestContext) {
   if (token) return token;
   const res = await request.post(`${API}/auth/login`, {
     data: { email: EMAIL, password: PASSWORD },

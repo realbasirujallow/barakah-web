@@ -64,12 +64,19 @@ function JoinFamilyContent() {
 
   useEffect(() => {
     if (!token) return;
-    // Persist the token so the post-signup/verify flow can pick it up.
-    safeSet(PENDING_INVITE_KEY, token);
 
     let cancelled = false;
     api.previewFamilyInvite(token)
-      .then((res) => { if (!cancelled) setPreview(res as PreviewResponse); })
+      .then((res) => {
+        if (!cancelled) {
+          const preview = res as PreviewResponse;
+          // Only persist the token once the API confirms it is valid.
+          // Storing it before validation would let expired/canceled tokens
+          // pollute sessionStorage and confuse the post-signup flow.
+          if (preview.valid) safeSet(PENDING_INVITE_KEY, token);
+          setPreview(preview);
+        }
+      })
       .catch((err) => {
         logError(err, { context: 'family invite preview failed' });
         if (!cancelled) setPreview({ valid: false, reason: 'LOAD_ERROR' });

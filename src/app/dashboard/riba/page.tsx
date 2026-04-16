@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
 import { useToast } from '../../../lib/toast';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useRouter } from 'next/navigation';
 
 // ── Existing interfaces ───────────────────────────────────────────────────────
@@ -150,6 +150,7 @@ export default function RibaPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const { fmt } = useCurrency();
   const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
 
   const [activeTab, setActiveTab] = useState<TabKey>('scan');

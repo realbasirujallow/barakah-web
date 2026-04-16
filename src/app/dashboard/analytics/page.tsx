@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useCurrency } from '../../../lib/useCurrency';
@@ -35,6 +36,11 @@ interface HalalAnalysis {
   totalTransactions: number; breakdown: HalalBreakdown[]; insights: string[];
 }
 
+// Converts a snake_case slug into Title Case for display (e.g. "debt_payment" → "Debt Payment")
+function formatCategoryLabel(slug: string): string {
+  return slug.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
 const COLORS = [
   '#1B5E20', '#388E3C', '#4CAF50', '#81C784', '#A5D6A7',
   '#C8E6C9', '#2E7D32', '#43A047', '#66BB6A', '#E8F5E9',
@@ -49,6 +55,7 @@ const periods = [
 
 function AnalyticsPageContent() {
   const { fmt, symbol } = useCurrency();
+  const router = useRouter();
   const [period, setPeriod] = useState('month');
   const [allPeriods, setAllPeriods] = useState<{ week: Summary | null; month: Summary | null; year: Summary | null }>({
     week: null, month: null, year: null,
@@ -460,7 +467,7 @@ function AnalyticsPageContent() {
                     paddingAngle={3}
                     dataKey="value"
                     label={({ name, percent }) =>
-                      `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                      `${formatCategoryLabel(name)} ${((percent ?? 0) * 100).toFixed(0)}%`
                     }
                   >
                     {expenseData.map((_, i) => (
@@ -480,7 +487,7 @@ function AnalyticsPageContent() {
                       className="w-3 h-3 rounded-full inline-block"
                       style={{ backgroundColor: COLORS[i % COLORS.length] }}
                     />
-                    {d.name}: {fmt(d.value)}
+                    {formatCategoryLabel(d.name)}: {fmt(d.value)}
                   </span>
                 ))}
               </div>
@@ -506,7 +513,7 @@ function AnalyticsPageContent() {
                     paddingAngle={3}
                     dataKey="value"
                     label={({ name, percent }) =>
-                      `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                      `${formatCategoryLabel(name)} ${((percent ?? 0) * 100).toFixed(0)}%`
                     }
                   >
                     {incomeData.map((_, i) => (
@@ -526,7 +533,7 @@ function AnalyticsPageContent() {
                       className="w-3 h-3 rounded-full inline-block"
                       style={{ backgroundColor: COLORS[i % COLORS.length] }}
                     />
-                    {d.name}: {fmt(d.value)}
+                    {formatCategoryLabel(d.name)}: {fmt(d.value)}
                   </span>
                 ))}
               </div>
@@ -550,10 +557,14 @@ function AnalyticsPageContent() {
               <p className="text-xl font-bold text-green-700">{fmt(halalAnalysis.halalSpending)}</p>
               <p className="text-xs text-gray-600 mt-1">Halal ({halalAnalysis.halalTransactions} txns)</p>
             </div>
-            <div className="bg-amber-50 rounded-xl p-4 text-center">
+            <button
+              onClick={() => router.push('/dashboard/riba')}
+              className="bg-amber-50 rounded-xl p-4 text-center hover:bg-amber-100 transition cursor-pointer w-full"
+              title="View Riba detector for categories that need Islamic compliance review"
+            >
               <p className="text-xl font-bold text-amber-700">{fmt(halalAnalysis.reviewSpending)}</p>
-              <p className="text-xs text-gray-600 mt-1">Needs Review ({halalAnalysis.reviewTransactions} txns)</p>
-            </div>
+              <p className="text-xs text-gray-600 mt-1">Needs Review ({halalAnalysis.reviewTransactions} txns) →</p>
+            </button>
           </div>
 
           {/* Halal ratio bar */}
@@ -592,13 +603,23 @@ function AnalyticsPageContent() {
                 <tbody>
                   {halalAnalysis.breakdown.slice(0, 10).map((b) => (
                     <tr key={b.category} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="py-2 px-3 capitalize font-medium text-gray-800">{b.category.replace(/_/g, ' ')}</td>
+                      <td className="py-2 px-3 font-medium text-gray-800">{formatCategoryLabel(b.category)}</td>
                       <td className="py-2 px-3 text-right text-gray-700">{fmt(b.amount)}</td>
                       <td className="py-2 px-3 text-right text-gray-500">{b.percentage}%</td>
                       <td className="py-2 px-3 text-center">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${b.status === 'halal' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                          {b.status === 'halal' ? '✓ Halal' : '⚠ Review'}
-                        </span>
+                        {b.status === 'halal' ? (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            ✓ Halal
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => router.push(`/dashboard/transactions?category=${b.category}`)}
+                            className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 transition cursor-pointer"
+                            title={`Review ${formatCategoryLabel(b.category)} transactions for Islamic compliance`}
+                          >
+                            ⚠ Review →
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -640,7 +661,7 @@ function AnalyticsPageContent() {
                             className="w-3 h-3 rounded-full inline-block"
                             style={{ backgroundColor: COLORS[i % COLORS.length] }}
                           />
-                          <span className="font-medium text-gray-800">{d.name}</span>
+                          <span className="font-medium text-gray-800">{formatCategoryLabel(d.name)}</span>
                         </td>
                         <td className="py-3 px-4 text-right font-semibold text-gray-800">{fmt(d.value)}</td>
                         <td className="py-3 px-4 text-right text-gray-600">{pct}%</td>

@@ -57,12 +57,18 @@ export default function NotificationsPage() {
   useEffect(() => { load(0); }, [load]);
 
   const markRead = async (id: number) => {
+    // Snapshot state for rollback
+    const prevNotifications = notifications;
+    const prevUnread = unreadCount;
+    // Optimistic update
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - 1));
     try {
       await api.markNotificationRead(id);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch {
-      // BUG FIX: show toast so the user knows the action didn't persist
+      // Roll back on failure
+      setNotifications(prevNotifications);
+      setUnreadCount(prevUnread);
       toast('Failed to mark notification as read', 'error');
     }
   };
@@ -79,13 +85,19 @@ export default function NotificationsPage() {
   };
 
   const deleteOne = async (id: number) => {
+    // Snapshot state for rollback
+    const prevNotifications = notifications;
+    const prevUnread = unreadCount;
+    // Optimistic update
+    const removed = notifications.find(n => n.id === id);
+    if (removed && !removed.read) setUnreadCount(c => Math.max(0, c - 1));
+    setNotifications(prev => prev.filter(n => n.id !== id));
     try {
       await api.deleteNotification(id);
-      const removed = notifications.find(n => n.id === id);
-      if (removed && !removed.read) setUnreadCount(c => Math.max(0, c - 1));
-      setNotifications(prev => prev.filter(n => n.id !== id));
     } catch {
-      // BUG FIX: show toast instead of silent console.warn
+      // Roll back on failure
+      setNotifications(prevNotifications);
+      setUnreadCount(prevUnread);
       toast('Failed to delete notification', 'error');
     }
   };

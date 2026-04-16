@@ -34,26 +34,53 @@ export default function AnnualUpgradeBanner() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    let isMounted = true;
 
-    // Check localStorage dismissal
-    const dismissedUntil = safeGet(DISMISS_KEY);
-    if (dismissedUntil && Date.now() < parseInt(dismissedUntil, 10)) {
-      setLoaded(true);
-      return;
-    }
+    const loadBanner = async () => {
+      if (!user) {
+        if (isMounted) {
+          setShow(false);
+          setLoaded(false);
+        }
+        return;
+      }
 
-    api.subscriptionStatus()
-      .then((data) => {
+      // Check localStorage dismissal
+      const dismissedUntil = safeGet(DISMISS_KEY);
+      if (dismissedUntil && Date.now() < parseInt(dismissedUntil, 10)) {
+        if (isMounted) {
+          setShow(false);
+          setLoaded(true);
+        }
+        return;
+      }
+
+      try {
+        const data = await api.subscriptionStatus();
         const s = data as { plan: string; status: string; hasSubscription: boolean };
         const isActivePaid =
-          (s.status === 'active') &&
+          s.status === 'active' &&
           (s.plan === 'plus' || s.plan === 'family') &&
           s.hasSubscription;
-        setShow(isActivePaid);
-      })
-      .catch(() => { /* silently ignore */ })
-      .finally(() => setLoaded(true));
+        if (isMounted) {
+          setShow(isActivePaid);
+        }
+      } catch {
+        if (isMounted) {
+          setShow(false);
+        }
+      } finally {
+        if (isMounted) {
+          setLoaded(true);
+        }
+      }
+    };
+
+    void loadBanner();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   if (!user || !loaded || !show) return null;

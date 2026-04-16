@@ -98,7 +98,7 @@ export default function BudgetPage() {
 
   const openAdd = () => {
     setEditItem(null);
-    setForm({ category: 'food', monthlyLimit: '', month: String(now.getMonth() + 1), year: String(now.getFullYear()) });
+    setForm({ category: 'food', monthlyLimit: '', month: String(viewMonth), year: String(viewYear) });
     setSaveError(null); setShowForm(true);
   };
   const openEdit = (b: BudgetItem) => {
@@ -151,15 +151,16 @@ export default function BudgetPage() {
   };
 
   const handleCopyMonth = () => {
-    const prev = now.getMonth() === 0
-      ? { month: 12, year: now.getFullYear() - 1 }
-      : { month: now.getMonth(), year: now.getFullYear() };
+    // Compute "previous month" relative to the currently-viewed month, not today
+    const prev = viewMonth === 1
+      ? { month: 12, year: viewYear - 1 }
+      : { month: viewMonth - 1, year: viewYear };
     setConfirmAction({
-      message: `Copy all budgets from ${MONTHS[prev.month - 1]} ${prev.year} to ${MONTHS[now.getMonth()]} ${now.getFullYear()}?`,
+      message: `Copy all budgets from ${MONTHS[prev.month - 1]} ${prev.year} to ${MONTHS[viewMonth - 1]} ${viewYear}?`,
       action: async () => {
         setCopyingMonth(true);
         try {
-          const result = await api.copyBudget(prev.month, prev.year, now.getMonth() + 1, now.getFullYear());
+          const result = await api.copyBudget(prev.month, prev.year, viewMonth, viewYear);
           if (result?.copied === 0) {
             toast(`No budget found for ${MONTHS[prev.month - 1]} ${prev.year}. Add a budget first, then copy it next month.`, 'error');
           } else {

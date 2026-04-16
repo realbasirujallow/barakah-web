@@ -397,7 +397,7 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
     if (res.status === 401) {
       const refreshResult = await deduplicatedRefresh();
       if (refreshResult === 'ok') {
-        const r2 = await fetch(`${API_URL}${endpoint}`, { method: 'POST', body: formData, credentials: 'include' });
+        const r2 = await fetch(`${API_URL}${endpoint}`, { method: 'POST', body: formData, credentials: 'include', headers: uploadHeaders });
         if (r2.ok) { const t = await r2.text(); if (!t) return null; try { return JSON.parse(t); } catch { throw new Error('Unexpected server response.'); } }
         if (r2.status !== 401) throw new Error(await extractErrorMessage(r2, `Upload error ${r2.status}`));
         if (await verifySessionStillValid()) throw new Error(await extractErrorMessage(r2, 'Upload failed. Please try again.'));
@@ -1283,8 +1283,8 @@ export const api = {
   getFinancialLedger: (page = 0, size = 50) =>
     apiFetch(`/api/ledger?page=${page}&size=${size}`),
 
-  getLedgerByType: (type: string) =>
-    apiFetch(`/api/ledger/type/${encodeURIComponent(type)}`),
+  getLedgerByType: (type: string, page = 0, size = 50) =>
+    apiFetch(`/api/ledger/type/${encodeURIComponent(type)}?page=${page}&size=${size}`),
 
   // ─── Zakat Snapshots ─────────────────────────────────────────
   getZakatSnapshots: () =>
