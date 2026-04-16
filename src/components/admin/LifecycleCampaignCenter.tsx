@@ -344,6 +344,29 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
     setSavingCampaign(true);
     setBroadcastStats(null);
     try {
+      // Push campaigns: bypass the lifecycle campaign table (which may not be
+      // migrated) and call the direct broadcast endpoint instead.
+      if (draft.channel === 'push') {
+        const result = await api.broadcastPushNotification({
+          title: draft.title || draft.name,
+          body: draft.body,
+          route: '/dashboard',
+          filter: draft.audienceFilters?.plans?.length
+            ? draft.audienceFilters.plans[0]
+            : undefined,
+        });
+        const bid = (result as Record<string, unknown>)?.broadcastId as string | undefined;
+        if (bid) {
+          setLastBroadcastId(bid);
+          // Poll stats after a short delay to let FCM finish the batch
+          setTimeout(() => loadBroadcastStats(bid), 4000);
+        }
+        toast('Push notification sent to all users.', 'success');
+        resetDraft();
+        return;
+      }
+
+      // Email / in_app: use the lifecycle campaign flow
       const saved = await api.saveAdminLifecycleCampaign({
         ...draft,
         scheduledAt: null,
@@ -354,7 +377,6 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
         const bid = (result as Record<string, unknown>)?.broadcastId as string | undefined;
         if (bid) {
           setLastBroadcastId(bid);
-          // Poll stats after a short delay to let FCM finish the batch
           setTimeout(() => loadBroadcastStats(bid), 4000);
         }
         toast('Campaign sent.', 'success');
