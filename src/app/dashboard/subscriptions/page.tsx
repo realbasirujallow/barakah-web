@@ -32,7 +32,29 @@ export default function SubscriptionsPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    loadSubscriptions();
+    let cancelled = false;
+    const run = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const data = await api.detectSubscriptions();
+        if (cancelled) return;
+        if (data.error) {
+          setError(data.error);
+        } else {
+          setSubscriptions(data.subscriptions || []);
+          setHaramFlags(data.haramFlags || []);
+          setTotalMonthly(data.totalMonthly || 0);
+          setTotalYearly(data.totalYearly || 0);
+        }
+      } catch {
+        if (!cancelled) setError('Failed to detect subscriptions. Please try again.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    void run();
+    return () => { cancelled = true; };
   }, []);
 
   const loadSubscriptions = async () => {

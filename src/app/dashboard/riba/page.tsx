@@ -191,11 +191,13 @@ export default function RibaPage() {
 
     if (isLoading || !hasPaidAccess) return;
 
+    let cancelled = false;
     Promise.allSettled([
       api.scanRiba() as Promise<RibaScanResponse>,
       api.getDebts() as Promise<{ debts?: DebtRecord[] } | DebtRecord[]>,
       api.getRibaPurificationStatus(),
     ]).then(([ribaRes, debtsRes, purRes]) => {
+      if (cancelled) return;
       // Handle transaction scan results
       if (ribaRes.status === 'fulfilled') {
         const d = ribaRes.value;
@@ -251,7 +253,8 @@ export default function RibaPage() {
         const p = purRes.value;
         if (p && !p.error) setPurification(p);
       }
-    }).finally(() => setLoading(false));
+    }).finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [hasPaidAccess, isLoading, router, toast, user]);
 
   // ── Journey data load ───────────────────────────────────────────────────────

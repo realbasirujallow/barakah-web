@@ -59,6 +59,7 @@ function AnalyticsPageContent() {
   const [activeChart, setActiveChart] = useState<'mom' | 'trend'>('mom');
 
   useEffect(() => {
+    let cancelled = false;
     const timeoutId = window.setTimeout(() => {
       Promise.allSettled([
         api.getTransactionSummary('week'),
@@ -68,6 +69,7 @@ function AnalyticsPageContent() {
         api.getHalalAnalysis('month'),
       ])
         .then((results) => {
+          if (cancelled) return;
           const week = results[0].status === 'fulfilled' ? results[0].value : null;
           const month = results[1].status === 'fulfilled' ? results[1].value : null;
           const year = results[2].status === 'fulfilled' ? results[2].value : null;
@@ -78,10 +80,10 @@ function AnalyticsPageContent() {
           if (halal) setHalalAnalysis(halal as HalalAnalysis);
         })
         .catch((err) => { logError(err, { context: 'Failed to load analytics data' }); })
-        .finally(() => setLoading(false));
+        .finally(() => { if (!cancelled) setLoading(false); });
     }, 0);
 
-    return () => window.clearTimeout(timeoutId);
+    return () => { cancelled = true; window.clearTimeout(timeoutId); };
   }, []);
 
   const summary = useMemo(
