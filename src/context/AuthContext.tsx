@@ -11,6 +11,13 @@ export interface User {
   plan: 'free' | 'plus' | 'family';
   planExpiresAt?: number | null;
   referralCode?: string;
+  /**
+   * Server-supplied flag: this user's ID is in the backend's ADMIN_USER_IDS.
+   * UI-hint only — every /admin/** endpoint independently re-checks admin
+   * status. Absent for legacy cached profiles that predate the flag; treated
+   * as false in that case.
+   */
+  isAdmin?: boolean;
 }
 
 interface AuthContextType {
@@ -131,7 +138,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const data = await api.getProfile(true);
         if (data?.plan) {
-          const updated: User = { ...u, plan: data.plan as User['plan'], planExpiresAt: data.planExpiresAt ?? null };
+          const updated: User = {
+            ...u,
+            plan: data.plan as User['plan'],
+            planExpiresAt: data.planExpiresAt ?? null,
+            // Pick up admin flag on every server-reconciliation so newly-granted
+            // admin access takes effect on the next tab visibility / page load
+            // instead of requiring a full logout.
+            isAdmin: data.isAdmin === true,
+          };
           localStorage.setItem(USER_KEY, JSON.stringify(updated));
           return updated;
         }
@@ -197,7 +212,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const data = await api.getProfile(true);
           if (data?.plan && parsed) {
-            const updated: User = { ...parsed, plan: data.plan as User['plan'], planExpiresAt: data.planExpiresAt ?? null };
+            const updated: User = {
+              ...parsed,
+              plan: data.plan as User['plan'],
+              planExpiresAt: data.planExpiresAt ?? null,
+              isAdmin: data.isAdmin === true,
+            };
             try { localStorage.setItem(USER_KEY, JSON.stringify(updated)); } catch { /* SSR */ }
             setUser(updated);
           } else {
@@ -345,6 +365,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       plan: (data.plan as User['plan']) ?? 'free',
       planExpiresAt: data.planExpiresAt ?? null,
       referralCode: data.referralCode,
+      isAdmin: data.isAdmin === true,
     };
     localStorage.setItem(USER_KEY, JSON.stringify(profile));
     localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
@@ -393,7 +414,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await api.getProfile();
       if (data?.plan && user) {
-        const updated: User = { ...user, plan: data.plan as User['plan'], planExpiresAt: data.planExpiresAt ?? null };
+        const updated: User = {
+          ...user,
+          plan: data.plan as User['plan'],
+          planExpiresAt: data.planExpiresAt ?? null,
+          isAdmin: data.isAdmin === true,
+        };
         try {
           localStorage.setItem(USER_KEY, JSON.stringify(updated));
         } catch {
