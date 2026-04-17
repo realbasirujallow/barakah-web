@@ -101,7 +101,18 @@ export default function FunnelPage() {
     return () => { cancelled = true; };
   }, [isAdmin, isAuthLoading, user]);
 
-  if (!isAuthLoading && user && isAdminKnown && !isAdmin) {
+  // Round 18: show a neutral spinner while auth resolves. Without this,
+  // a non-admin briefly sees the "Conversion Funnel" header before
+  // getting redirected out — mildly leaks the existence of the admin
+  // surface.
+  if (isAuthLoading || !isAdminKnown) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+  if (user && !isAdmin) {
     return null;
   }
 

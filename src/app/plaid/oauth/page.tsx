@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePlaidLink } from 'react-plaid-link';
@@ -24,10 +24,15 @@ export default function PlaidOauthPage() {
     }
   }, [authLoading, user, router]);
 
-  const receivedRedirectUri = useMemo(() => {
+  // Round 18: was useMemo with an empty dep array reading a mutable
+  // window.location.href — a React purity smell. useState with a lazy
+  // initializer captures the value once on mount, which is actually
+  // what we want here (Plaid's OAuth callback URL is stable across
+  // the component's lifetime).
+  const [receivedRedirectUri] = useState<string | undefined>(() => {
     if (typeof window === 'undefined') return undefined;
     return window.location.href;
-  }, []);
+  });
 
   const finishWithRedirect = useCallback((status: 'linked' | 'error', message: string) => {
     const params = new URLSearchParams({ plaid: status, message });

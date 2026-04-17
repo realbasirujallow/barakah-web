@@ -11,10 +11,11 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('sending');
     setErrorMsg('');
 
-    // Client-side validation
+    // Round 18: validate BEFORE flipping status to 'sending', so a
+    // validation failure doesn't flash the button into its submitting
+    // state for a frame. Validation failures stay in 'error' cleanly.
     if (!form.email.trim()) {
       setErrorMsg('Please enter your email address.');
       setStatus('error');
@@ -31,6 +32,7 @@ export default function ContactPage() {
       return;
     }
 
+    setStatus('sending');
     try {
       await api.contact({
         name: form.name,

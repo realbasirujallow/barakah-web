@@ -425,6 +425,14 @@ function SignupContent() {
       setError('Phone number is required');
       return;
     }
+    // Round 18: minimum digit count guards against obvious typos like
+    // "555" or "123" while staying tolerant of international formats
+    // (country code, spaces, dashes, parens). 7 digits = shortest
+    // national number in any country (Vanuatu, Solomon Islands).
+    if (phoneNumber.replace(/\D/g, '').length < 7) {
+      setError('Please enter a valid phone number');
+      return;
+    }
 
     setLoading(true);
     try {

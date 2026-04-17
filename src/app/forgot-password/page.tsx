@@ -12,9 +12,22 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    // Round 18: client-side email format check. HTML5 `type="email"`
+    // is decent but Safari/some browsers accept "foo@bar" without TLD,
+    // and passing obvious garbage straight to the API wastes a rate-
+    // limit token. Mirrors the server regex in AuthController.
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setError('Email is required');
+      return;
+    }
+    if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmed)) {
+      setError('Please enter a valid email address');
+      return;
+    }
     setLoading(true);
     try {
-      await api.forgotPassword(email);
+      await api.forgotPassword(trimmed);
       setSent(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send reset email');

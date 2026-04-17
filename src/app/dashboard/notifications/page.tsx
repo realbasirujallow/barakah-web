@@ -41,8 +41,11 @@ export default function NotificationsPage() {
     try {
       const data = await api.getNotifications(p);
       if (data?.error) {
-        // BUG FIX: surface API-level errors instead of silently returning
+        // BUG FIX: surface API-level errors instead of silently returning.
+        // Round 18: also clear the notification list so users don't see a
+        // stale page-2 list under a "Failed to load page 3" error.
         setLoadError(String(data.error));
+        setNotifications([]);
         return;
       }
       setNotifications(Array.isArray(data?.notifications) ? data.notifications : []);
@@ -53,6 +56,7 @@ export default function NotificationsPage() {
       // BUG FIX: show error UI instead of silently swallowing — the user is
       // on the notifications page specifically to read these.
       setLoadError('Failed to load notifications. Please try again.');
+      setNotifications([]);
     } finally { setLoading(false); }
   }, []);
 

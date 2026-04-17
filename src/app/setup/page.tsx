@@ -106,11 +106,13 @@ function SetupPageInner() {
   const [step, setStep] = useState(initialStep);
   const [billing, setBilling] = useState<BillingCycle>('monthly');
   const [error, setError] = useState('');
+  // Round 18: banner starts empty; the "Your plan is active" success
+  // banner is only set AFTER we confirm via the real subscriptionStatus
+  // call (see loadSubscriptionStatus effect below). Previously the
+  // banner was shown purely on `?checkout=success` which any attacker
+  // could craft — spoofing "your plan is active" on a still-free user.
   const [banner, setBanner] = useState(() => {
     const checkout = searchParams.get('checkout');
-    if (checkout === 'success') {
-      return 'Your plan is active. Next, connect your accounts so Barakah can start working for you.';
-    }
     if (checkout === 'canceled') {
       return 'Checkout was canceled. You can continue with Free or try upgrading again anytime.';
     }
@@ -128,12 +130,20 @@ function SetupPageInner() {
     try {
       const data = await api.subscriptionStatus();
       setStatus(data as SubscriptionStatus);
+      // Round 18: only NOW show the "plan is active" success banner,
+      // after the backend confirms subscription is real. This prevents
+      // `?checkout=success` URL spoofing from falsely telling a free
+      // user they've upgraded.
+      const typed = data as SubscriptionStatus;
+      if (searchParams.get('checkout') === 'success' && typed?.status === 'active') {
+        setBanner('Your plan is active. Next, connect your accounts so Barakah can start working for you.');
+      }
     } catch {
       setStatus({ plan: 'free', status: 'inactive', hasSubscription: false });
     } finally {
       setStatusLoading(false);
     }
-  }, []);
+  }, [searchParams]);
 
   const loadPlaidAccounts = useCallback(async () => {
     try {

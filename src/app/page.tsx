@@ -128,10 +128,14 @@ export default function Home() {
           </nav>
           <div className="flex items-center gap-3">
             {/* Hamburger menu button - visible on mobile only */}
+            {/* Round 18: added aria-expanded + aria-controls so screen readers
+                and keyboard users can tell whether the menu is open/closed. */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden flex flex-col gap-1.5 text-[#1B5E20]"
-              aria-label="Toggle menu"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-menu-panel"
             >
               <div className="w-6 h-0.5 bg-[#1B5E20]"></div>
               <div className="w-6 h-0.5 bg-[#1B5E20]"></div>
@@ -145,7 +149,7 @@ export default function Home() {
         </div>
         {/* Mobile dropdown menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-100">
+          <div id="mobile-menu-panel" className="md:hidden bg-white border-t border-gray-100">
             <nav className="max-w-6xl mx-auto px-6 py-4 flex flex-col gap-3 text-sm text-gray-600">
               <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Features</a>
               <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Pricing</Link>
@@ -679,10 +683,13 @@ export default function Home() {
           <div className="border-t border-gray-200 pt-8">
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="flex gap-4 mb-4 md:mb-0">
-                <a href="https://www.tiktok.com/@trybarakah" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm font-bold" title="TikTok">♪</a>
-                <a href="https://www.instagram.com/trybarakah/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="Instagram">📷</a>
-                <a href="https://linkedin.com/company/barakah" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="LinkedIn">in</a>
-                <a href="https://apps.apple.com/us/app/barakah-islamic-finance/id6761279229" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="App Store">🍎</a>
+                {/* Round 18: added aria-labels to all social icons so
+                    screen-reader users hear meaningful link names instead of
+                    emoji/text content. */}
+                <a href="https://www.tiktok.com/@trybarakah" target="_blank" rel="noopener noreferrer" aria-label="Barakah on TikTok" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm font-bold" title="TikTok">♪</a>
+                <a href="https://www.instagram.com/trybarakah/" target="_blank" rel="noopener noreferrer" aria-label="Barakah on Instagram" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="Instagram">📷</a>
+                <a href="https://linkedin.com/company/barakah" target="_blank" rel="noopener noreferrer" aria-label="Barakah on LinkedIn" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="LinkedIn">in</a>
+                <a href="https://apps.apple.com/us/app/barakah-islamic-finance/id6761279229" target="_blank" rel="noopener noreferrer" aria-label="Barakah on the App Store" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="App Store">🍎</a>
               </div>
               <p className="text-xs text-gray-500 text-center md:text-right">
                 <span className="block">© {new Date().getFullYear()} Barakah. All rights reserved.</span>

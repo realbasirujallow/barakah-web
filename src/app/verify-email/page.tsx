@@ -33,8 +33,21 @@ function VerifyEmailContent() {
         setMessage(data?.message || 'Email verified successfully!');
       })
       .catch((err: Error) => {
-        setStatus('error');
-        setMessage(err.message || 'Verification failed. The link may be expired or already used.');
+        // Round 18: the backend returns "Invalid or already used
+        // verification token" for BOTH expired AND already-used tokens,
+        // so a user who refreshes the success page sees the same scary
+        // "expired" text. Detect the server's "already used" phrasing
+        // and render a friendlier "Already verified — just sign in"
+        // state instead of the generic error. Falling back to the
+        // original "expired or already used" message for anything else.
+        const raw = err.message || '';
+        if (/already used|already verified/i.test(raw)) {
+          setStatus('success');
+          setMessage('This email is already verified. You can sign in now.');
+        } else {
+          setStatus('error');
+          setMessage(raw || 'Verification failed. The link may be expired or already used.');
+        }
       });
   }, [token]);
 

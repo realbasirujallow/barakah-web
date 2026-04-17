@@ -284,7 +284,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Main content — ToastProvider hoisted to wrap the full shell so
           NotificationBell, SessionTimeoutModal, AnnualUpgradeModal,
-          FeedbackWidget, and OnboardingTour can all dispatch toasts. */}
+          FeedbackWidget, and OnboardingWizard can all dispatch toasts. */}
       <ToastProvider>
         <div className="flex-1 flex flex-col min-h-screen">
           <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between lg:justify-end">
