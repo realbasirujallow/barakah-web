@@ -906,6 +906,12 @@ export const api = {
   getProfile: (suppressUnauthorized = false) => apiFetch('/auth/profile', {}, API_TIMEOUT, suppressUnauthorized),
   updateProfile: (data: Record<string, unknown>) =>
     apiFetch('/auth/update-profile', { method: 'PUT', body: JSON.stringify(data) }),
+  // Round 23: server-side guided-setup completion. Client POSTs here
+  // when the setup flow finishes; backend sets setup_completed_at on
+  // the user row and returns the timestamp. Idempotent — re-submits
+  // don't change the first-recorded time.
+  markSetupComplete: () =>
+    apiFetch('/auth/setup-complete', { method: 'POST', body: JSON.stringify({}) }),
   deleteAccount: () =>
     apiFetch('/auth/delete-account', { method: 'DELETE' }),
 

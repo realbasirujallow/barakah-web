@@ -13,7 +13,7 @@ import { SessionTimeoutModal } from '../../components/SessionTimeoutModal';
 import TrialBanner from '../../components/TrialBanner';
 import AnnualUpgradeBanner from '../../components/AnnualUpgradeBanner';
 import AnnualUpgradeModal from '../../components/AnnualUpgradeModal';
-import { hasCompletedGuidedSetup } from '../../lib/setup';
+import { isSetupComplete } from '../../lib/setup';
 
 // 'plus' = Plus or Family plan required | 'family' = Family plan only
 const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'family' }[] = [
@@ -146,7 +146,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (isLoading || !user) return;
-    if (!hasCompletedGuidedSetup(user.id)) {
+    // Round 23: server-side `setupCompletedAt` is the canonical flag;
+    // fall back to localStorage only for pre-migration accounts. This
+    // kills the cross-device redirect ping-pong that the old
+    // `hasCompletedGuidedSetup(user.id)` check caused on a fresh
+    // browser whose localStorage didn't know about the completion.
+    if (!isSetupComplete(user.id, user.setupCompletedAt)) {
       router.replace('/setup');
     }
   }, [isLoading, router, user]);

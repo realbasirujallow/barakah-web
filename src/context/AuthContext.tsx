@@ -18,6 +18,20 @@ export interface User {
    * as false in that case.
    */
   isAdmin?: boolean;
+  /**
+   * Round 23: server-side guided-setup completion timestamp (epoch ms).
+   * Replaces the per-device `barakah_guided_setup_completed_<userId>`
+   * localStorage flag as source of truth. Null means either the user
+   * hasn't finished setup or their account predates this field (in
+   * which case callers fall back to the legacy local flag).
+   */
+  setupCompletedAt?: number | null;
+  /**
+   * Round 23: user's country (ISO country code from signup). Drives
+   * locale-aware number / currency / date formatting in `useCurrency`
+   * and related hooks. Not shown in UI directly.
+   */
+  country?: string;
 }
 
 interface AuthContextType {
@@ -152,6 +166,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // admin access takes effect on the next tab visibility / page load
             // instead of requiring a full logout.
             isAdmin: data.isAdmin === true,
+            // Round 23: fetch server-side setup completion + country so
+            // dashboard/setup redirect logic and currency formatting
+            // always have the latest truth across devices.
+            setupCompletedAt: (data.setupCompletedAt as number | null | undefined) ?? null,
+            country: (data.country as string | undefined) ?? u.country,
           };
           localStorage.setItem(USER_KEY, JSON.stringify(updated));
           return updated;
@@ -373,6 +392,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       planExpiresAt: data.planExpiresAt ?? null,
       referralCode: data.referralCode,
       isAdmin: data.isAdmin === true,
+      // Round 23: server-side guided-setup completion + country locale
+      // source. Login-response fields may be undefined for legacy
+      // backends; null-coalesce to avoid writing `undefined` into
+      // the cached profile JSON.
+      setupCompletedAt: (data.setupCompletedAt as number | null | undefined) ?? null,
+      country: (data.country as string | undefined) ?? undefined,
     };
     localStorage.setItem(USER_KEY, JSON.stringify(profile));
     localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
@@ -426,6 +451,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           plan: data.plan as User['plan'],
           planExpiresAt: data.planExpiresAt ?? null,
           isAdmin: data.isAdmin === true,
+          setupCompletedAt: (data.setupCompletedAt as number | null | undefined) ?? user.setupCompletedAt ?? null,
+          country: (data.country as string | undefined) ?? user.country,
         };
         try {
           localStorage.setItem(USER_KEY, JSON.stringify(updated));

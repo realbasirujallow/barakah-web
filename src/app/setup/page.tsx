@@ -18,7 +18,7 @@ import {
   savePendingPlaidLinkToken,
 } from '../../lib/plaid';
 import { PRICING } from '../../lib/pricing';
-import { hasCompletedGuidedSetup, markGuidedSetupComplete } from '../../lib/setup';
+import { isSetupComplete, markGuidedSetupComplete } from '../../lib/setup';
 import { hasPaidSyncAccess } from '../../lib/subscription';
 import { validateStripeUrl } from '../../lib/validateUrl';
 
@@ -188,7 +188,9 @@ function SetupPageInner() {
       router.replace('/login');
       return;
     }
-    if (hasCompletedGuidedSetup(user.id)) {
+    // Round 23: prefer server-side `setupCompletedAt`; falls back to
+    // the legacy per-device localStorage flag for pre-migration accounts.
+    if (isSetupComplete(user.id, user.setupCompletedAt)) {
       router.replace('/dashboard');
       return;
     }
@@ -346,6 +348,11 @@ function SetupPageInner() {
       }
     } catch { /* GA4 unavailable */ }
     markGuidedSetupComplete(user.id);
+    // Round 23: record server-side completion too. Fire-and-forget:
+    // the local flag is set above so a failed POST still unblocks the
+    // user on this device. Other devices will pick up the timestamp
+    // on their next /auth/profile call.
+    api.markSetupComplete().catch(() => { /* silent — local flag is enough */ });
     router.replace(href);
   };
 
