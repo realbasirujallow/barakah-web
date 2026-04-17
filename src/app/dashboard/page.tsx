@@ -115,7 +115,21 @@ export default function DashboardPage() {
       if (cancelled) return;
 
       if (assetResult.status === 'fulfilled') setTotals(assetResult.value);
-      else toast('Failed to load dashboard data. Please refresh.', 'error');
+      else {
+        // Round 17: suppress the red toast when the failure is a 403 /
+        // "Plus required" message — that's the expected state for new
+        // free-tier users who don't have asset totals in their plan.
+        // Previously every fresh free signup saw a jarring "Failed to
+        // load dashboard data" banner on their very first dashboard
+        // render. The PlanGate component already renders a proper
+        // upsell card in-place, so no toast is needed for that case.
+        const errMsg = assetResult.reason instanceof Error
+          ? assetResult.reason.message : String(assetResult.reason ?? '');
+        const isPlanGate = /plus required|403|forbidden|upgrade/i.test(errMsg);
+        if (!isPlanGate) {
+          toast('Failed to load dashboard data. Please refresh.', 'error');
+        }
+      }
       if (hijriResult.status === 'fulfilled') setHijri(hijriResult.value as HijriData);
       if (hawlResult.status === 'fulfilled') setHawlDue(hawlResult.value as typeof hawlDue);
       if (portfolioResult.status === 'fulfilled') {

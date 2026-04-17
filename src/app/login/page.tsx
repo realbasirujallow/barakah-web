@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
 import { hasCompletedGuidedSetup } from '../../lib/setup';
+import { isSafeInternalPath } from '../../lib/safePath';
 
 const REMEMBERED_EMAIL_KEY = 'barakah_remembered_email';
 
@@ -61,6 +62,28 @@ function LoginForm() {
       } catch { /* incognito safety */ }
       await login(email, password, rememberMe);
       // BUG FIX: removed duplicate trackLogin() call — AuthContext.login() already fires it
+      // Round 17: honor `?redirect=<path>` param so /family/join and other
+      // entry points can send unauthed users through login and back to
+      // their intended destination. `isSafeInternalPath` rejects external
+      // URLs / protocol-relative paths to prevent open-redirect abuse.
+      const redirectParam = searchParams.get('redirect');
+      if (isSafeInternalPath(redirectParam)) {
+        router.push(redirectParam);
+        return;
+      }
+      // Round 17: cross-session fallback — if the user originally landed on
+      // /family/join and completed signup + email verification in a
+      // different tab, sessionStorage no longer has the token, but if
+      // they're on the same session we persisted the token during the
+      // initial preview. This gets them back to the invite screen to
+      // tap "Accept" without retyping the URL.
+      try {
+        const pendingFamilyToken = sessionStorage.getItem('barakah_pending_family_invite_token');
+        if (pendingFamilyToken) {
+          router.push(`/family/join?token=${encodeURIComponent(pendingFamilyToken)}`);
+          return;
+        }
+      } catch { /* sessionStorage unavailable — ignore */ }
       let nextRoute = '/setup';
       try {
         const savedUser = localStorage.getItem('user');

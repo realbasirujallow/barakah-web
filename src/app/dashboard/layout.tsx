@@ -9,7 +9,7 @@ import { useDarkMode, toggleDarkMode as toggleDarkModeShared } from '../../lib/u
 import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
 import { SessionTimeoutModal } from '../../components/SessionTimeoutModal';
-import OnboardingTour from '../../components/OnboardingTour';
+// OnboardingTour removed Round 17 — see comment near bottom of file.
 import TrialBanner from '../../components/TrialBanner';
 import AnnualUpgradeBanner from '../../components/AnnualUpgradeBanner';
 import AnnualUpgradeModal from '../../components/AnnualUpgradeModal';
@@ -334,8 +334,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {/* Floating feedback widget — visible on all dashboard pages */}
         <FeedbackWidget />
 
-        {/* Onboarding tour for first-time users */}
-        <OnboardingTour />
+        {/*
+          Onboarding tour removed Round 17 — dashboard/page.tsx now renders
+          &lt;OnboardingWizard /&gt; which is the newer, data-aware flow. Both
+          components shared the `barakah_onboarded` localStorage key, so
+          first-run users were seeing two stacked modals and whichever
+          completed first dismissed the other. The tour file remains
+          unused; consider deleting it once we're sure no beta users are
+          mid-tour when they upgrade.
+        */}
       </ToastProvider>
     </div>
   );
