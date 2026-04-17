@@ -577,10 +577,26 @@ function SignupContent() {
               <p className="text-xs text-gray-500">At least 8 characters</p>
               {password && (
                 <div className="flex items-center gap-1">
+                  {/*
+                    Round 17: dot colors now progress with strength (red→yellow→green),
+                    not a fixed red/yellow/green where "strong" passwords still
+                    showed a red dot. Lit dots use the strength-appropriate color;
+                    unlit dots stay gray.
+                  */}
                   <div className="flex gap-1">
-                    <div className={`w-1 h-1 rounded-full ${passwordStrength === 'weak' || passwordStrength === 'medium' || passwordStrength === 'strong' ? 'bg-red-500' : 'bg-gray-300'}`} />
-                    <div className={`w-1 h-1 rounded-full ${passwordStrength === 'medium' || passwordStrength === 'strong' ? 'bg-yellow-500' : 'bg-gray-300'}`} />
-                    <div className={`w-1 h-1 rounded-full ${passwordStrength === 'strong' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <div className={`w-1 h-1 rounded-full ${
+                      passwordStrength === 'strong' ? 'bg-green-500'
+                      : passwordStrength === 'medium' ? 'bg-yellow-500'
+                      : 'bg-red-500'
+                    }`} />
+                    <div className={`w-1 h-1 rounded-full ${
+                      passwordStrength === 'strong' ? 'bg-green-500'
+                      : passwordStrength === 'medium' ? 'bg-yellow-500'
+                      : 'bg-gray-300'
+                    }`} />
+                    <div className={`w-1 h-1 rounded-full ${
+                      passwordStrength === 'strong' ? 'bg-green-500' : 'bg-gray-300'
+                    }`} />
                   </div>
                   <span className={`text-xs font-medium ${passwordStrength === 'weak' ? 'text-red-500' : passwordStrength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}>
                     {passwordStrength === 'weak' ? 'Weak' : passwordStrength === 'medium' ? 'Medium' : 'Strong'}

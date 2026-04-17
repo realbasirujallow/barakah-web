@@ -195,7 +195,7 @@ export default function FamilyPage() {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Your family plan</h1>
         <p className="text-gray-600 mb-8">
-          You\u2019re a member of {ownerMember?.fullName ?? 'this'}&apos;s Barakah Family household.
+          You&rsquo;re a member of {ownerMember?.fullName ?? 'this'}&apos;s Barakah Family household.
           All Plus features are covered by their subscription.
         </p>
 
