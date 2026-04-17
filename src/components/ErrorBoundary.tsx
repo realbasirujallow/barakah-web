@@ -1,6 +1,7 @@
 'use client';
 import React, { ReactNode, ErrorInfo } from 'react';
 import { logError } from '../lib/logError';
+import { t } from '../lib/i18n';
 
 interface Props {
   children: ReactNode;
@@ -45,11 +46,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
           <div className="bg-white rounded-2xl p-6 shadow-sm max-w-md w-full border border-red-100">
             <div className="text-center">
               <p className="text-4xl mb-3">⚠️</p>
-              <h2 className="text-lg font-bold text-gray-900 mb-2">Something went wrong</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-2">{t('errSomethingWentWrong')}</h2>
               <p className="text-sm text-gray-600 mb-4">
-                {exhausted
-                  ? 'This page keeps running into an error. Please reload the page.'
-                  : 'An unexpected error occurred. Please try again.'}
+                {exhausted ? t('errReloadMessage') : t('errTryAgainMessage')}
               </p>
               {this.state.error && (
                 <p className="text-xs text-gray-500 mb-4 font-mono bg-gray-50 p-2 rounded break-words">
@@ -61,14 +60,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
                   onClick={() => window.location.reload()}
                   className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
                 >
-                  Reload Page
+                  {t('errReloadPage')}
                 </button>
               ) : (
                 <button
                   onClick={this.handleRetry}
                   className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
                 >
-                  Try Again
+                  {t('errTryAgain')}
                 </button>
               )}
             </div>

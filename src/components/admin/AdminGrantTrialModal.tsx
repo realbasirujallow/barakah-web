@@ -10,8 +10,9 @@
  * refactor.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { PRICING } from '../../lib/pricing';
+import { useFocusTrap } from '../../lib/useFocusTrap';
 import type { AdminUser } from './adminTypes';
 
 export interface AdminGrantTrialModalProps {
@@ -51,9 +52,14 @@ export function AdminGrantTrialModal(props: AdminGrantTrialModalProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
+  // Round 27: trap Tab focus inside the modal.
+  const modalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(modalRef, true);
+
   return (
     // Round 26: role="dialog" + aria-modal + aria-labelledby for SR users.
     <div
+      ref={modalRef}
       className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"

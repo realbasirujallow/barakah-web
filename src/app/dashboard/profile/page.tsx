@@ -1,5 +1,6 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useFocusTrap } from '@/lib/useFocusTrap';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { useAuth } from '../../../context/AuthContext';
@@ -128,6 +129,12 @@ export default function ProfilePage() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [showRetentionModal]);
+
+  // Round 27: trap Tab focus inside the destructive modal so keyboard
+  // users don't tab out to the page behind and accidentally click a
+  // "Continue Deleting" that was never intended.
+  const retentionModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(retentionModalRef, showRetentionModal);
 
   const loadProfile = useCallback(() => {
     setLoading(true);
@@ -893,6 +900,7 @@ export default function ProfilePage() {
           keyboard-dismiss and no screen-reader modal signal. */}
       {showRetentionModal && (
         <div
+          ref={retentionModalRef}
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
