@@ -45,7 +45,8 @@ function safeSet(key: string, value: string) {
 function formatDate(ms: number | undefined): string {
   if (!ms) return '';
   try {
-    return new Date(ms).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    // Round 24: undefined locale → browser default.
+    return new Date(ms).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
   } catch { return ''; }
 }
 

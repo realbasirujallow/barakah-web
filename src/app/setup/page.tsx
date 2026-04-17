@@ -48,13 +48,15 @@ const STEP_LABELS = ['Connect Accounts', 'Choose Plan', 'Pick Your Focus'] as co
 
 function formatPlaidBalance(value: number | null | undefined, currencyCode = 'USD') {
   if (value == null || Number.isNaN(Number(value))) return null;
+  // Round 24: undefined locale → browser default. Matches the R23
+  // useCurrency + NotificationBell / dashboard layout pattern.
   try {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(undefined, {
       style: 'currency',
       currency: currencyCode || 'USD',
     }).format(value);
   } catch {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(undefined, {
       style: 'currency',
       currency: 'USD',
     }).format(value);

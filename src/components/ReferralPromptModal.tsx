@@ -72,15 +72,35 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
     onDismiss();
   };
 
+  // Round 24: Escape key closes the modal, matching R18/H-10 pattern on
+  // SessionTimeoutModal + AnnualUpgradeModal. Handler uses a ref-free
+  // closure since handleDismiss's identity doesn't matter (effect only
+  // runs once with cleanup).
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        safeSetItem(STORAGE_KEY, 'true');
+        onDismiss();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onDismiss]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="referral-prompt-title"
+    >
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center animate-in fade-in zoom-in duration-300">
         {/* Mosque icon */}
         <div className="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center text-3xl mb-4">
           🕌
         </div>
 
-        <h2 className="text-2xl font-bold text-[#1B5E20] mb-2">
+        <h2 id="referral-prompt-title" className="text-2xl font-bold text-[#1B5E20] mb-2">
           Share Barakah with Your Family
         </h2>
 

@@ -160,9 +160,14 @@ export default function HouseholdSection() {
 
       {/* Scalar profile fields */}
       <div className="p-6 border-b border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Round 24: label→input association via htmlFor/id. R19/R20 did
+            this sweep across login/signup/forgot/reset/profile; household
+            section was missed. Screen readers now announce the label when
+            focus lands on the select/input. */}
         <div>
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Gender</label>
+          <label htmlFor="household-gender" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Gender</label>
           <select
+            id="household-gender"
             value={gender}
             onChange={e => setGender(e.target.value)}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
@@ -173,8 +178,9 @@ export default function HouseholdSection() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Date of birth</label>
+          <label htmlFor="household-dob" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Date of birth</label>
           <input
+            id="household-dob"
             type="date"
             value={dob}
             onChange={e => setDob(e.target.value)}
@@ -182,8 +188,9 @@ export default function HouseholdSection() {
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Marital status</label>
+          <label htmlFor="household-marital" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Marital status</label>
           <select
+            id="household-marital"
             value={marital}
             onChange={e => setMarital(e.target.value)}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
