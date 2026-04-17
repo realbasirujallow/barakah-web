@@ -134,16 +134,32 @@ function SetupPageInner() {
       // after the backend confirms subscription is real. This prevents
       // `?checkout=success` URL spoofing from falsely telling a free
       // user they've upgraded.
+      //
+      // Round 20: read searchParams directly inside the success handler
+      // rather than including it as a useCallback dep. Prior code
+      // re-created the callback (and re-fired the API call) every time
+      // searchParams changed — including the router.replace that strips
+      // the ?checkout=success param. Reading non-reactively here keeps
+      // the callback stable across URL mutations.
       const typed = data as SubscriptionStatus;
-      if (searchParams.get('checkout') === 'success' && typed?.status === 'active') {
+      const currentCheckout = typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('checkout')
+        : null;
+      if (currentCheckout === 'success' && typed?.status === 'active') {
         setBanner('Your plan is active. Next, connect your accounts so Barakah can start working for you.');
       }
     } catch {
       setStatus({ plan: 'free', status: 'inactive', hasSubscription: false });
+      // Round 20: clear a stale success banner on load failure so users
+      // aren't misled into thinking their plan is active while the
+      // status fetch is broken.
+      setBanner('');
     } finally {
       setStatusLoading(false);
     }
-  }, [searchParams]);
+    // searchParams intentionally NOT in deps — see comment above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadPlaidAccounts = useCallback(async () => {
     try {

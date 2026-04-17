@@ -537,9 +537,14 @@ function SignupContent() {
             <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{error}</div>
           )}
 
+          {/* Round 20: every label has a matching htmlFor → input id so
+              screen readers associate them properly and clicking the
+              label focuses the input. aria-label is now redundant once
+              htmlFor is wired up, so we remove it. */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <label htmlFor="signup-name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
             <input
+              id="signup-name"
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
@@ -547,14 +552,14 @@ function SignupContent() {
               placeholder="Your full name"
               maxLength={255}
               required
-              aria-label="Full name"
               autoComplete="name"
             />
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
+              id="signup-email"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -562,14 +567,14 @@ function SignupContent() {
               placeholder="you@example.com"
               maxLength={254}
               required
-              aria-label="Email address"
               autoComplete="email"
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
+              id="signup-password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -578,7 +583,6 @@ function SignupContent() {
               minLength={8}
               maxLength={256}
               required
-              aria-label="Password"
               autoComplete="new-password"
             />
             <div className="flex items-center gap-2 mt-2">
@@ -615,8 +619,9 @@ function SignupContent() {
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <label htmlFor="signup-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
             <input
+              id="signup-confirm-password"
               type="password"
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
@@ -631,8 +636,9 @@ function SignupContent() {
             )}
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+            <label htmlFor="signup-country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
             <select
+              id="signup-country"
               value={country}
               onChange={e => { setCountry(e.target.value); setState(''); }}
               className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -646,20 +652,21 @@ function SignupContent() {
 
           {country === 'US' && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="signup-state" className="block text-sm font-medium text-gray-700 mb-1">
                 State <span className="text-gray-400 font-normal">(for tax estimate)</span>
               </label>
-              <select value={state} onChange={e => setState(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+              <select id="signup-state" value={state} onChange={e => setState(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                 {US_STATES.map((s) => (<option key={s} value={s}>{s ? s : 'Select your state'}</option>))}
               </select>
             </div>
           )}
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="signup-phone" className="block text-sm font-medium text-gray-700 mb-1">
               Phone number <span className="text-red-400">*</span>
             </label>
             <input
+              id="signup-phone"
               type="tel"
               placeholder={phonePlaceholder}
               value={phoneNumber}
@@ -672,10 +679,11 @@ function SignupContent() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="signup-referral" className="block text-sm font-medium text-gray-700 mb-1">
               Referral code <span className="text-gray-400 font-normal">(optional)</span>
             </label>
             <input
+              id="signup-referral"
               type="text"
               placeholder="e.g. ABCD1234"
               value={referralCode}

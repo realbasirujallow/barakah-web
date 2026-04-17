@@ -375,8 +375,21 @@ function ImportPageInner() {
       setCsvFormat(format);
 
       if (format === 'transactions') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const parsed: PreviewTransaction[] = (data.transactions || []).map((t: any) => ({ ...t, skip: false }));
+        // Round 20: typed the API-payload shape as Partial<PreviewTransaction>
+        // so downstream spreads stay safe and the eslint disable comment
+        // is no longer needed. The `skip: false` default is applied after
+        // the spread so clients can't inject a truthy `skip` into the
+        // preview list and bypass import.
+        const parsed: PreviewTransaction[] = ((data.transactions || []) as Partial<PreviewTransaction>[]).map((t) => ({
+          date: '',
+          merchant: '',
+          category: '',
+          account: '',
+          amount: 0,
+          notes: '',
+          ...t,
+          skip: false,
+        }));
         setTransactions(parsed);
         setTxnMeta({
           totalTransactions: data.totalTransactions || 0,
