@@ -411,6 +411,15 @@ function SignupContent() {
     e.preventDefault();
     setError('');
 
+    // Round 21: explicit email regex — Safari accepts "foo@bar" with
+    // only type="email", so the server was seeing format-garbage that
+    // had to be rejected with a round-trip.
+    const trimmedEmail = email.trim();
+    if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmedEmail)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     if (password.length < 8) {
       setError('Password must be at least 8 characters');
       return;

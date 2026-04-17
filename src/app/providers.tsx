@@ -1,5 +1,6 @@
 'use client';
 import { AuthProvider } from '../context/AuthContext';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { useEffect } from 'react';
@@ -52,10 +53,18 @@ function GoogleAnalytics() {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  // Round 21: wrap the tree in our branded ErrorBoundary so runtime
+  // crashes in any page (e.g. recharts on malformed data, third-party
+  // widget exception) show a recoverable retry card instead of
+  // bubbling to `global-error.tsx`. The boundary is a class component
+  // — put it outside AuthProvider so auth state survives a render
+  // error downstream.
   return (
     <PostHogInit>
       <GoogleAnalytics />
-      <AuthProvider>{children}</AuthProvider>
+      <ErrorBoundary>
+        <AuthProvider>{children}</AuthProvider>
+      </ErrorBoundary>
     </PostHogInit>
   );
 }

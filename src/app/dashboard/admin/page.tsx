@@ -18,7 +18,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
+import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
 import { useCurrency } from '../../../lib/useCurrency';
 import { LifecycleCampaignCenter } from '../../../components/admin/LifecycleCampaignCenter';
@@ -42,6 +44,20 @@ import type {
 } from '../../../components/admin/adminTypes';
 
 export default function AdminPage() {
+  // Round 21: gate loadData behind user.isAdmin so non-admin visitors
+  // don't fire six admin-API calls before the 403 handler kicks in.
+  // Matches the funnel/growth page pattern from Round 18.
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const router = useRouter();
+  const isAdmin = user?.isAdmin === true;
+  const isAdminKnown = typeof user?.isAdmin === 'boolean';
+
+  useEffect(() => {
+    if (!isAuthLoading && user && isAdminKnown && !isAdmin) {
+      router.replace('/dashboard');
+    }
+  }, [isAdmin, isAdminKnown, isAuthLoading, router, user]);
+
   // Data
   const [overview, setOverview] = useState<Overview | null>(null);
   const [usersData, setUsersData] = useState<UsersResponse | null>(null);
@@ -136,7 +152,13 @@ export default function AdminPage() {
     }
   }, [toast]);
 
-  useEffect(() => { loadData(0); }, [loadData]);
+  // Round 21: only fire loadData when the user is known to be admin.
+  // For non-admins the isAdmin redirect effect above handles the
+  // bounce; we stop spamming six 403s on every visit.
+  useEffect(() => {
+    if (isAuthLoading || !isAdminKnown || !isAdmin) return;
+    loadData(0);
+  }, [isAuthLoading, isAdminKnown, isAdmin, loadData]);
 
   // Auto-refresh every 30 minutes
   useEffect(() => {

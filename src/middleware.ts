@@ -42,6 +42,10 @@ export function middleware(request: NextRequest) {
   if (hasAuth) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
+    // Round 21: preserve query params (UTM, referrer, campaign codes)
+    // across the redirect so attribution analytics aren't silently
+    // dropped when a logged-in user clicks a marketing link.
+    url.search = request.nextUrl.search;
     return NextResponse.redirect(url);
   }
   return NextResponse.next();

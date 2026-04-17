@@ -101,11 +101,19 @@ export default function FamilyPage() {
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail.trim() || sending) return;
+    const trimmed = inviteEmail.trim();
+    if (!trimmed || sending) return;
+    // Round 21: client-side email format check before wasting a
+    // round-trip + rate-limit token on a typo like "ahmad@" or
+    // "ahmad@gmail". Mirrors the regex used in forgot-password.
+    if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmed)) {
+      toast('Please enter a valid email address', 'error');
+      return;
+    }
     setSending(true);
     try {
-      await api.createFamilyInvite(inviteEmail.trim());
-      toast(`Invite sent to ${inviteEmail.trim()}`, 'success');
+      await api.createFamilyInvite(trimmed);
+      toast(`Invite sent to ${trimmed}`, 'success');
       setInviteEmail('');
       await load();
     } catch (err) {

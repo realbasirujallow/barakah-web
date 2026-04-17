@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth, hasAccess } from '../context/AuthContext';
 import { api } from '../lib/api';
@@ -23,12 +23,24 @@ interface UsageData {
  *
  * Usage: <TransactionUsageMeter /> — renders nothing for Plus/Family users.
  */
+// Round 21: useSyncExternalStore pattern for a minute-granularity clock
+// matches TrialBanner. Prior code captured `Date.now()` once at mount,
+// so a dashboard left open overnight past the month-end reset showed
+// a stale / negative "Resets in N days" and didn't reset the meter
+// until the tab was refreshed.
+function subscribeMinute(onChange: () => void): () => void {
+  const id = window.setInterval(onChange, 60_000);
+  return () => window.clearInterval(id);
+}
+const getNowClient = () => Math.floor(Date.now() / 1000);
+const getNowServer = () => 0; // meter is client-only; SSR renders nothing
+
 export function TransactionUsageMeter() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [usage, setUsage] = useState<UsageData | null>(null);
-  const [now] = useState(() => Math.floor(Date.now() / 1000));
+  const now = useSyncExternalStore(subscribeMinute, getNowClient, getNowServer);
 
   useEffect(() => {
     if (!user || hasAccess(user.plan, 'plus', user.planExpiresAt)) return;

@@ -75,14 +75,16 @@ function SadaqahContent() {
   }, [searchParams, toast]);
 
   const handleSave = async () => {
+    // Round 21: validate BEFORE flipping `saving` so the button doesn't
+    // briefly show a "saving" state when the submit is obviously invalid.
+    // Matches the contact-form ordering fix from Round 18.
+    const amt = parseFloat(form.amount);
+    if (!Number.isFinite(amt) || amt <= 0) {
+      toast('Amount must be a positive number', 'error');
+      return;
+    }
     setSaving(true);
     try {
-      const amt = parseFloat(form.amount);
-      if (!Number.isFinite(amt) || amt <= 0) {
-        toast('Amount must be a positive number', 'error');
-        setSaving(false);
-        return;
-      }
       await api.addSadaqah({ ...form, amount: amt });
       setShowForm(false); setForm({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false }); load();
       toast('Sadaqah recorded', 'success');
