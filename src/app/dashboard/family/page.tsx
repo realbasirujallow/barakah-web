@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -79,6 +80,21 @@ export default function FamilyPage() {
   }, [toast]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Round 18: celebrate a fresh invite accept. `/family/join` routes the
+  // user here with `?joined=1` after a successful accept — show a toast
+  // once, then strip the param so a refresh doesn't re-fire it.
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const joinedToastShown = useRef(false);
+  useEffect(() => {
+    if (joinedToastShown.current) return;
+    if (searchParams.get('joined') === '1') {
+      joinedToastShown.current = true;
+      toast('Welcome to the household! You\u2019re all set.', 'success');
+      router.replace('/dashboard/family');
+    }
+  }, [searchParams, router, toast]);
 
   const isOwner = Boolean(data?.isOwner);
   const hasFamily = Boolean(data && data.familyId);

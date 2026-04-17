@@ -40,9 +40,18 @@ function LoginForm() {
     // Support the legacy ?expired=true param as well
     if (reason) {
       setBannerReason(reason);
+      // Round 18: strip the param after reading so a page refresh
+      // doesn't re-show the "session expired / account deleted" banner
+      // indefinitely. We preserve ?redirect= if present.
+      const redirect = searchParams.get('redirect');
+      router.replace(redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login');
     } else if (searchParams.get('expired') === 'true') {
       setBannerReason('expired');
+      const redirect = searchParams.get('redirect');
+      router.replace(redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login');
     }
+    // router intentionally NOT in deps — it's stable across renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {

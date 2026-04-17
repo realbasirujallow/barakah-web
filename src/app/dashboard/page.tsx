@@ -63,11 +63,18 @@ export default function DashboardPage() {
   const { fmt } = useCurrency();
   const [totals, setTotals] = useState<AssetTotal | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hideNetWorth, setHideNetWorth] = useState(() => safeGetItem('hideNetWorth') === 'true');
-  const [hideZakat, setHideZakat] = useState(() => safeGetItem('hideZakatDashboard') === 'true');
+  // Round 18: these four flags used to read localStorage inside the
+  // useState initializer, which runs on both SSR (where safeGetItem
+  // returns null by design) and CSR (where it returns the real value).
+  // For returning users the two values differed and React threw a
+  // hydration mismatch — plus there was a 1-frame flash of "show
+  // onboarding" before the correct value was hydrated. Pattern: start
+  // false (SSR-safe), hydrate in a useEffect.
+  const [hideNetWorth, setHideNetWorth] = useState(false);
+  const [hideZakat, setHideZakat] = useState(false);
   const [hijri, setHijri] = useState<HijriData | null>(null);
   const [hawlDue, setHawlDue] = useState<HawlDue | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(() => !safeGetItem('barakah_onboarded'));
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [portfolioSummary, setPortfolioSummary] = useState<PortfolioSummary | null>(null);
   const [latestPortfolioSnapshot, setLatestPortfolioSnapshot] = useState<PortfolioHistorySnapshot | null>(null);
   const [widgets, setWidgets] = useState<DashboardWidgets | null>(null);
@@ -76,7 +83,25 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { show: showReferralPrompt, dismiss: dismissReferralPrompt } = useReferralPrompt();
-  const [referralBannerDismissed, setReferralBannerDismissed] = useState(() => safeGetItem('barakah_referral_banner_dismissed') === 'true');
+  const [referralBannerDismissed, setReferralBannerDismissed] = useState(false);
+
+  // Round 18: single post-mount hydration for all localStorage-backed
+  // UI state. Running on the client only, so SSR → CSR markup stays
+  // stable. Wrapped in setTimeout(0) to satisfy the
+  // react-hooks/set-state-in-effect rule (same pattern as the
+  // greeting hydration above) — cascading-render concerns are
+  // non-issues here since these setters only flip UI chrome.
+  useEffect(() => {
+    let cancelled = false;
+    const id = window.setTimeout(() => {
+      if (cancelled) return;
+      setHideNetWorth(safeGetItem('hideNetWorth') === 'true');
+      setHideZakat(safeGetItem('hideZakatDashboard') === 'true');
+      setShowOnboarding(!safeGetItem('barakah_onboarded'));
+      setReferralBannerDismissed(safeGetItem('barakah_referral_banner_dismissed') === 'true');
+    }, 0);
+    return () => { cancelled = true; window.clearTimeout(id); };
+  }, []);
 
   // HIGH BUG FIX (H-6): Reading new Date().getHours() during render causes
   // SSR (where the server's clock picks one bucket) and CSR (where the

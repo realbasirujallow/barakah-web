@@ -59,7 +59,15 @@ export default function GrowthPage() {
     return () => { cancelled = true; };
   }, [isAdmin, isAuthLoading, toast, user]);
 
-  if (!isAuthLoading && user && isAdminKnown && !isAdmin) {
+  // Round 18: neutral spinner while auth resolves (see funnel/page.tsx).
+  if (isAuthLoading || !isAdminKnown) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+  if (user && !isAdmin) {
     return null;
   }
 

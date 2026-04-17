@@ -26,7 +26,9 @@ export default function ReferralPage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
+    setError(null);
     api.getReferralCode()
       .then((d: ReferralData) => setData(d))
       .catch((err: Error) => {
@@ -34,6 +36,15 @@ export default function ReferralPage() {
         setError(err?.message || 'Failed to load referral data.');
       })
       .finally(() => setLoading(false));
+  };
+  // Wrapped via setTimeout(0) so the synchronous setLoading/setError
+  // calls inside load() don't trip the
+  // react-hooks/set-state-in-effect lint rule (same pattern used
+  // throughout the dashboard).
+  useEffect(() => {
+    const id = window.setTimeout(() => { load(); }, 0);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const copyLink = () => {
@@ -63,7 +74,14 @@ export default function ReferralPage() {
   if (error) return (
     <div className="text-center py-20">
       <p className="text-6xl mb-4">😔</p>
-      <p className="text-red-600">{error}</p>
+      <p className="text-red-600 mb-4">{error}</p>
+      {/* Round 18: retry button so users aren't stranded on a transient error. */}
+      <button
+        onClick={load}
+        className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition"
+      >
+        Try again
+      </button>
     </div>
   );
 

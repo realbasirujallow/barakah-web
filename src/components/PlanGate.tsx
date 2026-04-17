@@ -29,6 +29,16 @@ export function PlanGate({ required, featureName, description, children }: PlanG
   const { toast } = useToast();
   const [upgrading, setUpgrading] = useState<'plus' | 'family' | null>(null);
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
+  // Round 18: track the refresh-plan sync state so the button disables
+  // during the call (prior to this, eager users would click twice and
+  // double-fire the backend sync).
+  const [syncingPlan, setSyncingPlan] = useState(false);
+  const handleSyncPlan = async () => {
+    if (syncingPlan) return;
+    setSyncingPlan(true);
+    try { await refreshPlan(); } catch { /* refreshPlan already toasts */ }
+    finally { setSyncingPlan(false); }
+  };
 
   // While AuthContext is reconciling the cached profile with the server
   // (e.g. to pick up plan changes made in another tab, or to backfill a
@@ -232,15 +242,18 @@ export function PlanGate({ required, featureName, description, children }: PlanG
         </div>
 
         {/* Refresh link */}
+        {/* Round 18: renamed "Refresh the page" → "Sync my plan" (it's a
+            server-side sync, not a page reload) and added a disabled
+            state with spinner text so repeat-clicking doesn't double-fire. */}
         <p className="text-xs text-gray-400">
           Already upgraded?{' '}
           <button
-            onClick={() => { refreshPlan().catch(() => {}); }}
-            className="underline hover:no-underline text-[#1B5E20] font-semibold"
+            onClick={handleSyncPlan}
+            disabled={syncingPlan}
+            className="underline hover:no-underline text-[#1B5E20] font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Refresh the page
-          </button>{' '}
-          to sync your plan.
+            {syncingPlan ? 'Syncing\u2026' : 'Sync my plan'}
+          </button>
         </p>
       </div>
     );
@@ -323,15 +336,18 @@ export function PlanGate({ required, featureName, description, children }: PlanG
         </div>
 
         {/* Refresh link */}
+        {/* Round 18: renamed "Refresh the page" → "Sync my plan" (it's a
+            server-side sync, not a page reload) and added a disabled
+            state with spinner text so repeat-clicking doesn't double-fire. */}
         <p className="text-xs text-gray-400">
           Already upgraded?{' '}
           <button
-            onClick={() => { refreshPlan().catch(() => {}); }}
-            className="underline hover:no-underline text-[#1B5E20] font-semibold"
+            onClick={handleSyncPlan}
+            disabled={syncingPlan}
+            className="underline hover:no-underline text-[#1B5E20] font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Refresh the page
-          </button>{' '}
-          to sync your plan.
+            {syncingPlan ? 'Syncing\u2026' : 'Sync my plan'}
+          </button>
         </p>
       </div>
     );
