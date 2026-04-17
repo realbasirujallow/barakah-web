@@ -1,8 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -103,28 +103,29 @@ function Badge({ label, color }: { label: string; color: 'amber' | 'gray' | 'red
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function IbadahFinancePage() {
+  const { fmt } = useCurrency();
   const { toast } = useToast();
   const [data, setData] = useState<IbadahSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await api.getIbadahSummary();
-        if (!cancelled) setData(res);
-      } catch (err) {
-        if (!cancelled) {
-          setError(true);
-          toast(err instanceof Error ? err.message : 'Failed to load Ibadah summary', 'error');
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const res = await api.getIbadahSummary();
+      setData(res);
+    } catch (err) {
+      setError(true);
+      toast(err instanceof Error ? err.message : 'Failed to load Ibadah summary', 'error');
+    } finally {
+      setLoading(false);
+    }
   }, [toast]);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
 
   // ── Empty check ───────────────────────────────────────────────────────────
   const isEmpty =
@@ -170,7 +171,7 @@ export default function IbadahFinancePage() {
           <p className="text-red-700 font-medium text-lg mb-2">Unable to load your Ibadah summary</p>
           <p className="text-red-500 text-sm mb-4">Please check your connection and try again.</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => void loadData()}
             className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
           >
             Retry

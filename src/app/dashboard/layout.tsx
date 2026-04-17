@@ -2,8 +2,9 @@
 import { useAuth, hasAccess, isIntentionalLogout } from '../../context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, ReactNode, useState, useMemo } from 'react';
+import { useEffect, ReactNode, useState } from 'react';
 import { ToastProvider } from '../../lib/toast';
+import { useDarkMode, toggleDarkMode as toggleDarkModeShared } from '../../lib/useDarkMode';
 
 import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
@@ -58,6 +59,13 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
   // Admin page is intentionally NOT listed here — access via direct URL only.
 ];
 
+// Dark-mode external store helpers live in lib/useDarkMode.ts so that both
+// the layout and the profile page stay in sync with the same DOM-backed
+// state. Reading the `dark` class directly (rather than mirroring it in
+// React state) avoids the react-hooks/set-state-in-effect lint warning and
+// guarantees we never drift from the authoritative DOM value (which the
+// bootstrap script flips before hydration to prevent FOUC).
+
 type SidebarSection = 'finance' | 'islamic' | 'premium' | 'account';
 
 const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> = {
@@ -84,18 +92,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // Start with false (matches SSR) and sync from the DOM after hydration
-  // to avoid a React hydration mismatch when dark mode was set on a previous session.
-  const [darkMode, setDarkMode] = useState(false);
-  useEffect(() => {
-    setDarkMode(document.documentElement.classList.contains('dark'));
-  }, []);
+  // Dark-mode flag is a view over the `dark` class on <html> — the authoritative
+  // source of truth (set before hydration by a bootstrap script to avoid FOUC).
+  // useSyncExternalStore subscribes to class-attribute changes so the UI stays
+  // in sync regardless of which code path flips the class. Server snapshot is
+  // `false` to match the initial server-rendered HTML and avoid hydration mismatch.
+  const darkMode = useDarkMode();
 
   const toggleDarkMode = () => {
-    const next = !darkMode;
-    setDarkMode(next);
-    document.documentElement.classList.toggle('dark', next);
-    try { localStorage.setItem('barakah_dark_mode', String(next)); } catch {}
+    // Mutate the DOM; the MutationObserver in darkModeSubscribe wakes the
+    // useSyncExternalStore subscribers so React re-renders with the new value.
+    toggleDarkModeShared();
   };
   const [expandedSections, setExpandedSections] = useState<Record<SidebarSection, boolean>>({
     finance: true,
@@ -108,14 +115,25 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const headerDate = useMemo(() => {
-    try {
-      return new Date().toLocaleDateString('en-US', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-      });
-    } catch {
-      return '';
-    }
+  // HIGH BUG FIX (H-5): Computing new Date().toLocaleDateString() during render
+  // (via useMemo with empty deps) executes once on the server and once on the
+  // client, which produces different strings near midnight and triggers a
+  // hydration mismatch. Move to a client-only effect so SSR renders an empty
+  // header and the client fills it in after hydration. We defer the setState
+  // with setTimeout(0) to satisfy react-hooks/set-state-in-effect — the codebase
+  // uses this same pattern in context/AuthContext.tsx.
+  const [headerDate, setHeaderDate] = useState('');
+  useEffect(() => {
+    let cancelled = false;
+    const id = window.setTimeout(() => {
+      if (cancelled) return;
+      try {
+        setHeaderDate(new Date().toLocaleDateString('en-US', {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        }));
+      } catch { /* Intl unavailable */ }
+    }, 0);
+    return () => { cancelled = true; window.clearTimeout(id); };
   }, []);
 
   useEffect(() => {
@@ -264,54 +282,61 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-screen">
-        <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between lg:justify-end">
-          <button className="lg:hidden text-[#1B5E20]" onClick={() => setSidebarOpen(true)}>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <div className="flex items-center gap-4">
-            {headerDate && <span className="text-xs text-gray-500 hidden md:block">📅 {headerDate}</span>}
+      {/* Main content — ToastProvider hoisted to wrap the full shell so
+          NotificationBell, SessionTimeoutModal, AnnualUpgradeModal,
+          FeedbackWidget, and OnboardingTour can all dispatch toasts. */}
+      <ToastProvider>
+        <div className="flex-1 flex flex-col min-h-screen">
+          <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between lg:justify-end">
             <button
-              onClick={toggleDarkMode}
-              className="text-gray-500 hover:text-[#1B5E20] text-lg transition"
-              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="lg:hidden text-[#1B5E20]"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open navigation menu"
             >
-              {darkMode ? '☀️' : '🌙'}
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </button>
-            <NotificationBell />
-            <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-[#1B5E20]">{user.name}</span></p>
-          </div>
-        </header>
-        <main className="flex-1 p-6 overflow-auto">
-          <ToastProvider>
+            <div className="flex items-center gap-4">
+              {headerDate && <span className="text-xs text-gray-500 hidden md:block">📅 {headerDate}</span>}
+              <button
+                onClick={toggleDarkMode}
+                className="text-gray-500 hover:text-[#1B5E20] text-lg transition"
+                title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                aria-label="Toggle dark mode"
+              >
+                {darkMode ? '☀️' : '🌙'}
+              </button>
+              <NotificationBell />
+              <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-[#1B5E20]">{user.name}</span></p>
+            </div>
+          </header>
+          <main className="flex-1 p-6 overflow-auto">
             <TrialBanner />
             <AnnualUpgradeBanner />
             {children}
-          </ToastProvider>
-        </main>
-        <footer className="px-6 py-3 text-center text-xs text-gray-400 border-t bg-white">
-          <Link href="/disclaimer" className="hover:text-[#1B5E20] hover:underline transition">
-            ⚠️ Disclaimer &amp; Islamic Guidance Notice
-          </Link>
-          <span className="mx-2">·</span>
-          <span>Not a fatwa — consult a qualified scholar for your specific situation</span>
-        </footer>
-      </div>
+          </main>
+          <footer className="px-6 py-3 text-center text-xs text-gray-400 border-t bg-white">
+            <Link href="/disclaimer" className="hover:text-[#1B5E20] hover:underline transition">
+              ⚠️ Disclaimer &amp; Islamic Guidance Notice
+            </Link>
+            <span className="mx-2">·</span>
+            <span>Not a fatwa — consult a qualified scholar for your specific situation</span>
+          </footer>
+        </div>
 
-      {/* Session timeout warning — remind at 55 min and auto-logout after 60 min of inactivity */}
-      <SessionTimeoutModal />
+        {/* Session timeout warning — remind at 55 min and auto-logout after 60 min of inactivity */}
+        <SessionTimeoutModal />
 
-      {/* Annual upgrade modal — shown mid-session to monthly Plus/Family subscribers active 30+ days */}
-      <AnnualUpgradeModal />
+        {/* Annual upgrade modal — shown mid-session to monthly Plus/Family subscribers active 30+ days */}
+        <AnnualUpgradeModal />
 
-      {/* Floating feedback widget — visible on all dashboard pages */}
-      <FeedbackWidget />
+        {/* Floating feedback widget — visible on all dashboard pages */}
+        <FeedbackWidget />
 
-      {/* Onboarding tour for first-time users */}
-      <OnboardingTour />
+        {/* Onboarding tour for first-time users */}
+        <OnboardingTour />
+      </ToastProvider>
     </div>
   );
 }

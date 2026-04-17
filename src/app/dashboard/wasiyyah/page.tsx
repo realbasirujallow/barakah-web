@@ -1,7 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
@@ -58,7 +57,7 @@ function relEmoji(rel: string) {
 
 function WasiyyahPageContent() {
   const { toast } = useToast();
-  const { currency: currencyCode } = useCurrency();
+  const { currency: currencyCode, fmt } = useCurrency();
   const [items, setItems]           = useState<Beneficiary[]>([]);
   const [obligations, setObligations] = useState<Obligation[]>([]);
   const [islamicShares, setIslamicShares] = useState<IslamicSharesMap>({});
@@ -227,6 +226,11 @@ function WasiyyahPageContent() {
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
 
+  // NOTE: totalPending sums raw amounts across obligations without currency
+  // conversion, then displays with the user's preferred currency. This is
+  // an approximation and will be misleading if obligations have mixed
+  // currencies. A proper fix would group per-currency (or convert via FX)
+  // — see tracking issue. For now we render with the user's symbol.
   const totalPending = obligations.filter(o => o.status === 'pending').reduce((s, o) => s + o.amount, 0);
 
   return (
@@ -472,7 +476,9 @@ function WasiyyahPageContent() {
                           </button>
                         </div>
                       </div>
-                      <p className="text-xl font-bold text-amber-700 flex-shrink-0">{fmt(ob.amount, ob.currency)}</p>
+                      <p className="text-xl font-bold text-amber-700 flex-shrink-0">
+                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: ob.currency || 'USD' }).format(ob.amount)}
+                      </p>
                     </div>
                   </div>
                 );

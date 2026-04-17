@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { toHijri } from '../../../lib/format';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
@@ -38,6 +38,7 @@ const DATE_FORMAT: Intl.DateTimeFormatOptions = {
 };
 
 function HawlPageContent() {
+  const { fmt } = useCurrency();
   const [items, setItems] = useState<HawlItem[]>([]);
   const [nextDueDate, setNextDueDate] = useState<number | null>(null);
   const [nextDueAsset, setNextDueAsset] = useState<string>('');
@@ -131,6 +132,13 @@ function HawlPageContent() {
     // Custom start date (noon UTC to avoid timezone edge cases)
     if (form.startDate) {
       data.hawlStartDate = new Date(form.startDate + 'T12:00:00Z').getTime();
+      // HIGH BUG FIX (H-4): reject future start dates. Hawl is backdated only —
+      // you cannot begin a lunar year that hasn't happened yet.
+      if ((data.hawlStartDate as number) > Date.now()) {
+        setSaveError('Start date cannot be in the future');
+        setSaving(false);
+        return;
+      }
     }
     try {
       await api.addHawl(data);
@@ -270,13 +278,23 @@ function HawlPageContent() {
       let data: Record<string, unknown>;
       if (dateInputMode === 'gregorian') {
         if (!newStartDate) { toast('Please select a date', 'error'); return; }
-        data = { hawlStartDate: new Date(newStartDate + 'T12:00:00Z').getTime() };
+        const startMs = new Date(newStartDate + 'T12:00:00Z').getTime();
+        // HIGH BUG FIX (H-4): reject future dates here too. Matches the
+        // validation in handleSave so both entry points can't create a hawl
+        // whose start is in the future.
+        if (startMs > Date.now()) {
+          toast('Start date cannot be in the future', 'error');
+          return;
+        }
+        data = { hawlStartDate: startMs };
       } else {
         const y = parseInt(hijriInput.year), m = parseInt(hijriInput.month), d = parseInt(hijriInput.day);
-        if (!y || !m || !d || m < 1 || m > 12 || d < 1) { toast('Invalid Hijri date', 'error'); return; }
-        // Islamic months: 1,3,5,7,9,11 have 30 days; 2,4,6,8,10,12 have 29 days (except Dhul Hijjah which can have 30 in leap years)
-        const maxDays = [1, 3, 5, 7, 9, 11].includes(m) ? 30 : 29;
-        if (d > maxDays) { toast(`Hijri month ${m} has max ${maxDays} days`, 'error'); return; }
+        if (!y || !m || !d) { toast('Invalid Hijri date', 'error'); return; }
+        // Range-only check. Dhu al-Hijjah (month 12) can be 29 OR 30 days in
+        // leap years; rather than hardcode month lengths (which varies by
+        // calendar system), let the backend reject invalid day/month combos.
+        if (d < 1 || d > 30) { toast('Day must be 1-30', 'error'); return; }
+        if (m < 1 || m > 12) { toast('Month must be 1-12', 'error'); return; }
         data = { hijriYear: y, hijriMonth: m, hijriDay: d };
       }
       const result = await api.updateHawlStartDate(id, data);
@@ -586,7 +604,7 @@ function HawlPageContent() {
           onClick={() => { setShowHistory(!showHistory); if (!showHistory && historyItems.length === 0) loadHistory(); }}
           className="text-sm font-semibold text-[#1B5E20] hover:underline flex items-center gap-1"
         >
-          {showHistory ? '▾' : '▸'} Past Hawl Cycles ({historyItems.length || '...'})
+          {showHistory ? '▾' : '▸'} Past Hawl Cycles ({historyItems.length})
         </button>
         {showHistory && (
           <div className="mt-3 space-y-3">

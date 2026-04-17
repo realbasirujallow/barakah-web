@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 
 interface BillItem {
@@ -65,6 +65,7 @@ interface BillRowProps {
 }
 
 function BillRow({ b, now, deletingId, onPaid, onEdit, onDelete }: BillRowProps) {
+  const { fmt } = useCurrency();
   const days = getDaysUntilDue(b);
   const isOverdue  = b.nextDueDate && b.nextDueDate < now && !b.paid;
   const isUpcoming = !isOverdue && days !== null && days <= 7 && !b.paid;
@@ -137,6 +138,7 @@ function Section({ title, items, color, now, deletingId, onPaid, onEdit, onDelet
 }
 
 export default function BillsPage() {
+  const { fmt } = useCurrency();
   const [bills, setBills]           = useState<BillItem[]>([]);
   const [loading, setLoading]       = useState(true);
   const [showForm, setShowForm]     = useState(false);
@@ -272,6 +274,7 @@ export default function BillsPage() {
     if (b.frequency === 'quarterly')  return s + b.amount / 3;
     if (b.frequency === 'yearly')     return s + b.amount / 12;
     if (b.frequency === 'weekly')     return s + b.amount * 4.33;
+    if (b.frequency === 'one_time' || b.frequency === 'one-time') return s;
     return s + b.amount;
   }, 0);
 

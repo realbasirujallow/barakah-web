@@ -1,7 +1,9 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
+import { isSafeInternalPath } from '../../../lib/safePath';
 
 interface Notification {
   id: number;
@@ -148,12 +150,9 @@ export default function NotificationsPage() {
         <div className="space-y-2">
           {notifications.map(n => {
             const icon = TYPE_ICONS[n.type] || '🔔';
-            return (
-              <div
-                key={n.id}
-                onClick={() => markRead(n.id)}
-                className={`bg-white rounded-xl p-4 flex gap-4 cursor-pointer hover:shadow-md transition group ${!n.read ? 'border-l-4 border-[#1B5E20]' : ''}`}
-              >
+            const rowClass = `bg-white rounded-xl p-4 flex gap-4 cursor-pointer hover:shadow-md transition group ${!n.read ? 'border-l-4 border-[#1B5E20]' : ''}`;
+            const inner = (
+              <>
                 <span className="text-2xl flex-shrink-0">{icon}</span>
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>{n.title}</p>
@@ -164,10 +163,28 @@ export default function NotificationsPage() {
                   {!n.read && <div className="w-2.5 h-2.5 bg-[#1B5E20] rounded-full mt-1.5 flex-shrink-0" />}
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); deleteOne(n.id); }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteOne(n.id); }}
                     className="text-gray-300 hover:text-red-400 transition opacity-0 group-hover:opacity-100 text-sm"
                   >✕</button>
                 </div>
+              </>
+            );
+            return isSafeInternalPath(n.link) ? (
+              <Link
+                key={n.id}
+                href={n.link}
+                onClick={() => { if (!n.read) markRead(n.id); }}
+                className={rowClass}
+              >
+                {inner}
+              </Link>
+            ) : (
+              <div
+                key={n.id}
+                onClick={() => !n.read && markRead(n.id)}
+                className={rowClass}
+              >
+                {inner}
               </div>
             );
           })}

@@ -104,6 +104,16 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
   return { months: month, totalInterest };
 }
 
+function calcPayoffMonths(balance: number, monthlyPayment: number, annualRate: number): number {
+  if (balance <= 0 || monthlyPayment <= 0) return 0;
+  const r = annualRate / 100 / 12; // monthly rate
+  if (r === 0 || monthlyPayment >= balance) {
+    return Math.ceil(balance / monthlyPayment);
+  }
+  if (monthlyPayment <= balance * r) return Infinity; // payment doesn't cover interest
+  return Math.ceil(-Math.log(1 - (r * balance) / monthlyPayment) / Math.log(1 + r));
+}
+
 function addMonths(n: number) {
   const d = new Date();
   d.setMonth(d.getMonth() + n);
@@ -432,7 +442,10 @@ export default function DebtsPage() {
                         )}
                         {d.monthlyPayment > 0 && d.remainingAmount > 0 && (
                           <p className="text-xs text-blue-600 font-medium mt-1">
-                            ~{Math.ceil(d.remainingAmount / d.monthlyPayment)} months to payoff
+                            {(() => {
+                              const mo = calcPayoffMonths(d.remainingAmount, d.monthlyPayment, d.interestRate || 0);
+                              return mo === Infinity ? 'Payment too low to cover interest' : `~${mo} months to payoff`;
+                            })()}
                           </p>
                         )}
                         {d.interestRate > 0 && (
@@ -622,7 +635,9 @@ export default function DebtsPage() {
                 <h2 className="font-bold text-[#1B5E20] mb-4">Your Debts at a Glance</h2>
                 <div className="space-y-3">
                   {[...debts].sort((a, b) => b.interestRate - a.interestRate).map(d => {
-                    const monthsLeft = d.monthlyPayment > 0 && d.remainingAmount > 0 ? Math.ceil(d.remainingAmount / d.monthlyPayment) : null;
+                    const monthsLeft = d.monthlyPayment > 0 && d.remainingAmount > 0
+                      ? calcPayoffMonths(d.remainingAmount, d.monthlyPayment, d.interestRate || 0)
+                      : null;
                     const halal = d.ribaFree || ISLAMIC_TYPES.includes(d.type);
                     return (
                       <div key={d.id} className="flex items-center justify-between gap-4 py-2 border-b border-gray-50 last:border-0">
@@ -635,7 +650,7 @@ export default function DebtsPage() {
                         </div>
                         <div className="text-right shrink-0">
                           <p className="font-bold text-gray-900">{fmt(d.remainingAmount)}</p>
-                          <p className="text-xs text-gray-500">{monthsLeft ? `~${monthsLeft} mo` : '—'}</p>
+                          <p className="text-xs text-gray-500">{monthsLeft === null ? '—' : monthsLeft === Infinity ? '∞' : `~${monthsLeft} mo`}</p>
                         </div>
                       </div>
                     );

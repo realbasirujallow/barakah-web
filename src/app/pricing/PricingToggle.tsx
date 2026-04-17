@@ -3,8 +3,31 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { PRICING, FREE_FEATURES, PLUS_FEATURES, FAMILY_FEATURES } from '../../lib/pricing';
 
+// Strip currency symbol / commas so we can do arithmetic on the numeric value.
+// Keeps the single source of truth in lib/pricing.ts rather than duplicating
+// derived price figures as hardcoded strings in the JSX.
+function parsePrice(formatted: string): number {
+  const n = Number(formatted.replace(/[^0-9.]/g, ''));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function fmtUSD(value: number): string {
+  return `$${value.toFixed(2).replace(/\.00$/, '')}`;
+}
+
 export default function PricingToggle() {
   const [isAnnual, setIsAnnual] = useState(false);
+
+  // Derived yearly-monthly equivalents and "vs monthly" savings
+  const plusMonthly = parsePrice(PRICING.plus.monthly);
+  const plusYearly = parsePrice(PRICING.plus.yearly);
+  const familyMonthly = parsePrice(PRICING.family.monthly);
+  const familyYearly = parsePrice(PRICING.family.yearly);
+
+  const plusYearlyPerMonth = fmtUSD(plusYearly / 12);
+  const familyYearlyPerMonth = fmtUSD(familyYearly / 12);
+  const plusYearlySavings = fmtUSD(plusMonthly * 12 - plusYearly);
+  const familyYearlySavings = fmtUSD(familyMonthly * 12 - familyYearly);
 
   return (
     <>
@@ -77,7 +100,7 @@ export default function PricingToggle() {
           </div>
           <div className="mb-2 flex items-end gap-2">
             <span className="text-4xl font-bold text-gray-900 transition-all">
-              {isAnnual ? '$8.25' : PRICING.plus.monthly}
+              {isAnnual ? plusYearlyPerMonth : PRICING.plus.monthly}
             </span>
             <span className="text-gray-500 mb-1">/mo</span>
             {isAnnual && (
@@ -88,7 +111,7 @@ export default function PricingToggle() {
           </div>
           <p className="text-sm text-gray-500 mb-6">
             {isAnnual ? (
-              <span className="text-green-700 font-medium">You save $20.88/year vs monthly</span>
+              <span className="text-green-700 font-medium">You save {plusYearlySavings}/year vs monthly</span>
             ) : (
               <>
                 or {PRICING.plus.yearly}{PRICING.plus.yearlyPeriod}{' '}
@@ -125,7 +148,7 @@ export default function PricingToggle() {
           </div>
           <div className="mb-2 flex items-end gap-2">
             <span className="text-4xl font-bold text-gray-900 transition-all">
-              {isAnnual ? '$9.92' : PRICING.family.monthly}
+              {isAnnual ? familyYearlyPerMonth : PRICING.family.monthly}
             </span>
             <span className="text-gray-500 mb-1">/mo</span>
             {isAnnual && (
@@ -136,7 +159,7 @@ export default function PricingToggle() {
           </div>
           <p className="text-sm text-gray-500 mb-6">
             {isAnnual ? (
-              <span className="text-green-700 font-medium">You save $60.88/year vs monthly</span>
+              <span className="text-green-700 font-medium">You save {familyYearlySavings}/year vs monthly</span>
             ) : (
               <>
                 or {PRICING.family.yearly}{PRICING.family.yearlyPeriod}{' '}

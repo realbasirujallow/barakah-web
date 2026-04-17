@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import Link from 'next/link';
 
@@ -168,13 +168,25 @@ export default function BarakahScorePage() {
   const [data, setData]     = useState<ScoreData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState('');
+  const [isPlanError, setIsPlanError] = useState(false);
 
-  useEffect(() => {
-    api.getBarakahScore()
-      .then(d => setData(d))
-      .catch(() => setError('Failed to load Barakah Score'))
-      .finally(() => setLoading(false));
+  const loadScore = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    setIsPlanError(false);
+    try {
+      const d = await api.getBarakahScore();
+      setData(d);
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      setIsPlanError(status === 403);
+      setError('Failed to load Barakah Score');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => { void loadScore(); }, [loadScore]);
 
   if (loading) return (
     <div className="flex justify-center py-20">
@@ -187,20 +199,24 @@ export default function BarakahScorePage() {
       <div className="text-5xl mb-4">📊</div>
       <h2 className="text-xl font-bold text-gray-900 mb-2">Unable to Calculate Score</h2>
       <p className="text-gray-600 mb-6">
-        {error?.includes('403') || error?.includes('plan')
+        {isPlanError
           ? 'Barakah Score requires a Plus or Family plan. Upgrade to see your personalized Islamic financial health score.'
           : 'We couldn\'t calculate your score right now. This usually means you need to add more financial data (assets, transactions, zakat payments) first.'}
       </p>
       <div className="flex gap-3 justify-center">
         <a href="/dashboard" className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-medium hover:bg-[#2E7D32] transition">Go to Dashboard</a>
-        <button onClick={() => window.location.reload()} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Try Again</button>
+        <button onClick={() => void loadScore()} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Try Again</button>
       </div>
     </div>
   );
 
-  // Determine lowest-scoring pillar for the top tip
+  // Determine lowest-scoring pillar for the top tip — filter out pillars with
+  // max=0 to avoid division-by-zero NaN values in the sort comparator
   const lowestPillar = data.pillars.length
-    ? data.pillars.slice().sort((a, b) => (a.score / a.max) - (b.score / b.max))[0]
+    ? data.pillars
+        .filter(p => p.max > 0)
+        .slice()
+        .sort((a, b) => (a.score / a.max) - (b.score / b.max))[0] ?? null
     : null;
 
   return (

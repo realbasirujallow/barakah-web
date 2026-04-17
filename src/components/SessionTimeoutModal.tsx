@@ -4,7 +4,28 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 
-// ── Configuration ──────────────────────────────────────────────────────────
+// ── Barakah session policy ──────────────────────────────────────────────────
+//
+// Platform-specific, on purpose. Keep these three values in sync across the
+// whole stack — any change here also needs reviewing alongside:
+//   • barakah-backend/src/main/java/com/barakah/controller/AuthController.java
+//       (jwt.expiration, REMEMBER_ME_SESSION_MS, refresh.token.expiration.ms)
+//   • barakah_app/lib/services/session_timeout_service.dart
+//
+//   Web (here):
+//     • 60-min idle timeout → auto-logout for shared/public browser safety
+//     • Warning modal at 55 min gives the user a chance to extend via /refresh
+//   Web (backend JWT):
+//     • 24 h access-token cookie by default
+//     • 180 d access-token cookie when user ticks Remember Me
+//     • 30 d refresh-token cookie for silent renewal
+//   Mobile (Flutter):
+//     • Remember Me ON by default → 180 d JWT
+//     • No proactive idle-timeout in the app — relies on JWT expiry
+//       (matches the UX users expect from Mint / Monarch / banking apps)
+//
+// This file implements the web idle timeout.
+// ─────────────────────────────────────────────────────────────────────────────
 const SESSION_TIMEOUT_MS  = 60 * 60 * 1000; // 60 minutes (1 hour idle timeout)
 const WARNING_BEFORE_MS   =  5 * 60 * 1000; // Show warning 5 minutes before timeout
 const WARNING_AT_MS       = SESSION_TIMEOUT_MS - WARNING_BEFORE_MS; // 55 minutes
@@ -21,6 +42,8 @@ const LAST_ACTIVITY_KEY = 'last_activity_ts';
 export function SessionTimeoutModal() {
   const { user, logout } = useAuth();
   const [showWarning, setShowWarning] = useState(false);
+  const showWarningRef = useRef(showWarning);
+  useEffect(() => { showWarningRef.current = showWarning; }, [showWarning]);
   const [countdown, setCountdown] = useState(WARNING_BEFORE_MS / 1000); // seconds remaining
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const logoutTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -104,7 +127,7 @@ export function SessionTimeoutModal() {
   // ── Handle user activity ───────────────────────────────────────────────
   const handleActivity = useCallback(() => {
     // Don't reset if warning is already visible (user must click the button)
-    if (showWarning) return;
+    if (showWarningRef.current) return;
 
     // Throttle: only reset timers once per minute to avoid performance impact
     const now = Date.now();
@@ -113,7 +136,7 @@ export function SessionTimeoutModal() {
 
     persistActivity(now);
     scheduleFromActivity(now);
-  }, [persistActivity, scheduleFromActivity, showWarning]);
+  }, [persistActivity, scheduleFromActivity]);
 
   // ── Extend session (user clicked "Stay Logged In") ────────────────────
   const extendSession = useCallback(async () => {
@@ -185,6 +208,21 @@ export function SessionTimeoutModal() {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [readLastActivity, scheduleFromActivity, user]);
 
+  // HIGH BUG FIX (H-10): listen for Escape while the modal is open. Pressing
+  // Escape acts like "Sign Out" since ignoring the warning also logs the user
+  // out at timeout. Full focus-trap is out of scope for this fix.
+  useEffect(() => {
+    if (!showWarning) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowWarning(false);
+        logout('logout');
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [showWarning, logout]);
+
   // Don't render anything if user isn't logged in or warning isn't showing
   if (!user || !showWarning) return null;
 
@@ -192,18 +230,24 @@ export function SessionTimeoutModal() {
   const seconds = countdown % 60;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="session-timeout-title"
+      aria-describedby="session-timeout-desc"
+    >
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
         {/* Icon */}
         <div className="text-5xl mb-4">⏰</div>
 
         {/* Title */}
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <h2 id="session-timeout-title" className="text-xl font-bold text-gray-900 mb-2">
           Session Expiring Soon
         </h2>
 
         {/* Message */}
-        <p className="text-gray-600 mb-4">
+        <p id="session-timeout-desc" className="text-gray-600 mb-4">
           Your session will expire due to inactivity. You&apos;ll be signed out in:
         </p>
 

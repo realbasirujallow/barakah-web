@@ -1,3 +1,4 @@
+'use client';
 import React, { ReactNode, ErrorInfo } from 'react';
 import { logError } from '../lib/logError';
 

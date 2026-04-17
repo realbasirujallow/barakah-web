@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 
@@ -20,7 +19,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export default function WaqfPage() {
   const [tab, setTab] = useState<'contributions' | 'distribution'>('contributions');
-  const { symbol } = useCurrency();
+  const { symbol, fmt } = useCurrency();
 
   // contributions
   const [items, setItems] = useState<WaqfItem[]>([]);

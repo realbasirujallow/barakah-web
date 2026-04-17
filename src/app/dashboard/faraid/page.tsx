@@ -1,10 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth, hasAccess } from '../../../context/AuthContext';
 import Link from 'next/link';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
@@ -156,7 +155,7 @@ function normalizeFaraidResult(value: unknown): FaraidResult | null {
 export default function FaraidPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { symbol: currencySymbol } = useCurrency();
+  const { symbol: currencySymbol, fmt } = useCurrency();
 
   const [form, setForm] = useState<FormData>({
     estateValue: 0,
@@ -215,15 +214,28 @@ export default function FaraidPage() {
         const hasWife = spouses > 0 && userGender === 'male';
         const hasHusband = spouses > 0 && userGender === 'female';
         if (sons > 0 || daughters > 0 || spouses > 0 || father || mother) {
-          setForm((prev) => ({
-            ...prev,
-            numSons: sons,
-            numDaughters: daughters,
-            hasWife,
-            hasHusband,
-            hasFather: father,
-            hasMother: mother,
-          }));
+          // CRITICAL BUG FIX (C-1): only prefill when the six touched fields are all at
+          // their initial defaults. If the user started typing heir counts before this
+          // async call resolved, we'd otherwise clobber their edits.
+          setForm((prev) => {
+            const untouched =
+              prev.numSons === 0 &&
+              prev.numDaughters === 0 &&
+              !prev.hasWife &&
+              !prev.hasHusband &&
+              !prev.hasFather &&
+              !prev.hasMother;
+            if (!untouched) return prev; // user has edited; don't clobber
+            return {
+              ...prev,
+              numSons: sons,
+              numDaughters: daughters,
+              hasWife,
+              hasHusband,
+              hasFather: father,
+              hasMother: mother,
+            };
+          });
           setPrefilled(true);
         }
       } catch {
@@ -278,7 +290,9 @@ export default function FaraidPage() {
 
   /* ── Plan gate ────────────────────────────────────────────────────── */
 
-  if (user?.plan === 'free') {
+  const isFreePlan = !user || !hasAccess(user.plan, 'plus', user.planExpiresAt);
+
+  if (isFreePlan) {
     return (
       <div className="max-w-2xl mx-auto py-16 px-4 text-center">
         <div className="bg-white border border-gray-200 rounded-2xl p-10 shadow-sm">
@@ -472,7 +486,7 @@ export default function FaraidPage() {
               <FlowArrow />
               <FlowCard label="After Debts" amount={result.afterDebts} />
               <FlowArrow />
-              <FlowCard label="After Wasiyyah" amount={result.afterDebts - (result.wasiyyahApplied || 0)} />
+              <FlowCard label="After Wasiyyah" amount={Math.max(0, (result.afterDebts || 0) - (result.wasiyyahApplied || 0))} />
               <FlowArrow />
               <FlowCard label="Distributable" amount={result.distributableEstate} highlight />
             </div>
@@ -499,7 +513,7 @@ export default function FaraidPage() {
                 <tbody>
                   {(result.adjustedShares ?? []).map((adj, i) => {
                     return (
-                      <tr key={i} className="border-b border-gray-50">
+                      <tr key={`${adj.heir}-${i}`} className="border-b border-gray-50">
                         <td className="py-3 pr-4 font-medium text-gray-900">{adj.heir}</td>
                         <td className="py-3 pr-4 text-gray-600">
                           {(adj.adjustedShare * 100).toFixed(2)}%
@@ -536,8 +550,8 @@ export default function FaraidPage() {
                         `${name} (${((percent ?? 0) * 100).toFixed(1)}%)`
                       }
                     >
-                      {pieData.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      {pieData.map((entry, i) => (
+                        <Cell key={`${entry.name}-${i}`} fill={COLORS[i % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip
@@ -718,6 +732,10 @@ function FlowCard({
   amount: number;
   highlight?: boolean;
 }) {
+  // FlowCard is module-scope (not nested inside FaraidPage), so it can't read
+  // fmt from the page-level useCurrency() destructure. Call the hook here so
+  // the amount formats with the viewer's configured currency.
+  const { fmt } = useCurrency();
   return (
     <div
       className={`flex flex-col items-center px-4 py-3 rounded-xl border text-center min-w-[120px] ${

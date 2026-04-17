@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 
@@ -33,51 +33,29 @@ export default function SubscriptionsPage() {
   const [totalYearly, setTotalYearly] = useState(0);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const data = await api.detectSubscriptions();
-        if (cancelled) return;
-        if (data.error) {
-          setError(data.error);
-        } else {
-          setSubscriptions(data.subscriptions || []);
-          setHaramFlags(data.haramFlags || []);
-          setTotalMonthly(data.totalMonthly || 0);
-          setTotalYearly(data.totalYearly || 0);
-        }
-      } catch {
-        if (!cancelled) setError('Failed to detect subscriptions. Please try again.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    void run();
-    return () => { cancelled = true; };
-  }, []);
-
-  const loadSubscriptions = async () => {
+  const loadSubscriptions = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const data = await api.detectSubscriptions();
-      if (data.error) {
+      if (data?.error) {
         setError(data.error);
       } else {
-        setSubscriptions(data.subscriptions || []);
-        setHaramFlags(data.haramFlags || []);
-        setTotalMonthly(data.totalMonthly || 0);
-        setTotalYearly(data.totalYearly || 0);
+        setSubscriptions(data?.subscriptions || []);
+        setHaramFlags(data?.haramFlags || []);
+        setTotalMonthly(data?.totalMonthly || 0);
+        setTotalYearly(data?.totalYearly || 0);
       }
     } catch {
       setError('Failed to detect subscriptions. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void loadSubscriptions();
+  }, [loadSubscriptions]);
 
   const formatDate = (ts: number) => {
     const ms = ts < 1e12 ? ts * 1000 : ts;

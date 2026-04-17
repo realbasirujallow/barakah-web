@@ -62,12 +62,31 @@ async function handler(
     }
   }
 
-  const backendRes = await fetch(url.toString(), {
-    method: request.method,
-    headers,
-    body,
-    redirect: 'manual',
-  });
+  // Abort the upstream call if the backend hangs beyond 30s so the route
+  // handler returns a proper 504 instead of holding the socket open.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
+  let backendRes: Response;
+  try {
+    backendRes = await fetch(url.toString(), {
+      method: request.method,
+      headers,
+      body,
+      redirect: 'manual',
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof Error && err.name === 'AbortError') {
+      return NextResponse.json(
+        { error: 'Upstream auth service timed out. Please try again.' },
+        { status: 504 },
+      );
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   // Build response with backend body
   const responseBody = await backendRes.text();

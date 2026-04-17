@@ -180,9 +180,16 @@ function ImportPageInner() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
 
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
   const loadPlaidAccounts = useCallback(async () => {
     try {
       const data = await api.plaidGetAccounts();
+      if (!mountedRef.current) return;
       setPlaidAccounts(data?.accounts || []);
     } catch { /* silent */ }
   }, []);
@@ -190,18 +197,21 @@ function ImportPageInner() {
   const loadSubscriptionStatus = useCallback(async () => {
     try {
       const data = await api.subscriptionStatus();
+      if (!mountedRef.current) return;
       setSubscriptionStatus(data as SubscriptionStatus);
     } catch {
       // Retry once after a short delay — the first call can fail during token refresh
       try {
         await new Promise(r => setTimeout(r, 2000));
         const data = await api.subscriptionStatus();
+        if (!mountedRef.current) return;
         setSubscriptionStatus(data as SubscriptionStatus);
       } catch {
+        if (!mountedRef.current) return;
         setSubscriptionStatus({ plan: 'free', status: 'inactive', hasSubscription: false });
       }
     } finally {
-      setStatusLoading(false);
+      if (mountedRef.current) setStatusLoading(false);
     }
   }, []);
 
@@ -359,7 +369,7 @@ function ImportPageInner() {
     setUploading(true);
     try {
       const data = await api.monarchPreview(file);
-      if (data.error) { setError(data.error); setUploading(false); return; }
+      if (data?.error) { setError(data.error); setUploading(false); return; }
 
       const format: CsvFormat = data.format === 'transactions' ? 'transactions' : 'balances';
       setCsvFormat(format);
@@ -439,7 +449,7 @@ function ImportPageInner() {
         };
       }
       const data = await api.monarchExecuteChunked(payload);
-      if (data.error) { setError(data.error); setImporting(false); return; }
+      if (data?.error) { setError(data.error); setImporting(false); return; }
       setResult(data as ImportResult);
       setStep('done');
     } catch (e: unknown) {
@@ -717,7 +727,7 @@ function ImportPageInner() {
                   const matchedExisting = a.action === 'update' && a.existingId
                     ? existingList.find(e => e.id === a.existingId) : null;
                   return (
-                    <tr key={i} className={`border-t ${a.skip ? 'opacity-40' : ''}`}>
+                    <tr key={`${a.accountName}-${a.type}-${a.latestBalance}-${i}`} className={`border-t ${a.skip ? 'opacity-40' : ''}`}>
                       <td className="p-3">
                         <input type="checkbox" checked={!a.skip} onChange={() => updateAccount(i, { skip: !a.skip })} className="accent-[#1B5E20] w-4 h-4" aria-label={`Import ${a.accountName}`} />
                       </td>
@@ -805,7 +815,7 @@ function ImportPageInner() {
               </thead>
               <tbody>
                 {transactions.slice(0, 200).map((t, i) => (
-                  <tr key={i} className={`border-t ${t.skip ? 'opacity-40' : ''}`}>
+                  <tr key={`${t.date}-${t.merchant}-${t.amount}-${i}`} className={`border-t ${t.skip ? 'opacity-40' : ''}`}>
                     <td className="p-3">
                       <input type="checkbox" checked={!t.skip} onChange={() => updateTransaction(i, { skip: !t.skip })} className="accent-[#1B5E20] w-4 h-4" aria-label={`Import transaction ${t.merchant || t.category}`} />
                     </td>
@@ -875,18 +885,18 @@ function ImportPageInner() {
           <div className="flex justify-center gap-4 pt-4 flex-wrap">
             {result.format === 'balances' && (
               <>
-                <a href="/dashboard/assets" className="px-5 py-2.5 bg-[#1B5E20] text-white rounded-lg hover:bg-green-800">View Assets</a>
-                <a href="/dashboard/debts" className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-50">View Debts</a>
+                <Link href="/dashboard/assets" className="px-5 py-2.5 bg-[#1B5E20] text-white rounded-lg hover:bg-green-800">View Assets</Link>
+                <Link href="/dashboard/debts" className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-50">View Debts</Link>
                 {(result as BalancesResult).investmentAccountsCreated > 0 && (
-                  <a href="/dashboard/investments" className="px-5 py-2.5 border border-purple-300 rounded-lg text-purple-700 hover:bg-purple-50">View Investments</a>
+                  <Link href="/dashboard/investments" className="px-5 py-2.5 border border-purple-300 rounded-lg text-purple-700 hover:bg-purple-50">View Investments</Link>
                 )}
                 {(result as BalancesResult).transactionsCreated > 0 && (
-                  <a href="/dashboard/transactions" className="px-5 py-2.5 border border-indigo-300 rounded-lg text-indigo-700 hover:bg-indigo-50">View Transactions</a>
+                  <Link href="/dashboard/transactions" className="px-5 py-2.5 border border-indigo-300 rounded-lg text-indigo-700 hover:bg-indigo-50">View Transactions</Link>
                 )}
               </>
             )}
             {result.format === 'transactions' && (
-              <a href="/dashboard/transactions" className="px-5 py-2.5 bg-[#1B5E20] text-white rounded-lg hover:bg-green-800">View Transactions</a>
+              <Link href="/dashboard/transactions" className="px-5 py-2.5 bg-[#1B5E20] text-white rounded-lg hover:bg-green-800">View Transactions</Link>
             )}
             <button onClick={resetAll} className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-50">Import Another</button>
           </div>

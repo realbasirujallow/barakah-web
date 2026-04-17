@@ -88,6 +88,19 @@ export default function AnnualUpgradeModal() {
     setOpen(false);
   };
 
+  // HIGH BUG FIX (H-10): add Escape key handler so users can dismiss the
+  // annual-upgrade modal with the keyboard. This also records the 60-day
+  // cooldown via handleDismiss so the modal doesn't immediately re-appear.
+  // The wrapper already has role="dialog" + aria-modal set below.
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleDismiss();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [open]);
+
   if (!open || !user) return null;
 
   const isFamily = user.plan === 'family';

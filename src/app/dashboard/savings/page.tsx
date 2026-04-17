@@ -2,10 +2,10 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { SkeletonPage } from '../SkeletonCard';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth, hasAccess } from '../../../context/AuthContext';
 
 interface Goal { id: number; name: string; category: string; targetAmount: number; currentAmount: number; description: string; deadline: number | null; }
 const CATS = ['hajj', 'umrah', 'emergency', 'education', 'wedding', 'home', 'vehicle', 'business', 'retirement', 'other'];
@@ -20,6 +20,7 @@ function getMilestone(pct: number): '50' | '75' | '100' | null {
 
 export default function SavingsPage() {
   const { user } = useAuth();
+  const { fmt, symbol } = useCurrency();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -85,7 +86,7 @@ export default function SavingsPage() {
       }
       const MAX_VALUE = 1_000_000_000; // 1 billion max
       if (target > MAX_VALUE) {
-        toast(`Target amount cannot exceed $${MAX_VALUE.toLocaleString()}`, 'error');
+        toast(`Target amount cannot exceed ${symbol}${MAX_VALUE.toLocaleString()}`, 'error');
         setSaving(false);
         return;
       }
@@ -150,7 +151,9 @@ export default function SavingsPage() {
   // MEDIUM BUG FIX: check plan gate BEFORE skeleton so free users never see a
   // skeleton flash before the upgrade prompt. Skeleton was previously rendered
   // first, causing a jarring UI flicker on every visit for non-paying users.
-  if (user?.plan === 'free') {
+  const isFreePlan = !user || !hasAccess(user.plan, 'plus', user.planExpiresAt);
+
+  if (isFreePlan) {
     return (
       <div className="max-w-xl mx-auto mt-12 text-center px-4">
         <div className="text-5xl mb-4">🎯</div>

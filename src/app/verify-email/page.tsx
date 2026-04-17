@@ -74,8 +74,9 @@ function VerifyEmailContent() {
               <p className="text-gray-600 mb-4">{message}</p>
 
               <div className="bg-gray-50 rounded-lg p-4 mb-4 text-left">
-                <p className="text-gray-600 text-sm mb-2">Enter your email to resend the verification link:</p>
+                <label htmlFor="resend-email" className="text-gray-600 text-sm mb-2 block">Enter your email to resend the verification link:</label>
                 <input
+                  id="resend-email"
                   type="email"
                   value={resendEmail}
                   onChange={e => setResendEmail(e.target.value)}

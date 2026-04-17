@@ -259,7 +259,6 @@ export default function TransactionsPage() {
       await api.deleteTransaction(id);
       toast('Transaction deleted', 'success');
       setPage(0);
-      load();
     } catch {
       toast('Failed to delete transaction', 'error');
     }
@@ -354,9 +353,15 @@ export default function TransactionsPage() {
     </div>
   );
 
-  const income  = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-  const expense = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-  const transfers = txs.filter(t => t.type === 'transfer').reduce((s, t) => s + t.amount, 0);
+  // Only sum transactions whose currency matches the user's preferred display
+  // currency. Mixing USD + GBP amounts in a single total is misleading because
+  // each transaction stores its amount in its own currency; we can't add them
+  // without FX conversion. Show a note if other-currency transactions exist.
+  const sameCurrencyTxns = txs.filter(t => (t.currency || 'USD') === (preferredCurrency || 'USD'));
+  const mixedCurrencyCount = txs.length - sameCurrencyTxns.length;
+  const income  = sameCurrencyTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const expense = sameCurrencyTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const transfers = sameCurrencyTxns.filter(t => t.type === 'transfer').reduce((s, t) => s + t.amount, 0);
   const allPageSelected = txs.length > 0 && selectedIds.size === txs.length;
   const hasMorePages = totalPages > 1;
   const hasLinkedPlaidTransactions = txs.some(tx => tx.importSource === 'plaid');
@@ -433,6 +438,11 @@ export default function TransactionsPage() {
         <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Transfers</p><p className="text-xl font-bold text-cyan-700">{fmt(transfers)}</p></div>
         <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Net</p><p className={`text-xl font-bold ${income - expense >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(income - expense)}</p></div>
       </div>
+      {mixedCurrencyCount > 0 && (
+        <p className="text-xs text-gray-500 mb-4 -mt-2">
+          Mixed-currency transactions ({mixedCurrencyCount}) not shown in totals above. Switch display currency in Settings to view them.
+        </p>
+      )}
 
       {/* ── Free plan transaction usage meter ──────────────────────────────── */}
       <TransactionUsageMeter />

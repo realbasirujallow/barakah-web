@@ -4,28 +4,31 @@
 
 import * as Sentry from "@sentry/nextjs";
 
+const isProd = process.env.NODE_ENV === 'production';
+
 Sentry.init({
   dsn: "https://79fc028454d7ff7c469946c2f0270ee6@o4511159158636544.ingest.us.sentry.io/4511159161651200",
 
-  // Add optional integrations for additional features
+  // Session Replay with default masking (text obscured, media blocked). PII is
+  // explicitly disabled below, so Replay captures UX timing without leaking
+  // balances, emails, or account details.
   integrations: [Sentry.replayIntegration()],
 
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 1,
-  // Enable logs to be sent to Sentry
+  // Sample 10% of transactions in production to keep Sentry bill predictable
+  // on a financial dashboard where many users hit many pages. Full sampling in
+  // dev so local work still surfaces perf regressions.
+  tracesSampleRate: isProd ? 0.1 : 1.0,
+
   enableLogs: true,
 
-  // Define how likely Replay events are sampled.
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
-  replaysSessionSampleRate: 0.1,
-
-  // Define how likely Replay events are sampled when an error occurs.
+  // Session replay — lower in production to avoid capturing more than we need.
+  replaysSessionSampleRate: isProd ? 0.02 : 0.1,
   replaysOnErrorSampleRate: 1.0,
 
-  // Enable sending user PII (Personally Identifiable Information)
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: true,
+  // Do NOT auto-capture PII. For a financial app this previously captured user
+  // IPs, cookies, and form inputs by default — a GDPR/CCPA exposure.
+  // Attach a scrubbed user id manually via Sentry.setUser({ id }) instead.
+  sendDefaultPii: false,
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

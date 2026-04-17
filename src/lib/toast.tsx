@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, useRef, ReactNode } from 'react';
 
 interface Toast {
   id: number;
@@ -25,8 +25,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const dismiss = (id: number) => setToasts(prev => prev.filter(t => t.id !== id));
 
+  // HIGH BUG FIX (H-9): memoize the context value so consumers don't re-render
+  // every time ToastProvider re-renders. `toast` is already stable via
+  // useCallback, so this memo's identity only changes when we ever add
+  // another field — in practice, never.
+  const value = useMemo(() => ({ toast }), [toast]);
+
   return (
-    <ToastContext.Provider value={{ toast }}>
+    <ToastContext.Provider value={value}>
       {children}
       {toasts.length > 0 && (
         <div className="fixed bottom-4 right-4 z-[60] flex flex-col gap-2">

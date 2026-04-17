@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { SkeletonPage } from '../SkeletonCard';
 
@@ -40,6 +40,7 @@ function getCategoryIcon(cat: string): string {
 }
 
 export default function BudgetPage() {
+  const { fmt } = useCurrency();
   const now = new Date();
   const [budgets, setBudgets] = useState<BudgetItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,8 +58,25 @@ export default function BudgetPage() {
   const goToNextMonth = () => { if (viewMonth === 12) { setViewMonth(1); setViewYear(y => y + 1); } else { setViewMonth(m => m + 1); } };
   const { toast } = useToast();
 
-  // Once-per-session alert guard — prevents re-toasting on every re-render / reload
+  // Once-per-session alert guard — prevents re-toasting on every re-render / reload.
+  // Persisted to sessionStorage so remounts within the same session don't retrigger alerts.
   const alertedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('budget_alerted_keys');
+      if (stored) {
+        const keys: string[] = JSON.parse(stored);
+        alertedRef.current = new Set(keys);
+      }
+    } catch { /* ignore parse or storage errors */ }
+  }, []);
+
+  const addAlertedKey = (key: string) => {
+    alertedRef.current.add(key);
+    try {
+      sessionStorage.setItem('budget_alerted_keys', JSON.stringify(Array.from(alertedRef.current)));
+    } catch { /* ignore storage errors */ }
+  };
 
   const checkBudgetAlerts = (items: BudgetItem[]) => {
     items.forEach(b => {
@@ -68,10 +86,10 @@ export default function BudgetPage() {
       const pct = (b.spent / b.monthlyLimit) * 100;
       if (b.spent >= b.monthlyLimit) {
         toast(`🚨 ${catLabel(b.category)} budget exceeded! (${fmt(b.spent)} / ${fmt(b.monthlyLimit)})`, 'error');
-        alertedRef.current.add(key);
+        addAlertedKey(key);
       } else if (pct >= 80) {
         toast(`⚠️ ${catLabel(b.category)} is at ${Math.round(pct)}% of budget`, 'info');
-        alertedRef.current.add(key);
+        addAlertedKey(key);
       }
     });
   };

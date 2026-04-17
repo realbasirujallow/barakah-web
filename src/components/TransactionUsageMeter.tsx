@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth, hasAccess } from '../context/AuthContext';
 import { api } from '../lib/api';
+import { useToast } from '../lib/toast';
+import { validateStripeUrl } from '../lib/validateUrl';
 
 interface UsageData {
   used: number;
@@ -22,6 +25,8 @@ interface UsageData {
  */
 export function TransactionUsageMeter() {
   const { user } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
   const [usage, setUsage] = useState<UsageData | null>(null);
   const [now] = useState(() => Math.floor(Date.now() / 1000));
 
@@ -52,17 +57,14 @@ export function TransactionUsageMeter() {
       const result = await api.upgradeSubscription('plus');
       if (result?.url) {
         // Validate URL before redirecting — only allow HTTPS Stripe URLs
-        try {
-          const parsed = new URL(result.url);
-          if (parsed.protocol !== 'https:' || !parsed.hostname.endsWith('stripe.com')) {
-            window.location.href = '/dashboard/billing';
-            return;
-          }
-        } catch { window.location.href = '/dashboard/billing'; return; }
+        if (!validateStripeUrl(result.url)) {
+          toast('Invalid checkout URL.', 'error');
+          return;
+        }
         window.location.href = result.url;
       }
     } catch {
-      window.location.href = '/dashboard/billing';
+      router.push('/dashboard/billing');
     }
   };
 

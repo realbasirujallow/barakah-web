@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo, ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api, setRefreshToken, setUnauthorizedHandler } from '../lib/api';
 import { trackLogin, trackSignUp } from '../lib/analytics';
@@ -330,7 +330,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(interval);
   }, [pathname, user]);
 
-  const login = async (email: string, password: string, rememberMe?: boolean) => {
+  // HIGH BUG FIX (H-9): wrap the four exposed functions in useCallback so
+  // downstream consumers that depend on their identity (useEffect deps,
+  // React.memo children) don't re-run on every AuthProvider re-render. These
+  // are the stable surface of the context; we memoize them individually, then
+  // wrap the provider value in useMemo below so the full object reference is
+  // only recreated when something genuinely changed.
+  const login = useCallback(async (email: string, password: string, rememberMe?: boolean) => {
     const data = await api.login(email, password, rememberMe);
     const profile: User = {
       id: String(data.userId ?? data.id ?? email),
@@ -350,16 +356,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(profile);
     // Fire GA4 login event — analytics must never break auth.
     try { trackLogin('email'); } catch { /* GA4 may be blocked or unavailable */ }
-  };
+  }, []);
 
-  const signup = async (name: string, email: string, password: string, state: string, country: string, referralCode?: string, phoneNumber?: string) => {
+  const signup = useCallback(async (name: string, email: string, password: string, state: string, country: string, referralCode?: string, phoneNumber?: string) => {
     await api.signup(name, email, password, state, country, referralCode, phoneNumber);
     // Fire GA4 sign_up event. Backend also fires USER_SIGNED_UP; this covers
     // the client-side side of the funnel (e.g., for ads/attribution).
     try { trackSignUp('email'); } catch { /* GA4 may be blocked or unavailable */ }
-  };
+  }, []);
 
-  const logout = async (reason?: 'logout' | 'deleted') => {
+  const logout = useCallback(async (reason?: 'logout' | 'deleted') => {
     _intentionalLogout = true;
     try {
       await api.logout();
@@ -380,10 +386,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     const query = reason ? `?reason=${reason}` : '';
     routerRef.current.push(`/login${query}`);
-  };
+  }, []);
 
   /** Refresh plan info from the server (call after a Stripe payment or upgrade). */
-  const refreshPlan = async () => {
+  const refreshPlan = useCallback(async () => {
     try {
       const data = await api.getProfile();
       if (data?.plan && user) {
@@ -401,10 +407,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.debug('Plan refresh failed:', { message: err.message });
       }
     }
-  };
+  }, [user]);
+
+  // HIGH BUG FIX (H-9): memoize the context value so it only changes when one
+  // of its parts does. Previously we passed an inline object literal to
+  // AuthContext.Provider, which re-instantiated the identity on every render
+  // and forced every consumer to rerender even when user/isLoading hadn't
+  // changed.
+  const value = useMemo(
+    () => ({ user, login, signup, logout, isLoading, refreshPlan }),
+    [user, isLoading, login, signup, logout, refreshPlan],
+  );
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, isLoading, refreshPlan }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

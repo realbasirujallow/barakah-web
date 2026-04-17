@@ -150,7 +150,7 @@ export default function RibaPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const { fmt } = useCurrency();
+  const { fmt, symbol } = useCurrency();
   const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
 
   const [activeTab, setActiveTab] = useState<TabKey>('scan');
@@ -186,6 +186,7 @@ export default function RibaPage() {
   // ── Scan + Purification data load ───────────────────────────────────────────
   useEffect(() => {
     if (!isLoading && user && !hasPaidAccess) {
+      setLoading(false); // clear spinner before redirect so the unauthorized user doesn't see a stuck spinner
       router.replace('/dashboard/billing');
       return;
     }
@@ -517,7 +518,7 @@ export default function RibaPage() {
                     <p className="text-xs font-medium text-gray-500 mb-1">Why Flagged</p>
                     <div className="flex flex-wrap gap-1">
                       {tx.flagDetails?.map((d, i) => (
-                        <span key={i} className="bg-red-50 text-red-700 text-xs px-2 py-1 rounded">{d}</span>
+                        <span key={`${tx.transactionId}-flag-${d}-${i}`} className="bg-red-50 text-red-700 text-xs px-2 py-1 rounded">{d}</span>
                       ))}
                     </div>
                   </div>
@@ -527,7 +528,7 @@ export default function RibaPage() {
                       <p className="text-xs font-medium text-green-700 mb-1">Islamic Alternatives</p>
                       <div className="flex flex-wrap gap-1">
                         {tx.islamicAlternatives.map((a, i) => (
-                          <span key={i} className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">{a}</span>
+                          <span key={`${tx.transactionId}-alt-${a}-${i}`} className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">{a}</span>
                         ))}
                       </div>
                     </div>
@@ -703,7 +704,7 @@ export default function RibaPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-700 mb-1 block">Current Amount ($)</label>
+                    <label className="text-xs font-medium text-gray-700 mb-1 block">Current Amount ({symbol})</label>
                     <input
                       type="number"
                       min="0"
@@ -750,7 +751,7 @@ export default function RibaPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {suggestions.map((s, i) => (
                         <button
-                          key={i}
+                          key={`${s.sourceType}-${s.sourceName}-${i}`}
                           onClick={() => {
                             setGoalForm({
                               sourceType: s.sourceType,
@@ -874,7 +875,7 @@ export default function RibaPage() {
               {purification.remainingToPurify > 0 ? (
                 <div className="flex gap-2 items-end">
                   <div className="flex-1">
-                    <label className="text-xs font-medium text-purple-700 mb-1 block">Donation Amount ($)</label>
+                    <label className="text-xs font-medium text-purple-700 mb-1 block">Donation Amount ({symbol})</label>
                     <input
                       type="number"
                       min="0.01"
