@@ -183,13 +183,18 @@ export default function NotificationsPage() {
                 {inner}
               </Link>
             ) : (
-              <div
+              // Round 19: changed from <div onClick> to <button> so
+              // keyboard users can focus and activate notifications
+              // without a link. Styling with text-align:left keeps the
+              // existing row layout.
+              <button
+                type="button"
                 key={n.id}
                 onClick={() => !n.read && markRead(n.id)}
-                className={rowClass}
+                className={`${rowClass} w-full text-left`}
               >
                 {inner}
-              </div>
+              </button>
             );
           })}
         </div>

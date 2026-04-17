@@ -55,9 +55,22 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
   // BUG FIX: persist the current step so navigating to an action destination
   // and returning resumes from where the user left off rather than resetting
   // to step 0 or permanently dismissing the wizard.
-  const [step, setStep] = useState(() => {
-    try { return Math.min(Number(localStorage.getItem(STEP_KEY) || '0'), steps.length - 1); } catch { return 0; }
-  });
+  //
+  // Round 19: hydrate in a useEffect instead of reading localStorage in
+  // the useState initializer. SSR returns 0; returning user mid-tour has
+  // a non-zero stored step; mismatch otherwise triggers a hydration warning.
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      try {
+        const saved = Number(localStorage.getItem(STEP_KEY) || '0');
+        if (!Number.isNaN(saved)) {
+          setStep(Math.min(saved, steps.length - 1));
+        }
+      } catch { /* SSR / incognito */ }
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
   const current = steps[step];
   const isLast = step === steps.length - 1;
 

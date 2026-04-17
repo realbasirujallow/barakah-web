@@ -29,15 +29,15 @@ export function middleware(request: NextRequest) {
   // Only act on the bare homepage.
   if (pathname !== '/') return NextResponse.next();
 
-  // Presence check only — we don't decode the token here. Name is
-  // whatever the backend sets; common patterns: `auth_token`, `jwt`,
-  // `access_token`. Check all three so a rename in the future doesn't
-  // silently break this optimization.
-  const hasAuth = Boolean(
-    request.cookies.get('auth_token') ||
-    request.cookies.get('jwt') ||
-    request.cookies.get('access_token')
-  );
+  // Round 19: narrowed to the single canonical cookie name our backend
+  // actually sets (`auth_token`, see AuthController#login / logout). The
+  // previous round accepted `jwt` / `access_token` too for "future-
+  // proofing", but that meant any stale cookie from a prior backend
+  // version could trigger a redirect loop (middleware sends to
+  // /dashboard, dashboard sees no real auth and bounces back). Also
+  // require a non-empty cookie value.
+  const authCookie = request.cookies.get('auth_token');
+  const hasAuth = Boolean(authCookie?.value && authCookie.value.length > 0);
 
   if (hasAuth) {
     const url = request.nextUrl.clone();

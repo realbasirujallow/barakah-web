@@ -27,12 +27,20 @@ function VerifyEmailContent() {
   useEffect(() => {
     if (!token) return;
 
+    // Round 19: cancellation flag to avoid a setState after unmount.
+    // Also prevents StrictMode's double-effect-run from calling the
+    // backend twice with the same token — the second call would 400
+    // because the first already consumed it.
+    let cancelled = false;
+
     api.verifyEmail(token)
       .then((data: { message?: string }) => {
+        if (cancelled) return;
         setStatus('success');
         setMessage(data?.message || 'Email verified successfully!');
       })
       .catch((err: Error) => {
+        if (cancelled) return;
         // Round 18: the backend returns "Invalid or already used
         // verification token" for BOTH expired AND already-used tokens,
         // so a user who refreshes the success page sees the same scary
@@ -49,6 +57,7 @@ function VerifyEmailContent() {
           setMessage(raw || 'Verification failed. The link may be expired or already used.');
         }
       });
+    return () => { cancelled = true; };
   }, [token]);
 
   return (
