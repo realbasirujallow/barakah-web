@@ -56,6 +56,13 @@ const en: Translations = {
   viewAll: 'View all',
   upgrade: 'Upgrade',
   loading: 'Loading...',
+
+  // Error boundary (Round 27)
+  errSomethingWentWrong: 'Something went wrong',
+  errTryAgainMessage: 'An unexpected error occurred. Please try again.',
+  errReloadMessage: 'This page keeps running into an error. Please reload the page.',
+  errTryAgain: 'Try Again',
+  errReloadPage: 'Reload Page',
 };
 
 const ar: Translations = {
@@ -103,6 +110,13 @@ const ar: Translations = {
   viewAll: 'عرض الكل',
   upgrade: 'ترقية',
   loading: 'جاري التحميل...',
+
+  // Error boundary (Round 27)
+  errSomethingWentWrong: 'حدث خطأ ما',
+  errTryAgainMessage: 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.',
+  errReloadMessage: 'تستمر هذه الصفحة في مواجهة خطأ. يرجى إعادة تحميل الصفحة.',
+  errTryAgain: 'حاول مرة أخرى',
+  errReloadPage: 'إعادة تحميل الصفحة',
 };
 
 const ur: Translations = {
@@ -150,6 +164,13 @@ const ur: Translations = {
   viewAll: 'سب دیکھیں',
   upgrade: 'اپ گریڈ',
   loading: 'لوڈ ہو رہا ہے...',
+
+  // Error boundary (Round 27)
+  errSomethingWentWrong: 'کچھ غلط ہو گیا',
+  errTryAgainMessage: 'ایک غیر متوقع خرابی پیش آئی۔ براہ کرم دوبارہ کوشش کریں۔',
+  errReloadMessage: 'یہ صفحہ بار بار خرابی کا شکار ہو رہا ہے۔ براہ کرم صفحہ کو دوبارہ لوڈ کریں۔',
+  errTryAgain: 'دوبارہ کوشش کریں',
+  errReloadPage: 'صفحہ دوبارہ لوڈ کریں',
 };
 
 const dictionaries: Record<string, Translations> = { en, ar, ur };
