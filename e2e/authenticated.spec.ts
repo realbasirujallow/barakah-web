@@ -1,8 +1,21 @@
 import { test, expect, type APIRequestContext } from '@playwright/test';
 
-const API = process.env.E2E_API_URL || 'https://trybarakah.com';
+// API origin — falls back to E2E_BASE_URL (same-origin assumption) and
+// finally to localhost so every branch is reachable in the default
+// "just run the dev server" flow. Set E2E_API_URL to a separate host when
+// the backend lives at a different origin (Railway backend + Vercel web).
+const API = process.env.E2E_API_URL
+  || process.env.E2E_BASE_URL
+  || 'http://localhost:3000';
 const EMAIL = process.env.E2E_EMAIL || '';
 const PASSWORD = process.env.E2E_PASSWORD || '';
+
+// Skip the whole suite at discovery time when credentials aren't present —
+// otherwise every test fails with a misleading 401/JSON-parse error. See
+// .env.e2e.example for the required vars.
+test.skip(!EMAIL || !PASSWORD,
+  'E2E_EMAIL + E2E_PASSWORD not set — skipping authenticated suite. ' +
+  'Copy .env.e2e.example to .env.e2e and fill in a test account.');
 
 // Login once and reuse token across tests
 let token = '';

@@ -1,223 +1,45 @@
 'use client';
 
+/**
+ * Admin dashboard shell.
+ *
+ * Responsibilities:
+ *   - Owns the admin data/state that every tab reads (overview, users, etc.)
+ *   - Loads data on mount + every 30 min
+ *   - Renders the tab header and dispatches to the appropriate tab component
+ *   - Hosts the shared user detail + grant-trial modals
+ *
+ * Tab content lives in `src/components/admin/Admin*Tab.tsx`. Shared helpers
+ * (plan/status label maps, date formatters) live in
+ * `src/components/admin/adminFormatting.ts`, and all response types in
+ * `adminTypes.ts`. This file used to be ~2000 lines — the split is a pure
+ * file-organisation refactor with no behavioural or network changes.
+ */
+
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { useCurrency } from '../../../lib/useCurrency';
-import { PRICING } from '../../../lib/pricing';
 import { LifecycleCampaignCenter } from '../../../components/admin/LifecycleCampaignCenter';
-
-/* ──────────────────────────── Types ──────────────────────────── */
-
-interface AdminUser {
-  id: number;
-  email: string;
-  name: string;
-  plan: string;
-  subscriptionStatus?: string;
-  planExpiresAt?: number;
-  emailVerified?: boolean;
-  emailVerifiedAt?: number;
-  referralCount?: number;
-  referralClickCount?: number;
-  hasStripe?: boolean;
-  createdAt: number;
-  updatedAt?: number;
-  lastLoginAt?: number;
-  lastSeenAt?: number;
-  lastPlatform?: string;
-  lastAppVersion?: string;
-  lastLoginIp?: string;
-  signupIp?: string;
-  signupSource?: string;
-  loginCount?: number;
-  country?: string;
-  state?: string;
-  phoneNumber?: string;
-}
-
-interface OnboardingTrialSettings {
-  enabled: boolean;
-  plan: string;
-  durationDays: number;
-}
-
-interface LifecycleRecentEvent {
-  id: number;
-  eventType: string;
-  source?: string;
-  createdAt: number;
-}
-
-interface EmailLogEntry {
-  id: number;
-  userId?: number;
-  toEmail: string;
-  emailType: string;
-  subject?: string;
-  status: 'sent' | 'failed';
-  errorMessage?: string;
-  createdAt: number;
-}
-
-interface EmailLogStats {
-  totalSent: number;
-  totalFailed: number;
-  totalElements: number;
-}
-
-interface UserLifecycleSummary {
-  recentEvents?: LifecycleRecentEvent[];
-  countsByType?: Record<string, number>;
-  hasCompletedSetup?: boolean;
-  hasReviewedTransactions?: boolean;
-  hasLinkedBankAccount?: boolean;
-}
-
-interface UserActivity {
-  assets?: number;
-  debts?: number;
-  transactions?: number;
-  budgets?: number;
-  savingsGoals?: number;
-  wasiyyah?: number;
-  wasiyyahObligations?: number;
-  hawlTrackers?: number;
-  sadaqah?: number;
-  waqfContributions?: number;
-  zakatPayments?: number;
-  zakatSnapshots?: number;
-  linkedBankAccounts?: number;
-  lastLoginAt?: number;
-  lastSeenAt?: number;
-  lastPlatform?: string;
-  lastAppVersion?: string;
-  lifecycle?: UserLifecycleSummary;
-}
-
-type ActivityCountKey =
-  | 'assets'
-  | 'debts'
-  | 'transactions'
-  | 'budgets'
-  | 'savingsGoals'
-  | 'wasiyyah'
-  | 'wasiyyahObligations'
-  | 'hawlTrackers'
-  | 'sadaqah'
-  | 'waqfContributions'
-  | 'zakatPayments'
-  | 'zakatSnapshots'
-  | 'linkedBankAccounts';
-
-interface UsersResponse {
-  users: AdminUser[];
-  count: number;
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
-
-interface Overview {
-  totalUsers: number;
-  freeUsers: number;
-  plusUsers: number;
-  familyUsers: number;
-  subscriptionStatus: Record<string, number>;
-  paidUsers: number;
-  activePlus: number;
-  activeFamily: number;
-  subscribedPlus: number;
-  subscribedFamily: number;
-  mrr: number;
-  arr: number;
-  conversionRate: number;
-  newUsersToday: number;
-  newUsersThisWeek: number;
-  newUsersThisMonth: number;
-  unverifiedEmails: number;
-  expiringTrialsCount: number;
-  expiringTrials: AdminUser[];
-  pastDueCount: number;
-  pastDueUsers: AdminUser[];
-  totalReferrals: number;
-  usersWithReferrals: number;
-  totalDonationRecords: number;
-  recentSignups: AdminUser[];
-  countryDistribution?: Record<string, number>;
-  stateDistribution?: Record<string, number>;
-  usersMissingPhone?: number;
-  usersMissingLocation?: number;
-  usersMissingProfileInfo?: number;
-}
-
-/* ──────────────────────────── Helpers ─────────────────────────── */
-
-const PLAN_LABELS: Record<string, { label: string; color: string }> = {
-  free:   { label: 'Free',   color: 'bg-gray-100 text-gray-600' },
-  plus:   { label: 'Plus',   color: 'bg-blue-100 text-blue-700' },
-  family: { label: 'Family', color: 'bg-purple-100 text-purple-700' },
-};
-
-const SUB_STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  active:   { label: 'Active',   color: 'bg-green-100 text-green-700' },
-  trialing: { label: 'Trial',    color: 'bg-amber-100 text-amber-700' },
-  trial:    { label: 'Trial',    color: 'bg-amber-100 text-amber-700' },  // legacy
-  past_due: { label: 'Past Due', color: 'bg-red-100 text-red-700' },
-  canceled: { label: 'Canceled', color: 'bg-gray-200 text-gray-500' },
-  inactive: { label: 'Inactive', color: 'bg-gray-100 text-gray-400' },
-};
-
-function fmtDate(unixSec: number | undefined) {
-  if (!unixSec) return '—';
-  return new Date(unixSec * 1000).toLocaleDateString('en-US', {
-    year: 'numeric', month: 'short', day: 'numeric',
-  });
-}
-
-function fmtDateMs(unixMs: number | undefined) {
-  if (!unixMs) return '—';
-  return new Date(unixMs).toLocaleDateString('en-US', {
-    year: 'numeric', month: 'short', day: 'numeric',
-  });
-}
-
-function fmtDateTimeMs(unixMs: number | undefined) {
-  if (!unixMs) return '—';
-  return new Date(unixMs).toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  });
-}
-
-/** Full-precision timestamp for admin troubleshooting: Jan 15, 2026 3:42:15 PM */
-function fmtFullTs(unixMs: number | undefined) {
-  if (!unixMs) return '—';
-  return new Date(unixMs).toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  });
-}
-
-function daysUntil(epochSec: number | undefined) {
-  if (!epochSec) return null;
-  const diff = epochSec - Math.floor(Date.now() / 1000);
-  return Math.ceil(diff / 86400);
-}
-
-/* ────────────────────────── Component ────────────────────────── */
+import { AdminOverviewTab } from '../../../components/admin/AdminOverviewTab';
+import { AdminUsersTab } from '../../../components/admin/AdminUsersTab';
+import { AdminAlertsTab } from '../../../components/admin/AdminAlertsTab';
+import { AdminUnverifiedTab } from '../../../components/admin/AdminUnverifiedTab';
+import { AdminDeletedTab } from '../../../components/admin/AdminDeletedTab';
+import { AdminEmailLogTab } from '../../../components/admin/AdminEmailLogTab';
+import { AdminUserDetailModal } from '../../../components/admin/AdminUserDetailModal';
+import { AdminGrantTrialModal } from '../../../components/admin/AdminGrantTrialModal';
+import type {
+  AdminUser,
+  OnboardingTrialSettings,
+  EmailLogStats,
+  UserActivity,
+  UsersResponse,
+  Overview,
+  AdminTab,
+  UserFilter,
+} from '../../../components/admin/adminTypes';
 
 export default function AdminPage() {
   // Data
@@ -232,7 +54,7 @@ export default function AdminPage() {
   const [forbidden, setForbidden] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [search, setSearch] = useState('');
-  const [userFilter, setUserFilter] = useState<'all' | 'unverified' | 'past_due' | 'trialing' | 'missing_phone' | 'missing_location' | 'paying'>('all');
+  const [userFilter, setUserFilter] = useState<UserFilter>('all');
   const [selected, setSelected] = useState<AdminUser | null>(null);
   const [resetting, setResetting] = useState(false);
   const [resendingVerification, setResendingVerification] = useState(false);
@@ -246,15 +68,8 @@ export default function AdminPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [userActivity, setUserActivity] = useState<UserActivity | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'alerts' | 'unverified' | 'lifecycle' | 'deleted' | 'email-log'>('overview');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [deletedUsers, setDeletedUsers] = useState<any[] | null>(null);
-  const [deletedUsersLoading, setDeletedUsersLoading] = useState(false);
-  const [churnData, setChurnData] = useState<Record<string, number> | null>(null);
-  const [emailLog, setEmailLog] = useState<EmailLogEntry[] | null>(null);
+  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [emailLogStats, setEmailLogStats] = useState<EmailLogStats | null>(null);
-  const [emailLogLoading, setEmailLogLoading] = useState(false);
-  const [emailLogFilter, setEmailLogFilter] = useState<'all' | 'sent' | 'failed'>('all');
   const [onboardingTrial, setOnboardingTrial] = useState<OnboardingTrialSettings | null>(null);
   const [trialSettingsSaving, setTrialSettingsSaving] = useState(false);
   const { toast } = useToast();
@@ -471,21 +286,6 @@ export default function AdminPage() {
   }
 
   const alertCount = (overview?.expiringTrialsCount ?? 0) + (overview?.pastDueCount ?? 0);
-  const activityCountKeys: ActivityCountKey[] = [
-    'assets',
-    'debts',
-    'transactions',
-    'budgets',
-    'savingsGoals',
-    'wasiyyah',
-    'wasiyyahObligations',
-    'hawlTrackers',
-    'sadaqah',
-    'waqfContributions',
-    'zakatPayments',
-    'zakatSnapshots',
-    'linkedBankAccounts',
-  ];
 
   /* ──────────────────────── RENDER ──────────────────────── */
   return (
@@ -592,1397 +392,111 @@ export default function AdminPage() {
         ))}
       </div>
 
-      {/* ═══════════════════ OVERVIEW TAB ═══════════════════ */}
+      {/* Tab contents */}
       {activeTab === 'overview' && (
-        <div className="space-y-6">
-
-          {/* ── Revenue KPIs ── */}
-          {overview && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-5 text-white">
-                <p className="text-emerald-200 text-xs font-medium mb-1">Monthly Revenue (MRR)</p>
-                <p className="text-3xl font-bold">{fmtMoney(overview.mrr)}</p>
-                <p className="text-emerald-200 text-xs mt-1">ARR: {fmtMoney(overview.arr)}</p>
-              </div>
-              <div className="bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] rounded-2xl p-5 text-white">
-                <p className="text-green-200 text-xs font-medium mb-1">Total Users</p>
-                <p className="text-3xl font-bold">{overview.totalUsers.toLocaleString()}</p>
-                <p className="text-green-200 text-xs mt-1">{overview.conversionRate}% paid conversion</p>
-              </div>
-              <div className="bg-white rounded-2xl p-5 border">
-                <p className="text-gray-400 text-xs font-medium mb-1">Paying Subscribers</p>
-                <p className="text-3xl font-bold text-gray-800">{overview.paidUsers}</p>
-                <p className="text-gray-400 text-xs mt-1">{overview.subscribedPlus} Plus · {overview.subscribedFamily} Family</p>
-              </div>
-              <div className="bg-white rounded-2xl p-5 border">
-                <p className="text-gray-400 text-xs font-medium mb-1">New Users Today</p>
-                <p className="text-3xl font-bold text-gray-800">{overview.newUsersToday}</p>
-                <p className="text-gray-400 text-xs mt-1">This week: {overview.newUsersThisWeek} · Month: {overview.newUsersThisMonth}</p>
-              </div>
-            </div>
-          )}
-
-          {/* ── Plan Distribution ── */}
-          {overview && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="bg-white rounded-2xl p-5 border">
-                <h2 className="font-semibold text-gray-700 mb-4 text-sm">Plan Distribution</h2>
-                <div className="space-y-3">
-                  {[
-                    { label: 'Free', count: overview.freeUsers, color: 'bg-gray-300', total: overview.totalUsers },
-                    { label: 'Plus', count: overview.plusUsers, color: 'bg-blue-500', total: overview.totalUsers },
-                    { label: 'Family', count: overview.familyUsers, color: 'bg-purple-500', total: overview.totalUsers },
-                  ].map(p => (
-                    <div key={p.label}>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-600">{p.label}</span>
-                        <span className="font-medium text-gray-800">{p.count} ({p.total > 0 ? ((p.count / p.total) * 100).toFixed(1) : 0}%)</span>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className={`h-full ${p.color} rounded-full transition-all`} style={{ width: `${p.total > 0 ? (p.count / p.total) * 100 : 0}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Subscription Status Breakdown */}
-              <div className="bg-white rounded-2xl p-5 border">
-                <h2 className="font-semibold text-gray-700 mb-4 text-sm">Subscription Status</h2>
-                <div className="grid grid-cols-2 gap-3">
-                  {Object.entries(overview.subscriptionStatus).map(([status, count]) => {
-                    const info = SUB_STATUS_LABELS[status] ?? { label: status, color: 'bg-gray-100 text-gray-500' };
-                    return (
-                      <div key={status} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${info.color}`}>{info.label}</span>
-                        <span className="font-bold text-gray-800">{count}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {overview && (
-            <div className="bg-white rounded-2xl p-5 border">
-              <div className="flex items-center justify-between gap-3 mb-4">
-                <div>
-                  <h2 className="font-semibold text-gray-700 text-sm">Support Action Center</h2>
-                  <p className="text-xs text-gray-400 mt-1">Jump straight to the highest-friction user situations.</p>
-                </div>
-                <span className="text-xs text-gray-400">Click a card to open the right queue</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-                {[
-                  {
-                    key: 'unverified' as const,
-                    label: 'Unverified Emails',
-                    value: overview.unverifiedEmails ?? 0,
-                    hint: 'Users blocked from logging in',
-                    color: 'border-amber-200 bg-amber-50 text-amber-800',
-                  },
-                  {
-                    key: 'past_due' as const,
-                    label: 'Past-Due Billing',
-                    value: overview.pastDueCount ?? 0,
-                    hint: 'Subscribers at churn risk',
-                    color: 'border-red-200 bg-red-50 text-red-800',
-                  },
-                  {
-                    key: 'trialing' as const,
-                    label: 'Trials Expiring',
-                    value: overview.expiringTrialsCount ?? 0,
-                    hint: 'Conversion follow-up needed',
-                    color: 'border-blue-200 bg-blue-50 text-blue-800',
-                  },
-                  {
-                    key: 'missing_phone' as const,
-                    label: 'Missing Contact Info',
-                    value: overview.usersMissingProfileInfo ?? 0,
-                    hint: 'Support reachability is weaker',
-                    color: 'border-gray-200 bg-gray-50 text-gray-700',
-                  },
-                ].map(card => (
-                  <button
-                    key={card.label}
-                    type="button"
-                    onClick={() => {
-                      setActiveTab(card.key === 'unverified' ? 'unverified' : 'users');
-                      setUserFilter(card.key === 'trialing' ? 'trialing' : card.key);
-                      setSearch('');
-                    }}
-                    className={`text-left rounded-xl border p-4 transition hover:shadow-sm ${card.color}`}
-                  >
-                    <p className="text-xs font-medium opacity-80">{card.label}</p>
-                    <p className="text-3xl font-bold mt-2">{card.value}</p>
-                    <p className="text-xs mt-2 opacity-80">{card.hint}</p>
-                  </button>
-                ))}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 text-xs text-gray-500">
-                <div className="rounded-lg bg-gray-50 px-3 py-2 border">Missing phone: <span className="font-semibold text-gray-800">{overview.usersMissingPhone ?? 0}</span></div>
-                <div className="rounded-lg bg-gray-50 px-3 py-2 border">Missing location: <span className="font-semibold text-gray-800">{overview.usersMissingLocation ?? 0}</span></div>
-                <div className="rounded-lg bg-gray-50 px-3 py-2 border">Total support backlog: <span className="font-semibold text-gray-800">{(overview.unverifiedEmails ?? 0) + (overview.pastDueCount ?? 0) + (overview.expiringTrialsCount ?? 0)}</span></div>
-              </div>
-            </div>
-          )}
-
-          {onboardingTrial && (
-            <div className="bg-white rounded-2xl p-5 border">
-              <div className="flex items-center justify-between gap-3 mb-4">
-                <div>
-                  <h2 className="font-semibold text-gray-700 text-sm">New Member Trial</h2>
-                  <p className="text-xs text-gray-400 mt-1">Control the automatic access every newly verified account receives.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleSaveOnboardingTrial}
-                  disabled={trialSettingsSaving}
-                  className="px-4 py-2 rounded-lg bg-[#1B5E20] text-white text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50"
-                >
-                  {trialSettingsSaving ? 'Saving…' : 'Save Trial Settings'}
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-[0.8fr_0.8fr_1fr] gap-4">
-                <label className="rounded-xl border border-gray-200 px-4 py-3 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Enabled</p>
-                    <p className="text-xs text-gray-500 mt-1">Automatically grant access after email verification.</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={onboardingTrial.enabled}
-                    onChange={e => setOnboardingTrial(prev => prev ? { ...prev, enabled: e.target.checked } : prev)}
-                    className="h-5 w-5 accent-[#1B5E20]"
-                  />
-                </label>
-                <label className="rounded-xl border border-gray-200 px-4 py-3 block">
-                  <p className="text-sm font-semibold text-gray-900 mb-2">Plan</p>
-                  <select
-                    value={onboardingTrial.plan}
-                    onChange={e => setOnboardingTrial(prev => prev ? { ...prev, plan: e.target.value } : prev)}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900"
-                  >
-                    <option value="plus">Plus</option>
-                    <option value="family">Family</option>
-                  </select>
-                </label>
-                <label className="rounded-xl border border-gray-200 px-4 py-3 block">
-                  <p className="text-sm font-semibold text-gray-900 mb-2">Duration</p>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="number"
-                      min={1}
-                      max={365}
-                      value={onboardingTrial.durationDays}
-                      onChange={e => setOnboardingTrial(prev => prev ? {
-                        ...prev,
-                        durationDays: Math.max(1, Math.min(365, Number(e.target.value) || 1)),
-                      } : prev)}
-                      className="w-28 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900"
-                    />
-                    <span className="text-sm text-gray-500">days</span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Current default: {onboardingTrial.enabled ? `${onboardingTrial.plan} for ${onboardingTrial.durationDays} days` : 'disabled'}.
-                  </p>
-                </label>
-              </div>
-            </div>
-          )}
-
-          {/* ── Engagement & Referrals ── */}
-          {overview && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-xl p-4 border">
-                <p className="text-xs text-gray-400 mb-1">Unverified Emails</p>
-                <p className="text-2xl font-bold text-amber-600">{overview.unverifiedEmails}</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 border">
-                <p className="text-xs text-gray-400 mb-1">Total Referrals</p>
-                <p className="text-2xl font-bold text-blue-600">{overview.totalReferrals}</p>
-                <p className="text-xs text-gray-400 mt-1">{overview.usersWithReferrals} referrers</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 border">
-                <p className="text-xs text-gray-400 mb-1">Sadaqah Records</p>
-                <p className="text-2xl font-bold text-emerald-600">{overview.totalDonationRecords ?? 0}</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 border">
-                <p className="text-xs text-gray-400 mb-1">Expiring Trials</p>
-                <p className="text-2xl font-bold text-red-500">{overview.expiringTrialsCount}</p>
-                <p className="text-xs text-gray-400 mt-1">within 7 days</p>
-              </div>
-            </div>
-          )}
-
-          {/* ── User Demographics ── */}
-          {overview && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {overview.countryDistribution && Object.keys(overview.countryDistribution).length > 0 && (
-                <div className="bg-white rounded-2xl p-5 border">
-                  <h2 className="font-semibold text-gray-700 mb-4 text-sm">Top Countries</h2>
-                  <div className="space-y-3">
-                    {Object.entries(overview.countryDistribution)
-                      .sort(([, a], [, b]) => b - a)
-                      .slice(0, 10)
-                      .map(([country, count]) => {
-                        const total = Object.values(overview.countryDistribution!).reduce((a, b) => a + b, 0);
-                        const pct = (count / total) * 100;
-                        return (
-                          <div key={country}>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="text-gray-600">{country}</span>
-                              <span className="font-medium text-gray-800">{count} ({pct.toFixed(1)}%)</span>
-                            </div>
-                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-[#1B5E20] rounded-full transition-all" style={{ width: `${pct}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-              )}
-
-              {overview.stateDistribution && Object.keys(overview.stateDistribution).length > 0 && (
-                <div className="bg-white rounded-2xl p-5 border">
-                  <h2 className="font-semibold text-gray-700 mb-4 text-sm">Top US States</h2>
-                  <div className="space-y-3">
-                    {Object.entries(overview.stateDistribution)
-                      .sort(([, a], [, b]) => b - a)
-                      .slice(0, 10)
-                      .map(([state, count]) => {
-                        const total = Object.values(overview.stateDistribution!).reduce((a, b) => a + b, 0);
-                        const pct = (count / total) * 100;
-                        return (
-                          <div key={state}>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="text-gray-600">{state}</span>
-                              <span className="font-medium text-gray-800">{count} ({pct.toFixed(1)}%)</span>
-                            </div>
-                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-[#1B5E20] rounded-full transition-all" style={{ width: `${pct}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── Feature Usage ── */}
-          {featureUsage && (
-            <div className="bg-white rounded-2xl p-5 border">
-              <h2 className="font-semibold text-gray-700 mb-4 text-sm">Feature Adoption (All Users)</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                {Object.entries(featureUsage).map(([key, count]) => (
-                  <div key={key} className="bg-gray-50 rounded-lg p-3 text-center">
-                    <p className="text-xs text-gray-400 capitalize mb-1">{key.replace('total', '').replace(/([A-Z])/g, ' $1').trim()}</p>
-                    <p className="text-xl font-bold text-gray-800">{count.toLocaleString()}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── Monthly Signups Chart ── */}
-          {analytics && analytics.growthByMonth.length > 0 && (
-            <div className="bg-white rounded-2xl p-5 border">
-              <h2 className="font-semibold text-gray-700 mb-4 text-sm">Monthly Signups (Last 12 months)</h2>
-              <div className="flex items-end gap-1 h-28">
-                {analytics.growthByMonth.map((m) => {
-                  const max = Math.max(...analytics.growthByMonth.map(x => x.signups), 1);
-                  const pct = (m.signups / max) * 100;
-                  return (
-                    <div key={m.month} className="flex-1 flex flex-col items-center gap-1" title={`${m.month}: ${m.signups} signups`}>
-                      <span className="text-[9px] text-gray-500 font-medium">{m.signups}</span>
-                      <div className="w-full bg-[#1B5E20] rounded-t" style={{ height: `${Math.max(pct, 4)}%`, minHeight: 4 }} />
-                      <p className="text-[9px] text-gray-400">{m.month.slice(5)}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ── Recent Signups ── */}
-          {overview && overview.recentSignups && overview.recentSignups.length > 0 && (
-            <div className="bg-white rounded-2xl p-5 border">
-              <h2 className="font-semibold text-gray-700 mb-4 text-sm">Recent Signups</h2>
-              <div className="space-y-2">
-                {overview.recentSignups.map(u => {
-                  const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
-                  return (
-                    <div key={u.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition" onClick={() => { setActiveTab('users'); openUser(u); }}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-[#1B5E20] text-white rounded-full flex items-center justify-center text-xs font-bold">
-                          {(u.name || u.email)[0].toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">{u.name || 'Unnamed'}</p>
-                          <p className="text-xs text-gray-400">{u.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span>
-                        <span className="text-xs text-gray-400">{fmtDateMs(u.createdAt)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
+        <AdminOverviewTab
+          overview={overview}
+          featureUsage={featureUsage}
+          analytics={analytics}
+          onboardingTrial={onboardingTrial}
+          setOnboardingTrial={setOnboardingTrial}
+          trialSettingsSaving={trialSettingsSaving}
+          onSaveOnboardingTrial={handleSaveOnboardingTrial}
+          fmtMoney={fmtMoney}
+          setActiveTab={setActiveTab}
+          setUserFilter={setUserFilter}
+          setSearch={setSearch}
+          openUser={openUser}
+        />
       )}
 
-      {/* ═══════════════════ USERS TAB ═══════════════════ */}
       {activeTab === 'users' && (
-        <div className="space-y-4">
-          {overview && overview.recentSignups && overview.recentSignups.length > 0 && (
-            <div className="bg-white rounded-2xl border p-5">
-              <div className="flex items-center justify-between gap-3 mb-4">
-                <div>
-                  <h2 className="font-semibold text-gray-800 text-sm">Last Joiners</h2>
-                  <p className="text-xs text-gray-400 mt-1">Recent signups kept above the user table for quicker troubleshooting.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch('');
-                    setUserFilter('all');
-                  }}
-                  className="text-xs text-[#1B5E20] font-medium hover:underline"
-                >
-                  Reset user view
-                </button>
-              </div>
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {overview.recentSignups.map(u => {
-                  const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
-                  return (
-                    <button
-                      key={u.id}
-                      type="button"
-                      onClick={() => openUser(u)}
-                      className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-left hover:border-[#1B5E20]/30 hover:bg-white transition"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{u.name || 'Unnamed user'}</p>
-                          <p className="text-xs text-gray-500 mt-1 break-all">{u.email}</p>
-                        </div>
-                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${planInfo.color}`}>{planInfo.label}</span>
-                      </div>
-                      <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-                        <span>{fmtDateMs(u.createdAt)}</span>
-                        <span>{u.emailVerified === false ? 'Unverified' : 'Verified'}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          <div className="bg-white rounded-2xl overflow-hidden border">
-            <div className="p-4 border-b bg-gray-50">
-              <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                <div className="flex-1 flex flex-col gap-3 lg:flex-row lg:items-center">
-                  <input
-                    type="text"
-                    placeholder="Search by name or email…"
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="flex-1 px-4 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      ['all', 'All Users'],
-                      ['unverified', 'Unverified'],
-                      ['past_due', 'Past Due'],
-                      ['trialing', 'Trials'],
-                      ['missing_phone', 'Missing Phone'],
-                      ['missing_location', 'Missing Location'],
-                      ['paying', 'Paying'],
-                    ].map(([value, label]) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setUserFilter(value as typeof userFilter)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
-                          userFilter === value
-                            ? 'bg-[#1B5E20] text-white'
-                            : 'bg-white text-gray-600 border border-gray-200 hover:border-[#1B5E20] hover:text-[#1B5E20]'
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                    {userFilter !== 'all' && (
-                      <button type="button" onClick={() => setUserFilter('all')} className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-600">
-                        Clear Filter
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {search && (
-                    <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600 text-sm px-2 py-1">
-                      Clear Search
-                    </button>
-                  )}
-                  <span className="text-xs text-gray-400">{usersData?.totalElements ?? 0} total</span>
-                  {(usersData?.totalPages ?? 1) > 1 && !search && (
-                    <>
-                      <button
-                        onClick={() => { const p = page - 1; setPage(p); loadData(p); }}
-                        disabled={page === 0}
-                        className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition"
-                      >
-                        ← Prev
-                      </button>
-                      <span className="text-xs text-gray-500 px-2">Page {page + 1} of {usersData!.totalPages}</span>
-                      <button
-                        onClick={() => { const p = page + 1; setPage(p); loadData(p); }}
-                        disabled={page + 1 >= usersData!.totalPages}
-                        className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition"
-                      >
-                        Next →
-                      </button>
-                    </>
-                  )}
-                  <button
-                    onClick={() => {
-                      const users = usersData?.users ?? [];
-                      const csv = ['ID,Name,Email,Phone,Plan,Status,Verified,Location,Joined']
-                        .concat(users.map(u => [
-                          u.id,
-                          `"${(u.name || '').replace(/"/g, '""')}"`,
-                          u.email,
-                          u.phoneNumber || '',
-                          u.plan,
-                          u.subscriptionStatus || 'inactive',
-                          u.emailVerified === false ? 'No' : 'Yes',
-                          fmtFullTs(u.emailVerifiedAt),
-                          [u.state, u.country].filter(Boolean).join(', '),
-                          fmtFullTs(u.createdAt),
-                          u.signupSource || '',
-                          u.signupIp || '',
-                          fmtFullTs(u.lastLoginAt),
-                          u.lastLoginIp || '',
-                          String(u.loginCount ?? 0),
-                        ].join(','))).join('\n');
-                      const blob = new Blob([csv], { type: 'text/csv' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `barakah-users-${new Date().toISOString().slice(0, 10)}.csv`;
-                      a.click();
-                      URL.revokeObjectURL(url);
-                    }}
-                    className="px-3 py-1.5 text-xs font-medium text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition"
-                  >
-                    Export CSV
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 text-left text-gray-500 text-xs uppercase tracking-wide">
-                    <th className="px-3 py-3">ID</th>
-                    <th className="px-3 py-3">User</th>
-                    <th className="px-3 py-3">Plan</th>
-                    <th className="px-3 py-3">Verified</th>
-                    <th className="px-3 py-3">Location</th>
-                    <th className="px-3 py-3">Signed Up</th>
-                    <th className="px-3 py-3">Last Login</th>
-                    <th className="px-3 py-3">Login IP</th>
-                    <th className="px-3 py-3">Logins</th>
-                    <th className="px-3 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredUsers.length === 0 ? (
-                    <tr>
-                      <td colSpan={10} className="text-center py-10 text-gray-400">
-                        {search ? 'No users match your search.' : userFilter !== 'all' ? 'No users match this filter on the current page.' : 'No users found.'}
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredUsers.map(u => {
-                      const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
-                      const subInfo = SUB_STATUS_LABELS[u.subscriptionStatus ?? 'inactive'] ?? SUB_STATUS_LABELS.inactive;
-                      return (
-                        <tr key={u.id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => openUser(u)}>
-                          <td className="px-3 py-3 text-gray-400 font-mono text-xs">{u.id}</td>
-                          <td className="px-3 py-3">
-                            <p className="font-medium text-gray-900 text-sm">{u.name || '—'}</p>
-                            <p className="text-xs text-gray-400">{u.email}</p>
-                          </td>
-                          <td className="px-3 py-3">
-                            <div className="flex items-center gap-1">
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span>
-                              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${subInfo.color}`}>{subInfo.label}</span>
-                            </div>
-                          </td>
-                          <td className="px-3 py-3">
-                            {u.emailVerified === false
-                              ? <span className="text-red-500 text-xs font-medium">✗ No</span>
-                              : <div>
-                                  <span className="text-green-500 text-xs font-medium">✓ Yes</span>
-                                  {u.emailVerifiedAt && <p className="text-[10px] text-gray-400">{fmtFullTs(u.emailVerifiedAt)}</p>}
-                                </div>
-                            }
-                          </td>
-                          <td className="px-3 py-3 text-xs text-gray-500">
-                            {u.state && u.country ? `${u.state}, ${u.country}` : u.country || u.state || '—'}
-                          </td>
-                          <td className="px-3 py-3 text-gray-500 text-xs">
-                            <p>{fmtFullTs(u.createdAt)}</p>
-                            {u.signupSource && <p className="text-[10px] text-gray-400">{u.signupSource}</p>}
-                          </td>
-                          <td className="px-3 py-3 text-gray-500 text-xs">
-                            {u.lastLoginAt ? fmtFullTs(u.lastLoginAt) : '—'}
-                          </td>
-                          <td className="px-3 py-3 text-gray-400 font-mono text-[10px]">
-                            {u.lastLoginIp || '—'}
-                          </td>
-                          <td className="px-3 py-3 text-center text-xs text-gray-500">
-                            {u.loginCount ?? 0}
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <span className="text-[#1B5E20] text-xs font-medium">View →</span>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <AdminUsersTab
+          usersData={usersData}
+          recentSignups={overview?.recentSignups}
+          filteredUsers={filteredUsers}
+          search={search}
+          setSearch={setSearch}
+          userFilter={userFilter}
+          setUserFilter={setUserFilter}
+          page={page}
+          setPage={setPage}
+          loadData={loadData}
+          openUser={openUser}
+        />
       )}
 
-      {/* ═══════════════════ ALERTS TAB ═══════════════════ */}
       {activeTab === 'alerts' && (
-        <div className="space-y-6">
-
-          {/* Past Due Subscriptions */}
-          <div className="bg-white rounded-2xl border overflow-hidden">
-            <div className="px-5 py-4 border-b bg-red-50 flex items-center gap-2">
-              <span className="text-lg">💳</span>
-              <h2 className="font-semibold text-red-800 text-sm">Past-Due Subscriptions ({overview?.pastDueCount ?? 0})</h2>
-            </div>
-            {(overview?.pastDueUsers ?? []).length === 0 ? (
-              <div className="p-8 text-center text-gray-400 text-sm">No past-due subscriptions. All clear!</div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {overview!.pastDueUsers.map(u => {
-                  const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
-                  return (
-                    <div key={u.id} className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 cursor-pointer" onClick={() => { setActiveTab('users'); openUser(u); }}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-xs font-bold">
-                          {(u.name || u.email)[0].toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">{u.name || 'Unnamed'}</p>
-                          <p className="text-xs text-gray-400">{u.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span>
-                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">Past Due</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Expiring Trials */}
-          <div className="bg-white rounded-2xl border overflow-hidden">
-            <div className="px-5 py-4 border-b bg-amber-50 flex items-center gap-2">
-              <span className="text-lg">⏳</span>
-              <h2 className="font-semibold text-amber-800 text-sm">Expiring Trials — Next 7 Days ({overview?.expiringTrialsCount ?? 0})</h2>
-            </div>
-            {(overview?.expiringTrials ?? []).length === 0 ? (
-              <div className="p-8 text-center text-gray-400 text-sm">No trials expiring soon.</div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {overview!.expiringTrials.map(u => {
-                  const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
-                  const days = daysUntil(u.planExpiresAt);
-                  return (
-                    <div key={u.id} className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 cursor-pointer" onClick={() => { setActiveTab('users'); openUser(u); }}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold">
-                          {(u.name || u.email)[0].toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">{u.name || 'Unnamed'}</p>
-                          <p className="text-xs text-gray-400">{u.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                          (days ?? 99) <= 1 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-                        }`}>
-                          {days !== null ? (days <= 0 ? 'Expired' : `${days}d left`) : '—'}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Unverified Emails stat */}
-          {(overview?.unverifiedEmails ?? 0) > 0 && (
-            <div className="bg-white rounded-2xl border p-5">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">📧</span>
-                <div>
-                  <p className="font-semibold text-gray-800 text-sm">
-                    {overview!.unverifiedEmails} user{overview!.unverifiedEmails > 1 ? 's' : ''} with unverified emails
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    These users signed up but haven&apos;t confirmed their email. They cannot log in until verified.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {alertCount === 0 && (overview?.unverifiedEmails ?? 0) === 0 && (
-            <div className="text-center py-16">
-              <p className="text-4xl mb-3">✅</p>
-              <p className="text-lg font-semibold text-gray-700">All clear!</p>
-              <p className="text-gray-400 text-sm">No alerts or action items right now.</p>
-            </div>
-          )}
-        </div>
+        <AdminAlertsTab
+          overview={overview}
+          alertCount={alertCount}
+          setActiveTab={setActiveTab}
+          openUser={openUser}
+        />
       )}
 
-      {/* ═══════════════════ UNVERIFIED TAB ═══════════════════ */}
       {activeTab === 'unverified' && (
-        <div className="bg-white rounded-2xl overflow-hidden border">
-          <div className="p-4 border-b bg-amber-50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">📧</span>
-                <div>
-                  <h2 className="font-semibold text-amber-800 text-sm">Unverified Emails</h2>
-                  <p className="text-xs text-amber-700 mt-0.5">These users signed up but never confirmed their email address. They cannot access the app until verified.</p>
-                </div>
-              </div>
-              {(usersData?.users.filter(u => u.emailVerified === false) ?? []).length > 0 && (
-                <button
-                  onClick={async () => {
-                    const unverified = usersData!.users.filter(u => u.emailVerified === false);
-                    try {
-                      await Promise.all(unverified.map(u => api.adminResendVerification(u.id)));
-                      toast(`Sent verification emails to ${unverified.length} user${unverified.length > 1 ? 's' : ''}`, 'success');
-                      loadData(page);
-                    } catch (err) {
-                      toast(err instanceof Error ? err.message : 'Failed to resend verification emails', 'error');
-                    }
-                  }}
-                  className="px-4 py-2 bg-amber-500 text-white text-sm rounded-lg font-semibold hover:bg-amber-600 transition"
-                >
-                  Resend All
-                </button>
-              )}
-            </div>
-          </div>
-
-          {(() => {
-            const unverified = usersData?.users.filter(u => u.emailVerified === false) ?? [];
-            if (unverified.length === 0) {
-              return (
-                <div className="p-8 text-center text-gray-400 text-sm">
-                  <p className="text-4xl mb-2">✓</p>
-                  <p>All users have verified their email addresses.</p>
-                </div>
-              );
-            }
-
-            return (
-              <div className="divide-y divide-gray-100">
-                <div className="grid grid-cols-4 px-5 py-3 bg-gray-50 gap-4 text-xs font-semibold text-gray-600 uppercase">
-                  <div>Name & Email</div>
-                  <div>Signup Date</div>
-                  <div>Location</div>
-                  <div>Action</div>
-                </div>
-                {unverified.map(u => (
-                  <div key={u.id} className="grid grid-cols-4 px-5 py-4 gap-4 items-center hover:bg-gray-50 transition">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
-                        {(u.name || u.email)[0].toUpperCase()}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-800 truncate">{u.name || 'Unnamed'}</p>
-                        <p className="text-xs text-gray-400 truncate">{u.email}</p>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-600">{fmtDateMs(u.createdAt)}</div>
-                    <div className="text-sm text-gray-600">
-                      {u.country && u.state ? `${u.state}, ${u.country}` : u.country || u.state || '—'}
-                    </div>
-                    <button
-                      onClick={async () => {
-                        try {
-                          await api.adminResendVerification(u.id);
-                          toast(`Verification email sent to ${u.email}`, 'success');
-                          loadData(page);
-                        } catch (err) {
-                          toast(err instanceof Error ? err.message : 'Failed to send verification email', 'error');
-                        }
-                      }}
-                      className="px-3 py-1.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition"
-                    >
-                      Resend
-                    </button>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
-        </div>
+        <AdminUnverifiedTab
+          usersData={usersData}
+          page={page}
+          toast={toast}
+          loadData={loadData}
+        />
       )}
 
       {activeTab === 'lifecycle' && (
         <LifecycleCampaignCenter active={activeTab === 'lifecycle'} />
       )}
 
-      {/* ══════════════════ DELETED USERS TAB ══════════════════ */}
       {activeTab === 'deleted' && (
-        <div className="bg-white rounded-2xl p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">Deleted User Archive</h2>
-              <p className="text-sm text-gray-500">Contact info preserved for remarketing and churn analysis.</p>
-            </div>
-            <button
-              onClick={async () => {
-                setDeletedUsersLoading(true);
-                try {
-                  const [usersRes, churnRes] = await Promise.all([
-                    api.adminGetDeletedUsers(),
-                    api.adminGetChurnAnalysis(),
-                  ]);
-                  setDeletedUsers(usersRes?.users ?? []);
-                  setChurnData(churnRes ?? null);
-                } catch { toast('Failed to load deleted users', 'error'); }
-                finally { setDeletedUsersLoading(false); }
-              }}
-              disabled={deletedUsersLoading}
-              className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50"
-            >
-              {deletedUsersLoading ? 'Loading...' : deletedUsers ? 'Refresh' : 'Load Deleted Users'}
-            </button>
-          </div>
-
-          {/* Churn breakdown */}
-          {churnData && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              <div className="bg-gray-50 rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-gray-900">{churnData.total_deleted ?? 0}</p>
-                <p className="text-[10px] text-gray-500 uppercase">Total Deleted</p>
-              </div>
-              <div className="bg-green-50 rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-[#1B5E20]">{churnData.remarketing_eligible ?? 0}</p>
-                <p className="text-[10px] text-gray-500 uppercase">Remarketing Eligible</p>
-              </div>
-              {['too_expensive', 'not_enough_features', 'found_alternative', 'not_using', 'privacy', 'other'].map(reason => (
-                <div key={reason} className="bg-gray-50 rounded-lg p-2 text-center">
-                  <p className="text-lg font-bold text-gray-700">{churnData[reason] ?? 0}</p>
-                  <p className="text-[9px] text-gray-400 capitalize">{reason.replace(/_/g, ' ')}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Deleted users table */}
-          {deletedUsers && deletedUsers.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 text-left text-gray-500 text-xs uppercase tracking-wide">
-                    <th className="px-3 py-3">User</th>
-                    <th className="px-3 py-3">Plan</th>
-                    <th className="px-3 py-3">Reason</th>
-                    <th className="px-3 py-3">Deleted</th>
-                    <th className="px-3 py-3">Source</th>
-                    <th className="px-3 py-3">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {deletedUsers.map((u, i) => (
-                    <tr key={(u.userId as number | undefined) ?? (u.id as number | undefined) ?? (u.email as string | undefined) ?? i} className="hover:bg-gray-50">
-                      <td className="px-3 py-3">
-                        <p className="font-medium text-gray-900 text-sm">{String(u.fullName || '—')}</p>
-                        <p className="text-xs text-gray-400">{String(u.email || '')}</p>
-                        {u.phoneNumber && <p className="text-xs text-gray-400">{String(u.phoneNumber)}</p>}
-                      </td>
-                      <td className="px-3 py-3 text-xs">{String(u.planAtDeletion || 'free')}</td>
-                      <td className="px-3 py-3 text-xs text-gray-600">
-                        {u.deletionReason ? String(u.deletionReason).replace(/_/g, ' ') : <span className="text-gray-300">—</span>}
-                        {u.deletionNote && <p className="text-[10px] text-gray-400 italic mt-0.5">{String(u.deletionNote)}</p>}
-                      </td>
-                      <td className="px-3 py-3 text-xs text-gray-500">{u.deletionDate ? fmtFullTs(Number(u.deletionDate)) : '—'}</td>
-                      <td className="px-3 py-3 text-xs">{String(u.deletionSource || '')}</td>
-                      <td className="px-3 py-3">
-                        {u.reactivated
-                          ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-700">Returned</span>
-                          : u.remarketingOptedOut
-                            ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-500">Opted Out</span>
-                            : <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">Remarket</span>
-                        }
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {deletedUsers && deletedUsers.length === 0 && (
-            <p className="text-center py-10 text-gray-400">No deleted users yet.</p>
-          )}
-        </div>
+        <AdminDeletedTab toast={toast} />
       )}
 
-      {/* ══════════════════ EMAIL LOG TAB ══════════════════ */}
       {activeTab === 'email-log' && (
-        <div className="space-y-4">
-          <div className="bg-white rounded-2xl p-5 border">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">Email Delivery Log</h2>
-                <p className="text-sm text-gray-500">All emails sent: verification, lifecycle, dunning, password reset.</p>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                {(['all', 'sent', 'failed'] as const).map(f => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => setEmailLogFilter(f)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
-                      emailLogFilter === f
-                        ? f === 'failed' ? 'bg-red-600 text-white' : 'bg-[#1B5E20] text-white'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:border-[#1B5E20]'
-                    }`}
-                  >
-                    {f === 'all' ? 'All' : f === 'sent' ? '✓ Sent' : '✗ Failed'}
-                    {f === 'failed' && (emailLogStats?.totalFailed ?? 0) > 0 && (
-                      <span className="ml-1 bg-red-100 text-red-700 px-1 rounded">{emailLogStats!.totalFailed}</span>
-                    )}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  disabled={emailLogLoading}
-                  onClick={async () => {
-                    setEmailLogLoading(true);
-                    try {
-                      const res = await api.adminGetEmailLog(emailLogFilter);
-                      setEmailLog(res?.entries ?? []);
-                      setEmailLogStats({
-                        totalSent: res?.totalSent ?? 0,
-                        totalFailed: res?.totalFailed ?? 0,
-                        totalElements: res?.totalElements ?? 0,
-                      });
-                    } catch (err) {
-                      toast(err instanceof Error ? err.message : 'Failed to load email log', 'error');
-                    } finally {
-                      setEmailLogLoading(false);
-                    }
-                  }}
-                  className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50"
-                >
-                  {emailLogLoading ? 'Loading...' : emailLog ? 'Refresh' : 'Load Email Log'}
-                </button>
-              </div>
-            </div>
-
-            {emailLogStats && (
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="bg-green-50 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-[#1B5E20]">{emailLogStats.totalSent.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500">Sent Successfully</p>
-                </div>
-                <div className="bg-red-50 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-red-600">{emailLogStats.totalFailed.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500">Failed</p>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-gray-800">{emailLogStats.totalElements.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500">Total Records</p>
-                </div>
-              </div>
-            )}
-
-            {!emailLog ? (
-              <div className="text-center py-12 text-gray-400">
-                <p className="text-4xl mb-3">✉️</p>
-                <p className="font-medium">Click &quot;Load Email Log&quot; to see email delivery history</p>
-                <p className="text-sm mt-1">Shows all outbound emails: verification, lifecycle, dunning, etc.</p>
-              </div>
-            ) : emailLog.length === 0 ? (
-              <div className="text-center py-8 text-gray-400">
-                <p>No email records found{emailLogFilter !== 'all' ? ` for filter: ${emailLogFilter}` : ''}.</p>
-                {emailLogFilter !== 'all' && (
-                  <button onClick={() => setEmailLogFilter('all')} className="text-[#1B5E20] underline text-sm mt-2">Show all</button>
-                )}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wide">
-                      <th className="px-3 py-3">Recipient</th>
-                      <th className="px-3 py-3">Type</th>
-                      <th className="px-3 py-3">Subject</th>
-                      <th className="px-3 py-3">Status</th>
-                      <th className="px-3 py-3">Sent At</th>
-                      <th className="px-3 py-3">Error</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {emailLog.map(entry => (
-                      <tr key={entry.id} className={`hover:bg-gray-50 ${entry.status === 'failed' ? 'bg-red-50' : ''}`}>
-                        <td className="px-3 py-2 text-xs font-mono text-gray-700">{entry.toEmail}</td>
-                        <td className="px-3 py-2">
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                            {entry.emailType}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 text-xs text-gray-600 max-w-xs truncate">{entry.subject || '—'}</td>
-                        <td className="px-3 py-2">
-                          {entry.status === 'sent' ? (
-                            <span className="text-green-600 font-semibold text-xs">✓ Sent</span>
-                          ) : (
-                            <span className="text-red-600 font-semibold text-xs">✗ Failed</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-xs text-gray-500">{fmtDateTimeMs(entry.createdAt)}</td>
-                        <td className="px-3 py-2 text-xs text-red-500 max-w-xs truncate" title={entry.errorMessage}>
-                          {entry.errorMessage || '—'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
+        <AdminEmailLogTab
+          emailLogStats={emailLogStats}
+          setEmailLogStats={setEmailLogStats}
+          toast={toast}
+        />
       )}
 
       {/* ══════════════════ USER DETAIL MODAL ══════════════════ */}
       {selected && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeModal}>
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="p-6 border-b flex items-start justify-between sticky top-0 bg-white rounded-t-2xl">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">{selected.name || 'Unnamed User'}</h2>
-                <p className="text-sm text-gray-500">{selected.email}</p>
-                {selected.phoneNumber && (
-                  <p className="text-sm text-gray-500">📞 <a href={`tel:${selected.phoneNumber}`} className="text-[#1B5E20] hover:underline">{selected.phoneNumber}</a></p>
-                )}
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs text-gray-400">ID: {selected.id}</span>
-                  <span className="text-xs text-gray-400">·</span>
-                  <span className="text-xs text-gray-400">Joined {fmtFullTs(selected.createdAt)}</span>
-                </div>
-                {(selected.country || selected.state) && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-gray-400">📍</span>
-                    <span className="text-xs text-gray-400">
-                      {selected.state && selected.country ? `${selected.state}, ${selected.country}` : selected.country || selected.state}
-                    </span>
-                  </div>
-                )}
-                {selected.signupIp && (
-                  <p className="text-xs text-gray-400 mt-0.5">Signup IP: <span className="font-mono">{selected.signupIp}</span></p>
-                )}
-                {selected.signupSource && (
-                  <p className="text-xs text-gray-400 mt-0.5">Signup via: {selected.signupSource}</p>
-                )}
-                <div className="flex gap-1.5 mt-2">
-                  {(() => {
-                    const planInfo = PLAN_LABELS[selected.plan] ?? PLAN_LABELS.free;
-                    const subInfo = SUB_STATUS_LABELS[selected.subscriptionStatus ?? 'inactive'] ?? SUB_STATUS_LABELS.inactive;
-                    return (
-                      <>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${subInfo.color}`}>{subInfo.label}</span>
-                        {selected.emailVerified === false && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-600">Unverified</span>
-                        )}
-                        {selected.hasStripe && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-600">Stripe</span>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
-                {selected.planExpiresAt && (
-                  <p className="text-xs text-gray-400 mt-1.5">
-                    Plan expires: {fmtDate(selected.planExpiresAt)}
-                    {(() => { const d = daysUntil(selected.planExpiresAt); return d !== null ? ` (${d <= 0 ? 'expired' : d + 'd'})` : ''; })()}
-                  </p>
-                )}
-                {((selected.referralCount ?? 0) > 0 || (selected.referralClickCount ?? 0) > 0) && (
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {selected.referralClickCount ?? 0} click{(selected.referralClickCount ?? 0) === 1 ? '' : 's'} • {selected.referralCount ?? 0} reward{(selected.referralCount ?? 0) === 1 ? '' : 's'}
-                  </p>
-                )}
-              </div>
-              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
-            </div>
-
-            <div className="p-6 space-y-5">
-              {/* User Activity Summary */}
-              {userActivity && (
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Account Activity</p>
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    {activityCountKeys.map((key) => (
-                      <div key={String(key)} className="bg-white rounded-lg p-2">
-                        <p className="text-lg font-bold text-[#1B5E20]">{typeof userActivity[key] === 'number' ? userActivity[key] : null}</p>
-                        <p className="text-[10px] text-gray-400 capitalize">{String(key).replace(/([A-Z])/g, ' $1').trim()}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
-                    <div className="bg-white rounded-lg p-3 border border-gray-100">
-                      <p className="text-gray-400 uppercase tracking-wide">Last login</p>
-                      <p className="text-gray-700 font-medium mt-1">{fmtDateTimeMs(userActivity.lastLoginAt)}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-3 border border-gray-100">
-                      <p className="text-gray-400 uppercase tracking-wide">Last seen</p>
-                      <p className="text-gray-700 font-medium mt-1">{fmtDateTimeMs(userActivity.lastSeenAt)}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-3 border border-gray-100">
-                      <p className="text-gray-400 uppercase tracking-wide">Platform</p>
-                      <p className="text-gray-700 font-medium mt-1">{userActivity.lastPlatform || '—'}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-3 border border-gray-100">
-                      <p className="text-gray-400 uppercase tracking-wide">App version</p>
-                      <p className="text-gray-700 font-medium mt-1">{userActivity.lastAppVersion || '—'}</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
-                    <div className="bg-white rounded-lg p-3 border border-gray-100">
-                      <p className="text-gray-400 uppercase tracking-wide">Login IP</p>
-                      <p className="text-gray-700 font-mono font-medium mt-1 text-[11px]">{(userActivity as Record<string, unknown>).lastLoginIp as string || '—'}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-3 border border-gray-100">
-                      <p className="text-gray-400 uppercase tracking-wide">Total logins</p>
-                      <p className="text-gray-700 font-medium mt-1">{(userActivity as Record<string, unknown>).loginCount as number ?? 0}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-3 border border-gray-100">
-                      <p className="text-gray-400 uppercase tracking-wide">Email verified</p>
-                      <p className="text-gray-700 font-medium mt-1 text-[11px]">{fmtFullTs((userActivity as Record<string, unknown>).emailVerifiedAt as number | undefined)}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-3 border border-gray-100">
-                      <p className="text-gray-400 uppercase tracking-wide">Signup IP</p>
-                      <p className="text-gray-700 font-mono font-medium mt-1 text-[11px]">{(userActivity as Record<string, unknown>).signupIp as string || '—'}</p>
-                    </div>
-                  </div>
-                  {userActivity.lifecycle && (
-                    <div className="mt-3 space-y-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        {[
-                          { label: 'Completed setup', value: userActivity.lifecycle.hasCompletedSetup },
-                          { label: 'Linked bank', value: userActivity.lifecycle.hasLinkedBankAccount },
-                          { label: 'Reviewed transactions', value: userActivity.lifecycle.hasReviewedTransactions },
-                        ].map(item => (
-                          <div key={item.label} className="bg-white rounded-lg border border-gray-100 px-3 py-2">
-                            <p className="text-[10px] uppercase tracking-wide text-gray-400">{item.label}</p>
-                            <p className={`mt-1 text-sm font-semibold ${item.value ? 'text-[#1B5E20]' : 'text-gray-500'}`}>
-                              {item.value ? 'Yes' : 'No'}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                      {userActivity.lifecycle.countsByType && Object.keys(userActivity.lifecycle.countsByType).length > 0 && (
-                        <div className="bg-white rounded-lg border border-gray-100 p-3">
-                          <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-2">Lifecycle events</p>
-                          <div className="flex flex-wrap gap-2">
-                            {Object.entries(userActivity.lifecycle.countsByType).slice(0, 8).map(([eventType, count]) => (
-                              <span key={eventType} className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] text-gray-600">
-                                {eventType.replaceAll('_', ' ')} · {count}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {userActivity.lifecycle.recentEvents && userActivity.lifecycle.recentEvents.length > 0 && (
-                        <div className="bg-white rounded-lg border border-gray-100 p-3">
-                          <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-2">Recent lifecycle activity</p>
-                          <div className="space-y-2">
-                            {userActivity.lifecycle.recentEvents.slice(0, 4).map(event => (
-                              <div key={event.id} className="flex items-center justify-between gap-3 text-xs">
-                                <div>
-                                  <p className="font-medium text-gray-700">{event.eventType.replaceAll('_', ' ')}</p>
-                                  <p className="text-gray-400">{event.source || 'system'}</p>
-                                </div>
-                                <span className="text-gray-400">{fmtDateTimeMs(event.createdAt)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Plan management */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Subscription Plan</label>
-                <div className="flex gap-2">
-                  <select
-                    value={draftPlan}
-                    onChange={e => setDraftPlan(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
-                  >
-                    <option value="free">Free</option>
-                    <option value="plus">{`Plus — ${PRICING.plus.monthly}/mo`}</option>
-                    <option value="family">{`Family — ${PRICING.family.monthly}/mo`}</option>
-                  </select>
-                  <button
-                    onClick={handleSavePlan}
-                    disabled={planSaving || draftPlan === selected.plan}
-                    className="px-4 py-2 bg-[#1B5E20] text-white text-sm rounded-lg font-semibold hover:bg-[#2E7D32] transition disabled:opacity-40"
-                  >
-                    {planSaving ? 'Saving…' : 'Save'}
-                  </button>
-                </div>
-                {draftPlan !== selected.plan && (
-                  <p className="text-xs text-amber-600 mt-1">⚠ Unsaved — click Save to apply the plan change.</p>
-                )}
-              </div>
-
-              {/* Hawl/Nisab Debug Report */}
-              <div className="border-t pt-5">
-                <p className="text-sm font-medium text-gray-700 mb-1">Hawl / Nisab Debug</p>
-                <p className="text-xs text-gray-500 mb-3">View daily nisab snapshots, hawl tracker history, and nisab drop timeline for customer support.</p>
-                <button
-                  onClick={async () => {
-                    try {
-                      const report = await api.adminGetUserHawlReport(selected.id);
-                      const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `hawl-report-user-${selected.id}-${new Date().toISOString().slice(0, 10)}.json`;
-                      a.click();
-                      URL.revokeObjectURL(url);
-                      toast(`Hawl report downloaded (${report?.totalTrackers ?? 0} trackers, ${report?.snapshotCount ?? 0} snapshots, ${report?.daysBelowNisab ?? 0} days below nisab)`, 'success');
-                    } catch { toast('Failed to fetch hawl report', 'error'); }
-                  }}
-                  className="w-full py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition"
-                >
-                  Download Hawl Debug Report (JSON)
-                </button>
-              </div>
-
-              {/* Password reset */}
-              <div className="border-t pt-5">
-                <p className="text-sm font-medium text-gray-700 mb-1">Password Reset</p>
-                <p className="text-xs text-gray-500 mb-3">
-                  Sends a password reset email to <strong>{selected.email}</strong>. The link expires in 30 minutes.
-                </p>
-                <button
-                  onClick={handleResetPassword}
-                  disabled={resetting}
-                  className="w-full py-2.5 border-2 border-[#1B5E20] text-[#1B5E20] rounded-lg text-sm font-semibold hover:bg-green-50 transition disabled:opacity-40"
-                >
-                  {resetting ? 'Sending…' : 'Send Password Reset Email'}
-                </button>
-              </div>
-
-              {/* Resend Verification Email */}
-              {!selected.emailVerified && (
-              <div className="border-t pt-5">
-                <p className="text-sm font-medium text-gray-700 mb-1">Resend Verification Email</p>
-                <p className="text-xs text-gray-500 mb-3">
-                  This user has <strong className="text-red-600">not verified their email</strong>.
-                  Send a new verification link to <strong>{selected.email}</strong> (expires in 24 hours).
-                </p>
-                <button
-                  onClick={handleResendVerification}
-                  disabled={resendingVerification}
-                  className="w-full py-2.5 bg-amber-600 text-white rounded-lg text-sm font-semibold hover:bg-amber-700 transition disabled:opacity-40"
-                >
-                  {resendingVerification ? 'Sending…' : 'Resend Verification Email'}
-                </button>
-                <button
-                  onClick={async () => {
-                    if (!selected) return;
-                    try {
-                      const data = await api.adminVerifyEmail(selected.id);
-                      const nextPlan = typeof data?.plan === 'string' ? data.plan : selected.plan;
-                      toast('Email verified directly', 'success');
-                      setDraftPlan(nextPlan);
-                      setSelected({
-                        ...selected,
-                        emailVerified: true,
-                        plan: nextPlan,
-                        subscriptionStatus: typeof data?.subscriptionStatus === 'string'
-                          ? data.subscriptionStatus
-                          : selected.subscriptionStatus,
-                        planExpiresAt: typeof data?.planExpiresAt === 'number'
-                          ? data.planExpiresAt
-                          : selected.planExpiresAt,
-                      });
-                      setUsersData(prev => prev ? {
-                        ...prev,
-                        users: prev.users.map(u => u.id === selected.id ? {
-                          ...u,
-                          emailVerified: true,
-                          plan: nextPlan,
-                          subscriptionStatus: typeof data?.subscriptionStatus === 'string'
-                            ? data.subscriptionStatus
-                            : u.subscriptionStatus,
-                          planExpiresAt: typeof data?.planExpiresAt === 'number'
-                            ? data.planExpiresAt
-                            : u.planExpiresAt,
-                        } : u),
-                      } : prev);
-                    } catch (err) {
-                      toast(err instanceof Error ? err.message : 'Verification failed', 'error');
-                    }
-                  }}
-                  className="w-full py-2.5 mt-2 border-2 border-green-500 text-green-600 rounded-lg text-sm font-semibold hover:bg-green-50 transition"
-                >
-                  Verify Email Directly (Skip Email)
-                </button>
-              </div>
-              )}
-
-              {/* Grant Trial */}
-              <div className="border-t pt-5">
-                <p className="text-sm font-medium text-gray-700 mb-1">Grant Trial</p>
-                <p className="text-xs text-gray-500 mb-3">Grants the user a free trial with full access for the selected duration.</p>
-                <button
-                  onClick={openTrialModal}
-                  className="w-full py-2.5 border-2 border-blue-500 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-50 transition"
-                >
-                  Grant Trial
-                </button>
-              </div>
-
-              {/* Delete Account */}
-              <div className="border-t pt-5">
-                <p className="text-sm font-medium text-red-700 mb-1">Delete Account</p>
-                <p className="text-xs text-gray-500 mb-3">Permanently deletes this user and ALL their data. This cannot be undone.</p>
-                {deleteConfirm === selected?.id ? (
-                  <div className="space-y-2">
-                    <p className="text-xs text-red-600 font-semibold bg-red-50 p-2 rounded">
-                      Are you sure? This will delete {selected.name || selected.email} and all their financial data permanently.
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={async () => {
-                          try {
-                            await api.adminDeleteUser(selected.id);
-                            toast(`User ${selected.email} deleted`, 'success');
-                            setSelected(null);
-                            setDeleteConfirm(null);
-                            setUsersData(prev => prev ? { ...prev, users: prev.users.filter(u => u.id !== selected.id), totalElements: prev.totalElements - 1 } : prev);
-                          } catch (err) {
-                            toast(err instanceof Error ? err.message : 'Delete failed', 'error');
-                          }
-                        }}
-                        className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
-                      >
-                        Yes, Delete Permanently
-                      </button>
-                      <button
-                        onClick={() => setDeleteConfirm(null)}
-                        className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setDeleteConfirm(selected?.id ?? null)}
-                    className="w-full py-2.5 border-2 border-red-300 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-50 transition"
-                  >
-                    Delete User
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <AdminUserDetailModal
+          selected={selected}
+          userActivity={userActivity}
+          draftPlan={draftPlan}
+          setDraftPlan={setDraftPlan}
+          planSaving={planSaving}
+          resetting={resetting}
+          resendingVerification={resendingVerification}
+          deleteConfirm={deleteConfirm}
+          setDeleteConfirm={setDeleteConfirm}
+          setSelected={setSelected}
+          setUsersData={setUsersData}
+          onClose={closeModal}
+          onSavePlan={handleSavePlan}
+          onResetPassword={handleResetPassword}
+          onResendVerification={handleResendVerification}
+          onGrantTrialOpen={openTrialModal}
+          toast={toast}
+        />
       )}
 
       {/* ══════════════════ GRANT TRIAL MODAL ══════════════════ */}
       {trialModalOpen && selected && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onClick={closeTrialModal}>
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="p-6 border-b flex items-start justify-between">
-              <h2 className="text-lg font-bold text-gray-900">Grant Trial</h2>
-              <button onClick={closeTrialModal} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
-            </div>
-            <div className="p-6 space-y-5">
-              <p className="text-xs text-gray-600 bg-blue-50 p-3 rounded-lg">
-                Grants <strong>{selected.name || selected.email}</strong> a free trial with full access.
-              </p>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Plan</label>
-                <div className="space-y-2">
-                  {[{ value: 'plus', label: `Plus — ${PRICING.plus.monthly}/mo` }, { value: 'family', label: `Family — ${PRICING.family.monthly}/mo` }].map(p => (
-                    <label key={p.value} className="flex items-center gap-3 p-3 border rounded-lg border-gray-200 hover:bg-gray-50 cursor-pointer">
-                      <input type="radio" name="trialPlan" value={p.value} checked={trialPlan === p.value}
-                        onChange={e => setTrialPlan(e.target.value)} className="w-4 h-4" />
-                      <span className="text-sm font-medium text-gray-700">{p.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Duration (days)</label>
-                <input type="number" min="1" max="365" value={trialDurationDays}
-                  onChange={e => setTrialDurationDays(Math.min(365, Math.max(1, parseInt(e.target.value) || 1)))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none" />
-              </div>
-              <div className="flex items-center gap-3">
-                <input type="checkbox" id="sendEmail" checked={trialSendEmail} onChange={e => setTrialSendEmail(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-[#1B5E20] focus:ring-[#1B5E20]" />
-                <label htmlFor="sendEmail" className="text-sm text-gray-700">Send notification email</label>
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button onClick={closeTrialModal} className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition">Cancel</button>
-                <button onClick={handleGrantTrial} disabled={trialGranting}
-                  className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-40">
-                  {trialGranting ? 'Granting…' : 'Grant Trial'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AdminGrantTrialModal
+          selected={selected}
+          trialPlan={trialPlan}
+          setTrialPlan={setTrialPlan}
+          trialDurationDays={trialDurationDays}
+          setTrialDurationDays={setTrialDurationDays}
+          trialSendEmail={trialSendEmail}
+          setTrialSendEmail={setTrialSendEmail}
+          trialGranting={trialGranting}
+          onClose={closeTrialModal}
+          onGrant={handleGrantTrial}
+        />
       )}
     </div>
   );

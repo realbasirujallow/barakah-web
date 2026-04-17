@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-const API = process.env.E2E_API_URL || 'https://trybarakah.com';
+const API = process.env.E2E_API_URL
+  || process.env.E2E_BASE_URL
+  || 'http://localhost:3000';
 
 test.describe('API Health', () => {
   test('health endpoint returns ok', async ({ request }) => {
