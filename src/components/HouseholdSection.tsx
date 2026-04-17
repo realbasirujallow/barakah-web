@@ -245,10 +245,14 @@ export default function HouseholdSection() {
       </div>
 
       {/* Add-member form */}
+      {/* Round 26: add htmlFor/id pairs matching the sweep applied to the
+          top section in R24. Screen-reader users previously heard "edit, blank"
+          on every field in this admin-style form. */}
       <form onSubmit={addMember} className="p-6 grid grid-cols-1 sm:grid-cols-[1fr_1.2fr_1fr_auto] gap-3 items-end">
         <div>
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Relationship</label>
+          <label htmlFor="household-new-relationship" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Relationship</label>
           <select
+            id="household-new-relationship"
             value={newRel}
             onChange={e => setNewRel(e.target.value)}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
@@ -259,8 +263,9 @@ export default function HouseholdSection() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Full name</label>
+          <label htmlFor="household-new-name" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Full name</label>
           <input
+            id="household-new-name"
             type="text"
             required
             placeholder="e.g. Fatima"
@@ -270,8 +275,9 @@ export default function HouseholdSection() {
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Date of birth (optional)</label>
+          <label htmlFor="household-new-dob" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Date of birth (optional)</label>
           <input
+            id="household-new-dob"
             type="date"
             value={newDob}
             onChange={e => setNewDob(e.target.value)}

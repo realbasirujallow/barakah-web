@@ -114,6 +114,21 @@ export default function ProfilePage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Round 26: Escape-key closes the destructive retention modal (keyboard-only
+  // users previously had no way to dismiss). Matches the sitewide modal pattern.
+  useEffect(() => {
+    if (!showRetentionModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowRetentionModal(false);
+        setShowDeleteConfirm(false);
+        setDeleteMsg(null);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showRetentionModal]);
+
   const loadProfile = useCallback(() => {
     setLoading(true);
     Promise.allSettled([
@@ -419,8 +434,9 @@ export default function ProfilePage() {
         <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Personal Information</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <label htmlFor="profile-full-name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
             <input
+              id="profile-full-name"
               value={nameForm.fullName}
               onChange={e => setNameForm({ ...nameForm, fullName: e.target.value })}
               className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -428,8 +444,9 @@ export default function ProfilePage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
             <input
+              id="profile-email"
               type="email"
               value={nameForm.email}
               onChange={e => setNameForm({ ...nameForm, email: e.target.value })}
@@ -467,8 +484,9 @@ export default function ProfilePage() {
         </p>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+            <label htmlFor="profile-country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
             <select
+              id="profile-country"
               value={locationForm.country}
               onChange={e => setLocationForm({ ...locationForm, country: e.target.value, state: e.target.value !== 'US' ? '' : locationForm.state })}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm"
@@ -524,8 +542,9 @@ export default function ProfilePage() {
 
           {locationForm.country === 'US' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+              <label htmlFor="profile-state" className="block text-sm font-medium text-gray-700 mb-1">State</label>
               <select
+                id="profile-state"
                 value={locationForm.state}
                 onChange={e => setLocationForm({ ...locationForm, state: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm"
@@ -580,9 +599,10 @@ export default function ProfilePage() {
         <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Change Password</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+            <label htmlFor="profile-current-password" className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
             <div className="relative">
               <input
+                id="profile-current-password"
                 type={showCurrentPw ? 'text' : 'password'}
                 value={pwForm.currentPassword}
                 onChange={e => setPwForm({ ...pwForm, currentPassword: e.target.value })}
@@ -600,9 +620,10 @@ export default function ProfilePage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <label htmlFor="profile-new-password" className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
             <div className="relative">
               <input
+                id="profile-new-password"
                 type={showNewPw ? 'text' : 'password'}
                 value={pwForm.newPassword}
                 onChange={e => setPwForm({ ...pwForm, newPassword: e.target.value })}
@@ -620,8 +641,9 @@ export default function ProfilePage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+            <label htmlFor="profile-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
             <input
+              id="profile-confirm-password"
               type="password"
               value={pwForm.confirmPassword}
               onChange={e => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
@@ -661,6 +683,7 @@ export default function ProfilePage() {
         <p className="text-sm text-gray-500 mb-3">Choose your preferred currency for displaying amounts across Barakah.</p>
         <div className="flex items-center gap-3">
           <select
+            aria-label="Preferred currency"
             value={selectedCurrency}
             onChange={e => setSelectedCurrency(e.target.value)}
             className="border rounded-lg px-3 py-2 text-gray-900 text-sm flex-1 max-w-xs"
@@ -864,15 +887,24 @@ export default function ProfilePage() {
       </details>
 
       {/* Retention Modal — asks the user to reconsider before showing password form */}
+      {/* Round 26: added role/aria-modal/aria-labelledby + Escape handler to match
+          the sitewide modal pattern (ReferralPrompt/AnnualUpgrade/SessionTimeout/
+          Onboarding). Destructive two-step flow that previously had no
+          keyboard-dismiss and no screen-reader modal signal. */}
       {showRetentionModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={showDeleteConfirm ? 'delete-account-final-title' : 'delete-account-title'}
+        >
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
             {!showDeleteConfirm ? (
               /* Step 1: Retention — give them a reason to stay */
               <div className="p-6">
                 <div className="text-center mb-4">
                   <p className="text-4xl mb-3">&#128546;</p>
-                  <h3 className="text-xl font-bold text-gray-800">We&apos;re sad to see you go</h3>
+                  <h3 id="delete-account-title" className="text-xl font-bold text-gray-800">We&apos;re sad to see you go</h3>
                 </div>
                 <p className="text-sm text-gray-600 mb-4 text-center">
                   Deleting your account will permanently remove all your data, including:
@@ -907,7 +939,7 @@ export default function ProfilePage() {
             ) : (
               /* Step 2: Final confirmation (no password required) */
               <div className="p-6">
-                <h3 className="text-lg font-bold text-red-600 mb-4">Final Confirmation</h3>
+                <h3 id="delete-account-final-title" className="text-lg font-bold text-red-600 mb-4">Final Confirmation</h3>
                 <p className="text-sm text-gray-600 mb-4">
                   Are you absolutely sure? This will permanently delete your account and all data. This action cannot be undone.
                 </p>

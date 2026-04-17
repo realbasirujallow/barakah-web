@@ -112,7 +112,16 @@ export function useCurrency(): {
  */
 export function saveCurrencyPreference(currency: string): void {
   if (typeof window !== 'undefined' && currency) {
-    localStorage.setItem(CURRENCY_KEY, currency);
+    // Round 26: try/catch around setItem. In iOS Safari private mode or
+    // when storage is full, setItem throws QuotaExceededError. Profile
+    // page calls this between a successful server-side save and the
+    // success toast — so a thrown exception would turn "saved" into
+    // "failed" from the user's POV and skip the state update, even
+    // though the backend already accepted the change. Same safety
+    // pattern as the Round 24 `safeSetItem` used elsewhere.
+    try {
+      localStorage.setItem(CURRENCY_KEY, currency);
+    } catch { /* quota / private mode — accept silently */ }
     // Notify same-tab subscribers — the native `storage` event only fires in
     // other tabs, so we dispatch a custom event for the current tab.
     window.dispatchEvent(new Event(CURRENCY_CHANGE_EVENT));
@@ -127,7 +136,10 @@ export function saveCurrencyPreference(currency: string): void {
  */
 export function saveLocalePreference(locale: string): void {
   if (typeof window !== 'undefined' && locale) {
-    localStorage.setItem(LOCALE_KEY, locale);
+    // Round 26: same safeSetItem treatment as saveCurrencyPreference.
+    try {
+      localStorage.setItem(LOCALE_KEY, locale);
+    } catch { /* quota / private mode — accept silently */ }
     window.dispatchEvent(new Event(CURRENCY_CHANGE_EVENT));
   }
 }
