@@ -128,7 +128,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const id = window.setTimeout(() => {
       if (cancelled) return;
       try {
-        setHeaderDate(new Date().toLocaleDateString('en-US', {
+        // Round 24: undefined locale → browser default. Matches R23
+        // useCurrency + NotificationBell / notifications date pattern.
+        setHeaderDate(new Date().toLocaleDateString(undefined, {
           weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
         }));
       } catch { /* Intl unavailable */ }
