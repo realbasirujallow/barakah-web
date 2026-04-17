@@ -144,6 +144,10 @@ function BillingContent() {
   };
 
   const handleUpgrade = async (plan: 'plus' | 'family') => {
+    // Prevent double-submit while a previous upgrade (or portal/cancel
+    // action) is still in flight — clicking "Upgrade" twice would otherwise
+    // create two Stripe checkout sessions.
+    if (loading) return;
     setLoading(plan);
     // Fire upgrade_started before we touch Stripe — this is the click
     // intent, separate from the final 'purchase' (trackUpgrade) event
@@ -172,7 +176,13 @@ function BillingContent() {
           ? (plan === 'family' ? PRICING.family.yearly : PRICING.plus.yearly)
           : (plan === 'family' ? PRICING.family.monthly : PRICING.plus.monthly);
         const price = parseFloat(priceStr.replace(/[^0-9.]/g, ''));
-        trackUpgrade(plan, billing, price);
+        // StripeController.upgrade now returns the billing currency (ISO 4217
+        // from the Stripe price). Pass it through so GA4 revenue attribution
+        // matches the actual charge when we enable non-USD plans.
+        const chargedCurrency = typeof (result as { currency?: unknown }).currency === 'string'
+          ? ((result as { currency: string }).currency).toUpperCase()
+          : 'USD';
+        trackUpgrade(plan, billing, price, chargedCurrency);
         toast('Plan updated! You\u2019re now on ' + (plan === 'family' ? 'Barakah Family' : 'Barakah Plus'), 'success');
         setLoading(null);
       } else {
@@ -188,11 +198,16 @@ function BillingContent() {
   const handleManage = async () => {
     setLoading('portal');
     try {
-      const { url } = await api.openPortal();
-      if (validateStripeUrl(url)) {
-        window.location.href = url;
+      const res = await api.openPortal();
+      if (res?.url) {
+        if (validateStripeUrl(res.url)) {
+          window.location.href = res.url;
+        } else {
+          toast('Invalid Stripe URL. Please contact support.', 'error');
+          setLoading(null);
+        }
       } else {
-        toast('Invalid Stripe URL. Please contact support.', 'error');
+        toast('No active subscription found. Please contact support.', 'error');
         setLoading(null);
       }
     } catch {

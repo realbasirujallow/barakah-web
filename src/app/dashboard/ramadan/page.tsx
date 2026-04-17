@@ -1,15 +1,16 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { fmt, toHijri } from '../../../lib/format';
+import { toHijri } from '../../../lib/format';
 import { api } from '../../../lib/api';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 
 /* ── Hijri date calculation ──────────────────────────────────────────
    Uses the Kuwaiti algorithm (imported from format.ts for consistency).
    Accurate to ±1 day.                                                  */
 
-/* ── Ramadan dates (Gregorian approximations for 2024–2030) ─────── */
+/* ── Ramadan dates (Gregorian approximations for 2024–2035) ─────── */
 const RAMADAN_DATES: Record<number, { start: string; end: string }> = {
   2024: { start: '2024-03-11', end: '2024-04-09' },
   2025: { start: '2025-03-01', end: '2025-03-30' },
@@ -18,6 +19,11 @@ const RAMADAN_DATES: Record<number, { start: string; end: string }> = {
   2028: { start: '2028-01-28', end: '2028-02-25' },
   2029: { start: '2029-01-17', end: '2029-02-14' },
   2030: { start: '2030-01-06', end: '2030-02-04' },
+  2031: { start: '2031-12-26', end: '2032-01-24' },
+  2032: { start: '2032-12-14', end: '2033-01-12' },
+  2033: { start: '2033-12-04', end: '2034-01-02' },
+  2034: { start: '2034-11-23', end: '2034-12-22' },
+  2035: { start: '2035-11-12', end: '2035-12-11' },
 };
 
 function getRamadanStatus(now: Date): {
@@ -38,8 +44,13 @@ function getRamadanStatus(now: Date): {
     return { inRamadan: true, day, total, start, end, daysUntil: 0 };
   }
 
-  // Days until next Ramadan
-  const nextStart = today < start ? start : new Date(RAMADAN_DATES[yr + 1]?.start || rd.start);
+  // Days until next Ramadan — returns null when we have no entry for next year
+  const nextStart = today < start
+    ? start
+    : RAMADAN_DATES[yr + 1]?.start ? new Date(RAMADAN_DATES[yr + 1].start) : null;
+  if (!nextStart) {
+    return { inRamadan: false, day: 0, total: 0, start: null, end, daysUntil: null };
+  }
   const daysUntil = Math.ceil((nextStart.getTime() - today.getTime()) / 86400000);
   return { inRamadan: false, day: 0, total: 0, start: nextStart, end, daysUntil };
 }
@@ -73,6 +84,7 @@ const safeSetItem = (key: string, value: string): void => {
 };
 
 export default function RamadanPage() {
+  const { fmt, symbol } = useCurrency();
   const [now, setNow]                   = useState(new Date());
   const [members, setMembers]           = useState(1);
   const [fitrahPaid, setFitrahPaid]     = useState(false);
@@ -86,6 +98,9 @@ export default function RamadanPage() {
   const [expandDua, setExpandDua]       = useState<number | null>(null);
   const [syncStatus, setSyncStatus]     = useState<'idle' | 'saving' | 'synced' | 'error'>('idle');
   const { toast } = useToast();
+  // Guard against a race where the localStorage-save effect fires on initial
+  // state before the server-side load completes, overwriting the server copy.
+  const hydrated = useRef(false);
 
   // Load goals from server on mount
   useEffect(() => {
@@ -135,13 +150,16 @@ export default function RamadanPage() {
             // Silent fail on localStorage parse error
           }
         }
+      } finally {
+        hydrated.current = true;
       }
     };
     loadGoals();
   }, []);
 
-  // Save to localStorage as cache
+  // Save to localStorage as cache — skip until server hydration completes
   useEffect(() => {
+    if (!hydrated.current) return;
     safeSetItem('ramadan_goals', JSON.stringify({
       members,
       fitrahPaid,
@@ -252,13 +270,13 @@ export default function RamadanPage() {
         </p>
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">Amount per person ($)</label>
+            <label className="text-sm font-medium text-gray-700 block mb-1">Amount per person ({symbol})</label>
             <input
               type="number" min="1" step="1" value={fitrahPerPerson}
               onChange={e => setFitrahPerPerson(Math.max(1, parseFloat(e.target.value) || ZAKAT_FITR_DEFAULT))}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
             />
-            <p className="text-xs text-gray-400 mt-0.5">Default $10 — edit per your mosque</p>
+            <p className="text-xs text-gray-400 mt-0.5">Default {symbol}10 — edit per your mosque</p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700 block mb-1">Family members</label>
@@ -270,7 +288,7 @@ export default function RamadanPage() {
           </div>
         </div>
         <div className="flex justify-between items-center bg-amber-50 rounded-xl px-4 py-3 mb-4">
-          <span className="text-sm text-amber-800">{members} person{members > 1 ? 's' : ''} × ${fitrahPerPerson}</span>
+          <span className="text-sm text-amber-800">{members} person{members > 1 ? 's' : ''} × {symbol}{fitrahPerPerson}</span>
           <span className="text-xl font-bold text-[#1B5E20]">{fmt(fitrahTotal)}</span>
         </div>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -295,7 +313,7 @@ export default function RamadanPage() {
               <span className="text-xl w-8 text-center">{b.icon}</span>
               <span className="flex-1 text-sm text-gray-700">{b.label}</span>
               <div className="flex items-center gap-1">
-                <span className="text-gray-400 text-sm">$</span>
+                <span className="text-gray-400 text-sm">{symbol}</span>
                 <input
                   type="number" min="0" step="10" value={b.allocated}
                   onChange={e => updateBudget(b.key, Math.max(0, parseInt(e.target.value) || 0))}
@@ -316,7 +334,7 @@ export default function RamadanPage() {
               className="flex-1 border rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:border-[#1B5E20]"
             />
             <div className="flex items-center gap-1 border rounded-lg px-2 py-1.5 bg-white">
-              <span className="text-gray-400 text-sm">$</span>
+              <span className="text-gray-400 text-sm">{symbol}</span>
               <input
                 type="number" min="0" step="10" placeholder="0"
                 value={customGoalDraft.amount}
@@ -379,7 +397,7 @@ export default function RamadanPage() {
         )}
         {!fitrahPaid && (
           <div className="flex justify-between items-center mt-1 text-sm text-[#1B5E20]">
-            <span>🕌 Zakat al-Fitr ({members} × ${fitrahPerPerson})</span>
+            <span>🕌 Zakat al-Fitr ({members} × {symbol}{fitrahPerPerson})</span>
             <span className="font-semibold">{fmt(fitrahTotal)}</span>
           </div>
         )}

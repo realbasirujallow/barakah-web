@@ -1431,7 +1431,7 @@ export default function AdminPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {deletedUsers.map((u, i) => (
-                    <tr key={i} className="hover:bg-gray-50">
+                    <tr key={(u.userId as number | undefined) ?? (u.id as number | undefined) ?? (u.email as string | undefined) ?? i} className="hover:bg-gray-50">
                       <td className="px-3 py-3">
                         <p className="font-medium text-gray-900 text-sm">{String(u.fullName || '—')}</p>
                         <p className="text-xs text-gray-400">{String(u.email || '')}</p>

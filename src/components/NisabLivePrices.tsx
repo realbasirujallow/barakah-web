@@ -1,6 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+// HIGH BUG FIX (H-2): This component always displays USD because it's used on
+// public SEO / marketing pages (/zakat-calculator, /learn/*) where we don't
+// know the viewer's locale, and authoritative nisab-threshold copy needs to
+// match the USD figures quoted on the page content. Authenticated dashboard
+// pages should NOT use this component; they should use useCurrency() so the
+// display matches the user's configured display currency.
+//
+// Verified 2026-04-16: no authenticated page (src/app/dashboard/**) imports
+// this component or any of its named exports. If a future author imports it
+// inside /dashboard, migrate that caller to a currency-aware variant instead.
+
+import { useEffect, useState, useSyncExternalStore } from 'react';
+import { api } from '../lib/api';
 
 interface NisabData {
   goldPricePerGram: number;
@@ -15,34 +27,64 @@ interface NisabData {
   staleWarning?: boolean;
 }
 
-// Shared hook so multiple components on the same page share one fetch
-let _cache: NisabData | null = null;
+// Shared hook so multiple components on the same page share one fetch.
+// TTL keeps cached data fresh — after 5 minutes we re-fetch to reflect
+// live market price changes (gold/silver spot prices move intraday).
+const CACHE_TTL_MS = 5 * 60 * 1000;
+let _cache: { data: NisabData; at: number } | null = null;
 let _promise: Promise<NisabData | null> | null = null;
+const _cacheListeners = new Set<() => void>();
+
+function notifyCacheListeners() {
+  for (const cb of _cacheListeners) cb();
+}
 
 function fetchNisab(): Promise<NisabData | null> {
-  if (_cache) return Promise.resolve(_cache);
+  if (_cache && Date.now() - _cache.at < CACHE_TTL_MS) {
+    return Promise.resolve(_cache.data);
+  }
   if (_promise) return _promise;
-  _promise = fetch('/api/zakat/info')
-    .then(r => (r.ok ? r.json() : null))
+  _promise = api.getNisabInfo()
     .then((data: NisabData | null) => {
-      if (data) _cache = data;
+      if (data) {
+        _cache = { data, at: Date.now() };
+        notifyCacheListeners();
+      }
       return data;
     })
-    .catch(() => null);
+    .catch(() => null)
+    .finally(() => { _promise = null; });
   return _promise;
+}
+
+// useSyncExternalStore helpers — read the module cache without touching
+// time/state during render (keeps react-hooks/purity + react-hooks/set-state-in-effect happy).
+function subscribeCache(cb: () => void): () => void {
+  _cacheListeners.add(cb);
+  return () => { _cacheListeners.delete(cb); };
+}
+
+function getCachedSnapshot(): NisabData | null {
+  return _cache ? _cache.data : null;
+}
+
+function getCachedServerSnapshot(): NisabData | null {
+  return null;
 }
 
 /** Hook to get live nisab data from the backend API. */
 export function useNisabData() {
-  const [data, setData] = useState<NisabData | null>(_cache);
-  const [loading, setLoading] = useState(!_cache);
+  // Subscribe to the module cache so any consumer repaints instantly when a
+  // fresh fetch completes, without us needing setState-in-effect.
+  const data = useSyncExternalStore(subscribeCache, getCachedSnapshot, getCachedServerSnapshot);
+  const [loading, setLoading] = useState(data === null);
 
   useEffect(() => {
     let cancelled = false;
     fetchNisab().then(d => {
       if (cancelled) return;
-      if (d) setData(d);
-      setLoading(false);
+      if (d) setLoading(false);
+      else setLoading(false);
     });
     return () => { cancelled = true; };
   }, []);

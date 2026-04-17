@@ -1,7 +1,9 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
-import { fmt, toHijri } from '../../../lib/format';
+import { toHijri } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 import { safeParse, safeParseWithFallback, validateZakatCalculation, validateZakatPaymentsResponse, validateNisabInfo, formatTimeAgo } from '../../../lib/schemas';
@@ -63,7 +65,10 @@ function computeHijriYear(): number {
 }
 
 export default function ZakatPage() {
+  const router = useRouter();
   const { toast } = useToast();
+  const { fmt, symbol, currency } = useCurrency();
+  const mountedRef = useRef(true);
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [data, setData] = useState<ZakatCalculation | null>(null);
   const [payments, setPayments] = useState<ZakatPayment[]>([]);
@@ -133,7 +138,7 @@ export default function ZakatPage() {
   const loadZakatAlFitr = useCallback(async () => {
     setLoadingFitr(true);
     try {
-      const fitr = await api.getZakatAlFitr(householdSize, 'USD');
+      const fitr = await api.getZakatAlFitr(householdSize, currency);
       if (fitr) {
         // Map backend response shape to frontend expected keys.
         // Backend returns: { totalDue: { minimum, recommended, generous }, perPerson: { ... } }
@@ -183,7 +188,7 @@ export default function ZakatPage() {
       logError(err, { context: 'Failed to load zakat al-fitr' });
     }
     setLoadingFitr(false);
-  }, [householdSize]);
+  }, [householdSize, currency]);
 
   const loadScholarlyReferences = async () => {
     setLoadingReferences(true);
@@ -199,6 +204,7 @@ export default function ZakatPage() {
   };
 
   const load = async () => {
+    if (!mountedRef.current) return;
     setLoading(true);
     setLoadError(null);
     try {
@@ -209,6 +215,7 @@ export default function ZakatPage() {
         api.getNisabMethodologies().catch(() => null), // FEATURE 1: methodologies
         api.getNisabMethodology().catch(() => null),   // user's current methodology preference
       ]);
+      if (!mountedRef.current) return;
       const zakatRaw = results[0].status === 'fulfilled' ? results[0].value : null;
       const paymentsRaw = results[1].status === 'fulfilled' ? results[1].value : null;
       const nisabRaw = results[2].status === 'fulfilled' ? results[2].value : null;
@@ -219,12 +226,14 @@ export default function ZakatPage() {
       const zakatData = safeParse(validateZakatCalculation, zakatRaw, 'zakat/calculate');
       if (!zakatData && zakatRaw?.error) {
         logError(new Error(zakatRaw.error as string), { context: 'Zakat API error' });
+        if (!mountedRef.current) return;
         setLoadError(String(zakatRaw.error) || 'Failed to load zakat data. Please try refreshing.');
         setLoading(false);
         return;
       }
       if (zakatRaw?.error) {
         logError(new Error(zakatRaw.error as string), { context: 'Zakat API error' });
+        if (!mountedRef.current) return;
         setLoadError(String(zakatRaw.error) || 'Failed to load zakat data. Please try refreshing.');
         setLoading(false);
         return;
@@ -234,17 +243,20 @@ export default function ZakatPage() {
       const paymentsValidated = safeParse(validateZakatPaymentsResponse, paymentsRaw, 'zakat/payments');
       if (!paymentsValidated && paymentsRaw?.error) {
         logError(new Error(paymentsRaw.error as string), { context: 'Payments API error' });
+        if (!mountedRef.current) return;
         setLoading(false);
         return;
       }
       if (paymentsRaw?.error) {
         logError(new Error(paymentsRaw.error as string), { context: 'Payments API error' });
+        if (!mountedRef.current) return;
         setLoading(false);
         return;
       }
 
       // Use fallback for non-critical nisab info
       const nisabData = safeParseWithFallback(validateNisabInfo, nisabRaw, 'nisab/info');
+      if (!mountedRef.current) return;
       if (nisabData) setNisabInfo(nisabData);
 
       // FEATURE 1: Load nisab methodologies and user's current selection
@@ -255,33 +267,51 @@ export default function ZakatPage() {
           name: String(m.displayName ?? m.name ?? ''),
           description: String(m.description ?? ''),
         }));
+        if (!mountedRef.current) return;
         setNisabMethodologies(normalized);
       }
       // Apply user's current methodology preference (fetched in parallel above)
       if (methodologyPrefRaw?.methodology) {
+        if (!mountedRef.current) return;
         setSelectedMethodology(methodologyPrefRaw.methodology as string);
       }
 
+      if (!mountedRef.current) return;
       setData(zakatRaw as ZakatCalculation);
 
       // Filter payments to current lunar year
       const year = (zakatRaw?.currentLunarYear as number) || computeHijriYear();
       const filtered = (paymentsValidated?.payments || []).filter(p => !p.lunarYear || p.lunarYear === year);
+      if (!mountedRef.current) return;
       setPayments(filtered);
       // Use the backend's zakatPaid value for consistency with the dashboard.
       // Previously, summing individual payment records caused a rounding discrepancy
       // (e.g., dashboard showed $700.00 but zakat page showed $700.04).
       const backendPaid = (zakatRaw?.zakatPaid as number) ?? undefined;
-      const clientPaid = filtered.reduce((s: number, p) => s + (p.amount || 0), 0);
+      const clientPaid = filtered.reduce((sum: number, p) => sum + (p.amount || 0), 0);
+      if (!mountedRef.current) return;
       setTotalPaid(backendPaid != null ? backendPaid : clientPaid);
     } catch (err) {
       logError(err, { context: 'Failed to load zakat data' });
+      if (!mountedRef.current) return;
       setLoadError('Failed to load zakat data. Please try refreshing.');
     }
+    if (!mountedRef.current) return;
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    let cancelled = false;
+    mountedRef.current = true;
+    void (async () => {
+      await load();
+      if (cancelled) return;
+    })();
+    return () => {
+      cancelled = true;
+      mountedRef.current = false;
+    };
+  }, []);
 
   // Use effectiveZakatAmount (locked amount) if available, otherwise use zakatDue
   const zakatDue = data && !data.error
@@ -460,27 +490,27 @@ export default function ZakatPage() {
               <table>
                 <tr>
                   <td>Total Wealth</td>
-                  <td class="amount">$${(summary.totalWealth as number)?.toFixed(2) || '0.00'}</td>
+                  <td class="amount">${escHtml(symbol)}${(summary.totalWealth as number)?.toFixed(2) || '0.00'}</td>
                 </tr>
                 <tr>
                   <td>Zakatable Wealth</td>
-                  <td class="amount">$${(summary.zakatableWealth as number)?.toFixed(2) || '0.00'}</td>
+                  <td class="amount">${escHtml(symbol)}${(summary.zakatableWealth as number)?.toFixed(2) || '0.00'}</td>
                 </tr>
                 <tr>
                   <td>Nisab Threshold</td>
-                  <td>$${((summary.nisab ?? summary.nisabThreshold) as number)?.toFixed(2) || '0.00'} (${summary.nisabMethodology || 'AMJA_GOLD'})</td>
+                  <td>${escHtml(symbol)}${((summary.nisab ?? summary.nisabThreshold) as number)?.toFixed(2) || '0.00'} (${escHtml(summary.nisabMethodology) || 'AMJA_GOLD'})</td>
                 </tr>
                 <tr>
                   <td>Zakat Due (2.5%)</td>
-                  <td class="amount">$${(summary.zakatDue as number)?.toFixed(2) || '0.00'}</td>
+                  <td class="amount">${escHtml(symbol)}${(summary.zakatDue as number)?.toFixed(2) || '0.00'}</td>
                 </tr>
                 <tr>
                   <td>Total Paid</td>
-                  <td>$${(summary.totalPaid as number)?.toFixed(2) || '0.00'}</td>
+                  <td>${escHtml(symbol)}${(summary.totalPaid as number)?.toFixed(2) || '0.00'}</td>
                 </tr>
                 <tr>
                   <td>Remaining</td>
-                  <td class="amount">$${(summary.remaining as number)?.toFixed(2) || '0.00'}</td>
+                  <td class="amount">${escHtml(symbol)}${(summary.remaining as number)?.toFixed(2) || '0.00'}</td>
                 </tr>
               </table>
             </div>
@@ -628,7 +658,15 @@ export default function ZakatPage() {
               </p>
               {nisabInfo?.goldPricePerGram && (
                 <p className="text-xs text-gray-400 mt-1">
-                  Gold: ${nisabInfo.goldPricePerGram!.toFixed(2)}/g · 85g standard
+                  {/* HIGH BUG FIX (H-1): goldPricePerGram comes straight from
+                      /api/zakat/info, which quotes the spot price in USD from
+                      the upstream gold feed — it's NOT converted through the
+                      user's display currency pipeline. Keep the "$" glyph and
+                      the explicit "USD" suffix so non-USD users aren't
+                      misled into thinking this figure is already localized.
+                      If we ever plumb currency conversion through this
+                      endpoint, switch the glyph to the user's {symbol}. */}
+                  Gold: ${nisabInfo.goldPricePerGram!.toFixed(2)} USD/g · 85g standard
                   {nisabInfo.priceAgeMs !== undefined && (
                     <span className="ml-1">· updated {formatTimeAgo(nisabInfo.priceAgeMs)}</span>
                   )}
@@ -692,7 +730,7 @@ export default function ZakatPage() {
             <div className="mt-6 bg-blue-50 border border-blue-100 rounded-xl p-5 text-center">
               <p className="text-blue-800 text-sm font-medium mb-1">No assets found</p>
               <p className="text-blue-600 text-xs">Add your assets in the Assets page so Barakah can automatically calculate your zakat obligation.</p>
-              <button onClick={() => window.location.href = '/dashboard/assets'} className="mt-3 text-sm bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32]">
+              <button onClick={() => router.push('/dashboard/assets')} className="mt-3 text-sm bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32]">
                 Go to Assets
               </button>
             </div>
@@ -1397,7 +1435,7 @@ export default function ZakatPage() {
             <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Record Zakat Payment — {lunarYear} AH</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount (USD)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{`Amount (${currency})`}</label>
                 <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="0.00" />
               </div>
               <div>

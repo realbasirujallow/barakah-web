@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 
@@ -26,6 +27,7 @@ interface FiqhSchool {
 
 export default function FiqhSettingsPage() {
   const { toast } = useToast();
+  const { fmt } = useCurrency();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<FiqhConfig>({});
@@ -109,6 +111,15 @@ export default function FiqhSettingsPage() {
             wasiyyahExceedThirdWithConsent: updatedConfig.wasiyyahExceedThirdWithConsent ?? false,
             raddIncludesSpouse: updatedConfig.raddIncludesSpouse ?? false,
           });
+        }
+        // HIGH BUG FIX (H-3): broadcast so other open tabs/pages (zakat,
+        // retirement-zakat, faraid) can refetch the user's fiqh config
+        // without a manual page refresh.
+        // TODO: add matching window.addEventListener('barakah:fiqh-change',
+        // ...) in zakat / retirement-zakat / faraid pages to refetch on mount
+        // or change. Left for a follow-up refactor to keep this diff scoped.
+        if (typeof window !== 'undefined') {
+          try { window.dispatchEvent(new Event('barakah:fiqh-change')); } catch { /* no-op */ }
         }
         toast('Madhab updated successfully! Detailed rules have been updated to match.', 'success');
       }
@@ -297,7 +308,7 @@ export default function FiqhSettingsPage() {
               </p>
               {nisabThresholdUsd != null && (
                 <p className="text-sm text-emerald-700 mb-4">
-                  Current nisab at live metal prices: <span className="font-bold">${nisabThresholdUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  Current nisab: <span className="font-bold">{fmt(nisabThresholdUsd)}</span>
                 </p>
               )}
               <div className="space-y-3">

@@ -71,11 +71,19 @@ export default function ShareReceiptButton({ source, title, pitch, label, classN
   };
 
   const handleClick = async () => {
-    if (!referral) {
+    // HIGH BUG FIX (H-8): previously we'd fetch /referral-code, call
+    // setReferral(), then fall through to `referral ?? (await api...)` — but
+    // setState is asynchronous, so on the very first click the `referral`
+    // reference read below was still null and we'd re-fetch. Capture the
+    // freshly-fetched value in a local variable so we issue exactly one
+    // network request per click.
+    let ref = referral;
+    if (!ref) {
       setLoading(true);
       try {
-        const d = await api.getReferralCode();
-        setReferral(d as ReferralData);
+        const fetched = await api.getReferralCode() as ReferralData;
+        setReferral(fetched);
+        ref = fetched;
       } catch (err) {
         logError(err, { context: 'ShareReceiptButton: on-click fetch failed', source });
         return;
@@ -84,14 +92,17 @@ export default function ShareReceiptButton({ source, title, pitch, label, classN
       }
     }
 
-    const data = referral ?? (await api.getReferralCode()) as ReferralData;
+    if (!ref) {
+      // Fetch failed silently; abort — the catch above already logged.
+      return;
+    }
 
     // Try native share sheet first — best on mobile. The text field gets
     // the pitch; the URL is passed separately so the receiving app can
     // preview the link.
     if (typeof navigator !== 'undefined' && 'share' in navigator) {
       try {
-        await navigator.share({ title, text: pitch, url: data.shareUrl });
+        await navigator.share({ title, text: pitch, url: ref.shareUrl });
         fireLifecycle('native');
         return;
       } catch {

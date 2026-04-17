@@ -107,6 +107,14 @@ export default function NetWorthPage() {
     setSnapping(true);
     try {
       await api.takeNetWorthSnapshot();
+      // CRITICAL BUG FIX (C-3): mark today's snapshot as taken BEFORE calling load(),
+      // so the daily-snapshot branch in load() short-circuits instead of creating a
+      // second snapshot for the same day.
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('barakah_last_nw_snapshot', new Date().toISOString().slice(0, 10));
+        } catch { /* ignore quota / privacy mode */ }
+      }
       if (mountedRef.current) await load();
     } catch {
       if (mountedRef.current) setError('Failed to take snapshot. Make sure you have assets tracked.');
@@ -247,7 +255,7 @@ export default function NetWorthPage() {
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b">
             <h2 className="font-bold text-[#1B5E20]">Snapshot History</h2>
-            <p className="text-xs text-gray-500 mt-1">A snapshot is recorded each time you visit this page</p>
+            <p className="text-xs text-gray-500 mt-1">A snapshot is recorded once per day when you visit this page</p>
           </div>
           <div className="divide-y">
             {history.map((snap, i) => {
@@ -255,7 +263,7 @@ export default function NetWorthPage() {
               const delta = prevSnap ? snap.netWorth - prevSnap.netWorth : null;
               const deltaPos = delta !== null && delta >= 0;
               return (
-                <div key={snap.date} className="px-6 py-4 flex justify-between items-center">
+                <div key={snap.id ?? snap.date} className="px-6 py-4 flex justify-between items-center">
                   <div>
                     <p className="font-medium text-gray-900">{formatDate(snap.date)}</p>
                     <p className="text-sm text-gray-500">

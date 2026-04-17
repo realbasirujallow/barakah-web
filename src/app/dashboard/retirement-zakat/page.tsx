@@ -46,7 +46,7 @@ const US_STATES = [
 
 export default function RetirementZakatPage() {
   const { toast } = useToast();
-  const { fmt: formatCurrency } = useCurrency();
+  const { fmt: formatCurrency, symbol } = useCurrency();
 
   // Form state
   const [balance, setBalance] = useState('');
@@ -86,6 +86,15 @@ export default function RetirementZakatPage() {
       return;
     }
 
+    // CRITICAL BUG FIX (C-2): reject negative/NaN/Infinity balances before
+    // sending to backend. Without this, a negative number reaches the calc
+    // and can produce nonsensical (or negative) zakat amounts.
+    const parsed = parseFloat(balance);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      toast('Balance cannot be negative', 'error');
+      return;
+    }
+
     setLoading(true);
     try {
       // Clamp the employer-match input: blank or non-numeric means 0
@@ -97,7 +106,7 @@ export default function RetirementZakatPage() {
         : 0;
 
       const data = {
-        balance: parseFloat(balance),
+        balance: parsed,
         accountType,
         employerMatchPercent: empClamped,
         state: state || '',
@@ -149,7 +158,7 @@ export default function RetirementZakatPage() {
               <form onSubmit={handleCalculate} className="space-y-4">
                 {/* Balance */}
                 <div>
-                  <label className="block text-sm font-semibold text-[#1B5E20] mb-2">Total Account Balance ($)</label>
+                  <label className="block text-sm font-semibold text-[#1B5E20] mb-2">Total Account Balance ({symbol})</label>
                   <input
                     type="number"
                     step="0.01"

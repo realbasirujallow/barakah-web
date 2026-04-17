@@ -111,10 +111,16 @@ export default function AuditLedgerPage() {
     }
   };
 
-  const formatAmount = (amount: unknown, _currency: unknown): string => {
+  const formatAmount = (amount: unknown, entryCurrency?: string): string => {
     if (amount === undefined || amount === null) return 'N/A';
     try {
       const num = typeof amount === 'string' ? parseFloat(amount) : Number(amount);
+      // Prefer the entry's own currency so historical rows keep the currency
+      // they were recorded in (a zakat payment in EUR still shows as EUR
+      // even if the user's preferred display currency is now USD).
+      if (entryCurrency) {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: entryCurrency }).format(num);
+      }
       // fmt() already includes the currency symbol — do not append a separate code.
       return fmt(num);
     } catch {
@@ -183,8 +189,9 @@ export default function AuditLedgerPage() {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="w-full sm:w-auto">
-              <label className="block text-sm font-semibold text-[#1B5E20] mb-2">Filter by Type</label>
+              <label htmlFor="ledger-type" className="block text-sm font-semibold text-[#1B5E20] mb-2">Filter by Type</label>
               <select
+                id="ledger-type"
                 value={selectedType}
                 onChange={(e) => handleTypeChange(e.target.value)}
                 className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"

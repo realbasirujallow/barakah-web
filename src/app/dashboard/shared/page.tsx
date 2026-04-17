@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 
 interface Group {
@@ -55,9 +55,14 @@ interface SharedGoal {
 }
 
 const emptyGroupForm = { name: '', description: '' };
-const emptyTxForm = { description: '', amount: '', category: '' };
+// `type` is required by the backend SharedTransactionRequest DTO (@NotBlank).
+// Default to "expense" because it's the overwhelmingly common case for shared
+// household spend. Future UI can expose a type picker; until then the default
+// keeps the form compatible with the server contract.
+const emptyTxForm = { description: '', amount: '', category: '', type: 'expense' };
 
 export default function SharedPage() {
+  const { fmt, currency } = useCurrency();
   const [groups, setGroups] = useState<Group[]>([]);
   const [activeGroup, setActiveGroup] = useState<Group | null>(null);
   const [summary, setSummary] = useState<GroupSummary | null>(null);
@@ -196,6 +201,7 @@ export default function SharedPage() {
     setSavingTx(true);
     try {
       await api.addGroupTransaction(activeGroup.id, {
+        type: txForm.type || 'expense',   // required by SharedTransactionRequest
         description: txForm.description,
         amount: parseFloat(txForm.amount),
         category: txForm.category || 'general',
@@ -211,12 +217,17 @@ export default function SharedPage() {
 
   const handleDeleteTx = (txId: number) => {
     if (!activeGroup) return;
+    // Capture the current group at callback-creation time so a later group
+    // switch doesn't delete from the wrong group. Same pattern applied to
+    // the other handlers below.
+    const group = activeGroup;
+    const gid = group.id;
     setConfirmAction({
       message: 'Delete this transaction?',
       action: async () => {
         try {
-          await api.deleteGroupTransaction(activeGroup!.id, txId);
-          loadGroupDetail(activeGroup!);
+          await api.deleteGroupTransaction(gid, txId);
+          loadGroupDetail(group);
         } catch {
           toast('Failed to delete transaction', 'error');
         }
@@ -242,12 +253,14 @@ export default function SharedPage() {
 
   const handleDeleteBudget = (budgetId: number) => {
     if (!activeGroup) return;
+    const group = activeGroup;
+    const gid = group.id;
     setConfirmAction({
       message: 'Delete this budget?',
       action: async () => {
         try {
-          await api.deleteSharedBudget(activeGroup!.id, budgetId);
-          loadGroupDetail(activeGroup!);
+          await api.deleteSharedBudget(gid, budgetId);
+          loadGroupDetail(group);
         } catch {
           toast('Failed to delete budget', 'error');
         }
@@ -262,7 +275,12 @@ export default function SharedPage() {
       await api.addSharedGoal(activeGroup.id, {
         name: goalForm.name,
         targetAmount: parseFloat(goalForm.targetAmount),
-        targetDate: goalForm.targetDate || null,
+        // Backend SharedGoalRequest.targetDate is Long (epoch millis). The
+        // <input type="date"> yields "YYYY-MM-DD"; convert to UTC noon epoch
+        // so Jackson maps it to Long instead of 400-ing on type mismatch.
+        targetDate: goalForm.targetDate
+          ? new Date(goalForm.targetDate + 'T12:00:00Z').getTime()
+          : null,
         description: goalForm.description || null,
       });
       setShowAddGoal(false);
@@ -288,12 +306,14 @@ export default function SharedPage() {
 
   const handleDeleteGoal = (goalId: number) => {
     if (!activeGroup) return;
+    const group = activeGroup;
+    const gid = group.id;
     setConfirmAction({
       message: 'Delete this goal?',
       action: async () => {
         try {
-          await api.deleteSharedGoal(activeGroup!.id, goalId);
-          loadGroupDetail(activeGroup!);
+          await api.deleteSharedGoal(gid, goalId);
+          loadGroupDetail(group);
         } catch {
           toast('Failed to delete goal', 'error');
         }
@@ -302,9 +322,12 @@ export default function SharedPage() {
   };
 
   const copyInviteCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
+    navigator.clipboard.writeText(code)
+      .then(() => {
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+      })
+      .catch(() => { /* clipboard denied — silently fail */ });
   };
 
   if (loading) return (
@@ -666,7 +689,7 @@ export default function SharedPage() {
                                 <div>
                                   <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-2">Waqf Endowments</p>
                                   {waqfs.map((w, i) => (
-                                    <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
+                                    <div key={(w.id as number | string | undefined) ?? i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
                                       <div>
                                         <p className="text-sm text-gray-900">{w.organizationName as string}</p>
                                         <p className="text-xs text-gray-400">{w.purpose as string} &middot; {w.type as string}{w.recurring ? ` &middot; ${w.frequency as string}` : ''}</p>
@@ -683,7 +706,7 @@ export default function SharedPage() {
                                 <div>
                                   <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Wasiyyah Beneficiaries</p>
                                   {beneficiaries.map((b, i) => (
-                                    <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
+                                    <div key={(b.id as number | string | undefined) ?? i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
                                       <div>
                                         <p className="text-sm text-gray-900">{b.beneficiaryName as string}</p>
                                         <p className="text-xs text-gray-400">{b.relationship as string} &middot; {b.shareType as string}</p>
@@ -700,7 +723,7 @@ export default function SharedPage() {
                                 <div>
                                   <p className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-2">Outstanding Obligations</p>
                                   {obligations.map((o, i) => (
-                                    <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
+                                    <div key={(o.id as number | string | undefined) ?? i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
                                       <div>
                                         <p className="text-sm text-gray-900">{o.description as string}</p>
                                         <p className="text-xs text-gray-400">{o.type as string}{o.recipient ? ` to ${o.recipient as string}` : ''}</p>
@@ -765,7 +788,7 @@ export default function SharedPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount (USD)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount ({currency})</label>
                   <input
                     type="number" step="0.01"
                     value={txForm.amount}
@@ -820,7 +843,7 @@ export default function SharedPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Limit (USD)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Limit ({currency})</label>
                   <input
                     type="number" step="0.01"
                     value={budgetForm.monthlyLimit}
@@ -865,7 +888,7 @@ export default function SharedPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Amount (USD)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Amount ({currency})</label>
                   <input
                     type="number" step="0.01"
                     value={goalForm.targetAmount}
@@ -919,7 +942,7 @@ export default function SharedPage() {
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
               <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Contribute to Goal</h2>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount (USD)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Amount ({currency})</label>
                 <input
                   type="number" step="0.01"
                   value={contributeAmount}

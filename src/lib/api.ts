@@ -397,7 +397,24 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
     if (res.status === 401) {
       const refreshResult = await deduplicatedRefresh();
       if (refreshResult === 'ok') {
-        const r2 = await fetch(`${API_URL}${endpoint}`, { method: 'POST', body: formData, credentials: 'include', headers: uploadHeaders });
+        const retryController = new AbortController();
+        const retryTimeoutId = setTimeout(() => retryController.abort(), UPLOAD_TIMEOUT);
+        let r2: Response;
+        try {
+          r2 = await fetch(`${API_URL}${endpoint}`, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+            headers: uploadHeaders,
+            signal: retryController.signal,
+          });
+        } catch (retryErr: unknown) {
+          clearTimeout(retryTimeoutId);
+          if ((retryErr as Record<string, unknown>).name === 'AbortError') throw new Error('Upload timed out.');
+          throw new Error('No connection to server.');
+        } finally {
+          clearTimeout(retryTimeoutId);
+        }
         if (r2.ok) { const t = await r2.text(); if (!t) return null; try { return JSON.parse(t); } catch { throw new Error('Unexpected server response.'); } }
         if (r2.status !== 401) throw new Error(await extractErrorMessage(r2, `Upload error ${r2.status}`));
         if (await verifySessionStillValid()) throw new Error(await extractErrorMessage(r2, 'Upload failed. Please try again.'));
@@ -1083,18 +1100,30 @@ export const api = {
     let totalCreated = 0;
     let totalSkipped = 0;
     const allErrors: string[] = [];
-
+    const chunks: unknown[][] = [];
     for (let i = 0; i < allTxns.length; i += chunkSize) {
-      const chunk = allTxns.slice(i, i + chunkSize);
+      chunks.push(allTxns.slice(i, i + chunkSize));
+    }
+
+    let failedChunks = 0;
+    for (const chunk of chunks) {
       const chunkPayload = { format: 'transactions', transactions: chunk };
-      // BUG FIX: guard against null response body (e.g. 204 No Content)
-      const data = await apiFetch('/api/import/monarch/execute', {
-        method: 'POST', body: JSON.stringify(chunkPayload),
-      }, IMPORT_TIMEOUT) ?? {};
-      if (data?.error) allErrors.push(data.error);
-      totalCreated += data?.transactionsCreated || 0;
-      totalSkipped += data?.skipped || 0;
-      if (data?.errors) allErrors.push(...data.errors);
+      try {
+        // BUG FIX: guard against null response body (e.g. 204 No Content)
+        const data = await apiFetch('/api/import/monarch/execute', {
+          method: 'POST', body: JSON.stringify(chunkPayload),
+        }, IMPORT_TIMEOUT) ?? {};
+        if (data?.error) allErrors.push(data.error);
+        totalCreated += data?.transactionsCreated || 0;
+        totalSkipped += data?.skipped || 0;
+        if (data?.errors) allErrors.push(...data.errors);
+      } catch {
+        failedChunks++;
+      }
+    }
+
+    if (failedChunks > 0) {
+      throw new Error(`${failedChunks} of ${chunks.length} chunks failed to import`);
     }
 
     return {

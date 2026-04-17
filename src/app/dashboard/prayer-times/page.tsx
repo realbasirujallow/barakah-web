@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { logError } from '../../../lib/logError';
 
 interface PrayerTimings { Fajr: string; Sunrise: string; Dhuhr: string; Asr: string; Maghrib: string; Isha: string; }
 
@@ -340,7 +341,7 @@ export default function PrayerTimesPage() {
           fetchTimes(parsed.city, parsed.country, savedMethod, savedZone);
         }
       } catch (err) {
-        console.warn('Failed to restore saved prayer location:', err);
+        logError(err, { context: 'Failed to restore saved prayer location' });
       }
     }
   }, [fetchTimes, fetchTimesByCoordinates]);

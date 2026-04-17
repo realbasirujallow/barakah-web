@@ -36,10 +36,22 @@ export function trackLogin(method = 'email') {
   trackEvent('login', { method });
 }
 
-/** Track plan upgrade (purchase event for GA4 revenue tracking) */
-export function trackUpgrade(plan: string, billingCycle: 'monthly' | 'yearly', value: number) {
+/** Track plan upgrade (purchase event for GA4 revenue tracking).
+ *
+ *  HIGH BUG FIX (H-7): currency was hardcoded to 'USD'. Callers that already
+ *  know the Stripe-billed currency (from subscription metadata or checkout
+ *  session) should pass it so GA4 revenue reports aren't skewed for non-USD
+ *  subscriptions. Defaults to 'USD' for backwards compatibility with
+ *  existing call sites that don't yet plumb the currency through.
+ */
+export function trackUpgrade(
+  plan: string,
+  billingCycle: 'monthly' | 'yearly',
+  value: number,
+  currency = 'USD',
+) {
   trackEvent('purchase', {
-    currency: 'USD',
+    currency,
     value,
     transaction_id: `upgrade_${plan}_${Date.now()}`,
     items: [{

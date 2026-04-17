@@ -37,7 +37,9 @@ interface HalalAnalysis {
 }
 
 // Converts a snake_case slug into Title Case for display (e.g. "debt_payment" → "Debt Payment")
-function formatCategoryLabel(slug: string): string {
+// Tolerates null/undefined input so callers don't need to guard with `?? ''`.
+function formatCategoryLabel(slug?: string | null): string {
+  if (!slug) return '';
   return slug.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
@@ -647,7 +649,7 @@ function AnalyticsPageContent() {
                 </tr>
               </thead>
               <tbody>
-                {expenseData
+                {[...expenseData]
                   .sort((a, b) => b.value - a.value)
                   .map((d, i) => {
                     const pct =

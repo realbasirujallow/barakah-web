@@ -133,8 +133,9 @@ export default function ContactPage() {
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Your name</label>
+                  <label htmlFor="contact-name" className="block text-xs font-semibold text-gray-500 mb-1.5">Your name</label>
                   <input
+                    id="contact-name"
                     type="text"
                     placeholder="Ahmad Al-Farsi"
                     value={form.name}
@@ -143,8 +144,9 @@ export default function ContactPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Phone number</label>
+                  <label htmlFor="contact-phone" className="block text-xs font-semibold text-gray-500 mb-1.5">Phone number</label>
                   <input
+                    id="contact-phone"
                     type="tel"
                     placeholder="+1 (317) 555-0123"
                     value={form.phone}
@@ -153,8 +155,9 @@ export default function ContactPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Email address <span className="text-red-400">*</span></label>
+                  <label htmlFor="contact-email" className="block text-xs font-semibold text-gray-500 mb-1.5">Email address <span className="text-red-400">*</span></label>
                   <input
+                    id="contact-email"
                     type="email"
                     required
                     placeholder="ahmad@example.com"
@@ -166,8 +169,9 @@ export default function ContactPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Topic <span className="text-red-400">*</span></label>
+                <label htmlFor="contact-subject" className="block text-xs font-semibold text-gray-500 mb-1.5">Topic <span className="text-red-400">*</span></label>
                 <select
+                  id="contact-subject"
                   required
                   value={form.subject}
                   onChange={e => setForm({ ...form, subject: e.target.value })}
@@ -179,8 +183,9 @@ export default function ContactPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Message <span className="text-red-400">*</span></label>
+                <label htmlFor="contact-message" className="block text-xs font-semibold text-gray-500 mb-1.5">Message <span className="text-red-400">*</span></label>
                 <textarea
+                  id="contact-message"
                   required
                   rows={5}
                   placeholder="Tell us what's on your mind…"

@@ -5,6 +5,7 @@ import { useToast } from '../../../lib/toast';
 import { useAuth } from '../../../context/AuthContext';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { saveCurrencyPreference } from '../../../lib/useCurrency';
+import { useDarkMode, toggleDarkMode as toggleDarkModeShared } from '../../../lib/useDarkMode';
 import { PRICING } from '../../../lib/pricing';
 import HouseholdSection from '../../../components/HouseholdSection';
 
@@ -96,27 +97,13 @@ export default function ProfilePage() {
   const [preferences, setPreferences] = useState<CommunicationPreferences | null>(null);
   const [savingPreferences, setSavingPreferences] = useState(false);
 
-  // Safe localStorage helpers
-  const safeSetItem = (key: string, value: string): void => {
-    try { localStorage.setItem(key, value); } catch { /* private browsing or quota exceeded */ }
-  };
-
-  // Dark mode
-  const [darkMode, setDarkMode] = useState(() => {
-    try {
-      return localStorage.getItem('barakah_dark_mode') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
-  }, [darkMode]);
+  // Dark mode — read via useSyncExternalStore so we stay in sync with the
+  // dashboard layout's toggle (which mutates the class on <html> directly).
+  const darkMode = useDarkMode();
   const toggleDarkMode = () => {
-    const next = !darkMode;
-    setDarkMode(next);
-    safeSetItem('barakah_dark_mode', String(next));
-    document.documentElement.classList.toggle('dark', next);
+    // Mutate the DOM; the MutationObserver in darkModeSubscribe wakes the
+    // useSyncExternalStore subscribers so React re-renders with the new value.
+    toggleDarkModeShared();
   };
 
 

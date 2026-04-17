@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../../lib/api';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 
 interface CategorySuggestion {
@@ -82,6 +83,7 @@ function formatCategory(value: string) {
 }
 
 export default function CategorizePage() {
+  const { fmt } = useCurrency();
   const [suggestions, setSuggestions] = useState<CategorySuggestion[]>([]);
   const [rules, setRules] = useState<TransactionRule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -423,7 +425,7 @@ export default function CategorizePage() {
                 </div>
               </div>
               <div className="text-right flex flex-col items-end gap-2">
-                <p className="font-medium text-gray-700">${Math.abs(s.amount).toFixed(2)}</p>
+                <p className="font-medium text-gray-700">{fmt(Math.abs(s.amount))}</p>
                 <span className={`text-xs ${s.confidence >= 80 ? 'text-green-600' : s.confidence >= 60 ? 'text-amber-600' : 'text-gray-400'}`}>
                   {s.confidence}% confident
                 </span>

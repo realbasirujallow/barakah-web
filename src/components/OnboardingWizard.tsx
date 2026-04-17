@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 interface OnboardingWizardProps {
@@ -83,8 +83,27 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
     onComplete();
   };
 
+  // HIGH BUG FIX (H-10): Escape key dismisses the onboarding wizard (acts
+  // like "Skip tour"). The wrapper below now also carries role="dialog" and
+  // aria-modal="true" for screen-reader users.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleSkip();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+    // handleSkip closes over onComplete (caller-owned) and step-state setters;
+    // all are stable for the lifetime of the modal, so we can leave deps empty.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="onboarding-wizard-title"
+    >
       <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-xl">
         {/* Progress */}
         <div className="flex gap-1 px-6 pt-5">
@@ -96,7 +115,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
         {/* Content */}
         <div className="px-6 pt-6 pb-4 text-center">
           <div className="text-5xl mb-4">{current.icon}</div>
-          <h2 className="text-2xl font-bold text-[#1B5E20] mb-1">{current.title}</h2>
+          <h2 id="onboarding-wizard-title" className="text-2xl font-bold text-[#1B5E20] mb-1">{current.title}</h2>
           <p className="text-sm text-gray-500 mb-4">{current.subtitle}</p>
           <p className="text-gray-700 text-sm leading-relaxed mb-5">{current.body}</p>
 
@@ -118,7 +137,10 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
           </button>
           <div className="flex gap-3">
             {step > 0 && (
-              <button onClick={() => setStep(step - 1)}
+              <button onClick={() => {
+                try { localStorage.setItem(STEP_KEY, String(step - 1)); } catch {}
+                setStep(step - 1);
+              }}
                 className="px-5 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
                 Back
               </button>

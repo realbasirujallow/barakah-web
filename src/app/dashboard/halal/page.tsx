@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
@@ -136,9 +137,9 @@ export default function HalalPage() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
           <p className="text-amber-800 font-semibold mb-2">Plus or Family plan required</p>
           <p className="text-amber-700 text-sm mb-4">Upgrade to screen stocks for Shariah compliance, view sector breakdowns, and more.</p>
-          <a href="/pricing" className="inline-block bg-[#1B5E20] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition-colors">
+          <Link href="/dashboard/billing" className="inline-block bg-[#1B5E20] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition-colors">
             View Plans
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -276,8 +277,8 @@ export default function HalalPage() {
         {/* Results */}
         {!loading && stocks.length > 0 && (
           <div className="space-y-1.5 max-h-[500px] overflow-y-auto">
-            {stocks.map((s, i) => (
-              <div key={`${s.symbol}-${i}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition">
+            {stocks.map((s) => (
+              <div key={s.symbol} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition">
                 <span className={`text-lg ${s.isHalal ? 'text-green-600' : 'text-red-500'}`}>
                   {s.isHalal ? '\u2705' : '\u274C'}
                 </span>

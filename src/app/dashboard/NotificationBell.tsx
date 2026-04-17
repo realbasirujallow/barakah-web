@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { api } from '../../lib/api';
+import { isSafeInternalPath } from '../../lib/safePath';
 import Link from 'next/link';
 
 interface Notification {
@@ -169,12 +170,8 @@ export function NotificationBell() {
 
             {!loading && notifications.map(n => {
               const icon = TYPE_ICONS[n.type] || '🔔';
-              const content = (
-                <div
-                  key={n.id}
-                  className={`flex gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition cursor-pointer group relative ${!n.read ? 'bg-green-50/40' : ''}`}
-                  onClick={() => markRead(n.id)}
-                >
+              const inner = (
+                <>
                   <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900' : 'text-gray-700'} truncate`}>{n.title}</p>
@@ -186,13 +183,27 @@ export function NotificationBell() {
                     onClick={(e) => deleteOne(n.id, e)}
                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition text-xs p-0.5"
                   >✕</button>
-                </div>
+                </>
               );
+              const rowClass = `flex gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition cursor-pointer group relative ${!n.read ? 'bg-green-50/40' : ''}`;
 
-              return n.link ? (
-                <Link key={n.id} href={n.link} className="block">{content}</Link>
+              return isSafeInternalPath(n.link) ? (
+                <Link
+                  key={n.id}
+                  href={n.link}
+                  className={rowClass}
+                  onClick={() => { markRead(n.id); setOpen(false); }}
+                >
+                  {inner}
+                </Link>
               ) : (
-                <div key={n.id}>{content}</div>
+                <div
+                  key={n.id}
+                  className={rowClass}
+                  onClick={() => { markRead(n.id); setOpen(false); }}
+                >
+                  {inner}
+                </div>
               );
             })}
           </div>

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { trackDemoDataLoaded } from '../../lib/analytics';
-import { fmt } from '../../lib/format';
+import { useCurrency } from '../../lib/useCurrency';
 import { useToast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
@@ -60,6 +60,7 @@ function timeAgo(timestamp: number): string {
 }
 
 export default function DashboardPage() {
+  const { fmt } = useCurrency();
   const [totals, setTotals] = useState<AssetTotal | null>(null);
   const [loading, setLoading] = useState(true);
   const [hideNetWorth, setHideNetWorth] = useState(() => safeGetItem('hideNetWorth') === 'true');
@@ -77,12 +78,24 @@ export default function DashboardPage() {
   const { show: showReferralPrompt, dismiss: dismissReferralPrompt } = useReferralPrompt();
   const [referralBannerDismissed, setReferralBannerDismissed] = useState(() => safeGetItem('barakah_referral_banner_dismissed') === 'true');
 
-  const getGreeting = (): { text: string; emoji: string } => {
-    const hour = new Date().getHours();
-    if (hour < 12) return { text: 'Good morning', emoji: '🌅' };
-    if (hour < 18) return { text: 'Good afternoon', emoji: '☀️' };
-    return { text: 'Good evening', emoji: '🌙' };
-  };
+  // HIGH BUG FIX (H-6): Reading new Date().getHours() during render causes
+  // SSR (where the server's clock picks one bucket) and CSR (where the
+  // user's clock may be in a different bucket) to produce different greeting
+  // strings, which triggers a hydration mismatch. Start with a neutral
+  // greeting and replace it after mount, deferred via setTimeout(0) to keep
+  // react-hooks/set-state-in-effect happy (same pattern as layout headerDate).
+  const [greeting, setGreeting] = useState<{ text: string; emoji: string }>({ text: 'Welcome back', emoji: '🌙' });
+  useEffect(() => {
+    let cancelled = false;
+    const id = window.setTimeout(() => {
+      if (cancelled) return;
+      const h = new Date().getHours();
+      if (h < 12) setGreeting({ text: 'Good morning', emoji: '🌅' });
+      else if (h < 18) setGreeting({ text: 'Good afternoon', emoji: '☀️' });
+      else setGreeting({ text: 'Good evening', emoji: '🌙' });
+    }, 0);
+    return () => { cancelled = true; window.clearTimeout(id); };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -176,7 +189,13 @@ export default function DashboardPage() {
   const dayMove = latestPortfolioSnapshot?.dayGainLoss ?? 0;
   const dayMovePct = latestPortfolioSnapshot?.dayGainLossPercent ?? 0;
   const netWorthValue = (totals?.netWorth as number) || (totals?.totalWealth as number) || 0;
-  const [currentTimestamp] = useState(() => Date.now() / 1000);
+  // Tick every minute so the trial banner flips on even if the user keeps
+  // the dashboard open past their plan's expiration time.
+  const [currentTimestamp, setCurrentTimestamp] = useState(() => Math.floor(Date.now() / 1000));
+  useEffect(() => {
+    const id = setInterval(() => setCurrentTimestamp(Math.floor(Date.now() / 1000)), 60_000);
+    return () => clearInterval(id);
+  }, []);
   const isTrialExpired = user?.plan === 'free' && user?.planExpiresAt && user.planExpiresAt < currentTimestamp;
   const hasNoData = !loading && netWorthValue === 0 && !widgets?.recentTransactions?.transactions?.length;
 
@@ -223,8 +242,8 @@ export default function DashboardPage() {
       {/* ── Compact Greeting (single line, Monarch-style) ─────────────────── */}
       <div className="mb-4 flex items-center justify-between">
         <p className="text-base font-semibold text-gray-900 flex items-center gap-2">
-          <span>{getGreeting().emoji}</span>
-          {getGreeting().text}{user?.name ? `, ${user.name}` : ''}
+          <span>{greeting.emoji}</span>
+          {greeting.text}{user?.name ? `, ${user.name}` : ''}
           {hijri?.hijriDate && (
             <span className="text-gray-400 font-normal text-sm ml-2">· {hijri.hijriDate}</span>
           )}
@@ -418,10 +437,10 @@ export default function DashboardPage() {
           </div>
           {widgets?.spending?.topCategories && widgets.spending.topCategories.length > 0 && (
             <div className="space-y-2 mt-3">
-              {widgets.spending.topCategories.slice(0, 4).map((cat, i) => {
+              {widgets.spending.topCategories.slice(0, 4).map((cat) => {
                 const max = widgets.spending!.topCategories[0]?.amount || 1;
                 return (
-                  <div key={i} className="flex items-center gap-2 min-w-0">
+                  <div key={cat.category} className="flex items-center gap-2 min-w-0">
                     <span className="text-sm flex-shrink-0">{CATEGORY_ICONS[cat.category] || '📋'}</span>
                     <span className="text-xs text-gray-700 w-16 md:w-24 truncate capitalize flex-shrink-0">{cat.category.replace(/_/g, ' ')}</span>
                     <div className="flex-1 bg-gray-100 rounded-full h-2 min-w-0">
@@ -462,8 +481,8 @@ export default function DashboardPage() {
           </div>
           {widgets?.budgetOverview?.categories && widgets.budgetOverview.categories.length > 0 ? (
             <div className="space-y-3">
-              {widgets.budgetOverview.categories.slice(0, 4).map((cat, i) => (
-                <div key={i}>
+              {widgets.budgetOverview.categories.slice(0, 4).map((cat) => (
+                <div key={cat.category}>
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className="text-gray-700 capitalize">{cat.category.replace(/_/g, ' ')}</span>
                     <span className="text-gray-500">{fmt(cat.spent)} / {fmt(cat.monthlyLimit)}</span>

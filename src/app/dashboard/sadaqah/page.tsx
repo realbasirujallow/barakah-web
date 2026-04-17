@@ -3,8 +3,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { api } from '../../../lib/api';
-import { fmt } from '../../../lib/format';
+import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
+import { validateStripeUrl } from '../../../lib/validateUrl';
 
 interface SadaqahItem { id: number; amount: number; recipientName: string; category: string; date: number; description: string; recurring: boolean; anonymous: boolean; }
 interface Stats { totalDonated: number; donationCount: number; thisMonthTotal: number; topCategory: string; }
@@ -33,6 +34,7 @@ const CATS = ['food', 'clothing', 'education', 'medical', 'shelter', 'water', 'g
 const PRESET_AMOUNTS = [5, 10, 25, 50, 100];
 
 function SadaqahContent() {
+  const { fmt } = useCurrency();
   const [items, setItems] = useState<SadaqahItem[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -114,19 +116,21 @@ function SadaqahContent() {
       const purposeLabel = donatePurpose.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
       const res = await api.donateToBarakah(cents, `Sadaqah – ${purposeLabel}`);
       if (res?.url) {
-        // Validate the redirect URL — only allow HTTPS to prevent open redirect attacks
-        try {
-          const parsed = new URL(res.url);
-          if (parsed.protocol !== 'https:') throw new Error('Non-HTTPS redirect');
-          window.location.href = res.url;
-        } catch {
-          toast('Invalid payment URL received. Please try again.', 'error');
+        // Validate the redirect URL against the Stripe domain whitelist
+        // (prevents open-redirect attacks via a malicious API response).
+        if (!validateStripeUrl(res.url)) {
+          toast('Invalid checkout URL received. Please contact support.', 'error');
+          return;
         }
+        window.location.href = res.url;
       } else {
         toast('Could not initiate donation. Please try again.', 'error');
       }
-    } catch (err: unknown) { toast(err instanceof Error ? err.message : 'Failed to process donation', 'error'); }
-    setDonating(false);
+    } catch (err: unknown) {
+      toast(err instanceof Error ? err.message : 'Failed to process donation', 'error');
+    } finally {
+      setDonating(false);
+    }
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
