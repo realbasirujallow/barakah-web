@@ -138,7 +138,7 @@ export default function RibaEliminationPage() {
 
       <article className="min-h-screen bg-amber-50">
         {/* Breadcrumb Navigation */}
-        <nav className="bg-white border-b border-gray-200">
+        <nav className="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center space-x-2 text-sm">
               <Link href="/" className="text-green-700 hover:text-green-800 font-medium">
@@ -149,7 +149,7 @@ export default function RibaEliminationPage() {
                 Learn
               </Link>
               <span className="text-gray-400">/</span>
-              <span className="text-gray-700">Riba Elimination Guide</span>
+              <span className="text-gray-700 dark:text-gray-300">Riba Elimination Guide</span>
             </div>
           </div>
         </nav>
@@ -161,23 +161,23 @@ export default function RibaEliminationPage() {
               <span className="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
                 Islamic Finance
               </span>
-              <span className="text-sm text-gray-500">10 min read</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">10 min read</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               How to Eliminate Riba from Your Finances
             </h1>
-            <p className="text-xl text-gray-700 max-w-2xl">
+            <p className="text-xl text-gray-700 max-w-2xl dark:text-gray-300">
               A practical, step-by-step guide for Muslims who want to identify and remove
               interest from their mortgages, credit cards, loans, and savings accounts.
             </p>
           </header>
 
           {/* What is Riba */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">
               What Is Riba and Why Is It Prohibited?
             </h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               Riba (Arabic for &quot;increase&quot; or &quot;excess&quot;) refers to any
               guaranteed, predetermined return on a loan or financial transaction — what
               modern finance calls &quot;interest.&quot; The Quran explicitly and repeatedly
@@ -185,8 +185,8 @@ export default function RibaEliminationPage() {
               opposed to ethical economic practice.
             </p>
             <div className="bg-red-50 border-l-4 border-red-600 p-6 rounded mb-4">
-              <p className="text-gray-800 font-medium mb-2">Quranic Prohibition</p>
-              <p className="text-gray-700 text-sm">
+              <p className="text-gray-800 font-medium mb-2 dark:text-gray-100">Quranic Prohibition</p>
+              <p className="text-gray-700 text-sm dark:text-gray-300">
                 The prohibition of riba is established in multiple verses including Quran
                 2:275-279, where those who deal in riba are warned severely. The Quran
                 distinguishes between trade (which is permissible) and riba (which is
@@ -194,7 +194,7 @@ export default function RibaEliminationPage() {
                 they may appear similar superficially.
               </p>
             </div>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
               The wisdom behind the prohibition includes protecting the vulnerable from
               exploitation, ensuring risk is shared fairly between parties, and promoting
               real economic activity over rentier income. In a riba-based system, the lender
@@ -204,26 +204,26 @@ export default function RibaEliminationPage() {
           </section>
 
           {/* Step 1: Audit */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
             <div className="flex gap-4 items-start mb-4">
               <div className="flex-shrink-0">
                 <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-700 text-white font-bold">
                   1
                 </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Audit Your Riba Exposure
               </h2>
             </div>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               Before you can eliminate riba, you need to know exactly where it exists in
               your financial life. Go through every financial account and relationship and
               identify all sources of interest — both interest you pay and interest you
               receive.
             </p>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-3">Common Riba Sources to Check</h3>
-              <ul className="space-y-2 text-gray-700">
+              <h3 className="font-semibold text-gray-900 mb-3 dark:text-gray-100">Common Riba Sources to Check</h3>
+              <ul className="space-y-2 text-gray-700 dark:text-gray-300">
                 <li className="flex gap-2">
                   <span className="text-amber-700 font-bold flex-shrink-0">&#8226;</span>
                   <span>Mortgage or home equity line of credit (HELOC)</span>
@@ -261,18 +261,18 @@ export default function RibaEliminationPage() {
           </section>
 
           {/* Step 2: Prioritize */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
             <div className="flex gap-4 items-start mb-4">
               <div className="flex-shrink-0">
                 <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-700 text-white font-bold">
                   2
                 </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Prioritize by Impact
               </h2>
             </div>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               You likely cannot eliminate all riba overnight. Prioritize based on a
               combination of the interest rate, the total interest cost, and how easy it is
               to find a halal alternative.
@@ -280,21 +280,21 @@ export default function RibaEliminationPage() {
             <div className="space-y-4">
               <div className="flex gap-4 p-4 bg-red-50 rounded-lg border border-red-200">
                 <span className="font-bold text-red-700 flex-shrink-0">High Priority</span>
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-gray-300">
                   Credit card interest (often 20%+), personal loans, and payday loans.
                   These carry the highest rates and the easiest halal alternatives exist.
                 </p>
               </div>
               <div className="flex gap-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
                 <span className="font-bold text-amber-700 flex-shrink-0">Medium Priority</span>
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-gray-300">
                   Auto loans and savings account interest. Refinancing to Islamic auto
                   financing or moving savings to halal alternatives is straightforward.
                 </p>
               </div>
               <div className="flex gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <span className="font-bold text-blue-700 flex-shrink-0">Long-Term</span>
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-gray-300">
                   Mortgage refinancing and student loans. These involve the largest
                   balances and may require more planning. Islamic mortgage providers are
                   growing but not yet available in all markets.
@@ -304,18 +304,18 @@ export default function RibaEliminationPage() {
           </section>
 
           {/* Step 3: Halal Alternatives Table */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
             <div className="flex gap-4 items-start mb-4">
               <div className="flex-shrink-0">
                 <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-700 text-white font-bold">
                   3
                 </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Halal Alternatives for Every Riba Source
               </h2>
             </div>
-            <p className="text-gray-700 leading-relaxed mb-6">
+            <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
               For each source of riba in your financial life, there is a Shariah-compliant
               alternative. Here is a practical reference table.
             </p>
@@ -324,7 +324,7 @@ export default function RibaEliminationPage() {
               {halalAlternatives.map((item, idx) => (
                 <div
                   key={idx}
-                  className="border border-gray-200 rounded-lg p-6 hover:border-green-300 transition-colors"
+                  className="border border-gray-200 rounded-lg p-6 hover:border-green-300 transition-colors dark:border-gray-700"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
                     <span className="text-red-600 line-through text-sm font-medium">
@@ -333,8 +333,8 @@ export default function RibaEliminationPage() {
                     <span className="text-gray-400 hidden sm:inline">&rarr;</span>
                     <span className="text-green-700 font-semibold">{item.halal}</span>
                   </div>
-                  <p className="text-gray-700 text-sm mb-2">{item.notes}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-gray-700 text-sm mb-2 dark:text-gray-300">{item.notes}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     <span className="font-medium">Providers:</span> {item.providers}
                   </p>
                 </div>
@@ -343,26 +343,26 @@ export default function RibaEliminationPage() {
           </section>
 
           {/* Step 4: Track Progress */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
             <div className="flex gap-4 items-start mb-4">
               <div className="flex-shrink-0">
                 <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-700 text-white font-bold">
                   4
                 </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Track Your Progress
               </h2>
             </div>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               Eliminating riba is a journey, not a single event. Tracking your progress
               helps you stay motivated and accountable. Barakah&apos;s Riba Journey feature
               lets you set elimination goals for each riba source, track your progress over
               time, and celebrate milestones along the way.
             </p>
             <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-3">What Barakah Tracks for You</h3>
-              <ul className="space-y-2 text-gray-700">
+              <h3 className="font-semibold text-gray-900 mb-3 dark:text-gray-100">What Barakah Tracks for You</h3>
+              <ul className="space-y-2 text-gray-700 dark:text-gray-300">
                 <li className="flex gap-2">
                   <span className="text-green-700 font-bold flex-shrink-0">&#10003;</span>
                   <span>Total riba exposure across all accounts</span>
@@ -384,26 +384,26 @@ export default function RibaEliminationPage() {
           </section>
 
           {/* Step 5: Purify Past Riba */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
             <div className="flex gap-4 items-start mb-4">
               <div className="flex-shrink-0">
                 <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-700 text-white font-bold">
                   5
                 </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Purify Past Riba Income
               </h2>
             </div>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               If you have earned interest in the past (from savings accounts, bonds, or
               other sources), scholars recommend donating that amount as sadaqah to purify
               your wealth. This is not done with the expectation of reward — it is a
               purification obligation to remove the tainted portion from your assets.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-3">Purification Guidelines</h3>
-              <ul className="space-y-2 text-gray-700 text-sm">
+              <h3 className="font-semibold text-gray-900 mb-3 dark:text-gray-100">Purification Guidelines</h3>
+              <ul className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                 <li className="flex gap-2">
                   <span className="text-blue-700 font-bold flex-shrink-0">1.</span>
                   <span>Calculate total interest earned across all accounts</span>
@@ -429,8 +429,8 @@ export default function RibaEliminationPage() {
           </section>
 
           {/* How Barakah Helps */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">
               How Barakah Helps You Go Riba-Free
             </h2>
             <div className="grid sm:grid-cols-2 gap-6">
@@ -459,8 +459,8 @@ export default function RibaEliminationPage() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{feature.title}</h3>
-                    <p className="text-sm text-gray-700">{feature.desc}</p>
+                    <h3 className="font-semibold text-gray-900 mb-1 dark:text-gray-100">{feature.title}</h3>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{feature.desc}</p>
                   </div>
                 </div>
               ))}
@@ -468,8 +468,8 @@ export default function RibaEliminationPage() {
           </section>
 
           {/* FAQ Section */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8 pb-4 border-b border-gray-200">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
+            <h2 className="text-2xl font-bold text-gray-900 mb-8 pb-4 border-b border-gray-200 dark:text-gray-100 dark:border-gray-700">
               Frequently Asked Questions About Riba
             </h2>
 
@@ -479,13 +479,13 @@ export default function RibaEliminationPage() {
                   key={idx}
                   className="group cursor-pointer py-6 hover:bg-gray-50 px-4 -mx-4"
                 >
-                  <summary className="flex items-center justify-between font-semibold text-gray-900 text-lg select-none">
+                  <summary className="flex items-center justify-between font-semibold text-gray-900 text-lg select-none dark:text-gray-100">
                     <span className="flex-1">{item.question}</span>
                     <span className="transition-transform group-open:rotate-180 text-green-700 ml-4">
                       &#9660;
                     </span>
                   </summary>
-                  <div className="mt-4 pt-4 border-t border-gray-200 text-gray-700 leading-relaxed">
+                  <div className="mt-4 pt-4 border-t border-gray-200 text-gray-700 leading-relaxed dark:text-gray-300 dark:border-gray-700">
                     {item.answer}
                   </div>
                 </details>
@@ -505,32 +505,32 @@ export default function RibaEliminationPage() {
 
             <Link
               href="/signup"
-              className="inline-block bg-white text-green-700 hover:bg-amber-50 font-bold py-3 px-8 rounded-lg transition-colors text-lg"
+              className="inline-block bg-white text-green-700 hover:bg-amber-50 font-bold py-3 px-8 rounded-lg transition-colors text-lg dark:bg-gray-800"
             >
               Create Free Account
             </Link>
           </section>
 
           {/* Related Articles */}
-          <section className="bg-white rounded-xl shadow-md p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Related Articles</h2>
+          <section className="bg-white rounded-xl shadow-md p-8 dark:bg-gray-800">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Related Articles</h2>
             <div className="grid sm:grid-cols-2 gap-6">
               <Link
                 href="/learn/islamic-finance-basics"
-                className="block p-4 border border-gray-200 rounded-lg hover:border-green-700 hover:shadow-md transition-all"
+                className="block p-4 border border-gray-200 rounded-lg hover:border-green-700 hover:shadow-md transition-all dark:border-gray-700"
               >
                 <h3 className="font-semibold text-green-700 mb-2">Islamic Finance Basics</h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Understand the core principles of Islamic finance including risk-sharing,
                   asset-backing, and ethical screening.
                 </p>
               </Link>
               <Link
                 href="/learn/halal-stocks"
-                className="block p-4 border border-gray-200 rounded-lg hover:border-green-700 hover:shadow-md transition-all"
+                className="block p-4 border border-gray-200 rounded-lg hover:border-green-700 hover:shadow-md transition-all dark:border-gray-700"
               >
                 <h3 className="font-semibold text-green-700 mb-2">Halal Stock Investing</h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Learn how to screen stocks for Shariah compliance and build a halal
                   investment portfolio.
                 </p>

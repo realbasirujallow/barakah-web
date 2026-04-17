@@ -56,7 +56,7 @@ export default function ZakatOnRetirementAccountsPage() {
       />
       <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
         {/* Header */}
-        <header className="bg-white shadow-sm sticky top-0 z-10">
+        <header className="bg-white shadow-sm sticky top-0 z-10 dark:bg-gray-800">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</Link>
             <div className="flex items-center gap-3">
@@ -70,9 +70,9 @@ export default function ZakatOnRetirementAccountsPage() {
         </header>
 
         {/* Breadcrumb */}
-        <nav className="bg-white border-b border-gray-100 px-6 py-3">
+        <nav className="bg-white border-b border-gray-100 px-6 py-3 dark:bg-gray-800 dark:border-gray-700">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
               <span className="text-gray-300">/</span>
               <Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link>
@@ -89,8 +89,8 @@ export default function ZakatOnRetirementAccountsPage() {
                 Zakat Guide
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-[#1B5E20]">Zakat on 401(k), IRA & Retirement Accounts</h1>
-              <p className="text-lg text-gray-700">Navigate three major scholarly positions on zakat for 401(k), IRA, Roth IRA, and other retirement savings accounts.</p>
-              <div className="flex items-center gap-4 text-sm text-gray-600 border-t border-gray-200 pt-4">
+              <p className="text-lg text-gray-700 dark:text-gray-300">Navigate three major scholarly positions on zakat for 401(k), IRA, Roth IRA, and other retirement savings accounts.</p>
+              <div className="flex items-center gap-4 text-sm text-gray-600 border-t border-gray-200 pt-4 dark:text-gray-400 dark:border-gray-700">
                 <span>By Barakah Editorial Team</span>
                 <span>10 min read</span>
                 <span>Published: March 2026 • Last updated: April 3, 2026</span>
@@ -112,10 +112,10 @@ export default function ZakatOnRetirementAccountsPage() {
 
             <section id="challenge" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">The Modern Challenge of Retirement Accounts</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Retirement accounts like 401(k)s and IRAs present a unique challenge in Islamic finance. Unlike cash savings or gold, retirement accounts have restricted access: withdrawing funds early triggers penalties and income taxes. This creates debate among scholars about how to calculate zakat.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 The core question is: <strong>Is wealth &quot;accessible&quot; if accessing it incurs significant costs?</strong> Different schools of thought have reached different conclusions, all with legitimate scholarly backing.
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 my-6">
@@ -128,16 +128,16 @@ export default function ZakatOnRetirementAccountsPage() {
 
             <section id="position1" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Position 1: Full Accessible Balance (AMJA Recommendation)</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 <strong>Endorsed by:</strong> American Muslim Jurists Association (AMJA), Fiqh Council of North America
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 This position treats retirement account balances as zakatable wealth after deducting penalties and taxes owed on withdrawal.
               </p>
 
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-[#1B5E20] mb-3">The Approach</h3>
-                <ol className="space-y-2 text-gray-700 text-sm">
+                <ol className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                   <li>1. Start with your current 401(k) or IRA balance</li>
                   <li>2. Calculate the estimated tax liability (typically 22-35% for federal income tax)</li>
                   <li>3. Add early withdrawal penalties (10% if under age 59½)</li>
@@ -146,9 +146,9 @@ export default function ZakatOnRetirementAccountsPage() {
                 </ol>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-3">Example: 401(k) Balance $150,000</h3>
-                <div className="space-y-2 text-sm font-mono text-gray-700">
+                <div className="space-y-2 text-sm font-mono text-gray-700 dark:text-gray-300">
                   <p>Current balance: <strong>$150,000</strong></p>
                   <p>Federal income tax (25%): <strong>-$37,500</strong></p>
                   <p>Early withdrawal penalty (10%): <strong>-$15,000</strong></p>
@@ -157,17 +157,17 @@ export default function ZakatOnRetirementAccountsPage() {
                 </div>
               </div>
 
-              <p className="text-gray-700 leading-relaxed mt-4">
+              <p className="text-gray-700 leading-relaxed mt-4 dark:text-gray-300">
                 <strong>Rationale:</strong> Wealth that can be accessed (even with costs) is considered your property and wealth. The penalties/taxes reduce your actual wealth, so they are deducted before calculating zakat.
               </p>
             </section>
 
             <section id="position2" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Position 2: Employer Match Only</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 <strong>Supported by:</strong> Some contemporary Islamic finance scholars seeking to minimize double-taxation concerns.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 This position differentiates between your contributions (which you earned as income) and employer contributions (which are a form of employer compensation).
               </p>
 
@@ -184,9 +184,9 @@ export default function ZakatOnRetirementAccountsPage() {
                 </ol>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6 mt-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 mt-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-3">Example: Breakdown of $150,000 Balance</h3>
-                <div className="space-y-1 text-sm font-mono text-gray-700">
+                <div className="space-y-1 text-sm font-mono text-gray-700 dark:text-gray-300">
                   <p>Your contributions over years: <strong>$80,000</strong> (Exempt from zakat)</p>
                   <p>Employer match contribution: <strong>$40,000</strong></p>
                   <p>Investment gains: <strong>$30,000</strong></p>
@@ -195,17 +195,17 @@ export default function ZakatOnRetirementAccountsPage() {
                 </div>
               </div>
 
-              <p className="text-gray-700 leading-relaxed mt-4">
+              <p className="text-gray-700 leading-relaxed mt-4 dark:text-gray-300">
                 <strong>Rationale:</strong> Avoids the issue of paying zakat twice on the same income. Your salary was already subject to zakat obligations; employer contributions are new wealth added to your account.
               </p>
             </section>
 
             <section id="position3" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Position 3: On Withdrawal Only (Maal Ghayr Mustaqarr)</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 <strong>Scholarly basis:</strong> The concept of &quot;māl ghayr mustaqarr&quot; (unstable/locked wealth)
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 This position treats locked retirement funds as wealth that is not yet fully yours until withdrawn. Zakat is only due on funds once they become accessible (during distribution years or after age 59½).
               </p>
 
@@ -221,7 +221,7 @@ export default function ZakatOnRetirementAccountsPage() {
                 </ul>
               </div>
 
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 <strong>Rationale:</strong> Since you cannot freely access the funds without severe penalties, they are not equivalent to cash or fully liquid assets. Zakat becomes due when the restriction is lifted (upon withdrawal or reaching retirement age).
               </p>
             </section>
@@ -232,10 +232,10 @@ export default function ZakatOnRetirementAccountsPage() {
               <div className="space-y-6">
                 <div className="border-l-4 border-[#1B5E20] bg-green-50 p-6 rounded">
                   <h3 className="font-bold text-[#1B5E20] mb-3">Health Savings Accounts (HSA)</h3>
-                  <p className="text-gray-700 text-sm mb-3">
+                  <p className="text-gray-700 text-sm mb-3 dark:text-gray-300">
                     HSAs are treated similarly to retirement accounts, though they have unique characteristics:
                   </p>
-                  <ul className="space-y-2 text-gray-700 text-sm">
+                  <ul className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                     <li><strong>If unused:</strong> Follow one of the three positions above (most treat as zakatable retirement savings)</li>
                     <li><strong>If earmarked for near-term medical expenses:</strong> Some scholars exempt funds you reasonably expect to spend soon (like emergency medical costs)</li>
                     <li><strong>Recommendation:</strong> Treat as zakatable wealth using Position 1 (AMJA approach) to be conservative and compliant</li>
@@ -244,10 +244,10 @@ export default function ZakatOnRetirementAccountsPage() {
 
                 <div className="border-l-4 border-blue-600 bg-blue-50 p-6 rounded">
                   <h3 className="font-bold text-blue-900 mb-3">529 Education Savings Accounts</h3>
-                  <p className="text-gray-700 text-sm mb-3">
+                  <p className="text-gray-700 text-sm mb-3 dark:text-gray-300">
                     These accounts have dedicated educational purposes and restricted access:
                   </p>
-                  <ul className="space-y-2 text-gray-700 text-sm">
+                  <ul className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                     <li><strong>Designated purpose:</strong> Funds are earmarked for a specific child&apos;s education, which is a valid Islamic obligation (providing for dependents)</li>
                     <li><strong>Many scholars exempt:</strong> Since funds cannot be freely withdrawn without penalty and are for a specific familial obligation, some scholars consider them outside the scope of regular zakat</li>
                     <li><strong>Conservative approach:</strong> If you want to ensure full compliance, apply Position 1 (with penalties deducted)</li>
@@ -258,7 +258,7 @@ export default function ZakatOnRetirementAccountsPage() {
 
             <section id="roth" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Special Consideration: Roth IRA</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Roth IRAs have a unique feature: you can withdraw your contributions (but not earnings) penalty-free at any time. This makes them somewhat more &quot;accessible&quot; than traditional 401(k)s or IRAs.
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 my-6">
@@ -274,37 +274,37 @@ export default function ZakatOnRetirementAccountsPage() {
             <section id="faq" className="space-y-6">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Frequently Asked Questions</h2>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Which position should I follow?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   Consult with your local imam or qualified Islamic finance advisor. AMJA (Position 1) is the most widely recommended by major Islamic organizations in North America. However, all three positions are legitimate. Choose based on your madhab (school) and advisor&apos;s guidance.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Can I backpay zakat if I haven&apos;t been calculating it?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   Yes. If you realize you owe zakat on retirement accounts, you should backpay for as many years as you have clear records. However, for years beyond reasonable recollection, many scholars allow you to begin paying zakat going forward. Consult an imam for guidance based on your specific situation.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: What if I take a loan against my 401(k)?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   If you have borrowed from your 401(k), the borrowed portion is technically no longer in the account. Calculate zakat on the remaining balance. When you repay the loan, it re-enters your account and becomes zakatable again. Consult Barakah&apos;s calculator for help tracking loan balances.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: How does employer match affect zakat?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   In Position 1, employer match is included. In Position 2, it&apos;s the only part that&apos;s zakatable. In Position 3, no zakat on employer match until withdrawal. Track your employer contributions separately for clarity when calculating zakat.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: What if my retirement account decreased in value?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   Use the current market value for zakat calculations. If your account has decreased below the nisab threshold, zakat is no longer due that year. If it increases back above nisab, zakat becomes due again (counting a new lunar year from when it exceeds nisab again).
                 </p>
               </div>
@@ -318,35 +318,35 @@ export default function ZakatOnRetirementAccountsPage() {
               </p>
               <Link
                 href="/dashboard"
-                className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition"
+                className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition dark:bg-gray-800"
               >
                 Try the Calculator
               </Link>
             </div>
 
             {/* Related Articles */}
-            <section className="mt-12 border-t border-gray-200 pt-8">
+            <section className="mt-12 border-t border-gray-200 pt-8 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-[#1B5E20] mb-6">Related Articles</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <Link
                   href="/learn/zakat-on-savings"
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition"
+                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition dark:bg-gray-800 dark:border-gray-700"
                 >
                   <h3 className="font-bold text-[#1B5E20] mb-2">Zakat on Savings</h3>
-                  <p className="text-gray-600 text-sm">Step-by-step guide to calculating zakat on savings accounts and cash.</p>
+                  <p className="text-gray-600 text-sm dark:text-gray-400">Step-by-step guide to calculating zakat on savings accounts and cash.</p>
                 </Link>
                 <Link
                   href="/learn/nisab-threshold"
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition"
+                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition dark:bg-gray-800 dark:border-gray-700"
                 >
                   <h3 className="font-bold text-[#1B5E20] mb-2">Nisab Threshold 2026</h3>
-                  <p className="text-gray-600 text-sm">Understand the minimum threshold and which standard applies to you.</p>
+                  <p className="text-gray-600 text-sm dark:text-gray-400">Understand the minimum threshold and which standard applies to you.</p>
                 </Link>
               </div>
             </section>
 
             {/* Author Info */}
-            <footer className="mt-12 pt-8 border-t border-gray-200 text-sm text-gray-600">
+            <footer className="mt-12 pt-8 border-t border-gray-200 text-sm text-gray-600 dark:text-gray-400 dark:border-gray-700">
               <p><strong>By:</strong> Barakah Editorial Team</p>
               <p><strong>Reviewed by:</strong> Islamic finance scholars and advisors</p>
               <p><strong>Last updated:</strong> April 3, 2026</p>
@@ -356,38 +356,38 @@ export default function ZakatOnRetirementAccountsPage() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-white border-t border-gray-100 py-8 px-6 mt-16">
+        <footer className="bg-white border-t border-gray-100 py-8 px-6 mt-16 dark:bg-gray-800 dark:border-gray-700">
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-4 gap-8 mb-8">
               <div>
                 <h3 className="font-bold text-[#1B5E20] mb-4">Barakah</h3>
-                <p className="text-sm text-gray-600">Fiqh-aware household finance for modern Muslim families.</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Fiqh-aware household finance for modern Muslim families.</p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Learn</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Learn</h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/learn" className="hover:text-[#1B5E20] transition">All Guides</Link></li>
                   <li><Link href="/learn/nisab-threshold" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
                   <li><Link href="/learn/zakat-on-gold" className="hover:text-[#1B5E20] transition">Zakat on Gold</Link></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Company</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Company</h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/" className="hover:text-[#1B5E20] transition">Home</Link></li>
                   <li><Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link></li>
                   <li><Link href="/disclaimer" className="hover:text-[#1B5E20] transition">Disclaimer</Link></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Legal</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Legal</h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/privacy" className="hover:text-[#1B5E20] transition">Privacy</Link></li>
                   <li><Link href="/terms" className="hover:text-[#1B5E20] transition">Terms</Link></li>
                 </ul>
               </div>
             </div>
-            <div className="border-t border-gray-100 pt-6 text-center text-xs text-gray-500">
+            <div className="border-t border-gray-100 pt-6 text-center text-xs text-gray-500 dark:text-gray-400 dark:border-gray-700">
               <p>&copy; {new Date().getFullYear()} Barakah. All rights reserved.</p>
             </div>
           </div>

@@ -115,7 +115,7 @@ export default function HalalStockScreenerPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <article className="min-h-screen bg-white px-6 py-16">
+      <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           {/* Breadcrumb */}
           <nav className="mb-6 text-sm" aria-label="Breadcrumb">
@@ -123,19 +123,19 @@ export default function HalalStockScreenerPage() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Halal Stock Screener</span>
+            <span className="text-gray-600 dark:text-gray-400">Halal Stock Screener</span>
           </nav>
 
           {/* Hero */}
           <header className="mb-10">
             <div className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">HALAL INVESTING</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               Halal Stock Screener 2026 — Screen 30,000+ Stocks for Islamic Compliance
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-6">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6 dark:text-gray-400">
               Screening stocks for halal compliance means checking both the company&apos;s business activities and its financial ratios against AAOIFI Standard 21. This guide explains exactly how the screen works and how to use Barakah&apos;s free halal stock screener.
             </p>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
               <span>📅 Updated April 2026</span>
               <span>⏱ 10 min read</span>
               <span>✅ Based on AAOIFI Standard 21</span>
@@ -148,19 +148,19 @@ export default function HalalStockScreenerPage() {
               <p className="font-bold">Screen any stock for halal compliance — free with Barakah</p>
               <p className="text-green-100 text-sm">30,000+ stocks screened against AAOIFI Standard 21 with live financial data.</p>
             </div>
-            <Link href="/signup" className="flex-shrink-0 bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition whitespace-nowrap">
+            <Link href="/signup" className="flex-shrink-0 bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition whitespace-nowrap dark:bg-gray-800">
               Try Screener Free →
             </Link>
           </div>
 
           {/* AAOIFI Standard 21 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">AAOIFI Standard 21: The Global Halal Stock Framework</h2>
-            <p className="text-gray-600 mb-6 leading-relaxed">
+            <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">AAOIFI Standard 21: The Global Halal Stock Framework</h2>
+            <p className="text-gray-600 mb-6 leading-relaxed dark:text-gray-400">
               AAOIFI (Accounting and Auditing Organisation for Islamic Financial Institutions) Standard 21 is the most widely accepted framework for determining whether a publicly traded stock is Sharia-compliant. It is used by Dow Jones Islamic Market, MSCI Islamic indexes, Barakah, Zoya, and most Islamic finance institutions globally.
             </p>
 
-            <h3 className="font-bold text-gray-900 mb-4">Stage 1: Business Screen</h3>
+            <h3 className="font-bold text-gray-900 mb-4 dark:text-gray-100">Stage 1: Business Screen</h3>
             <div className="bg-red-50 rounded-2xl p-5 mb-6">
               <p className="font-semibold text-red-800 mb-3">❌ Immediately Haram — Fail on Primary Business Activity</p>
               <p className="text-sm text-red-700 mb-4">If a company&apos;s primary revenue comes from any of these activities, it is haram regardless of financial ratios:</p>
@@ -176,8 +176,8 @@ export default function HalalStockScreenerPage() {
                   <tbody>
                     {haramSectors.map((s, i) => (
                       <tr key={s.sector} className={i % 2 === 0 ? 'bg-white' : 'bg-red-50'}>
-                        <td className="p-2 font-medium text-gray-800">{s.sector}</td>
-                        <td className="p-2 text-gray-600">{s.examples}</td>
+                        <td className="p-2 font-medium text-gray-800 dark:text-gray-100">{s.sector}</td>
+                        <td className="p-2 text-gray-600 dark:text-gray-400">{s.examples}</td>
                         <td className="p-2 text-red-700">{s.reason}</td>
                       </tr>
                     ))}
@@ -186,8 +186,8 @@ export default function HalalStockScreenerPage() {
               </div>
             </div>
 
-            <h3 className="font-bold text-gray-900 mb-4">Stage 2: Financial Ratio Screen</h3>
-            <p className="text-gray-600 text-sm mb-4">
+            <h3 className="font-bold text-gray-900 mb-4 dark:text-gray-100">Stage 2: Financial Ratio Screen</h3>
+            <p className="text-gray-600 text-sm mb-4 dark:text-gray-400">
               Even companies with a halal primary business may have problematic financial structures. AAOIFI Standard 21 applies three financial tests:
             </p>
             <div className="space-y-4">
@@ -211,13 +211,13 @@ export default function HalalStockScreenerPage() {
                   purpose: "Ensures the stock represents real business assets, not just money trading (which would require special Islamic rules for exchange)",
                 },
               ].map((test) => (
-                <div key={test.test} className="border border-gray-200 rounded-xl p-5">
+                <div key={test.test} className="border border-gray-200 rounded-xl p-5 dark:border-gray-700">
                   <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-bold text-gray-900">{test.test}</h4>
+                    <h4 className="font-bold text-gray-900 dark:text-gray-100">{test.test}</h4>
                     <span className="bg-green-100 text-green-700 text-sm font-bold px-3 py-1 rounded-full flex-shrink-0 ml-2">Must be {test.limit}</span>
                   </div>
-                  <p className="text-xs text-gray-500 font-mono mb-2 bg-gray-50 rounded px-2 py-1">{test.formula}</p>
-                  <p className="text-sm text-gray-600">{test.purpose}</p>
+                  <p className="text-xs text-gray-500 font-mono mb-2 bg-gray-50 rounded px-2 py-1 dark:bg-gray-800 dark:text-gray-400">{test.formula}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{test.purpose}</p>
                 </div>
               ))}
             </div>
@@ -225,8 +225,8 @@ export default function HalalStockScreenerPage() {
 
           {/* Income Purification */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Income Purification (Tathir)</h2>
-            <p className="text-gray-600 mb-4 leading-relaxed">
+            <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">Income Purification (Tathir)</h2>
+            <p className="text-gray-600 mb-4 leading-relaxed dark:text-gray-400">
               When you receive dividends or sell a halal stock at a profit, you must purify any small portion of haram income the company earned. This is called <strong>tathir</strong> (تطهير) — purification.
             </p>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-4">
@@ -234,22 +234,22 @@ export default function HalalStockScreenerPage() {
               <p className="font-mono text-sm text-amber-800 mb-3">Dividend × (Haram Income %) = Amount to Donate</p>
               <p className="text-sm text-amber-700">Example: You receive $500 in dividends. The company earned 1.8% of revenue from interest income. You donate $500 × 1.8% = $9.00 to charity.</p>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Barakah calculates your purification amount automatically for every halal stock in your portfolio, showing you exactly how much to donate each year.
             </p>
           </section>
 
           {/* FAQ */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-4">
               {faqSchema.mainEntity.map((faq) => (
-                <details key={faq.name} className="border border-gray-200 rounded-xl p-5">
-                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm">
+                <details key={faq.name} className="border border-gray-200 rounded-xl p-5 dark:border-gray-700">
+                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm dark:text-gray-100">
                     {faq.name}
                     <span className="text-green-700 ml-4 flex-shrink-0">+</span>
                   </summary>
-                  <p className="mt-3 text-gray-600 text-sm leading-relaxed">{faq.acceptedAnswer.text}</p>
+                  <p className="mt-3 text-gray-600 text-sm leading-relaxed dark:text-gray-400">{faq.acceptedAnswer.text}</p>
                 </details>
               ))}
             </div>
@@ -260,14 +260,14 @@ export default function HalalStockScreenerPage() {
             <h2 className="text-2xl font-bold mb-3">Screen Stocks for Free — Barakah Halal Screener</h2>
             <p className="text-green-100 mb-6">30,000+ stocks. AAOIFI Standard 21. Automatic purification calculation. Available with Barakah Plus.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition">Start Free Trial</Link>
+              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">Start Free Trial</Link>
               <Link href="/learn/halal-investing-guide" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Halal Investing Guide</Link>
             </div>
           </div>
 
           {/* Related */}
           <section>
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Related Articles</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-5 dark:text-gray-100">Related Articles</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { href: '/learn/halal-stocks', title: 'Halal Stocks Guide', desc: 'Which stocks are halal and how to build a halal portfolio.' },
@@ -277,9 +277,9 @@ export default function HalalStockScreenerPage() {
                 { href: '/compare', title: 'Compare Islamic Apps', desc: 'Barakah vs Zoya vs Wahed — which is best for halal investing?' },
                 { href: '/learn/halal-budgeting', title: 'Halal Budgeting', desc: 'Budget the Islamic way — zakat first, riba-free accounts.' },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors">
+                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700">
                   <h3 className="font-semibold text-green-700 mb-1">{link.title}</h3>
-                  <p className="text-xs text-gray-500">{link.desc}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{link.desc}</p>
                 </Link>
               ))}
             </div>

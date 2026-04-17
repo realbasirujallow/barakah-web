@@ -103,7 +103,7 @@ export default function Page() {
     <>
       <Script id="faq-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
-      <article className="min-h-screen bg-white px-4 sm:px-6 py-16">
+      <article className="min-h-screen bg-white px-4 sm:px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           {/* Breadcrumb */}
           <nav className="mb-6 text-sm">
@@ -113,13 +113,13 @@ export default function Page() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn/is-my-mortgage-halal" className="text-green-700 hover:underline">Is My Mortgage Halal?</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Providers (USA)</span>
+            <span className="text-gray-600 dark:text-gray-400">Providers (USA)</span>
           </nav>
 
-          <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
             Halal Mortgage Providers in the USA (2025)
           </h1>
-          <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+          <p className="text-lg text-gray-600 mb-8 leading-relaxed dark:text-gray-400">
             Shariah-compliant home financing has grown significantly in the US. Here&apos;s a comparison of the major halal mortgage providers
             available to American Muslims, with details on structure, availability, and scholarly endorsement.
           </p>
@@ -132,7 +132,7 @@ export default function Page() {
 
           {/* Provider table/cards */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Provider Comparison</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Provider Comparison</h2>
             <div className="space-y-6">
               {providers.map((p) => (
                 <div
@@ -142,7 +142,7 @@ export default function Page() {
                   <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-bold text-lg text-gray-900">{p.name}</h3>
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{p.name}</h3>
                         {p.recommended && (
                           <span className="bg-green-700 text-white text-xs font-bold px-2 py-0.5 rounded-full">Most Recommended</span>
                         )}
@@ -160,19 +160,19 @@ export default function Page() {
                   </div>
                   <div className="grid sm:grid-cols-3 gap-3 text-sm mb-3">
                     <div>
-                      <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Available In</p>
-                      <p className="text-gray-800 mt-0.5">{p.states}</p>
+                      <p className="text-gray-500 text-xs font-medium uppercase tracking-wide dark:text-gray-400">Available In</p>
+                      <p className="text-gray-800 mt-0.5 dark:text-gray-100">{p.states}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Min Down Payment</p>
-                      <p className="text-gray-800 mt-0.5">{p.minDown}</p>
+                      <p className="text-gray-500 text-xs font-medium uppercase tracking-wide dark:text-gray-400">Min Down Payment</p>
+                      <p className="text-gray-800 mt-0.5 dark:text-gray-100">{p.minDown}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Shariah Review</p>
-                      <p className="text-gray-800 mt-0.5">{p.scholars}</p>
+                      <p className="text-gray-500 text-xs font-medium uppercase tracking-wide dark:text-gray-400">Shariah Review</p>
+                      <p className="text-gray-800 mt-0.5 dark:text-gray-100">{p.scholars}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 italic">{p.notes}</p>
+                  <p className="text-sm text-gray-600 italic dark:text-gray-400">{p.notes}</p>
                 </div>
               ))}
             </div>
@@ -180,8 +180,8 @@ export default function Page() {
 
           {/* How to choose */}
           <section className="mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">How to Choose a Provider</h2>
-            <ol className="list-decimal list-inside space-y-3 text-gray-700 text-sm leading-relaxed">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">How to Choose a Provider</h2>
+            <ol className="list-decimal list-inside space-y-3 text-gray-700 text-sm leading-relaxed dark:text-gray-300">
               <li><strong>Check availability in your state</strong> — not all providers operate everywhere.</li>
               <li><strong>Verify the Shariah certificate</strong> — ask for the Shariah board member names and their credentials.</li>
               <li><strong>Compare effective cost</strong> — get a detailed APR equivalent from each provider to compare fairly.</li>
@@ -192,15 +192,15 @@ export default function Page() {
 
           {/* FAQ */}
           <section className="mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-3">
               {faqItems.map((item, i) => (
-                <details key={i} className="border border-gray-200 rounded-xl group">
-                  <summary className="p-4 cursor-pointer font-semibold text-gray-900 hover:text-green-700 flex justify-between items-center select-none">
+                <details key={i} className="border border-gray-200 rounded-xl group dark:border-gray-700">
+                  <summary className="p-4 cursor-pointer font-semibold text-gray-900 hover:text-green-700 flex justify-between items-center select-none dark:text-gray-100">
                     <span>{item.q}</span>
                     <span className="text-gray-400 group-open:rotate-180 transition-transform flex-shrink-0 ml-3">▾</span>
                   </summary>
-                  <div className="px-4 pb-4 text-gray-700 text-sm leading-relaxed border-t border-gray-100 pt-3">{item.a}</div>
+                  <div className="px-4 pb-4 text-gray-700 text-sm leading-relaxed border-t border-gray-100 pt-3 dark:text-gray-300 dark:border-gray-700">{item.a}</div>
                 </details>
               ))}
             </div>
@@ -213,29 +213,29 @@ export default function Page() {
               Whether you&apos;re saving for a down payment, tracking riba payments, or managing a halal mortgage — Barakah keeps your
               full financial picture together with Islamic principles.
             </p>
-            <Link href="/signup" className="bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition">
+            <Link href="/signup" className="bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">
               Get Started Free
             </Link>
           </div>
 
           {/* Hub navigation */}
           <nav aria-label="Related articles">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Islamic Mortgage Hub</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4 dark:text-gray-100">Islamic Mortgage Hub</h2>
             <div className="grid sm:grid-cols-3 gap-4">
-              <Link href="/learn/is-my-mortgage-halal" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition">
+              <Link href="/learn/is-my-mortgage-halal" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition dark:border-gray-700">
                 <p className="text-xs text-green-700 font-semibold uppercase tracking-wide mb-1">Overview</p>
-                <h3 className="font-semibold text-gray-900 text-sm">Is My Mortgage Halal?</h3>
-                <p className="text-xs text-gray-500 mt-1">The complete Islamic home financing guide.</p>
+                <h3 className="font-semibold text-gray-900 text-sm dark:text-gray-100">Is My Mortgage Halal?</h3>
+                <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">The complete Islamic home financing guide.</p>
               </Link>
-              <Link href="/learn/diminishing-musharaka-explained" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition">
+              <Link href="/learn/diminishing-musharaka-explained" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition dark:border-gray-700">
                 <p className="text-xs text-green-700 font-semibold uppercase tracking-wide mb-1">How It Works</p>
-                <h3 className="font-semibold text-gray-900 text-sm">Diminishing Musharaka Explained</h3>
-                <p className="text-xs text-gray-500 mt-1">The most popular halal structure, step by step.</p>
+                <h3 className="font-semibold text-gray-900 text-sm dark:text-gray-100">Diminishing Musharaka Explained</h3>
+                <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">The most popular halal structure, step by step.</p>
               </Link>
-              <Link href="/learn/riba-free-mortgage" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition">
+              <Link href="/learn/riba-free-mortgage" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition dark:border-gray-700">
                 <p className="text-xs text-green-700 font-semibold uppercase tracking-wide mb-1">Deep Dive</p>
-                <h3 className="font-semibold text-gray-900 text-sm">Riba-Free Mortgage Guide</h3>
-                <p className="text-xs text-gray-500 mt-1">What does &quot;halal&quot; really mean for home loans?</p>
+                <h3 className="font-semibold text-gray-900 text-sm dark:text-gray-100">Riba-Free Mortgage Guide</h3>
+                <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">What does &quot;halal&quot; really mean for home loans?</p>
               </Link>
             </div>
           </nav>

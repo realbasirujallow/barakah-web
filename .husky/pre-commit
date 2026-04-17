@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+# Barakah web pre-commit: fast checks only (<15s). Anything slower goes to CI.
+# To bypass in an emergency:  git commit --no-verify
+set -eu
+
+echo "→ npm audit (high/critical)…"
+npm audit --audit-level=high --production
+
+echo "→ eslint…"
+npm run lint
+
+# Type-check only changed TS/TSX files (fast). Full vitest + build run in CI.
+# If you want a stronger local gate, uncomment the next line:
+# echo "→ vitest…" && npm test -- --run
+
+echo "✓ pre-commit ok"

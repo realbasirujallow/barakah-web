@@ -160,7 +160,7 @@ export default function MuslimHouseholdBudgetPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <article className="min-h-screen bg-white px-6 py-16">
+      <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           {/* Breadcrumb */}
           <nav className="mb-6 text-sm" aria-label="Breadcrumb">
@@ -168,7 +168,7 @@ export default function MuslimHouseholdBudgetPage() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Muslim Household Budget Template</span>
+            <span className="text-gray-600 dark:text-gray-400">Muslim Household Budget Template</span>
           </nav>
 
           {/* Hero */}
@@ -176,13 +176,13 @@ export default function MuslimHouseholdBudgetPage() {
             <div className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
               ISLAMIC FAMILY FINANCE
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               Muslim Household Budget Template 2026 — Free Islamic Family Finance Guide
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-6">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6 dark:text-gray-400">
               This is the complete Muslim household budget template for 2026 — covering every Islamic financial obligation from zakat and sadaqah to Hajj savings and Islamic estate planning, alongside practical halal expense categories for everyday family life.
             </p>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
               <span>📅 Updated April 2026</span>
               <span>⏱ 12 min read</span>
               <span>✅ Reviewed for Islamic accuracy</span>
@@ -199,13 +199,13 @@ export default function MuslimHouseholdBudgetPage() {
 
           {/* Budget Template */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Complete Muslim Household Budget Template</h2>
-            <p className="text-gray-600 mb-8 leading-relaxed">
+            <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">Complete Muslim Household Budget Template</h2>
+            <p className="text-gray-600 mb-8 leading-relaxed dark:text-gray-400">
               Sample budget for a Muslim family of 4 with a combined household income of ~$7,500/month. Adjust numbers to your income — but keep the priorities and order.
             </p>
             <div className="space-y-6">
               {budgetTemplate.map((section) => (
-                <div key={section.category} className="border border-gray-200 rounded-2xl overflow-hidden">
+                <div key={section.category} className="border border-gray-200 rounded-2xl overflow-hidden dark:border-gray-700">
                   <div className={`${section.color} text-white px-5 py-3`}>
                     <h3 className="font-bold text-sm tracking-wide">{section.category}</h3>
                   </div>
@@ -213,8 +213,8 @@ export default function MuslimHouseholdBudgetPage() {
                     {section.items.map((item) => (
                       <div key={item.name} className="px-5 py-3 flex items-start gap-4">
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 text-sm">{item.name}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">{item.note}</p>
+                          <p className="font-medium text-gray-900 text-sm dark:text-gray-100">{item.name}</p>
+                          <p className="text-xs text-gray-500 mt-0.5 dark:text-gray-400">{item.note}</p>
                         </div>
                         <div className="text-sm font-bold text-green-700 flex-shrink-0 whitespace-nowrap">
                           {item.example}
@@ -235,7 +235,7 @@ export default function MuslimHouseholdBudgetPage() {
 
           {/* Islamic Finance Rules for Families */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Islamic Finance Rules for Muslim Families</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Key Islamic Finance Rules for Muslim Families</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 {
@@ -269,11 +269,11 @@ export default function MuslimHouseholdBudgetPage() {
                   ref: 'Hadith: Bukhari 2738',
                 },
               ].map((item) => (
-                <div key={item.rule} className="border border-gray-200 rounded-xl p-4">
+                <div key={item.rule} className="border border-gray-200 rounded-xl p-4 dark:border-gray-700">
                   <div className="flex items-start gap-2 mb-1">
-                    <h3 className="font-semibold text-gray-900 text-sm">{item.rule}</h3>
+                    <h3 className="font-semibold text-gray-900 text-sm dark:text-gray-100">{item.rule}</h3>
                   </div>
-                  <p className="text-xs text-gray-600 mb-2">{item.detail}</p>
+                  <p className="text-xs text-gray-600 mb-2 dark:text-gray-400">{item.detail}</p>
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{item.ref}</span>
                 </div>
               ))}
@@ -282,7 +282,7 @@ export default function MuslimHouseholdBudgetPage() {
 
           {/* Tools */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Free Tools to Build Your Muslim Household Budget</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Free Tools to Build Your Muslim Household Budget</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { href: '/zakat-calculator', icon: '🧮', title: 'Zakat Calculator', desc: 'Calculate your annual zakat across 8 asset categories with live gold and silver prices.' },
@@ -290,10 +290,10 @@ export default function MuslimHouseholdBudgetPage() {
                 { href: '/signup', icon: '📊', title: 'Household Budget Tracker', desc: 'Track all expenses, set category budgets, and manage family finances in Barakah.' },
                 { href: '/signup', icon: '🕌', title: 'Hajj Savings Goal', desc: 'Set your Hajj target year and track monthly contributions toward the obligation.' },
               ].map((tool) => (
-                <Link key={tool.href} href={tool.href} className="border border-gray-200 rounded-xl p-5 hover:border-green-600 transition-colors block">
+                <Link key={tool.href} href={tool.href} className="border border-gray-200 rounded-xl p-5 hover:border-green-600 transition-colors block dark:border-gray-700">
                   <div className="text-2xl mb-2">{tool.icon}</div>
-                  <h3 className="font-bold text-gray-900 mb-1">{tool.title}</h3>
-                  <p className="text-sm text-gray-600">{tool.desc}</p>
+                  <h3 className="font-bold text-gray-900 mb-1 dark:text-gray-100">{tool.title}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{tool.desc}</p>
                 </Link>
               ))}
             </div>
@@ -301,15 +301,15 @@ export default function MuslimHouseholdBudgetPage() {
 
           {/* FAQ */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-4">
               {faqSchema.mainEntity.map((faq) => (
-                <details key={faq.name} className="border border-gray-200 rounded-xl p-5">
-                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm">
+                <details key={faq.name} className="border border-gray-200 rounded-xl p-5 dark:border-gray-700">
+                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm dark:text-gray-100">
                     {faq.name}
                     <span className="text-green-700 ml-4 flex-shrink-0">+</span>
                   </summary>
-                  <p className="mt-3 text-gray-600 text-sm leading-relaxed">{faq.acceptedAnswer.text}</p>
+                  <p className="mt-3 text-gray-600 text-sm leading-relaxed dark:text-gray-400">{faq.acceptedAnswer.text}</p>
                 </details>
               ))}
             </div>
@@ -322,7 +322,7 @@ export default function MuslimHouseholdBudgetPage() {
               Barakah auto-calculates zakat, tracks sadaqah, flags riba, and manages up to 6 family members — in one free Islamic finance app.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition">
+              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">
                 Start Free — No Credit Card
               </Link>
               <Link href="/learn/halal-budgeting" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">
@@ -333,7 +333,7 @@ export default function MuslimHouseholdBudgetPage() {
 
           {/* Related Articles */}
           <section>
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Related Articles</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-5 dark:text-gray-100">Related Articles</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { href: '/learn/halal-budgeting', title: 'Halal Budgeting Guide', desc: '6 Islamic principles for managing your money.' },
@@ -343,9 +343,9 @@ export default function MuslimHouseholdBudgetPage() {
                 { href: '/learn/hajj-savings-plan', title: 'Hajj Savings Plan', desc: 'How to save for Hajj and build your fund month by month.' },
                 { href: '/learn/islamic-will', title: 'Islamic Will Guide', desc: 'How to write a valid wasiyyah according to Islamic law.' },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors">
+                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700">
                   <h3 className="font-semibold text-green-700 mb-1">{link.title}</h3>
-                  <p className="text-xs text-gray-500">{link.desc}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{link.desc}</p>
                 </Link>
               ))}
             </div>

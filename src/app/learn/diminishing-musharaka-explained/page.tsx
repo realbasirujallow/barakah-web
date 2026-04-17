@@ -69,7 +69,7 @@ export default function Page() {
       <Script id="faq-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <Script id="article-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
 
-      <article className="min-h-screen bg-white px-4 sm:px-6 py-16">
+      <article className="min-h-screen bg-white px-4 sm:px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           {/* Breadcrumb */}
           <nav className="mb-6 text-sm">
@@ -79,18 +79,18 @@ export default function Page() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn/is-my-mortgage-halal" className="text-green-700 hover:underline">Is My Mortgage Halal?</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Diminishing Musharaka</span>
+            <span className="text-gray-600 dark:text-gray-400">Diminishing Musharaka</span>
           </nav>
 
-          <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
             Diminishing Musharaka Explained
           </h1>
-          <p className="text-lg text-gray-600 mb-2 leading-relaxed">
+          <p className="text-lg text-gray-600 mb-2 leading-relaxed dark:text-gray-400">
             Diminishing musharaka (also called diminishing partnership or declining co-ownership) is the most widely used Shariah-compliant
             home financing structure in the United States and United Kingdom. It is the model used by Guidance Residential, Devon Bank,
             Gatehouse Bank (UK), and others.
           </p>
-          <p className="text-gray-500 text-sm mb-8">
+          <p className="text-gray-500 text-sm mb-8 dark:text-gray-400">
             <em>Arabic: Musharaka Mutanaqisa (مشاركة متناقصة) — literally &ldquo;diminishing partnership.&rdquo;</em>
           </p>
 
@@ -105,14 +105,14 @@ export default function Page() {
 
           {/* Step-by-step */}
           <section className="mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">How It Works: Step by Step</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">How It Works: Step by Step</h2>
 
             <div className="space-y-6">
               <div className="flex gap-4">
                 <div className="w-10 h-10 bg-[#1B5E20] text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">1</div>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-1">Co-Purchase</h3>
-                  <p className="text-gray-700 text-sm leading-relaxed">
+                  <h3 className="font-bold text-gray-900 mb-1 dark:text-gray-100">Co-Purchase</h3>
+                  <p className="text-gray-700 text-sm leading-relaxed dark:text-gray-300">
                     You and the financier jointly purchase the property. If the home costs $400,000 and you put 20% down ($80,000),
                     you own <strong>20%</strong> and the financier owns <strong>80%</strong> from day one.
                     Both parties are true co-owners — the title reflects this shared ownership.
@@ -123,8 +123,8 @@ export default function Page() {
               <div className="flex gap-4">
                 <div className="w-10 h-10 bg-[#1B5E20] text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">2</div>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-1">You Pay Rent on the Bank&apos;s Share</h3>
-                  <p className="text-gray-700 text-sm leading-relaxed">
+                  <h3 className="font-bold text-gray-900 mb-1 dark:text-gray-100">You Pay Rent on the Bank&apos;s Share</h3>
+                  <p className="text-gray-700 text-sm leading-relaxed dark:text-gray-300">
                     You live in the whole property, so you pay the financier rent for using their 80% ownership stake.
                     This is a legitimate rental payment — the financier earns profit as a <em>landlord</em>, not as a lender.
                     The rental rate is typically tied to a benchmark (like the prevailing rental market) rather than an interest rate.
@@ -135,8 +135,8 @@ export default function Page() {
               <div className="flex gap-4">
                 <div className="w-10 h-10 bg-[#1B5E20] text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">3</div>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-1">You Gradually Buy Out the Bank</h3>
-                  <p className="text-gray-700 text-sm leading-relaxed">
+                  <h3 className="font-bold text-gray-900 mb-1 dark:text-gray-100">You Gradually Buy Out the Bank</h3>
+                  <p className="text-gray-700 text-sm leading-relaxed dark:text-gray-300">
                     Each month, part of your payment goes toward purchasing additional ownership units from the financier.
                     As your ownership share grows (e.g., from 20% → 21% → 22%…), the financier&apos;s share <em>diminishes</em>
                     — hence the name. As their share shrinks, your rental obligation decreases proportionally.
@@ -147,8 +147,8 @@ export default function Page() {
               <div className="flex gap-4">
                 <div className="w-10 h-10 bg-[#1B5E20] text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">4</div>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-1">Full Ownership at the End</h3>
-                  <p className="text-gray-700 text-sm leading-relaxed">
+                  <h3 className="font-bold text-gray-900 mb-1 dark:text-gray-100">Full Ownership at the End</h3>
+                  <p className="text-gray-700 text-sm leading-relaxed dark:text-gray-300">
                     After 30 years (or however long your term is), you&apos;ve purchased 100% of the financier&apos;s stake.
                     At this point, you own the property outright — no more rental payments.
                   </p>
@@ -159,32 +159,32 @@ export default function Page() {
 
           {/* Worked example */}
           <section className="mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Worked Example</h2>
-            <div className="bg-gray-50 rounded-xl overflow-hidden">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Worked Example</h2>
+            <div className="bg-gray-50 rounded-xl overflow-hidden dark:bg-gray-800">
               <div className="bg-[#1B5E20] text-white px-5 py-3 text-sm font-semibold">
                 $400,000 home · 20% down ($80,000) · 30-year term
               </div>
               <div className="p-5 space-y-4 text-sm">
                 <div className="grid sm:grid-cols-3 gap-4 text-center">
-                  <div className="bg-white rounded-lg p-4">
-                    <p className="text-gray-500 text-xs mb-1">Your Initial Share</p>
+                  <div className="bg-white rounded-lg p-4 dark:bg-gray-800">
+                    <p className="text-gray-500 text-xs mb-1 dark:text-gray-400">Your Initial Share</p>
                     <p className="text-2xl font-bold text-[#1B5E20]">20%</p>
-                    <p className="text-gray-600 text-xs">$80,000</p>
+                    <p className="text-gray-600 text-xs dark:text-gray-400">$80,000</p>
                   </div>
-                  <div className="bg-white rounded-lg p-4">
-                    <p className="text-gray-500 text-xs mb-1">Bank&apos;s Initial Share</p>
-                    <p className="text-2xl font-bold text-gray-700">80%</p>
-                    <p className="text-gray-600 text-xs">$320,000</p>
+                  <div className="bg-white rounded-lg p-4 dark:bg-gray-800">
+                    <p className="text-gray-500 text-xs mb-1 dark:text-gray-400">Bank&apos;s Initial Share</p>
+                    <p className="text-2xl font-bold text-gray-700 dark:text-gray-300">80%</p>
+                    <p className="text-gray-600 text-xs dark:text-gray-400">$320,000</p>
                   </div>
-                  <div className="bg-white rounded-lg p-4">
-                    <p className="text-gray-500 text-xs mb-1">Your Monthly Payment</p>
+                  <div className="bg-white rounded-lg p-4 dark:bg-gray-800">
+                    <p className="text-gray-500 text-xs mb-1 dark:text-gray-400">Your Monthly Payment</p>
                     <p className="text-2xl font-bold text-amber-700">~$2,400</p>
-                    <p className="text-gray-600 text-xs">Rent + buyout</p>
+                    <p className="text-gray-600 text-xs dark:text-gray-400">Rent + buyout</p>
                   </div>
                 </div>
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="border border-gray-200 rounded-lg overflow-hidden dark:border-gray-700">
                   <table className="w-full text-xs">
-                    <thead className="bg-gray-100">
+                    <thead className="bg-gray-100 dark:bg-gray-800">
                       <tr>
                         <th className="p-2 text-left font-semibold">Year</th>
                         <th className="p-2 text-right font-semibold">Your Ownership</th>
@@ -201,24 +201,24 @@ export default function Page() {
                         { yr: 30, you: '100%', bank: '0%',  rent: '$0' },
                       ].map(row => (
                         <tr key={row.yr}>
-                          <td className="p-2 text-gray-700">Year {row.yr}</td>
+                          <td className="p-2 text-gray-700 dark:text-gray-300">Year {row.yr}</td>
                           <td className="p-2 text-right font-semibold text-[#1B5E20]">{row.you}</td>
-                          <td className="p-2 text-right text-gray-600">{row.bank}</td>
+                          <td className="p-2 text-right text-gray-600 dark:text-gray-400">{row.bank}</td>
                           <td className="p-2 text-right text-amber-700">{row.rent}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <p className="text-gray-500 text-xs">*Illustrative figures — actual amounts vary by provider, rental rate, and structure.</p>
+                <p className="text-gray-500 text-xs dark:text-gray-400">*Illustrative figures — actual amounts vary by provider, rental rate, and structure.</p>
               </div>
             </div>
           </section>
 
           {/* Why scholars prefer it */}
           <section className="mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Why Scholars Prefer Diminishing Musharaka</h2>
-            <div className="space-y-3 text-sm text-gray-700 leading-relaxed">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Why Scholars Prefer Diminishing Musharaka</h2>
+            <div className="space-y-3 text-sm text-gray-700 leading-relaxed dark:text-gray-300">
               <div className="flex gap-3 items-start">
                 <span className="text-green-700 font-bold flex-shrink-0 mt-0.5">✅</span>
                 <p><strong>Genuine risk-sharing:</strong> The financier is a true co-owner who bears the risk of property value changes. If the property falls in value, both parties lose proportionally — unlike a conventional mortgage where only the borrower bears the risk.</p>
@@ -240,7 +240,7 @@ export default function Page() {
 
           {/* Comparison with other structures */}
           <section className="mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Comparison with Other Halal Structures</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Comparison with Other Halal Structures</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
@@ -259,13 +259,13 @@ export default function Page() {
                     <td className="p-3 text-center">US, UK, Malaysia</td>
                   </tr>
                   <tr>
-                    <td className="p-3 text-gray-800">Ijara (Lease-to-Own)</td>
+                    <td className="p-3 text-gray-800 dark:text-gray-100">Ijara (Lease-to-Own)</td>
                     <td className="p-3 text-center">Rental income</td>
                     <td className="p-3 text-center text-amber-600">Partial</td>
                     <td className="p-3 text-center">UK, GCC</td>
                   </tr>
                   <tr>
-                    <td className="p-3 text-gray-800">Murabaha</td>
+                    <td className="p-3 text-gray-800 dark:text-gray-100">Murabaha</td>
                     <td className="p-3 text-center">Markup on sale price</td>
                     <td className="p-3 text-center text-red-500">Minimal</td>
                     <td className="p-3 text-center">US, GCC</td>
@@ -277,15 +277,15 @@ export default function Page() {
 
           {/* FAQ */}
           <section className="mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-3">
               {faqItems.map((item, i) => (
-                <details key={i} className="border border-gray-200 rounded-xl group">
-                  <summary className="p-4 cursor-pointer font-semibold text-gray-900 hover:text-green-700 flex justify-between items-center select-none">
+                <details key={i} className="border border-gray-200 rounded-xl group dark:border-gray-700">
+                  <summary className="p-4 cursor-pointer font-semibold text-gray-900 hover:text-green-700 flex justify-between items-center select-none dark:text-gray-100">
                     <span>{item.q}</span>
                     <span className="text-gray-400 group-open:rotate-180 transition-transform flex-shrink-0 ml-3">▾</span>
                   </summary>
-                  <div className="px-4 pb-4 text-gray-700 text-sm leading-relaxed border-t border-gray-100 pt-3">{item.a}</div>
+                  <div className="px-4 pb-4 text-gray-700 text-sm leading-relaxed border-t border-gray-100 pt-3 dark:text-gray-300 dark:border-gray-700">{item.a}</div>
                 </details>
               ))}
             </div>
@@ -299,7 +299,7 @@ export default function Page() {
               and calculate zakat with full madhab support — all in one Islamic finance platform.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/signup" className="bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition">
+              <Link href="/signup" className="bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">
                 Start Free — 7 Days Plus
               </Link>
               <Link href="/learn/halal-mortgage-providers-usa" className="border border-white text-white px-6 py-3 rounded-xl font-bold hover:bg-white/10 transition">
@@ -310,22 +310,22 @@ export default function Page() {
 
           {/* Hub navigation */}
           <nav aria-label="Related articles">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Islamic Mortgage Hub</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4 dark:text-gray-100">Islamic Mortgage Hub</h2>
             <div className="grid sm:grid-cols-3 gap-4">
-              <Link href="/learn/is-my-mortgage-halal" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition">
+              <Link href="/learn/is-my-mortgage-halal" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition dark:border-gray-700">
                 <p className="text-xs text-green-700 font-semibold uppercase tracking-wide mb-1">Overview</p>
-                <h3 className="font-semibold text-gray-900 text-sm">Is My Mortgage Halal?</h3>
-                <p className="text-xs text-gray-500 mt-1">The complete Islamic home financing guide.</p>
+                <h3 className="font-semibold text-gray-900 text-sm dark:text-gray-100">Is My Mortgage Halal?</h3>
+                <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">The complete Islamic home financing guide.</p>
               </Link>
-              <Link href="/learn/halal-mortgage-providers-usa" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition">
+              <Link href="/learn/halal-mortgage-providers-usa" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition dark:border-gray-700">
                 <p className="text-xs text-green-700 font-semibold uppercase tracking-wide mb-1">Providers</p>
-                <h3 className="font-semibold text-gray-900 text-sm">Halal Mortgage Providers (USA)</h3>
-                <p className="text-xs text-gray-500 mt-1">Compare Guidance Residential, UIF & more.</p>
+                <h3 className="font-semibold text-gray-900 text-sm dark:text-gray-100">Halal Mortgage Providers (USA)</h3>
+                <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">Compare Guidance Residential, UIF & more.</p>
               </Link>
-              <Link href="/learn/riba-free-mortgage" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition">
+              <Link href="/learn/riba-free-mortgage" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition dark:border-gray-700">
                 <p className="text-xs text-green-700 font-semibold uppercase tracking-wide mb-1">Deep Dive</p>
-                <h3 className="font-semibold text-gray-900 text-sm">Riba-Free Mortgage Guide</h3>
-                <p className="text-xs text-gray-500 mt-1">What does &quot;halal&quot; really mean for home loans?</p>
+                <h3 className="font-semibold text-gray-900 text-sm dark:text-gray-100">Riba-Free Mortgage Guide</h3>
+                <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">What does &quot;halal&quot; really mean for home loans?</p>
               </Link>
             </div>
           </nav>

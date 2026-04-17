@@ -224,7 +224,7 @@ export default function IslamicFinanceAppPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      <article className="min-h-screen bg-white px-6 py-16">
+      <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           {/* Breadcrumb */}
           <nav className="mb-6 text-sm" aria-label="Breadcrumb">
@@ -232,7 +232,7 @@ export default function IslamicFinanceAppPage() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Best Islamic Finance App 2026</span>
+            <span className="text-gray-600 dark:text-gray-400">Best Islamic Finance App 2026</span>
           </nav>
 
           {/* Hero */}
@@ -240,13 +240,13 @@ export default function IslamicFinanceAppPage() {
             <div className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
               ISLAMIC FINANCE GUIDE
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               Best Islamic Finance App 2026 — Complete Guide & Comparison
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-6">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6 dark:text-gray-400">
               The Muslim financial landscape now has dedicated apps for zakat, halal investing, Islamic budgeting, and estate planning. This guide ranks the best Islamic finance apps across every category and shows you exactly what to look for in a fiqh-aware platform.
             </p>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
               <span>📅 Updated April 2026</span>
               <span>⏱ 15 min read</span>
               <span>✅ Reviewed for Islamic accuracy</span>
@@ -261,9 +261,9 @@ export default function IslamicFinanceAppPage() {
                 <div key={cat.category} className="flex items-start gap-3">
                   <span className="text-2xl">{cat.icon}</span>
                   <div>
-                    <span className="font-semibold text-gray-800">{cat.category}: </span>
+                    <span className="font-semibold text-gray-800 dark:text-gray-100">{cat.category}: </span>
                     <span className="text-green-700 font-bold">{cat.winner}</span>
-                    <span className="text-gray-600 text-sm"> — {cat.reason}</span>
+                    <span className="text-gray-600 text-sm dark:text-gray-400"> — {cat.reason}</span>
                   </div>
                 </div>
               ))}
@@ -272,23 +272,23 @@ export default function IslamicFinanceAppPage() {
 
           {/* Five Pillars of Islamic Finance */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">The 5 Pillars of Islamic Finance</h2>
-            <p className="text-gray-600 mb-8 leading-relaxed">
+            <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">The 5 Pillars of Islamic Finance</h2>
+            <p className="text-gray-600 mb-8 leading-relaxed dark:text-gray-400">
               To evaluate any Islamic finance app, you must first understand the core principles it must respect. A truly Sharia-compliant platform enforces all five of these foundations — not just one or two.
             </p>
             <div className="space-y-6">
               {pillarsOfIslamicFinance.map((pillar, i) => (
-                <div key={pillar.name} className="border border-gray-200 rounded-2xl p-6">
+                <div key={pillar.name} className="border border-gray-200 rounded-2xl p-6 dark:border-gray-700">
                   <div className="flex items-start gap-4">
                     <div className="w-9 h-9 bg-green-700 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
                       {i + 1}
                     </div>
                     <div>
                       <div className="flex flex-wrap items-baseline gap-2 mb-2">
-                        <h3 className="text-lg font-bold text-gray-900">{pillar.name}</h3>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{pillar.name}</h3>
                         <span className="text-green-700 font-medium" dir="rtl">{pillar.arabic}</span>
                       </div>
-                      <p className="text-gray-600 leading-relaxed mb-3">{pillar.description}</p>
+                      <p className="text-gray-600 leading-relaxed mb-3 dark:text-gray-400">{pillar.description}</p>
                       <p className="text-sm italic text-green-800 bg-green-50 rounded-lg px-3 py-2">{pillar.quranRef}</p>
                     </div>
                   </div>
@@ -299,8 +299,8 @@ export default function IslamicFinanceAppPage() {
 
           {/* Barakah Deep Dive */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Barakah — Best Overall Islamic Finance App 2026</h2>
-            <p className="text-gray-600 mb-6 leading-relaxed">
+            <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">Barakah — Best Overall Islamic Finance App 2026</h2>
+            <p className="text-gray-600 mb-6 leading-relaxed dark:text-gray-400">
               Barakah is the only Islamic finance app that covers the complete Muslim household finance lifecycle. While competitors specialize in one area — Zoya for stock screening, Wahed for investing — Barakah integrates every domain of Islamic personal finance into a single, fiqh-aware platform.
             </p>
 
@@ -315,14 +315,14 @@ export default function IslamicFinanceAppPage() {
                 { title: 'Barakah Score', desc: 'Islamic financial health metric (0–100) based on fiqh compliance', badge: 'Plus' },
                 { title: 'Hajj Savings', desc: 'Goal-based savings tracker with monthly contribution calculator', badge: 'Free' },
               ].map((item) => (
-                <div key={item.title} className="border border-gray-200 rounded-xl p-4">
+                <div key={item.title} className="border border-gray-200 rounded-xl p-4 dark:border-gray-700">
                   <div className="flex items-start justify-between mb-1">
-                    <h3 className="font-semibold text-gray-900">{item.title}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">{item.title}</h3>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${item.badge === 'Free' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                       {item.badge}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600">{item.desc}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -345,7 +345,7 @@ export default function IslamicFinanceAppPage() {
 
           {/* Other Apps */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Other Islamic Finance Apps Worth Knowing</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Other Islamic Finance Apps Worth Knowing</h2>
             <div className="space-y-5">
               {[
                 {
@@ -370,24 +370,24 @@ export default function IslamicFinanceAppPage() {
                   verdict: 'Best for: Learning about Islamic finance. Not a replacement for an Islamic finance app.',
                 },
               ].map((app) => (
-                <div key={app.name} className="border border-gray-200 rounded-2xl p-6">
+                <div key={app.name} className="border border-gray-200 rounded-2xl p-6 dark:border-gray-700">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900">{app.name}</h3>
-                      <span className="text-sm text-gray-500">{app.type}</span>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{app.name}</h3>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">{app.type}</span>
                     </div>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4 mb-3">
                     <div>
                       <p className="text-xs font-semibold text-green-700 mb-1">PROS</p>
                       <ul className="space-y-1">
-                        {app.pros.map((p) => <li key={p} className="text-sm text-gray-600 flex gap-2"><span className="text-green-600">✓</span>{p}</li>)}
+                        {app.pros.map((p) => <li key={p} className="text-sm text-gray-600 flex gap-2 dark:text-gray-400"><span className="text-green-600">✓</span>{p}</li>)}
                       </ul>
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-red-600 mb-1">CONS</p>
                       <ul className="space-y-1">
-                        {app.cons.map((c) => <li key={c} className="text-sm text-gray-600 flex gap-2"><span className="text-red-400">✗</span>{c}</li>)}
+                        {app.cons.map((c) => <li key={c} className="text-sm text-gray-600 flex gap-2 dark:text-gray-400"><span className="text-red-400">✗</span>{c}</li>)}
                       </ul>
                     </div>
                   </div>
@@ -399,15 +399,15 @@ export default function IslamicFinanceAppPage() {
 
           {/* FAQ */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-4">
               {faqSchema.mainEntity.map((faq) => (
-                <details key={faq.name} className="border border-gray-200 rounded-xl p-5">
-                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex items-center justify-between">
+                <details key={faq.name} className="border border-gray-200 rounded-xl p-5 dark:border-gray-700">
+                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex items-center justify-between dark:text-gray-100">
                     {faq.name}
                     <span className="text-green-700 ml-4 flex-shrink-0">+</span>
                   </summary>
-                  <p className="mt-3 text-gray-600 leading-relaxed">{faq.acceptedAnswer.text}</p>
+                  <p className="mt-3 text-gray-600 leading-relaxed dark:text-gray-400">{faq.acceptedAnswer.text}</p>
                 </details>
               ))}
             </div>
@@ -422,7 +422,7 @@ export default function IslamicFinanceAppPage() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/signup"
-                className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition"
+                className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800"
               >
                 Create Free Account
               </Link>
@@ -437,7 +437,7 @@ export default function IslamicFinanceAppPage() {
 
           {/* Related Articles */}
           <section>
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Related Articles</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-5 dark:text-gray-100">Related Articles</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { href: '/learn/what-is-zakat', title: 'What is Zakat?', desc: 'Complete 2026 guide — rules, calculation, who must pay.' },
@@ -450,10 +450,10 @@ export default function IslamicFinanceAppPage() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors"
+                  className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700"
                 >
                   <h3 className="font-semibold text-green-700 mb-1">{link.title}</h3>
-                  <p className="text-xs text-gray-500">{link.desc}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{link.desc}</p>
                 </Link>
               ))}
             </div>

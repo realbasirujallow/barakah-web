@@ -104,7 +104,7 @@ export default function ZakatAlFitrCalculatorPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <article className="min-h-screen bg-white px-6 py-16">
+      <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           {/* Breadcrumb */}
           <nav className="mb-6 text-sm" aria-label="Breadcrumb">
@@ -112,19 +112,19 @@ export default function ZakatAlFitrCalculatorPage() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Zakat al-Fitr Calculator 2026</span>
+            <span className="text-gray-600 dark:text-gray-400">Zakat al-Fitr Calculator 2026</span>
           </nav>
 
           {/* Hero */}
           <header className="mb-10">
             <div className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">RAMADAN / ZAKAT</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               Zakat al-Fitr Calculator 2026 — Fitrana Amount, Ruling & Deadline
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-6">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6 dark:text-gray-400">
               Zakat al-Fitr (فطرة) is an obligatory charity due at the end of Ramadan, paid before the Eid al-Fitr prayer. This guide covers the 2026 amount, who must pay, the exact deadline, and rulings across all four madhabs.
             </p>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
               <span>📅 Updated April 2026</span>
               <span>⏱ 6 min read</span>
               <span>✅ Multi-madhab guidance</span>
@@ -155,14 +155,14 @@ export default function ZakatAlFitrCalculatorPage() {
 
           {/* Calculator Helper */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Calculate Your Family&apos;s Zakat al-Fitr</h2>
-            <div className="border border-gray-200 rounded-2xl overflow-hidden">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Calculate Your Family&apos;s Zakat al-Fitr</h2>
+            <div className="border border-gray-200 rounded-2xl overflow-hidden dark:border-gray-700">
               <div className="bg-green-700 px-5 py-3 text-white font-bold">Simple Calculation</div>
               <div className="p-5">
-                <p className="text-sm text-gray-700 mb-4">Multiply the per-person amount by your total household members:</p>
-                <div className="font-mono bg-gray-50 rounded-xl p-4 text-sm mb-4">
-                  <p className="text-gray-600">Number of household members × Per-person amount = Total Zakat al-Fitr</p>
-                  <p className="text-gray-600 mt-2">Example: 4 family members × $12 = <strong className="text-green-700">$48 total</strong></p>
+                <p className="text-sm text-gray-700 mb-4 dark:text-gray-300">Multiply the per-person amount by your total household members:</p>
+                <div className="font-mono bg-gray-50 rounded-xl p-4 text-sm mb-4 dark:bg-gray-800">
+                  <p className="text-gray-600 dark:text-gray-400">Number of household members × Per-person amount = Total Zakat al-Fitr</p>
+                  <p className="text-gray-600 mt-2 dark:text-gray-400">Example: 4 family members × $12 = <strong className="text-green-700">$48 total</strong></p>
                 </div>
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                   <p className="font-semibold text-amber-800 text-sm mb-1">⚠️ Check Your Local Organization&apos;s Amount</p>
@@ -174,12 +174,12 @@ export default function ZakatAlFitrCalculatorPage() {
 
           {/* Madhab Rulings */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Zakat al-Fitr Rulings by Madhab</h2>
-            <div className="overflow-x-auto rounded-2xl border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Zakat al-Fitr Rulings by Madhab</h2>
+            <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Question</th>
+                  <tr className="bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Question</th>
                     <th className="p-3 font-semibold text-green-700 border-b">Hanafi</th>
                     <th className="p-3 font-semibold text-blue-600 border-b">Maliki</th>
                     <th className="p-3 font-semibold text-purple-600 border-b">Shafi&apos;i</th>
@@ -225,11 +225,11 @@ export default function ZakatAlFitrCalculatorPage() {
                     },
                   ].map((row, i) => (
                     <tr key={row.q} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="p-3 font-medium text-gray-800 border-b border-gray-100">{row.q}</td>
-                      <td className="p-3 text-xs text-green-700 border-b border-gray-100">{row.hanafi}</td>
-                      <td className="p-3 text-xs text-blue-600 border-b border-gray-100">{row.maliki}</td>
-                      <td className="p-3 text-xs text-purple-600 border-b border-gray-100">{row.shafii}</td>
-                      <td className="p-3 text-xs text-orange-600 border-b border-gray-100">{row.hanbali}</td>
+                      <td className="p-3 font-medium text-gray-800 border-b border-gray-100 dark:text-gray-100 dark:border-gray-700">{row.q}</td>
+                      <td className="p-3 text-xs text-green-700 border-b border-gray-100 dark:border-gray-700">{row.hanafi}</td>
+                      <td className="p-3 text-xs text-blue-600 border-b border-gray-100 dark:border-gray-700">{row.maliki}</td>
+                      <td className="p-3 text-xs text-purple-600 border-b border-gray-100 dark:border-gray-700">{row.shafii}</td>
+                      <td className="p-3 text-xs text-orange-600 border-b border-gray-100 dark:border-gray-700">{row.hanbali}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -242,7 +242,7 @@ export default function ZakatAlFitrCalculatorPage() {
 
           {/* Key Hadith */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">The Hadith Basis for Zakat al-Fitr</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">The Hadith Basis for Zakat al-Fitr</h2>
             <div className="space-y-4">
               <div className="bg-green-50 border-l-4 border-green-700 rounded-r-xl p-5">
                 <p className="italic text-green-800 text-sm mb-2">
@@ -261,15 +261,15 @@ export default function ZakatAlFitrCalculatorPage() {
 
           {/* FAQ */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-4">
               {faqSchema.mainEntity.map((faq) => (
-                <details key={faq.name} className="border border-gray-200 rounded-xl p-5">
-                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm">
+                <details key={faq.name} className="border border-gray-200 rounded-xl p-5 dark:border-gray-700">
+                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm dark:text-gray-100">
                     {faq.name}
                     <span className="text-green-700 ml-4 flex-shrink-0">+</span>
                   </summary>
-                  <p className="mt-3 text-gray-600 text-sm leading-relaxed">{faq.acceptedAnswer.text}</p>
+                  <p className="mt-3 text-gray-600 text-sm leading-relaxed dark:text-gray-400">{faq.acceptedAnswer.text}</p>
                 </details>
               ))}
             </div>
@@ -280,14 +280,14 @@ export default function ZakatAlFitrCalculatorPage() {
             <h2 className="text-2xl font-bold mb-3">Track All Zakat in One Place — Free</h2>
             <p className="text-green-100 mb-6">Barakah tracks Zakat al-Mal AND Zakat al-Fitr — plus sadaqah, hawl anniversaries, and all Islamic giving in one free app.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/zakat-calculator" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition">Zakat Calculator</Link>
+              <Link href="/zakat-calculator" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">Zakat Calculator</Link>
               <Link href="/signup" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Create Free Account</Link>
             </div>
           </div>
 
           {/* Related */}
           <section>
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Related Articles</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-5 dark:text-gray-100">Related Articles</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { href: '/learn/zakat-al-fitr', title: 'Zakat al-Fitr Guide', desc: "Complete ruling and wisdom behind Ramadan's end-of-fast charity." },
@@ -297,9 +297,9 @@ export default function ZakatAlFitrCalculatorPage() {
                 { href: '/learn/how-much-zakat-do-i-owe', title: 'How Much Zakat Do I Owe?', desc: 'Calculate your annual zakat al-mal obligation.' },
                 { href: '/learn/ramadan-giving-tracker', title: 'Ramadan Giving', desc: 'Track all your Ramadan charity and donations.' },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors">
+                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700">
                   <h3 className="font-semibold text-green-700 mb-1">{link.title}</h3>
-                  <p className="text-xs text-gray-500">{link.desc}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{link.desc}</p>
                 </Link>
               ))}
             </div>

@@ -105,7 +105,7 @@ export default function SadaqahVsZakatPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <article className="min-h-screen bg-white px-6 py-16">
+      <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           {/* Breadcrumb */}
           <nav className="mb-6 text-sm" aria-label="Breadcrumb">
@@ -113,19 +113,19 @@ export default function SadaqahVsZakatPage() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Sadaqah vs Zakat</span>
+            <span className="text-gray-600 dark:text-gray-400">Sadaqah vs Zakat</span>
           </nav>
 
           {/* Hero */}
           <header className="mb-10">
             <div className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">ISLAMIC CHARITY GUIDE</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               Sadaqah vs Zakat — Key Differences Every Muslim Must Know
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-6">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6 dark:text-gray-400">
               Both zakat and sadaqah are forms of Islamic charity — but they differ fundamentally in obligation, rules, and spiritual standing. This guide explains both forms, their Quranic basis, and how to track them in your Islamic budget.
             </p>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
               <span>📅 Updated April 2026</span>
               <span>⏱ 8 min read</span>
               <span>✅ Quran & Hadith references</span>
@@ -134,12 +134,12 @@ export default function SadaqahVsZakatPage() {
 
           {/* Quick Comparison Table */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Sadaqah vs Zakat: Quick Comparison</h2>
-            <div className="overflow-x-auto rounded-2xl border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Sadaqah vs Zakat: Quick Comparison</h2>
+            <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Aspect</th>
+                  <tr className="bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Aspect</th>
                     <th className="p-3 font-semibold text-green-700 border-b">Zakat (زكاة)</th>
                     <th className="p-3 font-semibold text-purple-700 border-b">Sadaqah (صدقة)</th>
                   </tr>
@@ -158,9 +158,9 @@ export default function SadaqahVsZakatPage() {
                     ['Examples', 'Annual 2.5% on savings, gold, investments', 'Masjid donations, sponsoring an orphan, building a well'],
                   ].map(([aspect, zakat, sadaqah], i) => (
                     <tr key={aspect} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="p-3 font-medium text-gray-700 border-b border-gray-100">{aspect}</td>
-                      <td className="p-3 text-green-700 border-b border-gray-100">{zakat}</td>
-                      <td className="p-3 text-purple-700 border-b border-gray-100">{sadaqah}</td>
+                      <td className="p-3 font-medium text-gray-700 border-b border-gray-100 dark:text-gray-300 dark:border-gray-700">{aspect}</td>
+                      <td className="p-3 text-green-700 border-b border-gray-100 dark:border-gray-700">{zakat}</td>
+                      <td className="p-3 text-purple-700 border-b border-gray-100 dark:border-gray-700">{sadaqah}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -170,13 +170,13 @@ export default function SadaqahVsZakatPage() {
 
           {/* Zakat Deep Dive */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Zakat: The Third Pillar of Islam</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Zakat: The Third Pillar of Islam</h2>
             <div className="bg-green-50 border-l-4 border-green-700 rounded-r-xl p-5 mb-5">
               <p className="text-green-800 italic text-sm">
                 &ldquo;And establish prayer and give zakat, and whatever good you put forward for yourselves — you will find it with Allah.&rdquo; — Quran 2:110
               </p>
             </div>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               Zakat is one of the Five Pillars of Islam — an obligatory annual act of worship that purifies your wealth and fulfills the right of the poor upon the wealthy. Scholars describe it as &ldquo;a right of the poor upon the rich&rdquo; — not charity, but an obligation owed.
             </p>
             <div className="grid sm:grid-cols-2 gap-4 mb-5">
@@ -187,7 +187,7 @@ export default function SadaqahVsZakatPage() {
                 <div key={box.title} className="border border-green-200 rounded-xl p-4">
                   <h3 className="font-bold text-green-800 mb-2 text-sm">{box.title}</h3>
                   <ul className="space-y-1">
-                    {box.items.map((item) => <li key={item} className="text-xs text-gray-600 flex gap-2"><span className="text-green-500">•</span>{item}</li>)}
+                    {box.items.map((item) => <li key={item} className="text-xs text-gray-600 flex gap-2 dark:text-gray-400"><span className="text-green-500">•</span>{item}</li>)}
                   </ul>
                 </div>
               ))}
@@ -199,13 +199,13 @@ export default function SadaqahVsZakatPage() {
 
           {/* Sadaqah Deep Dive */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Sadaqah: Voluntary Charity With Immense Reward</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Sadaqah: Voluntary Charity With Immense Reward</h2>
             <div className="bg-purple-50 border-l-4 border-purple-600 rounded-r-xl p-5 mb-5">
               <p className="text-purple-800 italic text-sm">
                 &ldquo;Indeed, the men who give in sadaqah and the women who give in sadaqah and have lent Allah a goodly loan — it will be multiplied for them, and they will have a noble reward.&rdquo; — Quran 57:18
               </p>
             </div>
-            <p className="text-gray-700 leading-relaxed mb-6">
+            <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
               Sadaqah encompasses all forms of voluntary giving and goodness. The Prophet ﷺ described many acts as sadaqah — not just financial donations.
             </p>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -215,10 +215,10 @@ export default function SadaqahVsZakatPage() {
                 { type: 'Sadaqah of Knowledge', examples: ['Teaching Quran', 'Sharing Islamic knowledge', 'Writing Islamic books', 'Giving a useful fatwa', 'Teaching practical skills'] },
                 { type: 'Sadaqah of Action', examples: ['A smile at your brother/sister', 'Removing harm from the path', 'Helping someone with their load', 'Making dhikr', 'Enjoining good and forbidding evil'] },
               ].map((cat) => (
-                <div key={cat.type} className="border border-gray-200 rounded-xl p-4">
-                  <h3 className="font-bold text-gray-900 text-sm mb-2">{cat.type}</h3>
+                <div key={cat.type} className="border border-gray-200 rounded-xl p-4 dark:border-gray-700">
+                  <h3 className="font-bold text-gray-900 text-sm mb-2 dark:text-gray-100">{cat.type}</h3>
                   <ul className="space-y-1">
-                    {cat.examples.map((e) => <li key={e} className="text-xs text-gray-600 flex gap-2"><span className="text-purple-500">•</span>{e}</li>)}
+                    {cat.examples.map((e) => <li key={e} className="text-xs text-gray-600 flex gap-2 dark:text-gray-400"><span className="text-purple-500">•</span>{e}</li>)}
                   </ul>
                 </div>
               ))}
@@ -227,18 +227,18 @@ export default function SadaqahVsZakatPage() {
 
           {/* How Barakah Helps */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Track Both Zakat and Sadaqah in Barakah</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Track Both Zakat and Sadaqah in Barakah</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="border border-green-200 rounded-2xl p-5">
                 <div className="text-2xl mb-2">🧮</div>
-                <h3 className="font-bold text-gray-900 mb-1">Zakat Calculator</h3>
-                <p className="text-sm text-gray-600 mb-3">Multi-madhab zakat calculation with live gold/silver prices, 8 asset categories, and hawl anniversary tracking. Free forever.</p>
+                <h3 className="font-bold text-gray-900 mb-1 dark:text-gray-100">Zakat Calculator</h3>
+                <p className="text-sm text-gray-600 mb-3 dark:text-gray-400">Multi-madhab zakat calculation with live gold/silver prices, 8 asset categories, and hawl anniversary tracking. Free forever.</p>
                 <Link href="/zakat-calculator" className="text-green-700 font-semibold text-sm hover:underline">Calculate your zakat →</Link>
               </div>
               <div className="border border-purple-200 rounded-2xl p-5">
                 <div className="text-2xl mb-2">💸</div>
-                <h3 className="font-bold text-gray-900 mb-1">Sadaqah Tracker</h3>
-                <p className="text-sm text-gray-600 mb-3">Set monthly sadaqah goals, log every donation, track total giving by year, and see your sadaqah history across all causes.</p>
+                <h3 className="font-bold text-gray-900 mb-1 dark:text-gray-100">Sadaqah Tracker</h3>
+                <p className="text-sm text-gray-600 mb-3 dark:text-gray-400">Set monthly sadaqah goals, log every donation, track total giving by year, and see your sadaqah history across all causes.</p>
                 <Link href="/signup" className="text-green-700 font-semibold text-sm hover:underline">Start tracking →</Link>
               </div>
             </div>
@@ -246,15 +246,15 @@ export default function SadaqahVsZakatPage() {
 
           {/* FAQ */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-4">
               {faqSchema.mainEntity.map((faq) => (
-                <details key={faq.name} className="border border-gray-200 rounded-xl p-5">
-                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm">
+                <details key={faq.name} className="border border-gray-200 rounded-xl p-5 dark:border-gray-700">
+                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm dark:text-gray-100">
                     {faq.name}
                     <span className="text-green-700 ml-4 flex-shrink-0">+</span>
                   </summary>
-                  <p className="mt-3 text-gray-600 text-sm leading-relaxed">{faq.acceptedAnswer.text}</p>
+                  <p className="mt-3 text-gray-600 text-sm leading-relaxed dark:text-gray-400">{faq.acceptedAnswer.text}</p>
                 </details>
               ))}
             </div>
@@ -268,7 +268,7 @@ export default function SadaqahVsZakatPage() {
             <h2 className="text-2xl font-bold mb-3">Calculate Zakat & Track Sadaqah — Free</h2>
             <p className="text-green-100 mb-6">Never miss your zakat obligation or lose track of your charitable giving again.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/zakat-calculator" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition">
+              <Link href="/zakat-calculator" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">
                 Zakat Calculator
               </Link>
               <Link href="/signup" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">
@@ -279,7 +279,7 @@ export default function SadaqahVsZakatPage() {
 
           {/* Related Articles */}
           <section>
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Related Articles</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-5 dark:text-gray-100">Related Articles</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { href: '/learn/what-is-zakat', title: 'What is Zakat?', desc: 'Complete 2026 guide — rules, calculation, and recipients.' },
@@ -289,9 +289,9 @@ export default function SadaqahVsZakatPage() {
                 { href: '/learn/ramadan-giving-tracker', title: 'Ramadan Giving', desc: 'Track your giving during the blessed month of Ramadan.' },
                 { href: '/learn/nisab-threshold', title: 'Nisab Threshold 2026', desc: 'Current gold and silver nisab values for this year.' },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors">
+                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700">
                   <h3 className="font-semibold text-green-700 mb-1">{link.title}</h3>
-                  <p className="text-xs text-gray-500">{link.desc}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{link.desc}</p>
                 </Link>
               ))}
             </div>

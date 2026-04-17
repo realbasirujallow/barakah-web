@@ -57,7 +57,7 @@ export default function ZakatOnSavingsPage() {
       />
       <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
         {/* Header */}
-        <header className="bg-white shadow-sm sticky top-0 z-10">
+        <header className="bg-white shadow-sm sticky top-0 z-10 dark:bg-gray-800">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</Link>
             <div className="flex items-center gap-3">
@@ -71,9 +71,9 @@ export default function ZakatOnSavingsPage() {
         </header>
 
         {/* Breadcrumb */}
-        <nav className="bg-white border-b border-gray-100 px-6 py-3">
+        <nav className="bg-white border-b border-gray-100 px-6 py-3 dark:bg-gray-800 dark:border-gray-700">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
               <span className="text-gray-300">/</span>
               <Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link>
@@ -90,8 +90,8 @@ export default function ZakatOnSavingsPage() {
                 Zakat Guide
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-[#1B5E20]">Zakat on Savings & Bank Accounts: How to Calculate</h1>
-              <p className="text-lg text-gray-700">Master the simple rules for calculating zakat on checking accounts, savings accounts, and cash with practical examples.</p>
-              <div className="flex items-center gap-4 text-sm text-gray-600 border-t border-gray-200 pt-4">
+              <p className="text-lg text-gray-700 dark:text-gray-300">Master the simple rules for calculating zakat on checking accounts, savings accounts, and cash with practical examples.</p>
+              <div className="flex items-center gap-4 text-sm text-gray-600 border-t border-gray-200 pt-4 dark:text-gray-400 dark:border-gray-700">
                 <span>By Barakah Editorial Team</span>
                 <span>7 min read</span>
                 <span>Published: March 2026 • Last updated: April 3, 2026</span>
@@ -113,20 +113,20 @@ export default function ZakatOnSavingsPage() {
 
             <section id="is-zakat-due" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Is Zakat Due on Savings Accounts?</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 <strong>Yes.</strong> If you have savings in a bank account that reaches the nisab threshold and you have held it for one complete Islamic (lunar) year, zakat is due.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Savings accounts are among the clearest examples of zakatable wealth because:
               </p>
-              <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <ul className="list-disc pl-6 text-gray-700 space-y-2 dark:text-gray-300">
                 <li><strong>They are liquid:</strong> You can access them immediately without restrictions or penalties</li>
                 <li><strong>They are in your possession:</strong> The funds are clearly under your control</li>
                 <li><strong>They are wealth:</strong> They represent monetary value you own</li>
               </ul>
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">The Nisab Rule</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   If your savings balance is <strong>below the nisab threshold</strong> (currently <GoldNisabUSD /> based on 85g of gold), you do not owe zakat. If it is <strong>above nisab</strong> and you&apos;ve owned it for one lunar year, you owe 2.5% in zakat.
                 </p>
               </div>
@@ -134,43 +134,43 @@ export default function ZakatOnSavingsPage() {
 
             <section id="calculation-steps" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Step-by-Step Calculation</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Calculating zakat on savings is simple:
               </p>
               <ol className="space-y-4">
                 <li className="flex gap-4">
                   <span className="text-2xl font-bold text-[#1B5E20]">1</span>
                   <div>
-                    <p className="font-semibold text-gray-900">Check your savings balance</p>
-                    <p className="text-gray-600 text-sm">Look at the current total in your account(s)</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">Check your savings balance</p>
+                    <p className="text-gray-600 text-sm dark:text-gray-400">Look at the current total in your account(s)</p>
                   </div>
                 </li>
                 <li className="flex gap-4">
                   <span className="text-2xl font-bold text-[#1B5E20]">2</span>
                   <div>
-                    <p className="font-semibold text-gray-900">Verify it exceeds nisab</p>
-                    <p className="text-gray-600 text-sm">Compare to the current nisab threshold (<GoldNisabUSD /> or 85g of gold value)</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">Verify it exceeds nisab</p>
+                    <p className="text-gray-600 text-sm dark:text-gray-400">Compare to the current nisab threshold (<GoldNisabUSD /> or 85g of gold value)</p>
                   </div>
                 </li>
                 <li className="flex gap-4">
                   <span className="text-2xl font-bold text-[#1B5E20]">3</span>
                   <div>
-                    <p className="font-semibold text-gray-900">Count one lunar year</p>
-                    <p className="text-gray-600 text-sm">Ensure you have owned it for 12 Islamic months (approximately 354 days)</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">Count one lunar year</p>
+                    <p className="text-gray-600 text-sm dark:text-gray-400">Ensure you have owned it for 12 Islamic months (approximately 354 days)</p>
                   </div>
                 </li>
                 <li className="flex gap-4">
                   <span className="text-2xl font-bold text-[#1B5E20]">4</span>
                   <div>
-                    <p className="font-semibold text-gray-900">Calculate 2.5%</p>
-                    <p className="text-gray-600 text-sm">Multiply your balance by 0.025 (or divide by 40)</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">Calculate 2.5%</p>
+                    <p className="text-gray-600 text-sm dark:text-gray-400">Multiply your balance by 0.025 (or divide by 40)</p>
                   </div>
                 </li>
                 <li className="flex gap-4">
                   <span className="text-2xl font-bold text-[#1B5E20]">5</span>
                   <div>
-                    <p className="font-semibold text-gray-900">Pay the amount due</p>
-                    <p className="text-gray-600 text-sm">Distribute to qualified recipients or use Barakah to donate</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">Pay the amount due</p>
+                    <p className="text-gray-600 text-sm dark:text-gray-400">Distribute to qualified recipients or use Barakah to donate</p>
                   </div>
                 </li>
               </ol>
@@ -192,21 +192,21 @@ export default function ZakatOnSavingsPage() {
               <div className="space-y-4">
                 <div className="border-l-4 border-[#1B5E20] bg-green-50 p-4 rounded">
                   <h3 className="font-bold text-[#1B5E20] mb-2">Checking Accounts</h3>
-                  <p className="text-gray-700 text-sm">
+                  <p className="text-gray-700 text-sm dark:text-gray-300">
                     <strong>Fully zakatable.</strong> Checking account balances are liquid and immediately accessible. Include the full balance in your zakat calculation if it exceeds nisab after holding for one lunar year.
                   </p>
                 </div>
 
                 <div className="border-l-4 border-blue-600 bg-blue-50 p-4 rounded">
                   <h3 className="font-bold text-blue-900 mb-2">Savings Accounts</h3>
-                  <p className="text-gray-700 text-sm">
+                  <p className="text-gray-700 text-sm dark:text-gray-300">
                     <strong>Fully zakatable.</strong> Savings accounts are also liquid wealth. Although there may be withdrawal limits, you can access funds without penalties. Include in your zakat calculation.
                   </p>
                 </div>
 
                 <div className="border-l-4 border-purple-600 bg-purple-50 p-4 rounded">
                   <h3 className="font-bold text-purple-900 mb-2">Certificates of Deposit (CDs)</h3>
-                  <p className="text-gray-700 text-sm">
+                  <p className="text-gray-700 text-sm dark:text-gray-300">
                     <strong>Zakatable with consideration for early withdrawal penalties.</strong> CDs are more restricted than savings accounts. Most scholars recommend:
                   </p>
                   <ul className="mt-2 space-y-1 text-purple-900 text-sm list-disc pl-6">
@@ -220,24 +220,24 @@ export default function ZakatOnSavingsPage() {
 
             <section id="interest" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Interest Earned in Conventional Accounts (Riba)</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Interest (riba) earned from conventional bank accounts is prohibited in Islam. You cannot keep this money or include it in your permanent wealth.
               </p>
               <div className="bg-red-50 border border-red-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-red-600 mb-3">What to Do with Interest</h3>
-                <ol className="space-y-2 text-gray-700 text-sm">
+                <ol className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                   <li>1. <strong>Separate the interest</strong> from your principal balance</li>
                   <li>2. <strong>Do not use it</strong> for yourself or your family</li>
                   <li>3. <strong>Donate it to charity</strong> (sadaqah) to purify your wealth</li>
                   <li>4. Give to those in genuine need, masajid, Islamic organizations, or other charitable causes</li>
                 </ol>
               </div>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 <strong>For zakat calculation:</strong> Only include your principal deposit, not the interest earned. The interest should be donated separately to charity.
               </p>
               <div className="bg-green-50 border border-green-200 rounded-lg p-6">
                 <h3 className="font-bold text-[#1B5E20] mb-3">Example: Interest Handling</h3>
-                <div className="space-y-2 text-sm text-gray-700">
+                <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                   <p>Principal deposit: <strong>$5,000</strong></p>
                   <p>Interest earned: <strong>$50</strong></p>
                   <p>Current balance: <strong>$5,050</strong></p>
@@ -249,22 +249,22 @@ export default function ZakatOnSavingsPage() {
 
             <section id="emergency-fund" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">What About Emergency Funds?</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Many Muslims set aside emergency funds (often 3-6 months of living expenses) for unexpected hardships. A common question is: &quot;Can I exclude my emergency fund from zakat?&quot;
               </p>
-              <p className="text-gray-700 leading-relaxed font-semibold">
+              <p className="text-gray-700 leading-relaxed font-semibold dark:text-gray-300">
                 <strong className="text-red-600">Short answer: No.</strong> Emergency funds are still your wealth and are fully zakatable.
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-amber-900 mb-3">The Islamic Position</h3>
-                <p className="text-gray-700 text-sm mb-3">
+                <p className="text-gray-700 text-sm mb-3 dark:text-gray-300">
                   While having an emergency fund is wise and encouraged, it remains your wealth. Islamic law does not allow exempting it from zakat simply because it is reserved for emergencies. The purpose of the fund does not change its nature as zakatable wealth.
                 </p>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   <strong>However:</strong> Having an emergency fund is a legitimate financial need. After paying zakat, maintaining your emergency fund is important for family stability and meeting obligations.
                 </p>
               </div>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 <strong>Include your full emergency fund balance in zakat calculations</strong> if it exceeds nisab after holding for one lunar year.
               </p>
             </section>
@@ -272,37 +272,37 @@ export default function ZakatOnSavingsPage() {
             <section id="faq" className="space-y-6">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Frequently Asked Questions</h2>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: If my balance fluctuates during the year, which amount do I use for zakat?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   Most scholars recommend using the balance on your zakat anniversary date (the date you reach one lunar year). However, if your balance regularly fluctuates, some allow averaging throughout the year. Use the anniversary method as the standard approach.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: What if my savings dip below nisab partway through the year?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   If you drop below nisab, you do not owe zakat that year. However, when you return above nisab, a new one-year period starts. This is called the &quot;gap rule&quot; in Islamic jurisprudence.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Can I combine multiple accounts for calculating nisab?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   Yes, absolutely. Combine all your liquid savings (checking, savings, money market accounts) when calculating whether you meet nisab. Then calculate 2.5% zakat on the combined total.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Do I owe zakat on money I&apos;m holding for someone else?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   No. If you are holding savings on trust for another person (like money for a child or as a custodian), you are not responsible for zakat. The owner of the funds must pay zakat. However, if the money is yours, you must include it.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: How do I calculate zakat if I add money partway through the year?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   New deposits start their own one-year countdown. On your zakat anniversary, calculate zakat on:
                   <br />1. Your original balance (which has now completed one year)
                   <br />2. New deposits that have completed their own year
@@ -319,35 +319,35 @@ export default function ZakatOnSavingsPage() {
               </p>
               <Link
                 href="/dashboard"
-                className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition"
+                className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition dark:bg-gray-800"
               >
                 Open Calculator
               </Link>
             </div>
 
             {/* Related Articles */}
-            <section className="mt-12 border-t border-gray-200 pt-8">
+            <section className="mt-12 border-t border-gray-200 pt-8 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-[#1B5E20] mb-6">Related Articles</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <Link
                   href="/learn/zakat-on-gold"
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition"
+                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition dark:bg-gray-800 dark:border-gray-700"
                 >
                   <h3 className="font-bold text-[#1B5E20] mb-2">Zakat on Gold & Jewelry</h3>
-                  <p className="text-gray-600 text-sm">Calculate zakat on gold with current market prices and scholarly guidance.</p>
+                  <p className="text-gray-600 text-sm dark:text-gray-400">Calculate zakat on gold with current market prices and scholarly guidance.</p>
                 </Link>
                 <Link
                   href="/learn/nisab-threshold"
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition"
+                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition dark:bg-gray-800 dark:border-gray-700"
                 >
                   <h3 className="font-bold text-[#1B5E20] mb-2">Nisab Threshold 2026</h3>
-                  <p className="text-gray-600 text-sm">Understand the minimum threshold and whether you must pay zakat.</p>
+                  <p className="text-gray-600 text-sm dark:text-gray-400">Understand the minimum threshold and whether you must pay zakat.</p>
                 </Link>
               </div>
             </section>
 
             {/* Author Info */}
-            <footer className="mt-12 pt-8 border-t border-gray-200 text-sm text-gray-600">
+            <footer className="mt-12 pt-8 border-t border-gray-200 text-sm text-gray-600 dark:text-gray-400 dark:border-gray-700">
               <p><strong>By:</strong> Barakah Editorial Team</p>
               <p><strong>Last updated:</strong> April 3, 2026</p>
               <p className="mt-2">Content based on Islamic fiqh from AMJA, Fiqh Council of North America, and classical Islamic jurisprudence.</p>
@@ -356,38 +356,38 @@ export default function ZakatOnSavingsPage() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-white border-t border-gray-100 py-8 px-6 mt-16">
+        <footer className="bg-white border-t border-gray-100 py-8 px-6 mt-16 dark:bg-gray-800 dark:border-gray-700">
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-4 gap-8 mb-8">
               <div>
                 <h3 className="font-bold text-[#1B5E20] mb-4">Barakah</h3>
-                <p className="text-sm text-gray-600">Fiqh-aware household finance for modern Muslim families.</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Fiqh-aware household finance for modern Muslim families.</p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Learn</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Learn</h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/learn" className="hover:text-[#1B5E20] transition">All Guides</Link></li>
                   <li><Link href="/learn/nisab-threshold" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
                   <li><Link href="/learn/zakat-al-fitr" className="hover:text-[#1B5E20] transition">Zakat al-Fitr</Link></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Company</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Company</h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/" className="hover:text-[#1B5E20] transition">Home</Link></li>
                   <li><Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link></li>
                   <li><Link href="/disclaimer" className="hover:text-[#1B5E20] transition">Disclaimer</Link></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Legal</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Legal</h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/privacy" className="hover:text-[#1B5E20] transition">Privacy</Link></li>
                   <li><Link href="/terms" className="hover:text-[#1B5E20] transition">Terms</Link></li>
                 </ul>
               </div>
             </div>
-            <div className="border-t border-gray-100 pt-6 text-center text-xs text-gray-500">
+            <div className="border-t border-gray-100 pt-6 text-center text-xs text-gray-500 dark:text-gray-400 dark:border-gray-700">
               <p>&copy; {new Date().getFullYear()} Barakah. All rights reserved.</p>
             </div>
           </div>

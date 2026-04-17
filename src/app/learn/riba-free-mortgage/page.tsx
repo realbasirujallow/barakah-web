@@ -132,7 +132,7 @@ export default function RibaFreeMortgagePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <article className="min-h-screen bg-white px-6 py-16">
+      <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           {/* Breadcrumb */}
           <nav className="mb-6 text-sm" aria-label="Breadcrumb">
@@ -140,19 +140,19 @@ export default function RibaFreeMortgagePage() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Riba-Free Mortgage</span>
+            <span className="text-gray-600 dark:text-gray-400">Riba-Free Mortgage</span>
           </nav>
 
           {/* Hero */}
           <header className="mb-10">
             <div className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">ISLAMIC HOME FINANCE</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               Riba-Free Mortgage 2026 — Halal Islamic Home Financing Options for Muslims
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-6">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6 dark:text-gray-400">
               Owning a home is a legitimate aspiration for every Muslim family — but a conventional interest-bearing mortgage involves riba. This guide explains why conventional mortgages are impermissible, the three halal home financing alternatives, and which US providers offer them.
             </p>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
               <span>📅 Updated April 2026</span>
               <span>⏱ 10 min read</span>
               <span>⚠️ Not financial advice — consult a qualified Islamic scholar</span>
@@ -161,13 +161,13 @@ export default function RibaFreeMortgagePage() {
 
           {/* Why Conventional Mortgage Is Haram */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Why a Conventional Mortgage Is Haram</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Why a Conventional Mortgage Is Haram</h2>
             <div className="bg-red-50 border-l-4 border-red-600 rounded-r-xl p-5 mb-6">
               <p className="text-red-800 italic text-sm">
                 &ldquo;O you who believe! Fear Allah and give up what remains of riba, if you are believers. And if you do not, then be informed of a war [against you] from Allah and His Messenger.&rdquo; — Quran 2:278–279
               </p>
             </div>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               In a conventional mortgage, a bank lends you money and charges a predetermined percentage of interest above the principal. This is the textbook definition of riba al-nasiah (interest on debt) — which is prohibited in Islam by explicit Quranic verses, multiple authentic hadiths, and scholarly consensus (ijma).
             </p>
             <div className="grid sm:grid-cols-3 gap-4">
@@ -187,13 +187,13 @@ export default function RibaFreeMortgagePage() {
 
           {/* Islamic Alternatives */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">3 Halal Home Financing Alternatives</h2>
-            <p className="text-gray-600 mb-8 leading-relaxed">
+            <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">3 Halal Home Financing Alternatives</h2>
+            <p className="text-gray-600 mb-8 leading-relaxed dark:text-gray-400">
               Islamic home finance structures avoid riba by replacing the loan-with-interest model with legitimate commercial contracts — co-ownership, trade, or lease.
             </p>
             <div className="space-y-8">
               {methods.map((method) => (
-                <div key={method.name} className="border border-gray-200 rounded-2xl overflow-hidden">
+                <div key={method.name} className="border border-gray-200 rounded-2xl overflow-hidden dark:border-gray-700">
                   <div className="bg-green-700 text-white px-5 py-4">
                     <div className="flex items-baseline gap-3">
                       <h3 className="font-bold text-lg">{method.name}</h3>
@@ -201,18 +201,18 @@ export default function RibaFreeMortgagePage() {
                     </div>
                   </div>
                   <div className="p-5">
-                    <p className="text-gray-700 text-sm mb-4"><strong>How it works:</strong> {method.how}</p>
+                    <p className="text-gray-700 text-sm mb-4 dark:text-gray-300"><strong>How it works:</strong> {method.how}</p>
                     <div className="grid sm:grid-cols-2 gap-4 mb-3">
                       <div>
                         <p className="text-xs font-semibold text-green-700 mb-1">PROS</p>
                         <ul className="space-y-1">
-                          {method.pros.map((p) => <li key={p} className="text-xs text-gray-600 flex gap-1"><span className="text-green-600">✓</span>{p}</li>)}
+                          {method.pros.map((p) => <li key={p} className="text-xs text-gray-600 flex gap-1 dark:text-gray-400"><span className="text-green-600">✓</span>{p}</li>)}
                         </ul>
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-amber-600 mb-1">CONSIDERATIONS</p>
                         <ul className="space-y-1">
-                          {method.cons.map((c) => <li key={c} className="text-xs text-gray-600 flex gap-1"><span className="text-amber-500">!</span>{c}</li>)}
+                          {method.cons.map((c) => <li key={c} className="text-xs text-gray-600 flex gap-1 dark:text-gray-400"><span className="text-amber-500">!</span>{c}</li>)}
                         </ul>
                       </div>
                     </div>
@@ -225,15 +225,15 @@ export default function RibaFreeMortgagePage() {
 
           {/* US Providers */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Halal Mortgage Providers in the United States</h2>
-            <div className="overflow-x-auto rounded-2xl border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Halal Mortgage Providers in the United States</h2>
+            <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Provider</th>
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Structure</th>
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Coverage</th>
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Notes</th>
+                  <tr className="bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Provider</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Structure</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Coverage</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Notes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -245,10 +245,10 @@ export default function RibaFreeMortgagePage() {
                     { provider: 'Ameen Housing Cooperative', structure: 'Co-op / Musharakah', coverage: 'California', notes: 'Community-based model for California Muslims' },
                   ].map((row, i) => (
                     <tr key={row.provider} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="p-3 font-semibold text-gray-900 border-b border-gray-100">{row.provider}</td>
-                      <td className="p-3 text-green-700 border-b border-gray-100 text-xs">{row.structure}</td>
-                      <td className="p-3 text-gray-600 border-b border-gray-100 text-xs">{row.coverage}</td>
-                      <td className="p-3 text-gray-500 border-b border-gray-100 text-xs">{row.notes}</td>
+                      <td className="p-3 font-semibold text-gray-900 border-b border-gray-100 dark:text-gray-100 dark:border-gray-700">{row.provider}</td>
+                      <td className="p-3 text-green-700 border-b border-gray-100 text-xs dark:border-gray-700">{row.structure}</td>
+                      <td className="p-3 text-gray-600 border-b border-gray-100 text-xs dark:text-gray-400 dark:border-gray-700">{row.coverage}</td>
+                      <td className="p-3 text-gray-500 border-b border-gray-100 text-xs dark:text-gray-400 dark:border-gray-700">{row.notes}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -261,15 +261,15 @@ export default function RibaFreeMortgagePage() {
 
           {/* FAQ */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-4">
               {faqSchema.mainEntity.map((faq) => (
-                <details key={faq.name} className="border border-gray-200 rounded-xl p-5">
-                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm">
+                <details key={faq.name} className="border border-gray-200 rounded-xl p-5 dark:border-gray-700">
+                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm dark:text-gray-100">
                     {faq.name}
                     <span className="text-green-700 ml-4 flex-shrink-0">+</span>
                   </summary>
-                  <p className="mt-3 text-gray-600 text-sm leading-relaxed">{faq.acceptedAnswer.text}</p>
+                  <p className="mt-3 text-gray-600 text-sm leading-relaxed dark:text-gray-400">{faq.acceptedAnswer.text}</p>
                 </details>
               ))}
             </div>
@@ -283,14 +283,14 @@ export default function RibaFreeMortgagePage() {
             <h2 className="text-2xl font-bold mb-3">Track Your Riba Exposure with Barakah — Free</h2>
             <p className="text-green-100 mb-6">Barakah&apos;s riba detector flags all interest-bearing accounts, calculates purification amounts, and maps your journey to riba-free finances.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition">Start Free — No Card Needed</Link>
+              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">Start Free — No Card Needed</Link>
               <Link href="/learn/is-my-mortgage-halal" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Is My Mortgage Halal?</Link>
             </div>
           </div>
 
           {/* Related */}
           <section>
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Related Articles</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-5 dark:text-gray-100">Related Articles</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { href: '/learn/is-my-mortgage-halal', title: 'Is My Mortgage Halal?', desc: 'Checking your existing mortgage against Islamic criteria.' },
@@ -300,9 +300,9 @@ export default function RibaFreeMortgagePage() {
                 { href: '/learn/halal-budgeting', title: 'Halal Budgeting', desc: 'Building a budget that avoids riba in all forms.' },
                 { href: '/learn/islamic-finance-basics', title: 'Islamic Finance Basics', desc: 'The foundations of Islamic financial principles.' },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors">
+                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700">
                   <h3 className="font-semibold text-green-700 mb-1">{link.title}</h3>
-                  <p className="text-xs text-gray-500">{link.desc}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{link.desc}</p>
                 </Link>
               ))}
             </div>
