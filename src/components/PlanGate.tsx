@@ -25,12 +25,17 @@ interface PlanGateProps {
  * Free users see a comparison of Plus vs Family plans. Paid users see the children normally.
  */
 export function PlanGate({ required, featureName, description, children }: PlanGateProps) {
-  const { user, refreshPlan } = useAuth();
+  const { user, isLoading, refreshPlan } = useAuth();
   const { toast } = useToast();
   const [upgrading, setUpgrading] = useState<'plus' | 'family' | null>(null);
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
-  // Still loading or no user (layout guard handles redirect)
+  // While AuthContext is reconciling the cached profile with the server
+  // (e.g. to pick up plan changes made in another tab, or to backfill a
+  // cached profile that predates a schema addition), do NOT render the
+  // paywall. Showing "upgrade" to a user who actually has access, even
+  // for a split second, is a worse bug than a brief blank frame.
+  if (isLoading) return null;
   if (!user) return null;
 
   if (hasAccess(user.plan, required, user.planExpiresAt)) {
