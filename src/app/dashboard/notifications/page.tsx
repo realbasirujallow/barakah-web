@@ -111,7 +111,8 @@ export default function NotificationsPage() {
   const fmtTime = (ts: number) => {
     const ms = ts < 1e12 ? ts * 1000 : ts;
     const d = new Date(ms);
-    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    // Round 23: undefined locale → browser default. See useCurrency.
+    return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
   return (

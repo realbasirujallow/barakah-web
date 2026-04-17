@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
-import { hasCompletedGuidedSetup } from '../../lib/setup';
+import { isSetupComplete } from '../../lib/setup';
 import { isSafeInternalPath } from '../../lib/safePath';
 
 const REMEMBERED_EMAIL_KEY = 'barakah_remembered_email';
@@ -97,8 +97,11 @@ function LoginForm() {
       try {
         const savedUser = localStorage.getItem('user');
         if (savedUser) {
-          const parsed = JSON.parse(savedUser) as { id?: string };
-          if (parsed.id && hasCompletedGuidedSetup(parsed.id)) {
+          // Round 23: prefer the server-side `setupCompletedAt` that the
+          // login response just wrote into localStorage. Falls back to
+          // the legacy per-device flag for pre-migration accounts.
+          const parsed = JSON.parse(savedUser) as { id?: string; setupCompletedAt?: number | null };
+          if (parsed.id && isSetupComplete(parsed.id, parsed.setupCompletedAt)) {
             nextRoute = '/dashboard';
           }
         }
