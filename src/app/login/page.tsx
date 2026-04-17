@@ -193,9 +193,13 @@ function LoginForm() {
             </div>
           )}
 
+          {/* Round 19: each label/input pair has matching htmlFor/id so
+              screen readers announce the label, and clicking the label
+              focuses the input. Prior markup had orphaned labels. */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
+              id="login-email"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -208,10 +212,11 @@ function LoginForm() {
 
           <div className="mb-4">
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <label htmlFor="login-password" className="block text-sm font-medium text-gray-700">Password</label>
               <Link href="/forgot-password" className="text-xs text-[#1B5E20] hover:underline">Forgot Password?</Link>
             </div>
             <input
+              id="login-password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}

@@ -78,9 +78,11 @@ function ResetPasswordForm() {
             </div>
           )}
 
+          {/* Round 19: label/input association via htmlFor+id. */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <label htmlFor="reset-new-password" className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
             <input
+              id="reset-new-password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -93,8 +95,9 @@ function ResetPasswordForm() {
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <label htmlFor="reset-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
             <input
+              id="reset-confirm-password"
               type="password"
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}

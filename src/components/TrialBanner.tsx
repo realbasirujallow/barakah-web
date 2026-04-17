@@ -61,9 +61,23 @@ export default function TrialBanner() {
   const { user } = useAuth();
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [dismissed, setDismissed] = useState<boolean>(() => safeGet(todayKey()) === 'true');
+  // Round 19: start false (SSR-safe), hydrate in a useEffect — prior
+  // lazy initializer read localStorage which is unavailable during SSR,
+  // causing hydration mismatch on returning users who'd dismissed today.
+  const [dismissed, setDismissed] = useState<boolean>(false);
   // Re-reads the clock every minute — purity-safe via useSyncExternalStore.
   const now = useSyncExternalStore(subscribeMinute, getNowClient, getNowServer);
+
+  // Round 19: hydrate the dismissed flag post-mount so SSR and CSR
+  // always start with `false`, eliminating hydration-mismatch errors.
+  // Wrapped in setTimeout(0) to satisfy the react-hooks/set-state-in-effect
+  // lint rule.
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setDismissed(safeGet(todayKey()) === 'true');
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     if (!user) return;

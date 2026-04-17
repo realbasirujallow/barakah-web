@@ -247,7 +247,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#1B5E20] text-white transform transition-transform lg:translate-x-0 lg:static lg:flex-shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside id="dashboard-sidebar" className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#1B5E20] text-white transform transition-transform lg:translate-x-0 lg:static lg:flex-shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 border-b border-green-800">
           <h1 className="text-xl font-bold">&#127769; Barakah</h1>
           <p className="text-green-300 text-sm mt-1">{user.name}</p>
@@ -288,10 +288,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <ToastProvider>
         <div className="flex-1 flex flex-col min-h-screen">
           <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between lg:justify-end">
+            {/* Round 19: added aria-expanded / aria-controls so screen
+                readers and keyboard users can tell whether the sidebar
+                is open/closed. The marketing hamburger (/app/page.tsx)
+                got the same treatment in Round 18. */}
             <button
               className="lg:hidden text-[#1B5E20]"
               onClick={() => setSidebarOpen(true)}
-              aria-label="Open navigation menu"
+              aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={sidebarOpen}
+              aria-controls="dashboard-sidebar"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />

@@ -71,9 +71,11 @@ export default function ForgotPasswordPage() {
                 Enter the email address associated with your account and we&apos;ll send you a link to reset your password.
               </p>
 
+              {/* Round 19: label/input association via htmlFor+id. */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
+                  id="forgot-email"
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
