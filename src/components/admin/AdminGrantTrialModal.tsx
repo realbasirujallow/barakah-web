@@ -10,6 +10,7 @@
  * refactor.
  */
 
+import { useEffect } from 'react';
 import { PRICING } from '../../lib/pricing';
 import type { AdminUser } from './adminTypes';
 
@@ -40,12 +41,29 @@ export function AdminGrantTrialModal(props: AdminGrantTrialModalProps) {
     onGrant,
   } = props;
 
+  // Round 26: Escape-key closes. Admin surface but still a modal that can
+  // grant paid trials to any user — keyboard dismissal is expected.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onClick={onClose}>
+    // Round 26: role="dialog" + aria-modal + aria-labelledby for SR users.
+    <div
+      className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="grant-trial-title"
+      onClick={onClose}
+    >
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b flex items-start justify-between">
-          <h2 className="text-lg font-bold text-gray-900">Grant Trial</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+          <h2 id="grant-trial-title" className="text-lg font-bold text-gray-900">Grant Trial</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">✕</button>
         </div>
         <div className="p-6 space-y-5">
           <p className="text-xs text-gray-600 bg-blue-50 p-3 rounded-lg">
@@ -64,8 +82,8 @@ export function AdminGrantTrialModal(props: AdminGrantTrialModalProps) {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Duration (days)</label>
-            <input type="number" min="1" max="365" value={trialDurationDays}
+            <label htmlFor="grant-trial-days" className="block text-sm font-medium text-gray-700 mb-2">Duration (days)</label>
+            <input id="grant-trial-days" type="number" min="1" max="365" value={trialDurationDays}
               onChange={e => setTrialDurationDays(Math.min(365, Math.max(1, parseInt(e.target.value) || 1)))}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none" />
           </div>
