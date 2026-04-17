@@ -25,13 +25,17 @@ export default function GrowthPage() {
   const [loading, setLoading] = useState(true);
   const [growth, setGrowth] = useState<GrowthResponse | null>(null);
   const isAdmin = user?.isAdmin === true;
+  // Tri-state — see funnel/page.tsx for the rationale. isAdmin === undefined
+  // means AuthContext is still reconciling the cached profile with the
+  // server; redirecting during that window bounces legitimate admins.
+  const isAdminKnown = typeof user?.isAdmin === 'boolean';
 
   // BUG FIX: frontend admin-role guard — redirect non-admins before any API call
   useEffect(() => {
-    if (!isAuthLoading && user && !isAdmin) {
+    if (!isAuthLoading && user && isAdminKnown && !isAdmin) {
       router.replace('/dashboard');
     }
-  }, [isAdmin, isAuthLoading, router, user]);
+  }, [isAdmin, isAdminKnown, isAuthLoading, router, user]);
 
   useEffect(() => {
     if (isAuthLoading || !user || !isAdmin) {
@@ -55,7 +59,7 @@ export default function GrowthPage() {
     return () => { cancelled = true; };
   }, [isAdmin, isAuthLoading, toast, user]);
 
-  if (!isAuthLoading && user && !isAdmin) {
+  if (!isAuthLoading && user && isAdminKnown && !isAdmin) {
     return null;
   }
 

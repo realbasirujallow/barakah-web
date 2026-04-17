@@ -119,12 +119,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Detect stale cached profiles that are missing the plan field.
-    // This happens when a user logged in before `plan` was added to the
-    // login response. We MUST NOT default to 'free' here — doing so would
-    // block plus/family users from accessing their paid features. Instead,
-    // we fetch the real plan from /auth/profile after session validation.
+    // Detect stale cached profiles that are missing fields added after the
+    // user last logged in. Two known cases:
+    //   - plan missing: user predates the login-plan-in-response change.
+    //     Defaulting to 'free' without a server round-trip would block
+    //     paid users from their features, so we force a profile refresh.
+    //   - isAdmin missing: user predates the admin-flag change. Defaulting
+    //     to not-admin would silently lock real admins out of /admin/**
+    //     (same "click Funnel, bounce to dashboard" bug). Force a refresh.
+    // Either signal triggers the same reconciliation path.
     const planMissing = parsed != null && !parsed.plan;
+    const isAdminMissing = parsed != null && typeof parsed.isAdmin === 'undefined';
+    const needsSync = planMissing || isAdminMissing;
     if (planMissing) {
       // Temporary safe placeholder (type-safe) — overwritten below immediately.
       parsed!.plan = 'free';
@@ -163,9 +169,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const secondsSinceRefresh = (Date.now() - lastRefreshTs) / 1000;
 
     if (secondsSinceRefresh < REFRESH_GUARD_SECONDS) {
-      // Session cookies are fresh. If the plan was missing, fetch it now so
-      // plus/family users aren't incorrectly locked out.
-      if (planMissing) {
+      // Session cookies are fresh. If any legacy field is missing from the
+      // cached profile (plan, isAdmin), reconcile with the server so we
+      // don't lock the user out of features they actually have access to.
+      if (needsSync) {
         syncPlan(parsed!).then(u => {
           if (cancelled) return;
           setUser(u);
@@ -199,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // localStorage access failed
         }
         // If plan was missing, fetch the real one now that the session is fresh.
-        const finalUser = planMissing ? await syncPlan(parsed!) : parsed!;
+        const finalUser = needsSync ? await syncPlan(parsed!) : parsed!;
         setUser(finalUser);
       } else if (result === 'expired') {
         // Proactive refresh returned 'expired'. This does NOT necessarily mean

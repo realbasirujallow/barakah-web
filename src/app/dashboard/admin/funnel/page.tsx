@@ -52,13 +52,18 @@ export default function FunnelPage() {
   const [growth, setGrowth] = useState<GrowthResponse | null>(null);
   const [days, setDays] = useState<number>(30);
   const isAdmin = user?.isAdmin === true;
+  // Tri-state: `undefined` means the cached profile predates the isAdmin flag
+  // and is still being reconciled by AuthContext (syncPlan on mount). We MUST
+  // NOT redirect during that window, otherwise legitimate admins get bounced
+  // out the moment they navigate here and the refresh hasn't resolved yet.
+  const isAdminKnown = typeof user?.isAdmin === 'boolean';
 
   // Frontend admin-role guard — redirect non-admins before any API call
   useEffect(() => {
-    if (!isAuthLoading && user && !isAdmin) {
+    if (!isAuthLoading && user && isAdminKnown && !isAdmin) {
       router.replace('/dashboard');
     }
-  }, [isAdmin, isAuthLoading, router, user]);
+  }, [isAdmin, isAdminKnown, isAuthLoading, router, user]);
 
   useEffect(() => {
     if (isAuthLoading || !user || !isAdmin) {
@@ -96,7 +101,7 @@ export default function FunnelPage() {
     return () => { cancelled = true; };
   }, [isAdmin, isAuthLoading, user]);
 
-  if (!isAuthLoading && user && !isAdmin) {
+  if (!isAuthLoading && user && isAdminKnown && !isAdmin) {
     return null;
   }
 
