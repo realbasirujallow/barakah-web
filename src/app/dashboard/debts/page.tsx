@@ -117,7 +117,7 @@ function calcPayoffMonths(balance: number, monthlyPayment: number, annualRate: n
 function addMonths(n: number) {
   const d = new Date();
   d.setMonth(d.getMonth() + n);
-  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  return d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
 }
 
 /* ── Component ─────────────────────────────────────────────────── */

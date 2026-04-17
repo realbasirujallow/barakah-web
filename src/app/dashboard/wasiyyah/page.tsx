@@ -477,7 +477,7 @@ function WasiyyahPageContent() {
                         </div>
                       </div>
                       <p className="text-xl font-bold text-amber-700 flex-shrink-0">
-                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: ob.currency || 'USD' }).format(ob.amount)}
+                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: ob.currency || 'USD' }).format(ob.amount)}
                       </p>
                     </div>
                   </div>

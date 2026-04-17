@@ -23,7 +23,7 @@ function pct(n: number) {
 
 function usd(n: number) {
   if (!Number.isFinite(n)) return '—';
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat(undefined, {
     style: 'currency',
     currency: 'USD',
     maximumFractionDigits: 0,

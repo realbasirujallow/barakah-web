@@ -25,7 +25,7 @@ const CAT_ICONS: Record<string, string> = {
 
 function formatDate(epoch: number) {
   const ms = epoch < 1e12 ? epoch * 1000 : epoch;
-  return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 // Defined outside RecurringPage to avoid recreating the component type on every render.

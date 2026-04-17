@@ -99,7 +99,7 @@ export default function AuditLedgerPage() {
       } else {
         ms = new Date(String(dateVal)).getTime();
       }
-      return new Date(ms).toLocaleDateString('en-US', {
+      return new Date(ms).toLocaleDateString(undefined, {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -119,7 +119,7 @@ export default function AuditLedgerPage() {
       // they were recorded in (a zakat payment in EUR still shows as EUR
       // even if the user's preferred display currency is now USD).
       if (entryCurrency) {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: entryCurrency }).format(num);
+        return new Intl.NumberFormat(undefined, { style: 'currency', currency: entryCurrency }).format(num);
       }
       // fmt() already includes the currency symbol — do not append a separate code.
       return fmt(num);

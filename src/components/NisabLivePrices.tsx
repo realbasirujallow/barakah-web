@@ -94,7 +94,7 @@ export function useNisabData() {
 
 /** Format a number as USD currency. */
 function usd(value: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat(undefined, {
     style: 'currency',
     currency: 'USD',
     maximumFractionDigits: 0,
@@ -102,7 +102,7 @@ function usd(value: number): string {
 }
 
 function usdDecimal(value: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat(undefined, {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2,

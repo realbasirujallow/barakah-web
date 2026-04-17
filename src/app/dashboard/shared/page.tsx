@@ -112,7 +112,7 @@ export default function SharedPage() {
   const loadingForGroupRef = useRef<number | null>(null);
 
   const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
   const loadGroups = () => {
     setLoading(true);

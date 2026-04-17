@@ -41,7 +41,11 @@ export default function RamadanEmailCapture({
       await fetch('/api/email-capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source }),
+        // Round 25: POST the trimmed value, not raw `email`. Prior code
+        // validated `trimmed` but submitted the whitespace-padded raw
+        // string — silently corrupting the lead with trailing spaces on
+        // the server side + carried into the signup redirect below.
+        body: JSON.stringify({ email: trimmed, source }),
       });
       // Whether the server succeeds or fails, redirect to signup with email pre-filled
       // so the lead is never lost.
@@ -62,7 +66,7 @@ export default function RamadanEmailCapture({
             Get your free Barakah account to track zakat, sadaqah, and Ramadan giving — all in one place.
           </p>
           <a
-            href={`/signup?email=${encodeURIComponent(email)}&source=${source}`}
+            href={`/signup?email=${encodeURIComponent(email.trim())}&source=${source}`}
             className="inline-block bg-[#1B5E20] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#2E7D32] transition text-sm"
           >
             Create Free Account →
