@@ -17,10 +17,23 @@ interface ErrorContext {
 }
 
 // Lazy-load Sentry so the app still works without the package installed.
-// We use `any` for the Sentry module type because @sentry/nextjs may not be
-// installed — TypeScript would fail to resolve the type declaration otherwise.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let Sentry: any = null;
+// Rather than `any`, we type the module to the structural subset we actually
+// call — enough to catch typos on our side while not requiring @sentry/nextjs
+// to be installed for compilation.
+interface SentryModule {
+  init(options: {
+    dsn: string;
+    environment?: string;
+    tracesSampleRate?: number;
+    replaysSessionSampleRate?: number;
+    replaysOnErrorSampleRate?: number;
+  }): void;
+  captureException(error: Error, context?: { extra?: Record<string, unknown> }): void;
+  captureMessage(message: string, context?: { extra?: Record<string, unknown> }): void;
+  setUser(user: { id: string; email?: string } | null): void;
+}
+
+let Sentry: SentryModule | null = null;
 let sentryInitAttempted = false;
 
 async function getSentry() {
@@ -34,15 +47,16 @@ async function getSentry() {
     // Use a variable so TypeScript can't statically resolve the module
     // (the package is optional and may not be installed)
     const sentryModule = '@sentry/nextjs';
-    Sentry = await import(sentryModule);
+    const loaded = (await import(sentryModule)) as SentryModule;
     // Only initialize if not already initialized (Sentry guards against double-init)
-    Sentry.init({
+    loaded.init({
       dsn,
       environment: process.env.NODE_ENV,
       tracesSampleRate: 0.1, // 10% of transactions for performance monitoring
       replaysSessionSampleRate: 0,
       replaysOnErrorSampleRate: 1.0, // Capture replay on every error
     });
+    Sentry = loaded;
     return Sentry;
   } catch {
     // @sentry/nextjs not installed — that's fine, fall through to console logging
