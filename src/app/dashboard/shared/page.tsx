@@ -72,6 +72,9 @@ export default function SharedPage() {
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [activeTab, setActiveTab] = useState<'expenses' | 'budgets' | 'goals' | 'estate'>('expenses');
+  // Estate payload differs by group type (spousal, parental, sibling) and
+  // is rendered directly in JSX. Typing each shape is a bigger refactor
+  // than the type-safety gain; documented here as intentional.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [estateData, setEstateData] = useState<any>(null);
   const [estateSharing, setEstateSharing] = useState(true);
@@ -140,6 +143,9 @@ export default function SharedPage() {
       .then((results) => {
         // Discard stale results if user has already switched to a different group
         if (loadingForGroupRef.current !== group.id) return;
+        // shared-finance backend returns 7 different response shapes in
+        // parallel; typing each for a single-use helper is more code than
+        // the type-safety gain. Downstream reads are all null-guarded.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const val = (i: number): any => results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<any>).value : null;
         const detail = val(0);
