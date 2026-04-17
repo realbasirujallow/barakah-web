@@ -154,8 +154,13 @@ export default function NotificationsPage() {
         <div className="space-y-2">
           {notifications.map(n => {
             const icon = TYPE_ICONS[n.type] || '🔔';
-            const rowClass = `bg-white rounded-xl p-4 flex gap-4 cursor-pointer hover:shadow-md transition group ${!n.read ? 'border-l-4 border-[#1B5E20]' : ''}`;
-            const inner = (
+            // Round 22: row is now a `<div>` containing the activation
+            // element (Link or button) + a sibling delete button. Prior
+            // code nested a <button> inside <a> / <button>, which is
+            // invalid HTML — browsers strip/relocate the inner button
+            // and screen readers report broken interaction semantics.
+            const rowClass = `bg-white rounded-xl flex gap-4 hover:shadow-md transition group relative ${!n.read ? 'border-l-4 border-[#1B5E20]' : ''}`;
+            const activationInner = (
               <>
                 <span className="text-2xl flex-shrink-0">{icon}</span>
                 <div className="flex-1 min-w-0">
@@ -163,38 +168,38 @@ export default function NotificationsPage() {
                   {n.body && <p className="text-sm text-gray-500 mt-0.5">{n.body}</p>}
                   <p className="text-xs text-gray-400 mt-1">{fmtTime(n.createdAt)}</p>
                 </div>
-                <div className="flex items-start gap-2">
-                  {!n.read && <div className="w-2.5 h-2.5 bg-[#1B5E20] rounded-full mt-1.5 flex-shrink-0" />}
-                  <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteOne(n.id); }}
-                    className="text-gray-300 hover:text-red-400 transition opacity-0 group-hover:opacity-100 text-sm"
-                  >✕</button>
-                </div>
+                {!n.read && <div className="w-2.5 h-2.5 bg-[#1B5E20] rounded-full mt-1.5 flex-shrink-0" />}
               </>
             );
-            return isSafeInternalPath(n.link) ? (
+            const activation = isSafeInternalPath(n.link) ? (
               <Link
-                key={n.id}
                 href={n.link}
                 onClick={() => { if (!n.read) markRead(n.id); }}
-                className={rowClass}
+                className="flex flex-1 gap-4 p-4 pr-10 cursor-pointer"
               >
-                {inner}
+                {activationInner}
               </Link>
             ) : (
-              // Round 19: changed from <div onClick> to <button> so
-              // keyboard users can focus and activate notifications
-              // without a link. Styling with text-align:left keeps the
-              // existing row layout.
               <button
                 type="button"
-                key={n.id}
                 onClick={() => !n.read && markRead(n.id)}
-                className={`${rowClass} w-full text-left`}
+                className="flex flex-1 gap-4 p-4 pr-10 text-left cursor-pointer"
               >
-                {inner}
+                {activationInner}
               </button>
+            );
+            return (
+              <div key={n.id} className={rowClass}>
+                {activation}
+                {/* Delete is an absolute-positioned sibling, not a nested
+                    interactive element — clean HTML + keyboard focusable. */}
+                <button
+                  type="button"
+                  onClick={() => deleteOne(n.id)}
+                  aria-label="Delete notification"
+                  className="absolute top-3 right-3 text-gray-300 hover:text-red-400 transition opacity-0 group-hover:opacity-100 focus:opacity-100 text-sm"
+                >✕</button>
+              </div>
             );
           })}
         </div>

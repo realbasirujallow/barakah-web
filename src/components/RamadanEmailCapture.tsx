@@ -26,7 +26,11 @@ export default function RamadanEmailCapture({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !email.includes('@')) {
+    // Round 22: use the same strict regex applied across signup / forgot /
+    // profile / family-invite / contact. Prior `.includes('@')` accepted
+    // "@", "a@", "@b" and wasted a round-trip + rate-limit token per typo.
+    const trimmed = email.trim();
+    if (!trimmed || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmed)) {
       setErrorMsg('Please enter a valid email address.');
       return;
     }

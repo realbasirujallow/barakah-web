@@ -75,6 +75,18 @@ export function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  // Round 22: Escape key closes the dropdown. Only listen while open so
+  // we don't hold a global listener for a component most users never
+  // interact with.
+  useEffect(() => {
+    if (!open) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [open]);
+
   const markRead = async (id: number) => {
     const prevNotifications = notifications;
     const prevUnread = unreadCount;
@@ -179,30 +191,44 @@ export function NotificationBell() {
                     <p className="text-xs text-gray-400 mt-1">{fmtTime(n.createdAt)}</p>
                   </div>
                   {!n.read && <div className="w-2 h-2 bg-[#1B5E20] rounded-full flex-shrink-0 mt-2" />}
-                  <button
-                    onClick={(e) => deleteOne(n.id, e)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition text-xs p-0.5"
-                  >✕</button>
                 </>
               );
-              const rowClass = `flex gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition cursor-pointer group relative ${!n.read ? 'bg-green-50/40' : ''}`;
+              // Round 22: same nested-interactive fix as notifications
+              // page. Row is a `<div>` container; the activation is a
+              // Link or button; the delete button is an absolute-
+              // positioned sibling. Prior nesting was invalid HTML
+              // (button inside button/a) and non-keyboard-focusable
+              // on the no-link fallback.
+              const rowClass = `flex gap-3 border-b border-gray-50 hover:bg-gray-50 transition group relative ${!n.read ? 'bg-green-50/40' : ''}`;
+              const activationClass = 'flex flex-1 gap-3 px-4 py-3 pr-8 cursor-pointer text-left';
 
-              return isSafeInternalPath(n.link) ? (
+              const activation = isSafeInternalPath(n.link) ? (
                 <Link
-                  key={n.id}
                   href={n.link}
-                  className={rowClass}
+                  className={activationClass}
                   onClick={() => { markRead(n.id); setOpen(false); }}
                 >
                   {inner}
                 </Link>
               ) : (
-                <div
-                  key={n.id}
-                  className={rowClass}
+                <button
+                  type="button"
+                  className={activationClass}
                   onClick={() => { markRead(n.id); setOpen(false); }}
                 >
                   {inner}
+                </button>
+              );
+
+              return (
+                <div key={n.id} className={rowClass}>
+                  {activation}
+                  <button
+                    type="button"
+                    onClick={(e) => deleteOne(n.id, e)}
+                    aria-label="Delete notification"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 focus:opacity-100 text-gray-300 hover:text-red-400 transition text-xs p-0.5"
+                  >✕</button>
                 </div>
               );
             })}

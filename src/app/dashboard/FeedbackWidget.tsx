@@ -91,9 +91,12 @@ export function FeedbackWidget() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-3">
+                {/* Round 22: label/input association via htmlFor+id.
+                    Matches the Round 19 auth-form-labels pattern. */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Type</label>
+                  <label htmlFor="feedback-subject" className="block text-xs font-semibold text-gray-500 mb-1">Type</label>
                   <select
+                    id="feedback-subject"
                     required
                     value={form.subject}
                     onChange={e => setForm({ ...form, subject: e.target.value })}
@@ -105,8 +108,9 @@ export function FeedbackWidget() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Message</label>
+                  <label htmlFor="feedback-message" className="block text-xs font-semibold text-gray-500 mb-1">Message</label>
                   <textarea
+                    id="feedback-message"
                     required
                     rows={4}
                     placeholder="What's on your mind?"
