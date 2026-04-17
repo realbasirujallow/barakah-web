@@ -14,18 +14,84 @@ import { NextRequest, NextResponse } from 'next/server';
  *   3. The /signup redirect in RamadanEmailCapture.tsx will still work as a fallback
  */
 
-// ── In-process IP rate limit (5 requests per minute per IP) ────────────────
-// Prevents a single client from spamming the endpoint. Not horizontally shared,
-// but sufficient for an MVP endpoint running on a small number of instances.
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 5;
+
+// ── Redis-backed rate limit (Railway's REDIS_URL) ──────────────────────────
+// When REDIS_URL is set (backend and web share the same Railway Redis plugin
+// or a web-specific one) we use Redis so multiple Next.js instances share
+// one rate-limit state. Keys are prefixed "wrl:email-capture:" so they don't
+// collide with the Spring backend's "rl:*" keys in the same Redis.
+//
+// When REDIS_URL is absent (local dev, preview deployments), the in-memory
+// limiter below is used. Fine for single-instance or testing contexts.
+//
+// ioredis gets imported lazily inside the helper so `npm run build` in a
+// non-Redis environment doesn't need the runtime package installed.
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let redisClient: any = null;
+let redisInitFailed = false;
+
+async function getRedis() {
+  if (redisClient) return redisClient;
+  if (redisInitFailed) return null;
+  const url = process.env.REDIS_URL;
+  if (!url) {
+    redisInitFailed = true;
+    return null;
+  }
+  try {
+    const { default: Redis } = await import('ioredis');
+    redisClient = new Redis(url, {
+      // Short connect timeout — if Redis is unreachable we fall back to the
+      // in-memory limiter rather than stalling every request for seconds.
+      connectTimeout: 2_000,
+      commandTimeout: 1_500,
+      maxRetriesPerRequest: 1,
+      enableReadyCheck: true,
+      lazyConnect: true,
+    });
+    redisClient.on('error', (err: Error) => {
+      console.warn('[email-capture] Redis error:', err.message);
+    });
+    await redisClient.connect();
+    return redisClient;
+  } catch (err) {
+    console.warn('[email-capture] Redis init failed, using in-memory fallback:', err);
+    redisInitFailed = true;
+    return null;
+  }
+}
+
+async function isRateLimitedRedis(ip: string): Promise<boolean | null> {
+  const redis = await getRedis();
+  if (!redis) return null; // caller falls back to in-memory
+  const key = `wrl:email-capture:${ip}`;
+  try {
+    // INCR + PEXPIRE in a pipeline keeps it to one round-trip. If PEXPIRE
+    // fires on the same existing key it's a no-op, which is fine — the
+    // original TTL still governs expiry.
+    const pipeline = redis.pipeline();
+    pipeline.incr(key);
+    pipeline.pexpire(key, RATE_LIMIT_WINDOW_MS);
+    const results: [Error | null, number | string][] = await pipeline.exec();
+    const count = Number(results?.[0]?.[1] ?? 0);
+    return count > RATE_LIMIT_MAX;
+  } catch (err) {
+    // Fail open — never block lead capture on Redis flake.
+    console.warn('[email-capture] Redis INCR failed, failing open:', err);
+    return false;
+  }
+}
+
+// ── In-process IP rate limit fallback ──────────────────────────────────────
+// Used when REDIS_URL isn't configured or Redis is unreachable.
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 // Cap the map so a botnet spamming unique IPs can't exhaust memory.
-// When we exceed this, drop the oldest entries (approximated by insertion
-// order via Map iteration semantics).
 const RATE_LIMIT_MAX_ENTRIES = 10_000;
 
-function isRateLimited(ip: string): boolean {
+function isRateLimitedInMemory(ip: string): boolean {
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
   if (!entry || now > entry.resetAt) {
@@ -46,6 +112,12 @@ function isRateLimited(ip: string): boolean {
   if (entry.count >= RATE_LIMIT_MAX) return true;
   entry.count++;
   return false;
+}
+
+async function isRateLimited(ip: string): Promise<boolean> {
+  const redisResult = await isRateLimitedRedis(ip);
+  if (redisResult !== null) return redisResult;
+  return isRateLimitedInMemory(ip);
 }
 
 // Resolve the real client IP in order of trust, mirroring backend
@@ -69,7 +141,7 @@ function resolveClientIp(req: NextRequest): string {
 export async function POST(req: NextRequest) {
   try {
     const ip = resolveClientIp(req);
-    if (isRateLimited(ip)) {
+    if (await isRateLimited(ip)) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }
 
