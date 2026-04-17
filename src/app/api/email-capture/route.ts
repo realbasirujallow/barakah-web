@@ -20,11 +20,26 @@ import { NextRequest, NextResponse } from 'next/server';
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 5;
+// Cap the map so a botnet spamming unique IPs can't exhaust memory.
+// When we exceed this, drop the oldest entries (approximated by insertion
+// order via Map iteration semantics).
+const RATE_LIMIT_MAX_ENTRIES = 10_000;
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
   if (!entry || now > entry.resetAt) {
+    // Opportunistic cleanup: when the map exceeds its cap, evict the
+    // oldest-inserted entries until we're back under the limit.
+    if (rateLimitMap.size >= RATE_LIMIT_MAX_ENTRIES) {
+      const excess = rateLimitMap.size - RATE_LIMIT_MAX_ENTRIES + 1;
+      const it = rateLimitMap.keys();
+      for (let i = 0; i < excess; i++) {
+        const next = it.next();
+        if (next.done) break;
+        rateLimitMap.delete(next.value);
+      }
+    }
     rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
     return false;
   }
@@ -33,20 +48,27 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
+// Resolve the real client IP in order of trust, mirroring backend
+// RateLimitService.resolveClientIp (fixed in backend commit 9e30c1e). Behind
+// Cloudflare → Railway, the RIGHTMOST XFF entry is the Cloudflare edge PoP
+// (varies per request, defeats rate limiting). CF-Connecting-IP is the only
+// value Cloudflare sets that cannot be spoofed by end users. Fall back to
+// LEFTMOST XFF (the outermost proxy's stamp of the real client) only when
+// CF-Connecting-IP is absent.
+function resolveClientIp(req: NextRequest): string {
+  const cfIp = req.headers.get('cf-connecting-ip');
+  if (cfIp && cfIp.trim()) return cfIp.trim();
+  const xff = req.headers.get('x-forwarded-for');
+  if (xff) {
+    const parts = xff.split(',').map(s => s.trim()).filter(Boolean);
+    if (parts.length > 0) return parts[0];
+  }
+  return req.headers.get('x-real-ip')?.trim() || 'unknown';
+}
+
 export async function POST(req: NextRequest) {
   try {
-    // Take the RIGHTMOST XFF entry (appended by the trusted edge proxy) — the
-    // leftmost entry is client-supplied and spoofable. An attacker sending
-    // `X-Forwarded-For: 1.1.1.1,2.2.2.2,...` can cycle arbitrary first values
-    // to defeat the 5/min limit. Mirrors backend RateLimitService.resolveClientIp.
-    const xff = req.headers.get('x-forwarded-for');
-    const xffParts = xff ? xff.split(',').map(s => s.trim()).filter(Boolean) : [];
-    const ip = xffParts.length > 0
-      ? xffParts[xffParts.length - 1]
-      : (req.headers.get('x-real-ip') ?? 'unknown');
-    if (isRateLimited(ip)) {
-      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
-    }
+    const ip = resolveClientIp(req);
     if (isRateLimited(ip)) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }
