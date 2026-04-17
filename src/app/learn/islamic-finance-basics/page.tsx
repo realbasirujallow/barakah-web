@@ -56,7 +56,7 @@ export default function IslamicFinanceBasicsPage() {
       />
       <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
         {/* Header */}
-        <header className="bg-white shadow-sm sticky top-0 z-10">
+        <header className="bg-white shadow-sm sticky top-0 z-10 dark:bg-gray-800">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</Link>
             <div className="flex items-center gap-3">
@@ -70,9 +70,9 @@ export default function IslamicFinanceBasicsPage() {
         </header>
 
         {/* Breadcrumb */}
-        <nav className="bg-white border-b border-gray-100 px-6 py-3">
+        <nav className="bg-white border-b border-gray-100 px-6 py-3 dark:bg-gray-800 dark:border-gray-700">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
               <span className="text-gray-300">/</span>
               <Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link>
@@ -89,8 +89,8 @@ export default function IslamicFinanceBasicsPage() {
                 Islamic Finance Guide
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-[#1B5E20]">Islamic Finance 101: A Beginner&apos;s Guide to Halal Money</h1>
-              <p className="text-lg text-gray-700">Master the core principles of Islamic finance and learn how to manage your money ethically according to Islamic values.</p>
-              <div className="flex items-center gap-4 text-sm text-gray-600 border-t border-gray-200 pt-4">
+              <p className="text-lg text-gray-700 dark:text-gray-300">Master the core principles of Islamic finance and learn how to manage your money ethically according to Islamic values.</p>
+              <div className="flex items-center gap-4 text-sm text-gray-600 border-t border-gray-200 pt-4 dark:text-gray-400 dark:border-gray-700">
                 <span>By Barakah Editorial Team</span>
                 <span>9 min read</span>
                 <span>Published: March 2026 • Last updated: April 3, 2026</span>
@@ -115,16 +115,16 @@ export default function IslamicFinanceBasicsPage() {
 
             <section id="what-is" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">What is Islamic Finance?</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Islamic finance is a comprehensive system of financial transactions and money management based on Islamic law (Sharia). Rather than viewing finance as purely technical and amoral, Islamic finance integrates ethics, fairness, and social responsibility into every financial decision.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 The core philosophy is: <strong>Money is a means to achieve life goals, not the ultimate goal itself.</strong> Wealth should be earned ethically, managed responsibly, and shared generously through mechanisms like zakat.
               </p>
 
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Why Islamic Finance Matters</h3>
-                <ul className="space-y-2 text-gray-700 text-sm">
+                <ul className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                   <li><strong className="text-[#1B5E20]">Ethical alignment:</strong> Your money works in accordance with your Islamic values</li>
                   <li><strong className="text-[#1B5E20]">Fairness:</strong> Transactions are transparent and equitable for all parties</li>
                   <li><strong className="text-[#1B5E20]">Social impact:</strong> Wealth creation benefits the broader community, not just the individual</li>
@@ -135,28 +135,28 @@ export default function IslamicFinanceBasicsPage() {
 
             <section id="core-principles" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Three Core Principles</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Islamic finance is built on three foundational principles that guide all financial decisions:
               </p>
 
               <div className="space-y-4 my-6">
                 <div className="border-l-4 border-[#1B5E20] bg-green-50 p-4 rounded">
                   <h3 className="text-lg font-bold text-[#1B5E20] mb-2">1. No Riba (Usury/Interest)</h3>
-                  <p className="text-gray-700 text-sm">
+                  <p className="text-gray-700 text-sm dark:text-gray-300">
                     Riba is forbidden because it creates unjust enrichment. The lender gains without effort while the borrower bears all risk. Islam promotes fair, shared responsibility in financial contracts.
                   </p>
                 </div>
 
                 <div className="border-l-4 border-blue-600 bg-blue-50 p-4 rounded">
                   <h3 className="text-lg font-bold text-blue-900 mb-2">2. No Gharar (Uncertainty/Fraud)</h3>
-                  <p className="text-gray-700 text-sm">
+                  <p className="text-gray-700 text-sm dark:text-gray-300">
                     Gharar means excessive ambiguity or hidden risk in a contract. Islam prohibits transactions where one party has unfair information advantage or where terms are unclear, preventing fraud and ensuring informed consent.
                   </p>
                 </div>
 
                 <div className="border-l-4 border-purple-600 bg-purple-50 p-4 rounded">
                   <h3 className="text-lg font-bold text-purple-900 mb-2">3. No Haram (Forbidden) Industries</h3>
-                  <p className="text-gray-700 text-sm">
+                  <p className="text-gray-700 text-sm dark:text-gray-300">
                     Money earned from prohibited activities (alcohol, pork, gambling, weapons, interest-based finance) is haram. Islamic finance restricts investment in industries that violate Islamic principles or harm society.
                   </p>
                 </div>
@@ -165,13 +165,13 @@ export default function IslamicFinanceBasicsPage() {
 
             <section id="riba" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">No Riba: Interest & Usury</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Riba literally means &quot;excess&quot; or &quot;growth.&quot; In Islamic finance, it refers to interest — the predetermined increase in money that creates inequality between lender and borrower.
               </p>
 
               <div className="bg-red-50 border border-red-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-red-600 mb-3">Why Riba is Forbidden</h3>
-                <ul className="space-y-2 text-gray-700 text-sm">
+                <ul className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                   <li><strong className="text-red-600">Inequity:</strong> The lender profits without risk; the borrower bears all burden</li>
                   <li><strong className="text-red-600">Exploitation:</strong> Those in need are forced to accept unfair terms</li>
                   <li><strong className="text-red-600">Social harm:</strong> Riba concentrates wealth in the hands of lenders, widening inequality</li>
@@ -181,7 +181,7 @@ export default function IslamicFinanceBasicsPage() {
 
               <div className="bg-green-50 border border-green-200 rounded-lg p-6">
                 <h3 className="font-bold text-[#1B5E20] mb-3">Islamic Alternatives to Interest</h3>
-                <ul className="space-y-2 text-gray-700 text-sm">
+                <ul className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                   <li><strong className="text-[#1B5E20]">Mudaraba (Profit-sharing):</strong> Investor and entrepreneur share profits/losses based on actual performance</li>
                   <li><strong className="text-[#1B5E20]">Musharaka (Partnership):</strong> All parties contribute capital and share profits/losses</li>
                   <li><strong className="text-[#1B5E20]">Murabaha (Cost-plus sale):</strong> Lender buys item and sells to borrower at marked-up price (known cost)</li>
@@ -192,10 +192,10 @@ export default function IslamicFinanceBasicsPage() {
 
             <section id="gharar" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">No Gharar: Transparency & Fairness</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Gharar means uncertainty or ambiguity that prevents informed decision-making. Islam prohibits contracts where:
               </p>
-              <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <ul className="list-disc pl-6 text-gray-700 space-y-2 dark:text-gray-300">
                 <li>Terms are unclear or ambiguous</li>
                 <li>One party has hidden information the other lacks</li>
                 <li>Risk is concealed or unknown</li>
@@ -212,70 +212,70 @@ export default function IslamicFinanceBasicsPage() {
                 </ul>
               </div>
 
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 The prohibition of gharar ensures <strong>informed consent, transparency, and fairness</strong> in all financial dealings.
               </p>
             </section>
 
             <section id="haram" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">No Haram Industries</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Islamic finance restricts investment in industries or activities that are haram (forbidden) under Islamic law. This includes:
               </p>
 
               <div className="overflow-x-auto my-6">
-                <table className="w-full border border-gray-300">
+                <table className="w-full border border-gray-300 dark:border-gray-600">
                   <thead className="bg-[#1B5E20] text-white">
                     <tr>
-                      <th className="border border-gray-300 p-3 text-left">Forbidden Category</th>
-                      <th className="border border-gray-300 p-3 text-left">Examples</th>
-                      <th className="border border-gray-300 p-3 text-left">Why Prohibited</th>
+                      <th className="border border-gray-300 p-3 text-left dark:border-gray-600">Forbidden Category</th>
+                      <th className="border border-gray-300 p-3 text-left dark:border-gray-600">Examples</th>
+                      <th className="border border-gray-300 p-3 text-left dark:border-gray-600">Why Prohibited</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="bg-white">
-                      <td className="border border-gray-300 p-3 font-semibold">Intoxicants</td>
-                      <td className="border border-gray-300 p-3">Alcohol, tobacco companies</td>
-                      <td className="border border-gray-300 p-3">Harms physical & mental health</td>
+                    <tr className="bg-white dark:bg-gray-800">
+                      <td className="border border-gray-300 p-3 font-semibold dark:border-gray-600">Intoxicants</td>
+                      <td className="border border-gray-300 p-3 dark:border-gray-600">Alcohol, tobacco companies</td>
+                      <td className="border border-gray-300 p-3 dark:border-gray-600">Harms physical & mental health</td>
                     </tr>
-                    <tr className="bg-gray-50">
-                      <td className="border border-gray-300 p-3 font-semibold">Gambling</td>
-                      <td className="border border-gray-300 p-3">Casinos, betting companies</td>
-                      <td className="border border-gray-300 p-3">Wealth through chance, not effort</td>
+                    <tr className="bg-gray-50 dark:bg-gray-800">
+                      <td className="border border-gray-300 p-3 font-semibold dark:border-gray-600">Gambling</td>
+                      <td className="border border-gray-300 p-3 dark:border-gray-600">Casinos, betting companies</td>
+                      <td className="border border-gray-300 p-3 dark:border-gray-600">Wealth through chance, not effort</td>
                     </tr>
-                    <tr className="bg-white">
-                      <td className="border border-gray-300 p-3 font-semibold">Pork & non-halal meat</td>
-                      <td className="border border-gray-300 p-3">Pork processors, haram slaughter</td>
-                      <td className="border border-gray-300 p-3">Prohibited by Islamic law</td>
+                    <tr className="bg-white dark:bg-gray-800">
+                      <td className="border border-gray-300 p-3 font-semibold dark:border-gray-600">Pork & non-halal meat</td>
+                      <td className="border border-gray-300 p-3 dark:border-gray-600">Pork processors, haram slaughter</td>
+                      <td className="border border-gray-300 p-3 dark:border-gray-600">Prohibited by Islamic law</td>
                     </tr>
-                    <tr className="bg-gray-50">
-                      <td className="border border-gray-300 p-3 font-semibold">Weaponry</td>
-                      <td className="border border-gray-300 p-3">Arms manufacturers, defense contractors</td>
-                      <td className="border border-gray-300 p-3">Cause harm and suffering</td>
+                    <tr className="bg-gray-50 dark:bg-gray-800">
+                      <td className="border border-gray-300 p-3 font-semibold dark:border-gray-600">Weaponry</td>
+                      <td className="border border-gray-300 p-3 dark:border-gray-600">Arms manufacturers, defense contractors</td>
+                      <td className="border border-gray-300 p-3 dark:border-gray-600">Cause harm and suffering</td>
                     </tr>
-                    <tr className="bg-white">
-                      <td className="border border-gray-300 p-3 font-semibold">Interest-based finance</td>
-                      <td className="border border-gray-300 p-3">Traditional banks, payday lenders</td>
-                      <td className="border border-gray-300 p-3">Riba is explicitly forbidden</td>
+                    <tr className="bg-white dark:bg-gray-800">
+                      <td className="border border-gray-300 p-3 font-semibold dark:border-gray-600">Interest-based finance</td>
+                      <td className="border border-gray-300 p-3 dark:border-gray-600">Traditional banks, payday lenders</td>
+                      <td className="border border-gray-300 p-3 dark:border-gray-600">Riba is explicitly forbidden</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 By avoiding these industries, Islamic finance aligns wealth-building with ethical principles and contributes to a healthier, more equitable society.
               </p>
             </section>
 
             <section id="halal-investing" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Halal Investing: Building Wealth Ethically</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Halal investing means building a portfolio of stocks, funds, and assets that comply with Islamic principles. Rather than restricting opportunity, Islamic screening opens new markets and opportunities.
               </p>
 
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-[#1B5E20] mb-3">How to Invest Halal</h3>
-                <ol className="space-y-2 text-gray-700 text-sm">
+                <ol className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                   <li>1. <strong className="text-[#1B5E20]">Screen companies:</strong> Research whether the company operates in halal industries (tech, healthcare, retail, energy, etc.)</li>
                   <li>2. <strong className="text-[#1B5E20]">Check financial metrics:</strong> Avoid companies with excessive debt, riba-based financing, or gambling revenues</li>
                   <li>3. <strong className="text-[#1B5E20]">Use Islamic indexes:</strong> Invest in funds that track Sharia-compliant indexes (Dow Jones Islamic Index, MSCI Islamic indexes)</li>
@@ -283,41 +283,41 @@ export default function IslamicFinanceBasicsPage() {
                 </ol>
               </div>
 
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 <strong>Barakah&apos;s halal screener</strong> helps you identify which stocks are Sharia-compliant and build an ethical portfolio aligned with your values.
               </p>
             </section>
 
             <section id="banking" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Islamic Banking Alternatives</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Many modern banks now offer Islamic banking products that replace interest with ethical alternatives:
               </p>
 
               <div className="space-y-4 my-6">
                 <div className="border-l-4 border-[#1B5E20] bg-green-50 p-4 rounded">
                   <h3 className="font-bold text-[#1B5E20] mb-2">Islamic Savings & Checking</h3>
-                  <p className="text-gray-700 text-sm">
+                  <p className="text-gray-700 text-sm dark:text-gray-300">
                     Instead of interest, your deposits may earn returns through profit-sharing (Mudaraba) where the bank invests your money in halal ventures and shares profits with you.
                   </p>
                 </div>
 
                 <div className="border-l-4 border-blue-600 bg-blue-50 p-4 rounded">
                   <h3 className="font-bold text-blue-900 mb-2">Islamic Mortgages (Ijara)</h3>
-                  <p className="text-gray-700 text-sm">
+                  <p className="text-gray-700 text-sm dark:text-gray-300">
                     Rather than borrowing at interest, the bank purchases your home and you lease it with an option to eventually own it. You own the asset; the bank earns rental income.
                   </p>
                 </div>
 
                 <div className="border-l-4 border-purple-600 bg-purple-50 p-4 rounded">
                   <h3 className="font-bold text-purple-900 mb-2">Islamic Auto Financing</h3>
-                  <p className="text-gray-700 text-sm">
+                  <p className="text-gray-700 text-sm dark:text-gray-300">
                     Using Murabaha, the bank buys the car and sells it to you at a marked-up price. You pay in installments with no interest, just a transparent profit margin.
                   </p>
                 </div>
               </div>
 
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Major banks like Bank of America, Citi, and others now offer Islamic financing products. Check if your local bank has Islamic services.
               </p>
             </section>
@@ -326,7 +326,7 @@ export default function IslamicFinanceBasicsPage() {
               <h2 className="text-2xl font-bold text-[#1B5E20]">Getting Started with Islamic Finance</h2>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-amber-900 mb-4">5 Steps to Align Your Finances</h3>
-                <ol className="space-y-3 text-gray-700 text-sm">
+                <ol className="space-y-3 text-gray-700 text-sm dark:text-gray-300">
                   <li>
                     <strong className="text-amber-900">1. Educate yourself:</strong> Learn Islamic finance principles (you&apos;re doing this now!)
                   </li>
@@ -345,7 +345,7 @@ export default function IslamicFinanceBasicsPage() {
                 </ol>
               </div>
 
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Remember: Islamic finance is a journey, not a destination. Even partial compliance is valued; do your best with the resources available to you.
               </p>
             </section>
@@ -353,37 +353,37 @@ export default function IslamicFinanceBasicsPage() {
             <section id="faq" className="space-y-6">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Frequently Asked Questions</h2>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Is all interest (riba) the same?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   Strictly speaking, any predetermined interest is riba. However, some Islamic scholars differentiate between commercial riba (interest on loans) and consumer riba. The core principle is that wealth should be earned through productive activity or fair partnership, not through the mere passage of time.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Can I use a conventional bank while I transition to Islamic finance?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   Yes. Many Muslims use both conventional and Islamic banking as they transition. Ideally, shift new savings and investments to Islamic institutions. Interest earned in conventional accounts should be separated and donated to charity.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Are Islamic finance products more expensive?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   Not necessarily. While Islamic mortgages may have different fee structures than conventional ones, they often result in similar overall costs. Islamic investing fees are comparable to conventional funds. The advantage is alignment with values, not necessarily lower costs.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: What if I inherit money from interest-based sources?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   You can accept your inheritance (as it is your legal right), but separate any interest earned on it and donate that interest to charity. Use the principal for your needs. This purifies your wealth while respecting family obligations.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Is Islamic finance just for Muslims?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   No. Islamic finance principles appeal to anyone interested in ethical, socially responsible investing. Non-Muslims increasingly use Islamic financial products because they value transparency, fairness, and sustainable investing practices.
                 </p>
               </div>
@@ -397,42 +397,42 @@ export default function IslamicFinanceBasicsPage() {
               </p>
               <Link
                 href="/signup"
-                className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition"
+                className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition dark:bg-gray-800"
               >
                 Get Started Free
               </Link>
             </div>
 
             {/* Related Articles */}
-            <section className="mt-12 border-t border-gray-200 pt-8">
+            <section className="mt-12 border-t border-gray-200 pt-8 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-[#1B5E20] mb-6">Related Articles</h2>
               <div className="grid md:grid-cols-3 gap-6">
                 <Link
                   href="/learn/zakat-on-gold"
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition"
+                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition dark:bg-gray-800 dark:border-gray-700"
                 >
                   <h3 className="font-bold text-[#1B5E20] mb-2">Zakat on Gold</h3>
-                  <p className="text-gray-600 text-sm">Calculate zakat on your precious metals and jewelry.</p>
+                  <p className="text-gray-600 text-sm dark:text-gray-400">Calculate zakat on your precious metals and jewelry.</p>
                 </Link>
                 <Link
                   href="/learn/nisab-threshold"
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition"
+                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition dark:bg-gray-800 dark:border-gray-700"
                 >
                   <h3 className="font-bold text-[#1B5E20] mb-2">Nisab Threshold</h3>
-                  <p className="text-gray-600 text-sm">Understand the minimum wealth threshold for zakat obligation.</p>
+                  <p className="text-gray-600 text-sm dark:text-gray-400">Understand the minimum wealth threshold for zakat obligation.</p>
                 </Link>
                 <Link
                   href="/learn/zakat-al-fitr"
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition"
+                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition dark:bg-gray-800 dark:border-gray-700"
                 >
                   <h3 className="font-bold text-[#1B5E20] mb-2">Zakat al-Fitr</h3>
-                  <p className="text-gray-600 text-sm">Master zakat al-fitr for Eid with complete 2026 guidance.</p>
+                  <p className="text-gray-600 text-sm dark:text-gray-400">Master zakat al-fitr for Eid with complete 2026 guidance.</p>
                 </Link>
               </div>
             </section>
 
             {/* Author Info */}
-            <footer className="mt-12 pt-8 border-t border-gray-200 text-sm text-gray-600">
+            <footer className="mt-12 pt-8 border-t border-gray-200 text-sm text-gray-600 dark:text-gray-400 dark:border-gray-700">
               <p><strong>By:</strong> Barakah Editorial Team</p>
               <p><strong>Last updated:</strong> April 3, 2026</p>
               <p className="mt-2">Content based on Islamic fiqh from AMJA, Fiqh Council of North America, and classical Islamic jurisprudence sources. Islamic finance principles reference Quranic verses and hadith traditions.</p>
@@ -441,38 +441,38 @@ export default function IslamicFinanceBasicsPage() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-white border-t border-gray-100 py-8 px-6 mt-16">
+        <footer className="bg-white border-t border-gray-100 py-8 px-6 mt-16 dark:bg-gray-800 dark:border-gray-700">
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-4 gap-8 mb-8">
               <div>
                 <h3 className="font-bold text-[#1B5E20] mb-4">Barakah</h3>
-                <p className="text-sm text-gray-600">Fiqh-aware household finance for modern Muslim families.</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Fiqh-aware household finance for modern Muslim families.</p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Learn</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Learn</h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/learn" className="hover:text-[#1B5E20] transition">All Guides</Link></li>
                   <li><Link href="/learn/zakat-on-gold" className="hover:text-[#1B5E20] transition">Zakat on Gold</Link></li>
                   <li><Link href="/learn/nisab-threshold" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Company</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Company</h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/" className="hover:text-[#1B5E20] transition">Home</Link></li>
                   <li><Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link></li>
                   <li><Link href="/disclaimer" className="hover:text-[#1B5E20] transition">Disclaimer</Link></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Legal</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Legal</h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/privacy" className="hover:text-[#1B5E20] transition">Privacy</Link></li>
                   <li><Link href="/terms" className="hover:text-[#1B5E20] transition">Terms</Link></li>
                 </ul>
               </div>
             </div>
-            <div className="border-t border-gray-100 pt-6 text-center text-xs text-gray-500">
+            <div className="border-t border-gray-100 pt-6 text-center text-xs text-gray-500 dark:text-gray-400 dark:border-gray-700">
               <p>&copy; {new Date().getFullYear()} Barakah. All rights reserved.</p>
             </div>
           </div>

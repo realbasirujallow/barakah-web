@@ -128,7 +128,7 @@ export default function HowMuchZakatPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <article className="min-h-screen bg-white px-6 py-16">
+      <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           {/* Breadcrumb */}
           <nav className="mb-6 text-sm" aria-label="Breadcrumb">
@@ -136,19 +136,19 @@ export default function HowMuchZakatPage() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">How Much Zakat Do I Owe?</span>
+            <span className="text-gray-600 dark:text-gray-400">How Much Zakat Do I Owe?</span>
           </nav>
 
           {/* Hero */}
           <header className="mb-10">
             <div className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">ZAKAT CALCULATION</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               How Much Zakat Do I Owe? 2026 Step-by-Step Calculation Guide
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-6">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6 dark:text-gray-400">
               Zakat is 2.5% of your net zakatable wealth above nisab — but knowing which assets count, which debts you can deduct, and when it is due requires a careful calculation. This guide walks you through every step.
             </p>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
               <span>📅 Updated April 2026</span>
               <span>⏱ 8 min read</span>
               <span>✅ Multi-madhab guidance</span>
@@ -171,14 +171,14 @@ export default function HowMuchZakatPage() {
               <p className="font-bold text-lg">Skip the math — use Barakah&apos;s free calculator</p>
               <p className="text-green-100 text-sm">Multi-madhab, live gold and silver prices, 8 asset categories. Result in 60 seconds.</p>
             </div>
-            <Link href="/zakat-calculator" className="flex-shrink-0 bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition whitespace-nowrap">
+            <Link href="/zakat-calculator" className="flex-shrink-0 bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition whitespace-nowrap dark:bg-gray-800">
               Calculate Free →
             </Link>
           </div>
 
           {/* 5-Step Guide */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">How to Calculate Zakat: 5 Steps</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">How to Calculate Zakat: 5 Steps</h2>
             <div className="space-y-6">
               {[
                 {
@@ -210,8 +210,8 @@ export default function HowMuchZakatPage() {
                 <div key={step.step} className="flex gap-5">
                   <div className="flex-shrink-0 w-10 h-10 bg-green-700 text-white rounded-full flex items-center justify-center font-bold">{step.step}</div>
                   <div>
-                    <h3 className="font-bold text-gray-900 mb-1">{step.title}</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">{step.body}</p>
+                    <h3 className="font-bold text-gray-900 mb-1 dark:text-gray-100">{step.title}</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed dark:text-gray-400">{step.body}</p>
                   </div>
                 </div>
               ))}
@@ -220,10 +220,10 @@ export default function HowMuchZakatPage() {
 
           {/* Worked Example */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Worked Example: Complete Zakat Calculation</h2>
-            <div className="border border-gray-200 rounded-2xl overflow-hidden">
-              <div className="bg-gray-50 px-5 py-3 border-b">
-                <p className="font-semibold text-gray-700">Example: Ahmed, married with 2 children — hawl date: April 15, 2026</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Worked Example: Complete Zakat Calculation</h2>
+            <div className="border border-gray-200 rounded-2xl overflow-hidden dark:border-gray-700">
+              <div className="bg-gray-50 px-5 py-3 border-b dark:bg-gray-800">
+                <p className="font-semibold text-gray-700 dark:text-gray-300">Example: Ahmed, married with 2 children — hawl date: April 15, 2026</p>
               </div>
               <div className="divide-y divide-gray-100">
                 {[
@@ -237,7 +237,7 @@ export default function HowMuchZakatPage() {
                   { label: '— Car loan payment due this year', amount: '−$4,800' },
                 ].map((row) => (
                   <div key={row.label} className="flex justify-between px-5 py-3 text-sm">
-                    <span className="text-gray-700">{row.label}</span>
+                    <span className="text-gray-700 dark:text-gray-300">{row.label}</span>
                     <span className={`font-mono font-medium ${row.amount.startsWith('+') ? 'text-green-700' : 'text-red-600'}`}>{row.amount}</span>
                   </div>
                 ))}
@@ -256,26 +256,26 @@ export default function HowMuchZakatPage() {
 
           {/* Asset Table */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">What Counts as Zakatable Wealth?</h2>
-            <div className="overflow-x-auto rounded-2xl border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">What Counts as Zakatable Wealth?</h2>
+            <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Asset Category</th>
-                    <th className="p-3 font-semibold text-gray-700 border-b">Zakatable?</th>
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Notes</th>
+                  <tr className="bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Asset Category</th>
+                    <th className="p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Zakatable?</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Notes</th>
                   </tr>
                 </thead>
                 <tbody>
                   {zakatableAssets.map((row, i) => (
                     <tr key={row.category} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="p-3 font-medium text-gray-800 border-b border-gray-100">{row.category}</td>
-                      <td className="p-3 text-center border-b border-gray-100">
+                      <td className="p-3 font-medium text-gray-800 border-b border-gray-100 dark:text-gray-100 dark:border-gray-700">{row.category}</td>
+                      <td className="p-3 text-center border-b border-gray-100 dark:border-gray-700">
                         <span className={`text-sm font-semibold ${row.zakatable ? 'text-green-700' : 'text-red-500'}`}>
                           {row.zakatable ? '✅ Yes' : '❌ No'}
                         </span>
                       </td>
-                      <td className="p-3 text-gray-600 text-xs border-b border-gray-100">{row.detail}</td>
+                      <td className="p-3 text-gray-600 text-xs border-b border-gray-100 dark:text-gray-400 dark:border-gray-700">{row.detail}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -285,15 +285,15 @@ export default function HowMuchZakatPage() {
 
           {/* FAQ */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-4">
               {faqSchema.mainEntity.map((faq) => (
-                <details key={faq.name} className="border border-gray-200 rounded-xl p-5">
-                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm">
+                <details key={faq.name} className="border border-gray-200 rounded-xl p-5 dark:border-gray-700">
+                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm dark:text-gray-100">
                     {faq.name}
                     <span className="text-green-700 ml-4 flex-shrink-0">+</span>
                   </summary>
-                  <p className="mt-3 text-gray-600 text-sm leading-relaxed">{faq.acceptedAnswer.text}</p>
+                  <p className="mt-3 text-gray-600 text-sm leading-relaxed dark:text-gray-400">{faq.acceptedAnswer.text}</p>
                 </details>
               ))}
             </div>
@@ -308,14 +308,14 @@ export default function HowMuchZakatPage() {
             <p className="text-green-100 mb-6">
               Barakah&apos;s multi-madhab zakat calculator handles gold prices, stock ratios, debt deductions, and hawl tracking automatically.
             </p>
-            <Link href="/zakat-calculator" className="inline-block bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition">
+            <Link href="/zakat-calculator" className="inline-block bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">
               Open Zakat Calculator →
             </Link>
           </div>
 
           {/* Related Articles */}
           <section>
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Related Zakat Articles</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-5 dark:text-gray-100">Related Zakat Articles</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { href: '/learn/what-is-zakat', title: 'What is Zakat?', desc: 'Complete 2026 guide — the 5 conditions and 8 recipients.' },
@@ -325,9 +325,9 @@ export default function HowMuchZakatPage() {
                 { href: '/learn/zakat-on-savings', title: 'Zakat on Savings', desc: 'Which savings accounts are zakatable and how to calculate.' },
                 { href: '/learn/zakat-on-crypto', title: 'Zakat on Crypto', desc: 'How to calculate zakat on Bitcoin and digital assets.' },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors">
+                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700">
                   <h3 className="font-semibold text-green-700 mb-1">{link.title}</h3>
-                  <p className="text-xs text-gray-500">{link.desc}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{link.desc}</p>
                 </Link>
               ))}
             </div>

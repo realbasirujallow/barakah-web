@@ -147,7 +147,7 @@ export default function MadhabFinancePage() {
 
       <article className="min-h-screen bg-amber-50">
         {/* Breadcrumb Navigation */}
-        <nav className="bg-white border-b border-gray-200">
+        <nav className="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center space-x-2 text-sm">
               <Link href="/" className="text-green-700 hover:text-green-800 font-medium">
@@ -158,7 +158,7 @@ export default function MadhabFinancePage() {
                 Learn
               </Link>
               <span className="text-gray-400">/</span>
-              <span className="text-gray-700">Madhab &amp; Finance</span>
+              <span className="text-gray-700 dark:text-gray-300">Madhab &amp; Finance</span>
             </div>
           </div>
         </nav>
@@ -170,12 +170,12 @@ export default function MadhabFinancePage() {
               <span className="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
                 Fiqh
               </span>
-              <span className="text-sm text-gray-500">8 min read</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">8 min read</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               How Your Madhab Affects Your Finances
             </h1>
-            <p className="text-xl text-gray-700 max-w-2xl">
+            <p className="text-xl text-gray-700 max-w-2xl dark:text-gray-300">
               Compare Hanafi, Shafi&apos;i, Maliki, and Hanbali rulings on zakat, jewelry,
               hawl tracking, debt deduction, and wasiyyah — and understand why your school
               of thought matters for your money.
@@ -183,25 +183,25 @@ export default function MadhabFinancePage() {
           </header>
 
           {/* Why Madhab Matters */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">
               Why Your Madhab Matters in Finance
             </h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               While all four Sunni schools of thought agree on the fundamentals of Islamic
               finance — the prohibition of riba, the obligation of zakat, and the Quranic
               inheritance system — they differ on important details that directly affect how
               much zakat you owe, how your estate is distributed, and what counts as
               zakatable wealth.
             </p>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               These differences are not arbitrary. They arise from different interpretive
               methodologies (usul al-fiqh) applied to the same Quranic verses and hadith.
               Each madhab represents centuries of careful scholarly analysis, and all four
               positions are considered valid within Sunni Islam.
             </p>
             <div className="bg-green-50 border-l-4 border-green-700 p-6 rounded">
-              <p className="text-gray-700">
+              <p className="text-gray-700 dark:text-gray-300">
                 <span className="font-semibold">Practical impact:</span> Depending on your
                 madhab, you might owe zakat on your gold jewelry or not. Your debt might be
                 fully deducted or only partially. Your zakat al-fitr might need to be food or
@@ -212,11 +212,11 @@ export default function MadhabFinancePage() {
           </section>
 
           {/* Comparison Table */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">
               Madhab Comparison: Key Financial Rulings
             </h2>
-            <p className="text-gray-700 mb-6">
+            <p className="text-gray-700 mb-6 dark:text-gray-300">
               The following table summarizes the key differences between the four madhabs
               and AMJA general guidance on financial matters most relevant to Muslim
               households in the West.
@@ -240,12 +240,12 @@ export default function MadhabFinancePage() {
                       key={idx}
                       className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
                     >
-                      <td className="px-3 py-3 font-medium text-gray-900">{row.rule}</td>
-                      <td className="px-3 py-3 text-gray-700">{row.hanafi}</td>
-                      <td className="px-3 py-3 text-gray-700">{row.shafii}</td>
-                      <td className="px-3 py-3 text-gray-700">{row.maliki}</td>
-                      <td className="px-3 py-3 text-gray-700">{row.hanbali}</td>
-                      <td className="px-3 py-3 text-gray-700">{row.amja}</td>
+                      <td className="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">{row.rule}</td>
+                      <td className="px-3 py-3 text-gray-700 dark:text-gray-300">{row.hanafi}</td>
+                      <td className="px-3 py-3 text-gray-700 dark:text-gray-300">{row.shafii}</td>
+                      <td className="px-3 py-3 text-gray-700 dark:text-gray-300">{row.maliki}</td>
+                      <td className="px-3 py-3 text-gray-700 dark:text-gray-300">{row.hanbali}</td>
+                      <td className="px-3 py-3 text-gray-700 dark:text-gray-300">{row.amja}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -256,18 +256,18 @@ export default function MadhabFinancePage() {
           {/* Deep Dives */}
           <section className="space-y-8 mb-8">
             {/* Gold Jewelry */}
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="bg-white rounded-xl shadow-md p-8 dark:bg-gray-800">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 dark:text-gray-100">
                 Gold Jewelry: Zakatable or Exempt?
               </h3>
-              <p className="text-gray-700 leading-relaxed mb-4">
+              <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
                 This is perhaps the most well-known point of disagreement between the
                 schools. The Hanafi position, based on the apparent (zahir) meaning of the
                 hadith that require zakat on gold and silver, treats all gold and silver as
                 zakatable wealth — including jewelry worn regularly. The reasoning is that
                 gold retains its nature as a medium of exchange regardless of its form.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 The Shafi&apos;i, Maliki, and Hanbali schools exempt personal jewelry that is
                 worn regularly and is of a normal amount for the wearer&apos;s social
                 context. Their reasoning is based on hadith indicating that personal-use
@@ -278,18 +278,18 @@ export default function MadhabFinancePage() {
             </div>
 
             {/* Zakat al-Fitr */}
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="bg-white rounded-xl shadow-md p-8 dark:bg-gray-800">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 dark:text-gray-100">
                 Zakat al-Fitr: Food or Money?
               </h3>
-              <p className="text-gray-700 leading-relaxed mb-4">
+              <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
                 The Shafi&apos;i and Maliki schools require that zakat al-fitr be paid in
                 food staples (such as dates, barley, wheat, or rice) based on the hadith
                 specifying these items. The Hanafi school permits paying in monetary value,
                 arguing that the underlying purpose is to benefit the poor — and money may
                 be more useful to recipients than food in many modern contexts.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 The Hanbali school allows both food and money. AMJA and many North American
                 scholars recommend monetary payment as more practical and beneficial for
                 recipients in Western countries where food banks are well-established but
@@ -298,18 +298,18 @@ export default function MadhabFinancePage() {
             </div>
 
             {/* Debt Deduction */}
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="bg-white rounded-xl shadow-md p-8 dark:bg-gray-800">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 dark:text-gray-100">
                 Debt Deduction: How Much Can You Subtract?
               </h3>
-              <p className="text-gray-700 leading-relaxed mb-4">
+              <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
                 When calculating zakatable wealth, debts are subtracted from your assets.
                 But how much debt you can deduct varies significantly by madhab. The Hanafi
                 and Maliki schools limit the deduction to the annual installment (what is
                 due in the coming year), while the Shafi&apos;i and Hanbali schools allow
                 deducting the full outstanding balance of your debt.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 This difference has enormous practical impact. If you have a $300,000
                 mortgage, the Shafi&apos;i position would let you deduct the entire balance,
                 potentially eliminating your zakat obligation entirely. The Hanafi position
@@ -320,17 +320,17 @@ export default function MadhabFinancePage() {
             </div>
 
             {/* Hawl Reset */}
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="bg-white rounded-xl shadow-md p-8 dark:bg-gray-800">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 dark:text-gray-100">
                 Hawl Reset: What Happens When Wealth Drops Below Nisab?
               </h3>
-              <p className="text-gray-700 leading-relaxed mb-4">
+              <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
                 If your wealth drops below the nisab threshold during the year, does your
                 hawl (lunar year timer) reset? The Hanafi and Maliki schools say no — as
                 long as your wealth is at or above nisab at the beginning and end of the
                 hawl period, brief dips below nisab during the year do not reset the clock.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 The Shafi&apos;i and Hanbali schools are stricter — if your wealth drops
                 below nisab at any point during the hawl, the timer resets and a new hawl
                 begins from the date your wealth rises above nisab again. This means
@@ -340,17 +340,17 @@ export default function MadhabFinancePage() {
             </div>
 
             {/* Wasiyyah Limit */}
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="bg-white rounded-xl shadow-md p-8 dark:bg-gray-800">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 dark:text-gray-100">
                 Wasiyyah Beyond One-Third: With Heir Consent?
               </h3>
-              <p className="text-gray-700 leading-relaxed mb-4">
+              <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
                 The standard rule across all schools is that a voluntary bequest (wasiyyah)
                 is limited to one-third of the estate. However, the Hanafi school uniquely
                 permits exceeding this limit if all eligible heirs unanimously consent
                 after the testator&apos;s death.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 The Shafi&apos;i, Maliki, and Hanbali schools do not recognize this
                 exception — the one-third limit is absolute regardless of heir consent. This
                 difference matters for families who may wish to allocate a larger portion to
@@ -359,17 +359,17 @@ export default function MadhabFinancePage() {
             </div>
 
             {/* Radd and Spouse */}
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="bg-white rounded-xl shadow-md p-8 dark:bg-gray-800">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 dark:text-gray-100">
                 Radd Distribution: Does the Spouse Get Surplus?
               </h3>
-              <p className="text-gray-700 leading-relaxed mb-4">
+              <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
                 When fixed Quranic shares total less than the estate and there is no
                 residual heir (asabah), the surplus is redistributed to eligible heirs
                 through Radd. A key difference is whether the surviving spouse participates
                 in this redistribution.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 The Hanafi school, following the Uthmani view (attributed to the Caliph
                 Uthman ibn Affan), includes the spouse in Radd, meaning the spouse receives
                 a share of the surplus in proportion to their original Quranic share. The
@@ -380,11 +380,11 @@ export default function MadhabFinancePage() {
           </section>
 
           {/* How Barakah Handles This */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">
               How Barakah Handles Madhab Differences
             </h2>
-            <p className="text-gray-700 leading-relaxed mb-6">
+            <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
               Barakah is designed to respect your school of thought without making
               assumptions. When you set up your profile, you select your preferred madhab,
               and all financial calculations automatically adjust.
@@ -415,8 +415,8 @@ export default function MadhabFinancePage() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{feature.title}</h3>
-                    <p className="text-sm text-gray-700">{feature.desc}</p>
+                    <h3 className="font-semibold text-gray-900 mb-1 dark:text-gray-100">{feature.title}</h3>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{feature.desc}</p>
                   </div>
                 </div>
               ))}
@@ -424,24 +424,24 @@ export default function MadhabFinancePage() {
           </section>
 
           {/* Which Madhab Should I Follow */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">
               Which Madhab Should I Follow?
             </h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               If you already follow a specific madhab — whether by family tradition,
               geographic origin, or personal study — continue following it consistently.
               Consistency in one school prevents the problematic cherry-picking of easy
               opinions across schools.
             </p>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               If you do not currently follow a specific madhab, the best approach is to
               follow the guidance of your local scholars and community. In North America,
               many scholars recommend the AMJA-aligned approach, which draws from all four
               schools based on the strongest evidence for each issue.
             </p>
             <div className="bg-amber-50 border-l-4 border-amber-600 p-6 rounded">
-              <p className="text-gray-700">
+              <p className="text-gray-700 dark:text-gray-300">
                 <span className="font-semibold">Key principle:</span> Choose a school (or
                 follow your local scholars) and be consistent. The differences between
                 madhabs exist because qualified scholars interpreted the evidence
@@ -452,8 +452,8 @@ export default function MadhabFinancePage() {
           </section>
 
           {/* FAQ Section */}
-          <section className="bg-white rounded-xl shadow-md p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8 pb-4 border-b border-gray-200">
+          <section className="bg-white rounded-xl shadow-md p-8 mb-8 dark:bg-gray-800">
+            <h2 className="text-2xl font-bold text-gray-900 mb-8 pb-4 border-b border-gray-200 dark:text-gray-100 dark:border-gray-700">
               Frequently Asked Questions
             </h2>
 
@@ -463,13 +463,13 @@ export default function MadhabFinancePage() {
                   key={idx}
                   className="group cursor-pointer py-6 hover:bg-gray-50 px-4 -mx-4"
                 >
-                  <summary className="flex items-center justify-between font-semibold text-gray-900 text-lg select-none">
+                  <summary className="flex items-center justify-between font-semibold text-gray-900 text-lg select-none dark:text-gray-100">
                     <span className="flex-1">{item.question}</span>
                     <span className="transition-transform group-open:rotate-180 text-green-700 ml-4">
                       &#9660;
                     </span>
                   </summary>
-                  <div className="mt-4 pt-4 border-t border-gray-200 text-gray-700 leading-relaxed">
+                  <div className="mt-4 pt-4 border-t border-gray-200 text-gray-700 leading-relaxed dark:text-gray-300 dark:border-gray-700">
                     {item.answer}
                   </div>
                 </details>
@@ -490,41 +490,41 @@ export default function MadhabFinancePage() {
 
             <Link
               href="/signup"
-              className="inline-block bg-white text-green-700 hover:bg-amber-50 font-bold py-3 px-8 rounded-lg transition-colors text-lg"
+              className="inline-block bg-white text-green-700 hover:bg-amber-50 font-bold py-3 px-8 rounded-lg transition-colors text-lg dark:bg-gray-800"
             >
               Create Free Account
             </Link>
           </section>
 
           {/* Related Articles */}
-          <section className="bg-white rounded-xl shadow-md p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Related Articles</h2>
+          <section className="bg-white rounded-xl shadow-md p-8 dark:bg-gray-800">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Related Articles</h2>
             <div className="grid sm:grid-cols-3 gap-6">
               <Link
                 href="/learn/zakat-on-gold"
-                className="block p-4 border border-gray-200 rounded-lg hover:border-green-700 hover:shadow-md transition-all"
+                className="block p-4 border border-gray-200 rounded-lg hover:border-green-700 hover:shadow-md transition-all dark:border-gray-700"
               >
                 <h3 className="font-semibold text-green-700 mb-2">Zakat on Gold</h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Detailed guide on when and how zakat applies to gold jewelry, coins, and
                   bullion.
                 </p>
               </Link>
               <Link
                 href="/learn/nisab-threshold"
-                className="block p-4 border border-gray-200 rounded-lg hover:border-green-700 hover:shadow-md transition-all"
+                className="block p-4 border border-gray-200 rounded-lg hover:border-green-700 hover:shadow-md transition-all dark:border-gray-700"
               >
                 <h3 className="font-semibold text-green-700 mb-2">Nisab Threshold</h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Understanding the gold and silver nisab standards and which one to use.
                 </p>
               </Link>
               <Link
                 href="/methodology"
-                className="block p-4 border border-gray-200 rounded-lg hover:border-green-700 hover:shadow-md transition-all"
+                className="block p-4 border border-gray-200 rounded-lg hover:border-green-700 hover:shadow-md transition-all dark:border-gray-700"
               >
                 <h3 className="font-semibold text-green-700 mb-2">Our Methodology</h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Learn how Barakah sources its Islamic rulings and which scholars inform
                   our calculations.
                 </p>

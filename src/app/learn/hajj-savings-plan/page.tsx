@@ -88,7 +88,7 @@ export default function HajjSavingsPlanPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <article className="min-h-screen bg-white px-6 py-16">
+      <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
 
           {/* Breadcrumb */}
@@ -97,19 +97,19 @@ export default function HajjSavingsPlanPage() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Hajj Savings Plan</span>
+            <span className="text-gray-600 dark:text-gray-400">Hajj Savings Plan</span>
           </nav>
 
           {/* Hero */}
           <header className="mb-10">
             <div className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">HAJJ & UMRAH</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               Hajj Savings Plan 2026 — How Much Hajj Costs &amp; How to Save
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-6">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6 dark:text-gray-400">
               Hajj is one of the five pillars of Islam — obligatory for every Muslim who is financially and physically able. But packages from North America now cost $8,000–$20,000+. This guide breaks down exactly what Hajj costs in 2026, how to calculate your monthly savings target, and how to build a dedicated Hajj fund that actually reaches its goal.
             </p>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
               <span>Updated April 2026</span>
               <span>8 min read</span>
               <span>Not financial advice — consult a qualified Islamic scholar</span>
@@ -118,17 +118,17 @@ export default function HajjSavingsPlanPage() {
 
           {/* Section 1 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">How Much Does Hajj Cost in 2026?</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">How Much Does Hajj Cost in 2026?</h2>
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               A full Hajj package from North America in 2026 ranges from approximately <strong>$8,000–$15,000</strong> for economy packages to <strong>$20,000+</strong> for premium accommodations. US government-regulated Hajj package costs have risen roughly 15% since 2022, driven by Saudi accommodation price increases and higher airfares. Here is how a typical $12,000 economy package breaks down:
             </p>
-            <div className="overflow-x-auto rounded-2xl border border-gray-200 mb-6">
+            <div className="overflow-x-auto rounded-2xl border border-gray-200 mb-6 dark:border-gray-700">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Expense</th>
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Economy Range</th>
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Premium Range</th>
+                  <tr className="bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Expense</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Economy Range</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Premium Range</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -142,15 +142,15 @@ export default function HajjSavingsPlanPage() {
                     { item: 'Hady (sacrificial animal)', economy: '~$150', premium: '~$150' },
                   ].map((row, i) => (
                     <tr key={row.item} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="p-3 text-gray-900 border-b border-gray-100">{row.item}</td>
-                      <td className="p-3 text-green-700 border-b border-gray-100">{row.economy}</td>
-                      <td className="p-3 text-gray-600 border-b border-gray-100">{row.premium}</td>
+                      <td className="p-3 text-gray-900 border-b border-gray-100 dark:text-gray-100 dark:border-gray-700">{row.item}</td>
+                      <td className="p-3 text-green-700 border-b border-gray-100 dark:border-gray-700">{row.economy}</td>
+                      <td className="p-3 text-gray-600 border-b border-gray-100 dark:text-gray-400 dark:border-gray-700">{row.premium}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               <strong>Umrah</strong> is significantly more affordable: an all-in package from the US typically runs <strong>$2,000–$5,000</strong>, depending on the season. Ramadan Umrah packages are the most expensive due to demand; off-peak packages in Muharram or Rabi&apos; al-Awwal can be found for under $2,500.
             </p>
             <div className="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-4">
@@ -162,8 +162,8 @@ export default function HajjSavingsPlanPage() {
 
           {/* Section 2 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Calculating Your Monthly Savings Target</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Calculating Your Monthly Savings Target</h2>
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               The formula is straightforward: <strong>(Goal amount) &divide; (Months until Hajj) = Monthly savings required.</strong> But you can reduce that monthly amount by starting earlier and placing your savings in a halal high-yield account.
             </p>
             <div className="bg-green-50 rounded-2xl p-6 mb-6">
@@ -175,18 +175,18 @@ export default function HajjSavingsPlanPage() {
                 <p className="mt-3 text-green-800"><strong>With 4% APY halal savings account (5-year plan):</strong> ~$183/month — the account does ~$1,000 of the work for you.</p>
               </div>
             </div>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               If your savings account earns 4–5% APY in a halal account (such as a murabaha-based savings product), compound growth meaningfully reduces your required monthly contribution over a multi-year timeline. The longer your horizon, the more growth helps.
             </p>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
               One important zakat consideration: once your Hajj savings exceed the <strong>nisab threshold</strong> (~$5,600 at current gold prices) and a full lunar year (hawl) passes, those savings become <strong>zakatable</strong> — even though they are earmarked for Hajj. Budget an additional 2.5% annually on your growing balance. For a $10,000 Hajj fund, that is approximately $250/year in zakat.
             </p>
           </section>
 
           {/* Section 3 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Best Strategies to Save for Hajj</h2>
-            <p className="text-gray-700 leading-relaxed mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Best Strategies to Save for Hajj</h2>
+            <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
               A dedicated savings strategy makes the difference between Hajj remaining a distant hope and becoming a scheduled trip. The following approaches are practical, proven, and spiritually grounded.
             </p>
             <div className="space-y-4">
@@ -217,13 +217,13 @@ export default function HajjSavingsPlanPage() {
                   detail: 'Tax refunds, Ramadan bonuses, work bonuses, and inheritance amounts are all high-impact injection points. A $3,000 tax refund deposited into your Hajj Fund can cut 10–15 months off a 5-year savings plan. Establish a rule: any windfall above $500 goes 50% to Hajj.',
                 },
               ].map((item) => (
-                <div key={item.letter} className="flex gap-4 border border-gray-200 rounded-xl p-5">
+                <div key={item.letter} className="flex gap-4 border border-gray-200 rounded-xl p-5 dark:border-gray-700">
                   <div className="flex-shrink-0 w-10 h-10 bg-green-700 text-white rounded-full flex items-center justify-center font-bold text-sm">
                     {item.letter}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">{item.detail}</p>
+                    <h3 className="font-semibold text-gray-900 mb-1 dark:text-gray-100">{item.title}</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed dark:text-gray-400">{item.detail}</p>
                   </div>
                 </div>
               ))}
@@ -232,8 +232,8 @@ export default function HajjSavingsPlanPage() {
 
           {/* Section 4 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Track Your Hajj Goal with Barakah</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Track Your Hajj Goal with Barakah</h2>
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               Barakah&apos;s <strong>Savings Goals</strong> feature lets you create a dedicated &ldquo;Hajj Fund&rdquo; goal with a target amount, target date, and automatic monthly progress visualization. You set the goal once — Barakah tracks every contribution and shows you exactly how many months remain at your current savings rate.
             </p>
             <div className="grid sm:grid-cols-2 gap-4 mb-6">
@@ -249,22 +249,22 @@ export default function HajjSavingsPlanPage() {
                 </div>
               ))}
             </div>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
               The Hajj is the journey of a lifetime — the moment you stand at &lsquo;Arafah and make du&apos;a is worth every month of disciplined saving. Barakah exists to make that journey financially attainable without compromising your halal values along the way.
             </p>
           </section>
 
           {/* FAQ */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-4">
               {faqSchema.mainEntity.map((faq) => (
-                <details key={faq.name} className="border border-gray-200 rounded-xl p-5">
-                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm">
+                <details key={faq.name} className="border border-gray-200 rounded-xl p-5 dark:border-gray-700">
+                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm dark:text-gray-100">
                     {faq.name}
                     <span className="text-green-700 ml-4 flex-shrink-0">+</span>
                   </summary>
-                  <p className="mt-3 text-gray-600 text-sm leading-relaxed">{faq.acceptedAnswer.text}</p>
+                  <p className="mt-3 text-gray-600 text-sm leading-relaxed dark:text-gray-400">{faq.acceptedAnswer.text}</p>
                 </details>
               ))}
             </div>
@@ -278,23 +278,23 @@ export default function HajjSavingsPlanPage() {
             <h2 className="text-2xl font-bold mb-3">Start Your Hajj Savings Goal — Free</h2>
             <p className="text-green-100 mb-6">Create a dedicated Hajj Fund goal, set your target date, and let Barakah track every contribution toward the journey of a lifetime.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition">Start Free — No Card Needed</Link>
+              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">Start Free — No Card Needed</Link>
               <Link href="/dashboard/savings" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Track Your Savings</Link>
             </div>
           </div>
 
           {/* Related */}
           <section>
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Related Articles</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-5 dark:text-gray-100">Related Articles</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { href: '/learn/zakat-on-savings-account', title: 'Zakat on Savings Accounts', desc: 'When and how to pay zakat on your cash savings.' },
                 { href: '/learn/sadaqah-vs-zakat', title: 'Sadaqah vs Zakat', desc: 'Understanding the difference between obligatory and voluntary charity.' },
                 { href: '/learn/what-is-zakat', title: 'What Is Zakat?', desc: 'The complete guide to the third pillar of Islam.' },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors">
+                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700">
                   <h3 className="font-semibold text-green-700 mb-1">{link.title}</h3>
-                  <p className="text-xs text-gray-500">{link.desc}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{link.desc}</p>
                 </Link>
               ))}
             </div>

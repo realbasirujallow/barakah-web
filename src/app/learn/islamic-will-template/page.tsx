@@ -98,7 +98,7 @@ export default function IslamicWillTemplatePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <article className="min-h-screen bg-white px-6 py-16">
+      <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
 
           {/* Breadcrumb */}
@@ -107,19 +107,19 @@ export default function IslamicWillTemplatePage() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Islamic Will Template</span>
+            <span className="text-gray-600 dark:text-gray-400">Islamic Will Template</span>
           </nav>
 
           {/* Hero */}
           <header className="mb-10">
             <div className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">WASIYYAH GUIDE</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               Islamic Will Template 2026 — Wasiyyah Guide &amp; What to Include
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-6">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6 dark:text-gray-400">
               A Wasiyyah is not just a document — it is a final act of justice toward your family. This guide explains the 1/3 rule, every required clause, the Faraid shares your heirs are owed, and how to ensure your will is both Sharia-compliant and legally enforceable in the United States.
             </p>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
               <span>Updated April 2026</span>
               <span>10 min read</span>
               <span>Not legal advice — consult a qualified Muslim attorney</span>
@@ -128,8 +128,8 @@ export default function IslamicWillTemplatePage() {
 
           {/* Section 1 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">What Is a Wasiyyah (Islamic Will)?</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">What Is a Wasiyyah (Islamic Will)?</h2>
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               A Wasiyyah is the Islamic equivalent of a last will and testament — but it operates under strict Sharia constraints that do not exist in secular law. The most important constraint: a Wasiyyah can only cover <strong>up to one-third</strong> of your net estate after all debts are paid. The remaining two-thirds (or more) is distributed automatically by Faraid — the Quranic inheritance system.
             </p>
             <div className="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-5 mb-6">
@@ -137,18 +137,18 @@ export default function IslamicWillTemplatePage() {
                 &ldquo;A man may do good deeds for 70 years and then when he is close to death, he wrongs his heirs in his will, and so he ends up in Hell.&rdquo; — Abu Dawud
               </p>
             </div>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               The 1/3 cap exists to prevent a person from deliberately bypassing Faraid — for example, leaving everything to a favorite child and cutting out the others. Allah (SWT) set the Faraid shares directly in the Quran (Surah An-Nisa 4:11–12) and warned: <em>&ldquo;These are the limits set by Allah. Whoever obeys Allah and His Messenger will be admitted to Gardens... and whoever disobeys Allah and His Messenger... will be in a Fire.&rdquo;</em> (4:13–14).
             </p>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
               Practically speaking, the Wasiyyah is your tool to: care for dependents who are not Faraid heirs (non-Muslim relatives, stepchildren, close friends), make charitable bequests, establish or fund a Waqf (endowment), and specify Islamic funeral arrangements. It is the customizable portion of your estate — but it operates within Sharia&apos;s 1/3 ceiling.
             </p>
           </section>
 
           {/* Section 2 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">What to Include in Your Wasiyyah</h2>
-            <p className="text-gray-700 leading-relaxed mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">What to Include in Your Wasiyyah</h2>
+            <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
               A complete Wasiyyah has six essential components. Missing any one of them creates legal or Islamic gaps that can harm your family.
             </p>
             <div className="space-y-4">
@@ -184,13 +184,13 @@ export default function IslamicWillTemplatePage() {
                   detail: 'State clearly: "The remainder of my estate (after debts and Wasiyyah bequests) shall be distributed according to Faraid as prescribed in the Quran and Sunnah." This instruction, incorporated into a US-valid legal will, gives your executor legal authority to follow Faraid.',
                 },
               ].map((item) => (
-                <div key={item.num} className="flex gap-4 border border-gray-200 rounded-xl p-5">
+                <div key={item.num} className="flex gap-4 border border-gray-200 rounded-xl p-5 dark:border-gray-700">
                   <div className="flex-shrink-0 w-8 h-8 bg-green-700 text-white rounded-full flex items-center justify-center font-bold text-sm">
                     {item.num}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">{item.detail}</p>
+                    <h3 className="font-semibold text-gray-900 mb-1 dark:text-gray-100">{item.title}</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed dark:text-gray-400">{item.detail}</p>
                   </div>
                 </div>
               ))}
@@ -199,25 +199,25 @@ export default function IslamicWillTemplatePage() {
 
           {/* Section 3 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Faraid: Who Gets What?</h2>
-            <p className="text-gray-700 leading-relaxed mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Faraid: Who Gets What?</h2>
+            <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
               Faraid shares are fixed by the Quran — they cannot be altered by your Wasiyyah. The shares depend on which heirs are alive at the time of your death. Below are the primary Faraid heirs and their shares under standard conditions. Note: the presence or absence of children significantly changes spousal and parental shares.
             </p>
-            <div className="overflow-x-auto rounded-2xl border border-gray-200 mb-6">
+            <div className="overflow-x-auto rounded-2xl border border-gray-200 mb-6 dark:border-gray-700">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Heir</th>
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Share (with children)</th>
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Share (no children)</th>
+                  <tr className="bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Heir</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Share (with children)</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Share (no children)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {faraidHeirs.map((row, i) => (
                     <tr key={row.heir} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="p-3 font-semibold text-gray-900 border-b border-gray-100">{row.heir}</td>
-                      <td className="p-3 text-green-700 border-b border-gray-100">{row.withChildren}</td>
-                      <td className="p-3 text-gray-600 border-b border-gray-100">{row.withoutChildren}</td>
+                      <td className="p-3 font-semibold text-gray-900 border-b border-gray-100 dark:text-gray-100 dark:border-gray-700">{row.heir}</td>
+                      <td className="p-3 text-green-700 border-b border-gray-100 dark:border-gray-700">{row.withChildren}</td>
+                      <td className="p-3 text-gray-600 border-b border-gray-100 dark:text-gray-400 dark:border-gray-700">{row.withoutChildren}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -236,8 +236,8 @@ export default function IslamicWillTemplatePage() {
 
           {/* Section 4 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Making Your Islamic Will Legal in the US</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Making Your Islamic Will Legal in the US</h2>
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               A Wasiyyah that is spiritually valid but legally unenforceable leaves your family exposed to US intestacy laws. To be enforceable, your Islamic will must also meet your state&apos;s legal requirements for a valid will.
             </p>
             <div className="grid sm:grid-cols-2 gap-4 mb-6">
@@ -247,28 +247,28 @@ export default function IslamicWillTemplatePage() {
                 { title: 'Notarization', detail: 'While not required in all states, notarization creates a self-proving will — meaning the court can admit it without calling witnesses to testify about its validity.' },
                 { title: 'Islamic declaration', detail: 'Include the explicit statement: "I want my estate distributed according to Islamic law (Faraid)" to give your executor clear legal authority to follow Sharia inheritance rules.' },
               ].map((item) => (
-                <div key={item.title} className="border border-gray-200 rounded-xl p-4">
-                  <h3 className="font-semibold text-gray-900 text-sm mb-1">{item.title}</h3>
-                  <p className="text-gray-600 text-sm">{item.detail}</p>
+                <div key={item.title} className="border border-gray-200 rounded-xl p-4 dark:border-gray-700">
+                  <h3 className="font-semibold text-gray-900 text-sm mb-1 dark:text-gray-100">{item.title}</h3>
+                  <p className="text-gray-600 text-sm dark:text-gray-400">{item.detail}</p>
                 </div>
               ))}
             </div>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
               Muslim attorneys who specialize in Islamic estate planning — particularly those familiar with ISNA&apos;s model Wasiyyah — can draft a dual-purpose document that is valid under your state&apos;s law while fully incorporating Islamic inheritance principles. They also help navigate trust structures that can approximate Faraid for assets like 401(k)s and life insurance that pass outside the will.
             </p>
           </section>
 
           {/* FAQ */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-4">
               {faqSchema.mainEntity.map((faq) => (
-                <details key={faq.name} className="border border-gray-200 rounded-xl p-5">
-                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm">
+                <details key={faq.name} className="border border-gray-200 rounded-xl p-5 dark:border-gray-700">
+                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm dark:text-gray-100">
                     {faq.name}
                     <span className="text-green-700 ml-4 flex-shrink-0">+</span>
                   </summary>
-                  <p className="mt-3 text-gray-600 text-sm leading-relaxed">{faq.acceptedAnswer.text}</p>
+                  <p className="mt-3 text-gray-600 text-sm leading-relaxed dark:text-gray-400">{faq.acceptedAnswer.text}</p>
                 </details>
               ))}
             </div>
@@ -282,23 +282,23 @@ export default function IslamicWillTemplatePage() {
             <h2 className="text-2xl font-bold mb-3">Create Your Wasiyyah — Free</h2>
             <p className="text-green-100 mb-6">Start with Barakah&apos;s Faraid Calculator to determine your family&apos;s exact inheritance shares — the essential foundation of every Islamic will.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition">Start Free — No Card Needed</Link>
+              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">Start Free — No Card Needed</Link>
               <Link href="/faraid-calculator" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Try Faraid Calculator</Link>
             </div>
           </div>
 
           {/* Related */}
           <section>
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Related Articles</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-5 dark:text-gray-100">Related Articles</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { href: '/learn/islamic-estate-planning', title: 'Islamic Estate Planning', desc: 'The complete guide to Wasiyyah, Faraid, and Waqf for Muslims in the US.' },
                 { href: '/learn/zakat-on-retirement-accounts', title: 'Zakat on Retirement Accounts', desc: 'How 401(k) and IRA interact with your annual zakat obligation.' },
                 { href: '/learn/halal-investing-guide', title: 'Halal Investing Guide', desc: 'How to invest your savings in Sharia-compliant assets.' },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors">
+                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700">
                   <h3 className="font-semibold text-green-700 mb-1">{link.title}</h3>
-                  <p className="text-xs text-gray-500">{link.desc}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{link.desc}</p>
                 </Link>
               ))}
             </div>

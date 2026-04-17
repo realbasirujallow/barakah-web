@@ -57,7 +57,7 @@ export default function NisabThresholdPage() {
       />
       <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
         {/* Header */}
-        <header className="bg-white shadow-sm sticky top-0 z-10">
+        <header className="bg-white shadow-sm sticky top-0 z-10 dark:bg-gray-800">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</Link>
             <div className="flex items-center gap-3">
@@ -71,9 +71,9 @@ export default function NisabThresholdPage() {
         </header>
 
         {/* Breadcrumb */}
-        <nav className="bg-white border-b border-gray-100 px-6 py-3">
+        <nav className="bg-white border-b border-gray-100 px-6 py-3 dark:bg-gray-800 dark:border-gray-700">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
               <span className="text-gray-300">/</span>
               <Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link>
@@ -90,8 +90,8 @@ export default function NisabThresholdPage() {
                 Zakat Guide
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-[#1B5E20]">Nisab Threshold: Gold vs Silver</h1>
-              <p className="text-lg text-gray-700">Master the nisab concept and determine which standard applies to your Islamic school and situation.</p>
-              <div className="flex items-center gap-4 text-sm text-gray-600 border-t border-gray-200 pt-4">
+              <p className="text-lg text-gray-700 dark:text-gray-300">Master the nisab concept and determine which standard applies to your Islamic school and situation.</p>
+              <div className="flex items-center gap-4 text-sm text-gray-600 border-t border-gray-200 pt-4 dark:text-gray-400 dark:border-gray-700">
                 <span>By Barakah Editorial Team</span>
                 <span>6 min read</span>
               </div>
@@ -115,55 +115,55 @@ export default function NisabThresholdPage() {
 
             <section id="what-is" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">What is the Nisab Threshold?</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 The nisab threshold is the <strong>minimum amount of wealth</strong> you must possess before zakat (the obligatory annual charity) becomes a duty upon you. If your wealth falls below the nisab, you do not owe zakat that year.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Think of nisab as the &quot;exemption threshold&quot; — similar to income tax in secular systems, where you only pay if earnings exceed a certain amount. In Islam, you only owe zakat if your wealth exceeds the nisab.
               </p>
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Key Point</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   The nisab was established by the Prophet Muhammad (peace be upon him) based on the cost of living in 7th-century Arabia. It applies today using the value of gold or silver, which serves as a timeless economic standard.
                 </p>
               </div>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 Islamic law recognizes two nisab standards — gold and silver — reflecting classical scholarly traditions. The choice between them depends on your school of Islamic jurisprudence (madhab).
               </p>
             </section>
 
             <section id="gold-standard" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Gold Standard: 85 Grams</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 <strong>Weight:</strong> 85 grams (approximately 2.747 troy ounces)
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 <strong>Current Value:</strong> <GoldNisabUSD /> (at <GoldPricePerGram /> per gram)
               </p>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-blue-900 mb-3">About This Standard</h3>
-                <ul className="space-y-2 text-gray-700 text-sm">
+                <ul className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                   <li><strong className="text-blue-900">Endorsed by:</strong> AMJA (American Muslim Jurists Association), Fiqh Council of North America, and most contemporary Islamic scholars</li>
                   <li><strong className="text-blue-900">Ease of use:</strong> Gold prices are widely published daily, making it easy to calculate current nisab value</li>
                   <li><strong className="text-blue-900">Scholarly backing:</strong> Referenced in classical hadith and widely accepted across Islamic schools</li>
                 </ul>
               </div>
-              <p className="text-gray-700 leading-relaxed font-semibold">
+              <p className="text-gray-700 leading-relaxed font-semibold dark:text-gray-300">
                 <strong className="text-[#1B5E20]">Recommendation:</strong> Most modern Muslims use the gold standard of 85 grams unless following a specific madhab that prescribes otherwise.
               </p>
             </section>
 
             <section id="silver-standard" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Silver Standard: 595 Grams</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 <strong>Weight:</strong> 595 grams (approximately 19.1 troy ounces)
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 <strong>Current Value:</strong> <SilverNisabUSD /> (at <SilverPricePerGram /> per gram)
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 my-6">
                 <h3 className="font-bold text-amber-900 mb-3">About This Standard</h3>
-                <ul className="space-y-2 text-gray-700 text-sm">
+                <ul className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                   <li><strong className="text-amber-900">Historical basis:</strong> This is the classical Hanafi school standard, traced to early Islamic jurisprudence</li>
                   <li><strong className="text-amber-900">School-specific:</strong> Primarily used by Hanafi madhab followers and some traditionalist scholars</li>
                   <li><strong className="text-amber-900">Practical consideration:</strong> Silver prices are less commonly quoted than gold, making calculations slightly less convenient</li>
@@ -179,28 +179,28 @@ export default function NisabThresholdPage() {
 
             <section id="which-to-use" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Which Should You Use?</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 The short answer is: <strong>Consult your imam or local Islamic teacher for guidance based on your school of Islamic jurisprudence (madhab).</strong> However, here is practical guidance:
               </p>
 
               <div className="space-y-4 my-6">
                 <div className="border-l-4 border-[#1B5E20] bg-green-50 p-4 rounded">
                   <h3 className="font-bold text-[#1B5E20] mb-2">Sunni Majority (Shafi&apos;i, Maliki, Hanbali) & Modern Scholars</h3>
-                  <p className="text-gray-700 text-sm">
+                  <p className="text-gray-700 text-sm dark:text-gray-300">
                     <strong>Use the gold standard (85 grams).</strong> This is the most widely recommended by AMJA, Fiqh Council, and most Islamic organizations in North America. If you are unsure of your madhab or follow a general contemporary approach, use the gold standard.
                   </p>
                 </div>
 
                 <div className="border-l-4 border-blue-600 bg-blue-50 p-4 rounded">
                   <h3 className="font-bold text-blue-900 mb-2">Hanafi Madhab (Traditional)</h3>
-                  <p className="text-gray-700 text-sm">
+                  <p className="text-gray-700 text-sm dark:text-gray-300">
                     <strong>Classically, use the silver standard (595 grams).</strong> However, many modern Hanafi scholars are now recommending the gold standard for consistency with other schools. Consult your Hanafi imam for their preferred approach.
                   </p>
                 </div>
 
                 <div className="border-l-4 border-purple-600 bg-purple-50 p-4 rounded">
                   <h3 className="font-bold text-purple-900 mb-2">Want to be Extra Conservative?</h3>
-                  <p className="text-gray-700 text-sm">
+                  <p className="text-gray-700 text-sm dark:text-gray-300">
                     Some scholars recommend the &quot;lower of two&quot; approach: use whichever nisab is lower at the time of calculation. This ensures zakat is definitely due and you fulfill your obligation generously.
                   </p>
                 </div>
@@ -208,7 +208,7 @@ export default function NisabThresholdPage() {
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
                 <h3 className="font-bold text-amber-900 mb-3">Practical Steps to Choose</h3>
-                <ol className="space-y-2 text-gray-700 text-sm">
+                <ol className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                   <li>1. <strong>Know your madhab:</strong> Ask your imam which school of Islamic law you follow (Hanafi, Shafi&apos;i, Maliki, Hanbali)</li>
                   <li>2. <strong>Check your school&apos;s guidance:</strong> Most schools today recommend the gold standard (85g)</li>
                   <li>3. <strong>When in doubt:</strong> Use the gold standard (85g) if you follow AMJA-style North American guidance, or ask your imam whether classical silver better fits your fiqh practice</li>
@@ -220,37 +220,37 @@ export default function NisabThresholdPage() {
             <section id="faq" className="space-y-6">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Frequently Asked Questions</h2>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: How do I check the current nisab value?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   Check the daily spot price of gold per gram (usually in USD). Multiply by the nisab gram amount to get the current gold nisab in dollars. For silver, multiply the spot price per gram by its nisab gram amount. Barakah&apos;s calculator automatically updates with current prices daily — see the live values at the top of this page.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: What if I&apos;m exactly at the nisab amount? Do I owe zakat?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   Yes, if you are at or above the nisab threshold and have held the wealth for one lunar year, zakat is due. Many scholars prefer to round up slightly to ensure compliance.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Does the nisab change every year?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   Yes. The nisab threshold changes based on the market price of gold and silver. Each year when calculating zakat, check the current spot prices to determine the updated nisab in your local currency. This is why Barakah updates daily.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Can I use the silver nisab even if I follow the Shafi&apos;i school?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   Technically, the Shafi&apos;i school recommends the gold standard. However, if you want to be extra cautious and use the lower (silver) standard, most scholars accept this as a valid approach to ensure you&apos;re fulfilling zakat properly.
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: What if I have both gold and silver? Do I combine them for nisab?</h3>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm dark:text-gray-300">
                   This is a matter of scholarly debate. Most contemporary scholars recommend calculating zakat on each type separately. However, if you have other liquid wealth (cash, savings), you typically combine all liquid assets and apply one nisab calculation. Consult an imam for clarity on your specific situation.
                 </p>
               </div>
@@ -264,35 +264,35 @@ export default function NisabThresholdPage() {
               </p>
               <Link
                 href="/dashboard"
-                className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition"
+                className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition dark:bg-gray-800"
               >
                 Open Calculator
               </Link>
             </div>
 
             {/* Related Articles */}
-            <section className="mt-12 border-t border-gray-200 pt-8">
+            <section className="mt-12 border-t border-gray-200 pt-8 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-[#1B5E20] mb-6">Related Articles</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <Link
                   href="/learn/zakat-on-gold"
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition"
+                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition dark:bg-gray-800 dark:border-gray-700"
                 >
                   <h3 className="font-bold text-[#1B5E20] mb-2">Zakat on Gold & Jewelry</h3>
-                  <p className="text-gray-600 text-sm">Calculate zakat on gold with current nisab thresholds.</p>
+                  <p className="text-gray-600 text-sm dark:text-gray-400">Calculate zakat on gold with current nisab thresholds.</p>
                 </Link>
                 <Link
                   href="/learn/zakat-on-savings"
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition"
+                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition dark:bg-gray-800 dark:border-gray-700"
                 >
                   <h3 className="font-bold text-[#1B5E20] mb-2">Zakat on Savings</h3>
-                  <p className="text-gray-600 text-sm">Step-by-step guide to zakat on bank accounts and savings.</p>
+                  <p className="text-gray-600 text-sm dark:text-gray-400">Step-by-step guide to zakat on bank accounts and savings.</p>
                 </Link>
               </div>
             </section>
 
             {/* Author Info */}
-            <footer className="mt-12 pt-8 border-t border-gray-200 text-sm text-gray-600">
+            <footer className="mt-12 pt-8 border-t border-gray-200 text-sm text-gray-600 dark:text-gray-400 dark:border-gray-700">
               <p><strong>By:</strong> Barakah Editorial Team</p>
               <p className="mt-2">Content based on Islamic fiqh from AMJA, Fiqh Council of North America, and classical Islamic jurisprudence across all madhabs.</p>
             </footer>
@@ -300,38 +300,38 @@ export default function NisabThresholdPage() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-white border-t border-gray-100 py-8 px-6 mt-16">
+        <footer className="bg-white border-t border-gray-100 py-8 px-6 mt-16 dark:bg-gray-800 dark:border-gray-700">
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-4 gap-8 mb-8">
               <div>
                 <h3 className="font-bold text-[#1B5E20] mb-4">Barakah</h3>
-                <p className="text-sm text-gray-600">Fiqh-aware household finance for modern Muslim families.</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Fiqh-aware household finance for modern Muslim families.</p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Learn</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Learn</h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/learn" className="hover:text-[#1B5E20] transition">All Guides</Link></li>
                   <li><Link href="/learn/zakat-on-gold" className="hover:text-[#1B5E20] transition">Zakat on Gold</Link></li>
                   <li><Link href="/learn/zakat-on-savings" className="hover:text-[#1B5E20] transition">Zakat on Savings</Link></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Company</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Company</h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/" className="hover:text-[#1B5E20] transition">Home</Link></li>
                   <li><Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link></li>
                   <li><Link href="/disclaimer" className="hover:text-[#1B5E20] transition">Disclaimer</Link></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Legal</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Legal</h4>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/privacy" className="hover:text-[#1B5E20] transition">Privacy</Link></li>
                   <li><Link href="/terms" className="hover:text-[#1B5E20] transition">Terms</Link></li>
                 </ul>
               </div>
             </div>
-            <div className="border-t border-gray-100 pt-6 text-center text-xs text-gray-500">
+            <div className="border-t border-gray-100 pt-6 text-center text-xs text-gray-500 dark:text-gray-400 dark:border-gray-700">
               <p>&copy; {new Date().getFullYear()} Barakah. All rights reserved.</p>
             </div>
           </div>

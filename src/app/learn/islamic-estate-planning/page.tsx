@@ -89,7 +89,7 @@ export default function IslamicEstatePlanningPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <article className="min-h-screen bg-white px-6 py-16">
+      <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
 
           {/* Breadcrumb */}
@@ -98,19 +98,19 @@ export default function IslamicEstatePlanningPage() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Islamic Estate Planning</span>
+            <span className="text-gray-600 dark:text-gray-400">Islamic Estate Planning</span>
           </nav>
 
           {/* Hero */}
           <header className="mb-10">
             <div className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">ISLAMIC ESTATE PLANNING</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               Islamic Estate Planning 2026 — Wasiyyah, Faraid &amp; Waqf Guide for Muslims
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-6">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6 dark:text-gray-400">
               The Prophet Muhammad (PBUH) said: &ldquo;It is not right for a Muslim who has something to bequeath to let two nights pass without having written a will.&rdquo; (Bukhari &amp; Muslim). Yet most Muslims in the US die without an Islamic estate plan — leaving their families exposed to US intestacy laws that bear no resemblance to Faraid. This guide explains how Islamic estate planning works, the three pillars of a complete plan, and how to get started.
             </p>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
               <span>Updated April 2026</span>
               <span>10 min read</span>
               <span>Not legal advice — consult a qualified Muslim attorney</span>
@@ -119,8 +119,8 @@ export default function IslamicEstatePlanningPage() {
 
           {/* Section 1 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">What Is Islamic Estate Planning?</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">What Is Islamic Estate Planning?</h2>
+            <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
               Islamic estate planning is the process of distributing your wealth after death in a way that satisfies both Islamic law (Sharia) and civil law in your country. It goes beyond a standard will because Islam has a detailed inheritance system — <strong>Faraid</strong> — that pre-determines shares for specific heirs, and a customizable bequest system — <strong>Wasiyyah</strong> — for the remaining one-third of the estate. A proper Islamic estate plan typically includes three interlocking components:
             </p>
             <div className="grid sm:grid-cols-3 gap-4 mb-6">
@@ -132,57 +132,57 @@ export default function IslamicEstatePlanningPage() {
                 <div key={item.title} className="border border-green-200 rounded-xl p-4 text-center bg-green-50">
                   <p className="font-bold text-green-800 text-lg">{item.title}</p>
                   <p className="text-green-600 text-xs mb-2">{item.sub}</p>
-                  <p className="text-gray-700 text-sm">{item.detail}</p>
+                  <p className="text-gray-700 text-sm dark:text-gray-300">{item.detail}</p>
                 </div>
               ))}
             </div>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">
               Unlike secular estate planning — which gives you nearly unlimited discretion over your assets — Islamic estate planning operates within Sharia boundaries. These boundaries are not restrictions but protections: they ensure that no heir is unfairly disinherited, outstanding debts are paid first, and charitable legacy is preserved through Waqf.
             </p>
           </section>
 
           {/* Section 2 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">The Three Pillars: Wasiyyah, Faraid, and Waqf</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">The Three Pillars: Wasiyyah, Faraid, and Waqf</h2>
 
             <div className="space-y-6">
-              <div className="border border-gray-200 rounded-2xl overflow-hidden">
+              <div className="border border-gray-200 rounded-2xl overflow-hidden dark:border-gray-700">
                 <div className="bg-green-700 text-white px-5 py-4">
                   <h3 className="font-bold text-lg">1. Wasiyyah — Your Islamic Will</h3>
                 </div>
                 <div className="p-5">
-                  <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                  <p className="text-gray-700 text-sm leading-relaxed mb-3 dark:text-gray-300">
                     The Wasiyyah is your Islamic will. It governs up to <strong>one-third</strong> of your net estate (after debts are paid) and allows you to direct assets to people and causes not covered by Faraid — non-Muslim relatives, stepchildren, friends, charitable organizations, or waqf endowments.
                   </p>
-                  <p className="text-gray-700 text-sm leading-relaxed">
+                  <p className="text-gray-700 text-sm leading-relaxed dark:text-gray-300">
                     The Prophet (PBUH) said: &ldquo;It is not right for a Muslim who has something to bequeath to let two nights pass without having written a will.&rdquo; Many scholars consider writing a Wasiyyah obligatory (wajib) if you have significant assets or dependents who might otherwise be left unprotected.
                   </p>
                 </div>
               </div>
 
-              <div className="border border-gray-200 rounded-2xl overflow-hidden">
+              <div className="border border-gray-200 rounded-2xl overflow-hidden dark:border-gray-700">
                 <div className="bg-green-700 text-white px-5 py-4">
                   <h3 className="font-bold text-lg">2. Faraid — Islamic Inheritance Law</h3>
                 </div>
                 <div className="p-5">
-                  <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                  <p className="text-gray-700 text-sm leading-relaxed mb-3 dark:text-gray-300">
                     Faraid is the system of fixed inheritance shares derived directly from the Quran (Surah An-Nisa, 4:11–12). These shares are not negotiable — they are Quranic obligations that apply automatically upon death, regardless of what a will says. The Wasiyyah cannot override Faraid for eligible heirs.
                   </p>
-                  <p className="text-gray-700 text-sm leading-relaxed">
+                  <p className="text-gray-700 text-sm leading-relaxed dark:text-gray-300">
                     Example: A $500,000 estate with a surviving wife, two sons, and one daughter would be distributed as follows — wife receives 1/8 ($62,500), and the remaining 7/8 ($437,500) goes to the children with sons receiving double a daughter&apos;s share (each son: ~$145,833; daughter: ~$72,917). These amounts cannot be altered by the Wasiyyah.
                   </p>
                 </div>
               </div>
 
-              <div className="border border-gray-200 rounded-2xl overflow-hidden">
+              <div className="border border-gray-200 rounded-2xl overflow-hidden dark:border-gray-700">
                 <div className="bg-green-700 text-white px-5 py-4">
                   <h3 className="font-bold text-lg">3. Waqf — Permanent Charitable Endowment</h3>
                 </div>
                 <div className="p-5">
-                  <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                  <p className="text-gray-700 text-sm leading-relaxed mb-3 dark:text-gray-300">
                     A Waqf is a charitable endowment where you permanently dedicate an asset — cash, property, or a business interest — to an Islamic cause. The asset itself cannot be sold or transferred; only its income or benefit flows to the designated cause. A Waqf continues generating charity long after your death, earning you Sadaqah al-Jariyah (ongoing reward).
                   </p>
-                  <p className="text-gray-700 text-sm leading-relaxed">
+                  <p className="text-gray-700 text-sm leading-relaxed dark:text-gray-300">
                     Common Waqf uses: funding a mosque, supporting Islamic education, maintaining a well or water project, providing for a madrasa. The Waqf can be set up during your lifetime (Waqf al-ahya) or activated upon your death through your Wasiyyah (Waqf al-wasiyya).
                   </p>
                 </div>
@@ -192,8 +192,8 @@ export default function IslamicEstatePlanningPage() {
 
           {/* Section 3 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Common Estate Planning Mistakes Muslims Make</h2>
-            <p className="text-gray-700 leading-relaxed mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">Common Estate Planning Mistakes Muslims Make</h2>
+            <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
               Most Muslims in the US are unaware of how dramatically US default laws conflict with Islamic inheritance. These are the five most dangerous mistakes — each capable of completely derailing your Islamic estate plan.
             </p>
             <div className="space-y-4">
@@ -224,11 +224,11 @@ export default function IslamicEstatePlanningPage() {
                   detail: 'In Islam, all debts — including unpaid zakat, unfulfilled kaffarah, outstanding loans — must be paid before any inheritance is distributed. If your executor does not know about these debts, they may distribute the estate before obligations are cleared, which is a significant sin.',
                 },
               ].map((item) => (
-                <div key={item.num} className="flex gap-4 border border-gray-200 rounded-xl p-5">
+                <div key={item.num} className="flex gap-4 border border-gray-200 rounded-xl p-5 dark:border-gray-700">
                   <div className="flex-shrink-0 text-2xl font-bold text-gray-200">{item.num}</div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">{item.detail}</p>
+                    <h3 className="font-semibold text-gray-900 mb-1 dark:text-gray-100">{item.title}</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed dark:text-gray-400">{item.detail}</p>
                   </div>
                 </div>
               ))}
@@ -237,8 +237,8 @@ export default function IslamicEstatePlanningPage() {
 
           {/* Section 4 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">How to Start Your Islamic Estate Plan</h2>
-            <p className="text-gray-700 leading-relaxed mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">How to Start Your Islamic Estate Plan</h2>
+            <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
               Islamic estate planning does not need to be overwhelming. These five steps create a complete, Sharia-compliant plan that also holds up in US courts.
             </p>
             <ol className="space-y-5">
@@ -254,8 +254,8 @@ export default function IslamicEstatePlanningPage() {
                     {item.step}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">{item.detail}</p>
+                    <h3 className="font-semibold text-gray-900 mb-1 dark:text-gray-100">{item.title}</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed dark:text-gray-400">{item.detail}</p>
                   </div>
                 </li>
               ))}
@@ -264,15 +264,15 @@ export default function IslamicEstatePlanningPage() {
 
           {/* FAQ */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-4">
               {faqSchema.mainEntity.map((faq) => (
-                <details key={faq.name} className="border border-gray-200 rounded-xl p-5">
-                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm">
+                <details key={faq.name} className="border border-gray-200 rounded-xl p-5 dark:border-gray-700">
+                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center text-sm dark:text-gray-100">
                     {faq.name}
                     <span className="text-green-700 ml-4 flex-shrink-0">+</span>
                   </summary>
-                  <p className="mt-3 text-gray-600 text-sm leading-relaxed">{faq.acceptedAnswer.text}</p>
+                  <p className="mt-3 text-gray-600 text-sm leading-relaxed dark:text-gray-400">{faq.acceptedAnswer.text}</p>
                 </details>
               ))}
             </div>
@@ -286,23 +286,23 @@ export default function IslamicEstatePlanningPage() {
             <h2 className="text-2xl font-bold mb-3">Plan Your Islamic Estate — Free</h2>
             <p className="text-green-100 mb-6">Use Barakah&apos;s Faraid Calculator to determine your family&apos;s exact Islamic inheritance shares — the first step in a complete Islamic estate plan.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition">Start Free — No Card Needed</Link>
+              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">Start Free — No Card Needed</Link>
               <Link href="/faraid-calculator" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Try Faraid Calculator</Link>
             </div>
           </div>
 
           {/* Related */}
           <section>
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Related Articles</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-5 dark:text-gray-100">Related Articles</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { href: '/learn/islamic-will-template', title: 'Islamic Will Template', desc: 'What to include in your Wasiyyah and how to make it legally valid.' },
                 { href: '/learn/zakat-on-retirement-accounts', title: 'Zakat on Retirement Accounts', desc: 'How 401(k) and IRA interact with your annual zakat obligation.' },
                 { href: '/learn/what-is-zakat', title: 'What Is Zakat?', desc: 'The complete guide to the third pillar of Islam.' },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors">
+                <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700">
                   <h3 className="font-semibold text-green-700 mb-1">{link.title}</h3>
-                  <p className="text-xs text-gray-500">{link.desc}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{link.desc}</p>
                 </Link>
               ))}
             </div>

@@ -130,10 +130,10 @@ export default function MintAlternativeForMuslimsPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <article className="min-h-screen bg-white">
+      <article className="min-h-screen bg-white dark:bg-gray-800">
 
         {/* Header */}
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
+        <header className="bg-white border-b border-gray-100 sticky top-0 z-10 dark:bg-gray-800 dark:border-gray-700">
           <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-lg font-bold text-[#1B5E20]">🌙 Barakah</Link>
             <Link href="/signup" className="bg-[#1B5E20] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
@@ -145,7 +145,7 @@ export default function MintAlternativeForMuslimsPage() {
         <div className="max-w-3xl mx-auto px-6 py-10">
 
           {/* Breadcrumb */}
-          <nav className="mb-6 text-sm text-gray-500 flex items-center gap-1.5">
+          <nav className="mb-6 text-sm text-gray-500 flex items-center gap-1.5 dark:text-gray-400">
             <Link href="/" className="text-[#1B5E20] hover:underline">Home</Link>
             <span>/</span>
             <Link href="/learn" className="text-[#1B5E20] hover:underline">Learn</Link>
@@ -159,11 +159,11 @@ export default function MintAlternativeForMuslimsPage() {
           </div>
 
           {/* H1 */}
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight mb-4">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight mb-4 dark:text-gray-100">
             Best Mint Alternative for Muslims 2026 — Free Islamic Finance App
           </h1>
 
-          <p className="text-lg text-gray-600 leading-relaxed mb-8">
+          <p className="text-lg text-gray-600 leading-relaxed mb-8 dark:text-gray-400">
             Mint shut down on <strong>January 1, 2024</strong>. Millions of Muslims relied on Mint for budgeting — but Mint never understood zakat, riba, halal investing, or Islamic estate planning. This is your chance to switch to something better. Here&apos;s why Barakah is the #1 Mint alternative for Muslim households.
           </p>
 
@@ -171,14 +171,14 @@ export default function MintAlternativeForMuslimsPage() {
           <div className="bg-[#1B5E20] text-white rounded-2xl p-6 mb-10">
             <p className="font-bold text-xl mb-1">🌙 Start Free Today — No Credit Card</p>
             <p className="text-green-200 text-sm mb-4">7 days of Plus free with every signup. Full zakat calculator, halal screener, bank sync — all included.</p>
-            <Link href="/signup" className="inline-block bg-white text-[#1B5E20] font-bold px-6 py-3 rounded-xl hover:bg-green-50 transition">
+            <Link href="/signup" className="inline-block bg-white text-[#1B5E20] font-bold px-6 py-3 rounded-xl hover:bg-green-50 transition dark:bg-gray-800">
               Create Free Account →
             </Link>
           </div>
 
           {/* Why Mint Failed Muslims */}
-          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4">Why Mint Was Never Enough for Muslims</h2>
-          <p className="text-gray-700 leading-relaxed mb-4">
+          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">Why Mint Was Never Enough for Muslims</h2>
+          <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
             Mint was a great general budgeting tool — but it had a fundamental blind spot: it had absolutely no understanding of Islamic finance obligations.
           </p>
           <ul className="space-y-3 mb-6">
@@ -190,7 +190,7 @@ export default function MintAlternativeForMuslimsPage() {
               'Sold your financial data to advertisers — a concern for privacy-conscious Muslim households',
               'Shut down completely on January 1, 2024',
             ].map((item, i) => (
-              <li key={i} className="flex gap-3 text-gray-700">
+              <li key={i} className="flex gap-3 text-gray-700 dark:text-gray-300">
                 <span className="text-red-500 font-bold shrink-0">✗</span>
                 <span>{item}</span>
               </li>
@@ -198,8 +198,8 @@ export default function MintAlternativeForMuslimsPage() {
           </ul>
 
           {/* What Barakah Does */}
-          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4">What Barakah Does That Mint Never Could</h2>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">What Barakah Does That Mint Never Could</h2>
+          <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
             Barakah is built from the ground up for Muslim households. Every feature is designed with fiqh awareness — the app knows the difference between zakatable and non-zakatable assets, flags riba automatically, and respects the difference between madhabs.
           </p>
           <div className="grid sm:grid-cols-2 gap-4 mb-8">
@@ -216,15 +216,15 @@ export default function MintAlternativeForMuslimsPage() {
               <div key={f.title} className="bg-[#FFF8E1] rounded-xl p-5 border border-green-100">
                 <p className="text-2xl mb-2">{f.icon}</p>
                 <h3 className="font-bold text-[#1B5E20] mb-1">{f.title}</h3>
-                <p className="text-sm text-gray-600">{f.desc}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{f.desc}</p>
               </div>
             ))}
           </div>
 
           {/* Comparison Table */}
-          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4">Barakah vs Mint vs YNAB vs Credit Karma</h2>
-          <p className="text-gray-600 mb-4 text-sm">Feature-by-feature comparison as of April 2026.</p>
-          <div className="overflow-x-auto rounded-xl border border-gray-200 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">Barakah vs Mint vs YNAB vs Credit Karma</h2>
+          <p className="text-gray-600 mb-4 text-sm dark:text-gray-400">Feature-by-feature comparison as of April 2026.</p>
+          <div className="overflow-x-auto rounded-xl border border-gray-200 mb-8 dark:border-gray-700">
             <table className="w-full text-sm">
               <thead className="bg-[#1B5E20] text-white">
                 <tr>
@@ -238,11 +238,11 @@ export default function MintAlternativeForMuslimsPage() {
               <tbody>
                 {comparisonData.map((row, i) => (
                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="px-4 py-3 font-medium text-gray-800">{row.feature}</td>
+                    <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{row.feature}</td>
                     <td className="px-4 py-3 text-center text-[#1B5E20] font-medium">{row.barakah}</td>
                     <td className="px-4 py-3 text-center text-gray-400">{row.mint}</td>
-                    <td className="px-4 py-3 text-center text-gray-600">{row.ynab}</td>
-                    <td className="px-4 py-3 text-center text-gray-600">{row.credit_karma}</td>
+                    <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{row.ynab}</td>
+                    <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{row.credit_karma}</td>
                   </tr>
                 ))}
               </tbody>
@@ -250,12 +250,12 @@ export default function MintAlternativeForMuslimsPage() {
           </div>
 
           {/* Pricing */}
-          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4">Pricing: How Barakah Compares</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">Pricing: How Barakah Compares</h2>
           <div className="grid sm:grid-cols-3 gap-4 mb-8">
             <div className="border-2 border-[#1B5E20] rounded-xl p-5">
               <p className="text-[#1B5E20] font-bold text-lg mb-1">Barakah Free</p>
-              <p className="text-3xl font-extrabold text-gray-900 mb-3">$0 <span className="text-sm font-normal text-gray-500">forever</span></p>
-              <ul className="text-sm text-gray-600 space-y-1.5">
+              <p className="text-3xl font-extrabold text-gray-900 mb-3 dark:text-gray-100">$0 <span className="text-sm font-normal text-gray-500 dark:text-gray-400">forever</span></p>
+              <ul className="text-sm text-gray-600 space-y-1.5 dark:text-gray-400">
                 <li>✅ Full zakat calculator</li>
                 <li>✅ Manual transactions (10/month)</li>
                 <li>✅ Budgets & bills tracking</li>
@@ -263,10 +263,10 @@ export default function MintAlternativeForMuslimsPage() {
                 <li>✅ No data selling — ever</li>
               </ul>
             </div>
-            <div className="border border-gray-200 rounded-xl p-5 bg-gray-50">
-              <p className="text-gray-500 font-bold text-lg mb-1">Barakah Plus</p>
-              <p className="text-3xl font-extrabold text-gray-900 mb-3">$9.99 <span className="text-sm font-normal text-gray-500">/mo</span></p>
-              <ul className="text-sm text-gray-600 space-y-1.5">
+            <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+              <p className="text-gray-500 font-bold text-lg mb-1 dark:text-gray-400">Barakah Plus</p>
+              <p className="text-3xl font-extrabold text-gray-900 mb-3 dark:text-gray-100">$9.99 <span className="text-sm font-normal text-gray-500 dark:text-gray-400">/mo</span></p>
+              <ul className="text-sm text-gray-600 space-y-1.5 dark:text-gray-400">
                 <li>✅ Everything in Free</li>
                 <li>✅ Bank account sync (Plaid)</li>
                 <li>✅ Halal stock screener</li>
@@ -275,10 +275,10 @@ export default function MintAlternativeForMuslimsPage() {
                 <li>✅ 7-day free trial</li>
               </ul>
             </div>
-            <div className="border border-gray-200 rounded-xl p-5 bg-gray-50">
-              <p className="text-gray-500 font-bold text-lg mb-1">YNAB</p>
-              <p className="text-3xl font-extrabold text-gray-900 mb-3">$109 <span className="text-sm font-normal text-gray-500">/yr</span></p>
-              <ul className="text-sm text-gray-600 space-y-1.5">
+            <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+              <p className="text-gray-500 font-bold text-lg mb-1 dark:text-gray-400">YNAB</p>
+              <p className="text-3xl font-extrabold text-gray-900 mb-3 dark:text-gray-100">$109 <span className="text-sm font-normal text-gray-500 dark:text-gray-400">/yr</span></p>
+              <ul className="text-sm text-gray-600 space-y-1.5 dark:text-gray-400">
                 <li>✅ Bank sync</li>
                 <li>✅ Budgeting</li>
                 <li>❌ No zakat calculator</li>
@@ -290,7 +290,7 @@ export default function MintAlternativeForMuslimsPage() {
           </div>
 
           {/* How to migrate */}
-          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4">How to Migrate from Mint to Barakah</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">How to Migrate from Mint to Barakah</h2>
           <ol className="space-y-4 mb-8">
             {[
               { step: '1', title: 'Create your free Barakah account', desc: 'Go to trybarakah.com and sign up. No credit card required. You get 7 days of Plus free automatically.' },
@@ -304,20 +304,20 @@ export default function MintAlternativeForMuslimsPage() {
                   {item.step}
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">{item.title}</p>
-                  <p className="text-sm text-gray-600 mt-0.5">{item.desc}</p>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100">{item.title}</p>
+                  <p className="text-sm text-gray-600 mt-0.5 dark:text-gray-400">{item.desc}</p>
                 </div>
               </li>
             ))}
           </ol>
 
           {/* FAQ section */}
-          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-6">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
           <div className="space-y-6 mb-10">
             {faqSchema.mainEntity.map((faq, i) => (
-              <div key={i} className="border border-gray-100 rounded-xl p-5">
-                <h3 className="font-semibold text-gray-900 mb-2">{faq.name}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">{faq.acceptedAnswer.text}</p>
+              <div key={i} className="border border-gray-100 rounded-xl p-5 dark:border-gray-700">
+                <h3 className="font-semibold text-gray-900 mb-2 dark:text-gray-100">{faq.name}</h3>
+                <p className="text-gray-600 text-sm leading-relaxed dark:text-gray-400">{faq.acceptedAnswer.text}</p>
               </div>
             ))}
           </div>
@@ -325,7 +325,7 @@ export default function MintAlternativeForMuslimsPage() {
           {/* Bottom CTA */}
           <div className="bg-[#FFF8E1] border border-[#1B5E20] rounded-2xl p-8 text-center">
             <h2 className="text-2xl font-bold text-[#1B5E20] mb-2">Ready to switch?</h2>
-            <p className="text-gray-600 mb-6">Join Muslim households who&apos;ve moved from Mint to a finance app that actually understands their deen. Free to start. No card required.</p>
+            <p className="text-gray-600 mb-6 dark:text-gray-400">Join Muslim households who&apos;ve moved from Mint to a finance app that actually understands their deen. Free to start. No card required.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition">
                 Start Free — 7 Days Plus Included
@@ -337,8 +337,8 @@ export default function MintAlternativeForMuslimsPage() {
           </div>
 
           {/* Related articles */}
-          <div className="mt-10 pt-8 border-t border-gray-100">
-            <h3 className="font-semibold text-gray-900 mb-4">Related Articles</h3>
+          <div className="mt-10 pt-8 border-t border-gray-100 dark:border-gray-700">
+            <h3 className="font-semibold text-gray-900 mb-4 dark:text-gray-100">Related Articles</h3>
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { href: '/learn/halal-budgeting', title: 'Halal Budgeting Guide', desc: 'How to build a budget that respects Islamic principles.' },
@@ -346,9 +346,9 @@ export default function MintAlternativeForMuslimsPage() {
                 { href: '/learn/halal-stocks', title: 'Halal Stocks Guide', desc: 'How to screen investments for Shariah compliance.' },
                 { href: '/learn/riba-elimination', title: 'Riba Elimination', desc: 'Step-by-step guide to removing interest from your finances.' },
               ].map((a) => (
-                <Link key={a.href} href={a.href} className="block border border-gray-100 rounded-xl p-4 hover:border-[#1B5E20] transition">
+                <Link key={a.href} href={a.href} className="block border border-gray-100 rounded-xl p-4 hover:border-[#1B5E20] transition dark:border-gray-700">
                   <p className="font-medium text-[#1B5E20] mb-1">{a.title}</p>
-                  <p className="text-sm text-gray-500">{a.desc}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{a.desc}</p>
                 </Link>
               ))}
             </div>

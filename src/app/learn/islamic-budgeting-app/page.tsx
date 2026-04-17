@@ -344,7 +344,7 @@ export default function IslamicBudgetingAppPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      <article className="min-h-screen bg-white px-6 py-16">
+      <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           {/* Breadcrumb */}
           <nav className="mb-6 text-sm" aria-label="Breadcrumb">
@@ -352,7 +352,7 @@ export default function IslamicBudgetingAppPage() {
             <span className="mx-2 text-gray-400">/</span>
             <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600">Best Islamic Budgeting App 2026</span>
+            <span className="text-gray-600 dark:text-gray-400">Best Islamic Budgeting App 2026</span>
           </nav>
 
           {/* Hero */}
@@ -360,13 +360,13 @@ export default function IslamicBudgetingAppPage() {
             <div className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
               ISLAMIC PERSONAL FINANCE
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               Best Islamic Budgeting App 2026 — Halal Budget Tracker for Muslim Families
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-6">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6 dark:text-gray-400">
               Regular budgeting apps like YNAB and Monarch were built for the Western financial system — no zakat, no riba detection, no sadaqah goals. Here is the complete guide to Islamic budgeting apps, and why Barakah is the only platform built entirely around fiqh.
             </p>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
               <span>📅 Updated April 2026</span>
               <span>⏱ 12 min read</span>
               <span>✅ Reviewed for Islamic accuracy</span>
@@ -383,8 +383,8 @@ export default function IslamicBudgetingAppPage() {
 
           {/* Why Regular Apps Fail Muslims */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Why Regular Budgeting Apps Fail Muslims</h2>
-            <p className="text-gray-700 mb-6 leading-relaxed">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Why Regular Budgeting Apps Fail Muslims</h2>
+            <p className="text-gray-700 mb-6 leading-relaxed dark:text-gray-300">
               Apps like Mint, YNAB, Monarch, and Copilot were designed for the conventional Western financial system. They are built around credit scores, interest-bearing savings, investment returns — and ignore the fundamental obligations and prohibitions of Islamic finance entirely.
             </p>
             <div className="grid sm:grid-cols-2 gap-4 mb-6">
@@ -406,16 +406,16 @@ export default function IslamicBudgetingAppPage() {
 
           {/* Barakah Features */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Barakah: Built for Islamic Household Finance</h2>
-            <p className="text-gray-600 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-gray-100">Barakah: Built for Islamic Household Finance</h2>
+            <p className="text-gray-600 mb-8 dark:text-gray-400">
               Every feature in Barakah is designed around the obligations and values of Islamic finance — not retrofitted Western tools.
             </p>
             <div className="grid sm:grid-cols-2 gap-5">
               {features.map((f) => (
-                <div key={f.title} className="border border-gray-200 rounded-2xl p-5 hover:border-green-500 transition-colors">
+                <div key={f.title} className="border border-gray-200 rounded-2xl p-5 hover:border-green-500 transition-colors dark:border-gray-700">
                   <div className="text-3xl mb-3">{f.icon}</div>
-                  <h3 className="font-bold text-gray-900 mb-2">{f.title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">{f.description}</p>
+                  <h3 className="font-bold text-gray-900 mb-2 dark:text-gray-100">{f.title}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed dark:text-gray-400">{f.description}</p>
                 </div>
               ))}
             </div>
@@ -423,29 +423,29 @@ export default function IslamicBudgetingAppPage() {
 
           {/* Comparison Table */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Islamic Budgeting App Comparison 2026</h2>
-            <p className="text-gray-600 mb-6">How does Barakah compare to YNAB, Mint, Monarch Money, and manual spreadsheets?</p>
-            <div className="overflow-x-auto rounded-2xl border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-gray-100">Islamic Budgeting App Comparison 2026</h2>
+            <p className="text-gray-600 mb-6 dark:text-gray-400">How does Barakah compare to YNAB, Mint, Monarch Money, and manual spreadsheets?</p>
+            <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left p-3 font-semibold text-gray-700 border-b">Feature</th>
+                  <tr className="bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3 font-semibold text-gray-700 border-b dark:text-gray-300">Feature</th>
                     <th className="p-3 font-semibold text-green-700 border-b">Barakah</th>
-                    <th className="p-3 font-semibold text-gray-600 border-b">YNAB</th>
-                    <th className="p-3 font-semibold text-gray-600 border-b">Mint</th>
-                    <th className="p-3 font-semibold text-gray-600 border-b">Monarch</th>
-                    <th className="p-3 font-semibold text-gray-600 border-b">Excel</th>
+                    <th className="p-3 font-semibold text-gray-600 border-b dark:text-gray-400">YNAB</th>
+                    <th className="p-3 font-semibold text-gray-600 border-b dark:text-gray-400">Mint</th>
+                    <th className="p-3 font-semibold text-gray-600 border-b dark:text-gray-400">Monarch</th>
+                    <th className="p-3 font-semibold text-gray-600 border-b dark:text-gray-400">Excel</th>
                   </tr>
                 </thead>
                 <tbody>
                   {comparisonRows.map((row, i) => (
                     <tr key={row.feature} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="p-3 font-medium text-gray-700 border-b border-gray-100">{row.feature}</td>
-                      <td className="p-3 text-center border-b border-gray-100 text-green-700 font-medium">{row.barakah}</td>
-                      <td className="p-3 text-center border-b border-gray-100 text-gray-600">{row.ynab}</td>
-                      <td className="p-3 text-center border-b border-gray-100 text-gray-600">{row.mint}</td>
-                      <td className="p-3 text-center border-b border-gray-100 text-gray-600">{row.monarch}</td>
-                      <td className="p-3 text-center border-b border-gray-100 text-gray-600">{row.excel}</td>
+                      <td className="p-3 font-medium text-gray-700 border-b border-gray-100 dark:text-gray-300 dark:border-gray-700">{row.feature}</td>
+                      <td className="p-3 text-center border-b border-gray-100 text-green-700 font-medium dark:border-gray-700">{row.barakah}</td>
+                      <td className="p-3 text-center border-b border-gray-100 text-gray-600 dark:text-gray-400 dark:border-gray-700">{row.ynab}</td>
+                      <td className="p-3 text-center border-b border-gray-100 text-gray-600 dark:text-gray-400 dark:border-gray-700">{row.mint}</td>
+                      <td className="p-3 text-center border-b border-gray-100 text-gray-600 dark:text-gray-400 dark:border-gray-700">{row.monarch}</td>
+                      <td className="p-3 text-center border-b border-gray-100 text-gray-600 dark:text-gray-400 dark:border-gray-700">{row.excel}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -456,8 +456,8 @@ export default function IslamicBudgetingAppPage() {
 
           {/* Islamic Budgeting Principles */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">How to Budget According to Islamic Finance Principles</h2>
-            <p className="text-gray-600 mb-8 leading-relaxed">
+            <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">How to Budget According to Islamic Finance Principles</h2>
+            <p className="text-gray-600 mb-8 leading-relaxed dark:text-gray-400">
               Islamic budgeting is not just about tracking spending — it is about aligning your entire financial life with the commands of Allah and the Sunnah of the Prophet ﷺ. Here are the six steps to an Islamic household budget.
             </p>
             <div className="space-y-6">
@@ -467,8 +467,8 @@ export default function IslamicBudgetingAppPage() {
                     {step.step}
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 mb-1">{step.title}</h3>
-                    <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                    <h3 className="font-bold text-gray-900 mb-1 dark:text-gray-100">{step.title}</h3>
+                    <p className="text-gray-600 leading-relaxed dark:text-gray-400">{step.description}</p>
                   </div>
                 </div>
               ))}
@@ -477,12 +477,12 @@ export default function IslamicBudgetingAppPage() {
 
           {/* Pricing */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Barakah Pricing</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Barakah Pricing</h2>
             <div className="grid sm:grid-cols-2 gap-5">
-              <div className="border-2 border-gray-200 rounded-2xl p-6">
-                <div className="text-2xl font-bold text-gray-900 mb-1">Free</div>
-                <div className="text-gray-500 text-sm mb-4">Forever. No credit card.</div>
-                <ul className="space-y-2 text-sm text-gray-700">
+              <div className="border-2 border-gray-200 rounded-2xl p-6 dark:border-gray-700">
+                <div className="text-2xl font-bold text-gray-900 mb-1 dark:text-gray-100">Free</div>
+                <div className="text-gray-500 text-sm mb-4 dark:text-gray-400">Forever. No credit card.</div>
+                <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                   {[
                     'Zakat calculator (multi-madhab)',
                     'Hawl anniversary tracking',
@@ -509,11 +509,11 @@ export default function IslamicBudgetingAppPage() {
                 <div className="absolute -top-3 left-6 bg-green-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
                   MOST POPULAR
                 </div>
-                <div className="text-2xl font-bold text-gray-900 mb-1">
-                  $9.99 <span className="text-base font-normal text-gray-500">/month</span>
+                <div className="text-2xl font-bold text-gray-900 mb-1 dark:text-gray-100">
+                  $9.99 <span className="text-base font-normal text-gray-500 dark:text-gray-400">/month</span>
                 </div>
-                <div className="text-gray-500 text-sm mb-4">Everything in Free, plus:</div>
-                <ul className="space-y-2 text-sm text-gray-700">
+                <div className="text-gray-500 text-sm mb-4 dark:text-gray-400">Everything in Free, plus:</div>
+                <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                   {[
                     'Bank account sync',
                     'Auto transaction categorization',
@@ -543,15 +543,15 @@ export default function IslamicBudgetingAppPage() {
 
           {/* FAQ */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-100">Frequently Asked Questions</h2>
             <div className="space-y-5">
               {faqSchema.mainEntity.map((faq) => (
-                <details key={faq.name} className="border border-gray-200 rounded-xl p-5 group">
-                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex items-center justify-between">
+                <details key={faq.name} className="border border-gray-200 rounded-xl p-5 group dark:border-gray-700">
+                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex items-center justify-between dark:text-gray-100">
                     {faq.name}
                     <span className="text-green-700 ml-4 flex-shrink-0 text-lg">+</span>
                   </summary>
-                  <p className="mt-3 text-gray-600 leading-relaxed">{faq.acceptedAnswer.text}</p>
+                  <p className="mt-3 text-gray-600 leading-relaxed dark:text-gray-400">{faq.acceptedAnswer.text}</p>
                 </details>
               ))}
             </div>
@@ -566,7 +566,7 @@ export default function IslamicBudgetingAppPage() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/signup"
-                className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition"
+                className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800"
               >
                 Create Free Account
               </Link>
@@ -581,7 +581,7 @@ export default function IslamicBudgetingAppPage() {
 
           {/* Related Articles */}
           <section>
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Related Articles</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-5 dark:text-gray-100">Related Articles</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 {
@@ -618,10 +618,10 @@ export default function IslamicBudgetingAppPage() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors"
+                  className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700"
                 >
                   <h3 className="font-semibold text-green-700 mb-1">{link.title}</h3>
-                  <p className="text-xs text-gray-500">{link.desc}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{link.desc}</p>
                 </Link>
               ))}
             </div>
