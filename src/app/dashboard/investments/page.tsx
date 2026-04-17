@@ -299,7 +299,7 @@ export default function InvestmentsPage() {
                     }}
                     labelFormatter={(label) => {
                       const d = new Date(String(label ?? ''));
-                      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
                     }}
                   />
                   <Line

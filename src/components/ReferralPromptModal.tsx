@@ -43,6 +43,11 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
     }).catch(() => {
       // BUG FIX: if we can't load the referral code, there's nothing useful
       // to show — auto-dismiss rather than leaving a broken empty modal.
+      //
+      // Round 25: also persist the dismiss so an offline user doesn't get
+      // the modal re-opened on every future dashboard mount (infinite
+      // loop for degraded-network users).
+      safeSetItem(STORAGE_KEY, 'true');
       onDismiss();
     });
   }, [onDismiss]);
@@ -55,6 +60,12 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
       setTimeout(() => setCopied(false), 2000);
       // Track the share event
       api.lifecycleTrackEvent?.('referral_shared', { method: 'copy', source: 'onboarding_modal' }).catch(() => {});
+      // Round 25: persist the dismiss once the user has acted — a
+      // successful share is the primary "goal" of the modal; re-showing
+      // it on every future mount is nagging. Delay closing so the user
+      // sees "✓ Link Copied!" before we disappear.
+      safeSetItem(STORAGE_KEY, 'true');
+      setTimeout(() => onDismiss(), 1200);
     } catch { /* clipboard API not available */ }
   };
 
@@ -62,8 +73,16 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
     const message = encodeURIComponent(
       `Assalamu Alaikum! I just started using Barakah to manage my finances the halal way — zakat calculator, hawl tracker, budgets & more. Try it free: ${shareUrl}`
     );
-    window.open(`https://wa.me/?text=${message}`, '_blank');
+    // Round 25: `noopener,noreferrer` to prevent tabnabbing on the
+    // wa.me target (it could otherwise manipulate `window.opener`).
+    // Anchor tags across the codebase set rel=noopener; this scripted
+    // open was missed.
+    window.open(`https://wa.me/?text=${message}`, '_blank', 'noopener,noreferrer');
     api.lifecycleTrackEvent?.('referral_shared', { method: 'whatsapp', source: 'onboarding_modal' }).catch(() => {});
+    // Round 25: persist the dismiss — the WhatsApp share is the modal's
+    // primary success path; without setting STORAGE_KEY the modal
+    // reappeared on every future dashboard visit.
+    safeSetItem(STORAGE_KEY, 'true');
     onDismiss();
   };
 

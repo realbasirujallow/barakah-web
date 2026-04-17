@@ -52,7 +52,7 @@ interface FamilyResponse {
 function formatDate(ms: number | null | undefined): string {
   if (!ms) return '—';
   try {
-    return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   } catch {
     return '—';
   }

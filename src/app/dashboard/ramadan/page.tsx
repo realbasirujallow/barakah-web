@@ -224,7 +224,7 @@ export default function RamadanPage() {
         <p className="text-sm text-gray-500 mt-1">
           {hijri.day} {hijri.monthName} {hijri.year} AH
           {' · '}
-          {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          {now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
         </p>
       </div>
 
@@ -255,7 +255,7 @@ export default function RamadanPage() {
           </p>
           {ramadan.start && (
             <p className="text-gray-500 text-sm mt-1">
-              Expected to begin {ramadan.start.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              Expected to begin {ramadan.start.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
               <span className="text-xs text-gray-400 ml-1">(subject to moon sighting)</span>
             </p>
           )}

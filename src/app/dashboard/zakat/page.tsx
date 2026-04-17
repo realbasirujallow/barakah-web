@@ -1173,7 +1173,7 @@ export default function ZakatPage() {
               </div>
               <div className="text-right text-sm text-green-100">
                 <p>Lunar Year: {((receipt.paymentStatus as Record<string, unknown>)?.currentLunarYear as number) || lunarYear} AH</p>
-                <p>Generated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p>Generated: {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
               </div>
             </div>
           </div>

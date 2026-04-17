@@ -25,21 +25,21 @@ export const SUB_STATUS_LABELS: Record<string, { label: string; color: string }>
 
 export function fmtDate(unixSec: number | undefined) {
   if (!unixSec) return '—';
-  return new Date(unixSec * 1000).toLocaleDateString('en-US', {
+  return new Date(unixSec * 1000).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
   });
 }
 
 export function fmtDateMs(unixMs: number | undefined) {
   if (!unixMs) return '—';
-  return new Date(unixMs).toLocaleDateString('en-US', {
+  return new Date(unixMs).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
   });
 }
 
 export function fmtDateTimeMs(unixMs: number | undefined) {
   if (!unixMs) return '—';
-  return new Date(unixMs).toLocaleString('en-US', {
+  return new Date(unixMs).toLocaleString(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -53,7 +53,7 @@ export function fmtDateTimeMs(unixMs: number | undefined) {
 /** Full-precision timestamp for admin troubleshooting: Jan 15, 2026 3:42:15 PM */
 export function fmtFullTs(unixMs: number | undefined) {
   if (!unixMs) return '—';
-  return new Date(unixMs).toLocaleString('en-US', {
+  return new Date(unixMs).toLocaleString(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

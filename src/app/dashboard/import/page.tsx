@@ -136,12 +136,12 @@ type ImportResult = BalancesResult | TransactionsResult;
 function formatPlaidBalance(value: number | null | undefined, currencyCode = 'USD') {
   if (value == null || Number.isNaN(Number(value))) return null;
   try {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(undefined, {
       style: 'currency',
       currency: currencyCode || 'USD',
     }).format(value);
   } catch {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(undefined, {
       style: 'currency',
       currency: 'USD',
     }).format(value);

@@ -157,7 +157,7 @@ function AnalyticsPageContent() {
   const fmtMonth = (m: string) => {
     const [y, mo] = m.split('-');
     const d = new Date(parseInt(y), parseInt(mo) - 1, 1);
-    return d.toLocaleDateString('en-US', { month: 'short' }) + " '" + y.slice(2);
+    return d.toLocaleDateString(undefined, { month: 'short' }) + " '" + y.slice(2);
   };
 
   const momDisplayData = monthlyData.map(d => ({

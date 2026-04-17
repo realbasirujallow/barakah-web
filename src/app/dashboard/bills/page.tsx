@@ -47,7 +47,7 @@ function formatDueDate(bill: BillItem): string {
   if (!bill.nextDueDate) return `Day ${bill.dueDay}`;
   const dueDate = new Date(bill.nextDueDate);
   // Use UTC to prevent local timezone shifting the day backwards (off-by-one fix)
-  return dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  return dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
 const emptyForm = { name: '', category: 'utilities', amount: '', frequency: 'monthly', dueDay: '1' };

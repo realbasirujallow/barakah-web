@@ -47,7 +47,7 @@ export default function NetWorthPage() {
 
   const formatDate = (epoch: number) => {
     const ms = epoch < 1e12 ? epoch * 1000 : epoch;
-    return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   const load = useCallback(async (selectedPeriod?: string) => {
