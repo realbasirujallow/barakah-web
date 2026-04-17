@@ -51,7 +51,7 @@ export default function FunnelPage() {
   const [data, setData] = useState<FunnelResponse | null>(null);
   const [growth, setGrowth] = useState<GrowthResponse | null>(null);
   const [days, setDays] = useState<number>(30);
-  const isAdmin = (user as { role?: string } | null)?.role === 'admin';
+  const isAdmin = user?.isAdmin === true;
 
   // Frontend admin-role guard — redirect non-admins before any API call
   useEffect(() => {

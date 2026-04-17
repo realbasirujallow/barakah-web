@@ -24,7 +24,7 @@ export default function GrowthPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [growth, setGrowth] = useState<GrowthResponse | null>(null);
-  const isAdmin = (user as { role?: string } | null)?.role === 'admin';
+  const isAdmin = user?.isAdmin === true;
 
   // BUG FIX: frontend admin-role guard — redirect non-admins before any API call
   useEffect(() => {
