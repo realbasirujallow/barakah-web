@@ -16,8 +16,15 @@ export default function ContactPage() {
     // Round 18: validate BEFORE flipping status to 'sending', so a
     // validation failure doesn't flash the button into its submitting
     // state for a frame. Validation failures stay in 'error' cleanly.
-    if (!form.email.trim()) {
+    const trimmedEmail = form.email.trim();
+    if (!trimmedEmail) {
       setErrorMsg('Please enter your email address.');
+      setStatus('error');
+      return;
+    }
+    // Round 21: regex matches server-side validation (ContactController).
+    if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmedEmail)) {
+      setErrorMsg('Please enter a valid email address.');
       setStatus('error');
       return;
     }

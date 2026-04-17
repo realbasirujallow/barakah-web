@@ -39,14 +39,25 @@ export default function OpenBarakahPage() {
     // If the app is installed the OS will hand off to it and the page becomes
     // hidden (visibilitychange). If the page stays visible for 2.5 s the app
     // is not installed, so we bounce to the correct store.
+    //
+    // Round 21: track handoff with a flag so the timer can short-circuit
+    // cleanly. Previously `clearTimeout` + `visibilityState === 'hidden'`
+    // had a race on iOS Safari: if the user tapped "Cancel" on the
+    // "Open in App?" prompt right at the 2.5s mark, the timer could
+    // still fire and redirect to the App Store after they deliberately
+    // returned. Flag is set by the visibility handler; timer bails out
+    // if it's true.
     const fallback = getFallbackUrl(p);
+    let didHandoff = false;
     const timer = setTimeout(() => {
+      if (didHandoff) return;
       setStatus('fallback');
       window.location.replace(fallback);
     }, 2500);
 
     const onHidden = () => {
       if (document.visibilityState === 'hidden') {
+        didHandoff = true;
         clearTimeout(timer);
       }
     };
@@ -56,6 +67,7 @@ export default function OpenBarakahPage() {
     window.location.href = DEEP_LINK;
 
     return () => {
+      didHandoff = true;
       clearTimeout(timer);
       document.removeEventListener('visibilitychange', onHidden);
     };

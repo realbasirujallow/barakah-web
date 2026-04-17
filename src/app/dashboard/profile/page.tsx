@@ -157,12 +157,20 @@ export default function ProfilePage() {
   }, [loadProfile]);
 
   const handleSaveName = async () => {
-    setSavingName(true);
     setNameMsg(null);
+    // Round 21: client-side email format check. Server normalizes +
+    // validates, but without a pre-flight check the UX is a confused
+    // round-trip with a generic error.
+    const trimmedEmail = nameForm.email.trim();
+    if (trimmedEmail && !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmedEmail)) {
+      setNameMsg({ type: 'error', text: 'Please enter a valid email address.' });
+      return;
+    }
+    setSavingName(true);
     try {
       const updated = await api.updateProfile({
         fullName: nameForm.fullName,
-        email: nameForm.email,
+        email: trimmedEmail,
       });
       if (updated && typeof updated === 'object') {
         setProfile(prev => prev ? { ...prev, ...(updated as Partial<ProfileData>) } : prev);
@@ -206,6 +214,22 @@ export default function ProfilePage() {
     }
     if (pwForm.newPassword.length < 8) {
       setPwMsg({ type: 'error', text: 'New password must be at least 8 characters.' });
+      return;
+    }
+    // Round 21: reject re-use of the same password AND enforce the
+    // same complexity rules shown on signup (upper + lower + digit).
+    // Without these, a user can "change" password to the exact same
+    // string (no-op with an encouraging toast), or to a weak all-
+    // lowercase string that signup explicitly flags.
+    if (pwForm.currentPassword && pwForm.currentPassword === pwForm.newPassword) {
+      setPwMsg({ type: 'error', text: 'New password must differ from your current password.' });
+      return;
+    }
+    const hasUpper = /[A-Z]/.test(pwForm.newPassword);
+    const hasLower = /[a-z]/.test(pwForm.newPassword);
+    const hasDigit = /\d/.test(pwForm.newPassword);
+    if (!hasUpper || !hasLower || !hasDigit) {
+      setPwMsg({ type: 'error', text: 'New password must include an uppercase letter, a lowercase letter, and a number.' });
       return;
     }
     setSavingPw(true);

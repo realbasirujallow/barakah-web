@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
@@ -161,11 +161,23 @@ function SetupPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Round 21: shared mountedRef so both loadSubscriptionStatus and
+  // loadPlaidAccounts can bail out after unmount without spamming
+  // setState warnings or leaking setPlaidAccounts calls into React's
+  // dev-mode warning bucket.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
   const loadPlaidAccounts = useCallback(async () => {
     try {
       const data = await api.plaidGetAccounts();
+      if (!mountedRef.current) return;
       setPlaidAccounts((data?.accounts || []) as PlaidAccount[]);
     } catch {
+      if (!mountedRef.current) return;
       setPlaidAccounts([]);
     }
   }, []);

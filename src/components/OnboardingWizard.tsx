@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
 interface OnboardingWizardProps {
@@ -99,15 +99,25 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
   // HIGH BUG FIX (H-10): Escape key dismisses the onboarding wizard (acts
   // like "Skip tour"). The wrapper below now also carries role="dialog" and
   // aria-modal="true" for screen-reader users.
+  //
+  // Round 21: use a ref for `onComplete` so the escape handler always
+  // calls the latest function, even if the parent re-renders with a new
+  // callback. Prior `eslint-disable` hid a real stale-closure hazard —
+  // unlikely in normal flow but worth closing off cleanly.
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleSkip();
+      if (e.key === 'Escape') {
+        try {
+          localStorage.setItem('barakah_onboarded', 'true');
+          localStorage.removeItem(STEP_KEY);
+        } catch {}
+        onCompleteRef.current();
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-    // handleSkip closes over onComplete (caller-owned) and step-state setters;
-    // all are stable for the lifetime of the modal, so we can leave deps empty.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -200,9 +200,14 @@ function ImportPageInner() {
       if (!mountedRef.current) return;
       setSubscriptionStatus(data as SubscriptionStatus);
     } catch {
-      // Retry once after a short delay — the first call can fail during token refresh
+      // Retry once after a short delay — the first call can fail during token refresh.
+      // Round 21: mounted check BEFORE the retry await and again after so we
+      // don't schedule work for a component that's already gone. Prior code
+      // left the 2s delay running past unmount.
+      if (!mountedRef.current) return;
       try {
         await new Promise(r => setTimeout(r, 2000));
+        if (!mountedRef.current) return;
         const data = await api.subscriptionStatus();
         if (!mountedRef.current) return;
         setSubscriptionStatus(data as SubscriptionStatus);
