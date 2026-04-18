@@ -26,10 +26,18 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Send to Sentry (no-op when NEXT_PUBLIC_SENTRY_DSN is unset)
+    // Send to Sentry (no-op when NEXT_PUBLIC_SENTRY_DSN is unset).
+    //
+    // Round 29: include `retryCount` so Sentry can distinguish first-time
+    // errors (retryCount=0) from repeated failures within the same
+    // session. A recurring error grouping at retryCount >= 2 is a strong
+    // signal the problem is persistent (not a transient network blip) —
+    // worth a higher alert threshold than a fresh error.
     logError(error, {
       context: 'React error boundary',
       componentStack: errorInfo.componentStack ?? undefined,
+      retryCount: this.state.retryCount,
+      exhausted: this.state.retryCount >= MAX_RETRIES,
     });
   }
 

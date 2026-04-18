@@ -9,7 +9,15 @@ npm audit --audit-level=high --production
 echo "→ eslint…"
 npm run lint
 
-# Type-check only changed TS/TSX files (fast). Full vitest + build run in CI.
+# Round 29: tsc --noEmit added after Round 28's middleware/proxy coexistence
+# slipped past the hook. Incremental mode means repeat runs are fast
+# (~2-3s on warm cache). If someone re-introduces a type error — or a
+# Next 16 convention violation that trips the bundler's compile path —
+# the commit is blocked locally instead of failing at deploy time.
+echo "→ tsc --noEmit (types + Next conventions)…"
+npx tsc --noEmit --incremental
+
+# Full vitest + build run in CI.
 # If you want a stronger local gate, uncomment the next line:
 # echo "→ vitest…" && npm test -- --run
 

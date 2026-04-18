@@ -16,6 +16,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { useFocusTrap } from '../lib/useFocusTrap';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
@@ -101,6 +102,11 @@ export default function AnnualUpgradeModal() {
     return () => window.removeEventListener('keydown', handler);
   }, [open]);
 
+  // Round 29: focus-trap so keyboard users can't Tab through to the
+  // pricing page behind while the upgrade decision dialog is up.
+  const modalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(modalRef, open);
+
   if (!open || !user) return null;
 
   const isFamily = user.plan === 'family';
@@ -114,6 +120,7 @@ export default function AnnualUpgradeModal() {
 
   return (
     <div
+      ref={modalRef}
       className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4"
       onClick={(e) => { if (e.target === e.currentTarget) handleDismiss(); }}
       role="dialog"
