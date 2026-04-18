@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useAuth } from '../../../context/AuthContext';
@@ -95,15 +96,30 @@ function txPresentation(tx: Tx) {
 
 export default function TransactionsPage() {
   const reviewedTrackedRef = useRef(false);
+  // Round 30: read URL params so /dashboard/analytics "Review" button can
+  // deep-link into a pre-filtered transactions view instead of dumping the
+  // user on the full list to go needle-in-a-haystack hunting. Recognized
+  // query params:
+  //   ?category=xxx        — pre-fills the search box (text match)
+  //   ?filter=needs_review — jumps straight to the needs-review tab
+  //   ?filter=income|expense|transfer — jumps to that tab
+  const searchParams = useSearchParams();
+  const urlCategory = searchParams?.get('category') ?? '';
+  const urlFilter = searchParams?.get('filter') ?? '';
+
   const [txs, setTxs] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editTx, setEditTx]     = useState<Tx | null>(null);
   const [saving, setSaving] = useState(false);
-  const [filter, setFilter] = useState('all');
-  const [search, setSearch] = useState('');
-  const [searchDebounce, setSearchDebounce] = useState('');
+  const [filter, setFilter] = useState(() => {
+    // Accept only known filter values from the URL.
+    const allowed = new Set(['all', 'income', 'expense', 'transfer', 'needs_review']);
+    return allowed.has(urlFilter) ? urlFilter : 'all';
+  });
+  const [search, setSearch] = useState(urlCategory);
+  const [searchDebounce, setSearchDebounce] = useState(urlCategory);
   const [exportingCsv, setExportingCsv] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -228,11 +244,19 @@ export default function TransactionsPage() {
       }
       // Convert date string to epoch milliseconds (noon UTC to avoid timezone edge cases)
       const timestamp = form.date ? new Date(form.date + 'T12:00:00Z').getTime() : Date.now();
+      // Round 30: strip `date` before send. The DTO expects a numeric
+      // `timestamp` (Long); sending the raw ISO-date string caused
+      // Jackson to fail "invalid request body" when the user edited a
+      // Zelle / transfer transaction. Prior to this we spread the whole
+      // form which included both `date: "YYYY-MM-DD"` and `timestamp: Long`.
+      const { date: _date, ...formWithoutDate } = form;
+      void _date;
+      const payload = { ...formWithoutDate, amount: amt, timestamp };
       if (editTx) {
-        await api.updateTransaction(editTx.id, { ...form, amount: amt, timestamp });
+        await api.updateTransaction(editTx.id, payload);
         toast('Transaction updated', 'success');
       } else {
-        await api.addTransaction({ ...form, amount: amt, timestamp });
+        await api.addTransaction(payload);
         toast('Transaction added', 'success');
       }
       setShowForm(false);
