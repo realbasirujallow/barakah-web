@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { useFocusTrap } from '../lib/useFocusTrap';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 
@@ -223,6 +224,13 @@ export function SessionTimeoutModal() {
     return () => window.removeEventListener('keydown', handler);
   }, [showWarning, logout]);
 
+  // Round 29: trap focus inside the session-timeout warning. User has
+  // a narrow window to hit "Stay Signed In" before auto-logout; a
+  // keyboard user who tabs out of the modal onto the page behind would
+  // lose precious seconds.
+  const modalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(modalRef, Boolean(user && showWarning));
+
   // Don't render anything if user isn't logged in or warning isn't showing
   if (!user || !showWarning) return null;
 
@@ -231,6 +239,7 @@ export function SessionTimeoutModal() {
 
   return (
     <div
+      ref={modalRef}
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"

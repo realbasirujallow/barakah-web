@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useFocusTrap } from '../lib/useFocusTrap';
 
 interface OnboardingWizardProps {
   onComplete: () => void;
@@ -120,8 +121,14 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  // Round 29: focus trap. A keyboard user who Tabs past the dialog
+  // reaches the dashboard behind and lands on nav links they can't see.
+  const wizardRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(wizardRef, true);
+
   return (
     <div
+      ref={wizardRef}
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       role="dialog"
       aria-modal="true"

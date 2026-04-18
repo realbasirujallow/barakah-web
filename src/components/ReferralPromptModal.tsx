@@ -1,6 +1,7 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../lib/api';
+import { useFocusTrap } from '../lib/useFocusTrap';
 
 const STORAGE_KEY = 'barakah_referral_prompted';
 
@@ -106,8 +107,15 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
     return () => window.removeEventListener('keydown', handler);
   }, [onDismiss]);
 
+  // Round 29: trap Tab focus inside the modal so keyboard users don't
+  // leak focus to the marketing page behind and accidentally click a
+  // "Continue" on a product-card they can't see.
+  const modalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(modalRef, true);
+
   return (
     <div
+      ref={modalRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       role="dialog"
       aria-modal="true"
