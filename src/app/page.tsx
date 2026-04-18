@@ -123,6 +123,7 @@ export default function Home() {
             <a href="#features" className="hover:text-[#1B5E20] transition">Features</a>
             <Link href="/pricing" className="hover:text-[#1B5E20] transition">Pricing</Link>
             <Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link>
+            <Link href="/careers" className="hover:text-[#1B5E20] transition">Careers</Link>
             <Link href="/trust" className="hover:text-[#1B5E20] transition">Trust</Link>
             <Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link>
           </nav>
@@ -154,6 +155,7 @@ export default function Home() {
               <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Features</a>
               <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Pricing</Link>
               <Link href="/learn" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Learn</Link>
+              <Link href="/careers" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Careers</Link>
               <Link href="/trust" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Trust</Link>
               <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Contact</Link>
             </nav>
@@ -661,6 +663,7 @@ export default function Home() {
               <h4 className="font-semibold text-gray-900 text-sm mb-3">Company</h4>
               <ul className="space-y-2 text-xs text-gray-600">
                 <li><Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link></li>
+                <li><Link href="/careers" className="hover:text-[#1B5E20] transition">Careers</Link></li>
                 <li><Link href="/methodology" className="hover:text-[#1B5E20] transition">Methodology</Link></li>
                 <li><Link href="/trust" className="hover:text-[#1B5E20] transition">Trust & Security</Link></li>
                 <li><Link href="/security" className="hover:text-[#1B5E20] transition">Security FAQ</Link></li>
