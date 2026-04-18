@@ -10,24 +10,31 @@ const withBundleAnalyzer = bundleAnalyzer({
 });
 
 // ── Environment validation ─────────────────────────────────────────────
-// Warn (but don't crash) if BACKEND_URL is unset during the build step —
-// Railway injects env vars at runtime, so the build image may not have
-// them yet.  The fallback on line 18 (`https://api.trybarakah.com`) keeps
-// the build working; the rewrites will resolve correctly at runtime once
-// the var is injected.
-if (process.env.NODE_ENV === 'production' && !process.env.BACKEND_URL) {
-  console.warn(
-    '⚠️  BACKEND_URL is not set — falling back to https://api.trybarakah.com. ' +
-    'Set BACKEND_URL in your deployment configuration for explicit control.'
+// H-R4-2 fix (2026-04-18): fail the build if BACKEND_URL / NEXT_PUBLIC_API_URL
+// is unset in a production build. The previous behaviour silently fell back
+// to `https://api.trybarakah.com`, which hid real misconfigurations on
+// preview / staging deploys and risked pointing a non-prod environment at
+// the prod backend.
+//
+// Railway injects env vars at build time for production deploys, so if they
+// are missing it IS a deployment bug — we want a loud failure, not a silent
+// fallback. Local `npm run dev` keeps the old fallback so newcomers can run
+// the web app without env scaffolding.
+const IS_PRODUCTION_BUILD = process.env.NODE_ENV === 'production';
+const RAW_BACKEND_URL =
+  process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || '';
+
+if (IS_PRODUCTION_BUILD && !RAW_BACKEND_URL) {
+  throw new Error(
+    'Configuration error: BACKEND_URL (or NEXT_PUBLIC_API_URL) must be set ' +
+    'for production builds. Refusing to silently default to ' +
+    'https://api.trybarakah.com — set the env var explicitly in Railway/Vercel.'
   );
 }
 
-// Backend URL used by the rewrite proxy. Set BACKEND_URL (server-side) or
-// NEXT_PUBLIC_API_URL to point to your Spring Boot backend.
-const BACKEND_URL =
-  process.env.BACKEND_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://api.trybarakah.com";
+// Backend URL used by the rewrite proxy. Explicit env var in production,
+// fallback in dev so localhost workflows continue to work.
+const BACKEND_URL = RAW_BACKEND_URL || 'https://api.trybarakah.com';
 
 const isDev = process.env.NODE_ENV === "development";
 

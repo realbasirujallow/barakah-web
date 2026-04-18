@@ -15,10 +15,22 @@ import { NextRequest, NextResponse } from 'next/server';
  *   3. Returning the body + headers to the browser
  */
 
-const BACKEND_URL =
-  process.env.BACKEND_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  'https://api.trybarakah.com';
+// H-R4-2 fix (2026-04-18): fail closed on missing BACKEND_URL in production.
+// Previously this silently fell back to https://api.trybarakah.com, which
+// could route a misconfigured non-prod deploy at the prod backend. In
+// production we now refuse to serve auth traffic without an explicit URL;
+// in dev we keep the localhost-friendly fallback.
+const RAW_BACKEND_URL =
+  process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || '';
+
+if (process.env.NODE_ENV === 'production' && !RAW_BACKEND_URL) {
+  throw new Error(
+    'Auth proxy misconfigured: BACKEND_URL (or NEXT_PUBLIC_API_URL) must be ' +
+    'set in production. Refusing to default to https://api.trybarakah.com.'
+  );
+}
+
+const BACKEND_URL = RAW_BACKEND_URL || 'https://api.trybarakah.com';
 
 async function handler(
   request: NextRequest,

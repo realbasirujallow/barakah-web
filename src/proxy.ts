@@ -11,6 +11,31 @@ import type { NextRequest } from 'next/server';
  * Session cookies (auth_token, refresh_token) are httpOnly and set by
  * the Route Handler at /auth/[...path]/route.ts.
  *
+ * ── Session contract (H-R4-4 fix, 2026-04-18) ──────────────────────────
+ *
+ * The backend sets TWO httpOnly cookies with different lifetimes:
+ *   • auth_token    — short-lived access JWT (default 24h)
+ *   • refresh_token — long-lived refresh token (default 30d)
+ *
+ * On a protected route we must treat "has session" as
+ * `auth_token OR refresh_token`. If we only check `auth_token`, every user
+ * whose access token expired (but whose refresh token is still valid) gets
+ * kicked to /login — they never get a chance to run the client-side
+ * silent-refresh flow that swaps a valid refresh_token for a new
+ * auth_token. Previously this forced a re-login every 24h for active
+ * users, which is the H-R4-4 finding.
+ *
+ * Redirect rules codify the two lifetimes:
+ *   • `/` → `/dashboard` only if the user has an access token NOW (we
+ *     don't want a refresh-only user to land on a page whose SSR/RSC
+ *     immediately 401s on the API). They'll hit the client silent-refresh
+ *     flow through normal navigation instead.
+ *   • `/login` / `/signup` → `/dashboard` only on a fresh access token,
+ *     for the same reason.
+ *   • `/dashboard/...` → `/login` only if BOTH cookies are absent. A
+ *     refresh-only user is allowed through so the client can run silent
+ *     refresh before rendering.
+ *
  * The proxy does NOT aggressively redirect — it allows through any request
  * that might have a valid session cookie. Only auth pages use this proxy,
  * and protected dashboard routes rely on the cookie-backed client/session
@@ -19,6 +44,9 @@ import type { NextRequest } from 'next/server';
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasAuthToken    = request.cookies.has('auth_token');
+  // H-R4-4: treat refresh_token as a valid session indicator on protected
+  // routes so silent refresh can succeed before we kick the user to /login.
+  const hasRefreshToken = request.cookies.has('refresh_token');
 
   // ── Marketing homepage: redirect logged-in users straight to /dashboard ──
   //
@@ -63,8 +91,15 @@ export function proxy(request: NextRequest) {
   }
 
   // ── Protected routes: redirect if clearly not logged in ──────────
+  //
+  // H-R4-4: "clearly not logged in" means BOTH cookies are missing. If
+  // the user has a valid refresh_token but an expired auth_token, we
+  // let the request through so the client-side AuthContext can run
+  // silent refresh. Otherwise we'd force a re-login every 24h for
+  // active users.
   const isProtectedRoute = pathname.startsWith('/dashboard');
-  if (isProtectedRoute && !hasAuthToken) {
+  const hasAnySession = hasAuthToken || hasRefreshToken;
+  if (isProtectedRoute && !hasAnySession) {
     // Detect bots (Googlebot, Bingbot, etc.) — return 403 + noindex
     // instead of redirect chain that pollutes search index
     const ua = request.headers.get('user-agent') || '';

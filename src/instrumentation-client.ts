@@ -6,36 +6,42 @@ import * as Sentry from "@sentry/nextjs";
 
 const isProd = process.env.NODE_ENV === 'production';
 
-// DSN falls back to the production project if NEXT_PUBLIC_SENTRY_DSN is not
-// set. Override via environment so staging / preview builds do not pollute
-// production error metrics.
-const SENTRY_DSN =
-  process.env.NEXT_PUBLIC_SENTRY_DSN ||
-  "https://79fc028454d7ff7c469946c2f0270ee6@o4511159158636544.ingest.us.sentry.io/4511159161651200";
+// DSN is REQUIRED via NEXT_PUBLIC_SENTRY_DSN. There is intentionally no
+// hardcoded fallback: a fallback to the production project would cause
+// staging / preview / local-dev builds to pollute production error metrics
+// when a deploy is misconfigured, and we want those misconfigurations to be
+// visible (no Sentry) rather than silent (wrong Sentry project).
+const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
-Sentry.init({
-  dsn: SENTRY_DSN,
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
 
-  // Session Replay with default masking (text obscured, media blocked). PII is
-  // explicitly disabled below, so Replay captures UX timing without leaking
-  // balances, emails, or account details.
-  integrations: [Sentry.replayIntegration()],
+    // Session Replay with default masking (text obscured, media blocked). PII is
+    // explicitly disabled below, so Replay captures UX timing without leaking
+    // balances, emails, or account details.
+    integrations: [Sentry.replayIntegration()],
 
-  // Sample 10% of transactions in production to keep Sentry bill predictable
-  // on a financial dashboard where many users hit many pages. Full sampling in
-  // dev so local work still surfaces perf regressions.
-  tracesSampleRate: isProd ? 0.1 : 1.0,
+    // Sample 10% of transactions in production to keep Sentry bill predictable
+    // on a financial dashboard where many users hit many pages. Full sampling in
+    // dev so local work still surfaces perf regressions.
+    tracesSampleRate: isProd ? 0.1 : 1.0,
 
-  enableLogs: true,
+    enableLogs: true,
 
-  // Session replay — lower in production to avoid capturing more than we need.
-  replaysSessionSampleRate: isProd ? 0.02 : 0.1,
-  replaysOnErrorSampleRate: 1.0,
+    // Session replay — lower in production to avoid capturing more than we need.
+    replaysSessionSampleRate: isProd ? 0.02 : 0.1,
+    replaysOnErrorSampleRate: 1.0,
 
-  // Do NOT auto-capture PII. For a financial app this previously captured user
-  // IPs, cookies, and form inputs by default — a GDPR/CCPA exposure.
-  // Attach a scrubbed user id manually via Sentry.setUser({ id }) instead.
-  sendDefaultPii: false,
-});
+    // Do NOT auto-capture PII. For a financial app this previously captured user
+    // IPs, cookies, and form inputs by default — a GDPR/CCPA exposure.
+    // Attach a scrubbed user id manually via Sentry.setUser({ id }) instead.
+    sendDefaultPii: false,
+  });
+} else if (isProd && typeof window !== 'undefined') {
+  // Loud warning in prod — deployments should always set this env var.
+  // eslint-disable-next-line no-console
+  console.warn('[Sentry] NEXT_PUBLIC_SENTRY_DSN is not set — client-side errors will not be reported.');
+}
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

@@ -4,6 +4,17 @@ import { usePathname, useRouter } from 'next/navigation';
 import { api, setRefreshToken, setUnauthorizedHandler } from '../lib/api';
 import { trackLogin, trackSignUp } from '../lib/analytics';
 
+// Dev-only trace hook. In production these traces would add noise to
+// DevTools and pollute any UI/infra log capture; Sentry already receives
+// the exceptional paths via the 401 handler + getSentry() pipeline.
+const IS_DEV = process.env.NODE_ENV !== 'production';
+function devTrace(...args: unknown[]): void {
+  if (IS_DEV) {
+    // eslint-disable-next-line no-console
+    console.debug(...args);
+  }
+}
+
 export interface User {
   id: string;
   name: string;
@@ -234,7 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // If getProfile succeeds → auth_token is valid, keep user logged in.
         // If getProfile fails with 401 → the 401 handler in apiFetch will trigger
         // the real logout flow.
-        console.debug('Proactive refresh returned expired — verifying auth_token with profile check');
+        devTrace('Proactive refresh returned expired — verifying auth_token with profile check');
         try {
           const data = await api.getProfile(true);
           if (data?.plan && parsed) {
@@ -265,7 +276,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Network error on mount (offline) — keep stale profile for offline mode.
       // Log error for debugging: distinguish network errors from auth errors.
       if (err instanceof Error) {
-        console.debug('Silent refresh error on mount:', {
+        devTrace('Silent refresh error on mount:', {
           message: err.message,
           isNetworkError: err.message.includes('No connection') || err.message.includes('fetch'),
         });
@@ -354,7 +365,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Profile fetch failed (likely 401) — the global unauthorized
         // handler will clean up and redirect. Log for debugging.
         if (err instanceof Error) {
-          console.debug('Profile check failed on visibility change:', { message: err.message });
+          devTrace('Profile check failed on visibility change:', { message: err.message });
         }
       });
     };
@@ -425,7 +436,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err: unknown) {
       // Ignore network errors on logout; log for debugging
       if (err instanceof Error) {
-        console.debug('Logout API call failed (network error):', { message: err.message });
+        devTrace('Logout API call failed (network error):', { message: err.message });
       }
     }
     try {
@@ -464,7 +475,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err: unknown) {
       // Silent failure — could be offline or auth error
       if (err instanceof Error) {
-        console.debug('Plan refresh failed:', { message: err.message });
+        devTrace('Plan refresh failed:', { message: err.message });
       }
     }
   }, [user]);

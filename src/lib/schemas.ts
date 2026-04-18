@@ -3,6 +3,8 @@
  * Uses simple runtime validators without external dependencies
  */
 
+import { logError } from './logError';
+
 // ── Validation Helpers ────────────────────────────────────────────────────────
 
 interface ValidationResult<T> {
@@ -371,7 +373,16 @@ export function validateWasiyyahBeneficiary(data: unknown): ValidationResult<Was
 export function safeParse<T>(validate: (data: unknown) => ValidationResult<T>, data: unknown, context: string): T | null {
   const result = validate(data);
   if (!result.success) {
-    console.error(`[Schema Validation] ${context}:`, result.issues);
+    // Route through logError so backend-contract drift actually reaches Sentry
+    // in production. Silent schema mismatches are exactly the class of bug
+    // that's hard to catch in review — a feature silently returning null
+    // because a field was renamed on the backend looks identical to a
+    // genuine empty-state from the UI's perspective.
+    logError(new Error(`[Schema Validation] ${context}`), {
+      context: 'schemas.safeParse',
+      validationContext: context,
+      issues: result.issues,
+    });
     return null;
   }
   return result.data || null;

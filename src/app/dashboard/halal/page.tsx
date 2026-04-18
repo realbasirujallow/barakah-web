@@ -114,7 +114,7 @@ export default function HalalPage() {
         });
       }
     } catch (err) {
-      console.error('Halal stock lookup failed:', err);
+      logError(err, { context: 'halal.stockLookup', ticker });
       setDetailResult({ symbol: ticker, name: '', status: 'UNKNOWN', reason: 'Could not find stock data. Please check the ticker and try again.', sector: '' });
     }
     setChecking(false);
