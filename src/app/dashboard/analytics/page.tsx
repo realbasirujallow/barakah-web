@@ -615,7 +615,13 @@ function AnalyticsPageContent() {
                           </span>
                         ) : (
                           <button
-                            onClick={() => router.push(`/dashboard/transactions?category=${b.category}`)}
+                            // Round 30: deep-link with filter=needs_review AND category
+                            // pre-filled into search so the user lands directly on the
+                            // items requiring review — not on the full transactions list
+                            // where they have to hunt for it.
+                            onClick={() => router.push(
+                              `/dashboard/transactions?filter=needs_review&category=${encodeURIComponent(b.category)}`
+                            )}
                             className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 transition cursor-pointer"
                             title={`Review ${formatCategoryLabel(b.category)} transactions for Islamic compliance`}
                           >

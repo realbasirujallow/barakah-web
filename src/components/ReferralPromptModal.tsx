@@ -121,9 +121,23 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
       aria-modal="true"
       aria-labelledby="referral-prompt-title"
     >
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center animate-in fade-in zoom-in duration-300">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 pt-6 text-center animate-in fade-in zoom-in duration-300 relative max-h-[90vh] overflow-y-auto">
+        {/* Close X — always visible, always tappable. Round 30: mobile Safari users
+            on small screens (iPhone SE / mini) reported the "Maybe Later" button
+            at the bottom being clipped by browser chrome + a floating feedback
+            widget, trapping them on this modal. The top-right X is a guaranteed
+            escape that is above the fold on every viewport. */}
+        <button
+          type="button"
+          onClick={handleDismiss}
+          aria-label="Close"
+          className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition text-xl leading-none"
+        >
+          ✕
+        </button>
+
         {/* Mosque icon */}
-        <div className="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center text-3xl mb-4">
+        <div className="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center text-3xl mb-4 mt-2">
           🕌
         </div>
 

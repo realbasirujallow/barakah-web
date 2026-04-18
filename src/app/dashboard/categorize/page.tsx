@@ -97,18 +97,31 @@ export default function CategorizePage() {
 
   const loadAll = async () => {
     setLoading(true);
-    try {
-      const [reviewData, ruleData] = await Promise.all([
-        api.reviewCategories(),
-        api.getTransactionRules(),
-      ]);
-      setSuggestions(reviewData?.transactions || []);
-      setRules(ruleData?.rules || []);
-    } catch {
-      toast('Failed to load transaction automation', 'error');
-    } finally {
-      setLoading(false);
+    // Round 30: Promise.allSettled so one failure doesn't hide the other.
+    // Also surface the specific error message instead of a generic toast —
+    // a user reported "failed to load transaction automation" with no hint
+    // whether suggestions, rules, or both were the problem.
+    const [reviewResult, ruleResult] = await Promise.allSettled([
+      api.reviewCategories(),
+      api.getTransactionRules(),
+    ]);
+    if (reviewResult.status === 'fulfilled') {
+      setSuggestions(reviewResult.value?.transactions || []);
+    } else {
+      const msg = reviewResult.reason instanceof Error
+        ? reviewResult.reason.message
+        : 'Failed to load suggestions';
+      toast(`Suggestions: ${msg}`, 'error');
     }
+    if (ruleResult.status === 'fulfilled') {
+      setRules(ruleResult.value?.rules || []);
+    } else {
+      const msg = ruleResult.reason instanceof Error
+        ? ruleResult.reason.message
+        : 'Failed to load rules';
+      toast(`Rules: ${msg}`, 'error');
+    }
+    setLoading(false);
   };
 
   useEffect(() => { loadAll(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
