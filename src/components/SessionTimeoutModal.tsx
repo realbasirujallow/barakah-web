@@ -72,6 +72,20 @@ export function SessionTimeoutModal() {
     logoutDeadlineRef.current = null;
   }, []);
 
+  // R5 follow-up (2026-04-18): the `scheduleFromActivity` callback reaches
+  // back into itself on the two recursive-reschedule paths below (when the
+  // warning timer fires and when the logout timer fires but there was
+  // activity within the window). The React-compiler lint rule flagged the
+  // inner references as "accessed before declared" — which is technically
+  // true inside the useCallback body, even though the closure reads the
+  // latest value at call time.
+  //
+  // Rather than rewrite the recursion, we route the self-reference through
+  // a ref so the dependency list stays honest and the compiler stops
+  // warning. Each re-render updates the ref to point at the newest
+  // callback, so the nested timers always dispatch against the latest
+  // closure — no stale-closure bug risk.
+  const scheduleRef = useRef<(lastActivityTs: number) => void>(() => {});
   const scheduleFromActivity = useCallback((lastActivityTs: number) => {
     clearAllTimers();
     const now = Date.now();
@@ -101,7 +115,7 @@ export function SessionTimeoutModal() {
         const latestActivity = readLastActivity();
         if (Date.now() - latestActivity < SESSION_TIMEOUT_MS) {
           setShowWarning(false);
-          scheduleFromActivity(latestActivity);
+          scheduleRef.current(latestActivity);
           return;
         }
         setShowWarning(false);
@@ -113,9 +127,15 @@ export function SessionTimeoutModal() {
     setShowWarning(false);
     warningTimerRef.current = setTimeout(() => {
       const latestActivity = readLastActivity();
-      scheduleFromActivity(latestActivity);
+      scheduleRef.current(latestActivity);
     }, remainingUntilWarning);
   }, [clearAllTimers, logout, readLastActivity]);
+
+  // Keep the self-reference ref in sync with the latest callback so the
+  // two recursive-reschedule timers above always call the newest closure.
+  useEffect(() => {
+    scheduleRef.current = scheduleFromActivity;
+  }, [scheduleFromActivity]);
 
   const persistActivity = useCallback((ts: number) => {
     try {
@@ -168,7 +188,11 @@ export function SessionTimeoutModal() {
     // read a stale value. Writing it here guarantees freshness.
     const now = Date.now();
     persistActivity(now);
-    scheduleFromActivity(now);
+    // Route through the ref (same pattern as the recursive timers above) so
+    // the React-compiler "accessed before declared" rule stops flagging
+    // this site. Functionally identical — the ref is synced on every
+    // render to point at the latest scheduleFromActivity.
+    scheduleRef.current(now);
 
     // Attach activity listeners
     const handler = () => handleActivity();

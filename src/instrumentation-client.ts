@@ -40,7 +40,7 @@ if (SENTRY_DSN) {
   });
 } else if (isProd && typeof window !== 'undefined') {
   // Loud warning in prod — deployments should always set this env var.
-  // eslint-disable-next-line no-console
+   
   console.warn('[Sentry] NEXT_PUBLIC_SENTRY_DSN is not set — client-side errors will not be reported.');
 }
 
