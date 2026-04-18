@@ -19,6 +19,43 @@ function getCsrfToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+/**
+ * First-nav CSRF bootstrap.
+ *
+ * The backend's CsrfDoubleSubmitFilter sets XSRF-TOKEN on every response,
+ * but /api/* traffic is routed through Next.js rewrites that strip
+ * Set-Cookie headers. The /auth/* route handler forwards Set-Cookie
+ * correctly, so we hit a tiny /auth/csrf GET to materialize the cookie
+ * when the client is about to make a non-GET request and the cookie is
+ * missing. This removes a race where the very first action in a session
+ * (e.g. submitting a form before any data-loading GET resolves) would
+ * fail with a 403 CSRF error.
+ *
+ * In-flight bootstrap requests are deduped so simultaneous writes don't
+ * each trigger their own /auth/csrf call.
+ */
+let csrfBootstrapInFlight: Promise<void> | null = null;
+async function ensureCsrfToken(): Promise<void> {
+  if (typeof document === 'undefined') return;          // SSR, no cookies
+  if (getCsrfToken() !== null) return;                  // already have it
+  if (csrfBootstrapInFlight) return csrfBootstrapInFlight;
+
+  csrfBootstrapInFlight = (async () => {
+    try {
+      await fetch(`${API_URL}/auth/csrf`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+    } catch {
+      // Network failure here is non-fatal — the actual request will
+      // surface a clearer error if CSRF is really unreachable.
+    } finally {
+      csrfBootstrapInFlight = null;
+    }
+  })();
+  return csrfBootstrapInFlight;
+}
+
 // ── 401 global handler ────────────────────────────────────────────────────────
 // Register a callback (e.g. logout + redirect) that fires whenever a 401
 // cannot be recovered by the silent refresh flow below.
@@ -224,6 +261,10 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
   // Add CSRF token to non-GET requests for CSRF protection
   const method = (options.method || 'GET').toUpperCase();
   if (method !== 'GET') {
+    // Bootstrap the CSRF cookie if this is the first write in the session
+    // (e.g. user reloads a page and immediately submits a form). No-op when
+    // the cookie already exists.
+    await ensureCsrfToken();
     const csrfToken = getCsrfToken();
     if (csrfToken) {
       headers['X-XSRF-TOKEN'] = csrfToken;
@@ -371,6 +412,8 @@ export async function apiUpload(endpoint: string, file: File, fieldName = 'file'
   formData.append(fieldName, file);
 
   // BUG FIX: include CSRF token so upload endpoints are protected consistently
+  // First-nav bootstrap: materialize the cookie if this is the first write.
+  await ensureCsrfToken();
   const csrfToken = getCsrfToken();
   const uploadHeaders: Record<string, string> = {};
   if (csrfToken) uploadHeaders['X-XSRF-TOKEN'] = csrfToken;
