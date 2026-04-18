@@ -94,7 +94,11 @@ export default function FiqhSettingsPage() {
     setSelectedMadhab(madhab);
     setSaving(true);
     try {
-      const result = await api.setMadhab(madhab);
+      const result = await api.setMadhab(madhab) as {
+        nisabAutoSwitched?: boolean;
+        nisabMethodology?: string;
+        nisabThreshold?: number;
+      } | null;
       if (result) {
         // Refetch the full config so Detailed Rules tab reflects the new madhab defaults.
         // The backend's applySchoolDefaults() sets rules like jewelryZakatable, fitrType, etc.
@@ -112,16 +116,33 @@ export default function FiqhSettingsPage() {
             raddIncludesSpouse: updatedConfig.raddIncludesSpouse ?? false,
           });
         }
+
+        // Feature 2 UX (2026-04-18): the backend auto-switches
+        // User.nisabMethodology when the user changes madhab into or out
+        // of HANAFI. If that happened, update local nisab state so the
+        // "Nisab Methodology" card in the Madhab tab reflects the new
+        // value without a page refresh, and surface a distinct toast so
+        // the change isn't silent.
+        if (result.nisabAutoSwitched && result.nisabMethodology) {
+          setNisabMethodology(result.nisabMethodology);
+          if (typeof result.nisabThreshold === 'number') {
+            setNisabThresholdUsd(result.nisabThreshold);
+          }
+          const nisabPretty = naturalNisabLabel(result.nisabMethodology);
+          toast(
+            `Madhab updated. Nisab methodology switched to ${nisabPretty} to match — you can override this below if needed.`,
+            'success',
+          );
+        } else {
+          toast('Madhab updated successfully! Detailed rules have been updated to match.', 'success');
+        }
+
         // HIGH BUG FIX (H-3): broadcast so other open tabs/pages (zakat,
         // retirement-zakat, faraid) can refetch the user's fiqh config
         // without a manual page refresh.
-        // TODO: add matching window.addEventListener('barakah:fiqh-change',
-        // ...) in zakat / retirement-zakat / faraid pages to refetch on mount
-        // or change. Left for a follow-up refactor to keep this diff scoped.
         if (typeof window !== 'undefined') {
           try { window.dispatchEvent(new Event('barakah:fiqh-change')); } catch { /* no-op */ }
         }
-        toast('Madhab updated successfully! Detailed rules have been updated to match.', 'success');
       }
     } catch (err) {
       logError(err, { context: 'Failed to update madhab' });

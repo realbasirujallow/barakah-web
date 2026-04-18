@@ -8,6 +8,7 @@ import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 import { safeParse, safeParseWithFallback, validateZakatCalculation, validateZakatPaymentsResponse, validateNisabInfo, formatTimeAgo } from '../../../lib/schemas';
 import ShareReceiptButton from '../../../components/ShareReceiptButton';
+import HistoricalZakatModal from '../../../components/HistoricalZakatModal';
 
 interface ZakatCalculation {
   zakatDue?: number;
@@ -124,6 +125,9 @@ export default function ZakatPage() {
 
   // Use the lunar year from the API if available; fall back to JS-computed value
   const lunarYear: number = (data?.currentLunarYear as number) || computeHijriYear();
+
+  // Feature 1 (2026-04-18): modal for "I paid zakat before joining Barakah".
+  const [historicalModalOpen, setHistoricalModalOpen] = useState(false);
 
   useEffect(() => {
     setHideZakat(safeGetItem('hideZakat') === 'true');
@@ -582,6 +586,13 @@ export default function ZakatPage() {
           </button>
           {tab === 'calculator' && (
             <>
+              <button
+                onClick={() => setHistoricalModalOpen(true)}
+                className="text-sm bg-amber-100 text-amber-800 px-3 py-1 rounded-lg hover:bg-amber-200 font-medium"
+                title="Record zakat you paid before joining Barakah"
+              >
+                Historical Paid
+              </button>
               <button
                 onClick={handleViewReceipt}
                 disabled={receiptLoading}
@@ -1479,6 +1490,19 @@ export default function ZakatPage() {
           </div>
         </div>
       )}
+      <HistoricalZakatModal
+        currentLunarYear={lunarYear}
+        open={historicalModalOpen}
+        onClose={(savedYear) => {
+          setHistoricalModalOpen(false);
+          if (savedYear !== null) {
+            toast(`Zakat for ${savedYear} AH recorded as paid. Permanent locked record created.`, 'success');
+            // Refresh payments / snapshot state by dispatching the same event
+            // other tabs listen for.
+            try { window.dispatchEvent(new Event('barakah:zakat-change')); } catch { /* no-op */ }
+          }
+        }}
+      />
     </div>
   );
 }

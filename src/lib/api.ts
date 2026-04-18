@@ -807,6 +807,20 @@ export const api = {
   // FEATURE 5: Scholarly References
   getScholarlyReferences: () => apiFetch('/api/zakat/scholarly-references'),
 
+  // Feature 1 (2026-04-18): backfill a zakat year the user paid BEFORE joining
+  // Barakah. Creates a permanently-locked snapshot for the given Hijri year.
+  markHistoricalZakatPaid: (body: {
+    lunarYear: number;
+    zakatAmount: number;
+    paidAmount: number;
+    paidDate?: number; // epoch millis
+    currency?: string;
+    notes?: string;
+  }) => apiFetch('/api/zakat/snapshots/historical-paid', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  }),
+
   // Savings Goals
   getSavingsGoals: () => apiFetch('/api/savings-goals/list'),
   addSavingsGoal: (data: Record<string, unknown>) =>
