@@ -26,6 +26,17 @@ export default function ReferralPage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Round 28: Web Share API capability detection. Move to client-only state
+  // so we never evaluate `typeof navigator` during render — Next 16 partial
+  // prerendering could stream through the dashboard layout's loading-guard
+  // and turn the render-time check into a hydration mismatch (server sees
+  // `false`, client sees `true`). The layout currently shields this, but
+  // the useState+useEffect pattern is the defensive answer.
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => {
+    setCanShare(typeof navigator !== 'undefined' && 'share' in navigator);
+  }, []);
+
   const load = () => {
     setLoading(true);
     setError(null);
@@ -148,7 +159,7 @@ export default function ReferralPage() {
 
       {/* Share Buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
-        {typeof navigator !== 'undefined' && 'share' in navigator && (
+        {canShare && (
           <button
             onClick={shareNative}
             className="flex items-center justify-center gap-2 bg-blue-600 text-white rounded-xl py-3 px-4 hover:bg-blue-700 transition text-sm font-medium"

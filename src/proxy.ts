@@ -20,6 +20,28 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasAuthToken    = request.cookies.has('auth_token');
 
+  // ── Marketing homepage: redirect logged-in users straight to /dashboard ──
+  //
+  // Round 28: merged from the legacy middleware.ts file. Next 16 rejects
+  // having both middleware.ts and proxy.ts at the same convention level
+  // (error E900), and every `next build` was failing until we collapsed
+  // these into a single proxy. This is the Round 18/19/21 homepage
+  // redirect — eliminates the ~100ms marketing-hero flash that logged-in
+  // users saw on `/`, preserves UTM/campaign query params across the
+  // redirect, and requires a non-empty `auth_token` cookie (the single
+  // canonical name set by the backend).
+  if (pathname === '/' && hasAuthToken) {
+    const authCookie = request.cookies.get('auth_token');
+    // Guard against an empty cookie value sending a logged-out user into
+    // a redirect loop (dashboard would bounce them back).
+    if (authCookie?.value && authCookie.value.length > 0) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/dashboard';
+      url.search = request.nextUrl.search;
+      return NextResponse.redirect(url);
+    }
+  }
+
   // ── Auth pages: redirect to dashboard if clearly logged in ──────────
   const isAuthPage =
     pathname === '/login' ||
@@ -65,5 +87,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/login', '/signup', '/dashboard/:path*'],
+  // Round 28: `/` added when the legacy middleware.ts was merged in.
+  matcher: ['/', '/login', '/signup', '/dashboard/:path*'],
 };
