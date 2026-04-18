@@ -1,0 +1,143 @@
+name: IndexNow — notify Bing/Yandex/Naver/Seznam
+
+# Fires after every push to main that touches the public sitemap or a page
+# file. IndexNow is the standards-track bulk-submission protocol accepted
+# by Bing, Yandex, Seznam, Naver, and Mojeek. Google does NOT accept
+# IndexNow today — see README-GOOGLE-SEARCH-CONSOLE.md for Google's
+# sitemap-submission flow (requires manual action in Search Console).
+#
+# The IndexNow endpoint verifies ownership by fetching
+#   https://trybarakah.com/<KEY>.txt
+# expecting the file body to equal the key. Both the key and the key file
+# are committed in this repo (public/<key>.txt). Do NOT delete the key
+# file; it is permanently tied to the domain.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/app/**/page.tsx'
+      - 'src/app/**/layout.tsx'
+      - 'src/app/sitemap.*'
+      - 'public/robots.txt'
+      - 'public/sitemap.xml'
+      - '.github/workflows/indexnow.yml'
+  # Also allow on-demand submission via the Actions tab
+  workflow_dispatch:
+    inputs:
+      full_resubmit:
+        description: 'Submit EVERY URL in sitemap (default: only key pages)'
+        required: false
+        default: 'false'
+
+jobs:
+  submit:
+    name: Push URLs to IndexNow
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for Vercel deploy to propagate
+        # Vercel deploys take ~60s-2m after push; submitting too early makes
+        # IndexNow crawlers fetch a stale page. 90s buffer is conservative.
+        run: sleep 90
+
+      - name: Extract sitemap URLs
+        id: urls
+        run: |
+          set -euo pipefail
+          curl -fsSL https://trybarakah.com/sitemap.xml -o /tmp/sitemap.xml
+          grep -oE '<loc>[^<]+</loc>' /tmp/sitemap.xml \
+            | sed 's|<loc>||; s|</loc>||' \
+            | sort -u > /tmp/all-urls.txt
+          wc -l /tmp/all-urls.txt
+          echo "total=$(wc -l < /tmp/all-urls.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Build IndexNow payload
+        id: payload
+        run: |
+          set -euo pipefail
+          # Default: submit only pages touched by the push (inferred from
+          # git diff). Under workflow_dispatch with full_resubmit=true OR
+          # when we can't diff (e.g. scheduled trigger later), submit all.
+          FULL="${{ github.event.inputs.full_resubmit || 'false' }}"
+          if [ "$FULL" = "true" ]; then
+            URL_LIST=$(cat /tmp/all-urls.txt)
+          else
+            # Touched files → candidate URLs. Only submit URLs that are
+            # actually in the live sitemap (so we never submit draft /
+            # private routes by accident).
+            git diff --name-only HEAD~1 HEAD \
+              | awk -F'/' '/^src\/app\//' \
+              | sed -E 's|^src/app||; s|/page\.tsx$||; s|/layout\.tsx$||' \
+              | sed 's|^$|/|' \
+              | awk -v d=https://trybarakah.com '{print d $0}' \
+              | sort -u > /tmp/touched-urls.txt
+            # Intersect with live sitemap
+            comm -12 /tmp/touched-urls.txt /tmp/all-urls.txt > /tmp/submit-urls.txt || true
+            # If nothing touched matches the sitemap (pure infra change),
+            # fall back to submitting just the homepage so IndexNow sees
+            # something → gives the crawlers a cue to re-fetch.
+            if [ ! -s /tmp/submit-urls.txt ]; then
+              echo "https://trybarakah.com" > /tmp/submit-urls.txt
+            fi
+            URL_LIST=$(cat /tmp/submit-urls.txt)
+          fi
+          echo "Submitting:"
+          echo "$URL_LIST"
+          # Build JSON payload
+          python3 - <<PY > /tmp/payload.json
+import json, os
+urls = [u.strip() for u in """$URL_LIST""".splitlines() if u.strip()]
+payload = {
+    "host": "trybarakah.com",
+    "key": "140db6db4ee38df9d39565683ff0b1734617c449d136e11d8e6fb0d7502663ab",
+    "keyLocation": "https://trybarakah.com/140db6db4ee38df9d39565683ff0b1734617c449d136e11d8e6fb0d7502663ab.txt",
+    "urlList": urls[:10000],  # IndexNow cap per request
+}
+print(json.dumps(payload))
+PY
+          echo "count=$(grep -c '^' /tmp/payload.json)" >> "$GITHUB_OUTPUT"
+          cat /tmp/payload.json | head -c 500
+          echo
+
+      - name: Submit to IndexNow (Bing)
+        run: |
+          set -e
+          curl -sS -X POST 'https://api.indexnow.org/IndexNow' \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            --data @/tmp/payload.json \
+            -w '\nHTTP %{http_code}\n' | tee /tmp/resp.txt
+          grep -qE 'HTTP (200|202)' /tmp/resp.txt
+
+      - name: Submit to Yandex
+        continue-on-error: true
+        run: |
+          curl -sS -X POST 'https://yandex.com/indexnow' \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            --data @/tmp/payload.json \
+            -w '\nHTTP %{http_code}\n' | tee -a /tmp/resp.txt
+
+      - name: Submit to Seznam
+        continue-on-error: true
+        run: |
+          curl -sS -X POST 'https://search.seznam.cz/indexnow' \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            --data @/tmp/payload.json \
+            -w '\nHTTP %{http_code}\n' | tee -a /tmp/resp.txt
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## IndexNow submission" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Total URLs in sitemap: ${{ steps.urls.outputs.total }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Submitted to: IndexNow API (Bing), Yandex, Seznam" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Responses" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/resp.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Note:** Google does not honor IndexNow. For Google, submit" >> "$GITHUB_STEP_SUMMARY"
+          echo "the sitemap at https://trybarakah.com/sitemap.xml via" >> "$GITHUB_STEP_SUMMARY"
+          echo "Search Console → Sitemaps." >> "$GITHUB_STEP_SUMMARY"
