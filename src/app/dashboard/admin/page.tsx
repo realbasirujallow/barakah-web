@@ -53,7 +53,17 @@ export default function AdminPage() {
   const isAdminKnown = typeof user?.isAdmin === 'boolean';
 
   useEffect(() => {
-    if (!isAuthLoading && user && isAdminKnown && !isAdmin) {
+    if (isAuthLoading) return;
+    // Auth resolved but no user at all → not logged in. Send them to login
+    // rather than letting the spinner churn forever (loadData is gated on
+    // isAdmin so it never fires for anonymous visitors, leaving the page
+    // stuck in its initial loading=true state indefinitely).
+    if (!user) {
+      router.replace('/login');
+      return;
+    }
+    // Logged in but confirmed not-admin → back to the regular dashboard.
+    if (isAdminKnown && !isAdmin) {
       router.replace('/dashboard');
     }
   }, [isAdmin, isAdminKnown, isAuthLoading, router, user]);
@@ -276,6 +286,22 @@ export default function AdminPage() {
   });
 
   /* ── Loading / error states ── */
+  //
+  // Render nothing while auth state is unresolved OR while we know the user
+  // is not an admin (redirect is mid-flight). Without this guard the admin
+  // layout flashes for ~100 ms during the router.replace bounce, which:
+  //   (a) briefly exposes admin-style UI chrome / page-titles to
+  //       non-admins, a confusing-at-best and phishing-useful-at-worst
+  //       leak; and
+  //   (b) for anonymous visitors, leaves the spinner spinning forever
+  //       because loadData is gated on isAdmin and never fires.
+  if (isAuthLoading || !user) {
+    return null;
+  }
+  if (isAdminKnown && !isAdmin) {
+    return null;
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">

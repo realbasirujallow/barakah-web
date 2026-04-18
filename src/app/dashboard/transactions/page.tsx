@@ -7,6 +7,7 @@ import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useAuth } from '../../../context/AuthContext';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
+import { logError } from '../../../lib/logError';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SkeletonPage } from '../SkeletonCard';
 
@@ -353,14 +354,14 @@ export default function TransactionsPage() {
   const handleExportCsv = async () => {
     setExportingCsv(true); setExportError(null);
     try { await api.downloadTransactionsCsv(); }
-    catch (err) { console.error('CSV export failed', err); toast('CSV export failed', 'error'); setExportError('CSV export failed. Please try again.'); }
+    catch (err) { logError(err, { context: 'transactions.exportCsv' }); toast('CSV export failed', 'error'); setExportError('CSV export failed. Please try again.'); }
     setExportingCsv(false);
   };
 
   const handleExportPdf = async () => {
     setExportingPdf(true); setExportError(null);
     try { await api.downloadTransactionsPdf(); }
-    catch (err) { console.error('PDF export failed', err); toast('PDF export failed', 'error'); setExportError('PDF export failed. Please try again.'); }
+    catch (err) { logError(err, { context: 'transactions.exportPdf' }); toast('PDF export failed', 'error'); setExportError('PDF export failed. Please try again.'); }
     setExportingPdf(false);
   };
 

@@ -8,18 +8,22 @@ import Script from 'next/script';
 
 function PostHogInit({ children }: { children: React.ReactNode }) {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  // Round 34: move `ui_host` out of source and into an env var so that
+  // self-hosted PostHog instances and EU-region deployments don't require a
+  // code change. Defaults to the US region to preserve the prior behavior.
+  const uiHost = process.env.NEXT_PUBLIC_POSTHOG_UI_HOST || 'https://us.posthog.com';
 
   useEffect(() => {
     if (key) {
       posthog.init(key, {
         api_host: '/ingest',
-        ui_host: 'https://us.posthog.com',
+        ui_host: uiHost,
         person_profiles: 'identified_only',
         capture_pageview: false,
         capture_pageleave: true,
       });
     }
-  }, [key]);
+  }, [key, uiHost]);
 
   if (key) {
     return <PostHogProvider client={posthog}>{children}</PostHogProvider>;

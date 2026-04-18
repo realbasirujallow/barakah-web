@@ -6,21 +6,24 @@ import * as Sentry from "@sentry/nextjs";
 
 const isProd = process.env.NODE_ENV === 'production';
 
-// DSN falls back to the production project if NEXT_PUBLIC_SENTRY_DSN is not
-// set. Override via environment so staging / preview builds do not pollute
-// production error metrics.
-const SENTRY_DSN =
-  process.env.NEXT_PUBLIC_SENTRY_DSN ||
-  "https://79fc028454d7ff7c469946c2f0270ee6@o4511159158636544.ingest.us.sentry.io/4511159161651200";
+// DSN is REQUIRED via NEXT_PUBLIC_SENTRY_DSN. No hardcoded fallback: if the
+// env var is missing, Sentry stays un-initialized (better than silently
+// shipping staging / preview errors into the production project).
+const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
-Sentry.init({
-  dsn: SENTRY_DSN,
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
 
-  // 10% trace sampling in production to cap Sentry cost on a financial backend.
-  tracesSampleRate: isProd ? 0.1 : 1.0,
+    // 10% trace sampling in production to cap Sentry cost on a financial backend.
+    tracesSampleRate: isProd ? 0.1 : 1.0,
 
-  enableLogs: true,
+    enableLogs: true,
 
-  // PII off by default — see instrumentation-client.ts for the rationale.
-  sendDefaultPii: false,
-});
+    // PII off by default — see instrumentation-client.ts for the rationale.
+    sendDefaultPii: false,
+  });
+} else if (isProd) {
+  // eslint-disable-next-line no-console
+  console.warn('[Sentry] NEXT_PUBLIC_SENTRY_DSN is not set — server-side errors will not be reported.');
+}
