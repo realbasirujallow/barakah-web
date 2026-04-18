@@ -135,16 +135,25 @@ export default function PrayerTimesPage() {
   }, []);
 
   // Fetch city suggestions from Nominatim (OpenStreetMap) as user types
+  //
+  // Round 28: wrap the in-flight fetch in an AbortController so a newer
+  // keystroke cancels the slower in-flight request. Prior code only
+  // cleared the debounce `setTimeout`; once the timer fired, the fetch
+  // kept running and could write stale suggestions on top of a fresher
+  // query's results, or write into an unmounted component after route
+  // change. AbortError is swallowed silently.
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     const trimmed = city.trim();
     if (trimmed.length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
 
+    const controller = new AbortController();
+
     debounceRef.current = setTimeout(async () => {
       setLoadingSuggestions(true);
       try {
         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(trimmed)}&limit=7&addressdetails=1&featuretype=city`;
-        const res  = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        const res  = await fetch(url, { headers: { 'Accept-Language': 'en' }, signal: controller.signal });
         if (!res.ok) {
           throw new Error(`Nominatim API error: ${res.status} ${res.statusText}`);
         }
@@ -167,16 +176,23 @@ export default function PrayerTimesPage() {
           results.push({ city: cityName, country: countryCode || countryName, countryCode, displayName });
           if (results.length >= 6) break;
         }
-        setSuggestions(results);
-        setShowSuggestions(results.length > 0);
-      } catch {
+        if (!controller.signal.aborted) {
+          setSuggestions(results);
+          setShowSuggestions(results.length > 0);
+        }
+      } catch (err) {
+        // Abort is the normal "user typed a new keystroke" path — not an error.
+        if ((err as Error)?.name === 'AbortError') return;
         setSuggestions([]);
       } finally {
-        setLoadingSuggestions(false);
+        if (!controller.signal.aborted) setLoadingSuggestions(false);
       }
     }, 350);
 
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => {
+      controller.abort();
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [city]);
 
   const handleSelectSuggestion = (s: CitySuggestion) => {
