@@ -6,7 +6,9 @@ import { useState } from 'react';
  * Ramadan email capture widget — placed on /learn/* pages during peak season.
  *
  * Captures email addresses for a Ramadan giving tips + zakat reminder sequence.
- * POSTs to /api/email-capture which logs the lead. On success, redirects the
+ * POSTs to /email-capture (NOT /api/* — that path is edge-routed to Spring
+ * Boot and would never reach this Next.js handler — see R5-H1 fix) which
+ * writes the lead to the Resend Audience. On success, redirects the
  * user to /signup pre-filled with their email for one-click account creation.
  *
  * Props:
@@ -38,7 +40,7 @@ export default function RamadanEmailCapture({
     setErrorMsg('');
 
     try {
-      await fetch('/api/email-capture', {
+      await fetch('/email-capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // Round 25: POST the trimmed value, not raw `email`. Prior code

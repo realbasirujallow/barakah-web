@@ -66,8 +66,12 @@ const csp = [
   "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com",
   // Fonts: self only (no external font CDN used)
   "font-src 'self'",
-  // Connections: backend proxy + PostHog analytics (proxied through /ingest) + GA4
-  `connect-src 'self' https://api.trybarakah.com ${plaidHosts} https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com https://nominatim.openstreetmap.org https://www.google-analytics.com https://analytics.google.com`,
+  // Connections: backend proxy + PostHog analytics (proxied through /ingest) + GA4.
+  // R5-L2 (2026-04-18): sources `BACKEND_URL` so that a preview/staging deploy
+  // pointing at a non-prod API doesn't have its connect-src silently blocked
+  // by a hardcoded `https://api.trybarakah.com`. Falls back to the prod host
+  // in local dev for the exact same reason the proxy does.
+  `connect-src 'self' ${BACKEND_URL} ${plaidHosts} https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com https://nominatim.openstreetmap.org https://www.google-analytics.com https://analytics.google.com`,
   // Allow Google Maps iframe embeds for property asset address visualization
   "frame-src 'self' https://cdn.plaid.com https://*.google.com https://*.googleapis.com https://*.gstatic.com",
   // No plugins (Flash, Silverlight, etc.)

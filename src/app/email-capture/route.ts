@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * POST /api/email-capture
+ * POST /email-capture
  *
  * Lightweight lead capture for learn-page email widgets.
  *
  * Body: { email: string, source: string }
+ *
+ * ── R5-H1 fix (2026-04-18 later): moved out of /api/* ──────────────────────
+ *
+ * Cloudflare/Railway edge routing forwards `trybarakah.com/api/*` directly to
+ * the Spring Boot service at api.trybarakah.com. That meant the prior path
+ * `/api/email-capture` never reached this Next.js handler — every waitlist
+ * POST hit the backend, was rejected by Spring Security's CSRF filter with
+ * `application/json;charset=ISO-8859-1` "CSRF token validation failed", and
+ * the M-R4-1 Resend-Audience fix (below) was not actually executing in
+ * production. Renamed to `/email-capture` (no `/api/` prefix) so it reaches
+ * the Next.js runtime.
  *
  * ── M-R4-1 fix (2026-04-18): wire to durable storage ───────────────────────
  *
