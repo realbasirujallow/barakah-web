@@ -11,9 +11,11 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "analyze": "ANALYZE=true next build",
     "prepare": "husky"
   },
   "dependencies": {
+    "@next/bundle-analyzer": "^16.2.4",
     "@sentry/nextjs": "^10.47.0",
     "brace-expansion": "^5.0.5",
     "ioredis": "^5.10.1",

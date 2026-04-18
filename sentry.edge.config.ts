@@ -7,8 +7,15 @@ import * as Sentry from "@sentry/nextjs";
 
 const isProd = process.env.NODE_ENV === 'production';
 
+// DSN falls back to the production project if NEXT_PUBLIC_SENTRY_DSN is not
+// set. Override via environment so staging / preview builds do not pollute
+// production error metrics.
+const SENTRY_DSN =
+  process.env.NEXT_PUBLIC_SENTRY_DSN ||
+  "https://79fc028454d7ff7c469946c2f0270ee6@o4511159158636544.ingest.us.sentry.io/4511159161651200";
+
 Sentry.init({
-  dsn: "https://79fc028454d7ff7c469946c2f0270ee6@o4511159158636544.ingest.us.sentry.io/4511159161651200",
+  dsn: SENTRY_DSN,
 
   // 10% trace sampling in production. Edge runs middleware — capping prevents
   // one high-traffic path from saturating Sentry quota.

@@ -1,5 +1,13 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
+// ── Bundle analyzer ─────────────────────────────────────────────────────────
+// Activated only when ANALYZE=true is set (e.g. `npm run analyze`). Produces
+// an interactive treemap of client/server chunks in .next/analyze/. Keeps
+// production builds fast by no-op'ing in the common case.
+import bundleAnalyzer from "@next/bundle-analyzer";
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 // ── Environment validation ─────────────────────────────────────────────
 // Warn (but don't crash) if BACKEND_URL is unset during the build step —
@@ -23,6 +31,14 @@ const BACKEND_URL =
 
 const isDev = process.env.NODE_ENV === "development";
 
+// Plaid environment — only whitelist the host(s) we actually connect to.
+// Production builds lock to production.plaid.com; dev builds permit the full
+// set so engineers can switch between PLAID_ENV=sandbox / development without
+// rebuilding the CSP.
+const plaidHosts = isDev
+  ? "https://production.plaid.com https://development.plaid.com https://sandbox.plaid.com"
+  : "https://production.plaid.com";
+
 // ── Content Security Policy ────────────────────────────────────────────────
 // Protects against XSS, clickjacking, and data-injection attacks.
 //
@@ -44,7 +60,7 @@ const csp = [
   // Fonts: self only (no external font CDN used)
   "font-src 'self'",
   // Connections: backend proxy + PostHog analytics (proxied through /ingest) + GA4
-  "connect-src 'self' https://api.trybarakah.com https://production.plaid.com https://development.plaid.com https://sandbox.plaid.com https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com https://nominatim.openstreetmap.org https://www.google-analytics.com https://analytics.google.com",
+  `connect-src 'self' https://api.trybarakah.com ${plaidHosts} https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com https://nominatim.openstreetmap.org https://www.google-analytics.com https://analytics.google.com`,
   // Allow Google Maps iframe embeds for property asset address visualization
   "frame-src 'self' https://cdn.plaid.com https://*.google.com https://*.googleapis.com https://*.gstatic.com",
   // No plugins (Flash, Silverlight, etc.)
@@ -186,7 +202,7 @@ const nextConfig: NextConfig = {
   skipTrailingSlashRedirect: true,
 };
 
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withBundleAnalyzer(nextConfig), {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
