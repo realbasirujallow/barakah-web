@@ -34,18 +34,6 @@ test.describe('Round 33: trust-critical surfaces', () => {
   test.skip(!EMAIL || !PASSWORD, 'E2E_EMAIL and E2E_PASSWORD required');
 
   let page: Page;
-
-  // M-R4-3 fix (2026-04-18): track whether the E2E account completed
-  // onboarding. The login page sends setup-incomplete users to /setup
-  // instead of /dashboard (see src/app/login/page.tsx), and the
-  // dashboard layout bounces them back to /setup on every navigation
-  // (see src/app/dashboard/layout.tsx). Previously the test just
-  // `waitForURL(/\/dashboard/)` and timed out on a fresh E2E account.
-  //
-  // We now wait for EITHER destination and, when we land on /setup,
-  // skip the dashboard-dependent assertions with a clear reason so the
-  // operator knows the fix is to finish onboarding on the E2E account
-  // (not to debug a Playwright flake). The API-only test still runs.
   let setupCompleted = false;
 
   test.beforeAll(async ({ browser }) => {
@@ -58,13 +46,45 @@ test.describe('Round 33: trust-critical surfaces', () => {
     await page.click('button[type="submit"]');
     // Accept either /dashboard (setup complete) or /setup (first-run).
     await page.waitForURL(/\/(dashboard|setup)/, { timeout: 15000 });
+
+    // R5 follow-up (2026-04-18): prime localStorage to mark guided setup
+    // as completed for this session, same pattern that already unblocks
+    // browser-authenticated.spec.ts. Without this, the dashboard layout
+    // redirects every navigation back to /setup on a fresh reviewer
+    // account and we skip every dashboard-dependent assertion.
+    //
+    // The priming is per-browser-context (Playwright ephemeral storage),
+    // so it never persists to the real reviewer account or pollutes the
+    // real user's actual onboarding state.
+    try {
+      const userJson = await page.evaluate(() => window.localStorage.getItem('user'));
+      if (userJson) {
+        const userId = (JSON.parse(userJson) as { id?: string })?.id;
+        if (userId) {
+          await page.evaluate((id) => {
+            window.localStorage.setItem(`barakah_guided_setup_v1:${id}`, 'true');
+            window.localStorage.setItem('barakah_onboarded', 'true');
+            window.localStorage.setItem('barakah_referral_prompted', 'true');
+          }, userId);
+        }
+      }
+    } catch {
+      // localStorage quirk — fall back to the legacy skip behaviour below.
+    }
+
+    // If we landed on /setup, force-navigate to /dashboard now that the
+    // guided-setup flag is primed. The layout won't bounce us anymore.
+    if (/\/setup(\/|$)/.test(page.url())) {
+      await page.goto(`${BASE}/dashboard`);
+      await page.waitForLoadState('networkidle').catch(() => {});
+    }
     setupCompleted = /\/dashboard(\/|$)/.test(page.url());
     if (!setupCompleted) {
       // eslint-disable-next-line no-console
       console.warn(
-        '[trust-critical.spec] E2E account landed on /setup — dashboard ' +
-        'assertions will be skipped. Complete onboarding once on the ' +
-        'E2E account to unblock the full suite.',
+        '[trust-critical.spec] Post-priming redirect still on /setup — ' +
+        'dashboard assertions will skip. Check src/app/dashboard/layout.tsx ' +
+        'guided-setup gate for localStorage-flag drift.',
       );
     }
   });

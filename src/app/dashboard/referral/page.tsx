@@ -56,7 +56,7 @@ export default function ReferralPage() {
   useEffect(() => {
     const id = window.setTimeout(() => { load(); }, 0);
     return () => window.clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const copyLink = () => {

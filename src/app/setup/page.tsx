@@ -160,7 +160,7 @@ function SetupPageInner() {
       setStatusLoading(false);
     }
     // searchParams intentionally NOT in deps — see comment above.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // Round 21: shared mountedRef so both loadSubscriptionStatus and
