@@ -25,6 +25,13 @@ jobs:
         run: npm audit --audit-level=high
       - name: Lint
         run: npm run lint
+      # Round 32: tsc --noEmit added after the Round 28 Next 16 middleware.ts +
+      # proxy.ts coexistence slipped through CI (only lint + vitest + build ran,
+      # and build didn't fail because the bundler tolerated the conflict until
+      # deploy). Pre-commit added it in Round 29 but CI was still the hole. If
+      # types break or Next conventions regress, CI fails before the deploy.
+      - name: Type check (tsc)
+        run: npx tsc --noEmit
       - name: Unit tests (vitest)
         run: npm test -- --run
       - name: Build

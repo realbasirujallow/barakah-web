@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../lib/api';
 import { useFocusTrap } from '../lib/useFocusTrap';
+import { REFERRAL_MODAL_LEAD } from '../lib/referralCopy';
 
 const STORAGE_KEY = 'barakah_referral_prompted';
 
@@ -145,8 +146,10 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
           Share Barakah with Your Family
         </h2>
 
+        {/* Round 32: copy constants imported from lib/referralCopy.ts so the
+            backend reward contract stays in sync with every UI surface. */}
         <p className="text-gray-600 mb-6">
-          When a friend signs up with your link and verifies their email, <strong>you</strong> get a free extra month of Barakah Plus — and <strong>they</strong> get their first month for just $4.99.
+          {REFERRAL_MODAL_LEAD.prefix}<strong>{REFERRAL_MODAL_LEAD.referrerSegment}</strong>{REFERRAL_MODAL_LEAD.middle}<strong>{REFERRAL_MODAL_LEAD.refereeSegment}</strong>{REFERRAL_MODAL_LEAD.suffix}
         </p>
 
         {/* Referral code display */}

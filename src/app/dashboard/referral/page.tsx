@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { trackReferralShare } from '../../../lib/analytics';
+import { REFEREE_FIRST_MONTH_PRICE, REFEREE_REGULAR_PRICE } from '../../../lib/referralCopy';
 
 // Fire both the GA4 share event and the backend REFERRAL_SHARED lifecycle
 // event so the admin viral-loop funnel reflects this surface.
@@ -112,8 +113,10 @@ export default function ReferralPage() {
         </div>
         <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-5">
           <p className="text-3xl mb-2">💰</p>
-          <p className="font-bold text-lg">They get first month for $4.99</p>
-          <p className="text-amber-100 text-sm mt-1">Your friend gets Barakah Plus for just $4.99 instead of $9.99 — 50% off their first month, automatically applied at checkout.</p>
+          {/* Round 32: use constants from lib/referralCopy.ts so modal and
+              this page stay in sync with the backend reward contract. */}
+          <p className="font-bold text-lg">They get first month for {REFEREE_FIRST_MONTH_PRICE}</p>
+          <p className="text-amber-100 text-sm mt-1">Your friend gets Barakah Plus for just {REFEREE_FIRST_MONTH_PRICE} instead of {REFEREE_REGULAR_PRICE} — 50% off their first month, automatically applied at checkout.</p>
         </div>
       </div>
 
@@ -216,7 +219,7 @@ export default function ReferralPage() {
             <span className="bg-green-100 text-[#1B5E20] rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">3</span>
             <div>
               <p className="font-medium">Earn rewards</p>
-              <p className="text-gray-500 text-sm">Once they verify their email, <strong>you earn a free extra month</strong> and <strong>they get their first paid month for $4.99</strong> — automatically applied at checkout.</p>
+              <p className="text-gray-500 text-sm">Once they verify their email, <strong>you earn a free extra month</strong> and <strong>they get their first paid month for {REFEREE_FIRST_MONTH_PRICE}</strong> — automatically applied at checkout.</p>
             </div>
           </div>
         </div>
