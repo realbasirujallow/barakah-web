@@ -164,6 +164,11 @@ export default function RibaPage() {
   const [purification, setPurification] = useState<PurificationStatus | null>(null);
   const [purifyAmount, setPurifyAmount] = useState('');
   const [purifying, setPurifying] = useState(false);
+  // Round 32: inline per-transaction "Purify" — tracks which flagged
+  // transaction IDs have been marked donated this session so we can show
+  // "✓ Donated" immediately without re-fetching the whole scan.
+  const [purifyingTxnId, setPurifyingTxnId] = useState<number | null>(null);
+  const [purifiedTxnIds, setPurifiedTxnIds] = useState<Set<number>>(new Set());
 
   // ── Journey state ───────────────────────────────────────────────────────────
   const [journey, setJourney] = useState<JourneySummary | null>(null);
@@ -258,6 +263,37 @@ export default function RibaPage() {
     }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [hasPaidAccess, isLoading, router, toast, user]);
+
+  // ── Inline per-transaction purification ─────────────────────────────────────
+  // Round 32: lets the user "mark this riba as donated/purified" right next
+  // to the flagged transaction, instead of scrolling to the Purification tab
+  // and retyping the amount. The backend endpoint supports an amount + notes
+  // payload, so we pass the transaction description in notes for audit.
+  const handlePurifyTransaction = useCallback(async (tx: RibaFlag) => {
+    if (purifyingTxnId !== null || purifiedTxnIds.has(tx.transactionId)) return;
+    setPurifyingTxnId(tx.transactionId);
+    try {
+      const res = await api.recordRibaPurification(
+        tx.amount,
+        `Purified: ${tx.description}`.slice(0, 500),
+      );
+      if (res?.error) {
+        toast(res.error, 'error');
+      } else {
+        setPurifiedTxnIds(prev => new Set(prev).add(tx.transactionId));
+        toast(`Purified ${tx.description} — JazakAllahu khairan.`, 'success');
+        // Refresh the aggregate purification status so the Purification tab's
+        // progress bar updates without a page reload.
+        api.getRibaPurificationStatus().then(status => {
+          if (status && !status.error) setPurification(status);
+        }).catch(() => {});
+      }
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to record purification', 'error');
+    } finally {
+      setPurifyingTxnId(null);
+    }
+  }, [purifyingTxnId, purifiedTxnIds, toast]);
 
   // ── Journey data load ───────────────────────────────────────────────────────
   const loadJourney = useCallback(async () => {
@@ -533,6 +569,31 @@ export default function RibaPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Round 32: inline "Purify to charity" button. Posts
+                      amount + tx description to /api/zakat/record-purification
+                      so the aggregate Purification tab progress bar moves
+                      without forcing the user to navigate + retype. */}
+                  <div className="mt-4 pt-3 border-t border-red-100 flex items-center justify-between gap-3 flex-wrap">
+                    <p className="text-xs text-gray-500">
+                      Scholars agree interest income must be donated to charity — not kept.
+                    </p>
+                    {purifiedTxnIds.has(tx.transactionId) ? (
+                      <span className="text-sm font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-lg">
+                        ✓ Marked purified
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handlePurifyTransaction(tx)}
+                        disabled={purifyingTxnId !== null}
+                        className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#154a19] transition disabled:opacity-50 whitespace-nowrap"
+                        title={`Record ${fmt(tx.amount)} as donated to charity`}
+                      >
+                        {purifyingTxnId === tx.transactionId ? 'Recording…' : `🤲 Purify ${fmt(tx.amount)}`}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

@@ -288,6 +288,28 @@ export default function CategorizePage() {
             >
               {applying ? 'Applying…' : `Apply ${actionableSuggestions.length} Suggestions`}
             </button>
+            {/* Round 32: backfill action — re-apply the Round 30 keyword
+                overrides (tax refund / interest / cashback / P2P / refund)
+                to existing transactions. Only touches rows still on the
+                loose "income" / "uncategorized" / "transfer" buckets, so
+                user-curated categories are left alone. Rate-limited
+                server-side to 5/hour. */}
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const result = await api.recategorizeMyTransactions();
+                  await loadAll();
+                  toast(result?.message || 'Re-categorization complete', 'success');
+                } catch (err) {
+                  toast(err instanceof Error ? err.message : 'Failed to re-categorize', 'error');
+                }
+              }}
+              className="mt-2 w-full bg-indigo-700/30 text-white px-4 py-2 rounded-xl text-sm hover:bg-indigo-700/40 border border-white/20"
+              title="Apply latest categorization rules to ALL existing transactions (tax refund, interest, cashback, P2P detection)"
+            >
+              🔄 Re-categorize my existing transactions
+            </button>
           </div>
         </div>
       </div>

@@ -725,6 +725,9 @@ export const api = {
   reviewCategories: () => apiFetch('/api/categorize/review'),
   applyCategories: (minConfidence = 60) =>
     apiFetch(`/api/categorize/apply?minConfidence=${minConfidence}`, { method: 'POST' }),
+  /** Round 32: re-apply R30 keyword overrides to existing transactions. */
+  recategorizeMyTransactions: () =>
+    apiFetch('/api/transactions/recategorize', { method: 'POST' }),
   getTransactionRules: () => apiFetch('/api/categorize/rules'),
   createTransactionRule: (data: Record<string, unknown>) =>
     apiFetch('/api/categorize/rules', { method: 'POST', body: JSON.stringify(data) }),
