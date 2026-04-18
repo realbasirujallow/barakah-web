@@ -146,7 +146,7 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
         </h2>
 
         <p className="text-gray-600 mb-6">
-          When someone signs up with your link and verifies their email, you <strong>both</strong> get a free month of Barakah Plus.
+          When a friend signs up with your link and verifies their email, <strong>you</strong> get a free extra month of Barakah Plus — and <strong>they</strong> get their first month for just $4.99.
         </p>
 
         {/* Referral code display */}
