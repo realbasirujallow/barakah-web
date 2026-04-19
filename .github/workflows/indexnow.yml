@@ -1,9 +1,9 @@
-name: IndexNow — notify Bing/Yandex/Naver/Seznam
+name: IndexNow - notify Bing Yandex Seznam
 
 # Fires after every push to main that touches the public sitemap or a page
 # file. IndexNow is the standards-track bulk-submission protocol accepted
 # by Bing, Yandex, Seznam, Naver, and Mojeek. Google does NOT accept
-# IndexNow today — see README-GOOGLE-SEARCH-CONSOLE.md for Google's
+# IndexNow today - see docs/SEO-INDEXING-PLAYBOOK.md for Google's
 # sitemap-submission flow (requires manual action in Search Console).
 #
 # The IndexNow endpoint verifies ownership by fetching
@@ -22,7 +22,6 @@ on:
       - 'public/robots.txt'
       - 'public/sitemap.xml'
       - '.github/workflows/indexnow.yml'
-  # Also allow on-demand submission via the Actions tab
   workflow_dispatch:
     inputs:
       full_resubmit:
@@ -36,9 +35,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-      - name: Wait for Vercel deploy to propagate
-        # Vercel deploys take ~60s-2m after push; submitting too early makes
+      - name: Wait for deploy to propagate
+        # Deploys take 60s-2m after push; submitting too early makes
         # IndexNow crawlers fetch a stale page. 90s buffer is conservative.
         run: sleep 90
 
@@ -55,16 +56,17 @@ jobs:
 
       - name: Build IndexNow payload
         id: payload
+        env:
+          FULL_RESUBMIT: ${{ github.event.inputs.full_resubmit || 'false' }}
+          KEY: '140db6db4ee38df9d39565683ff0b1734617c449d136e11d8e6fb0d7502663ab'
         run: |
           set -euo pipefail
           # Default: submit only pages touched by the push (inferred from
-          # git diff). Under workflow_dispatch with full_resubmit=true OR
-          # when we can't diff (e.g. scheduled trigger later), submit all.
-          FULL="${{ github.event.inputs.full_resubmit || 'false' }}"
-          if [ "$FULL" = "true" ]; then
-            URL_LIST=$(cat /tmp/all-urls.txt)
+          # git diff). With workflow_dispatch + full_resubmit=true, submit all.
+          if [ "${FULL_RESUBMIT}" = "true" ]; then
+            cp /tmp/all-urls.txt /tmp/submit-urls.txt
           else
-            # Touched files → candidate URLs. Only submit URLs that are
+            # Touched files -> candidate URLs. Only submit URLs that are
             # actually in the live sitemap (so we never submit draft /
             # private routes by accident).
             git diff --name-only HEAD~1 HEAD \
@@ -76,30 +78,23 @@ jobs:
             # Intersect with live sitemap
             comm -12 /tmp/touched-urls.txt /tmp/all-urls.txt > /tmp/submit-urls.txt || true
             # If nothing touched matches the sitemap (pure infra change),
-            # fall back to submitting just the homepage so IndexNow sees
-            # something → gives the crawlers a cue to re-fetch.
+            # fall back to submitting just the homepage.
             if [ ! -s /tmp/submit-urls.txt ]; then
               echo "https://trybarakah.com" > /tmp/submit-urls.txt
             fi
-            URL_LIST=$(cat /tmp/submit-urls.txt)
           fi
           echo "Submitting:"
-          echo "$URL_LIST"
-          # Build JSON payload
-          python3 - <<PY > /tmp/payload.json
-import json, os
-urls = [u.strip() for u in """$URL_LIST""".splitlines() if u.strip()]
-payload = {
-    "host": "trybarakah.com",
-    "key": "140db6db4ee38df9d39565683ff0b1734617c449d136e11d8e6fb0d7502663ab",
-    "keyLocation": "https://trybarakah.com/140db6db4ee38df9d39565683ff0b1734617c449d136e11d8e6fb0d7502663ab.txt",
-    "urlList": urls[:10000],  # IndexNow cap per request
-}
-print(json.dumps(payload))
-PY
-          echo "count=$(grep -c '^' /tmp/payload.json)" >> "$GITHUB_OUTPUT"
-          cat /tmp/payload.json | head -c 500
+          cat /tmp/submit-urls.txt
+          # Build JSON payload with jq (avoids brittle python heredoc).
+          jq -Rcs --arg key "$KEY" --arg host 'trybarakah.com' --arg keyLoc "https://trybarakah.com/${KEY}.txt" '
+            split("\n")
+            | map(select(length > 0))
+            | { host: $host, key: $key, keyLocation: $keyLoc, urlList: . }
+          ' /tmp/submit-urls.txt > /tmp/payload.json
+          # Head of payload for debugging (key is public so no redaction needed).
+          head -c 500 /tmp/payload.json
           echo
+          echo "count=$(jq '.urlList | length' /tmp/payload.json)" >> "$GITHUB_OUTPUT"
 
       - name: Submit to IndexNow (Bing)
         run: |
@@ -129,15 +124,17 @@ PY
       - name: Summary
         if: always()
         run: |
-          echo "## IndexNow submission" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Total URLs in sitemap: ${{ steps.urls.outputs.total }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Submitted to: IndexNow API (Bing), Yandex, Seznam" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "### Responses" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          cat /tmp/resp.txt >> "$GITHUB_STEP_SUMMARY" || true
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "**Note:** Google does not honor IndexNow. For Google, submit" >> "$GITHUB_STEP_SUMMARY"
-          echo "the sitemap at https://trybarakah.com/sitemap.xml via" >> "$GITHUB_STEP_SUMMARY"
-          echo "Search Console → Sitemaps." >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## IndexNow submission"
+            echo "- URL count submitted: ${{ steps.payload.outputs.count }}"
+            echo "- Sitemap total: ${{ steps.urls.outputs.total }}"
+            echo ""
+            echo "### Responses"
+            echo '```'
+            cat /tmp/resp.txt 2>/dev/null || echo '(no responses)'
+            echo '```'
+            echo ""
+            echo "**Note:** Google does not honor IndexNow. For Google, submit"
+            echo "the sitemap at https://trybarakah.com/sitemap.xml via"
+            echo "Search Console. See docs/SEO-INDEXING-PLAYBOOK.md."
+          } >> "$GITHUB_STEP_SUMMARY"
