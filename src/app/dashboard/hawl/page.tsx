@@ -407,6 +407,21 @@ function HawlPageContent() {
         </div>
       )}
 
+      {!loading && items.length === 0 && currentZakatableWealth > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-sm text-amber-900">
+          <p className="font-semibold mb-1">Why the Dashboard and this page can show different numbers</p>
+          <p className="mb-2">
+            Your <strong>Dashboard</strong> zakat figure is 2.5% of your zakatable wealth — an estimate
+            of your total obligation assuming every asset has already completed its 354-day lunar (hawl) cycle.
+          </p>
+          <p>
+            This <strong>Hawl Tracker</strong> counts only the assets where you&apos;ve actually started the
+            countdown, which is what Islamic fiqh uses to decide when each asset&apos;s zakat is individually due.
+            Tap <strong>Import from your Assets</strong> below to begin — your Dashboard number does not change.
+          </p>
+        </div>
+      )}
+
       <div className="grid md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Tracking</p><p className="text-2xl font-bold text-[#1B5E20]">{items.length}</p></div>
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Zakat Due</p><p className="text-2xl font-bold text-amber-600">{zakatDue.length}</p></div>
