@@ -86,6 +86,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/mint-alternative-for-muslims`, changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/islamic-budgeting-app`,      changeFrequency: 'monthly', priority: 0.90, lastModified: now },
 
+    // ── Halal Stocks — per-ticker (Week 6) ───────────────────────────────────
+    { url: `${baseUrl}/halal-stocks`,            changeFrequency: 'weekly',  priority: 0.93, lastModified: now },
+    { url: `${baseUrl}/halal-stocks/aapl`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/halal-stocks/msft`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/halal-stocks/amzn`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/halal-stocks/tsla`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/halal-stocks/nvda`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+
     // ── Fiqh Terms Glossary (Week 4) ─────────────────────────────────────────
     { url: `${baseUrl}/fiqh-terms`,              changeFrequency: 'monthly', priority: 0.90, lastModified: now },
     { url: `${baseUrl}/fiqh-terms/zakat`,        changeFrequency: 'monthly', priority: 0.85, lastModified: now },
