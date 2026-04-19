@@ -88,6 +88,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/mint-alternative-for-muslims`, changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/islamic-budgeting-app`,      changeFrequency: 'monthly', priority: 0.90, lastModified: now },
 
+    // ── UK-specific SEO (Week 12) ────────────────────────────────────────────
+    { url: `${baseUrl}/zakat-uk`,                 changeFrequency: 'weekly',  priority: 0.92, lastModified: now },
+    { url: `${baseUrl}/learn/nisab-gbp`,          changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+
     // ── Ramadan 2027 seasonal landing (Week 6) ────────────────────────────────
     { url: `${baseUrl}/ramadan`,                 changeFrequency: 'weekly',  priority: 0.92, lastModified: now },
 
