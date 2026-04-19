@@ -1,5 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import {
+  DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL,
+  DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL,
+} from '../../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Barakah vs Zoya (2026): Halal Finance App Comparison | Barakah',
@@ -202,7 +206,7 @@ export default function BarakahVsZoyaPage() {
                   <li>Free — unlimited zakat/hawl/fiqh/prayer</li>
                   <li>Plus — $9.99/mo or $99/yr</li>
                   <li>Family — $14.99/mo or $119/yr (6 seats)</li>
-                  <li>7-day free Plus trial</li>
+                  <li>{DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free Plus trial</li>
                 </ul>
               </div>
               <div>
@@ -218,9 +222,9 @@ export default function BarakahVsZoyaPage() {
 
           {/* CTAs */}
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">
-            <h2 className="mb-3 text-xl font-bold">Try Barakah free for 7 days</h2>
+            <h2 className="mb-3 text-xl font-bold">Try Barakah free for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL}</h2>
             <p className="mb-4 text-sm leading-7 text-green-100">
-              No card required. Full Plus access for 7 days. If Barakah doesn&apos;t replace the 4
+              No card required. Full Plus access for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL}. If Barakah doesn&apos;t replace the 4
               apps you&apos;re currently running to manage your household money, keep the free tier
               and nothing changes.
             </p>

@@ -2,6 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Script from 'next/script';
 import { COMPETITOR_COMPARISON } from '../../lib/pricing';
+import {
+  DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL,
+  DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL,
+} from '../../lib/trial';
 import PricingToggle from './PricingToggle';
 
 export const metadata: Metadata = {
@@ -40,7 +44,7 @@ const faqItems = [
   {
     question: 'Is there a free trial?',
     answer:
-      'Yes. Every signup gets 7 days of Barakah Plus free, no credit card required. You can cancel or downgrade at any point; if you do nothing, your account drops to Free when the trial ends.',
+      `Yes. Every signup gets ${DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Barakah Plus free, no credit card required. You can cancel or downgrade at any point; if you do nothing, your account drops to Free when the trial ends.`,
   },
   {
     question: 'Can I switch plans?',
@@ -196,10 +200,10 @@ export default function PricingPage() {
           {/* Bottom CTA Section */}
           <section className="bg-gradient-to-r from-green-800 to-green-900 rounded-2xl shadow-lg p-12 text-center">
             <h2 className="text-3xl font-bold text-white mb-4">
-              Start your 7-day free Plus trial
+              Start your {DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free Plus trial
             </h2>
             <p className="text-lg text-green-100 mb-8 max-w-2xl mx-auto">
-              No credit card required. Every new account gets 7 days of Barakah Plus on the house &mdash; run a zakat calc, link an account, and see why Muslim households choose Barakah over Monarch, YNAB, or Zoya.
+              No credit card required. Every new account gets {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Barakah Plus on the house &mdash; run a zakat calc, link an account, and see why Muslim households choose Barakah over Monarch, YNAB, or Zoya.
             </p>
             <Link
               href="/signup"

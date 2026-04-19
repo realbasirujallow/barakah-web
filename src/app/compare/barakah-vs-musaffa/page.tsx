@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Barakah vs Musaffa (2026): Household Money vs Halal Stock Screener | Barakah',
@@ -123,7 +124,7 @@ export default function BarakahVsMusaffaPage() {
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">
-            <h2 className="mb-3 text-xl font-bold">Try Barakah free for 7 days</h2>
+            <h2 className="mb-3 text-xl font-bold">Try Barakah free for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL}</h2>
             <p className="mb-4 text-sm leading-7 text-green-100">
               If Musaffa&apos;s 5-tier pricing confuses you, Barakah&apos;s $9.99/mo Plus and $14.99/mo Family
               are easy to understand. If Barakah doesn&apos;t handle everything you need, keep the free tier

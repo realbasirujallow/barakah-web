@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Islamic Finance Glossary (2026): 14 Fiqh Terms Every Muslim Investor Should Know | Barakah',
@@ -149,7 +150,7 @@ export default function FiqhTermsHub() {
             <p className="mb-4 text-sm leading-7 text-green-100">
               Barakah turns each of these terms into a real feature — nisab-aware zakat, hawl-continuity
               tracking, riba detection on your bank transactions, a faraid calculator, and a wassiyah
-              builder. Free for 7 days, no card.
+              builder. Free for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL}, no card.
             </p>
             <Link href="/signup" className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#1B5E20] transition hover:bg-green-50">
               Try Barakah free →

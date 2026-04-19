@@ -8,6 +8,7 @@ import { useToast } from '../lib/toast';
 import { ReactNode } from 'react';
 
 import { PRICING } from '../lib/pricing';
+import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../lib/trial';
 
 interface PlanGateProps {
   /** Minimum plan required to see the content. */
@@ -151,7 +152,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
             {description ?? featureDescriptions[featureName] ?? `${featureName} comes with every other Plus feature — unlimited transactions, bank sync, halal screener, Barakah Score, and more.`}
           </p>
           <p className="text-sm text-[#1B5E20] font-semibold mt-4">
-            New accounts get 7 days of Plus free &mdash; no card required. Already past your trial? Keep going for less than the cost of a coffee a week.
+            New accounts get {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus free &mdash; no card required. Already past your trial? Keep going for less than the cost of a coffee a week.
           </p>
         </div>
 

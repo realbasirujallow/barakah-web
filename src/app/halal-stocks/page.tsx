@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Halal Stocks (2026): Live Shariah Screening for Major US Tickers | Barakah',
@@ -117,7 +118,7 @@ export default function HalalStocksHub() {
             <h2 className="mb-3 text-xl font-bold">Screen any US/UK/GCC stock in seconds</h2>
             <p className="mb-4 text-sm leading-7 text-green-100">
               Barakah Plus ($9.99/mo) gives you unlimited halal screening against 30,000+ tickers with live AAOIFI ratios,
-              purification amounts, and zakat integration. Free for 7 days.
+              purification amounts, and zakat integration. Free for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL}.
             </p>
             <Link href="/signup" className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#1B5E20] transition hover:bg-green-50">
               Start free trial →
