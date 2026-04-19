@@ -117,6 +117,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/fiqh-terms/faraid`,       changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/fiqh-terms/wassiyah`,     changeFrequency: 'monthly', priority: 0.85, lastModified: now },
 
+    // ── Ambassador / outreach infrastructure (Week 11) ───────────────────────
+    { url: `${baseUrl}/ambassadors`, changeFrequency: 'monthly', priority: 0.75, lastModified: now },
+
     // ── Auth pages ───────────────────────────────────────────────────────────
     { url: `${baseUrl}/login`,      changeFrequency: 'monthly', priority: 0.60 },
     { url: `${baseUrl}/signup`,     changeFrequency: 'monthly', priority: 0.80, lastModified: now },
