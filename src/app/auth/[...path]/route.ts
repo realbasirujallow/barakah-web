@@ -23,7 +23,14 @@ import { NextRequest, NextResponse } from 'next/server';
 const RAW_BACKEND_URL =
   process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || '';
 
-if (process.env.NODE_ENV === 'production' && !RAW_BACKEND_URL) {
+// GitHub Actions build should not require prod env vars — see next.config.ts
+// for the matching rationale. Railway / Vercel / any real production deploy
+// does not set GITHUB_ACTIONS, so the hard-fail still fires where it matters.
+if (
+  process.env.NODE_ENV === 'production' &&
+  process.env.GITHUB_ACTIONS !== 'true' &&
+  !RAW_BACKEND_URL
+) {
   throw new Error(
     'Auth proxy misconfigured: BACKEND_URL (or NEXT_PUBLIC_API_URL) must be ' +
     'set in production. Refusing to default to https://api.trybarakah.com.'
@@ -100,8 +107,16 @@ async function handler(
     clearTimeout(timeoutId);
   }
 
-  // Build response with backend body
-  const responseBody = await backendRes.text();
+  // Build response with backend body.
+  // Per the Fetch spec, a "null body status" (101, 103, 204, 205, 304) MUST
+  // have a null body — passing any body (including an empty string) makes
+  // `new Response(...)` throw `TypeError: Invalid response status code 204`.
+  // This fired in production whenever the backend answered /auth/csrf with
+  // 204 No Content. Normalize to null for those statuses.
+  const NULL_BODY_STATUSES = new Set([101, 103, 204, 205, 304]);
+  const responseBody = NULL_BODY_STATUSES.has(backendRes.status)
+    ? null
+    : await backendRes.text();
   const response = new NextResponse(responseBody, {
     status: backendRes.status,
     statusText: backendRes.statusText,
