@@ -84,6 +84,7 @@ export default function Page() {
           </nav>
 
           <h1 className="text-4xl font-bold text-gray-900 mb-6 dark:text-gray-100">Zakat on Business Assets 2026</h1>
+          <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
           <p className="text-lg text-gray-700 leading-relaxed mb-8 dark:text-gray-300">
             If you own a business — whether a sole proprietorship, LLC, or partnership — zakat applies to certain business assets. The key principle is simple: zakat falls on wealth held for growth and trade, not on tools you use to run the business. This guide walks through exactly what is zakatable, how to calculate the amount, and how to handle special cases like online sellers, freelancers, and business partners.
           </p>

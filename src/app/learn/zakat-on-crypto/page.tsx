@@ -28,6 +28,7 @@ export default function Page() {
             <span className="text-gray-600 dark:text-gray-400">Zakat on Cryptocurrency</span>
           </nav>
           <h1 className="text-4xl font-bold text-gray-900 mb-6 dark:text-gray-100">Zakat on Cryptocurrency</h1>
+          <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
           <p className="text-lg text-gray-700 leading-relaxed mb-8 dark:text-gray-300">Cryptocurrency is a relatively new asset class, and Islamic scholars have reached a strong consensus: crypto holdings that have been held for one full lunar year (hawl) above the nisab threshold are subject to zakat at the standard 2.5% rate.</p>
           
           <section className="mb-8">

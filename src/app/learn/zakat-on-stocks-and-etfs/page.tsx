@@ -84,6 +84,7 @@ export default function Page() {
           </nav>
 
           <h1 className="text-4xl font-bold text-gray-900 mb-6 dark:text-gray-100">Zakat on Stocks and ETFs 2026</h1>
+          <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
           <p className="text-lg text-gray-700 leading-relaxed mb-8 dark:text-gray-300">
             Stocks and ETFs are now among the most common forms of zakatable wealth for Muslim investors in North America and Europe. There is broad scholarly agreement that long-term stock holdings are subject to zakat — the disagreement is about <em>how much</em> of the portfolio value is zakatable. This guide explains both main calculation methods, with worked examples using real companies (Apple, S&amp;P 500 ETF), so you can choose the approach that fits your situation.
           </p>

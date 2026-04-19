@@ -84,6 +84,7 @@ export default function Page() {
           </nav>
 
           <h1 className="text-4xl font-bold text-gray-900 mb-6 dark:text-gray-100">Zakat on Savings Accounts 2026</h1>
+          <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
           <p className="text-lg text-gray-700 leading-relaxed mb-8 dark:text-gray-300">
             Cash in a savings account is among the most clearly zakatable forms of wealth in Islamic law — there is no scholarly disagreement on this point. If your savings exceed the nisab threshold and have been held for a full hawl (lunar year), zakat of 2.5% is due. This guide explains how the hawl year works for savings, how to combine multiple accounts, and how to handle the complication of interest (riba) that many US savings accounts generate.
           </p>

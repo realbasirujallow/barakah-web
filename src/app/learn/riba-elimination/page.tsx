@@ -166,6 +166,7 @@ export default function RibaEliminationPage() {
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               How to Eliminate Riba from Your Finances
             </h1>
+            <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
             <p className="text-xl text-gray-700 max-w-2xl dark:text-gray-300">
               A practical, step-by-step guide for Muslims who want to identify and remove
               interest from their mortgages, credit cards, loans, and savings accounts.

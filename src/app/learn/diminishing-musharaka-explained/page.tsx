@@ -85,6 +85,7 @@ export default function Page() {
           <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
             Diminishing Musharaka Explained
           </h1>
+          <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
           <p className="text-lg text-gray-600 mb-2 leading-relaxed dark:text-gray-400">
             Diminishing musharaka (also called diminishing partnership or declining co-ownership) is the most widely used Shariah-compliant
             home financing structure in the United States and United Kingdom. It is the model used by Guidance Residential, Devon Bank,
