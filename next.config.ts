@@ -21,10 +21,18 @@ const withBundleAnalyzer = bundleAnalyzer({
 // fallback. Local `npm run dev` keeps the old fallback so newcomers can run
 // the web app without env scaffolding.
 const IS_PRODUCTION_BUILD = process.env.NODE_ENV === 'production';
+// GitHub Actions sets GITHUB_ACTIONS=true during every CI run. We skip the
+// env-var hard-fail there because the CI build is a compile-check, not a
+// production deploy — CI has no reason to know the prod backend URL, and
+// failing every PR here was blocking merges (24637813654, 24632129671,
+// 24632071695, ...). Railway / Vercel / any real deploy environment does
+// NOT set GITHUB_ACTIONS, so the hard-fail still fires on a misconfigured
+// production deploy — which is the original intent of H-R4-2.
+const IS_GITHUB_ACTIONS = process.env.GITHUB_ACTIONS === 'true';
 const RAW_BACKEND_URL =
   process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || '';
 
-if (IS_PRODUCTION_BUILD && !RAW_BACKEND_URL) {
+if (IS_PRODUCTION_BUILD && !IS_GITHUB_ACTIONS && !RAW_BACKEND_URL) {
   throw new Error(
     'Configuration error: BACKEND_URL (or NEXT_PUBLIC_API_URL) must be set ' +
     'for production builds. Refusing to silently default to ' +
