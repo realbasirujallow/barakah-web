@@ -60,6 +60,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/compare/barakah-vs-zoya`,                  changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/compare/barakah-vs-wahed`,                 changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/compare/barakah-vs-musaffa`,               changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/compare/barakah-vs-ynab`,                  changeFrequency: 'monthly', priority: 0.87, lastModified: now },
+    { url: `${baseUrl}/compare/barakah-vs-monarch`,               changeFrequency: 'monthly', priority: 0.87, lastModified: now },
     { url: `${baseUrl}/learn/halal-stock-screener`,               changeFrequency: 'monthly', priority: 0.88 },
     { url: `${baseUrl}/learn/halal-investing-guide`,              changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/is-my-mortgage-halal`,               changeFrequency: 'monthly', priority: 0.88 },
