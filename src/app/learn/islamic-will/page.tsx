@@ -424,6 +424,16 @@ export default function IslamicWillPage() {
               <p className="mt-2">This article is based on the Quran (Surah An-Nisa 4:7-14), Sahih al-Bukhari (Book of Wills), Sahih Muslim (Book of Bequests), and guidance from AMJA, the Islamic Fiqh Academy (OIC), and classical texts on Islamic inheritance law (ilm al-faraid).</p>
             </footer>
           </article>
+          <section className="mt-10 rounded-2xl bg-amber-50 border border-amber-200 p-6">
+            <h2 className="mb-3 text-lg font-bold text-amber-900">Related fiqh terms</h2>
+            <p className="text-sm text-amber-900 mb-3">Scholar-aligned glossary entries covering the Islamic legal terms used on this page.</p>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/fiqh-terms/wassiyah" className="rounded-full bg-white px-3 py-1 text-sm text-[#1B5E20] border border-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition">Wassiyah →</Link>
+              <Link href="/fiqh-terms/faraid" className="rounded-full bg-white px-3 py-1 text-sm text-[#1B5E20] border border-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition">Faraid →</Link>
+              <Link href="/fiqh-terms/hibah" className="rounded-full bg-white px-3 py-1 text-sm text-[#1B5E20] border border-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition">Hibah →</Link>
+              <Link href="/fiqh-terms" className="rounded-full bg-amber-100 px-3 py-1 text-sm text-amber-900 border border-amber-200 hover:bg-amber-200 transition">All 14 terms →</Link>
+            </div>
+          </section>
         </main>
 
         {/* Footer */}
