@@ -97,12 +97,54 @@ const faqSchema = {
   ],
 };
 
+const howToSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'How to Calculate Zakat al-Fitr',
+  description: 'Determine the per-person amount and the number of dependents in your household, then distribute before Eid prayer.',
+  totalTime: 'PT3M',
+  step: [
+    {
+      '@type': 'HowToStep',
+      position: 1,
+      name: 'Determine the per-person amount',
+      text: 'One sa\u2019 (~2.5kg) of your local staple food per person, or the cash equivalent. For 2026, most US and UK scholars recommend $10-15 per person. Verify with your local masjid.',
+    },
+    {
+      '@type': 'HowToStep',
+      position: 2,
+      name: 'Count the members of your household',
+      text: 'Include every Muslim in the household who owns more than their day\u2019s food on the last day of Ramadan: yourself, your spouse, children (including infants), elderly relatives under your care.',
+    },
+    {
+      '@type': 'HowToStep',
+      position: 3,
+      name: 'Multiply and distribute before Eid prayer',
+      text: 'Multiply per-person amount by household size. Give the total to eligible recipients (fuqara and masakin) before Eid prayer so they can celebrate. Direct to needy, through your masjid, or via a trusted distribution organization.',
+    },
+  ],
+  tool: [{ '@type': 'HowToTool', name: 'Barakah Zakat al-Fitr Calculator' }],
+};
+
+const webAppSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Zakat al-Fitr Calculator',
+  url: 'https://trybarakah.com/learn/zakat-al-fitr-calculator',
+  applicationCategory: 'FinanceApplication',
+  operatingSystem: 'Any',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  provider: { '@type': 'Organization', name: 'Barakah', url: 'https://trybarakah.com' },
+};
+
 export default function ZakatAlFitrCalculatorPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppSchema) }} />
 
       <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
