@@ -7,12 +7,12 @@ export const metadata: Metadata = {
   description: 'Understand the nisab threshold for 2026. Compare gold standard (85g) vs silver standard (595g) and learn which to use based on your Islamic school.',
   keywords: ['nisab threshold 2026', 'what is nisab', 'nisab value today', 'gold nisab vs silver nisab', 'minimum zakat threshold'],
   alternates: {
-    canonical: 'https://trybarakah.com/learn/nisab-threshold',
+    canonical: 'https://trybarakah.com/learn/nisab',
   },
   openGraph: {
     title: 'Nisab Threshold 2026: Gold vs Silver — Which Should You Use? | Barakah',
     description: 'Master the nisab concept with expert guidance on which standard applies to your situation.',
-    url: 'https://trybarakah.com/learn/nisab-threshold',
+    url: 'https://trybarakah.com/learn/nisab',
     type: 'article',
   },
 };
@@ -88,6 +88,15 @@ export default function NisabThresholdPage() {
             <header className="space-y-4">
               <div className="inline-block bg-green-100 text-[#1B5E20] px-3 py-1 rounded-full text-xs font-semibold mb-2">
                 Zakat Guide
+              </div>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+                We&apos;ve published a newer authority hub at{' '}
+                <Link href="/learn/nisab" className="font-semibold underline hover:no-underline">
+                  /learn/nisab
+                </Link>{' '}
+                with updated methodology language, stronger internal links, and the current trust
+                framing. This page remains available for older links, but the new guide is the
+                primary Barakah reference.
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-[#1B5E20]">Nisab Threshold: Gold vs Silver</h1>
               <p className="text-lg text-gray-700 dark:text-gray-300">Master the nisab concept and determine which standard applies to your Islamic school and situation.</p>

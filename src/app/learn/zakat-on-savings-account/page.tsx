@@ -203,7 +203,7 @@ export default function Page() {
           </div>
 
           <div className="mt-8 grid sm:grid-cols-3 gap-4">
-            <Link href="/learn/nisab-threshold" className="block p-4 border rounded-lg hover:border-green-700 transition">
+            <Link href="/learn/nisab" className="block p-4 border rounded-lg hover:border-green-700 transition">
               <h3 className="font-semibold text-green-700">Nisab Threshold</h3>
               <p className="text-sm text-gray-500 mt-1 dark:text-gray-400">Gold vs. silver nisab — current values and how to choose.</p>
             </Link>

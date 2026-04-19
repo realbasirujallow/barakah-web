@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Types of Zakat: Al-Mal, Al-Fitr, Fidyah, and Zakat on Every Asset | Barakah',
+  title: 'Zakat and Related Giving Obligations: Al-Mal, Al-Fitr, Fidyah & Kaffarah | Barakah',
   description:
-    "Zakat isn't one thing — it's a family of obligations. This hub explains each type (Al-Mal, Al-Fitr, Fidyah, and zakat by asset class) and links to Barakah's detailed guide for each.",
+    'Zakat al-mal and zakat al-fitr are true zakat obligations. This guide also explains related obligations Muslims often ask about — fidyah, kaffarah, and sadaqah — with links to deeper guides.',
   keywords: [
     'types of zakat',
     'zakat al-mal',
@@ -20,8 +20,9 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/learn/types-of-zakat',
   },
   openGraph: {
-    title: 'Types of Zakat: Al-Mal, Al-Fitr, Fidyah, and Zakat on Every Asset | Barakah',
-    description: "Zakat isn't one thing. This hub explains each type and links to Barakah's detailed guide for each.",
+    title: 'Zakat and Related Giving Obligations: Al-Mal, Al-Fitr, Fidyah & Kaffarah | Barakah',
+    description:
+      'Clear distinctions between zakat al-mal, zakat al-fitr, fidyah, kaffarah, and sadaqah, with links to deeper Barakah guides.',
     url: 'https://trybarakah.com/learn/types-of-zakat',
     type: 'article',
   },
@@ -31,6 +32,7 @@ const types = [
   {
     name: 'Zakat al-Mal',
     arabicName: 'زكاة المال',
+    label: 'True zakat',
     summary: 'Zakat on wealth — the "main" zakat. 2.5% on savings, investments, gold, silver, business assets, and receivables held above nisab for a full lunar year.',
     who: 'Any Muslim whose zakatable wealth is above nisab and has completed a hawl.',
     amount: '2.5% of the zakatable total.',
@@ -48,6 +50,7 @@ const types = [
   {
     name: 'Zakat al-Fitr',
     arabicName: 'زكاة الفطر',
+    label: 'True zakat',
     summary: 'The Ramadan-end charity due on every Muslim (including children and dependents). A fixed food-staple amount per person, paid before Eid al-Fitr prayer.',
     who: 'Every Muslim who has at least one day\'s food beyond their needs on Eid night — paid by the head of household on behalf of all dependents.',
     amount: 'One ṣāʿ (≈2.5–3kg) of a local staple food per person. Many scholars permit the cash equivalent (Hanafi primary position); others require food distribution (Shafi\'i/Maliki primary).',
@@ -60,6 +63,7 @@ const types = [
   {
     name: 'Fidyah',
     arabicName: 'فدية',
+    label: 'Related obligation',
     summary: 'The compensation paid when a person is permanently unable to fast Ramadan (due to chronic illness, old age). Also applicable in specific Hajj/pilgrimage scenarios.',
     who: 'Muslims whose condition makes missed fasts impossible to make up — e.g., elderly, terminally ill, permanently unable.',
     amount: 'Feeding one poor person per missed fast day (typically the cost of ~2 meals — most scholars reference $10–$20 USD per missed day in 2026).',
@@ -70,6 +74,7 @@ const types = [
   {
     name: 'Kaffarah',
     arabicName: 'كفارة',
+    label: 'Related obligation',
     summary: 'Expiation for intentionally broken fasts, broken oaths, or certain ritual violations. Much heavier than fidyah because it addresses deliberate transgression.',
     who: 'Muslims who intentionally broke a Ramadan fast without a valid excuse or broke a specific oath.',
     amount: 'Varies by scenario — for a broken Ramadan fast: 60 consecutive days of fasting OR feeding 60 poor people per day missed.',
@@ -80,6 +85,7 @@ const types = [
   {
     name: 'Sadaqah (voluntary giving)',
     arabicName: 'صدقة',
+    label: 'Voluntary charity',
     summary: 'Voluntary charity. Not a type of zakat technically — but often confused. Unlike zakat, sadaqah has no threshold, no calendar, no fixed amount. Any act of giving counts.',
     who: 'Any Muslim — at any time, in any amount.',
     amount: 'Entirely discretionary.',
@@ -110,24 +116,34 @@ export default function TypesOfZakatPage() {
             <span className="text-gray-300">/</span>
             <Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link>
             <span className="text-gray-300">/</span>
-            <span className="text-gray-900">Types of Zakat</span>
+            <span className="text-gray-900">Zakat &amp; Related Obligations</span>
           </div>
         </div>
       </nav>
 
       <main className="flex-1">
         <div className="max-w-4xl mx-auto px-6 py-10">
-          <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-[#1B5E20]">Types of Zakat</h1>
+          <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-[#1B5E20]">Zakat and Related Giving Obligations</h1>
           <p className="text-base text-gray-600 mb-6">Last reviewed: 2026-04-19</p>
 
           <p className="text-lg leading-8 text-gray-800 mb-8">
-            When most Muslims say &ldquo;zakat&rdquo; they mean <em>zakat al-mal</em> — the 2.5%
-            annual obligation on accumulated wealth. But the Quran and Sunnah describe a family of
-            related obligations: zakat al-fitr at Ramadan&apos;s end, fidyah for permanent
-            inability to fast, kaffarah for broken fasts or oaths, and voluntary sadaqah that
-            sits alongside them. This page is the hub — each section links to Barakah&apos;s
-            detailed guide for that obligation.
+            Muslims often group several forms of giving together, but they are not all the same in
+            fiqh. Strictly speaking, <em>zakat al-mal</em> and <em>zakat al-fitr</em> are zakat.
+            Fidyah and kaffarah are separate compensatory or expiatory obligations, and sadaqah is
+            voluntary charity. This page keeps that distinction clear while linking you to the right
+            Barakah guide for each topic.
           </p>
+
+          <section className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+            <h2 className="mb-2 text-xl font-bold text-amber-900">Important distinction</h2>
+            <p className="text-sm leading-7 text-amber-900">
+              Only <strong>zakat al-mal</strong> and <strong>zakat al-fitr</strong> are zakat.
+              <strong> Fidyah</strong> and <strong>kaffarah</strong> are separate obligations with
+              different causes and rules, while <strong>sadaqah</strong> is voluntary. Many people
+              search for all of them together, so we explain them together here without flattening
+              the fiqh differences.
+            </p>
+          </section>
 
           <div className="space-y-8">
             {types.map((t) => (
@@ -136,6 +152,11 @@ export default function TypesOfZakatPage() {
                   <h2 className="text-2xl font-bold text-[#1B5E20]">{t.name}</h2>
                   <span className="text-lg text-gray-400" dir="rtl">{t.arabicName}</span>
                 </div>
+                <p className="mb-3">
+                  <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-[#1B5E20]">
+                    {t.label}
+                  </span>
+                </p>
                 <p className="mb-3 text-base leading-7 text-gray-800">{t.summary}</p>
                 <dl className="mb-4 grid gap-3 sm:grid-cols-2">
                   <div>

@@ -293,7 +293,7 @@ export default function ZakatAlFitrCalculatorPage() {
                 { href: '/learn/zakat-al-fitr', title: 'Zakat al-Fitr Guide', desc: "Complete ruling and wisdom behind Ramadan's end-of-fast charity." },
                 { href: '/learn/what-is-zakat', title: 'What is Zakat?', desc: 'Complete guide — the annual obligatory zakat al-mal.' },
                 { href: '/learn/sadaqah-vs-zakat', title: 'Sadaqah vs Zakat', desc: "The difference between obligatory and voluntary charity." },
-                { href: '/learn/nisab-threshold', title: 'Nisab Threshold', desc: 'Current nisab values for zakat al-mal.' },
+                { href: '/learn/nisab', title: 'Nisab Threshold', desc: 'Current nisab values for zakat al-mal.' },
                 { href: '/learn/how-much-zakat-do-i-owe', title: 'How Much Zakat Do I Owe?', desc: 'Calculate your annual zakat al-mal obligation.' },
                 { href: '/learn/ramadan-giving-tracker', title: 'Ramadan Giving', desc: 'Track all your Ramadan charity and donations.' },
               ].map((link) => (
