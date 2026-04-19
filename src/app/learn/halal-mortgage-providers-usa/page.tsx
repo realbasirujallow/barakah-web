@@ -119,6 +119,7 @@ export default function Page() {
           <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
             Halal Mortgage Providers in the USA (2025)
           </h1>
+          <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
           <p className="text-lg text-gray-600 mb-8 leading-relaxed dark:text-gray-400">
             Shariah-compliant home financing has grown significantly in the US. Here&apos;s a comparison of the major halal mortgage providers
             available to American Muslims, with details on structure, availability, and scholarly endorsement.

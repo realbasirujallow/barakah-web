@@ -175,6 +175,7 @@ export default function MadhabFinancePage() {
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
               How Your Madhab Affects Your Finances
             </h1>
+            <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
             <p className="text-xl text-gray-700 max-w-2xl dark:text-gray-300">
               Compare Hanafi, Shafi&apos;i, Maliki, and Hanbali rulings on zakat, jewelry,
               hawl tracking, debt deduction, and wasiyyah — and understand why your school

@@ -29,6 +29,7 @@ export default function Page() {
             <span className="text-gray-600 dark:text-gray-400">Zakat on 401(k) Retirement Accounts</span>
           </nav>
           <h1 className="text-4xl font-bold text-gray-900 mb-6 dark:text-gray-100">Zakat on 401(k) Retirement Accounts</h1>
+          <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
           <p className="text-lg text-gray-700 leading-relaxed mb-8 dark:text-gray-300">Retirement accounts like 401(k)s, IRAs, and Roth IRAs present a unique zakat challenge because the money is restricted — early withdrawals trigger taxes and penalties. Scholars offer three main approaches.</p>
           
           <section className="mb-8">
