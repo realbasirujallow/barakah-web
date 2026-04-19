@@ -21,7 +21,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/refer`,      changeFrequency: 'monthly', priority: 0.70 },
 
     // ── Trust / About ────────────────────────────────────────────────────────
-    { url: `${baseUrl}/methodology`, changeFrequency: 'monthly', priority: 0.72 },
+    { url: `${baseUrl}/methodology`, changeFrequency: 'monthly', priority: 0.72, lastModified: now },
+    { url: `${baseUrl}/methodology/changelog`, changeFrequency: 'weekly', priority: 0.75, lastModified: now },
+    { url: `${baseUrl}/scholars`,    changeFrequency: 'monthly', priority: 0.70, lastModified: now },
     { url: `${baseUrl}/trust`,       changeFrequency: 'monthly', priority: 0.72 },
     { url: `${baseUrl}/security`,    changeFrequency: 'monthly', priority: 0.72 },
 
@@ -31,7 +33,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // ── Zakat: core guides ────────────────────────────────────────────────────
     { url: `${baseUrl}/learn/what-is-zakat`,              changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/how-much-zakat-do-i-owe`,    changeFrequency: 'monthly', priority: 0.92, lastModified: now },
+    { url: `${baseUrl}/learn/nisab`,                      changeFrequency: 'weekly',  priority: 0.93, lastModified: now },
     { url: `${baseUrl}/learn/nisab-threshold`,            changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/learn/hawl`,                       changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/learn/types-of-zakat`,             changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/zakat-al-fitr`,              changeFrequency: 'monthly', priority: 0.88 },
     { url: `${baseUrl}/learn/zakat-al-fitr-calculator`,   changeFrequency: 'monthly', priority: 0.88 },
     { url: `${baseUrl}/learn/sadaqah-vs-zakat`,           changeFrequency: 'monthly', priority: 0.85 },
@@ -51,6 +56,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // ── Islamic investing / halal ─────────────────────────────────────────────
     { url: `${baseUrl}/learn/halal-stocks`,                       changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/learn/halal-etfs`,                         changeFrequency: 'monthly', priority: 0.90, lastModified: now },
     { url: `${baseUrl}/learn/halal-stock-screener`,               changeFrequency: 'monthly', priority: 0.88 },
     { url: `${baseUrl}/learn/halal-investing-guide`,              changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/is-my-mortgage-halal`,               changeFrequency: 'monthly', priority: 0.88 },
