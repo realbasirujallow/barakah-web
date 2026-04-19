@@ -319,7 +319,7 @@ export default function HowMuchZakatPage() {
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { href: '/learn/what-is-zakat', title: 'What is Zakat?', desc: 'Complete 2026 guide — the 5 conditions and 8 recipients.' },
-                { href: '/learn/nisab-threshold', title: 'Nisab Threshold 2026', desc: 'Current gold and silver nisab values with live prices.' },
+                { href: '/learn/nisab', title: 'Nisab Threshold 2026', desc: 'Current gold and silver nisab values with live prices.' },
                 { href: '/learn/zakat-on-gold', title: 'Zakat on Gold', desc: 'How to calculate zakat on gold jewelry and coins.' },
                 { href: '/learn/zakat-on-stocks', title: 'Zakat on Stocks', desc: 'Using liquid asset ratios to calculate stock zakat.' },
                 { href: '/learn/zakat-on-savings', title: 'Zakat on Savings', desc: 'Which savings accounts are zakatable and how to calculate.' },

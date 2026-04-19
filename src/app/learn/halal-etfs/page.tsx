@@ -59,7 +59,7 @@ const FaqSchema = {
       name: 'Can I buy halal ETFs in a 401(k)?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Usually not directly — most 401(k) plans offer a fixed menu of mutual funds selected by your employer. You can request halal funds be added (ShariaPortfolio, Amana, and Guidestone manage retirement-plan-accessible halal funds) or roll over to an IRA where you have full brokerage access to SPUS, HLAL, UMMA, IGDA, and others. We're shipping a dedicated /learn/halal-401k guide with the email template you can send HR.",
+        text: "Usually not directly — most 401(k) plans offer a fixed menu of mutual funds selected by your employer. You can request halal funds be added (ShariaPortfolio, Amana, and Guidestone manage retirement-plan-accessible halal funds) or roll over to an IRA where you have full brokerage access to SPUS, HLAL, UMMA, IGDA, and others. See our dedicated /learn/halal-401k guide for a copy-ready email template you can send HR.",
       },
     },
   ],
@@ -272,11 +272,14 @@ export default function HalalEtfsPage() {
                 Most 401(k) plans don&apos;t offer SPUS, HLAL, UMMA, or IGDA directly — they
                 restrict you to their curated menu. Your options: (1) ask HR to add halal funds
                 (ShariaPortfolio manages 401k-accessible halal options), (2) roll over vested
-                balances to an IRA where you have full brokerage access, or (3) contribute just
-                enough to capture any employer match and invest the rest in an IRA. Our upcoming{' '}
-                <strong>/learn/halal-401k</strong> guide includes a template email to send HR.
-              </p>
-            </section>
+                  balances to an IRA where you have full brokerage access, or (3) contribute just
+                  enough to capture any employer match and invest the rest in an IRA. Our{' '}
+                  <Link href="/learn/halal-401k" className="font-semibold text-amber-900 underline hover:no-underline">
+                    halal 401(k) guide
+                  </Link>{' '}
+                  includes a copy-ready template email to send HR.
+                </p>
+              </section>
 
             {/* Related */}
             <section className="mb-10 rounded-2xl bg-[#1B5E20] p-6 text-white">

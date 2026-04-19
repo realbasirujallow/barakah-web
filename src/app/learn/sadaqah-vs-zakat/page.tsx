@@ -287,7 +287,7 @@ export default function SadaqahVsZakatPage() {
                 { href: '/learn/zakat-al-fitr', title: 'Zakat al-Fitr', desc: "The Ramadan obligatory charity paid before Eid prayer." },
                 { href: '/learn/halal-budgeting', title: 'Halal Budgeting', desc: 'Building a budget that prioritizes zakat and sadaqah.' },
                 { href: '/learn/ramadan-giving-tracker', title: 'Ramadan Giving', desc: 'Track your giving during the blessed month of Ramadan.' },
-                { href: '/learn/nisab-threshold', title: 'Nisab Threshold 2026', desc: 'Current gold and silver nisab values for this year.' },
+                { href: '/learn/nisab', title: 'Nisab Threshold 2026', desc: 'Current gold and silver nisab values for this year.' },
               ].map((link) => (
                 <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700">
                   <h3 className="font-semibold text-green-700 mb-1">{link.title}</h3>

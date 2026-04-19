@@ -4,14 +4,14 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Scholar Board | Barakah',
   description:
-    "Barakah's fiqh methodology is reviewed by qualified Islamic scholars across madhabs. Meet the Scholar Board, read published review briefs, and see our methodology changelog.",
+    "Barakah is building a public Scholar Board across madhabs. Track review briefs, named reviewers once confirmed, and the methodology changelog behind Barakah's fiqh-aware product decisions.",
   alternates: {
     canonical: 'https://trybarakah.com/scholars',
   },
   openGraph: {
     title: 'Scholar Board | Barakah',
     description:
-      "Barakah's fiqh methodology is reviewed by qualified Islamic scholars across madhabs.",
+      "Barakah is building a public Scholar Board across madhabs and publishing review status transparently.",
     url: 'https://trybarakah.com/scholars',
     type: 'website',
   },
@@ -51,10 +51,11 @@ export default function ScholarsPage() {
           <p className="mb-4 text-4xl">📜</p>
           <h1 className="mb-4 text-4xl font-extrabold text-[#1B5E20]">Scholar Board</h1>
           <p className="mx-auto max-w-2xl text-base leading-7 text-gray-700">
-            Barakah&apos;s fiqh methodology is reviewed by qualified Islamic scholars across madhabs.
-            Every opinionated default we ship — Hanafi-silver nisab, retirement zakat logic, hawl
-            continuity rules, madhab-specific fitr methods — is recorded in a review brief and
-            surfaced here once a named scholar has engaged.
+            Barakah&apos;s fiqh methodology moves through a public scholar-review pipeline across
+            madhabs. Every opinionated default we ship — Hanafi-silver nisab, retirement zakat
+            logic, hawl continuity rules, madhab-specific fitr methods — is recorded in a review
+            brief, given a visible review status, and only tied to a named scholar once they have
+            actually engaged and approved public naming.
           </p>
         </div>
 

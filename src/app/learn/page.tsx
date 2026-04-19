@@ -48,10 +48,24 @@ const articles: ArticleCard[] = [
     readTime: 7,
   },
   {
-    slug: 'nisab-threshold',
+    slug: 'nisab',
     category: 'Zakat',
-    title: 'Nisab Threshold 2026: Gold vs Silver',
-    description: 'Understanding the nisab threshold, comparing gold and silver standards, and which to use according to your madhab.',
+    title: 'Nisab Threshold 2026: Live Gold vs Silver',
+    description: 'Live nisab values, methodology differences, and which threshold fits your madhab or fiqh preference.',
+    readTime: 7,
+  },
+  {
+    slug: 'hawl',
+    category: 'Zakat',
+    title: 'Hawl: Your 354-Day Zakat Anniversary',
+    description: 'How hawl starts, when it resets, and why madhab differences matter once wealth dips below nisab.',
+    readTime: 7,
+  },
+  {
+    slug: 'types-of-zakat',
+    category: 'Zakat',
+    title: 'Zakat and Related Giving Obligations',
+    description: 'A clear guide to zakat al-mal, zakat al-fitr, plus the related obligations Muslims often ask about alongside them.',
     readTime: 6,
   },
   {
@@ -259,6 +273,20 @@ const articles: ArticleCard[] = [
     description: 'Complete guide to shariah-compliant investing — halal ETFs, sukuk, equities, and alternatives to interest-bearing bonds.',
     readTime: 10,
   },
+  {
+    slug: 'halal-etfs',
+    category: 'Halal Investing',
+    title: 'Best Halal ETFs 2026',
+    description: 'Compare SPUS, HLAL, UMMA, IGDA, SPSK, and how they fit into a zakat-aware halal portfolio.',
+    readTime: 8,
+  },
+  {
+    slug: 'halal-401k',
+    category: 'Halal Investing',
+    title: 'Halal 401(k) Options in the US',
+    description: 'How Muslim employees can handle 401(k) plans, ask HR for halal funds, and navigate retirement-account zakat.',
+    readTime: 9,
+  },
   // ── Planning ───────────────────────────────────────────────────────────
   {
     slug: 'islamic-will',
@@ -416,7 +444,7 @@ export default function LearnPage() {
               <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Learn</h4>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li><Link href="/learn/zakat-on-gold" className="hover:text-[#1B5E20] transition">Zakat on Gold</Link></li>
-                <li><Link href="/learn/nisab-threshold" className="hover:text-[#1B5E20] transition">Nisab Threshold</Link></li>
+                <li><Link href="/learn/nisab" className="hover:text-[#1B5E20] transition">Nisab Threshold</Link></li>
                 <li><Link href="/learn/islamic-finance-basics" className="hover:text-[#1B5E20] transition">Finance Basics</Link></li>
               </ul>
             </div>

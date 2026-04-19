@@ -208,7 +208,7 @@ export default function Page() {
               <h3 className="font-semibold text-green-700">Zakat on Savings</h3>
               <p className="text-sm text-gray-500 mt-1 dark:text-gray-400">How to calculate zakat on bank savings and cash.</p>
             </Link>
-            <Link href="/learn/nisab-threshold" className="block p-4 border rounded-lg hover:border-green-700 transition">
+            <Link href="/learn/nisab" className="block p-4 border rounded-lg hover:border-green-700 transition">
               <h3 className="font-semibold text-green-700">Nisab Threshold</h3>
               <p className="text-sm text-gray-500 mt-1 dark:text-gray-400">Gold vs. silver nisab — which to use and why it matters.</p>
             </Link>

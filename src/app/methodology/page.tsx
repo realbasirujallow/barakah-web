@@ -86,17 +86,17 @@ export default function MethodologyPage() {
         <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="mb-3 text-2xl font-bold text-[#1B5E20]">Scholar Oversight</h2>
           <p className="mb-4 text-sm leading-7 text-gray-700">
-            Every opinionated fiqh decision in Barakah is recorded in a dedicated review brief and
-            surfaced to the qualified scholars we engage. We publish the brief alongside the product
-            change so users, scholars, and auditors can see exactly what we decided, why, and whose
-            opinion it was reviewed against.
+            Every opinionated fiqh decision in Barakah gets a dedicated review brief. We publish the
+            brief alongside the product change, track whether scholar review is still pending or has
+            been completed, and add named reviewers only after they have actually engaged and
+            approved public disclosure. The goal is honest transparency, not implied endorsement.
           </p>
           <ul className="space-y-3 text-sm leading-7 text-gray-700">
             <li>
               <Link href="/scholars" className="text-[#1B5E20] font-semibold hover:underline">
                 Scholar Board →
               </Link>{' '}
-              Current and upcoming reviewers. Engaging 3–5 scholars across madhabs through Q3 2026.
+              Board formation status, planned engagements, and any named reviewers once confirmed.
             </li>
             <li>
               <Link href="/methodology/changelog" className="text-[#1B5E20] font-semibold hover:underline">

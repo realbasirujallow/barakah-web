@@ -337,7 +337,7 @@ export default function ZakatOnSavingsPage() {
                   <p className="text-gray-600 text-sm dark:text-gray-400">Calculate zakat on gold with current market prices and scholarly guidance.</p>
                 </Link>
                 <Link
-                  href="/learn/nisab-threshold"
+                  href="/learn/nisab"
                   className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition dark:bg-gray-800 dark:border-gray-700"
                 >
                   <h3 className="font-bold text-[#1B5E20] mb-2">Nisab Threshold 2026</h3>
@@ -367,7 +367,7 @@ export default function ZakatOnSavingsPage() {
                 <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Learn</h4>
                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/learn" className="hover:text-[#1B5E20] transition">All Guides</Link></li>
-                  <li><Link href="/learn/nisab-threshold" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
+                  <li><Link href="/learn/nisab" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
                   <li><Link href="/learn/zakat-al-fitr" className="hover:text-[#1B5E20] transition">Zakat al-Fitr</Link></li>
                 </ul>
               </div>

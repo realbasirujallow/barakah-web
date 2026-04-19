@@ -511,7 +511,7 @@ export default function MadhabFinancePage() {
                 </p>
               </Link>
               <Link
-                href="/learn/nisab-threshold"
+                href="/learn/nisab"
                 className="block p-4 border border-gray-200 rounded-lg hover:border-green-700 hover:shadow-md transition-all dark:border-gray-700"
               >
                 <h3 className="font-semibold text-green-700 mb-2">Nisab Threshold</h3>

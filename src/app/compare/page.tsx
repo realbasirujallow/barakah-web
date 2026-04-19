@@ -348,6 +348,33 @@ export default function ComparePage() {
             ))}
           </div>
 
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Head-to-Head Comparisons</h2>
+            <div className="grid gap-4 md:grid-cols-3">
+              <Link href="/compare/barakah-vs-zoya" className="rounded-2xl border border-gray-200 bg-white p-6 transition hover:border-[#1B5E20] hover:shadow-sm">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Investing specialist</p>
+                <h3 className="mb-2 text-xl font-bold text-[#1B5E20]">Barakah vs Zoya</h3>
+                <p className="text-sm leading-6 text-gray-600">
+                  Household finance OS vs halal stock-screening specialist.
+                </p>
+              </Link>
+              <Link href="/compare/barakah-vs-wahed" className="rounded-2xl border border-gray-200 bg-white p-6 transition hover:border-[#1B5E20] hover:shadow-sm">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Robo-advisor</p>
+                <h3 className="mb-2 text-xl font-bold text-[#1B5E20]">Barakah vs Wahed</h3>
+                <p className="text-sm leading-6 text-gray-600">
+                  Budgeting, zakat, and household orchestration vs managed halal portfolios.
+                </p>
+              </Link>
+              <Link href="/compare/barakah-vs-musaffa" className="rounded-2xl border border-gray-200 bg-white p-6 transition hover:border-[#1B5E20] hover:shadow-sm">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Screening-first app</p>
+                <h3 className="mb-2 text-xl font-bold text-[#1B5E20]">Barakah vs Musaffa</h3>
+                <p className="text-sm leading-6 text-gray-600">
+                  Household finance breadth vs security-by-security halal screening depth.
+                </p>
+              </Link>
+            </div>
+          </section>
+
           {/* FAQ */}
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
           <div className="space-y-5 mb-12">

@@ -438,7 +438,7 @@ export default function IslamicWillPage() {
                 <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Learn</h4>
                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/learn" className="hover:text-[#1B5E20] transition">All Guides</Link></li>
-                  <li><Link href="/learn/nisab-threshold" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
+                  <li><Link href="/learn/nisab" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
                   <li><Link href="/learn/islamic-finance-basics" className="hover:text-[#1B5E20] transition">Finance 101</Link></li>
                 </ul>
               </div>

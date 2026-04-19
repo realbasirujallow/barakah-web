@@ -415,7 +415,7 @@ export default function IslamicFinanceBasicsPage() {
                   <p className="text-gray-600 text-sm dark:text-gray-400">Calculate zakat on your precious metals and jewelry.</p>
                 </Link>
                 <Link
-                  href="/learn/nisab-threshold"
+                  href="/learn/nisab"
                   className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition dark:bg-gray-800 dark:border-gray-700"
                 >
                   <h3 className="font-bold text-[#1B5E20] mb-2">Nisab Threshold</h3>
@@ -453,7 +453,7 @@ export default function IslamicFinanceBasicsPage() {
                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/learn" className="hover:text-[#1B5E20] transition">All Guides</Link></li>
                   <li><Link href="/learn/zakat-on-gold" className="hover:text-[#1B5E20] transition">Zakat on Gold</Link></li>
-                  <li><Link href="/learn/nisab-threshold" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
+                  <li><Link href="/learn/nisab" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
                 </ul>
               </div>
               <div>

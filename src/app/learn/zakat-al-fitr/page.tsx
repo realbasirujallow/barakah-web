@@ -402,7 +402,7 @@ export default function ZakatAlFitrPage() {
                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/learn" className="hover:text-[#1B5E20] transition">All Guides</Link></li>
                   <li><Link href="/learn/zakat-on-gold" className="hover:text-[#1B5E20] transition">Zakat on Gold</Link></li>
-                  <li><Link href="/learn/nisab-threshold" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
+                  <li><Link href="/learn/nisab" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
                 </ul>
               </div>
               <div>

@@ -31,7 +31,7 @@ const learningResources = [
   { title: 'Zakat on Gold', href: '/learn/zakat-on-gold', desc: 'Understand how gold-based nisab works and calculate your zakat obligation.' },
   { title: 'Zakat on Retirement Accounts', href: '/learn/zakat-on-retirement-accounts', desc: 'Navigate zakat rules for 401(k)s, IRAs, and other retirement savings.' },
   { title: 'Zakat on Savings', href: '/learn/zakat-on-savings', desc: 'Learn which savings are zakatable and how to calculate your obligation.' },
-  { title: 'Nisab Threshold', href: '/learn/nisab-threshold', desc: 'Understand the nisab threshold and how it\'s calculated with current gold prices.' },
+  { title: 'Nisab Threshold', href: '/learn/nisab', desc: 'Understand the nisab threshold and how it\'s calculated with current gold and silver prices.' },
   { title: 'Zakat Al-Fitr', href: '/learn/zakat-al-fitr', desc: 'Master Zakat Al-Fitr, the charity given at the end of Ramadan.' },
   { title: 'Islamic Finance Basics', href: '/learn/islamic-finance-basics', desc: 'Learn the fundamentals of Islamic finance principles and halal investing.' },
   { title: 'Riba Elimination Guide', href: '/learn/riba-elimination', desc: 'Step-by-step guide to removing interest from mortgages, credit cards, and loans.' },
