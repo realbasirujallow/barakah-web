@@ -84,6 +84,7 @@ export default function Page() {
           </nav>
 
           <h1 className="text-4xl font-bold text-gray-900 mb-6 dark:text-gray-100">Zakat on Gold Jewelry — Hanafi, Shafi&apos;i &amp; All Madhab Rulings</h1>
+          <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
           <p className="text-lg text-gray-700 leading-relaxed mb-8 dark:text-gray-300">
             Is gold jewelry zakatable? It depends on which madhab you follow — and this is one of the most practically significant disagreements in zakat fiqh. Millions of Muslim women own gold jewelry passed down through generations or gifted at marriage. Whether that jewelry triggers zakat can represent hundreds or thousands of dollars annually. This guide explains every madhab position, how to calculate the zakat if it applies, and how Barakah&apos;s calculator applies your selected madhab automatically.
           </p>

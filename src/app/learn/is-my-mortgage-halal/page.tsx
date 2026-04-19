@@ -87,6 +87,7 @@ export default function Page() {
           <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
             Is My Mortgage Halal?
           </h1>
+          <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
           <p className="text-lg text-gray-600 mb-8 leading-relaxed dark:text-gray-400">
             The short answer for most conventional mortgages: <strong>no</strong> — they involve riba (interest), which the Quran
             explicitly prohibits. But the fuller answer is more nuanced: Shariah-compliant alternatives exist, scholars differ on necessity
