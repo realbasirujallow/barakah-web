@@ -123,6 +123,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // ── Trust / verification (Week 7) ────────────────────────────────────────
     { url: `${baseUrl}/verify`, changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/transparency`, changeFrequency: 'monthly', priority: 0.82, lastModified: now },
+    { url: `${baseUrl}/transparency/2026-h1`, changeFrequency: 'monthly', priority: 0.78, lastModified: now },
 
     // ── Ambassador / outreach infrastructure (Week 11) ───────────────────────
     { url: `${baseUrl}/ambassadors`, changeFrequency: 'monthly', priority: 0.75, lastModified: now },
