@@ -553,14 +553,16 @@ export const api = {
   // genuine session expiry from transient connectivity issues.
   // Uses deduplicatedRefresh() so concurrent callers share one request.
   refresh: () => deduplicatedRefresh(),
-  // CWE-598 fix: send the token in the POST body, not as a GET URL parameter.
-  // GET query params are captured in server access logs, CDN logs, proxy logs,
-  // and browser history — all of which are poor places for a sensitive secret.
+  // Backend is @GetMapping("/verify-email") and accepts ?token=XXX as a query
+  // parameter. A prior attempt to POST the token in the body (per CWE-598 —
+  // keeping secrets out of URLs / access logs) was merged on the web side but
+  // the backend was never updated, which made every real verification link
+  // fail with HTTP 405 "Method not allowed". Reverting to GET restores the
+  // working contract; the CWE-598 migration needs a coordinated backend +
+  // frontend change (add @PostMapping("/verify-email"), deprecate the GET,
+  // then switch the client) which is tracked as follow-up work.
   verifyEmail: (token: string) =>
-    apiFetch('/auth/verify-email', {
-      method: 'POST',
-      body: JSON.stringify({ token }),
-    }),
+    apiFetch(`/auth/verify-email?token=${encodeURIComponent(token)}`),
   resendVerification: (email: string) =>
     apiFetch('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) }),
   forgotPassword: (email: string) =>
