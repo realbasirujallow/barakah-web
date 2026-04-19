@@ -247,7 +247,7 @@ export default function WhatIsZakatPage() {
           </div>
           <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
             The nisab amount changes daily because gold and silver prices fluctuate. Use Barakah&apos;s{' '}
-            <Link href="/learn/nisab-threshold" className="text-[#1B5E20] underline">live nisab tracker</Link>{' '}
+            <Link href="/learn/nisab" className="text-[#1B5E20] underline">live nisab tracker</Link>{' '}
             or the{' '}
             <Link href="/zakat-calculator" className="text-[#1B5E20] underline">zakat calculator</Link>{' '}
             to see today&apos;s exact nisab in your currency.
@@ -361,7 +361,7 @@ export default function WhatIsZakatPage() {
             <h3 className="font-semibold text-gray-900 mb-4 dark:text-gray-100">Learn More About Zakat</h3>
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { href: '/learn/nisab-threshold', title: 'What is Nisab?', desc: "Today's nisab in USD, GBP, and EUR with live prices." },
+                { href: '/learn/nisab', title: 'What is Nisab?', desc: "Today's nisab in USD, GBP, and EUR with live prices." },
                 { href: '/learn/zakat-on-gold', title: 'Zakat on Gold', desc: 'Complete guide with live gold price nisab calculator.' },
                 { href: '/learn/zakat-on-savings', title: 'Zakat on Savings', desc: 'Which savings accounts are zakatable and how to calculate.' },
                 { href: '/learn/zakat-al-fitr', title: 'Zakat al-Fitr', desc: 'Fitrah amount in Ramadan — who pays it and how much.' },

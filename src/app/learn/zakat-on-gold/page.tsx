@@ -280,7 +280,7 @@ export default function ZakatOnGoldPage() {
               <h2 className="text-2xl font-bold text-[#1B5E20] mb-6">Related Articles</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <Link
-                  href="/learn/nisab-threshold"
+                  href="/learn/nisab"
                   className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition dark:bg-gray-800 dark:border-gray-700"
                 >
                   <h3 className="font-bold text-[#1B5E20] mb-2">Nisab Threshold 2026</h3>
@@ -317,7 +317,7 @@ export default function ZakatOnGoldPage() {
                 <h4 className="font-semibold text-gray-900 mb-3 text-sm dark:text-gray-100">Learn</h4>
                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li><Link href="/learn" className="hover:text-[#1B5E20] transition">All Guides</Link></li>
-                  <li><Link href="/learn/nisab-threshold" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
+                  <li><Link href="/learn/nisab" className="hover:text-[#1B5E20] transition">Nisab</Link></li>
                   <li><Link href="/learn/islamic-finance-basics" className="hover:text-[#1B5E20] transition">Finance 101</Link></li>
                 </ul>
               </div>

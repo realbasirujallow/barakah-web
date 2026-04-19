@@ -34,7 +34,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/what-is-zakat`,              changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/how-much-zakat-do-i-owe`,    changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/nisab`,                      changeFrequency: 'weekly',  priority: 0.93, lastModified: now },
-    { url: `${baseUrl}/learn/nisab-threshold`,            changeFrequency: 'monthly', priority: 0.90, lastModified: now },
     { url: `${baseUrl}/learn/hawl`,                       changeFrequency: 'monthly', priority: 0.90, lastModified: now },
     { url: `${baseUrl}/learn/types-of-zakat`,             changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/zakat-al-fitr`,              changeFrequency: 'monthly', priority: 0.88 },
@@ -86,6 +85,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/islamic-finance-app`,        changeFrequency: 'monthly', priority: 0.90, lastModified: now },
     { url: `${baseUrl}/learn/mint-alternative-for-muslims`, changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/islamic-budgeting-app`,      changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+
+    // ── Fiqh Terms Glossary (Week 4) ─────────────────────────────────────────
+    { url: `${baseUrl}/fiqh-terms`,              changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/zakat`,        changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/nisab`,        changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/hawl`,         changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/riba`,         changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/sadaqah`,      changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/musharaka`,    changeFrequency: 'monthly', priority: 0.83, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/murabaha`,     changeFrequency: 'monthly', priority: 0.83, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/ijara`,        changeFrequency: 'monthly', priority: 0.83, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/sukuk`,        changeFrequency: 'monthly', priority: 0.83, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/takaful`,      changeFrequency: 'monthly', priority: 0.83, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/waqf`,         changeFrequency: 'monthly', priority: 0.83, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/hibah`,        changeFrequency: 'monthly', priority: 0.83, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/faraid`,       changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/fiqh-terms/wassiyah`,     changeFrequency: 'monthly', priority: 0.85, lastModified: now },
 
     // ── Auth pages ───────────────────────────────────────────────────────────
     { url: `${baseUrl}/login`,      changeFrequency: 'monthly', priority: 0.60 },

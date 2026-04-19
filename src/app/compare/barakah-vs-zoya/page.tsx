@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 const rows = [
-  { feature: 'Halal stock screener', barakah: '30k+ stocks screened (Plus)', zoya: '40k+ stocks/ETFs/MFs, ticker-per-page SEO coverage', winner: 'Zoya' as const, note: 'Zoya is the specialist.' },
+  { feature: 'Halal stock screener', barakah: '30k+ stocks screened (Plus)', zoya: 'Large specialist database across stocks, ETFs, and mutual funds', winner: 'Zoya' as const, note: 'Zoya is the specialist.' },
   { feature: 'Zakat calculator (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + business + crypto + receivables, integrity-hashed snapshots', zoya: 'Zakat only on held stocks', winner: 'Barakah' as const, note: 'Zoya does one asset; Barakah does the whole balance sheet.' },
   { feature: 'Hawl (354-day) tracking', barakah: 'Daily nisab-continuity snapshots, fiqh-aware reset', zoya: 'None', winner: 'Barakah' as const },
   { feature: 'Budget / transactions / bills', barakah: 'Full Plaid aggregation, budget, bills, debts, recurring', zoya: 'None', winner: 'Barakah' as const },
@@ -36,11 +36,11 @@ const rows = [
   { feature: 'Prayer times / Ramadan mode', barakah: 'Integrated', zoya: 'None', winner: 'Barakah' as const },
   { feature: 'Portfolio sync with multiple brokerages', barakah: 'Via Plaid (read-only)', zoya: 'Direct brokerage integrations', winner: 'Zoya' as const, note: 'Zoya connects natively to many brokers.' },
   { feature: 'Ticker-level "is X halal" pages', barakah: 'Top 20+ planned', zoya: 'Thousands of pre-indexed ticker pages', winner: 'Zoya' as const },
-  { feature: 'Audit transparency', barakah: 'SHA-256 integrity hash per zakat snapshot, /methodology/changelog, Scholar Board', zoya: 'Methodology transparency but no per-calculation hash', winner: 'Barakah' as const },
-  { feature: 'Scholar review on opinionated defaults', barakah: 'Scholar Board + public review briefs per decision', zoya: 'Named Shariah advisor panel, quarterly compliance refresh', winner: 'Tie' as const, note: 'Different models of scholarly oversight; both credible.' },
-  { feature: 'Pricing (entry)', barakah: 'Free tier + Plus $9.99/mo or $99/yr', zoya: 'Free tier + Zoya Pro $9.99–$14.99/mo', winner: 'Tie' as const },
+  { feature: 'Audit transparency', barakah: 'SHA-256 integrity hash per zakat snapshot, /methodology/changelog, public review-brief trail', zoya: 'Methodology transparency on investing, but no per-calculation hash', winner: 'Barakah' as const },
+  { feature: 'Public scholarly oversight', barakah: 'Published review briefs + methodology changelog; Scholar Board still forming', zoya: 'Named Shariah advisor panel on investing methodology', winner: 'Zoya' as const, note: 'Barakah is publishing the trust trail early, but named reviewers are still being added.' },
+  { feature: 'Pricing (entry)', barakah: 'Free tier + Plus from $9.99/mo', zoya: 'Free tier + paid Pro plan', winner: 'Tie' as const, note: 'Verify current store pricing before choosing.' },
   { feature: 'Family-tier pricing', barakah: '$14.99/mo (6 seats)', zoya: 'N/A', winner: 'Barakah' as const },
-  { feature: 'Mobile platforms', barakah: 'iOS live; Android Q2 2026 target', zoya: 'iOS + Android', winner: 'Zoya' as const, note: 'Zoya is further along on Android distribution today.' },
+  { feature: 'Mobile platforms', barakah: 'iOS + Android', zoya: 'iOS + Android', winner: 'Tie' as const, note: 'Both ship mobile apps; feature depth is the differentiator.' },
 ];
 
 const tally = { Barakah: 0, Zoya: 0, Tie: 0 } as const;
@@ -80,6 +80,11 @@ export default function BarakahVsZoyaPage() {
             Barakah vs Zoya (2026)
           </h1>
           <p className="text-base text-gray-600 mb-6">Last reviewed: 2026-04-19</p>
+          <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+            Competitor features and pricing change frequently. Treat this page as a product-surface
+            comparison, then verify the latest details on each provider&apos;s own site before making
+            a financial decision.
+          </p>
 
           <p className="text-lg leading-8 text-gray-800 mb-6">
             Zoya is the best halal stock screener in the market. Barakah is a Muslim household
@@ -173,7 +178,7 @@ export default function BarakahVsZoyaPage() {
                   <li>• You need zakat on cash, savings, 401k, rental property, crypto, business — not just stocks</li>
                   <li>• You want daily hawl continuity with a fiqh-aware reset</li>
                   <li>• You share money with a spouse / family (up to 6 seats on the Family plan)</li>
-                  <li>• You want scholar-reviewed trust artifacts (integrity hash, methodology changelog, Scholar Board)</li>
+                  <li>• You want audit-first trust artifacts (integrity hash, methodology changelog, and published review briefs)</li>
                 </ul>
               </div>
               <div className="rounded-xl bg-amber-50 border border-amber-200 p-5">
@@ -204,7 +209,7 @@ export default function BarakahVsZoyaPage() {
                 <h3 className="text-lg font-bold text-gray-700">Zoya</h3>
                 <ul className="mt-2 space-y-1 text-sm text-gray-800">
                   <li>Free — limited screens/day</li>
-                  <li>Zoya Pro — $9.99–$14.99/mo via App Store IAP</li>
+                  <li>Zoya Pro — paid premium tier (verify current store pricing)</li>
                   <li>No family plan</li>
                 </ul>
               </div>

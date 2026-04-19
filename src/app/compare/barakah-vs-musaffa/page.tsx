@@ -25,17 +25,15 @@ export const metadata: Metadata = {
 
 const rows = [
   { feature: 'Core product', barakah: 'Muslim household financial OS', musaffa: 'Halal stock screener + (rolling out) brokerage', winner: 'Different jobs' as const },
-  { feature: 'Stock screening coverage', barakah: '30k+ screened (Plus feature)', musaffa: '120k+ claimed / ~17k with verified status per reviews', winner: 'Musaffa' as const, note: 'Headline number impressive; real coverage narrower per App Store feedback.' },
-  { feature: 'Pricing', barakah: 'Free + $9.99/mo Plus + $14.99/mo Family', musaffa: '5 tiers: Foundation $7.49 → Premium Plus $36/mo', winner: 'Barakah' as const, note: 'Musaffa\'s 5-tier menu is complex; Barakah ships 3 clean tiers.' },
+  { feature: 'Stock screening coverage', barakah: '30k+ screened (Plus feature)', musaffa: 'Broad specialist screening coverage', winner: 'Musaffa' as const, note: 'Musaffa is built first for security-by-security screening.' },
+  { feature: 'Pricing', barakah: 'Free + $9.99/mo Plus + $14.99/mo Family', musaffa: 'Multiple investing-focused subscription tiers', winner: 'Barakah' as const, note: 'Barakah\'s pricing is simpler to understand; verify Musaffa&apos;s latest pricing before choosing.' },
   { feature: 'Budget / transactions / bills', barakah: 'Full Plaid aggregation + budgets', musaffa: 'None', winner: 'Barakah' as const },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', musaffa: 'Purification calculator on held stocks', winner: 'Barakah' as const },
   { feature: 'Hawl continuity', barakah: 'Daily nisab-check, fiqh-aware', musaffa: 'None', winner: 'Barakah' as const },
   { feature: 'Family / household plan', barakah: 'Family plan — 6 members', musaffa: 'Individual only', winner: 'Barakah' as const },
   { feature: 'Islamic will / wasiyyah', barakah: 'Full builder + faraid calculator', musaffa: 'None', winner: 'Barakah' as const },
   { feature: 'Brokerage execution', barakah: 'None (read-only tracking)', musaffa: 'Rolling out (as of 2025)', winner: 'Musaffa' as const },
-  { feature: 'App store rating (iOS)', barakah: 'Too new to rate', musaffa: '4.8 stars (302 ratings)', winner: 'Musaffa' as const, note: 'Musaffa has 3 years of UX iteration.' },
-  { feature: 'Scale (user count)', barakah: 'Early stage', musaffa: '580k registered, 200+ countries (self-reported)', winner: 'Musaffa' as const },
-  { feature: 'Methodology + scholar board', barakah: 'Public Scholar Board (launching) + per-decision review briefs + methodology changelog', musaffa: 'AAOIFI alignment; scholar presence less marketing-prominent than Zoya', winner: 'Barakah' as const, note: 'Barakah\'s retroactive audit + per-snapshot integrity hash is unique.' },
+  { feature: 'Methodology + trust trail', barakah: 'Methodology changelog + published review briefs; Scholar Board still forming', musaffa: 'AAOIFI-oriented screening methodology', winner: 'Tie' as const, note: 'Barakah is stronger on public product-change transparency; Musaffa is more established as a screening specialist.' },
   { feature: 'Audit trail per calculation', barakah: 'SHA-256 integrity hash + fiqh-config per snapshot', musaffa: 'Purification tracking', winner: 'Barakah' as const },
   { feature: 'Riba detection on everyday transactions', barakah: 'Transaction-level flagging + purification journey', musaffa: 'None', winner: 'Barakah' as const },
 ];
@@ -70,6 +68,10 @@ export default function BarakahVsMusaffaPage() {
         <div className="max-w-5xl mx-auto px-6 py-10">
           <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-[#1B5E20]">Barakah vs Musaffa (2026)</h1>
           <p className="text-base text-gray-600 mb-6">Last reviewed: 2026-04-19</p>
+          <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+            Competitor features and pricing evolve quickly. Use this page as a product-surface
+            comparison, then verify the latest details on Musaffa&apos;s own site before acting.
+          </p>
 
           <p className="text-lg leading-8 text-gray-800 mb-6">
             Musaffa is a halal stock screener expanding into brokerage; it&apos;s a direct Zoya competitor.

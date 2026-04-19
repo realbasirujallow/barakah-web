@@ -34,11 +34,11 @@ const rows = [
   { feature: 'Regulatory posture', barakah: 'Not a regulated broker / advisor (personal-finance app)', wahed: 'SEC (US) + FCA (UK) + FSRA (ADGM) — multi-jurisdiction', winner: 'Wahed' as const, note: 'Wahed earned institutional trust through regulation.' },
   { feature: 'Managed portfolios / sukuk / gold exposure', barakah: 'No execution — partner-referral only', wahed: 'Full menu, diversified across global halal asset classes', winner: 'Wahed' as const },
   { feature: 'Halal stock screening', barakah: '30k+ stocks screened', wahed: 'Only what you invest in via Wahed', winner: 'Barakah' as const },
-  { feature: 'Fee structure', barakah: 'Free + $9.99–$14.99/mo flat', wahed: 'Wrap fee 0.49% AUM (plus $60 fixed under $100k US)', winner: 'Depends on balance' as const, note: 'Flat monthly beats wrap-fee once your invested balance is modest; wrap fee makes sense for larger passive balances.' },
-  { feature: 'Deposit / withdrawal UX', barakah: 'N/A (read-only)', wahed: '3.5-star iOS — reviewers cite withdrawal friction', winner: 'N/A' as const },
+  { feature: 'Fee structure', barakah: 'Free + $9.99–$14.99/mo flat', wahed: 'AUM-based advisory fee; small-balance minimums may apply', winner: 'Tie' as const, note: 'Flat monthly and AUM pricing suit different use cases; verify Wahed&apos;s current fee sheet before deciding.' },
+  { feature: 'Deposit / withdrawal UX', barakah: 'N/A (read-only)', wahed: 'Managed-investing app with funding and withdrawal flows', winner: 'Wahed' as const },
   { feature: 'Works with your existing brokerage', barakah: 'Yes (via Plaid read-only)', wahed: 'No — you custody with Wahed', winner: 'Barakah' as const, note: 'If you use Fidelity / Schwab / Vanguard, Barakah tracks there; Wahed requires moving funds to them.' },
-  { feature: 'Global availability', barakah: 'US live; UK Q2 2027', wahed: '130+ countries live today', winner: 'Wahed' as const },
-  { feature: 'Audit / integrity transparency', barakah: 'SHA-256 integrity hash per snapshot, methodology changelog, Scholar Board', wahed: 'Regulatory + Amanie Advisors scholar board + quarterly audits', winner: 'Tie' as const, note: 'Both strong; different flavors of institutional trust.' },
+  { feature: 'Global availability', barakah: 'US live; UK expansion planned', wahed: 'Broader international availability today', winner: 'Wahed' as const },
+  { feature: 'Audit / integrity transparency', barakah: 'SHA-256 integrity hash per snapshot, methodology changelog, Scholar Board in formation', wahed: 'Regulation + established external Shariah oversight', winner: 'Tie' as const, note: 'Both prioritize trust, but through different mechanisms.' },
 ];
 
 export default function BarakahVsWahedPage() {
@@ -71,6 +71,11 @@ export default function BarakahVsWahedPage() {
         <div className="max-w-5xl mx-auto px-6 py-10">
           <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-[#1B5E20]">Barakah vs Wahed Invest (2026)</h1>
           <p className="text-base text-gray-600 mb-6">Last reviewed: 2026-04-19</p>
+          <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+            Competitor features, fees, and availability change frequently. Use this page as a
+            product-surface comparison, then confirm the latest details on Wahed&apos;s own site
+            before acting.
+          </p>
 
           <p className="text-lg leading-8 text-gray-800 mb-6">
             Wahed is a halal robo-advisor — you give them your money, they invest it across Shariah-compliant

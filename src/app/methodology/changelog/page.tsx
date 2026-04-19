@@ -157,7 +157,7 @@ export default function ChangelogPage() {
             className="flex-1 rounded-2xl bg-white p-6 shadow-sm transition hover:shadow-md"
           >
             <h3 className="mb-2 text-lg font-bold text-[#1B5E20]">Scholar Board →</h3>
-            <p className="text-sm text-gray-700">Current and upcoming reviewers for each fiqh decision.</p>
+            <p className="text-sm text-gray-700">Review status, planned engagements, and any named reviewers once confirmed.</p>
           </Link>
         </div>
       </div>
