@@ -88,7 +88,7 @@ export default function BarakahVsWahedPage() {
           <section className="mb-8 rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="mb-3 text-2xl font-bold text-[#1B5E20]">The quick read</h2>
             <ul className="list-disc space-y-2 pl-6 text-base leading-7 text-gray-800">
-              <li><strong>Wahed invests your money.</strong> If you want a hands-off halal portfolio (equities + sukuk + gold), Wahed does this at 0.49%/yr with SEC/FCA/FSRA regulation.</li>
+              <li><strong>Wahed invests your money.</strong> If you want a hands-off halal portfolio (equities + sukuk + gold), Wahed offers a regulated halal robo-advisor experience.</li>
               <li><strong>Barakah manages your money.</strong> Every account you hold anywhere (via Plaid), your budget, bills, debts, zakat, hawl, halal screening, family, and will — one app.</li>
               <li><strong>The overlap is tiny.</strong> Barakah doesn&apos;t execute trades. Wahed doesn&apos;t do household budgeting. One product recommends the other.</li>
             </ul>

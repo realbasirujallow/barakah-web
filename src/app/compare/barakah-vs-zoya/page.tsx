@@ -35,7 +35,7 @@ const rows = [
   { feature: 'Sadaqah / waqf tracking', barakah: 'Full tracker', zoya: 'None', winner: 'Barakah' as const },
   { feature: 'Prayer times / Ramadan mode', barakah: 'Integrated', zoya: 'None', winner: 'Barakah' as const },
   { feature: 'Portfolio sync with multiple brokerages', barakah: 'Via Plaid (read-only)', zoya: 'Direct brokerage integrations', winner: 'Zoya' as const, note: 'Zoya connects natively to many brokers.' },
-  { feature: 'Ticker-level "is X halal" pages', barakah: 'Top 20+ planned', zoya: 'Thousands of pre-indexed ticker pages', winner: 'Zoya' as const },
+  { feature: 'Ticker-level "is X halal" pages', barakah: 'Not live yet; planned', zoya: 'Thousands of pre-indexed ticker pages', winner: 'Zoya' as const },
   { feature: 'Audit transparency', barakah: 'SHA-256 integrity hash per zakat snapshot, /methodology/changelog, public review-brief trail', zoya: 'Methodology transparency on investing, but no per-calculation hash', winner: 'Barakah' as const },
   { feature: 'Public scholarly oversight', barakah: 'Published review briefs + methodology changelog; Scholar Board still forming', zoya: 'Named Shariah advisor panel on investing methodology', winner: 'Zoya' as const, note: 'Barakah is publishing the trust trail early, but named reviewers are still being added.' },
   { feature: 'Pricing (entry)', barakah: 'Free tier + Plus from $9.99/mo', zoya: 'Free tier + paid Pro plan', winner: 'Tie' as const, note: 'Verify current store pricing before choosing.' },
@@ -87,7 +87,7 @@ export default function BarakahVsZoyaPage() {
           </p>
 
           <p className="text-lg leading-8 text-gray-800 mb-6">
-            Zoya is the best halal stock screener in the market. Barakah is a Muslim household
+            Zoya is a leading halal stock screener. Barakah is a Muslim household
             financial operating system. These products aren&apos;t really competitors — they solve
             different jobs and most serious Muslim investors will end up using both. This page is
             an honest matrix. Where Zoya is genuinely better, we say so.
@@ -110,11 +110,11 @@ export default function BarakahVsZoyaPage() {
               <h2 className="mb-2 text-2xl font-bold text-gray-800">Zoya</h2>
               <p className="mb-3 text-sm text-gray-600">The halal stock screener</p>
               <ul className="space-y-1 text-sm text-gray-700">
-                <li>• 40,000+ stocks / ETFs / mutual funds screened</li>
-                <li>• Ticker-per-page SEO coverage (thousands)</li>
+                <li>• Specialist coverage across stocks, ETFs, and mutual funds</li>
+                <li>• Large ticker-per-page SEO footprint</li>
                 <li>• Direct brokerage sync with many brokers</li>
-                <li>• Named Shariah advisor panel, quarterly refresh</li>
-                <li>• Strong AAOIFI methodology posture</li>
+                <li>• Named public Shariah oversight on investing methodology</li>
+                <li>• Strong AAOIFI-oriented methodology posture</li>
               </ul>
             </div>
           </section>

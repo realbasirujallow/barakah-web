@@ -20,8 +20,9 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/learn/types-of-zakat',
   },
   openGraph: {
-    title: 'Types of Zakat: Al-Mal, Al-Fitr, Fidyah, and Zakat on Every Asset | Barakah',
-    description: "Zakat isn't one thing. This hub explains each type and links to Barakah's detailed guide for each.",
+    title: 'Zakat and Related Giving Obligations: Al-Mal, Al-Fitr, Fidyah & Kaffarah | Barakah',
+    description:
+      'Clear distinctions between zakat al-mal, zakat al-fitr, fidyah, kaffarah, and sadaqah, with links to deeper Barakah guides.',
     url: 'https://trybarakah.com/learn/types-of-zakat',
     type: 'article',
   },
@@ -115,7 +116,7 @@ export default function TypesOfZakatPage() {
             <span className="text-gray-300">/</span>
             <Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link>
             <span className="text-gray-300">/</span>
-            <span className="text-gray-900">Types of Zakat</span>
+            <span className="text-gray-900">Zakat &amp; Related Obligations</span>
           </div>
         </div>
       </nav>
