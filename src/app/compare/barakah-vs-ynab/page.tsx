@@ -1,5 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import {
+  DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL,
+  DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL,
+} from '../../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Barakah vs YNAB (2026): Which Budgeting App for Muslim Households? | Barakah',
@@ -122,7 +126,7 @@ export default function BarakahVsYnabPage() {
               YNAB&apos;s budgeting methodology is genuinely excellent and has changed many people&apos;s finances. If you love
               the rules — &quot;give every dollar a job,&quot; &quot;embrace your true expenses,&quot; &quot;roll with the punches,&quot; &quot;age
               your money&quot; — you shouldn&apos;t abandon them for Barakah. But if you&apos;re a Muslim YNAB user running a
-              separate zakat spreadsheet every Ramadan, try Barakah&apos;s Plus tier ($9.99/mo) for the Islamic layer. Seven-day
+              separate zakat spreadsheet every Ramadan, try Barakah&apos;s Plus tier ($9.99/mo) for the Islamic layer. {DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL}
               free trial, no card.
             </p>
           </section>
@@ -131,7 +135,7 @@ export default function BarakahVsYnabPage() {
             <h2 className="mb-3 text-xl font-bold">Add Islamic finance to your budget setup</h2>
             <p className="mb-4 text-sm leading-7 text-green-100">
               Barakah works alongside YNAB or on its own. Link your accounts via Plaid; get live zakat, hawl tracking,
-              halal screening, and riba detection — the features YNAB doesn&apos;t offer. Free for 7 days.
+              halal screening, and riba detection — the features YNAB doesn&apos;t offer. Free for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL}.
             </p>
             <Link href="/signup" className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#1B5E20] transition hover:bg-green-50">
               Get started free →

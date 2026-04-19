@@ -1,5 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import {
+  DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL,
+  DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL,
+} from '../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Compare Islamic Finance Apps 2026 — Barakah vs Competitors | Barakah',
@@ -66,7 +70,7 @@ const faqSchema = {
       name: 'Is there a free Islamic finance app?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes — Barakah has a permanent free plan that includes the full zakat calculator, manual transaction tracking (up to 10/month), hawl tracker, and basic budgeting. The Plus plan ($9.99/month) adds unlimited transactions, bank sync, halal stock screener, savings goals, Faraid calculator, and Barakah Score. Both include a 7-day free trial of Plus.',
+        text: `Yes — Barakah has a permanent free plan that includes the full zakat calculator, manual transaction tracking (up to 10/month), hawl tracker, and basic budgeting. The Plus plan ($9.99/month) adds unlimited transactions, bank sync, halal stock screener, savings goals, Faraid calculator, and Barakah Score. Both include a ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial of Plus.`,
       },
     },
     {
@@ -247,7 +251,7 @@ export default function ComparePage() {
             <p className="text-2xl font-bold mb-1">🌙 Barakah wins on Islamic finance features</p>
             <p className="text-green-200 mb-4">The only app with zakat calculator + halal screener + riba detector + Islamic will + family finance — all in one platform, free to start.</p>
             <Link href="/signup" className="inline-block bg-white text-[#1B5E20] font-bold px-8 py-3 rounded-xl hover:bg-green-50 transition">
-              Start 7-Day Free Trial — No Card
+              Start {DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Free Trial — No Card
             </Link>
           </div>
 
@@ -389,10 +393,10 @@ export default function ComparePage() {
           {/* Bottom CTA */}
           <div className="bg-[#FFF8E1] border-2 border-[#1B5E20] rounded-2xl p-8 text-center">
             <h2 className="text-2xl font-bold text-[#1B5E20] mb-2">Start with the best — for free</h2>
-            <p className="text-gray-600 mb-6 max-w-xl mx-auto">Barakah is the only Islamic finance app that covers your entire financial life as a Muslim. Start free, no credit card. 7 days of Plus included.</p>
+            <p className="text-gray-600 mb-6 max-w-xl mx-auto">Barakah is the only Islamic finance app that covers your entire financial life as a Muslim. Start free, no credit card. {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus included.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition">
-                Start Free — 7 Days Plus
+                Start Free — {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} Plus
               </Link>
               <Link href="/pricing" className="border border-[#1B5E20] text-[#1B5E20] px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition">
                 See Pricing

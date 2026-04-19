@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Barakah vs Wahed (2026): Household Money vs Halal Robo-Advisor | Barakah',
@@ -143,7 +144,7 @@ export default function BarakahVsWahedPage() {
             <h2 className="mb-3 text-xl font-bold">Try Barakah alongside your Wahed account</h2>
             <p className="mb-4 text-sm leading-7 text-green-100">
               Link your Wahed balance via Plaid; keep investing with Wahed. Barakah handles the zakat,
-              hawl, budget, and family sharing that Wahed doesn&apos;t offer. Free for 7 days, no card needed.
+              hawl, budget, and family sharing that Wahed doesn&apos;t offer. Free for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL}, no card needed.
             </p>
             <Link href="/signup" className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#1B5E20] transition hover:bg-green-50">
               Get started free →

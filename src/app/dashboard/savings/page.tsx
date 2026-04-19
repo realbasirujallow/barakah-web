@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
+import { DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL } from '../../../lib/trial';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { SkeletonPage } from '../SkeletonCard';
@@ -174,7 +175,7 @@ export default function SavingsPage() {
         >
           Upgrade to Plus — from $9.99/mo
         </Link>
-        <p className="text-xs text-gray-400 mt-3">7-day free trial · No credit card required</p>
+        <p className="text-xs text-gray-400 mt-3">{DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial · No credit card required</p>
       </div>
     );
   }

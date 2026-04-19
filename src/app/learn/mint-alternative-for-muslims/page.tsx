@@ -1,5 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import {
+  DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL,
+  DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL,
+} from '../../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Best Mint Alternative for Muslims 2026 — Free Islamic Finance App | Barakah',
@@ -85,7 +89,7 @@ const faqSchema = {
       name: 'Is Barakah free like Mint was?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. Barakah has a free plan that includes the full zakat calculator, manual transaction tracking, budgeting, and savings goals. The paid Plus plan ($9.99/month or less annually) adds bank account sync, halal stock screener, Faraid inheritance calculator, and the Barakah Score. There is a 7-day free trial of the Plus plan — no credit card required.',
+        text: `Yes. Barakah has a free plan that includes the full zakat calculator, manual transaction tracking, budgeting, and savings goals. The paid Plus plan ($9.99/month or less annually) adds bank account sync, halal stock screener, Faraid inheritance calculator, and the Barakah Score. There is a ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial of the Plus plan — no credit card required.`,
       },
     },
     {
@@ -170,7 +174,7 @@ export default function MintAlternativeForMuslimsPage() {
           {/* CTA box */}
           <div className="bg-[#1B5E20] text-white rounded-2xl p-6 mb-10">
             <p className="font-bold text-xl mb-1">🌙 Start Free Today — No Credit Card</p>
-            <p className="text-green-200 text-sm mb-4">7 days of Plus free with every signup. Full zakat calculator, halal screener, bank sync — all included.</p>
+            <p className="text-green-200 text-sm mb-4">{DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus free with every signup. Full zakat calculator, halal screener, bank sync — all included.</p>
             <Link href="/signup" className="inline-block bg-white text-[#1B5E20] font-bold px-6 py-3 rounded-xl hover:bg-green-50 transition dark:bg-gray-800">
               Create Free Account →
             </Link>
@@ -272,7 +276,7 @@ export default function MintAlternativeForMuslimsPage() {
                 <li>✅ Halal stock screener</li>
                 <li>✅ Faraid calculator</li>
                 <li>✅ Barakah Score</li>
-                <li>✅ 7-day free trial</li>
+                <li>✅ {DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial</li>
               </ul>
             </div>
             <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
@@ -293,7 +297,7 @@ export default function MintAlternativeForMuslimsPage() {
           <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">How to Migrate from Mint to Barakah</h2>
           <ol className="space-y-4 mb-8">
             {[
-              { step: '1', title: 'Create your free Barakah account', desc: 'Go to trybarakah.com and sign up. No credit card required. You get 7 days of Plus free automatically.' },
+              { step: '1', title: 'Create your free Barakah account', desc: `Go to trybarakah.com and sign up. No credit card required. You get ${DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus free automatically.` },
               { step: '2', title: 'Connect your bank accounts', desc: 'Use the Bank Accounts section in your dashboard. We support 12,000+ institutions via Plaid — the same technology used by Venmo and Robinhood.' },
               { step: '3', title: 'Run your first zakat calculation', desc: 'Head to the Zakat dashboard. Enter your assets and let Barakah calculate your obligation with live gold/silver nisab prices. Takes under 2 minutes.' },
               { step: '4', title: 'Set up your hawl anniversary', desc: 'Barakah tracks your hawl (Islamic lunar year) and notifies you when your next zakat is due.' },

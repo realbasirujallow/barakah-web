@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PRICING, FREE_FEATURES, PLUS_FEATURES, FAMILY_FEATURES, COMPETITOR_COMPARISON } from '../lib/pricing';
+import {
+  DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL,
+  DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL,
+} from '../lib/trial';
 
 // ── Data ────────────────────────────────────────────────────────────────────
 
@@ -167,7 +171,7 @@ export default function Home() {
       <section className="flex flex-col items-center justify-center text-center px-6 py-24">
         <p className="text-5xl mb-4">🌙</p>
         <p className="text-xs text-[#1B5E20] font-semibold mb-6 inline-block bg-green-50 px-4 py-2 rounded-full border border-[#1B5E20]">
-          ✨ 7 days of Plus free with every signup &middot; no credit card
+          ✨ {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus free with every signup &middot; no credit card
         </p>
         <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] leading-tight mb-4">
           The money app<br className="hidden sm:block" /> built for Muslim households
@@ -177,13 +181,13 @@ export default function Home() {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold text-base hover:bg-[#2E7D32] transition shadow">
-            Start 7-Day Free Trial
+            Start {DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Free Trial
           </Link>
           <Link href="/login" className="bg-white text-[#1B5E20] border border-[#1B5E20] px-8 py-3.5 rounded-xl font-bold text-base hover:bg-green-50 transition">
             Sign In
           </Link>
         </div>
-        <p className="text-xs text-gray-400 mt-4">Plus tier free for 7 days &middot; Drops to free plan after &middot; Your data is yours</p>
+        <p className="text-xs text-gray-400 mt-4">Plus tier free for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} &middot; Drops to free plan after &middot; Your data is yours</p>
       </section>
 
       {/* ── Trust Indicators Bar ── */}

@@ -1,17 +1,18 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL } from '../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Try Barakah Free — Islamic Finance App',
   description:
-    'Start your free trial of Barakah today. Get a fiqh-aware finance platform with zakat calculator, halal stock screener, budgeting, and family finance tools — no credit card required.',
+    `Start your ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial of Barakah today. Get a fiqh-aware finance platform with zakat calculator, halal stock screener, budgeting, and family finance tools — no credit card required.`,
   alternates: {
     canonical: 'https://trybarakah.com/try',
   },
   openGraph: {
     title: 'Try Barakah Free — Islamic Finance App',
     description:
-      'Start your free trial of Barakah today. Get a fiqh-aware finance platform with zakat calculator, halal stock screener, budgeting, and family finance tools — no credit card required.',
+      `Start your ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial of Barakah today. Get a fiqh-aware finance platform with zakat calculator, halal stock screener, budgeting, and family finance tools — no credit card required.`,
     url: 'https://trybarakah.com/try',
     siteName: 'Barakah',
     images: [
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Try Barakah Free — Islamic Finance App',
     description:
-      'Start your free trial of Barakah today. Get a fiqh-aware finance platform with zakat calculator, halal stock screener, budgeting, and family finance tools — no credit card required.',
+      `Start your ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial of Barakah today. Get a fiqh-aware finance platform with zakat calculator, halal stock screener, budgeting, and family finance tools — no credit card required.`,
     images: ['https://trybarakah.com/og-image.png'],
   },
 };
@@ -59,7 +60,7 @@ export default function TryPage() {
           Try Barakah Free
         </h1>
         <p className="text-lg text-center text-gray-600 max-w-xl mb-8">
-          Start your 7-day free trial. No credit card required. Get access to
+          Start your {DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial. No credit card required. Get access to
           zakat calculation, halal stock screening, budgeting tools, and more &mdash;
           all in one Shariah-conscious platform.
         </p>
