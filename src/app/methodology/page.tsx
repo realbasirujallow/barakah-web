@@ -82,6 +82,38 @@ export default function MethodologyPage() {
           </ul>
         </section>
 
+        {/* Scholar oversight + changelog + open briefs */}
+        <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
+          <h2 className="mb-3 text-2xl font-bold text-[#1B5E20]">Scholar Oversight</h2>
+          <p className="mb-4 text-sm leading-7 text-gray-700">
+            Every opinionated fiqh decision in Barakah is recorded in a dedicated review brief and
+            surfaced to the qualified scholars we engage. We publish the brief alongside the product
+            change so users, scholars, and auditors can see exactly what we decided, why, and whose
+            opinion it was reviewed against.
+          </p>
+          <ul className="space-y-3 text-sm leading-7 text-gray-700">
+            <li>
+              <Link href="/scholars" className="text-[#1B5E20] font-semibold hover:underline">
+                Scholar Board →
+              </Link>{' '}
+              Current and upcoming reviewers. Engaging 3–5 scholars across madhabs through Q3 2026.
+            </li>
+            <li>
+              <Link href="/methodology/changelog" className="text-[#1B5E20] font-semibold hover:underline">
+                Methodology changelog →
+              </Link>{' '}
+              Every fiqh/methodology rule change, when it was made, and why.
+            </li>
+            <li>
+              <strong>Hanafi ↔ silver nisab auto-link</strong> — active. Brief published in-repo at{' '}
+              <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs">
+                docs/SCHOLAR_REVIEW_HANAFI_SILVER.md
+              </code>
+              . Awaiting named-scholar response. See the changelog for dates.
+            </li>
+          </ul>
+        </section>
+
         <div className="mt-8 flex flex-col gap-3 rounded-2xl bg-[#1B5E20] p-6 text-white sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-xl font-bold">Want the full product view?</h2>
