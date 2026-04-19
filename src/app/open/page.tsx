@@ -1,9 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import {
+  IOS_APP_STORE_URL,
+  ANDROID_PLAY_STORE_URL,
+  IS_ANDROID_PUBLICLY_LAUNCHED,
+} from '../../lib/appStore';
 
-const IOS_URL     = 'https://apps.apple.com/us/app/barakah-islamic-finance/id6761279229';
-const ANDROID_URL = 'https://play.google.com/store/apps/details?id=com.trybarakah.app';
+const IOS_URL     = IOS_APP_STORE_URL;
+const ANDROID_URL = ANDROID_PLAY_STORE_URL;
 const WEB_URL     = '/dashboard';
 const DEEP_LINK   = 'barakah://open';
 
@@ -19,7 +24,11 @@ function detectPlatform(): Platform {
 
 function getFallbackUrl(platform: Platform): string {
   if (platform === 'ios') return IOS_URL;
-  if (platform === 'android') return ANDROID_URL;
+  // Until the Android Production track is live, Play Store URL 404s.
+  // Route Android users to the web dashboard so they can still use Barakah.
+  if (platform === 'android') {
+    return IS_ANDROID_PUBLICLY_LAUNCHED ? ANDROID_URL : WEB_URL;
+  }
   return WEB_URL;
 }
 
@@ -110,9 +119,15 @@ export default function OpenBarakahPage() {
           <a href={IOS_URL} className="rounded-xl border border-[#1B5E20]/20 px-4 py-3 text-sm font-semibold text-[#1B5E20]">
             Download on the App Store
           </a>
-          <a href={ANDROID_URL} className="rounded-xl border border-[#1B5E20]/20 px-4 py-3 text-sm font-semibold text-[#1B5E20]">
-            Get it on Google Play
-          </a>
+          {IS_ANDROID_PUBLICLY_LAUNCHED ? (
+            <a href={ANDROID_URL} className="rounded-xl border border-[#1B5E20]/20 px-4 py-3 text-sm font-semibold text-[#1B5E20]">
+              Get it on Google Play
+            </a>
+          ) : (
+            <span className="rounded-xl border border-dashed border-gray-300 px-4 py-3 text-sm font-semibold text-gray-500">
+              Android launching soon · use web for now
+            </span>
+          )}
           <a href={WEB_URL} className="text-sm text-gray-400 underline underline-offset-2">
             Use Barakah on the web instead
           </a>
