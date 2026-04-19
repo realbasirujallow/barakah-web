@@ -99,6 +99,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/halal-stocks/tsla`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
     { url: `${baseUrl}/halal-stocks/nvda`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
 
+
     // ── Fiqh Terms Glossary (Week 4) ─────────────────────────────────────────
     { url: `${baseUrl}/fiqh-terms`,              changeFrequency: 'monthly', priority: 0.90, lastModified: now },
     { url: `${baseUrl}/fiqh-terms/zakat`,        changeFrequency: 'monthly', priority: 0.85, lastModified: now },
