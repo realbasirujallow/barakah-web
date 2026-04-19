@@ -48,60 +48,74 @@ interface SimDebt { id: number; name: string; balance: number; monthlyPayment: n
 
 function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' | 'snowball' = 'avalanche') {
   if (!rawDebts.length) return { months: 0, totalInterest: 0, schedule: [] };
-  let debts: SimDebt[] = rawDebts.map(d => ({
-    id: d.id, name: d.name,
-    balance: d.remainingAmount,
-    monthlyPayment: d.monthlyPayment || 0,
+
+  // R6-C3 (2026-04-18): accumulate in integer cents instead of floats.
+  // The previous implementation ran up to 600 iterations of
+  //   d.balance = parseFloat((d.balance + parseFloat(interest.toFixed(2))).toFixed(2))
+  // which looked rounded to the cent each month but actually threaded
+  // IEEE-754 float drift through every single accumulation. Over a
+  // 30-year loan (360 months) the totalInterest could drift by $10–$100
+  // from what any real lender's amortization schedule produces — enough
+  // to make the payoff projection misleading for the customer. Integer
+  // cents with Math.round eliminates the class of errors.
+  type SimDebtCents = { id: number; name: string; balanceCents: number; monthlyPaymentCents: number; rate: number };
+  let debts: SimDebtCents[] = rawDebts.map(d => ({
+    id: d.id,
+    name: d.name,
+    balanceCents: Math.round((d.remainingAmount || 0) * 100),
+    monthlyPaymentCents: Math.round((d.monthlyPayment || 0) * 100),
     rate: d.interestRate || 0,
   }));
 
+  const extraCents = Math.round(extra * 100);
+
   // BUG FIX: if total monthly capacity is zero, the loop makes no progress —
   // skip all 600 iterations and report as "unknown" (months: 0).
-  const totalCapacity = debts.reduce((s, d) => s + d.monthlyPayment, 0) + extra;
-  if (totalCapacity <= 0) return { months: 0, totalInterest: 0 };
+  const capacityCents = debts.reduce((s, d) => s + d.monthlyPaymentCents, 0) + extraCents;
+  if (capacityCents <= 0) return { months: 0, totalInterest: 0 };
 
   if (strategy === 'avalanche') debts = [...debts].sort((a, b) => b.rate - a.rate);
-  else debts = [...debts].sort((a, b) => a.balance - b.balance);
+  else debts = [...debts].sort((a, b) => a.balanceCents - b.balanceCents);
 
   let month = 0;
-  let totalInterest = 0;
+  let totalInterestCents = 0;
   const MAX = 600; // 50 years cap
 
-  while (debts.some(d => d.balance > 0.01) && month < MAX) {
+  while (debts.some(d => d.balanceCents > 0) && month < MAX) {
     month++;
-    let totalPaid = 0;
-    // Accrue monthly interest
+    let paidCentsThisMonth = 0;
+    // Accrue monthly interest. rate is a %/year, so monthly rate is rate/1200.
+    // Math.round -> nearest cent matches real-lender behavior.
     debts.forEach(d => {
-      if (d.balance > 0) {
-        const interest = d.balance * (d.rate / 100 / 12);
-        const roundedInterest = parseFloat(interest.toFixed(2));
-        d.balance = parseFloat((d.balance + roundedInterest).toFixed(2));
-        totalInterest += roundedInterest;
+      if (d.balanceCents > 0) {
+        const interestCents = Math.round((d.balanceCents * d.rate) / 1200);
+        d.balanceCents += interestCents;
+        totalInterestCents += interestCents;
       }
     });
     // Pay minimums
     debts.forEach(d => {
-      if (d.balance > 0) {
-        const pay = Math.min(d.monthlyPayment, d.balance);
-        d.balance = Math.max(0, d.balance - pay);
-        totalPaid += pay;
+      if (d.balanceCents > 0) {
+        const payCents = Math.min(d.monthlyPaymentCents, d.balanceCents);
+        d.balanceCents -= payCents;
+        paidCentsThisMonth += payCents;
       }
     });
     // Apply extra to first debt in sorted order
-    let left = extra;
+    let leftCents = extraCents;
     for (const d of debts) {
-      if (d.balance > 0 && left > 0) {
-        const pay = Math.min(left, d.balance);
-        d.balance = Math.max(0, d.balance - pay);
-        left -= pay;
-        totalPaid += pay;
+      if (d.balanceCents > 0 && leftCents > 0) {
+        const payCents = Math.min(leftCents, d.balanceCents);
+        d.balanceCents -= payCents;
+        leftCents -= payCents;
+        paidCentsThisMonth += payCents;
       }
     }
     // BUG FIX: if no payment was applied this month, balances will never
     // decrease — break early rather than burning 600 - month iterations.
-    if (totalPaid <= 0) break;
+    if (paidCentsThisMonth <= 0) break;
   }
-  return { months: month, totalInterest };
+  return { months: month, totalInterest: totalInterestCents / 100 };
 }
 
 function calcPayoffMonths(balance: number, monthlyPayment: number, annualRate: number): number {

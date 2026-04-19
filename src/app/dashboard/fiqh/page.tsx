@@ -320,12 +320,13 @@ export default function FiqhSettingsPage() {
               </div>
             )}
 
-            {/* Nisab Methodology — separate setting from madhab */}
+            {/* Nisab Methodology — has a Hanafi ↔ silver auto-link with madhab */}
             <div className="mt-8 pt-8 border-t border-gray-200">
               <h2 className="text-2xl font-bold text-[#1B5E20] mb-2">Nisab Threshold Methodology</h2>
               <p className="text-sm text-gray-600 mb-2">
                 Choose how Barakah calculates the nisab threshold (the minimum wealth above which zakat becomes obligatory).
-                This is a <strong>separate setting</strong> from your madhab — picking a school above does not auto-set this.
+                Switching your madhab to <strong>Hanafi</strong> auto-selects the classical silver standard here, and switching back to
+                any other school restores the gold standard — you can still override either choice below at any time.
               </p>
               {nisabThresholdUsd != null && (
                 <p className="text-sm text-emerald-700 mb-4">
