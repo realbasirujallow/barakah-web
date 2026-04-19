@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import RamadanEmailCapture from '../../components/RamadanEmailCapture';
+import RamadanCountdown from './RamadanCountdown';
 
 export const metadata: Metadata = {
   title: 'Ramadan 2027 Financial Planner: Zakat, Sadaqah, Fidyah, Kaffarah | Barakah',
@@ -123,6 +125,7 @@ export default function RamadanPage() {
           <div className="mb-6 inline-block rounded-full bg-amber-100 text-amber-900 px-3 py-1 text-xs font-semibold">
             Planning ahead for Ramadan 2027 · starts ~17 February 2027
           </div>
+          <RamadanCountdown />
           <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-[#1B5E20]">Your Ramadan 2027 Financial Planner</h1>
           <p className="text-lg leading-8 text-gray-800 mb-6 max-w-3xl">
             Ramadan is when Muslim households do their most important financial work of the year — paying zakat,
@@ -231,8 +234,18 @@ export default function RamadanPage() {
             </details>
           </section>
 
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-3 text-2xl font-bold text-[#1B5E20]">Get the Ramadan 2027 prep drip</h2>
+            <p className="mb-4 text-sm leading-7 text-gray-700">
+              Drop your email and we&apos;ll send you 6 weekly prep notes between December 2026 and the start
+              of Ramadan: hawl anniversary planning, year-end zakat forecasting, sadaqah plans, Zakat al-Fitr
+              reminders, and the last 10 nights giving checklist. Unsubscribe anytime.
+            </p>
+            <RamadanEmailCapture source="ramadan-2027-prep" variant="bottom" />
+          </section>
+
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">
-            <h2 className="mb-3 text-xl font-bold">Get ready for Ramadan 2027 now</h2>
+            <h2 className="mb-3 text-xl font-bold">Or start using Barakah today</h2>
             <p className="mb-4 text-sm leading-7 text-green-100">
               Link your accounts through Plaid today. Barakah starts tracking your hawl, zakatable assets, and sadaqah
               now — so by February 2027 everything is ready and you spend the month worshipping, not spreadsheeting.
