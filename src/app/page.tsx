@@ -10,6 +10,12 @@ import {
   DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL,
   DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL,
 } from '../lib/trial';
+import {
+  IOS_APP_STORE_URL,
+  ANDROID_PLAY_STORE_URL,
+  ANDROID_FALLBACK_URL,
+  IS_ANDROID_PUBLICLY_LAUNCHED,
+} from '../lib/appStore';
 
 // ── Data ────────────────────────────────────────────────────────────────────
 
@@ -610,7 +616,7 @@ export default function Home() {
           <p className="text-gray-600 mb-8">Download on iOS or Android, or use the web app from any browser.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a
-              href="https://apps.apple.com/us/app/barakah-islamic-finance/id6761279229"
+              href={IOS_APP_STORE_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition shadow"
@@ -621,18 +627,32 @@ export default function Home() {
                 <p className="text-base font-semibold leading-tight">App Store</p>
               </div>
             </a>
-            <a
-              href="https://play.google.com/store/apps/details?id=com.trybarakah.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition shadow"
-            >
-              <svg viewBox="0 0 512 512" className="w-6 h-6 fill-current"><path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"/></svg>
-              <div className="text-left">
-                <p className="text-[10px] leading-tight opacity-80">Get it on</p>
-                <p className="text-base font-semibold leading-tight">Google Play</p>
-              </div>
-            </a>
+            {IS_ANDROID_PUBLICLY_LAUNCHED ? (
+              <a
+                href={ANDROID_PLAY_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition shadow"
+              >
+                <svg viewBox="0 0 512 512" className="w-6 h-6 fill-current"><path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"/></svg>
+                <div className="text-left">
+                  <p className="text-[10px] leading-tight opacity-80">Get it on</p>
+                  <p className="text-base font-semibold leading-tight">Google Play</p>
+                </div>
+              </a>
+            ) : (
+              <Link
+                href={ANDROID_FALLBACK_URL}
+                className="inline-flex items-center gap-3 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-300 transition shadow border border-gray-300"
+                aria-label="Android app is in final testing — visit /open for details"
+              >
+                <svg viewBox="0 0 512 512" className="w-6 h-6 fill-current opacity-70"><path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"/></svg>
+                <div className="text-left">
+                  <p className="text-[10px] leading-tight opacity-80">Android</p>
+                  <p className="text-sm font-semibold leading-tight">Launching soon</p>
+                </div>
+              </Link>
+            )}
           </div>
         </div>
       </section>
