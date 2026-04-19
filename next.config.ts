@@ -176,6 +176,20 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  async redirects() {
+    return [
+      // SEO consolidation: /learn/nisab is the canonical authority page.
+      // /learn/nisab-threshold is the legacy slug kept alive only to preserve
+      // existing backlinks. 301-permanent redirect tells Google (and all other
+      // crawlers) to transfer ranking signals to the canonical URL.
+      {
+        source: "/learn/nisab-threshold",
+        destination: "/learn/nisab",
+        permanent: true,
+      },
+    ];
+  },
+
   async rewrites() {
     return {
       // Proxy backend routes BEFORE Next.js page matching — eliminates CORS.
