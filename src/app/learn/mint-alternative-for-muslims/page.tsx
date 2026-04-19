@@ -359,6 +359,15 @@ export default function MintAlternativeForMuslimsPage() {
           </div>
 
         </div>
+          <section className="mt-10 rounded-2xl bg-amber-50 border border-amber-200 p-6">
+            <h2 className="mb-3 text-lg font-bold text-amber-900">Related fiqh terms</h2>
+            <p className="text-sm text-amber-900 mb-3">Scholar-aligned glossary entries covering the Islamic legal terms used on this page.</p>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/fiqh-terms/zakat" className="rounded-full bg-white px-3 py-1 text-sm text-[#1B5E20] border border-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition">Zakat →</Link>
+              <Link href="/fiqh-terms/riba" className="rounded-full bg-white px-3 py-1 text-sm text-[#1B5E20] border border-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition">Riba →</Link>
+              <Link href="/fiqh-terms" className="rounded-full bg-amber-100 px-3 py-1 text-sm text-amber-900 border border-amber-200 hover:bg-amber-200 transition">All 14 terms →</Link>
+            </div>
+          </section>
       </article>
     </>
   );
