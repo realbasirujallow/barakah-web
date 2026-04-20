@@ -30,6 +30,12 @@ export default async function VerifyHashPage({
 
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      {/* Visible status banner. The on-page amber "Public verification
+          endpoint: beta" section below spells out what ships in Q3 2026;
+          this banner just makes it unmistakable at a glance. */}
+      <div className="bg-amber-100 border-b-2 border-amber-400 px-4 py-2 text-center text-xs font-semibold text-amber-900">
+        ⚠ BETA · Public anonymous verification opens in Q3 2026 with the Year-end Zakat PDF · account holders can verify today via /dashboard/ledger
+      </div>
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</Link>

@@ -68,6 +68,12 @@ const sections: Array<{
 export default function TransparencyH1Page() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      {/* Visible status banner so the H1 2026 report can't be mistaken for
+          shipped figures while it's still a scaffold + commitment. Final
+          numbers publish July 2026 after H1 closes June 30. */}
+      <div className="bg-amber-100 border-b-2 border-amber-400 px-4 py-2 text-center text-xs font-semibold text-amber-900">
+        ⚠ DRAFT · H1 figures finalize July 2026 · this page is the commitment template, not final numbers
+      </div>
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</Link>
@@ -144,7 +150,7 @@ export default function TransparencyH1Page() {
               Publishing a twice-yearly report is a commitment; the actual value comes from publishing
               it consistently, with honest numbers, year over year. If you notice we&apos;ve missed a
               publication window or a section is under-specified, email the founder at{' '}
-              <strong>longsmile2012@gmail.com</strong>.
+              <a href="mailto:support@trybarakah.com" className="underline font-semibold hover:text-white">support@trybarakah.com</a>.
             </p>
             <Link href="/transparency" className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#1B5E20] transition hover:bg-green-50">
               All transparency reports →
