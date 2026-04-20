@@ -92,7 +92,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
     'Wasiyyah': 'Plan your Islamic will with automatic Faraid calculation and 1/3 cap enforcement. Export as PDF.',
     'Waqf': 'Track Islamic endowments, manage beneficiaries, and plan charitable distributions.',
     'Analytics': 'Spending trends, category breakdown, and month-over-month financial analysis.',
-    'Auto-Categorize': 'AI-powered transaction categorization saves you time and keeps your records clean.',
+    'Auto-Categorize': 'Transactions sort themselves into categories (groceries, halal/riba, recurring) so your records stay clean without manual triaging.',
     'Riba Detector': 'Automatically flag interest-bearing transactions and accounts in your finances.',
     'Subscription Detection': 'Auto-detect recurring subscriptions you may have forgotten about.',
     'Subscription Detector': 'Auto-detect recurring subscriptions from your transactions and flag non-halal services.',
