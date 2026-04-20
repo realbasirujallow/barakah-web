@@ -22,7 +22,7 @@ export default function NisabTermPage() {
     name: 'Nisab',
     alternateName: 'نصاب',
     description:
-      'The minimum threshold of wealth that obligates zakat. Classically defined as 87.48 grams of gold or 612.36 grams of silver, whichever applies under your chosen methodology.',
+      'The minimum threshold of wealth that obligates zakat. Barakah uses the AMJA standard of 85g of gold or 595g of silver (classical weights: 87.48g / 612.36g), whichever your methodology selects.',
     inDefinedTermSet: 'https://trybarakah.com/fiqh-terms',
     url: 'https://trybarakah.com/fiqh-terms/nisab',
   };
@@ -62,8 +62,10 @@ export default function NisabTermPage() {
             <p className="text-base leading-7 text-gray-800">
               <strong>Nisab</strong> is the minimum wealth threshold that obligates{' '}
               <Link href="/fiqh-terms/zakat" className="text-[#1B5E20] underline">zakat</Link>.
-              Below it, no zakat is due. Classical fiqh defines it by <strong>87.48g of gold</strong> or{' '}
-              <strong>612.36g of silver</strong> — whichever your methodology selects.
+              Below it, no zakat is due. Barakah applies the AMJA standard of{' '}
+              <strong>85g of gold</strong> or <strong>595g of silver</strong> (classical weights
+              are 87.48g / 612.36g — the modern rounded values are within ~3% and are what
+              AMJA, many US scholars, and most practical calculators use today).
             </p>
           </section>
 
@@ -82,16 +84,19 @@ export default function NisabTermPage() {
               <div className="rounded-xl bg-white p-5 shadow-sm">
                 <h3 className="font-bold text-[#1B5E20] mb-1">1. Gold nisab (AMJA default)</h3>
                 <p className="text-sm leading-7 text-gray-800">
-                  20 <em>mithqal</em> = 87.48g of gold. Adopted by AMJA and many modern US scholars.
-                  Reflects the buying power the Prophet ﷺ specified in dinars.
+                  20 <em>mithqal</em>. Barakah uses <strong>85g</strong> of gold — the AMJA
+                  standard adopted by many modern US scholars. Classical fiqh texts specify
+                  87.48g (20 × 4.374g per mithqal); AMJA rounds to 85g for practical use.
+                  Both reflect the buying power the Prophet ﷺ specified in dinars.
                 </p>
               </div>
               <div className="rounded-xl bg-white p-5 shadow-sm">
                 <h3 className="font-bold text-[#1B5E20] mb-1">2. Silver nisab (classical Hanafi)</h3>
                 <p className="text-sm leading-7 text-gray-800">
-                  200 <em>dirham</em> = 612.36g of silver. The Hanafi madhab&apos;s preferred threshold
-                  because it&apos;s lower in modern dollar terms — making zakat due on more households and
-                  thus benefiting more recipients.
+                  200 <em>dirham</em>. Barakah uses <strong>595g</strong> of silver (classical
+                  weight is 612.36g; AMJA rounds to 595g). This is the Hanafi madhab&apos;s preferred
+                  threshold because it&apos;s lower in modern dollar terms — making zakat due on more
+                  households and thus benefiting more recipients.
                 </p>
               </div>
               <div className="rounded-xl bg-white p-5 shadow-sm">
