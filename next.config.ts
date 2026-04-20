@@ -134,19 +134,25 @@ const nextConfig: NextConfig = {
   compress: true,
 
   async headers() {
+    const isProd = process.env.NODE_ENV === 'production';
     return [
       {
         // Apply security headers to every route served by Next.js
         source: "/(.*)",
         headers: securityHeaders,
       },
-      {
-        // Cache static assets (JS, CSS, fonts, images) for 1 year
-        source: "/_next/static/(.*)",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
-      },
+      // Cache static assets (JS, CSS, fonts, images) for 1 year — PROD ONLY.
+      // In dev, a 1-year immutable Cache-Control on /_next/static/* confuses
+      // Turbopack's HMR runtime and Next emits a warning at startup.
+      // Skipping the rule in dev eliminates the warning with zero prod impact.
+      ...(isProd
+        ? [{
+            source: "/_next/static/(.*)",
+            headers: [
+              { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+            ],
+          }]
+        : []),
       {
         // Cache API price/nisab calls at CDN level for 5 minutes to reduce backend load
         source: "/api/prices/(.*)",
