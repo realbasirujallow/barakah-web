@@ -162,7 +162,7 @@ function TrialBannerInner({
     >
       <div className="flex items-center gap-3 min-w-0">
         <span className="text-2xl flex-shrink-0" aria-hidden="true">
-          {urgent ? '⏰' : '✨'}
+          {urgent ? '⏰' : '🎁'}
         </span>
         <div className="min-w-0">
           <p className={`font-semibold ${labelCls} text-sm sm:text-base`}>

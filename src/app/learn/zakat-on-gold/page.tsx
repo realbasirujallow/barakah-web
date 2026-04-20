@@ -265,7 +265,7 @@ export default function ZakatOnGoldPage() {
             <div className="bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] rounded-xl p-8 text-white mt-12 space-y-4">
               <h2 className="text-2xl font-bold">Ready to Calculate Your Zakat on Gold?</h2>
               <p className="text-green-100">
-                Use Barakah&apos;s intelligent zakat calculator to compute your obligations across all asset classes with real-time gold prices.
+                Use Barakah&apos;s zakat calculator to compute your obligations across all asset classes with live gold and silver prices, your chosen madhab&apos;s rules, and per-asset hawl tracking.
               </p>
               <Link
                 href="/zakat-calculator"
