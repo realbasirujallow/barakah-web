@@ -45,11 +45,18 @@ const upcomingEngagements = [
 
 export default function ScholarsPage() {
   return (
-    <main className="min-h-screen bg-[#FFF8E1] px-6 py-16">
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-10 text-center">
-          <p className="mb-4 text-4xl">📜</p>
-          <h1 className="mb-4 text-4xl font-extrabold text-[#1B5E20]">Scholar Board</h1>
+    <>
+      {/* Visible status banner so casual visitors can't mistake this page for
+          a shipped Scholar Board with named reviewers. Final roster + reviews
+          target Q3 2026. */}
+      <div className="bg-amber-100 border-b-2 border-amber-400 px-4 py-2 text-center text-xs font-semibold text-amber-900">
+        ⚠ DRAFT · Scholar Board roster fills in as reviewers approve public naming · Target: Q3 2026
+      </div>
+      <main className="min-h-screen bg-[#FFF8E1] px-6 py-16">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-10 text-center">
+            <p className="mb-4 text-4xl">📜</p>
+            <h1 className="mb-4 text-4xl font-extrabold text-[#1B5E20]">Scholar Board</h1>
           <p className="mx-auto max-w-2xl text-base leading-7 text-gray-700">
             Barakah&apos;s fiqh methodology moves through a public scholar-review pipeline across
             madhabs. Every opinionated default we ship — Hanafi-silver nisab, retirement zakat
@@ -184,5 +191,6 @@ export default function ScholarsPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }
