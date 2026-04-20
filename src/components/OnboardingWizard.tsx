@@ -24,8 +24,8 @@ const steps = [
   {
     icon: '📊',
     title: 'Track Income & Expenses',
-    subtitle: 'Smart categorization with halal insights',
-    body: 'Record your transactions and get AI-powered halal spending analysis — see what percentage of your spending is Islamic-compliant.',
+    subtitle: 'Automatic categorization with halal-awareness',
+    body: 'Record your transactions and Barakah will sort them by category, flag interest-bearing charges, and show what share of your spending is Islamic-compliant.',
     action: { label: 'Add First Transaction', href: '/dashboard/transactions' },
   },
   {
@@ -43,7 +43,7 @@ const steps = [
     action: { label: 'Start Your Wasiyyah', href: '/dashboard/wasiyyah' },
   },
   {
-    icon: '✨',
+    icon: '🤲',
     title: "You're All Set!",
     subtitle: 'May your wealth be blessed with Barakah',
     body: 'Explore features like Halal Stock Screener, Riba Detector, Prayer Times, Sadaqah Tracker, Budget Planning, and more from your dashboard.',

@@ -336,7 +336,7 @@ export default function FaraidPage() {
       {prefilled && (
         <div className="bg-green-50 border border-green-200 text-green-900 rounded-xl px-4 py-3 text-sm flex items-center justify-between gap-3">
           <span>
-            ✨ Heirs pre-filled from your <Link href="/dashboard/profile" className="underline font-semibold">Household profile</Link>. Adjust any field before calculating if something changed.
+            💡 Heirs pre-filled from your <Link href="/dashboard/profile" className="underline font-semibold">Household profile</Link>. Adjust any field before calculating if something changed.
           </span>
           <button
             type="button"
