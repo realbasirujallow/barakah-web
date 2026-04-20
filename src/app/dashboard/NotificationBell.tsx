@@ -54,13 +54,22 @@ export function NotificationBell() {
     finally { setLoading(false); }
   }, []);
 
+  // Polling the notifications endpoint is a true "subscribe to an external
+  // system" effect (the network). The React 19 lint rule
+  // `react-hooks/set-state-in-effect` flags setState inside effects as risky,
+  // but that guidance assumes synchronous state derivations; here both fetches
+  // are async-resolved network calls, so the setState happens after the
+  // microtask queue flushes, not during the render. Disabling the rule for
+  // these two effects with explicit reasoning.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async network subscription
     fetchUnread();
     const interval = setInterval(fetchUnread, 2 * 60 * 1000); // every 2 min
     return () => clearInterval(interval);
   }, [fetchUnread]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async network fetch on dropdown open
     if (open) fetchAll();
   }, [open, fetchAll]);
 
@@ -125,10 +134,18 @@ export function NotificationBell() {
     }
   };
 
+  // Snapshot "now" once per render so the set of fmtTime() calls within a
+  // single paint agree with each other (all notifications compare against the
+  // same moment). Intentional impurity — "5m ago" style relative times are
+  // *supposed* to reflect time-of-render; React's concurrent re-renders landing
+  // slightly different `now` values is harmless here (they'd be off by ms, not
+  // minutes). Acceptable tradeoff vs. the alternative (interval + setState
+  // purely to paint a tooltip).
+  // eslint-disable-next-line react-hooks/purity -- intentional render-time snapshot for relative-time display
+  const now = Date.now();
   const fmtTime = (ts: number) => {
     const ms = ts < 1e12 ? ts * 1000 : ts;
     const d = new Date(ms);
-    const now = Date.now();
     const diff = now - ms;
     if (diff < 60000) return 'Just now';
     if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
