@@ -26,6 +26,5 @@ if (SENTRY_DSN) {
     sendDefaultPii: false,
   });
 } else if (isProd) {
-  // eslint-disable-next-line no-console
   console.warn('[Sentry] NEXT_PUBLIC_SENTRY_DSN is not set — edge-runtime errors will not be reported.');
 }

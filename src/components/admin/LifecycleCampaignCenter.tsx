@@ -1,19 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect, react-hooks/purity --
- * This page uses two patterns that the React 19 lint rules flag but are
- * intentional here (and throughout the dashboard):
- *
- *   1. Polling / on-mount data fetches inside useEffect that call setState
- *      after the fetch promise resolves. The rule targets synchronous
- *      state derivations; async network subscriptions are the exception.
- *
- *   2. Date.now() at render time for "N minutes ago" relative-time displays.
- *      Render-time snapshot is the *desired* semantic — concurrent re-renders
- *      landing ms-level different values is harmless for a time-ago tooltip.
- *
- * Canonical rationale + worked example: PR #27 on NotificationBell.tsx.
- * Disabling at file-level here (instead of line-level on every occurrence)
- * so the pattern doesn't add noise across the dashboard.
- */
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';

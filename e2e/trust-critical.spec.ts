@@ -80,7 +80,6 @@ test.describe('Round 33: trust-critical surfaces', () => {
     }
     setupCompleted = /\/dashboard(\/|$)/.test(page.url());
     if (!setupCompleted) {
-      // eslint-disable-next-line no-console
       console.warn(
         '[trust-critical.spec] Post-priming redirect still on /setup — ' +
         'dashboard assertions will skip. Check src/app/dashboard/layout.tsx ' +

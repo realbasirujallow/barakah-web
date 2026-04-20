@@ -44,7 +44,6 @@ interface SubscriptionStatus {
 }
 
 /* ── Payoff simulation ──────────────────────────────────────────── */
-interface SimDebt { id: number; name: string; balance: number; monthlyPayment: number; rate: number; }
 
 function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' | 'snowball' = 'avalanche') {
   if (!rawDebts.length) return { months: 0, totalInterest: 0, schedule: [] };
