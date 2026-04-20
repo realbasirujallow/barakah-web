@@ -36,6 +36,9 @@ interface ZakatPayment {
 
 interface NisabInfo {
   goldPricePerGram?: number;
+  silverPricePerGram?: number;
+  nisabGoldGrams?: number;
+  nisabSilverGrams?: number;
   staleWarning?: boolean;
   priceAgeMs?: number;
 }
@@ -662,22 +665,35 @@ export default function ZakatPage() {
             <div className="bg-white rounded-xl p-5">
               <p className="text-gray-500 text-sm flex items-center gap-1">
                 Nisab Threshold
-                <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" title="Live gold price" />
+                <span
+                  className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"
+                  title={
+                    selectedMethodology === 'CLASSICAL_SILVER'
+                      ? 'Live silver price'
+                      : selectedMethodology === 'LOWER_OF_TWO'
+                      ? 'Live gold + silver prices'
+                      : 'Live gold price'
+                  }
+                />
               </p>
               <p className="text-2xl font-bold text-amber-600">
                 {data?.nisab ? fmt(data.nisab as number) : '—'}
               </p>
-              {nisabInfo?.goldPricePerGram && (
+              {nisabInfo && (
                 <p className="text-xs text-gray-400 mt-1">
-                  {/* HIGH BUG FIX (H-1): goldPricePerGram comes straight from
-                      /api/zakat/info, which quotes the spot price in USD from
-                      the upstream gold feed — it's NOT converted through the
-                      user's display currency pipeline. Keep the "$" glyph and
-                      the explicit "USD" suffix so non-USD users aren't
-                      misled into thinking this figure is already localized.
-                      If we ever plumb currency conversion through this
-                      endpoint, switch the glyph to the user's {symbol}. */}
-                  Gold: ${nisabInfo.goldPricePerGram!.toFixed(2)} USD/g · 85g standard
+                  {/* HIGH BUG FIX (H-1): goldPricePerGram / silverPricePerGram
+                      come straight from /api/zakat/info, which quote spot
+                      prices in USD — they're NOT converted through the user's
+                      display currency pipeline. Keep the "$" glyph and the
+                      explicit "USD" suffix so non-USD users aren't misled
+                      into thinking the figure is already localized. */}
+                  {selectedMethodology === 'CLASSICAL_SILVER' && nisabInfo.silverPricePerGram ? (
+                    <>Silver: ${nisabInfo.silverPricePerGram.toFixed(2)} USD/g · {nisabInfo.nisabSilverGrams ?? 595}g standard</>
+                  ) : selectedMethodology === 'LOWER_OF_TWO' && nisabInfo.goldPricePerGram && nisabInfo.silverPricePerGram ? (
+                    <>Gold ${nisabInfo.goldPricePerGram.toFixed(2)} / Silver ${nisabInfo.silverPricePerGram.toFixed(2)} USD/g · whichever is lower</>
+                  ) : nisabInfo.goldPricePerGram ? (
+                    <>Gold: ${nisabInfo.goldPricePerGram.toFixed(2)} USD/g · {nisabInfo.nisabGoldGrams ?? 85}g standard</>
+                  ) : null}
                   {nisabInfo.priceAgeMs !== undefined && (
                     <span className="ml-1">· updated {formatTimeAgo(nisabInfo.priceAgeMs)}</span>
                   )}
@@ -801,8 +817,12 @@ export default function ZakatPage() {
 
           <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
             <strong>Reminder:</strong> Zakat is 2.5% of wealth held for one Islamic lunar year (Hawl) above the Nisab threshold.
-            The Nisab is based on the live gold price (85g, AMJA standard) and updates hourly — small changes are normal.
-            Use the Hawl Tracker to track when each asset becomes eligible.
+            {selectedMethodology === 'CLASSICAL_SILVER'
+              ? ' The Nisab is based on the live silver price (595g, Classical Hanafi standard) and updates hourly — small changes are normal.'
+              : selectedMethodology === 'LOWER_OF_TWO'
+              ? ' The Nisab tracks whichever of the live gold (85g) or silver (595g) thresholds is lower today (Al-Qaradawi precautionary position) and updates hourly — small changes are normal.'
+              : ' The Nisab is based on the live gold price (85g, AMJA standard) and updates hourly — small changes are normal.'}
+            {' '}Use the Hawl Tracker to track when each asset becomes eligible.
           </div>
         </>
 
@@ -811,7 +831,13 @@ export default function ZakatPage() {
           {/* Manual Zakat Asset Calculator */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-sm text-amber-800">
             <p className="font-semibold mb-1">📌 Manual Asset Breakdown</p>
-            <p>Enter each zakatable asset below. This calculator is independent of your connected accounts and uses the Nisab ({data?.nisab ? fmt(data.nisab as number) : '…'}) from live gold prices.</p>
+            <p>Enter each zakatable asset below. This calculator is independent of your connected accounts and uses the Nisab ({data?.nisab ? fmt(data.nisab as number) : '…'}) from{' '}
+              {selectedMethodology === 'CLASSICAL_SILVER'
+                ? 'live silver prices'
+                : selectedMethodology === 'LOWER_OF_TWO'
+                ? 'the lower of live gold / silver prices'
+                : 'live gold prices'}.
+            </p>
           </div>
 
           {(() => {
