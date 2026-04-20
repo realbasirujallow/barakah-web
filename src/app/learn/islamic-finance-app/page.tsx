@@ -125,7 +125,7 @@ const faqSchema = {
       name: 'Does Barakah support multiple madhabs?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. Barakah supports zakat calculation according to all four major Sunni madhabs — Hanafi, Shafi\'i, Maliki, and Hanbali. Key differences include: Hanafi uses silver nisab (87.48g silver), which is typically lower; Shafi\'i/Maliki/Hanbali use gold nisab (85g gold) or silver, whichever is higher per your scholar. Barakah lets you select your madhab and calculates accordingly.',
+        text: 'Yes. Barakah supports zakat calculation according to all four major Sunni madhabs — Hanafi, Shafi\'i, Maliki, and Hanbali. Key differences include: Hanafi uses silver nisab (595g silver), which is typically lower in modern dollar terms; Shafi\'i/Maliki/Hanbali default to gold nisab (85g gold, the AMJA standard) though many scholars still permit silver for precaution. Barakah lets you select your madhab and calculates accordingly.',
       },
     },
   ],

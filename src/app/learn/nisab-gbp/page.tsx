@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Nisab in GBP 2026: Live Gold & Silver Thresholds for UK Muslims | Barakah',
   description:
-    'The zakat nisab threshold in British pounds. Live gold (87.48g) and silver (612.36g) values in GBP, methodology explained for UK Muslims, madhab guidance, and the 2026 update schedule.',
+    'The zakat nisab threshold in British pounds. Live gold (85g, AMJA standard) and silver (595g) values in GBP, methodology explained for UK Muslims, madhab guidance, and the 2026 update schedule.',
   keywords: [
     'nisab gbp',
     'nisab uk',
@@ -46,7 +46,7 @@ export default function NisabGbpPage() {
         name: 'What is the nisab threshold in GBP for 2026?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'As of April 2026, the gold nisab (87.48g) in GBP is approximately \u00a36,200 depending on the day\u2019s spot price; the silver nisab (612.36g) is approximately \u00a3400\u2013\u00a3500. Values fluctuate daily with metal markets. UK Muslims should verify against a live calculator on the day they\u2019re computing zakat.',
+          text: 'As of April 2026, the gold nisab (85g, AMJA standard used by Barakah) in GBP is approximately \u00a36,000\u2013\u00a36,200 depending on the day\u2019s spot price; the silver nisab (595g) is approximately \u00a3400\u2013\u00a3500. Classical fiqh texts use 87.48g gold / 612.36g silver; the modern rounded values are within ~3%. Values fluctuate daily with metal markets. UK Muslims should verify against a live calculator on the day they\u2019re computing zakat.',
         },
       },
       {
@@ -101,8 +101,9 @@ export default function NisabGbpPage() {
             <h2 className="text-lg font-bold text-[#1B5E20] mb-2">At a glance</h2>
             <p className="text-base leading-7 text-gray-800 mb-3">
               The <Link href="/fiqh-terms/nisab" className="text-[#1B5E20] underline">nisab</Link> is
-              the minimum wealth threshold that obligates zakat. Classical fiqh specifies it in weight
-              of gold (87.48g) or silver (612.36g) — but UK Muslims calculate in pounds sterling. This
+              the minimum wealth threshold that obligates zakat. Barakah uses the AMJA standard of
+              85g of gold or 595g of silver (classical fiqh texts specify 87.48g / 612.36g; the modern
+              rounded values are within ~3%) — but UK Muslims calculate in pounds sterling. This
               page explains which nisab to use, the live GBP values, and how UK-specific factors (tax,
               recipients, NZF partnership) apply.
             </p>
@@ -129,12 +130,12 @@ export default function NisabGbpPage() {
                 <tbody>
                   <tr className="border-b border-gray-100">
                     <td className="p-3 font-semibold">Gold nisab (AMJA default)</td>
-                    <td className="p-3">87.48g / 20 mithqal</td>
-                    <td className="p-3">~£6,200</td>
+                    <td className="p-3">85g / 20 mithqal <span className="text-xs text-gray-500">(classical 87.48g)</span></td>
+                    <td className="p-3">~£6,000–£6,200</td>
                   </tr>
                   <tr className="border-b border-gray-100">
                     <td className="p-3 font-semibold">Silver nisab (classical Hanafi, UK scholar default)</td>
-                    <td className="p-3">612.36g / 200 dirham</td>
+                    <td className="p-3">595g / 200 dirham <span className="text-xs text-gray-500">(classical 612.36g)</span></td>
                     <td className="p-3">~£400–£500</td>
                   </tr>
                   <tr>

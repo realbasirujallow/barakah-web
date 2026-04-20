@@ -37,7 +37,7 @@ const FaqSchema = {
       name: 'What is nisab?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Nisab is the minimum amount of wealth a Muslim must own — above basic needs and debts — before zakat becomes obligatory. It was set by the Prophet (ﷺ) as either 87.48 grams of pure gold (or the AMJA standard of 85g) or 595 grams of pure silver. In 2026 USD, gold nisab sits around $13,000–14,000 and silver nisab around $1,500–1,700, depending on daily spot prices.',
+        text: 'Nisab is the minimum amount of wealth a Muslim must own — above basic needs and debts — before zakat becomes obligatory. Barakah uses the AMJA standard of 85g of gold or 595g of silver (classical fiqh texts specify 87.48g / 612.36g; the modern rounded values are within ~3% and are what AMJA and most practical calculators use today). In 2026 USD, gold nisab sits around $13,000–14,000 and silver nisab around $1,500–1,700, depending on daily spot prices.',
       },
     },
     {
@@ -133,11 +133,12 @@ export default function NisabThresholdPage() {
               Last reviewed: 2026-04-19 · Prices update every hour
             </p>
             <p className="text-lg leading-8 text-gray-800 mb-6">
-              Nisab is the minimum wealth a Muslim must hold for zakat to become obligatory. It was
-              set by the Prophet (ﷺ) as either 87.48 grams of pure gold or 595 grams of pure
-              silver. The USD equivalents move every day with the market. This page shows today&apos;s
-              live figures, explains which methodology fits your madhab, and links out to the zakat
-              calculations that use them.
+              Nisab is the minimum wealth a Muslim must hold for zakat to become obligatory. Barakah
+              applies the AMJA standard of <strong>85 grams of pure gold</strong> or{' '}
+              <strong>595 grams of pure silver</strong> (classical fiqh texts specify 87.48g / 612.36g;
+              the modern rounded values are within ~3%). The USD equivalents move every day with the
+              market. This page shows today&apos;s live figures, explains which methodology fits your
+              madhab, and links out to the zakat calculations that use them.
             </p>
 
             {/* Live nisab widget */}
