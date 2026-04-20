@@ -229,6 +229,13 @@ export default function IbadahFinancePage() {
                       ? 'Not eligible yet'
                       : `${data.zakat.zakatDueCount} asset${data.zakat.zakatDueCount !== 1 ? 's' : ''} with zakat due`}
                   </p>
+                  {!data.zakat.belowNisab && data.zakat.activeTrackers === 0 && data.zakat.totalZakatDue === 0 && (
+                    <p className="mt-2 rounded-lg bg-white/15 px-3 py-2 text-xs leading-5 text-green-50">
+                      This counts only assets you&apos;ve added to the Hawl Tracker. Your Dashboard
+                      shows an <em>estimate</em> — 2.5% of your total zakatable wealth assuming every
+                      asset has completed its hawl. Tap below to reconcile.
+                    </p>
+                  )}
                   <p className="text-sm text-green-200 mt-4 group-hover:underline">
                     View Details &rarr;
                   </p>
