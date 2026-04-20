@@ -174,7 +174,6 @@ export default function SharedPage() {
       .finally(() => setLoadingDetail(false));
   };
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- standard data loading pattern on mount
   useEffect(() => { loadGroups(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCreateGroup = async () => {
