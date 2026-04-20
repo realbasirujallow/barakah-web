@@ -415,9 +415,9 @@ function HawlPageContent() {
             of your total obligation assuming every asset has already completed its 354-day lunar (hawl) cycle.
           </p>
           <p>
-            This <strong>Hawl Tracker</strong> counts only the assets where you&apos;ve actually started the
+            This <strong>Hawl Tracker</strong>{' '}counts only the assets where you&apos;ve actually started the
             countdown, which is what Islamic fiqh uses to decide when each asset&apos;s zakat is individually due.
-            Tap <strong>Import from your Assets</strong> below to begin — your Dashboard number does not change.
+            Tap <strong>Import from your Assets</strong>{' '}below to begin — your Dashboard number does not change.
           </p>
         </div>
       )}
@@ -425,7 +425,7 @@ function HawlPageContent() {
       <div className="grid md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Tracking</p><p className="text-2xl font-bold text-[#1B5E20]">{items.length}</p></div>
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Zakat Due</p><p className="text-2xl font-bold text-amber-600">{zakatDue.length}</p></div>
-        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Current Zakatable Wealth</p><p className="text-2xl font-bold text-red-600">{fmt(currentZakatableWealth)}</p></div>
+        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Current Zakatable Wealth</p><p className="text-2xl font-bold text-[#1B5E20]">{fmt(currentZakatableWealth)}</p></div>
       </div>
 
       {nextDueDate && (

@@ -162,7 +162,6 @@ export default function RetirementZakatPage() {
                   <input
                     type="number"
                     step="0.01"
-                    min="0"
                     value={balance}
                     onChange={(e) => setBalance(e.target.value)}
                     placeholder="0.00"
