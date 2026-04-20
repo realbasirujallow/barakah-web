@@ -177,7 +177,7 @@ export default function Home() {
       <section className="flex flex-col items-center justify-center text-center px-6 py-24">
         <p className="text-5xl mb-4">🌙</p>
         <p className="text-xs text-[#1B5E20] font-semibold mb-6 inline-block bg-green-50 px-4 py-2 rounded-full border border-[#1B5E20]">
-          ✨ {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus free with every signup &middot; no credit card
+          🎁 {`${DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus free with every signup · no credit card`}
         </p>
         <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] leading-tight mb-4">
           The money app<br className="hidden sm:block" /> built for Muslim households
