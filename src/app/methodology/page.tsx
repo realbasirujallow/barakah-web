@@ -39,8 +39,17 @@ const sections = [
 ];
 
 export default function MethodologyPage() {
+  const breadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trybarakah.com/' },
+      { '@type': 'ListItem', position: 2, name: 'Methodology', item: 'https://trybarakah.com/methodology' },
+    ],
+  };
   return (
     <main className="min-h-screen bg-[#FFF8E1] px-6 py-16">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <div className="mx-auto max-w-4xl">
         <div className="mb-10 text-center">
           <p className="mb-4 text-4xl">📘</p>

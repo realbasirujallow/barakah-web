@@ -33,8 +33,27 @@ const tickers = [
 ];
 
 export default function HalalStocksHub() {
+  const collection = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Halal Stock Screener — Individual Ticker Reviews',
+    description:
+      'AAOIFI Standard 21 halal screening for individual stocks: business-activity review, the three financial ratios, and purification guidance.',
+    url: 'https://trybarakah.com/halal-stocks',
+    isPartOf: { '@type': 'WebSite', name: 'Barakah', url: 'https://trybarakah.com' },
+  };
+  const breadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trybarakah.com/' },
+      { '@type': 'ListItem', position: 2, name: 'Halal Stocks', item: 'https://trybarakah.com/halal-stocks' },
+    ],
+  };
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collection) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</Link>

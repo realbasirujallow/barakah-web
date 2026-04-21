@@ -335,8 +335,40 @@ const categoryColors: Record<ArticleCard['category'], { bg: string; text: string
 };
 
 export default function LearnPage() {
+  // CollectionPage + ItemList schema for the learn hub — tells Google this is
+  // a curated index of articles, which improves sitelink/breadcrumb rendering
+  // in SERP and supports rich-result eligibility for the underlying articles.
+  const collectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Islamic Finance, Zakat & Estate Planning Guides',
+    description:
+      'Practical guides on zakat, halal investing, household finance, and Islamic estate planning backed by scholarly references and real-world examples.',
+    url: 'https://trybarakah.com/learn',
+    isPartOf: { '@type': 'WebSite', name: 'Barakah', url: 'https://trybarakah.com' },
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: articles.map((a, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `https://trybarakah.com/learn/${a.slug}`,
+        name: a.title,
+      })),
+    },
+  };
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trybarakah.com/' },
+      { '@type': 'ListItem', position: 2, name: 'Learn', item: 'https://trybarakah.com/learn' },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-10 dark:bg-gray-800">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">

@@ -122,8 +122,76 @@ export default function Home() {
   }
   if (user) return null;
 
+  // Organization + WebSite JSON-LD for the homepage. Root-level schema that
+  // Google uses for Knowledge Panel entries + sitelinks search box in SERP.
+  // Per Google's guidelines: one Organization + one WebSite per root domain.
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Barakah',
+    alternateName: 'Barakah Finance',
+    url: 'https://trybarakah.com',
+    logo: 'https://trybarakah.com/icon.png',
+    description:
+      "Free Islamic finance app for Muslim households — zakat calculator, halal investing, riba detection, Islamic will planning, and family budgeting with fiqh rules built in.",
+    sameAs: [
+      'https://apps.apple.com/us/app/barakah-islamic-finance/id6761279229',
+      'https://play.google.com/store/apps/details?id=com.trybarakah.app',
+    ],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      email: 'support@trybarakah.com',
+      contactType: 'customer support',
+      areaServed: 'Worldwide',
+      availableLanguage: ['English'],
+    },
+  };
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Barakah',
+    url: 'https://trybarakah.com',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://trybarakah.com/learn?q={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+  const softwareApplicationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Barakah — Islamic Finance',
+    operatingSystem: 'iOS, Android, Web',
+    applicationCategory: 'FinanceApplication',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '5.0',
+      ratingCount: '1',
+    },
+  };
+
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema) }}
+      />
 
       {/* ── Nav ── */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
