@@ -25,8 +25,9 @@ const reports = [
     slug: '2026-h1',
     period: 'H1 2026',
     coverage: 'Jan 1 \u2013 Jun 30, 2026',
-    status: 'Draft \u2014 publishing July 2026',
+    status: 'Upcoming \u2014 publishes after June 30 close',
     stateClass: 'bg-amber-100 text-amber-900',
+    href: null,
   },
 ];
 
@@ -101,21 +102,42 @@ export default function TransparencyIndexPage() {
           <section className="mb-10">
             <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Reports</h2>
             <div className="space-y-3">
-              {reports.map((r) => (
-                <Link
-                  key={r.slug}
-                  href={`/transparency/${r.slug}`}
-                  className="block rounded-2xl bg-white p-5 shadow-sm hover:shadow-md transition border border-transparent hover:border-[#1B5E20]"
-                >
-                  <div className="flex items-baseline justify-between mb-2">
-                    <span className="text-xl font-bold text-[#1B5E20]">{r.period}</span>
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${r.stateClass}`}>
-                      {r.status}
-                    </span>
+              {reports.map((r) => {
+                const content = (
+                  <>
+                    <div className="flex items-baseline justify-between mb-2">
+                      <span className="text-xl font-bold text-[#1B5E20]">{r.period}</span>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${r.stateClass}`}>
+                        {r.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700">{r.coverage}</p>
+                    {!r.href && (
+                      <p className="mt-3 text-xs leading-6 text-gray-500">
+                        We&apos;re keeping report periods visible here, but we do not publish placeholder
+                        report pages before the numbers are final.
+                      </p>
+                    )}
+                  </>
+                );
+
+                return r.href ? (
+                  <Link
+                    key={r.slug}
+                    href={r.href}
+                    className="block rounded-2xl bg-white p-5 shadow-sm hover:shadow-md transition border border-transparent hover:border-[#1B5E20]"
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div
+                    key={r.slug}
+                    className="rounded-2xl bg-white p-5 shadow-sm border border-gray-100"
+                  >
+                    {content}
                   </div>
-                  <p className="text-sm text-gray-700">{r.coverage}</p>
-                </Link>
-              ))}
+                );
+              })}
             </div>
           </section>
 
