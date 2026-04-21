@@ -114,6 +114,7 @@ export default function RootLayout({
       'https://www.tiktok.com/@trybarakah',
       'https://www.instagram.com/trybarakah/',
       'https://apps.apple.com/us/app/barakah-islamic-finance/id6761279229',
+      'https://play.google.com/store/apps/details?id=com.trybarakah.app',
     ],
     contactPoint: {
       '@type': 'ContactPoint',

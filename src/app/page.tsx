@@ -784,7 +784,10 @@ export default function Home() {
                 <a href="https://www.tiktok.com/@trybarakah" target="_blank" rel="noopener noreferrer" aria-label="Barakah on TikTok" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm font-bold" title="TikTok">♪</a>
                 <a href="https://www.instagram.com/trybarakah/" target="_blank" rel="noopener noreferrer" aria-label="Barakah on Instagram" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="Instagram">📷</a>
                 <a href="https://linkedin.com/company/barakah" target="_blank" rel="noopener noreferrer" aria-label="Barakah on LinkedIn" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="LinkedIn">in</a>
-                <a href="https://apps.apple.com/us/app/barakah-islamic-finance/id6761279229" target="_blank" rel="noopener noreferrer" aria-label="Barakah on the App Store" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="App Store">🍎</a>
+                <a href={IOS_APP_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Barakah on the App Store" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="App Store">🍎</a>
+                {IS_ANDROID_PUBLICLY_LAUNCHED && (
+                  <a href={ANDROID_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Barakah on Google Play" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="Google Play">🤖</a>
+                )}
               </div>
               <p className="text-xs text-gray-500 text-center md:text-right">
                 <span className="block">© {new Date().getFullYear()} Barakah. All rights reserved.</span>
