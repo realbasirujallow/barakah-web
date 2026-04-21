@@ -11,18 +11,18 @@
 export const IOS_APP_STORE_URL =
   'https://apps.apple.com/us/app/barakah-islamic-finance/id6761279229';
 
-/** Google Play Store listing — works only once the app has a PRODUCTION
- *  track release live on the public Play Store. Right now the app is in
- *  Closed testing (alpha, 20-tester cap) so this URL returns "app not
- *  available" for anyone not opted in. Left in place so the URL works
- *  automatically the moment production launch completes. */
+/** Google Play Store listing — LIVE. Google Play production approval
+ *  completed 2026-04-21 after the Closed-testing (alpha, 20-tester cap)
+ *  phase. The Play Store URL now resolves for any public visitor. */
 export const ANDROID_PLAY_STORE_URL =
   'https://play.google.com/store/apps/details?id=com.trybarakah.app';
 
-/** True when the public Play Store listing actually exists. Flip this to
- *  `true` (and remove the fallback link) the moment the Production track
- *  goes live. */
-export const IS_ANDROID_PUBLICLY_LAUNCHED = false;
+/** True when the public Play Store listing actually exists. Flipped on
+ *  2026-04-21 when Production track went live. The Play Store buttons
+ *  across the site (homepage CTA, /open page, footer social-icon strip)
+ *  now activate automatically — no further code changes required when
+ *  you publish a Play Store update. */
+export const IS_ANDROID_PUBLICLY_LAUNCHED = true;
 
 /** Fallback when IS_ANDROID_PUBLICLY_LAUNCHED is false — route Android
  *  CTAs to the /open page which tells honest users "Android is in final
