@@ -36,11 +36,13 @@ interface PreviewResponse {
   familyName?: string | null;
 }
 
-const PENDING_INVITE_KEY = 'barakah_pending_family_invite_token';
-
-function safeSet(key: string, value: string) {
-  try { sessionStorage.setItem(key, value); } catch { /* storage unavailable */ }
-}
+// R5 audit follow-up: the sessionStorage stash of the raw invite token has
+// been removed. The happy path already encodes the token into the
+// `?redirect=/family/join?token=…` URL that login/signup bounce through,
+// so the stash only helped the cross-tab edge case (signup in tab A,
+// login in tab B) — which a user hitting that edge can trivially fix by
+// reopening the original invite email link. The XSS exfiltration risk of
+// keeping the raw bearer in sessionStorage wasn't worth that marginal UX.
 
 function formatDate(ms: number | undefined): string {
   if (!ms) return '';
@@ -71,10 +73,6 @@ function JoinFamilyContent() {
       .then((res) => {
         if (!cancelled) {
           const preview = res as PreviewResponse;
-          // Only persist the token once the API confirms it is valid.
-          // Storing it before validation would let expired/canceled tokens
-          // pollute sessionStorage and confuse the post-signup flow.
-          if (preview.valid) safeSet(PENDING_INVITE_KEY, token);
           setPreview(preview);
         }
       })
@@ -92,7 +90,6 @@ function JoinFamilyContent() {
     setError(null);
     try {
       await api.acceptFamilyInvite(token);
-      try { sessionStorage.removeItem(PENDING_INVITE_KEY); } catch { /* ignore */ }
       router.push('/dashboard/family?joined=1');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not accept invitation');
