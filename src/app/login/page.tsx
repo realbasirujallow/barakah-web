@@ -80,19 +80,14 @@ function LoginForm() {
         router.push(redirectParam);
         return;
       }
-      // Round 17: cross-session fallback — if the user originally landed on
-      // /family/join and completed signup + email verification in a
-      // different tab, sessionStorage no longer has the token, but if
-      // they're on the same session we persisted the token during the
-      // initial preview. This gets them back to the invite screen to
-      // tap "Accept" without retyping the URL.
-      try {
-        const pendingFamilyToken = sessionStorage.getItem('barakah_pending_family_invite_token');
-        if (pendingFamilyToken) {
-          router.push(`/family/join?token=${encodeURIComponent(pendingFamilyToken)}`);
-          return;
-        }
-      } catch { /* sessionStorage unavailable — ignore */ }
+      // R5 audit follow-up (2026-04-21): the cross-tab sessionStorage
+      // fallback that used to read `barakah_pending_family_invite_token`
+      // here has been removed. The invite flow now relies entirely on the
+      // `?redirect=` URL param for hand-off between /family/join ↔ login ↔
+      // signup ↔ verify-email. A user who hits the edge case where they
+      // lose the redirect param can click the original invite email again.
+      // That's a better trade than keeping a raw bearer in storage where
+      // any XSS can read it.
       let nextRoute = '/setup';
       try {
         const savedUser = localStorage.getItem('user');

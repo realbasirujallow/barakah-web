@@ -68,9 +68,28 @@ async function handler(
   const idempotency = request.headers.get('idempotency-key');
   if (idempotency) headers.set('Idempotency-Key', idempotency);
 
-  // Forward the real client IP
-  const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded) headers.set('X-Forwarded-For', forwarded);
+  // Forward the real client IP — R5 audit (2026-04-21):
+  //
+  // Previously we relayed whatever X-Forwarded-For the caller sent us.
+  // Because the backend RateLimitService honours XFF when
+  // TRUST_PROXY=true (its default in production behind Cloudflare/
+  // Railway), a client could script arbitrary XFF values to rotate their
+  // apparent IP identity and dilute the IP-keyed brute-force throttle on
+  // /auth/login, /auth/forgot-password, /auth/refresh, /auth/admin-verify.
+  //
+  // Vercel populates request.headers.get('x-forwarded-for') with the
+  // authenticated edge-derived chain (comma-separated, right-most = the
+  // Vercel edge, left-most = the originating client). We want the
+  // LEFT-MOST entry, which is the real client IP, and we discard anything
+  // the attacker prepended by trimming to the first segment.
+  const xffRaw = request.headers.get('x-forwarded-for') ?? '';
+  const clientIp = xffRaw.split(',')[0]?.trim();
+  // Only relay if the left-most segment looks like an IP literal — this
+  // drops obviously spoofed values like "127.0.0.1, 8.8.8.8" or random
+  // strings stuffed in by a malicious client.
+  if (clientIp && /^[0-9a-f:.]+$/i.test(clientIp)) {
+    headers.set('X-Forwarded-For', clientIp);
+  }
 
   let body: string | null = null;
   if (request.method !== 'GET' && request.method !== 'HEAD') {
