@@ -35,8 +35,17 @@ export const metadata: Metadata = {
 };
 
 export default function TryPage() {
+  const breadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trybarakah.com/' },
+      { '@type': 'ListItem', position: 2, name: 'Try', item: 'https://trybarakah.com/try' },
+    ],
+  };
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       {/* Round 18: added the marketing header so users landing from ads
           aren't stranded. Previously the page had zero navigation —
           visitors who wanted pricing or more info had to close the tab. */}
