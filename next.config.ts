@@ -215,6 +215,13 @@ const nextConfig: NextConfig = {
         destination: "/fiqh-terms/musharaka",
         permanent: true,
       },
+      // Remove the public H1 2026 draft-report route until real figures exist.
+      // Old links land on the transparency hub instead of a placeholder page.
+      {
+        source: "/transparency/2026-h1",
+        destination: "/transparency",
+        permanent: true,
+      },
     ];
   },
 
