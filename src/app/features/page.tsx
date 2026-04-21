@@ -87,8 +87,17 @@ const featureList = [
 ];
 
 export default function FeaturesPage() {
+  const breadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trybarakah.com/' },
+      { '@type': 'ListItem', position: 2, name: 'Features', item: 'https://trybarakah.com/features' },
+    ],
+  };
   return (
     <main className="min-h-screen px-4 py-20 max-w-5xl mx-auto">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <h1 className="text-4xl font-bold text-center mb-4">
         Everything You Need for Halal Finances
       </h1>
