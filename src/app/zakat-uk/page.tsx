@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Zakat in the UK (2026): Calculate, Distribute, and Track Your Obligation | Barakah',
@@ -233,7 +234,7 @@ export default function ZakatUkPage() {
               methodology, family sharing, and an auditable snapshot trail.
             </p>
             <Link href="/signup?region=uk" className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#1B5E20] transition hover:bg-green-50">
-              Start free trial →
+              Start {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} free trial →
             </Link>
           </section>
         </div>

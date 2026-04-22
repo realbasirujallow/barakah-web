@@ -140,7 +140,7 @@ export default function HalalStocksHub() {
               purification amounts, and zakat integration. Free for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL}.
             </p>
             <Link href="/signup" className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#1B5E20] transition hover:bg-green-50">
-              Start free trial →
+              Start {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} free trial →
             </Link>
           </section>
         </div>

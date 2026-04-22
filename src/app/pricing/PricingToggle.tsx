@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { PRICING, FREE_FEATURES, PLUS_FEATURES, FAMILY_FEATURES } from '../../lib/pricing';
+import { DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL } from '../../lib/trial';
 
 // Strip currency symbol / commas so we can do arithmetic on the numeric value.
 // Keeps the single source of truth in lib/pricing.ts rather than duplicating
@@ -131,7 +132,7 @@ export default function PricingToggle() {
             href="/signup"
             className="block w-full text-center bg-green-700 hover:bg-green-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
-            Start 7-Day Free Trial
+            {`Start ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Free Trial`}
           </Link>
         </div>
 
@@ -179,7 +180,7 @@ export default function PricingToggle() {
             href="/signup"
             className="block w-full text-center bg-white border-2 border-green-700 text-green-700 hover:bg-green-50 font-semibold py-3 px-6 rounded-lg transition-colors"
           >
-            Start Free Trial
+            {`Start ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Plus Trial`}
           </Link>
         </div>
       </section>

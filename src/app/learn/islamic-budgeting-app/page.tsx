@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Best Islamic Budgeting App 2026 — Halal Budget Tracker for Muslim Families | Barakah',
@@ -535,7 +536,7 @@ export default function IslamicBudgetingAppPage() {
                   href="/signup"
                   className="block w-full text-center mt-6 bg-green-700 text-white py-3 rounded-xl font-semibold hover:bg-green-800 transition"
                 >
-                  Start Free Trial
+                  {`Start ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Free Trial`}
                 </Link>
               </div>
             </div>

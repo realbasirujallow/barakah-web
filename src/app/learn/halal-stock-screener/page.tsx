@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Halal Stock Screener 2026 — Screen 30,000+ Stocks for Islamic Compliance | Barakah',
@@ -260,7 +261,7 @@ export default function HalalStockScreenerPage() {
             <h2 className="text-2xl font-bold mb-3">Screen Stocks for Free — Barakah Halal Screener</h2>
             <p className="text-green-100 mb-6">30,000+ stocks. AAOIFI Standard 21. Automatic purification calculation. Available with Barakah Plus.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">Start Free Trial</Link>
+              <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">{`Start ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Free Trial`}</Link>
               <Link href="/learn/halal-investing-guide" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Halal Investing Guide</Link>
             </div>
           </div>
