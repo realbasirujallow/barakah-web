@@ -2,25 +2,22 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { setRefreshToken } from '../lib/api';
 
 /**
- * Pins the refresh-token sessionStorage fallback that was silently
- * removed in commit 8334bad and reintroduced the "logged out within
- * seconds" UX bug. See lib/api.ts for the full rationale.
- *
- * If these tests start failing, DO NOT just delete them — verify that
- * cookies are reliably set by /auth/login and /auth/refresh in the
- * production deployment chain (Railway internal routing → CDN → Next.js
- * rewrites) BEFORE removing the fallback.
+ * R8 audit (2026-04-21): the web refresh-token sessionStorage fallback
+ * was intentionally removed. Browsers now rely on httpOnly cookies only;
+ * mobile remains the only client that receives bearer tokens in JSON
+ * bodies. These tests pin the new browser-safe behavior so we don't
+ * silently reintroduce a JS-readable refresh token later.
  */
-describe('refresh-token sessionStorage fallback', () => {
+describe('refresh-token web storage hardening', () => {
   const KEY = 'barakah_refresh_fallback';
 
   beforeEach(() => {
     window.sessionStorage.clear();
   });
 
-  it('persists a non-empty token to sessionStorage', () => {
+  it('does not persist a non-empty token to sessionStorage', () => {
     setRefreshToken('rt_abc123');
-    expect(window.sessionStorage.getItem(KEY)).toBe('rt_abc123');
+    expect(window.sessionStorage.getItem(KEY)).toBeNull();
   });
 
   it('clears the fallback when called with null', () => {
@@ -41,15 +38,15 @@ describe('refresh-token sessionStorage fallback', () => {
     expect(window.sessionStorage.getItem(KEY)).toBeNull();
   });
 
-  it('overwrites existing token on rotation', () => {
-    setRefreshToken('rt_first');
+  it('wipes any legacy stored token on subsequent calls', () => {
+    window.sessionStorage.setItem(KEY, 'rt_first');
     setRefreshToken('rt_second_rotated');
-    expect(window.sessionStorage.getItem(KEY)).toBe('rt_second_rotated');
+    expect(window.sessionStorage.getItem(KEY)).toBeNull();
   });
 
-  it('does not throw if sessionStorage throws (private browsing / quota)', () => {
-    const original = window.sessionStorage.setItem;
-    window.sessionStorage.setItem = () => {
+  it('does not throw if sessionStorage cleanup throws (private browsing / quota)', () => {
+    const original = window.sessionStorage.removeItem;
+    window.sessionStorage.removeItem = () => {
       throw new Error('QuotaExceededError');
     };
     try {
@@ -57,7 +54,7 @@ describe('refresh-token sessionStorage fallback', () => {
       // to the cookie-only path.
       expect(() => setRefreshToken('rt_xyz')).not.toThrow();
     } finally {
-      window.sessionStorage.setItem = original;
+      window.sessionStorage.removeItem = original;
     }
   });
 });
