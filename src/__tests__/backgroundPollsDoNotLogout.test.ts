@@ -111,4 +111,31 @@ describe('background-poll API helpers do not force-logout on 401', () => {
 
     expect(logoutSpy).not.toHaveBeenCalled();
   });
+
+  // R12 hardening follow-ups (2026-04-22). Two callers that fire on
+  // [user] mount / analytics user-action — same "must not force logout
+  // on a transient 401" requirement as the original NotificationBell
+  // fix. Pins the contract so a future audit doesn't flip either
+  // back to suppressUnauthorized=false and silently re-introduce
+  // the bug from the other direction.
+
+  it('subscriptionStatus — no global logout on 401 (background mount)', async () => {
+    const { api } = await import('../lib/api');
+
+    await expect(api.subscriptionStatus()).rejects.toThrow(
+      /session has expired|API error|Network|connection/,
+    );
+
+    expect(logoutSpy).not.toHaveBeenCalled();
+  });
+
+  it('lifecycleTrackEvent — no global logout on 401 (fire-and-forget analytics)', async () => {
+    const { api } = await import('../lib/api');
+
+    await expect(
+      api.lifecycleTrackEvent('transactions_reviewed', { count: 5 }),
+    ).rejects.toThrow(/session has expired|API error|Network|connection/);
+
+    expect(logoutSpy).not.toHaveBeenCalled();
+  });
 });
