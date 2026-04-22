@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
+import { scrubTokenFromUrl } from '../../lib/scrubUrlToken';
 import { Suspense } from 'react';
 
 function ResetPasswordForm() {
@@ -16,7 +17,12 @@ function ResetPasswordForm() {
 
   useEffect(() => {
     const t = searchParams.get('token');
-    if (t) setToken(t);
+    if (t) {
+      setToken(t);
+      // R7 audit: hand the token into React state and clear it from
+      // the address bar so it doesn't leak via history / screenshots.
+      scrubTokenFromUrl('token');
+    }
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {

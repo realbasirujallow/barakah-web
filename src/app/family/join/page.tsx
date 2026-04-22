@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { logError } from '../../../lib/logError';
+import { scrubTokenFromUrl } from '../../../lib/scrubUrlToken';
 
 /**
  * Public Family-plan invite landing page.
@@ -67,6 +68,12 @@ function JoinFamilyContent() {
 
   useEffect(() => {
     if (!token) return;
+
+    // R7 audit: captured into React state via useSearchParams; clear
+    // from the address bar so the raw token doesn't leak into
+    // history / screenshots / copy-paste. The closure variable
+    // `token` retains the value for the Accept / login-redirect flow.
+    scrubTokenFromUrl('token');
 
     let cancelled = false;
     api.previewFamilyInvite(token)

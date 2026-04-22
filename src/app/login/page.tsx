@@ -14,7 +14,12 @@ const REMEMBERED_EMAIL_KEY = 'barakah_remembered_email';
 function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(true);
+  // R7 audit (2026-04-21): default to OFF. A default-on rememberMe means
+  // every successful login issues a multi-day session cookie by default,
+  // even for one-off logins on shared / public devices. Users who opt in
+  // explicitly still get the extended session. The email restore effect
+  // below keeps the familiar UX for repeat visitors.
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);

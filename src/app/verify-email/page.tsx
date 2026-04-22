@@ -3,6 +3,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
+import { scrubTokenFromUrl } from '../../lib/scrubUrlToken';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -26,6 +27,11 @@ function VerifyEmailContent() {
 
   useEffect(() => {
     if (!token) return;
+
+    // R7 audit: scrub the token from the address bar immediately after
+    // capturing it into React state. Prevents history/screenshot/copy-
+    // paste leaks of the raw bearer.
+    scrubTokenFromUrl('token');
 
     // Round 19: cancellation flag to avoid a setState after unmount.
     // Also prevents StrictMode's double-effect-run from calling the
