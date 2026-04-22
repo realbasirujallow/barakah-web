@@ -35,6 +35,14 @@ export default defineConfig({
   // on CI to keep wall-clock time reasonable.
   workers: process.env.CI ? undefined : 1,
 
+  // Log in ONCE per test run, persist the cookie jar, reuse it across
+  // every spec file. Eliminates the 5-per-15-min login rate-limit
+  // pressure that tripped a full suite run where each spec did its own
+  // cold login. See e2e/global-setup.ts for the flow; spec files that
+  // want authenticated behaviour read `e2e/.auth/user.json` via
+  // `test.use({ storageState })` or `apiRequest.newContext({ storageState })`.
+  globalSetup: './e2e/global-setup.ts',
+
   use: {
     baseURL: BASE_URL,
     trace: 'on-first-retry',

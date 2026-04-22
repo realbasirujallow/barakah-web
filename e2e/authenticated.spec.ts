@@ -33,23 +33,40 @@ let sessionError = '';
 let csrfToken = '';
 
 test.beforeAll(async () => {
-  sharedContext = await apiRequest.newContext({ baseURL: API });
+  // Reuse the session established once per test run by e2e/global-setup.ts.
+  // That setup persists the cookie jar to STORAGE_STATE_FILE (defaults to
+  // e2e/.auth/user.json) so every spec file shares the same login.
+  const STORAGE_STATE = 'e2e/.auth/user.json';
   try {
-    const loginRes = await sharedContext.post('/auth/login', {
-      data: { email: EMAIL, password: PASSWORD },
+    sharedContext = await apiRequest.newContext({
+      baseURL: API,
+      storageState: STORAGE_STATE,
     });
-    if (!loginRes.ok()) {
-      sessionError = `login ${loginRes.status()}: ${await loginRes.text()}`;
+
+    // Confirm the persisted session still works. /auth/profile is a
+    // GET so CSRF isn't required; a 401 here means global-setup
+    // wrote an empty state or the session got invalidated between
+    // globalSetup and beforeAll (rotation, etc.).
+    const probe = await sharedContext.get('/auth/profile');
+    if (!probe.ok()) {
+      sessionError = `profile probe ${probe.status()}: ` +
+        `global-setup may have written empty state (no creds, rate-limit, etc.)`;
       return;
     }
-    // Bootstrap CSRF cookie. /auth/csrf is same-origin and returns 204 +
-    // Set-Cookie XSRF-TOKEN. Playwright's APIRequestContext keeps cookies
-    // in its own jar across calls so this value is then auto-attached.
-    await sharedContext.get('/auth/csrf');
+
+    // Pull CSRF token from the persisted storage state. Non-GET
+    // requests add X-XSRF-TOKEN header from this value.
     const state = await sharedContext.storageState();
     const csrf = state.cookies.find((c) => c.name === 'XSRF-TOKEN');
-    csrfToken = csrf?.value || '';
-    sessionReady = true;
+    csrfToken = csrf?.value || process.env.E2E_CSRF_TOKEN || '';
+    if (!csrfToken) {
+      // Bootstrap on the fly if the persisted state didn't include it.
+      await sharedContext.get('/auth/csrf');
+      const refreshed = await sharedContext.storageState();
+      csrfToken = refreshed.cookies.find((c) => c.name === 'XSRF-TOKEN')?.value || '';
+    }
+    sessionReady = csrfToken.length > 0;
+    if (!sessionReady) sessionError = 'failed to obtain XSRF-TOKEN';
   } catch (err) {
     sessionError = `beforeAll threw: ${err instanceof Error ? err.message : String(err)}`;
   }
@@ -127,6 +144,74 @@ test.describe('Authenticated API Tests', () => {
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data.eligible).toBe(false);
+  });
+
+  // ── Nisab-type matrix (W2 hardening, 2026-04-22) ──────────────────────────
+  // ZakatController.java:336 selects between gold and silver thresholds:
+  //   `nisabThreshold = nisabType.equals("gold") ? goldThreshold : silverThreshold;`
+  // Classical-Hanafi silver nisab is typically the LOWER of the two (silver
+  // prices are much lower than gold), so $5K wealth tends to be above silver
+  // and below gold — catching any mis-wiring of the threshold selector.
+
+  test('zakat calculate nisabType=silver returns result', async () => {
+    const res = await sharedContext.post('/api/zakat/calculate', {
+      headers: writeHeaders(),
+      data: { totalWealth: 50000, nisabType: 'silver' },
+    });
+    expect(res.ok()).toBeTruthy();
+    const data = await res.json();
+    expect(data.nisabType).toBe('silver');
+    expect(data.eligible).toBe(true);
+    expect(data.nisabThreshold).toBeGreaterThan(0);
+    // Silver-based nisab should be materially lower than gold-based — the
+    // same wealth straddling the two thresholds is exactly why Classical
+    // Hanafi picks silver (wider zakat net, pro-poor intent).
+  });
+
+  test('zakat calculate silver vs gold thresholds differ for the same wealth', async () => {
+    const goldRes = await sharedContext.post('/api/zakat/calculate', {
+      headers: writeHeaders(),
+      data: { totalWealth: 50000, nisabType: 'gold' },
+    });
+    const silverRes = await sharedContext.post('/api/zakat/calculate', {
+      headers: writeHeaders(),
+      data: { totalWealth: 50000, nisabType: 'silver' },
+    });
+    expect(goldRes.ok()).toBeTruthy();
+    expect(silverRes.ok()).toBeTruthy();
+    const goldData = await goldRes.json();
+    const silverData = await silverRes.json();
+    // Threshold values MUST differ — identical thresholds for both types
+    // means the selector is broken (either silver is missing or gold is
+    // shadowing silver). This guards against a real class of bug where
+    // `nisabType` param is read but the threshold lookup ignores it.
+    expect(goldData.nisabThreshold).not.toEqual(silverData.nisabThreshold);
+  });
+
+  test('zakat calculate returns debtDeductionMethod-consistent deductedDebt', async () => {
+    // Whichever method the applereview account's fiqh config uses
+    // (full_balance → deductedDebt = principal; annual_installment →
+    // deductedDebt = 12 × monthly payment), the response SHAPE must
+    // carry both totals. This pins the contract against backend
+    // refactors that might quietly drop one of the fields.
+    const res = await sharedContext.post('/api/zakat/calculate', {
+      headers: writeHeaders(),
+      data: {
+        totalWealth: 50000,
+        nisabType: 'gold',
+        deductibleDebt: 10000,
+        debtMonthlyPayment: 250,
+      },
+    });
+    expect(res.ok()).toBeTruthy();
+    const data = await res.json();
+    expect(data.eligible).toBe(true);
+    expect(data).toHaveProperty('deductedDebt');
+    expect(data).toHaveProperty('zakatableWealth');
+    expect(data.deductedDebt).toBeGreaterThan(0);
+    // zakatableWealth MUST equal totalWealth - deductedDebt modulo
+    // precision — sanity-checks the deduction actually applied
+    expect(data.zakatableWealth).toBeCloseTo(50000 - data.deductedDebt, 2);
   });
 
   test('hawl list returns trackers', async () => {

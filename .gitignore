@@ -51,5 +51,10 @@ next-env.d.ts
 .env.sentry-build-plugin
 test-results/
 
+# Playwright globalSetup persists the logged-in session cookie jar here.
+# NEVER commit — contains a live auth_token + refresh_token cookie for
+# the applereview test account that would let anyone log in as it.
+e2e/.auth/
+
 # Claude Code MCP preview server config (per-workspace, not versioned)
 .claude/

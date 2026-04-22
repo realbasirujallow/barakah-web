@@ -170,7 +170,12 @@ test.describe('Browser Authenticated Flows', () => {
 
   test('savings goals page loads', async () => {
     await page.goto(`${BASE}/dashboard/savings`);
-    await expect(page.locator('text=/Savings Goals/i')).toBeVisible({ timeout: 10000 });
+    // `text=/Savings Goals/i` matches BOTH the sidebar nav link (<span>) and
+    // the page heading (<h1>); strict mode flags that as a violation. Same
+    // pattern already fixed for NET WORTH, Transactions, Zakat Calculator,
+    // and Hawl Tracker — pick the first occurrence (page heading renders
+    // before the sidebar in DOM order).
+    await expect(page.locator('text=/Savings Goals/i').first()).toBeVisible({ timeout: 10000 });
   });
 
   // ── Zakat Calculator ───────────────────────────────────────────────────────
