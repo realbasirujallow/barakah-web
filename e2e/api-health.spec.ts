@@ -38,7 +38,7 @@ test.describe('API Health', () => {
     });
     expect(res.status()).toBe(400);
     const data = await res.json();
-    expect(data.error).toContain('8 characters');
+    expect(data.error.toLowerCase()).toMatch(/8\s?[–-]\s?72 characters/);
   });
 
   test('login rejects nonexistent user', async ({ request }) => {
