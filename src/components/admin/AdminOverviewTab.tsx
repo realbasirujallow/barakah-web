@@ -52,6 +52,17 @@ export function AdminOverviewTab({
             <p className="text-emerald-200 text-xs font-medium mb-1">Monthly Revenue (MRR)</p>
             <p className="text-3xl font-bold">{fmtMoney(overview.mrr)}</p>
             <p className="text-emerald-200 text-xs mt-1">ARR: {fmtMoney(overview.arr)}</p>
+            {/* Surface the phantom-MRR gap so the "true paid" vs "nominal"
+                distinction is visible. Hidden when there's no gap (no family
+                inheritance / trials counted as active), which is the healthy
+                state we want the app to eventually reach. */}
+            {typeof overview.phantomMrr === 'number' && overview.phantomMrr > 0 && (
+              <p className="text-emerald-200/70 text-[11px] mt-1 leading-tight">
+                Nominal {fmtMoney(overview.nominalMrr ?? 0)} · phantom{' '}
+                {fmtMoney(overview.phantomMrr)} from{' '}
+                {overview.phantomSeats ?? 0} inherited seats
+              </p>
+            )}
           </div>
           <div className="bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] rounded-2xl p-5 text-white">
             <p className="text-green-200 text-xs font-medium mb-1">Total Users</p>
@@ -61,7 +72,12 @@ export function AdminOverviewTab({
           <div className="bg-white rounded-2xl p-5 border">
             <p className="text-gray-400 text-xs font-medium mb-1">Paying Subscribers</p>
             <p className="text-3xl font-bold text-gray-800">{overview.paidUsers}</p>
-            <p className="text-gray-400 text-xs mt-1">{overview.subscribedPlus} Plus · {overview.subscribedFamily} Family</p>
+            <p className="text-gray-400 text-xs mt-1">
+              {overview.subscribedPlus} Plus · {overview.subscribedFamily} Family
+            </p>
+            <p className="text-gray-400 text-[11px] mt-0.5 italic">
+              Includes trials + inherited family seats
+            </p>
           </div>
           <div className="bg-white rounded-2xl p-5 border">
             <p className="text-gray-400 text-xs font-medium mb-1">New Users Today</p>
