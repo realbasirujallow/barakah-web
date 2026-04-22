@@ -527,16 +527,15 @@ export const api = {
   // genuine session expiry from transient connectivity issues.
   // Uses deduplicatedRefresh() so concurrent callers share one request.
   refresh: () => deduplicatedRefresh(),
-  // Backend is @GetMapping("/verify-email") and accepts ?token=XXX as a query
-  // parameter. A prior attempt to POST the token in the body (per CWE-598 —
-  // keeping secrets out of URLs / access logs) was merged on the web side but
-  // the backend was never updated, which made every real verification link
-  // fail with HTTP 405 "Method not allowed". Reverting to GET restores the
-  // working contract; the CWE-598 migration needs a coordinated backend +
-  // frontend change (add @PostMapping("/verify-email"), deprecate the GET,
-  // then switch the client) which is tracked as follow-up work.
+  // R9 audit (2026-04-21): backend now has both GET and POST handlers
+  // for /verify-email. The POST variant takes `{token}` in the JSON
+  // body, closing CWE-598 (secrets in URLs). Backend logs / Cloudflare
+  // / Railway stdout see the path only, not the bearer token. The GET
+  // remains for backward compat with pre-R9 emails whose links still
+  // hit the web page with the token in the URL — but from the moment
+  // the web page captures the token into React state, we POST it.
   verifyEmail: (token: string) =>
-    apiFetch(`/auth/verify-email?token=${encodeURIComponent(token)}`),
+    apiFetch('/auth/verify-email', { method: 'POST', body: JSON.stringify({ token }) }),
   resendVerification: (email: string) =>
     apiFetch('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) }),
   forgotPassword: (email: string) =>
