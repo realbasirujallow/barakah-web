@@ -128,8 +128,22 @@ export interface Overview {
   activeFamily: number;
   subscribedPlus: number;
   subscribedFamily: number;
+  /** TRUE paid MRR — only counts subscription_source in (stripe, revenuecat).
+   *  Use this number when talking about revenue externally. See
+   *  AdminDashboardController.getOverview inline comment for why. */
   mrr: number;
   arr: number;
+  /** Legacy / inflated MRR that treats every subscription_status='active'
+   *  row as revenue — including family_member inheritance, admin gifts,
+   *  and (historically) auto-granted trial seats. Useful ONLY to surface
+   *  the phantom-MRR gap in the UI. Retire once UI consumers are migrated. */
+  nominalMrr?: number;
+  nominalArr?: number;
+  phantomMrr?: number;
+  /** Count of subscription_status='active' rows that would count as MRR
+   *  under the nominal query but don't represent a real card charge
+   *  (mostly family_member seats inherited from a paying owner). */
+  phantomSeats?: number;
   conversionRate: number;
   newUsersToday: number;
   newUsersThisWeek: number;

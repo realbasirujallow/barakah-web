@@ -194,21 +194,27 @@ export default function ScorecardPage() {
               </div>
               <p className="text-xs text-gray-500 mt-2">
                 At blended ~$105/yr per paid account, $1M ARR ≈ 9,500 paid accounts.
-                Today: {overview?.paidUsers ?? '?'} paid users.
+                Today:{' '}
+                <strong>{(overview?.activePlus ?? 0) + (overview?.activeFamily ?? 0)}</strong>{' '}
+                truly paid accounts (Stripe + RevenueCat only).
               </p>
             </section>
 
             {/* ── Four core KPIs ──────────────────────────────────────── */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <Kpi
-                label="Monthly Recurring"
+                label="Paid MRR"
                 value={overview?.mrr != null ? fmt(overview.mrr) : '—'}
-                hint="Active subscribers only"
+                hint={
+                  typeof overview?.phantomMrr === 'number' && overview.phantomMrr > 0
+                    ? `Nominal ${fmt(overview.nominalMrr ?? 0)} · phantom ${fmt(overview.phantomMrr)}`
+                    : 'Stripe + RevenueCat only'
+                }
               />
               <Kpi
                 label="Paid Accounts"
-                value={overview?.paidUsers?.toLocaleString() ?? '—'}
-                hint={`${overview?.subscribedPlus ?? 0} Plus · ${overview?.subscribedFamily ?? 0} Family`}
+                value={((overview?.activePlus ?? 0) + (overview?.activeFamily ?? 0)).toLocaleString()}
+                hint={`${overview?.activePlus ?? 0} Plus · ${overview?.activeFamily ?? 0} Family · excludes trials + inherited seats`}
               />
               <Kpi
                 label="New Signups (7d)"
