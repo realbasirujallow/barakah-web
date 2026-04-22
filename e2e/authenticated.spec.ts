@@ -1,4 +1,4 @@
-import { test, expect, type APIRequestContext } from '@playwright/test';
+import { test, expect, request as apiRequest, type APIRequestContext } from '@playwright/test';
 
 // API origin — falls back to E2E_BASE_URL (same-origin assumption) and
 // finally to localhost so every branch is reachable in the default
@@ -17,60 +17,83 @@ test.skip(!EMAIL || !PASSWORD,
   'E2E_EMAIL + E2E_PASSWORD not set — skipping authenticated suite. ' +
   'Copy .env.e2e.example to .env.e2e and fill in a test account.');
 
-// Login once and reuse token across tests
-let token = '';
+// R8 audit (2026-04-21): the backend no longer returns a raw access token
+// in /auth/login JSON for web clients — only Flutter / native mobile UAs
+// receive one. Previously this suite used Authorization: Bearer <token>
+// and silently skipped all tests the moment the contract flipped. We now
+// authenticate via the same httpOnly cookie flow the real browser uses:
+//   1. POST /auth/login → backend sets auth_token + refresh_token cookies.
+//   2. GET  /auth/csrf  → materialize XSRF-TOKEN cookie for double-submit.
+//   3. Subsequent requests reuse sharedContext so cookies persist.
+// Non-GET requests must include the CSRF header from the cookie value.
 
-async function ensureToken(request: APIRequestContext) {
-  if (token) return token;
-  const res = await request.post(`${API}/auth/login`, {
-    data: { email: EMAIL, password: PASSWORD },
-  });
-  const data = await res.json();
-  token = data.token;
-  return token;
-}
+let sharedContext: APIRequestContext;
+let sessionReady = false;
+let sessionError = '';
+let csrfToken = '';
 
-function auth() {
-  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+test.beforeAll(async () => {
+  sharedContext = await apiRequest.newContext({ baseURL: API });
+  try {
+    const loginRes = await sharedContext.post('/auth/login', {
+      data: { email: EMAIL, password: PASSWORD },
+    });
+    if (!loginRes.ok()) {
+      sessionError = `login ${loginRes.status()}: ${await loginRes.text()}`;
+      return;
+    }
+    // Bootstrap CSRF cookie. /auth/csrf is same-origin and returns 204 +
+    // Set-Cookie XSRF-TOKEN. Playwright's APIRequestContext keeps cookies
+    // in its own jar across calls so this value is then auto-attached.
+    await sharedContext.get('/auth/csrf');
+    const state = await sharedContext.storageState();
+    const csrf = state.cookies.find((c) => c.name === 'XSRF-TOKEN');
+    csrfToken = csrf?.value || '';
+    sessionReady = true;
+  } catch (err) {
+    sessionError = `beforeAll threw: ${err instanceof Error ? err.message : String(err)}`;
+  }
+});
+
+test.afterAll(async () => {
+  await sharedContext?.dispose();
+});
+
+test.beforeEach(() => {
+  test.skip(!sessionReady, `Session not established — ${sessionError || 'unknown reason'}`);
+});
+
+function writeHeaders() {
+  return { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': csrfToken };
 }
 
 // NOTE: previously `test.describe.configure({ mode: 'serial' })` — that mode
 // bails the rest of the suite on the first failure, so a single Plus-gated
 // endpoint returning 403 (or any flake) skipped 6 unrelated tests downstream.
-// Each test is independent (they only share the cached login token), so
+// Each test is independent (they only share the cached login session), so
 // running in parallel-safe mode is correct.
 
 test.describe('Authenticated API Tests', () => {
-  test('login succeeds and returns token', async ({ request }) => {
-    await ensureToken(request);
-    if (!token) {
-      test.skip(true, 'Login rate-limited — wait 15 minutes and re-run');
-      return;
-    }
-    expect(token).toBeTruthy();
+  test('login succeeds (session established via cookies)', async () => {
+    expect(sessionReady).toBe(true);
+    expect(csrfToken).toBeTruthy();
   });
 
-  test('dashboard widgets returns data', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/dashboard/widgets`, { headers: auth() });
+  test('dashboard widgets returns data', async () => {
+    const res = await sharedContext.get('/api/dashboard/widgets');
     expect(res.ok()).toBeTruthy();
   });
 
-  test('dashboard insights returns array', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/dashboard/insights`, { headers: auth() });
+  test('dashboard insights returns array', async () => {
+    const res = await sharedContext.get('/api/dashboard/insights');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(Array.isArray(data.insights)).toBeTruthy();
   });
 
-  test('zakat calculate returns result', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.post(`${API}/api/zakat/calculate`, {
-      headers: auth(),
+  test('zakat calculate returns result', async () => {
+    const res = await sharedContext.post('/api/zakat/calculate', {
+      headers: writeHeaders(),
       data: { totalWealth: 50000, nisabType: 'gold' },
     });
     expect(res.ok()).toBeTruthy();
@@ -81,11 +104,9 @@ test.describe('Authenticated API Tests', () => {
     expect(data.nisabThreshold).toBeGreaterThan(0);
   });
 
-  test('zakat calculate with debt deduction', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.post(`${API}/api/zakat/calculate`, {
-      headers: auth(),
+  test('zakat calculate with debt deduction', async () => {
+    const res = await sharedContext.post('/api/zakat/calculate', {
+      headers: writeHeaders(),
       data: { totalWealth: 50000, nisabType: 'gold', deductibleDebt: 20000, debtMonthlyPayment: 500 },
     });
     expect(res.ok()).toBeTruthy();
@@ -98,11 +119,9 @@ test.describe('Authenticated API Tests', () => {
     expect(data.zakatableWealth).toBeLessThan(50000);
   });
 
-  test('zakat calculate below nisab returns not eligible', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.post(`${API}/api/zakat/calculate`, {
-      headers: auth(),
+  test('zakat calculate below nisab returns not eligible', async () => {
+    const res = await sharedContext.post('/api/zakat/calculate', {
+      headers: writeHeaders(),
       data: { totalWealth: 100, nisabType: 'gold' },
     });
     expect(res.ok()).toBeTruthy();
@@ -110,129 +129,97 @@ test.describe('Authenticated API Tests', () => {
     expect(data.eligible).toBe(false);
   });
 
-  test('hawl list returns trackers', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/hawl/list`, { headers: auth() });
+  test('hawl list returns trackers', async () => {
+    const res = await sharedContext.get('/api/hawl/list');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data).toHaveProperty('trackers');
   });
 
-  test('asset list returns data', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/assets/list`, { headers: auth() });
+  test('asset list returns data', async () => {
+    const res = await sharedContext.get('/api/assets/list');
     expect(res.ok()).toBeTruthy();
   });
 
-  test('transaction list returns paginated data', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/transactions/list?page=0&size=10`, { headers: auth() });
+  test('transaction list returns paginated data', async () => {
+    const res = await sharedContext.get('/api/transactions/list?page=0&size=10');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data).toHaveProperty('transactions');
   });
 
-  test('transaction search works', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/transactions/list?search=payment&page=0&size=10`, { headers: auth() });
+  test('transaction search works', async () => {
+    const res = await sharedContext.get('/api/transactions/list?search=payment&page=0&size=10');
     expect(res.ok()).toBeTruthy();
   });
 
-  test('budget list returns data', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/budgets/list`, { headers: auth() });
+  test('budget list returns data', async () => {
+    const res = await sharedContext.get('/api/budgets/list');
     expect(res.ok()).toBeTruthy();
   });
 
-  test('debt list returns data', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/debts/list`, { headers: auth() });
+  test('debt list returns data', async () => {
+    const res = await sharedContext.get('/api/debts/list');
     expect(res.ok()).toBeTruthy();
   });
 
-  test('bill list returns data', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/bills/list`, { headers: auth() });
+  test('bill list returns data', async () => {
+    const res = await sharedContext.get('/api/bills/list');
     expect(res.ok()).toBeTruthy();
   });
 
-  test('sadaqah list returns data', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/sadaqah/list`, { headers: auth() });
+  test('sadaqah list returns data', async () => {
+    const res = await sharedContext.get('/api/sadaqah/list');
     expect(res.ok()).toBeTruthy();
   });
 
-  test('fiqh config returns madhab', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/fiqh/config`, { headers: auth() });
+  test('fiqh config returns madhab', async () => {
+    const res = await sharedContext.get('/api/fiqh/config');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data).toHaveProperty('madhab');
   });
 
-  test('wasiyyah list returns data or Plus-required gate', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/wasiyyah/list`, { headers: auth() });
+  test('wasiyyah list returns data or Plus-required gate', async () => {
+    const res = await sharedContext.get('/api/wasiyyah/list');
     // Wasiyyah is gated to Plus/Family plans (AuthHelper.requirePlusPlan).
     // 200 = Plus user, 403 = Free user — both are valid backend behavior.
     expect([200, 403]).toContain(res.status());
   });
 
-  test('stripe status returns plan', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/stripe/status`, { headers: auth() });
+  test('stripe status returns plan', async () => {
+    const res = await sharedContext.get('/api/stripe/status');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data).toHaveProperty('plan');
   });
 
-  test('churn save returns offers', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.post(`${API}/api/churn/start`, { headers: auth() });
+  test('churn save returns offers', async () => {
+    const res = await sharedContext.post('/api/churn/start', { headers: writeHeaders() });
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(Array.isArray(data.offers)).toBeTruthy();
   });
 
-  test('referral info returns code', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/referral/code`, { headers: auth() });
+  test('referral info returns code', async () => {
+    const res = await sharedContext.get('/api/referral/code');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data).toHaveProperty('referralCode');
   });
 
-  test('plaid accounts responds', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/plaid/accounts`, { headers: auth() });
+  test('plaid accounts responds', async () => {
+    const res = await sharedContext.get('/api/plaid/accounts');
     expect([200, 404].includes(res.status())).toBeTruthy();
   });
 
-  test('safe to spend responds', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/cash-flow/safe-to-spend`, { headers: auth() });
+  test('safe to spend responds', async () => {
+    const res = await sharedContext.get('/api/cash-flow/safe-to-spend');
     expect([200, 404].includes(res.status())).toBeTruthy();
   });
 
-  test('net worth history returns data', async ({ request }) => {
-    await ensureToken(request);
-    test.skip(!token, 'Login rate-limited');
-    const res = await request.get(`${API}/api/net-worth/history`, { headers: auth() });
+  test('net worth history returns data', async () => {
+    const res = await sharedContext.get('/api/net-worth/history');
     expect(res.ok()).toBeTruthy();
   });
 });
