@@ -4,17 +4,27 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Barakah Trust & Security | Encryption, Privacy & Data Protection',
   description:
-    'Learn how Barakah protects your financial data with AES-256 encryption, httpOnly sessions, bcrypt hashing, Plaid bank security, and Stripe PCI compliance. Built by a cybersecurity professional.',
+    'Learn how Barakah protects your financial data with TLS 1.2+ in transit, AES-256 application-layer encryption for bank-linking secrets, managed-disk encryption at rest, httpOnly session cookies, bcrypt password hashing, and PCI-compliant Stripe billing.',
   alternates: {
     canonical: 'https://trybarakah.com/trust',
   },
 };
 
+// R11 audit (2026-04-22): the prior "all financial data is encrypted at
+// rest with AES-256 and never stored in plaintext" copy overstated what
+// the app actually implements. Today:
+//   - Plaid access tokens, refresh tokens, and other bearer secrets use
+//     application-layer AES-256 via EncryptedStringConverter.
+//   - All other financial records rely on managed-disk encryption at
+//     rest (Railway/Postgres) + TLS in transit, NOT field-level
+//     encryption.
+// Narrowed the copy to what the code actually enforces so the claim
+// survives scrutiny in a diligence review or a customer audit.
 const securityPillars = [
   {
-    title: 'Encryption at Rest & in Transit',
+    title: 'Encryption in Transit + Sensitive-Field Encryption at Rest',
     icon: '🔐',
-    body: 'All financial data is encrypted at rest using AES-256 and in transit using TLS 1.2+. Database connections use encrypted channels. Backups are stored with server-side encryption. Your data is never stored in plaintext.',
+    body: 'Every connection uses TLS 1.2 or newer. Plaid access tokens and other bearer secrets are wrapped in application-layer AES-256-GCM before they reach the database. Financial records sit on managed-disk-encrypted Postgres with encrypted backups. Passwords are never stored in any form — only a bcrypt hash.',
   },
   {
     title: 'httpOnly Cookie Sessions',

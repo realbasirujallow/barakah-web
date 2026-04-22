@@ -170,22 +170,42 @@ async function isRateLimited(ip: string): Promise<boolean> {
   return isRateLimitedInMemory(ip);
 }
 
-// Resolve the real client IP in order of trust, mirroring backend
-// RateLimitService.resolveClientIp (fixed in backend commit 9e30c1e). Behind
-// Cloudflare → Railway, the RIGHTMOST XFF entry is the Cloudflare edge PoP
-// (varies per request, defeats rate limiting). CF-Connecting-IP is the only
-// value Cloudflare sets that cannot be spoofed by end users. Fall back to
-// LEFTMOST XFF (the outermost proxy's stamp of the real client) only when
-// CF-Connecting-IP is absent.
+// R11 audit M-3 (2026-04-22): the prior implementation trusted the leftmost
+// X-Forwarded-For / cf-connecting-ip header value unconditionally, which meant
+// anyone reaching the Next origin directly (bypassing Cloudflare / Vercel edge)
+// could rotate these headers per request and fragment per-IP rate-limit buckets.
+// Hardened version:
+//   1. Only honour forwarded-IP headers when TRUST_PROXY=true is set
+//      explicitly in the environment. Railway prod deploys are Cloudflare-
+//      fronted and should set this; plain Railway / local dev should not.
+//   2. Validate the header value is an actual IP literal (IPv4 or IPv6);
+//      attacker-supplied non-IP strings fall through to a single bucket.
+//   3. If none of the above applies, return a single constant bucket so
+//      the per-IP throttle collapses to a global throttle — still rate-
+//      limited, just not fragmented per fake IP.
+const IP_LITERAL_RE = /^(?:(?:25[0-5]|2[0-4]\d|[01]?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|[01]?\d?\d)){3}|[0-9a-fA-F:]+)$/;
+
+function looksLikeIp(s: string | null | undefined): s is string {
+  return !!s && IP_LITERAL_RE.test(s.trim());
+}
+
 function resolveClientIp(req: NextRequest): string {
-  const cfIp = req.headers.get('cf-connecting-ip');
-  if (cfIp && cfIp.trim()) return cfIp.trim();
-  const xff = req.headers.get('x-forwarded-for');
-  if (xff) {
-    const parts = xff.split(',').map(s => s.trim()).filter(Boolean);
-    if (parts.length > 0) return parts[0];
+  const trustProxy = process.env.TRUST_PROXY === 'true';
+  if (trustProxy) {
+    const cfIp = req.headers.get('cf-connecting-ip');
+    if (looksLikeIp(cfIp)) return cfIp.trim();
+    const xff = req.headers.get('x-forwarded-for');
+    if (xff) {
+      const parts = xff.split(',').map(s => s.trim()).filter(Boolean);
+      if (parts.length > 0 && looksLikeIp(parts[0])) return parts[0];
+    }
+    const xRealIp = req.headers.get('x-real-ip');
+    if (looksLikeIp(xRealIp)) return xRealIp.trim();
   }
-  return req.headers.get('x-real-ip')?.trim() || 'unknown';
+  // Without a trusted proxy upstream, any forwarded-IP header is
+  // attacker-controlled. Return a constant bucket so all such requests
+  // share one rate-limit budget — conservative but not bypassable.
+  return 'untrusted-origin';
 }
 
 // ── Durable storage via Resend Audiences ──────────────────────────────────
@@ -277,8 +297,71 @@ async function forwardToResendAudience(
   }
 }
 
+// R11 audit M-4 (2026-04-22): `source` is forwarded verbatim to Resend's
+// audience API as `first_name`, where it's visible to admins viewing the
+// audience in the Resend dashboard. An attacker could post a URL-looking
+// string and phish support staff on click. Restrict to a known allowlist
+// of originating surfaces + strip anything else to a safe bucket.
+const SOURCE_ALLOWLIST = new Set<string>([
+  'unknown',
+  'homepage',
+  'pricing',
+  'try',
+  'refer',
+  'signup-bounce',
+  'login-bounce',
+  'learn',
+  'contact',
+  'footer',
+  'methodology',
+  'ambassadors',
+  'transparency',
+]);
+
+function normalizeSource(raw: string): string {
+  const trimmed = raw.trim().substring(0, 64);
+  // Reject anything that looks like a URL or contains HTML/control chars.
+  if (/[<>"'`{}\\]|:\/\/|javascript:/i.test(trimmed)) return 'rejected';
+  // Collapse to allowlist; accept `/learn/...` style slugs up to /learn/x-y-z.
+  if (SOURCE_ALLOWLIST.has(trimmed)) return trimmed;
+  if (/^[a-z0-9\-_/]{1,64}$/.test(trimmed)) return trimmed;
+  return 'other';
+}
+
+// R11 audit M-2 (2026-04-22): enforce same-origin for this POST. Without a
+// CSRF token check, any site can fire <form action="https://trybarakah.com
+// /email-capture"> and drop victim emails into the Resend audience. Require
+// an `Origin` header that matches our own host (or absent Sec-Fetch-Site
+// → modern browsers always send this for cross-site requests). This keeps
+// the endpoint unauthenticated (which it must be — the user isn't logged
+// in yet) while rejecting off-origin form submissions.
+function isSameOriginRequest(req: NextRequest): boolean {
+  const sfs = req.headers.get('sec-fetch-site');
+  if (sfs) {
+    return sfs === 'same-origin' || sfs === 'same-site' || sfs === 'none';
+  }
+  const origin = req.headers.get('origin');
+  if (!origin) {
+    // Legacy browsers + server-to-server clients may not send Origin. Allow
+    // only when the UA shape looks like a modern browser (has Accept);
+    // otherwise fail closed.
+    return !!req.headers.get('accept');
+  }
+  try {
+    const url = new URL(req.url);
+    const originUrl = new URL(origin);
+    return originUrl.host === url.host;
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
+    if (!isSameOriginRequest(req)) {
+      return NextResponse.json({ error: 'Bad origin' }, { status: 403 });
+    }
+
     const ip = resolveClientIp(req);
     if (await isRateLimited(ip)) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
@@ -286,7 +369,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const email = (body?.email ?? '').trim().toLowerCase();
-    const source = (body?.source ?? 'unknown').trim().substring(0, 100);
+    const source = normalizeSource(String(body?.source ?? 'unknown'));
 
     // Basic validation
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

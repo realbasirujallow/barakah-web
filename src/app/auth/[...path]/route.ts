@@ -180,13 +180,62 @@ async function handler(
   const resContentType = backendRes.headers.get('content-type');
   if (resContentType) response.headers.set('Content-Type', resContentType);
 
+  // R11 audit H-6 / L-5 (2026-04-22): cookie-contract enforcement.
+  //
+  // The R8 audit removed the sessionStorage refresh-token fallback so the
+  // only way a refresh token can live in the browser is as an HttpOnly
+  // cookie. That guarantee only holds if the backend actually stamps the
+  // cookie with HttpOnly + Secure + SameSite. A future Spring refactor
+  // that forgot any of those flags would silently reopen the XSS-
+  // exfiltration path. Rather than trust the backend forever, we assert
+  // it here on every response — non-conforming auth cookies get either
+  // rewritten (to inject the missing flags) in production, or logged
+  // loudly in development so the drift is caught early.
+  //
+  // Applies to `auth_token` and `refresh_token`. Other cookies
+  // (XSRF-TOKEN, session cookies, language preferences, etc.) are
+  // intentionally forwarded unchanged.
+  const AUTH_COOKIE_NAMES = new Set<string>(['auth_token', 'refresh_token']);
+  function normalizeAuthCookie(raw: string): string {
+    const eqIdx = raw.indexOf('=');
+    if (eqIdx < 0) return raw;
+    const name = raw.slice(0, eqIdx).trim();
+    if (!AUTH_COOKIE_NAMES.has(name)) return raw;
+
+    const lower = raw.toLowerCase();
+    const hasHttpOnly = /;\s*httponly(?:\s*;|\s*$)/.test(lower) || lower.endsWith('; httponly');
+    const hasSecure = /;\s*secure(?:\s*;|\s*$)/.test(lower) || lower.endsWith('; secure');
+    const hasSameSite = /;\s*samesite=/.test(lower);
+    const isProd = process.env.NODE_ENV === 'production';
+
+    if (!hasHttpOnly || !hasSecure || !hasSameSite) {
+      const missing: string[] = [];
+      if (!hasHttpOnly) missing.push('HttpOnly');
+      if (!hasSecure) missing.push('Secure');
+      if (!hasSameSite) missing.push('SameSite');
+      // Loud in prod — this is a contract violation we want a deploy
+      // alert on, not a silent forward.
+      console.error(
+        `[auth-proxy] backend set ${name} missing ${missing.join('+')} — rewriting to enforce contract`,
+      );
+      // Rewrite: strip a trailing semicolon if any, then append the
+      // missing attributes. This preserves Max-Age / Path / Domain etc.
+      let fixed = raw.replace(/;\s*$/, '');
+      if (!hasHttpOnly) fixed += '; HttpOnly';
+      if (!hasSecure && isProd) fixed += '; Secure';
+      if (!hasSameSite) fixed += '; SameSite=Lax';
+      return fixed;
+    }
+    return raw;
+  }
+
   // Copy ALL Set-Cookie headers — this is the critical part that
   // next.config.ts rewrites fail to do.
   // Use getSetCookie() if available (Node 20+), fall back to raw header.
   if (typeof backendRes.headers.getSetCookie === 'function') {
     const setCookies = backendRes.headers.getSetCookie();
     for (const c of setCookies) {
-      response.headers.append('Set-Cookie', c);
+      response.headers.append('Set-Cookie', normalizeAuthCookie(c));
     }
   } else {
     // Fallback for older Node: raw header access
@@ -197,7 +246,7 @@ async function handler(
       // patterns that look like a new cookie name start.
       const parts = raw.split(/,(?=\s*[A-Za-z_-]+=)/);
       for (const c of parts) {
-        response.headers.append('Set-Cookie', c.trim());
+        response.headers.append('Set-Cookie', normalizeAuthCookie(c.trim()));
       }
     }
   }
