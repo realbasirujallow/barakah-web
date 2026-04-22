@@ -1,5 +1,6 @@
 'use client';
 import { AuthProvider } from '../context/AuthContext';
+import { FeatureFlagsProvider } from '../context/FeatureFlagsContext';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
@@ -67,7 +68,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <PostHogInit>
       <GoogleAnalytics />
       <ErrorBoundary>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <FeatureFlagsProvider>{children}</FeatureFlagsProvider>
+        </AuthProvider>
       </ErrorBoundary>
     </PostHogInit>
   );

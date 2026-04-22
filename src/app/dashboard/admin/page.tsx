@@ -30,6 +30,7 @@ import { AdminAlertsTab } from '../../../components/admin/AdminAlertsTab';
 import { AdminUnverifiedTab } from '../../../components/admin/AdminUnverifiedTab';
 import { AdminDeletedTab } from '../../../components/admin/AdminDeletedTab';
 import { AdminEmailLogTab } from '../../../components/admin/AdminEmailLogTab';
+import { AdminExperimentsTab } from '../../../components/admin/AdminExperimentsTab';
 import { AdminUserDetailModal } from '../../../components/admin/AdminUserDetailModal';
 import { AdminGrantTrialModal } from '../../../components/admin/AdminGrantTrialModal';
 import type {
@@ -397,7 +398,7 @@ export default function AdminPage() {
 
       {/* ── Tab Navigation ── */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 overflow-x-auto">
-        {(['overview', 'users', 'alerts', 'unverified', 'lifecycle', 'deleted', 'email-log'] as const).map(tab => (
+        {(['overview', 'users', 'alerts', 'unverified', 'lifecycle', 'experiments', 'deleted', 'email-log'] as const).map(tab => (
           <button
             key={tab}
             type="button"
@@ -427,6 +428,7 @@ export default function AdminPage() {
               </>
             )}
             {tab === 'lifecycle' && '📬 Lifecycle'}
+            {tab === 'experiments' && '🧪 Experiments'}
             {tab === 'deleted' && '🗑️ Deleted'}
             {tab === 'email-log' && (
               <>
@@ -494,6 +496,10 @@ export default function AdminPage() {
 
       {activeTab === 'lifecycle' && (
         <LifecycleCampaignCenter active={activeTab === 'lifecycle'} />
+      )}
+
+      {activeTab === 'experiments' && (
+        <AdminExperimentsTab />
       )}
 
       {activeTab === 'deleted' && (

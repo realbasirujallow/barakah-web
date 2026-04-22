@@ -165,5 +165,36 @@ export type AdminTab =
   | 'alerts'
   | 'unverified'
   | 'lifecycle'
+  | 'experiments'
   | 'deleted'
   | 'email-log';
+
+/** Feature flag metadata returned by /admin/feature-flags. */
+export interface AdminFeatureFlag {
+  id?: number;
+  name: string;
+  description?: string;
+  /** Raw JSONB string from the server; parsed into variants[] on the client. */
+  variants: string;
+  /** Optional segment predicate JSON. null = all users. */
+  segment?: string | null;
+  status: 'draft' | 'active' | 'ended';
+  defaultVariant: string;
+  createdBy?: number | null;
+  createdAt: number;
+  updatedAt: number;
+  endedAt?: number | null;
+}
+
+export interface FeatureFlagVariantRow {
+  variant: string;
+  cohort: number;
+  converted: number;
+  conversionRate: number;
+}
+
+export interface FeatureFlagResults {
+  flagName: string;
+  outcomeEvent: string;
+  variants: FeatureFlagVariantRow[];
+}
