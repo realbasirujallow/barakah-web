@@ -483,15 +483,42 @@ export async function apiDownload(endpoint: string, filename: string): Promise<v
           return;
         }
         if (r2.status !== 401) throw new Error(`Download failed (${r2.status})`);
+        // Retry 401: only treat as a real session loss if the server confirms it.
         if (await verifySessionStillValid()) throw new Error('Download failed. Please try again.');
+        // Fall through to the "genuinely expired" branch below.
       }
-      if (refreshResult === 'network_error') throw new Error('Network error — please check your connection and try again.');
-      if (await verifySessionStillValid()) throw new Error('Download failed. Please try again.');
+      // BUG-WEB-1 (2026-04-22): previously this function didn't differentiate
+      // between 'rate_limited' and 'expired'. Because the fallthrough called
+      // onUnauthorizedCallback(), a 429 on /auth/refresh (noisy session, a
+      // tab running AuthContext's proactive refresh, etc.) while the user
+      // clicked "Export CSV" was enough to force-logout a still-authenticated
+      // session. Mirror the apiFetch branching so each refresh outcome is
+      // handled explicitly — only 'expired' + "server agrees session is gone"
+      // should trip the logout path.
+      if (refreshResult === 'rate_limited') {
+        throw new Error('Too many requests right now. Please wait a moment and try again.');
+      }
+      if (refreshResult === 'network_error') {
+        throw new Error('Network error — please check your connection and try again.');
+      }
+      if (await verifySessionStillValid()) {
+        throw new Error('Download failed. Please try again.');
+      }
+      // 'expired' path — server genuinely doesn't know us anymore.
       if (onUnauthorizedCallback) onUnauthorizedCallback();
       setRefreshToken(null);
       throw new Error('Your session has expired. Please log in again.');
     }
-    throw new Error(`Download failed (${res.status})`);
+    // 403 typically means a plan-gated feature (e.g. CSV/PDF export requires
+    // Plus). Surface a friendly message instead of "Download failed (403)".
+    if (res.status === 403) {
+      const msg = await extractErrorMessage(res, 'This export is available on Plus or Family plans.');
+      throw new Error(msg);
+    }
+    if (res.status === 429) {
+      throw new Error('Too many exports right now. Please wait a moment and try again.');
+    }
+    throw new Error(await extractErrorMessage(res, `Download failed (${res.status})`));
   }
 
   const blob = await res.blob();

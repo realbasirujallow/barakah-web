@@ -222,6 +222,17 @@ const nextConfig: NextConfig = {
         destination: "/transparency",
         permanent: true,
       },
+      // BUG-WEB-2 (2026-04-22): /dashboard/fiqh-settings is a stale slug from
+      // before the fiqh-config UI was consolidated under /dashboard/fiqh.
+      // External write-ups (app-store reviewer instructions, in-app help
+      // articles, PR comms) still reference the old path, so we redirect
+      // instead of 404'ing. Keep this alive until analytics show zero hits
+      // for 60 days.
+      {
+        source: "/dashboard/fiqh-settings",
+        destination: "/dashboard/fiqh",
+        permanent: true,
+      },
     ];
   },
 
