@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Script from 'next/script';
 import Calculator from './Calculator';
 import NisabLivePrices, { GoldPricePerGram, SilverPricePerGram, GoldNisabUSD, SilverNisabUSD } from '../../components/NisabLivePrices';
+import { REFEREE_FIRST_MONTH_PRICE } from '../../lib/referralCopy';
 
 export const metadata: Metadata = {
   title: 'Free Zakat Calculator 2026 — Calculate Your Zakat Instantly | Barakah',
@@ -581,13 +582,15 @@ export default function ZakatCalculatorPage() {
             <p className="text-3xl mb-3">🎁</p>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Know Someone Who Needs This?</h2>
             <p className="text-gray-600 mb-4 max-w-lg mx-auto">
-              Share Barakah with a friend or family member. When they sign up, you both get 1 free month of Plus.
+              Share Barakah with a friend or family member. When they sign up
+              and verify their email, <strong>you get a free extra month of
+              Plus</strong> and <strong>they get their first month for {REFEREE_FIRST_MONTH_PRICE}</strong>.
             </p>
             <Link
               href="/signup"
               className="inline-block bg-green-700 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-800 transition"
             >
-              Share Barakah — Both Get 1 Month Free
+              Share Barakah — Earn a Free Month
             </Link>
           </section>
 

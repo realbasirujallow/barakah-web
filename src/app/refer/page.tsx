@@ -1,10 +1,27 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import {
+  REFEREE_FIRST_MONTH_PRICE,
+  REFERRER_REWARD_PHRASE,
+  REFEREE_REWARD_PHRASE,
+} from '../../lib/referralCopy';
 
+/**
+ * Public /refer landing page — must match the single source of truth in
+ * src/lib/referralCopy.ts, which in turn mirrors the backend contract in
+ * AuthController.verifyEmail + StripeController.REFEREE_FIRST_MONTH_COUPON_ID.
+ *
+ * Round 32: referrer gets a free extra month of Barakah Plus AFTER the
+ * invitee verifies their email. Invitee gets their first month of Plus
+ * for $4.99 via a Stripe coupon at checkout (saving ~50% off the $9.99
+ * regular price). Previous page copy said "both get a free month" —
+ * that was trust drift: the invitee was paying $4.99 while this page
+ * promised them $0. Fixed 2026-04-22.
+ */
 export const metadata: Metadata = {
-  title: 'Refer a Friend — Give 1 Free Month, Get 1 Free Month | Barakah',
+  title: `Refer a Friend — You Earn a Free Month, They Get Their First Month for ${REFEREE_FIRST_MONTH_PRICE} | Barakah`,
   description:
-    'Share Barakah with friends and family. When they sign up and verify their email, you both get 1 free month of fiqh-aware household finance tools for Muslim families.',
+    `Share Barakah with friends and family. When they sign up with your code and verify their email, you get ${REFERRER_REWARD_PHRASE}, and they get ${REFEREE_REWARD_PHRASE}.`,
   keywords: [
     'barakah referral',
     'islamic finance app referral',
@@ -16,9 +33,9 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/refer',
   },
   openGraph: {
-    title: 'Refer a Friend — Give 1 Free Month, Get 1 Free Month | Barakah',
+    title: `Refer a Friend — You Earn a Free Month, They Get Their First Month for ${REFEREE_FIRST_MONTH_PRICE} | Barakah`,
     description:
-      'Share Barakah with friends and family. When they sign up and verify their email, you both get 1 free month of Barakah.',
+      `Share Barakah with your community. When a friend signs up and verifies their email, you earn a free extra month of Plus, and they get their first month for ${REFEREE_FIRST_MONTH_PRICE}.`,
     url: 'https://trybarakah.com/refer',
     type: 'website',
   },
@@ -33,7 +50,8 @@ const FaqSchema = {
       name: 'How does the Barakah referral program work?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Share your unique referral code with friends and family. When they sign up for Barakah using your code and verify their email, both you and your friend each receive 1 extra free month automatically.',
+        text:
+          `Share your unique referral code with friends and family. When they sign up for Barakah using your code and verify their email, you automatically receive ${REFERRER_REWARD_PHRASE}. Your friend gets ${REFEREE_REWARD_PHRASE} when they upgrade to Plus, then transitions to the standard monthly price.`,
       },
     },
     {
@@ -41,7 +59,8 @@ const FaqSchema = {
       name: 'How many friends can I refer?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'There is no limit to the number of friends you can refer. Each successful referral earns both you and your friend 1 extra free month.',
+        text:
+          `There is no limit. Every successful referral earns you another free month of Barakah Plus, and every friend gets their first month of Plus for ${REFEREE_FIRST_MONTH_PRICE}.`,
       },
     },
     {
@@ -49,7 +68,8 @@ const FaqSchema = {
       name: 'Do I need a Plus subscription to refer friends?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'No. Any Barakah user with a free or paid account can refer friends. When your friend signs up and verifies their email, you both receive the referral reward automatically.',
+        text:
+          'No. Any Barakah user with a free or paid account can refer friends. When your friend signs up through your link and verifies their email, the referral reward is credited automatically.',
       },
     },
     {
@@ -57,15 +77,17 @@ const FaqSchema = {
       name: 'When do I receive my free month?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Your free month is credited automatically once your referred friend verifies their email address. If you already have an active paid plan or trial, the extra month is added on top of your existing access.',
+        text:
+          'Your free month is credited automatically once your referred friend verifies their email. If you already have an active Plus plan or trial, the extra month is added on top of your existing access.',
       },
     },
     {
       '@type': 'Question',
-      name: 'Can my friend use any plan?',
+      name: `What does my friend pay?`,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. The referral reward is triggered when your friend signs up through your link and verifies their email address.',
+        text:
+          `Your friend pays ${REFEREE_FIRST_MONTH_PRICE} for their first month of Barakah Plus instead of the standard $9.99. After the first month, they renew at the regular Plus price unless they cancel. Family plan pricing works the same way — the first-month discount applies to the Plus tier used at checkout.`,
       },
     },
   ],
@@ -84,14 +106,14 @@ const steps = [
     icon: '👤',
     title: 'Friend Signs Up',
     description:
-      'Your friend creates a Barakah account using your referral code and verifies their email address.',
+      `Your friend creates a Barakah account using your referral code, verifies their email, and starts Plus for just ${REFEREE_FIRST_MONTH_PRICE} their first month.`,
   },
   {
     number: '3',
     icon: '🎉',
-    title: 'Both Get 1 Free Month',
+    title: 'You Earn a Free Month',
     description:
-      'Once your friend verifies their email, you both receive 1 extra free month automatically. No limits on how many friends you can refer.',
+      'Once your friend verifies their email, you automatically receive a free extra month of Barakah Plus. No limits on how many friends you can refer.',
   },
 ];
 
@@ -159,14 +181,17 @@ export default function ReferPage() {
             Referral Program
           </span>
           <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] mb-6 leading-tight">
-            Give 1 Free Month,
+            You Earn a Free Month.
             <br />
-            Get 1 Free Month
+            They Start Plus for {REFEREE_FIRST_MONTH_PRICE}.
           </h1>
           <p className="text-lg text-gray-700 max-w-2xl mx-auto mb-8 leading-relaxed">
-            Share Barakah with your friends and family. When they sign up and
-            verify their email, you both receive a free month. Help your community build a
-            more thoughtful Muslim household finance system while earning rewards.
+            Share Barakah with your friends and family. When they sign up with
+            your code and verify their email, you get{' '}
+            <strong>{REFERRER_REWARD_PHRASE}</strong>, and they get{' '}
+            <strong>{REFEREE_REWARD_PHRASE}</strong>. Help your community build
+            a more thoughtful Muslim household finance practice while earning
+            rewards for yourself.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -192,7 +217,8 @@ export default function ReferPage() {
             How It Works
           </h2>
           <p className="text-center text-gray-600 mb-12 max-w-xl mx-auto">
-            Three simple steps to earn 1 free month for you and your friend with each successful referral.
+            Three simple steps. You earn a free month of Plus for every friend
+            who signs up and verifies their email.
           </p>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((step) => (
@@ -217,7 +243,7 @@ export default function ReferPage() {
           {/* Connector arrows on desktop */}
           <div className="hidden md:flex justify-center mt-6">
             <p className="text-sm text-gray-500 italic">
-              No limits on referrals &mdash; each successful referral earns 1 free month.
+              No limits on referrals — each one earns you another free month of Plus.
             </p>
           </div>
         </div>
@@ -227,10 +253,12 @@ export default function ReferPage() {
       <section className="py-16 px-6">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-[#1B5E20] mb-4">
-            What You Get with Plus
+            What Your Friend Unlocks with Plus
           </h2>
           <p className="text-center text-gray-600 mb-12 max-w-xl mx-auto">
-            Both you and your friend unlock these premium features for a full month &mdash; completely free.
+            For their first month at {REFEREE_FIRST_MONTH_PRICE}, they get
+            every Plus feature. These are the same features you already use —
+            now shared with someone you care about.
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {plusBenefits.map((benefit) => (
