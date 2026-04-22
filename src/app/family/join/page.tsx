@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { logError } from '../../../lib/logError';
-import { scrubTokenFromUrl } from '../../../lib/scrubUrlToken';
+import { readTokenFromUrl, scrubTokenFromUrl } from '../../../lib/scrubUrlToken';
 
 /**
  * Public Family-plan invite landing page.
@@ -57,7 +57,14 @@ function JoinFamilyContent() {
   const router = useRouter();
   const params = useSearchParams();
   const { user, isLoading } = useAuth();
-  const token = params.get('token');
+  // R8 audit: invite links carry the token in the URL fragment
+  // (#token=...). Fall back to the query string for back-compat.
+  const [token, setToken] = useState<string | null>(() => params.get('token'));
+  useEffect(() => {
+    const fromHash = readTokenFromUrl('token');
+    if (fromHash && fromHash !== token) setToken(fromHash);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [preview, setPreview] = useState<PreviewResponse | null>(null);
   // Initialize loading from whether we have a token to fetch — avoids having

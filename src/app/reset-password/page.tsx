@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
-import { scrubTokenFromUrl } from '../../lib/scrubUrlToken';
+import { readTokenFromUrl, scrubTokenFromUrl } from '../../lib/scrubUrlToken';
 import { Suspense } from 'react';
 
 function ResetPasswordForm() {
@@ -16,11 +16,14 @@ function ResetPasswordForm() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    const t = searchParams.get('token');
+    // R8 audit: reset links now arrive with the token in the URL
+    // fragment (#token=...). Fall back to the query string for
+    // backward compat with links issued pre-R8.
+    const t = readTokenFromUrl('token') ?? searchParams.get('token');
     if (t) {
       setToken(t);
-      // R7 audit: hand the token into React state and clear it from
-      // the address bar so it doesn't leak via history / screenshots.
+      // R7 audit: clear the token from the address bar once it's in
+      // React state — prevents history / screenshot / copy-paste leaks.
       scrubTokenFromUrl('token');
     }
   }, [searchParams]);
