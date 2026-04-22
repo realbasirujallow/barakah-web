@@ -82,7 +82,7 @@ const plans = [
     features: [...PLUS_FEATURES],
     missing: [],
     note: 'Need shared household workflows? Family adds up to 6 members with household zakat visibility and estate continuity.',
-    cta: 'Start 7-Day Free Trial',
+    cta: `Start ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Free Trial`,
     ctaHref: '/signup',
     ctaStyle: 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]',
   },

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL } from '../../lib/trial';
 
 export const metadata: Metadata = {
   title: 'Features — Barakah Islamic Finance App',
@@ -122,7 +123,7 @@ export default function FeaturesPage() {
           href="/signup"
           className="bg-green-700 hover:bg-green-800 text-white font-semibold px-8 py-3 rounded-xl transition-colors"
         >
-          Start Free Trial
+          {`Start ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Free Trial`}
         </Link>
       </div>
     </main>
