@@ -1027,11 +1027,17 @@ export const api = {
     apiFetch('/api/preferences', { method: 'PUT', body: JSON.stringify(data) }),
   lifecycleHeartbeat: (data: { platform?: string; appVersion?: string; timeZone?: string; route?: string }) =>
     apiFetch('/api/lifecycle/heartbeat', { method: 'POST', body: JSON.stringify(data) }, API_TIMEOUT, true),
+  // R12 hardening (2026-04-22): lifecycleTrackEvent is fire-and-forget
+  // analytics. A 401 on an analytics POST must NEVER bounce the user out
+  // — the next user-initiated API call will surface a genuinely dead
+  // session through the proper refresh + verifySessionStillValid flow.
+  // Same rationale as getNotifications / getUnreadNotifications post
+  // the NotificationBell fix (commit 57a4945).
   lifecycleTrackEvent: (eventType: string, metadata?: Record<string, unknown>, source = 'web') =>
     apiFetch('/api/lifecycle/events', {
       method: 'POST',
       body: JSON.stringify({ eventType, metadata: metadata ?? {}, source }),
-    }),
+    }, API_TIMEOUT, true),
   getLifecycleSummary: () => apiFetch('/api/lifecycle/summary'),
   lifecycleCancelIntent: (context = 'billing') =>
     apiFetch('/api/lifecycle/cancel-intent', { method: 'POST', body: JSON.stringify({ context }) }),
@@ -1334,10 +1340,19 @@ export const api = {
   seedDemoData: () =>
     apiFetch('/api/onboarding/seed-demo', { method: 'POST' }),
 
-  /** Current subscription status for the logged-in user. */
+  /** Current subscription status for the logged-in user.
+   *
+   * R12 hardening (2026-04-22): suppressUnauthorized=true.
+   * Called on mount from TrialBanner, AnnualUpgradeBanner, and
+   * AnnualUpgradeModal — all background-ish refreshes triggered by the
+   * [user] dependency, not by user interaction. Same failure mode as
+   * NotificationBell (commit 57a4945): a transient 401 on this call
+   * must never force a logout. User-initiated actions stay the
+   * authoritative session check.
+   */
   subscriptionStatus: () => {
     if (!_subStatusInFlight) {
-      _subStatusInFlight = apiFetch('/api/stripe/status').finally(() => {
+      _subStatusInFlight = apiFetch('/api/stripe/status', {}, API_TIMEOUT, true).finally(() => {
         _subStatusInFlight = null;
       });
     }
