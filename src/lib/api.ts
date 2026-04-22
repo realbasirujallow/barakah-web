@@ -1053,6 +1053,41 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(settings),
     }, API_TIMEOUT, true),
+  // ── Feature flags / experiments (V74, 2026-04-22) ─────────────────────
+  // Internal replacement for PostHog feature-flag capability. See
+  // barakah-backend/src/main/java/com/barakah/service/FeatureFlagService.java
+  // for the deterministic-bucketing contract. Admin endpoints are nested
+  // under /admin/feature-flags and require an admin session.
+  getMyFeatureFlagVariants: () =>
+    apiFetch('/api/feature-flags/me', {}, API_TIMEOUT, true),
+  resolveFeatureFlag: (flag: string) =>
+    apiFetch('/api/feature-flags/resolve', {
+      method: 'POST',
+      body: JSON.stringify({ flag }),
+    }, API_TIMEOUT, true),
+  listAdminFeatureFlags: () =>
+    apiFetch('/admin/feature-flags', {}, API_TIMEOUT, true),
+  createAdminFeatureFlag: (payload: {
+    name: string;
+    description?: string;
+    variants: { key: string; weight: number }[];
+    segment?: Record<string, unknown> | null;
+    defaultVariant: string;
+  }) =>
+    apiFetch('/admin/feature-flags', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }, API_TIMEOUT, true),
+  updateAdminFeatureFlagStatus: (name: string, status: 'draft' | 'active' | 'ended') =>
+    apiFetch(`/admin/feature-flags/${encodeURIComponent(name)}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ status }),
+    }, API_TIMEOUT, true),
+  getAdminFeatureFlagResults: (name: string, outcomeEvent: string) =>
+    apiFetch(
+      `/admin/feature-flags/${encodeURIComponent(name)}/results?outcomeEvent=${encodeURIComponent(outcomeEvent)}`,
+      {}, API_TIMEOUT, true),
+
   getAdminLifecycleOverview: () =>
     apiFetch('/admin/lifecycle/overview', {}, API_TIMEOUT, true),
   getAdminLifecycleTemplates: () =>
