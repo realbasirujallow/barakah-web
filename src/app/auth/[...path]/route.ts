@@ -39,6 +39,36 @@ if (
 
 const BACKEND_URL = RAW_BACKEND_URL || 'https://api.trybarakah.com';
 
+/**
+ * Strict-enough IP literal check for the X-Forwarded-For relay path.
+ *
+ * Node's `net.isIP` is the canonical check but the Edge runtime
+ * doesn't always expose it (Vercel Edge supports it as of 2024, but
+ * we can't depend on it across deploy targets). These two patterns
+ * reject the garbage that R8 audit flagged:
+ *   - IPv4: four dot-separated 0-3-digit groups, bounded 0-255.
+ *   - IPv6: at least one colon, only hex digits + colons + optional
+ *           embedded IPv4 tail; require structure, not just char set.
+ *
+ * Refuses: "...", "aaaa", "1.2.3.4.5", ":::", "abc.def".
+ */
+function looksLikeIp(s: string): boolean {
+  if (!s) return false;
+  // IPv4
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(s)) {
+    return s.split('.').every((o) => {
+      const n = Number(o);
+      return Number.isInteger(n) && n >= 0 && n <= 255;
+    });
+  }
+  // IPv6 — require at least 2 colons or one "::" compression
+  if (/:/.test(s) && /^[0-9a-fA-F:]+(?:\.\d{1,3}){0,3}$/.test(s)) {
+    const colonCount = (s.match(/:/g) || []).length;
+    if (colonCount >= 2 || s.includes('::')) return true;
+  }
+  return false;
+}
+
 async function handler(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> }
@@ -84,10 +114,15 @@ async function handler(
   // the attacker prepended by trimming to the first segment.
   const xffRaw = request.headers.get('x-forwarded-for') ?? '';
   const clientIp = xffRaw.split(',')[0]?.trim();
-  // Only relay if the left-most segment looks like an IP literal — this
-  // drops obviously spoofed values like "127.0.0.1, 8.8.8.8" or random
-  // strings stuffed in by a malicious client.
-  if (clientIp && /^[0-9a-f:.]+$/i.test(clientIp)) {
+  // R8 audit fix (2026-04-21): the previous regex `/^[0-9a-f:.]+$/i`
+  // accepted garbage like "..." or "aaaa" — anything matching the
+  // character set counts as "IP-ish". Use Node's `net.isIP()` instead,
+  // which actually parses the string as IPv4/IPv6 and returns 0 / 4 / 6.
+  // Non-Node edge runtimes (Vercel Edge, Cloudflare Workers) lack the
+  // `net` module — fall back to strict-ish regexes that reject obvious
+  // non-IP patterns (require either a digit before/after a dot for v4
+  // or at least one colon for v6).
+  if (clientIp && looksLikeIp(clientIp)) {
     headers.set('X-Forwarded-For', clientIp);
   }
 

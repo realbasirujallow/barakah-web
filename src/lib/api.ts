@@ -66,65 +66,39 @@ export function setUnauthorizedHandler(fn: () => void) {
 }
 
 /**
- * Refresh token sessionStorage fallback — INTENTIONAL, do not remove.
+ * R8 audit (2026-04-21) — sessionStorage refresh-token fallback REMOVED.
  *
- * Why this exists despite the obvious "store tokens only in httpOnly
- * cookies" rule:
+ * The backend no longer echoes access/refresh tokens in the JSON body
+ * for web clients (it detects native apps by User-Agent and only
+ * returns tokens to mobile). httpOnly cookies are the only path the
+ * browser ever receives refresh credentials. Any XSS attacker who
+ * managed to run JS in the Barakah origin can't extract the refresh
+ * token from sessionStorage anymore because it's never written there.
  *
- *   The backend (api.trybarakah.com) sits behind Railway + a CDN/proxy
- *   chain that is NOT reliable about forwarding Set-Cookie headers in
- *   every code path. The web client has had two regressions where users
- *   were logged out within seconds of signing in because:
- *     1. /auth/login set the auth_token + refresh_token cookies, but the
- *        Set-Cookie headers got stripped before reaching the browser.
- *     2. The next API call had no auth_token cookie → 401 → silent
- *        refresh attempted → no refresh_token cookie → 'expired' → logout.
- *
- *   The backend deliberately also returns the refresh token in the
- *   /auth/login and /auth/refresh response bodies as a fallback (see the
- *   AuthController comments). The web client must capture it and send it
- *   back in the body of /auth/refresh requests when the cookie is missing.
- *
- *   sessionStorage scope:
- *     - Per-tab, per-origin (not shared across tabs or other origins)
- *     - Cleared when the tab closes
- *     - JS-accessible (XSS-readable)
- *
- *   The XSS exposure is the trade-off we accept. Mitigations:
- *     - Strict CSP in next.config.ts blocks most script injection
- *     - The token is refresh-only (medium-impact if leaked, NOT the
- *       access token which would be high-impact)
- *     - On logout / 401-cascade, we proactively clear it
- *     - Schemas validation + extractErrorMessage prevent server text
- *       from being rendered as HTML
- *
- *   Removing this fallback was tried in commit 8334bad and silently
- *   reintroduced the "frequent logout" UX bug. Don't do it again
- *   without first proving the cookie path is reliable end-to-end in
- *   production (Railway internal routing, CDN, Next.js rewrites).
+ * This was previously called out as "INTENTIONAL, do not remove" with
+ * a long comment about CDN/proxy Set-Cookie stripping. If that bug
+ * re-emerges at the CDN/proxy layer, the right fix is at the network
+ * layer (Railway config, CDN rules) — NOT to re-introduce a bearer
+ * token in JS-accessible storage. Keeping these stubs as no-ops so
+ * existing callers (extractAndPersistRefresh, clearPersistedRefresh)
+ * don't need to change.
  */
-export function setRefreshToken(token: string | null) {
-  if (typeof window === 'undefined') return;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function setRefreshToken(_token: string | null) {
+  // intentionally no-op — see comment above
   try {
-    if (token && token.trim()) {
-      window.sessionStorage.setItem(REFRESH_FALLBACK_KEY, token);
-    } else {
+    if (typeof window !== 'undefined') {
+      // Best-effort cleanup: if any legacy key exists from a prior
+      // deploy, wipe it on first call.
       window.sessionStorage.removeItem(REFRESH_FALLBACK_KEY);
     }
   } catch {
-    // sessionStorage unavailable (private browsing, quota) — cookies
-    // remain the primary path; we just won't have a fallback for this tab.
+    /* ignore */
   }
 }
 
 function getRefreshTokenFallback(): string | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const token = window.sessionStorage.getItem(REFRESH_FALLBACK_KEY);
-    return token && token.trim() ? token : null;
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 // ── Silent refresh ─────────────────────────────────────────────────────────────

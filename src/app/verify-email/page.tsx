@@ -3,13 +3,33 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
-import { scrubTokenFromUrl } from '../../lib/scrubUrlToken';
+import { readTokenFromUrl, scrubTokenFromUrl } from '../../lib/scrubUrlToken';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(token ? 'loading' : 'error');
-  const [message, setMessage] = useState(token ? '' : 'No verification token provided.');
+  // R8 audit: prefer the URL fragment (#token=...) over the query
+  // string (?token=...). The fragment is never sent to the server
+  // and never appears in Referer headers. Legacy links using the
+  // query string still work.
+  const [token, setToken] = useState<string | null>(() => {
+    // Initial render server-side: can't touch window. Defer to
+    // useEffect below. But also try searchParams first so the
+    // loading state below renders correctly when fragment is absent.
+    return searchParams.get('token');
+  });
+  useEffect(() => {
+    const fromHash = readTokenFromUrl('token');
+    if (fromHash && fromHash !== token) setToken(fromHash);
+    // We intentionally don't depend on `token` here — this runs once
+    // to hydrate from the fragment on client mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // Initial state is "loading" even if the query-string token is absent —
+  // the useEffect above may still hydrate the token from the URL fragment
+  // on client mount. We flip to 'error' below once we're sure the token
+  // is missing from both sources.
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [message, setMessage] = useState('');
   const [resendEmail, setResendEmail] = useState('');
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
 
@@ -26,7 +46,20 @@ function VerifyEmailContent() {
   };
 
   useEffect(() => {
-    if (!token) return;
+    // If by the time we've had a microtask (the hash-hydration effect
+    // above runs before this on mount) there's still no token, stop
+    // the loading spinner and surface the "no token" message.
+    if (!token) {
+      // Small delay lets the hash-hydration effect run first in dev
+      // double-invoke. requestAnimationFrame is one frame — imperceptible.
+      const id = requestAnimationFrame(() => {
+        if (!readTokenFromUrl('token')) {
+          setStatus('error');
+          setMessage('No verification token provided.');
+        }
+      });
+      return () => cancelAnimationFrame(id);
+    }
 
     // R7 audit: scrub the token from the address bar immediately after
     // capturing it into React state. Prevents history/screenshot/copy-
