@@ -2,7 +2,8 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo, ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api, setRefreshToken, setUnauthorizedHandler } from '../lib/api';
-import { trackLogin, trackSignUp } from '../lib/analytics';
+import { trackLogin, trackSignUp, trackTrialStarted, trackOnce } from '../lib/analytics';
+import { DEFAULT_ONBOARDING_TRIAL_DAYS } from '../lib/trial';
 
 // Dev-only trace hook. In production these traces would add noise to
 // DevTools and pollute any UI/infra log capture; Sentry already receives
@@ -427,6 +428,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Fire GA4 sign_up event. Backend also fires USER_SIGNED_UP; this covers
     // the client-side side of the funnel (e.g., for ads/attribution).
     try { trackSignUp('email'); } catch { /* GA4 may be blocked or unavailable */ }
+    // Every Barakah signup auto-grants a 30-day Plus trial (see
+    // AppSettingsService.getOnboardingTrialDefault). Fire the GA4
+    // trial_started event here so paid-acquisition channels can report on
+    // trial-start rates, not just sign-up rates — the gap between those
+    // two numbers becomes the "email verification bounce" we track in the
+    // admin funnel. Scoped via trackOnce so a signup → log-out → sign-up-
+    // again flow doesn't double-count.
+    try {
+      trackOnce('trial_started', () =>
+        trackTrialStarted('plus', DEFAULT_ONBOARDING_TRIAL_DAYS));
+    } catch { /* GA4 may be blocked or unavailable */ }
   }, []);
 
   const logout = useCallback(async (reason?: 'logout' | 'deleted') => {

@@ -9,6 +9,7 @@ import { useToast } from '../../../lib/toast';
 import { safeParse, safeParseWithFallback, validateZakatCalculation, validateZakatPaymentsResponse, validateNisabInfo, formatTimeAgo } from '../../../lib/schemas';
 import ShareReceiptButton from '../../../components/ShareReceiptButton';
 import HistoricalZakatModal from '../../../components/HistoricalZakatModal';
+import { trackFirstZakatCalc, trackFeatureUse, trackOnce } from '../../../lib/analytics';
 
 interface ZakatCalculation {
   zakatDue?: number;
@@ -337,6 +338,21 @@ export default function ZakatPage() {
     }
   }, [fulfilled, zakatDue]);
 
+  // Fire GA4 first_zakat_calc once per browser-user the first time their
+  // authenticated dashboard returns a positive zakat amount. This is the
+  // activation event for authenticated users (the /zakat-calculator landing
+  // page fires its own anonymous-scoped variant). Backend also writes the
+  // FIRST_ZAKAT_CALCULATED lifecycle event — this client-side fire is
+  // specifically for GA4 attribution.
+  useEffect(() => {
+    if (zakatDue !== null && zakatDue > 0) {
+      try {
+        trackOnce('first_zakat_calc_auth', () =>
+          trackFirstZakatCalc(zakatDue, selectedMethodology || 'default'));
+      } catch { /* GA4 unavailable */ }
+    }
+  }, [zakatDue, selectedMethodology]);
+
   const handleShowPaymentForm = () => {
     // Show checklist first, reset form
     setChecklist({ wealth: false, hawl: false, debts: false, quranic: false });
@@ -422,6 +438,7 @@ export default function ZakatPage() {
   // FEATURE 6: Load Calculation Receipt
   const handleViewReceipt = async () => {
     setReceiptLoading(true);
+    try { trackFeatureUse('zakat_receipt_generated'); } catch { /* GA4 unavailable */ }
     try {
       const data = await api.getZakatReceipt();
       if (data) {

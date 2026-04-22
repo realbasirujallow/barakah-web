@@ -11,6 +11,7 @@ import {
   getPlaidUiErrorMessage,
   readPendingPlaidLinkToken,
 } from '../../../lib/plaid';
+import { trackFirstAccountLink, trackOnce } from '../../../lib/analytics';
 
 export default function PlaidOauthPage() {
   const router = useRouter();
@@ -43,6 +44,13 @@ export default function PlaidOauthPage() {
     try {
       await api.plaidExchangeToken(publicToken, metadata?.institution?.name);
       clearPendingPlaidLinkToken();
+      // GA4 activation event — fires once per browser across every Plaid
+      // surface (setup, import, oauth-callback). See lib/analytics.ts
+      // trackOnce contract.
+      try {
+        trackOnce('first_account_link', () =>
+          trackFirstAccountLink(metadata?.institution?.name || 'unknown'));
+      } catch { /* GA4 unavailable */ }
       finishWithRedirect('linked', 'Bank linked successfully! Click "Sync" to import transactions.');
     } catch (err) {
       clearPendingPlaidLinkToken();

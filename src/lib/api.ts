@@ -1044,6 +1044,10 @@ export const api = {
     apiFetch(`/admin/funnel?days=${days}`, {}, API_TIMEOUT, true),
   getAdminGrowth: () =>
     apiFetch('/admin/growth', {}, API_TIMEOUT, true),
+  /** Drop-off analyzer (2026-04-22): signups-but-no-upgrade cohort +
+   *  last-event histogram + up to 30 full per-user event timelines. */
+  getAdminDropoffAnalysis: (days = 30) =>
+    apiFetch(`/admin/dropoff-analysis?days=${days}`, {}, API_TIMEOUT, true),
   getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
   getAdminOverview: () => apiFetch('/admin/overview', {}, API_TIMEOUT, true),
   getAdminOnboardingTrialSettings: () =>

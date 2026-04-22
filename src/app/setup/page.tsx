@@ -11,6 +11,8 @@ import {
   trackSetupComplete,
   trackSetupSkipped,
   trackUpgradeStarted,
+  trackFirstAccountLink,
+  trackOnce,
 } from '../../lib/analytics';
 import {
   clearPendingPlaidLinkToken,
@@ -214,6 +216,14 @@ function SetupPageInner() {
       clearPendingPlaidLinkToken();
       setPlaidLinkToken(null);
       setPlaidLoading(false);
+      // First-ever bank link is a top-of-funnel activation milestone. Fire
+      // the GA4 event once per browser so paid-acquisition attribution can
+      // join "Facebook ad → signup → first bank link" properly. Subsequent
+      // links on the same browser are silent (trackOnce).
+      try {
+        trackOnce('first_account_link', () =>
+          trackFirstAccountLink(metadata?.institution?.name || 'unknown'));
+      } catch { /* GA4 unavailable */ }
       const imported = Number(result?.transactionsImported || 0);
       setPlaidMessage(
         imported > 0
