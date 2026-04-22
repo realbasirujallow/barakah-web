@@ -353,7 +353,18 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
 
       // Refresh returned 'expired' or retry after 'ok' also failed — session is gone.
       // Only fire the global logout if the caller hasn't opted out.
-      if (!suppressUnauthorized && onUnauthorizedCallback) onUnauthorizedCallback();
+      // Diagnostic: surface WHICH endpoint tripped the global logout so we can
+      // spot unintended unsuppressed callers in live sessions.
+      if (!suppressUnauthorized && onUnauthorizedCallback) {
+
+        console.warn('[auth] global unauthorized handler firing — forcing /login?reason=expired', {
+          endpoint,
+          method: (options.method || 'GET').toUpperCase(),
+          refreshResult,
+          path: typeof window !== 'undefined' ? window.location.pathname : '',
+        });
+        onUnauthorizedCallback();
+      }
       setRefreshToken(null);
       throw new Error('Your session has expired. Please log in again.');
     }
@@ -983,9 +994,25 @@ export const api = {
   getBarakahScore: () => apiFetch('/api/barakah-score'),
 
   // Notifications
-  getNotifications: (page = 0, suppressUnauthorized = false) =>
+  //
+  // 2026-04-22 session-bug fix: both getters default to suppressUnauthorized=true.
+  // Rationale: these are BACKGROUND polls — NotificationBell fires
+  // getUnreadNotifications every 2 min while the user sits on any dashboard
+  // page (including admin). If any single poll returns 401 while the silent
+  // refresh transiently fails (a race with another tab's refresh, a noisy
+  // network, Stripe-webhook-induced session rotation mid-poll, etc.), the
+  // default-false path triggers onUnauthorizedCallback and force-logs the
+  // user out — even though they're ACTIVE in the app. This is what was
+  // kicking Basiru to /login?reason=expired every ~10-15 min.
+  //
+  // A 401 on a background poll should NEVER force a logout. The real
+  // session check happens the next time the user clicks something; that
+  // request goes through the full refresh flow + verifySessionStillValid
+  // gate, and correctly logs them out ONLY if the server confirms the
+  // session is genuinely dead.
+  getNotifications: (page = 0, suppressUnauthorized = true) =>
     apiFetch(`/api/notifications?page=${page}`, {}, API_TIMEOUT, suppressUnauthorized),
-  getUnreadNotifications: (suppressUnauthorized = false) =>
+  getUnreadNotifications: (suppressUnauthorized = true) =>
     apiFetch('/api/notifications/unread', {}, API_TIMEOUT, suppressUnauthorized),
   markNotificationRead: (id: number) =>
     apiFetch(`/api/notifications/${id}/read`, { method: 'PUT' }, API_TIMEOUT, true),

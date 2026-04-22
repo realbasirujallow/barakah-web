@@ -177,6 +177,57 @@ export default function AdminPage() {
     return () => clearInterval(interval);
   }, [loadData, page]);
 
+  /**
+   * Lightweight badge-count refresh.
+   *
+   * 2026-04-22 walkthrough finding: the tab-row badges ("Alerts N",
+   * "Unverified N", "Email Log N") are derived from the parent's
+   * `overview` + `emailLogStats` state, which are loaded once on
+   * mount and then every 30 minutes. If a user performs an action
+   * inside Unverified / Alerts / Email Log (resend verification,
+   * mark read, etc.), the relevant badge stays stale until the next
+   * 30-min window — we literally saw `Unverified (2)` while the
+   * tab content showed "All users have verified."
+   *
+   * Fix: whenever the user switches to one of the mutable-badge
+   * tabs, re-fetch just the two endpoints the badges depend on —
+   * cheap enough to do on every tab click, and it stops the badge
+   * lying to the admin. The tab's OWN list refetch happens
+   * independently; the order is fine either way because each badge
+   * derives from the latest overview, not from the list count.
+   */
+  const refreshBadgeCounts = useCallback(async () => {
+    try {
+      const [overviewRes, emailLogStatsRes] = await Promise.allSettled([
+        api.getAdminOverview().catch(() => null),
+        api.adminGetEmailLog('all', 0, 1).catch(() => null),
+      ]);
+      if (overviewRes.status === 'fulfilled' && overviewRes.value) {
+        setOverview(overviewRes.value as Overview);
+      }
+      if (emailLogStatsRes.status === 'fulfilled' && emailLogStatsRes.value) {
+        const v = emailLogStatsRes.value as {
+          totalSent?: number;
+          totalFailed?: number;
+          totalElements?: number;
+        };
+        setEmailLogStats({
+          totalSent: v.totalSent ?? 0,
+          totalFailed: v.totalFailed ?? 0,
+          totalElements: v.totalElements ?? 0,
+        });
+      }
+    } catch {
+      // Silent — badge accuracy is nice-to-have, not critical to page function.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'alerts' || activeTab === 'unverified' || activeTab === 'email-log') {
+      refreshBadgeCounts();
+    }
+  }, [activeTab, refreshBadgeCounts]);
+
   /* ── User modal handlers ── */
   const openUser = (u: AdminUser) => {
     setSelected(u);
