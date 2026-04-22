@@ -5,6 +5,7 @@ import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
+import { trackFeatureUse, trackOnce } from '../../../lib/analytics';
 interface HalalResult { symbol: string; name: string; isHalal: boolean; reason: string; sector: string; debtRatio?: number; }
 interface StockStats { totalStocks: number; halalCount: number; haramCount: number; sectorCount: number; }
 interface DetailResult { symbol: string; name: string; status: string; reason: string; sector: string; debtRatio?: number; }
@@ -15,6 +16,19 @@ export default function HalalPage() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
+
+  // GA4 feature-engagement event — fires once per browser when a user
+  // opens the halal screener page. This is a Plus-gated feature so the
+  // event's presence in the funnel is a leading indicator of paid-plan
+  // engagement; its volume should correlate with upgrade_completed.
+  useEffect(() => {
+    if (user) {
+      try {
+        trackOnce('feature_use_halal_screener', () =>
+          trackFeatureUse('halal_screener_opened'));
+      } catch { /* GA4 unavailable */ }
+    }
+  }, [user]);
 
   // Unified search — doubles as single-stock check and screener filter
   const [search, setSearch] = useState('');

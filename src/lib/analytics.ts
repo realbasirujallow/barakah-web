@@ -26,6 +26,39 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>) 
   }
 }
 
+/**
+ * Fire a GA4 event EXACTLY ONCE per browser (scoped via a localStorage flag).
+ * Used for "first" milestones — first zakat calc, first account link, trial
+ * started, etc. — where we want attribution data on the moment the user
+ * actually reached the value step, not every subsequent repeat.
+ *
+ * Keyed flags are forever-persistent in localStorage by design. If you need
+ * a "once per session" instead, use a session-scoped flag at the call site.
+ * If you need "once per user" across devices, move the check server-side
+ * (LifecycleService already has this for FIRST_ZAKAT_CALCULATED etc).
+ *
+ * Fail-safe: a blocked / disabled localStorage (Safari incognito, some
+ * extensions) re-fires the event on every call — that's preferable to not
+ * firing at all, since the cost of a double GA4 event is ~zero and the
+ * cost of a missing first-activation event is losing attribution.
+ */
+export function trackOnce(flagKey: string, fire: () => void) {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = `barakah_ga4_once:${flagKey}`;
+    if (window.localStorage.getItem(key) === '1') return;
+    window.localStorage.setItem(key, '1');
+  } catch {
+    // localStorage blocked — fall through and fire anyway.
+  }
+  try {
+    fire();
+  } catch {
+    // Never let GA4 break the flow — a typo'd param or gtag outage is not
+    // a reason to bubble an exception to the caller.
+  }
+}
+
 /** Track successful signup */
 export function trackSignUp(method = 'email') {
   trackEvent('sign_up', { method });

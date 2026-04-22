@@ -5,6 +5,7 @@ import { useToast } from '../../../lib/toast';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useRouter } from 'next/navigation';
+import { trackFeatureUse, trackOnce } from '../../../lib/analytics';
 
 // ── Existing interfaces ───────────────────────────────────────────────────────
 
@@ -152,6 +153,19 @@ export default function RibaPage() {
   const { toast } = useToast();
   const { fmt, symbol } = useCurrency();
   const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
+
+  // GA4 feature-engagement event — fires once per browser on first riba-
+  // detector open. Plus-gated feature so volume here is a leading
+  // indicator of paid-plan engagement + a candidate outcome event for
+  // the admin Experiments tab's conversion analysis.
+  useEffect(() => {
+    if (user) {
+      try {
+        trackOnce('feature_use_riba_detector', () =>
+          trackFeatureUse('riba_detector_opened'));
+      } catch { /* GA4 unavailable */ }
+    }
+  }, [user]);
 
   const [activeTab, setActiveTab] = useState<TabKey>('scan');
 

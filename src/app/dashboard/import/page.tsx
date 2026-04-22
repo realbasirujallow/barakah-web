@@ -12,6 +12,7 @@ import {
 } from '../../../lib/plaid';
 import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useCurrency } from '../../../lib/useCurrency';
+import { trackFirstAccountLink, trackOnce } from '../../../lib/analytics';
 
 /* -- Asset / Debt type options (match the assets + debts pages) ------------ */
 const ASSET_TYPES = [
@@ -280,6 +281,14 @@ function ImportPageInner() {
       clearPendingPlaidLinkToken();
       setPlaidLinkToken(null);
       setPlaidLoading(false);
+      // First-ever Plaid link fires the GA4 activation event once per
+      // browser. Mirrors /setup + /plaid/oauth so paid-acquisition
+      // attribution picks up the moment regardless of which surface the
+      // user linked from.
+      try {
+        trackOnce('first_account_link', () =>
+          trackFirstAccountLink(metadata?.institution?.name || 'unknown'));
+      } catch { /* GA4 unavailable */ }
       const imported = Number(result?.transactionsImported || 0);
       setPlaidMessage(
         imported > 0

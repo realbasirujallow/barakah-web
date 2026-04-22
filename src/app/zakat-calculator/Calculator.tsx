@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { trackFirstZakatCalc, trackOnce } from '../../lib/analytics';
 
 interface CalculatorInputs {
   cashAndBanking: number;
@@ -188,6 +189,15 @@ export default function Calculator() {
 
   const handleCalculate = () => {
     setShowResults(true);
+    // GA4 activation event — the public /zakat-calculator is an anonymous
+    // surface, so "first" here is first-ever from this browser. Captures
+    // the exact moment an SEO / ad visitor sees their zakat number — this
+    // is the aha for ~40% of our acquisition. trackOnce scopes it to
+    // localStorage so repeat visits don't double-count.
+    try {
+      trackOnce('first_zakat_calc_anon', () =>
+        trackFirstZakatCalc(calculations.zakatDue, selectedMadhab));
+    } catch { /* GA4 unavailable */ }
   };
 
   const handleReset = () => {

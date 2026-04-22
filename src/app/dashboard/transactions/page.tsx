@@ -10,6 +10,7 @@ import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SkeletonPage } from '../SkeletonCard';
+import { trackFeatureUse } from '../../../lib/analytics';
 
 // ── Supported currencies ──────────────────────────────────────────────────────
 const CURRENCIES = [
@@ -353,6 +354,10 @@ export default function TransactionsPage() {
 
   const handleExportCsv = async () => {
     setExportingCsv(true); setExportError(null);
+    // trackFeatureUse fires on every click (not scoped to first-use) so
+    // paid-acquisition dashboards can read repeat-use as an engagement
+    // signal. Backend also emits metrics.recordExport('csv').
+    try { trackFeatureUse('export_transactions_csv'); } catch { /* GA4 unavailable */ }
     try { await api.downloadTransactionsCsv(); }
     catch (err) { logError(err, { context: 'transactions.exportCsv' }); toast('CSV export failed', 'error'); setExportError('CSV export failed. Please try again.'); }
     setExportingCsv(false);
@@ -360,6 +365,7 @@ export default function TransactionsPage() {
 
   const handleExportPdf = async () => {
     setExportingPdf(true); setExportError(null);
+    try { trackFeatureUse('export_transactions_pdf'); } catch { /* GA4 unavailable */ }
     try { await api.downloadTransactionsPdf(); }
     catch (err) { logError(err, { context: 'transactions.exportPdf' }); toast('PDF export failed', 'error'); setExportError('PDF export failed. Please try again.'); }
     setExportingPdf(false);

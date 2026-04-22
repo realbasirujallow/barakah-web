@@ -396,6 +396,28 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* ── Quick nav to standalone admin pages ── */}
+      <div className="flex flex-wrap gap-2 mb-4 text-sm">
+        <Link
+          href="/dashboard/admin/scorecard"
+          className="bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg font-medium hover:bg-[#2E7D32]"
+        >
+          📈 Weekly Scorecard
+        </Link>
+        <Link
+          href="/dashboard/admin/funnel"
+          className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
+        >
+          🔄 Funnel
+        </Link>
+        <Link
+          href="/dashboard/admin/growth"
+          className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
+        >
+          📊 Growth
+        </Link>
+      </div>
+
       {/* ── Tab Navigation ── */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 overflow-x-auto">
         {(['overview', 'users', 'alerts', 'unverified', 'lifecycle', 'experiments', 'deleted', 'email-log'] as const).map(tab => (
