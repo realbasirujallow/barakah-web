@@ -67,7 +67,29 @@ export const FAMILY_FEATURES = [
   'Shared expense splitting',
 ] as const;
 
-/** Competitor comparison data for the /pricing page. */
+/**
+ * Competitor comparison data for the /pricing page.
+ *
+ * ⚠️ Trust-drift hazard: competitor prices change without warning. Any row
+ * labelled "Monthly price" / "Annual price" needs to be re-verified against
+ * the sources below every quarter. Rotate the reviewer each quarter so the
+ * check doesn't atrophy.
+ *
+ *   • YNAB:      https://www.ynab.com/pricing
+ *   • Monarch:   https://www.monarchmoney.com/pricing   (Monarch currently
+ *                surfaces two tiers — Core $99.99/yr and Plus $299.99/yr.
+ *                We compare against Core here since that's the head-to-head
+ *                feature-parity tier with Barakah Plus. Revisit if they
+ *                rename.)
+ *   • Zoya Pro:  https://help.zoya.finance/en/articles/8307704
+ *   • Copilot:   https://copilot.money  (pricing page)
+ *
+ * If a number below is stale, fix it in the same PR as the SEO / referral
+ * copy sweep — every public-facing pricing number has to agree, or user
+ * trust erodes silently.
+ */
+export const COMPETITOR_PRICING_LAST_VERIFIED = '2026-04-22';
+
 export const COMPETITOR_COMPARISON = [
   { feature: 'Monthly price',          barakah: '$9.99',   monarch: '$14.99',    ynab: '$14.99',  zoya: '$14.99', copilot: '$13/mo'   },
   { feature: 'Annual price',           barakah: '$99/yr',  monarch: '$99.99/yr', ynab: '$109/yr', zoya: '$119.99/yr', copilot: '$95.99/yr' },

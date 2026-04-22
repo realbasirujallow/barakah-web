@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
+import { REFEREE_FIRST_MONTH_PRICE } from '../../../lib/referralCopy';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { PRICING } from '../../../lib/pricing';
 import { trackPaywallViewed, trackUpgradeStarted } from '../../../lib/analytics';
@@ -502,10 +503,13 @@ function BillingContent() {
         <div className="mt-8 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xl">🎁</span>
-            <h3 className="font-bold text-gray-800">Refer a Friend — Get 1 Month Free</h3>
+            <h3 className="font-bold text-gray-800">Refer a Friend — You Get a Free Month</h3>
           </div>
           <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-            Share your referral link. When a friend signs up and verifies their email, you <strong>both</strong> get 1 free month of Barakah access automatically.
+            Share your referral link. When a friend signs up and verifies their
+            email, <strong>you</strong> get a free extra month of Barakah Plus
+            and <strong>they</strong> get their first month for{' '}
+            <strong>{REFEREE_FIRST_MONTH_PRICE}</strong>.
           </p>
 
           <div className="flex gap-2 mb-3">
