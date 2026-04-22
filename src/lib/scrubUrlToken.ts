@@ -44,6 +44,18 @@ export function scrubTokenFromUrl(paramName: string = 'token'): void {
     // replaceState (not pushState) so Back doesn't return to the
     // token-bearing URL. No reload — React state is preserved.
     window.history.replaceState({}, '', cleaned);
+    // R11 audit L-4 (2026-04-22): post-scrub self-check. If for any reason
+    // the replaceState call failed silently (browser restrictions,
+    // extensions intercepting history APIs, etc.) we want to know about it
+    // in observability — a stale token in the URL after a "successful"
+    // scrub is a latent leak. Sentry breadcrumb only, not user-facing.
+    if (typeof window !== 'undefined') {
+      const afterHref = window.location.href;
+      const pattern = new RegExp('[?&#]' + paramName + '=');
+      if (pattern.test(afterHref)) {
+        console.warn('[scrubTokenFromUrl] token still present in URL after replaceState');
+      }
+    }
   } catch {
     // Older browsers or blocked history APIs — ignore; leaving the
     // token in the URL is strictly worse than nothing but not a

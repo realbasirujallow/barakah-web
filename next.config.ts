@@ -57,8 +57,17 @@ const plaidHosts = isDev
 // ── Content Security Policy ────────────────────────────────────────────────
 // Protects against XSS, clickjacking, and data-injection attacks.
 //
+// R11 audit (2026-04-22): this static CSP is now only the FALLBACK. The
+// live CSP for user-facing page requests is generated per-request by
+// `src/middleware.ts`, which emits a nonce + strict-dynamic policy. The
+// static CSP here applies only to routes middleware skips (API proxy,
+// _next/static, static assets) — none of which render executable HTML.
+// In dev the middleware is a no-op so the static policy below is what
+// runs, and it keeps `'unsafe-inline' 'unsafe-eval'` so HMR/error-overlay
+// still work.
+//
 // Why each directive:
-//   script-src  'unsafe-inline'  — required by Next.js App Router hydration
+//   script-src  'unsafe-inline'  — required by Next.js App Router hydration in dev; overridden per-request by middleware in prod
 //   script-src  'unsafe-eval'    — dev only (webpack HMR); stripped in production
 //   style-src   'unsafe-inline'  — required by Tailwind CSS & Recharts
 //   connect-src /ingest/**       — PostHog reverse-proxied through Next.js

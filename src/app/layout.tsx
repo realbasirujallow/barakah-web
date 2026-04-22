@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -92,11 +93,17 @@ export const metadata: Metadata = {
   category: "finance",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // R11 audit (2026-04-22): read the per-request nonce set by middleware.ts
+  // so our inline dark-mode bootstrap script executes under nonce-based
+  // CSP in production. In development the nonce is undefined and the
+  // script falls through to the permissive dev CSP.
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -199,12 +206,19 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#1B5E20" />
-        {/* Apply dark mode class before paint to avoid flash */}
+        {/* Apply dark mode class before paint to avoid flash.
+            R11 audit (2026-04-22): nonced so the nonce-based production
+            CSP executes this without needing 'unsafe-inline'. */}
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `(function(){try{if(localStorage.getItem('barakah_dark_mode')==='true')document.documentElement.classList.add('dark');}catch(e){}})();`,
           }}
         />
+        {/* JSON-LD below is `type="application/ld+json"` — browsers do NOT
+            execute it as JavaScript, so script-src CSP doesn't apply.
+            Leaving nonce off intentionally to avoid confusing SEO tools
+            that look for a bare <script type="application/ld+json">. */}
         {/* Organization Schema */}
         <script
           type="application/ld+json"
