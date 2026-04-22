@@ -1,4 +1,4 @@
-import { request as apiRequest, type FullConfig } from '@playwright/test';
+import { request as apiRequest } from '@playwright/test';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
@@ -25,7 +25,10 @@ import { dirname } from 'node:path';
  */
 export const STORAGE_STATE_FILE = 'e2e/.auth/user.json';
 
-async function globalSetup(_config: FullConfig) {
+// Playwright passes a FullConfig argument that we don't need (all the env
+// vars we care about come through process.env). Dropping the parameter
+// keeps ESLint happy without a no-unused-vars disable comment.
+async function globalSetup() {
   const API =
     process.env.E2E_API_URL || process.env.E2E_BASE_URL || 'http://localhost:3000';
   const EMAIL = process.env.E2E_EMAIL || '';
