@@ -101,7 +101,7 @@ const faqSchema = {
       name: 'Is there a free Islamic finance app?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Yes. Barakah offers a free plan with the core zakat calculator, hawl tracking, expense tracking, and sadaqah goals — no credit card required. Zoya also has a limited free tier for stock screening. Most other Islamic finance tools are paid-only.",
+        text: "Yes. Barakah offers a free plan with the core zakat calculator, hawl tracking, expense tracking, and sadaqah goals — no credit card or debit card required. Zoya also has a limited free tier for stock screening. Most other Islamic finance tools are paid-only.",
       },
     },
     {

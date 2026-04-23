@@ -62,7 +62,7 @@ const faqSchema = {
       name: 'What is the best Islamic finance app in 2026?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Barakah is the most comprehensive Islamic finance app in 2026. It combines a free multi-madhab zakat calculator, halal stock screener (30,000+ stocks), riba detection, Islamic will planner, family budgeting, and Barakah Score in one fiqh-aware platform. It\'s free to start with no credit card required.',
+        text: 'Barakah is the most comprehensive Islamic finance app in 2026. It combines a free multi-madhab zakat calculator, halal stock screener (30,000+ stocks), riba detection, Islamic will planner, family budgeting, and Barakah Score in one fiqh-aware platform. It\'s free to start with no credit card or debit card required.',
       },
     },
     {
@@ -393,7 +393,7 @@ export default function ComparePage() {
           {/* Bottom CTA */}
           <div className="bg-[#FFF8E1] border-2 border-[#1B5E20] rounded-2xl p-8 text-center">
             <h2 className="text-2xl font-bold text-[#1B5E20] mb-2">Start with the best — for free</h2>
-            <p className="text-gray-600 mb-6 max-w-xl mx-auto">Barakah is the only Islamic finance app that covers your entire financial life as a Muslim. Start free, no credit card. {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus included.</p>
+            <p className="text-gray-600 mb-6 max-w-xl mx-auto">Barakah is the only Islamic finance app that covers your entire financial life as a Muslim. Start free, no credit card or debit card required. {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus included.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition">
                 Start Free — {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} Plus
