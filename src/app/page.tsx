@@ -106,7 +106,10 @@ const plans = [
 export default function Home() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [isAnnual, setIsAnnual] = useState(false);
+  // Default to annual billing on homepage pricing — same rationale as
+  // /pricing page: 17%/34% savings should be the first frame every
+  // visitor sees, and annual plans churn less (LTV win).
+  const [isAnnual, setIsAnnual] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
