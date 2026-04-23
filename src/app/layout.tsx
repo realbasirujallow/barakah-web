@@ -147,7 +147,7 @@ export default async function RootLayout({
       'Free zakat calculator with live gold and silver nisab prices',
       'Multi-madhab zakat support (Hanafi, Shafi\'i, Maliki, Hanbali)',
       'Hawl anniversary tracking and alerts',
-      'Halal stock screener — 30,000+ stocks against AAOIFI Standard 21',
+      'Halal stock screener — 30,000+ stocks using AAOIFI-derived criteria',
       'Riba detector and elimination journey',
       'Islamic will (wasiyyah) planner',
       'Faraid inheritance calculator',
@@ -174,12 +174,11 @@ export default async function RootLayout({
         description: 'Full access including bank sync, halal screener, faraid, and Barakah Score',
       },
     ],
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      ratingCount: '120',
-      bestRating: '5',
-    },
+    // aggregateRating intentionally omitted: we don't have a verifiable
+    // App Store / Play Store review source to cite here, and placeholder
+    // numbers (4.8 / 120 was earlier copy) risk being flagged as
+    // inflated structured-data by Google. Restore once there is a real
+    // ratings feed to back it.
   };
 
   const websiteSchema = {
