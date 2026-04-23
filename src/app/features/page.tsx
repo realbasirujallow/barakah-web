@@ -48,7 +48,7 @@ const featureList = [
   {
     icon: '✅',
     title: 'Halal Stock Screener',
-    desc: '30,000+ stocks screened against AAOIFI Standard 21 — filter by halal or haram with sector breakdown.',
+    desc: '30,000+ stocks screened using criteria based on AAOIFI Standard 21 — filter by halal or haram with sector breakdown.',
   },
   {
     icon: '📊',
