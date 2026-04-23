@@ -272,38 +272,15 @@ test.describe('Authenticated API Tests', () => {
     expect([200, 403]).toContain(res.status());
   });
 
-  // ── Wasiyyah trust-critical invariants (W4 hardening, 2026-04-22) ─────────
-  //
-  // ⚠ Real bug surfaced while writing these tests (2026-04-22):
-  //
-  //   WasiyyahService.addBeneficiary gates BOTH the 1/3 cap AND the
-  //   "no bequest to a legal heir" (La wasiyyata li-warith) checks
-  //   behind `shareType.equals("voluntary")`. But the public DTO
-  //   WasiyyahBeneficiaryRequest only accepts
-  //   `percentage|fixed_amount|""` — "voluntary" is rejected upstream.
-  //   That means NEITHER Islamic invariant currently fires for any
-  //   request coming through /api/wasiyyah/add.
-  //
-  //   File:lines:
-  //     barakah-backend/src/main/java/com/barakah/dto/WasiyyahBeneficiaryRequest.java:34
-  //     barakah-backend/src/main/java/com/barakah/service/WasiyyahService.java:89-114
-  //
-  //   Fix is a product decision — either widen the DTO regex to include
-  //   "voluntary" and set it as the default, or remove the
-  //   shareType=="voluntary" gate in the service and apply the checks
-  //   to every bequest. Both are valid readings of classical fiqh
-  //   (all wasiyyah bequests are inherently voluntary in Islamic law).
-  //
-  // The two tests below are marked `.fixme` so they surface the issue
-  // loudly in CI without blocking merges. They send the API shape as
-  // documented (shareType=percentage) — which is what a Plus user
-  // would hit. Once the dead-code gate is fixed, flip .fixme → no-op
-  // and they will assert the cap + heir checks hold end-to-end.
+  // ── Wasiyyah trust-critical invariants ────────────────────────────────────
+  // Classical fiqh: every wasiyyah bequest is inherently voluntary, so
+  //   (1) total bequests cannot exceed 1/3 of the estate (Sa'd ibn Abi
+  //       Waqqas, Bukhari 2742 / Muslim 1628), and
+  //   (2) a bequest cannot be directed to a legal heir — "La wasiyyata
+  //       li-warith" (Abu Dawud 2870, Tirmidhi 2120, Ibn Majah 2713).
+  // Enforcement must hold regardless of the shareType label the client sends.
 
-  test.fixme('wasiyyah add enforces 1/3 cap on a 34% bequest', async () => {
-    // Expected post-fix: 400 with "1/3" / "33.33" / "exceed" in the
-    // error body. Pre-fix: the bequest is silently created and the
-    // cap doesn't fire.
+  test('wasiyyah add enforces 1/3 cap on a 34% bequest', async () => {
     const res = await sharedContext.post('/api/wasiyyah/add', {
       headers: writeHeaders(),
       data: {
@@ -319,11 +296,7 @@ test.describe('Authenticated API Tests', () => {
     expect(body.error).toMatch(/1\/3|33\.33|exceed/i);
   });
 
-  test.fixme('wasiyyah add rejects bequest to a legal heir (La wasiyyata li-warith)', async () => {
-    // Expected post-fix: 400 with "legal heir" / "warith" / "not
-    // permitted" in the error body. Hadith: Abu Dawud 2870,
-    // Tirmidhi 2120, Ibn Majah 2713. Pre-fix: the bequest to a legal
-    // heir is silently created.
+  test('wasiyyah add rejects bequest to a legal heir (La wasiyyata li-warith)', async () => {
     const res = await sharedContext.post('/api/wasiyyah/add', {
       headers: writeHeaders(),
       data: {
