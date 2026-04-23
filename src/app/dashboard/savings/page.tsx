@@ -175,7 +175,7 @@ export default function SavingsPage() {
         >
           Upgrade to Plus — from $9.99/mo
         </Link>
-        <p className="text-xs text-gray-400 mt-3">{DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial · No credit card required</p>
+        <p className="text-xs text-gray-400 mt-3">{DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial · No credit card or debit card required</p>
       </div>
     );
   }

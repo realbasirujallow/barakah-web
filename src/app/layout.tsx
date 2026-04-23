@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Barakah — Free Islamic Finance App: Zakat, Halal Budgeting & Muslim Money Tracker",
     description:
-      "Free zakat calculator, halal stock screener, riba tracker, Islamic will planner, and family budgeting — all fiqh-aware. Start free, no credit card required.",
+      "Free zakat calculator, halal stock screener, riba tracker, Islamic will planner, and family budgeting — all fiqh-aware. Start free, no credit card or debit card required.",
     url: "https://trybarakah.com",
     siteName: "Barakah",
     type: "website",

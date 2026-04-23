@@ -539,7 +539,7 @@ function SignupContent() {
         <div className="text-center mb-6">
           <Link href="/" className="text-3xl font-bold text-[#1B5E20]">&#127769; Barakah</Link>
           <p className="text-gray-600 mt-3 font-semibold">Create your account &mdash; get {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus on us</p>
-          <p className="text-xs text-gray-500 mt-2">No credit card &middot; Zakat calculator &middot; Bank sync &middot; Halal screener</p>
+          <p className="text-xs text-gray-500 mt-2">No credit card or debit card required &middot; Zakat calculator &middot; Bank sync &middot; Halal screener</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-8">

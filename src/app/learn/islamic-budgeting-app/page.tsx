@@ -378,7 +378,7 @@ export default function IslamicBudgetingAppPage() {
           <div className="bg-green-50 border-l-4 border-green-700 rounded-r-xl p-6 mb-10">
             <p className="font-semibold text-green-900 mb-2">Quick Answer</p>
             <p className="text-green-800">
-              <strong>Barakah</strong> is the best Islamic budgeting app for Muslim households. It is the only platform that combines zakat automation, riba detection, sadaqah tracking, halal stock screening, Islamic will planning, and family budgeting under one fiqh-aware roof — with a free plan and no credit card required.
+              <strong>Barakah</strong> is the best Islamic budgeting app for Muslim households. It is the only platform that combines zakat automation, riba detection, sadaqah tracking, halal stock screening, Islamic will planning, and family budgeting under one fiqh-aware roof — with a free plan and no credit card or debit card required.
             </p>
           </div>
 
@@ -482,7 +482,7 @@ export default function IslamicBudgetingAppPage() {
             <div className="grid sm:grid-cols-2 gap-5">
               <div className="border-2 border-gray-200 rounded-2xl p-6 dark:border-gray-700">
                 <div className="text-2xl font-bold text-gray-900 mb-1 dark:text-gray-100">Free</div>
-                <div className="text-gray-500 text-sm mb-4 dark:text-gray-400">Forever. No credit card.</div>
+                <div className="text-gray-500 text-sm mb-4 dark:text-gray-400">Forever. No credit card or debit card required.</div>
                 <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                   {[
                     'Zakat calculator (multi-madhab)',
