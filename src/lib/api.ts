@@ -1198,8 +1198,19 @@ export const api = {
     apiFetch(`/api/plaid/sync/${linkedAccountId}`, { method: 'POST' }),
   plaidSyncAll: () =>
     apiFetch('/api/plaid/sync-all', { method: 'POST' }),
+  // R12 hotfix (2026-04-23): suppressUnauthorized=true.
+  //
+  // plaidGetAccounts fires on mount from SyncBanksButton on
+  // /dashboard/assets and /dashboard/transactions — high-traffic
+  // pages users hit on every navigation. A transient 401 + refresh
+  // race on this call was cascading through onUnauthorizedCallback
+  // and force-logging-out active users. Same failure mode as the
+  // NotificationBell (commit 57a4945) + subscriptionStatus +
+  // lifecycleTrackEvent (commit 1578640) fixes. Background /
+  // mount-fired fetches must NEVER drive the logout decision — only
+  // user-initiated actions should.
   plaidGetAccounts: () =>
-    apiFetch('/api/plaid/accounts'),
+    apiFetch('/api/plaid/accounts', {}, API_TIMEOUT, true),
   plaidUnlinkAccount: (linkedAccountId: number) =>
     apiFetch(`/api/plaid/accounts/${linkedAccountId}`, { method: 'DELETE' }),
 
