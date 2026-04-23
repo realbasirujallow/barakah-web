@@ -36,7 +36,7 @@ const rows = [
   { feature: 'Halal stock screening', barakah: '30,000+ tickers, AAOIFI ratios, real-time', ynab: 'None', winner: 'Barakah' as const },
   { feature: 'Islamic will / faraid', barakah: 'Faraid calculator + wasiyyah builder', ynab: 'None', winner: 'Barakah' as const },
   { feature: 'Family / household plan', barakah: 'Family plan — 6 seats, shared budgets, household zakat', ynab: 'Up to 6 users on same account', winner: 'Tie' as const },
-  { feature: 'Mobile app quality', barakah: 'Live on iOS; Android Q3 2026', ynab: '4.8 stars iOS, mature', winner: 'YNAB' as const, note: 'YNAB has 12+ years of mobile iteration.' },
+  { feature: 'Mobile app quality', barakah: 'Live on iOS & Android', ynab: '4.8 stars iOS, mature', winner: 'YNAB' as const, note: 'YNAB has 12+ years of mobile iteration; Barakah shipped iOS + Android in 2026.' },
   { feature: 'Learning curve', barakah: 'Gentle — budget categories are intuitive', ynab: 'Steep — "the four rules" require commitment', winner: 'Barakah' as const, note: 'YNAB\'s discipline is its power but also its friction.' },
   { feature: 'Debt payoff tracking', barakah: 'Debt list + riba-purification progress', ynab: 'Excellent — "Pay Off Debt" category', winner: 'YNAB' as const, note: 'YNAB\'s debt methodology is mature.' },
   { feature: 'Reporting / analytics', barakah: 'Net-worth, zakat snapshots, giving history', ynab: 'Spending, net-worth, forecasting', winner: 'Tie' as const },
