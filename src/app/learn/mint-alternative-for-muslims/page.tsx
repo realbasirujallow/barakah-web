@@ -332,7 +332,7 @@ export default function MintAlternativeForMuslimsPage() {
             <p className="text-gray-600 mb-6 dark:text-gray-400">Join Muslim households who&apos;ve moved from Mint to a finance app that actually understands their deen. Free to start. No card required.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition">
-                Start Free — 7 Days Plus Included
+                Start Free — 30 Days Plus Included
               </Link>
               <Link href="/zakat-calculator" className="border border-[#1B5E20] text-[#1B5E20] px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition">
                 Try Zakat Calculator
