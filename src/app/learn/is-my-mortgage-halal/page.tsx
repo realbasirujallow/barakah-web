@@ -269,7 +269,7 @@ export default function Page() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">
-                Start Free — 7 Days Plus
+                Start Free — 30 Days Plus
               </Link>
               <Link href="/dashboard/riba" className="border border-white text-white px-6 py-3 rounded-xl font-bold hover:bg-white/10 transition">
                 Riba Elimination Journey
