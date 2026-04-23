@@ -25,8 +25,10 @@ export const ANDROID_PLAY_STORE_URL =
 export const IS_ANDROID_PUBLICLY_LAUNCHED = true;
 
 /** Fallback when IS_ANDROID_PUBLICLY_LAUNCHED is false — route Android
- *  CTAs to the /open page which tells honest users "Android is in final
- *  testing; web app works great meanwhile." */
+ *  CTAs to the /open page which tells users "Android app is temporarily
+ *  unavailable; use the web dashboard meanwhile." Used only if the
+ *  Play Store listing is pulled post-launch, since Android went live
+ *  2026-04-21. */
 export const ANDROID_FALLBACK_URL = '/open';
 
 /** The URL a Google Play CTA should link to today. Resolves to the Play
