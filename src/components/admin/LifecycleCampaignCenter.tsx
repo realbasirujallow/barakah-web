@@ -27,9 +27,6 @@ type DraftCampaign = {
   body: string;
   status: 'draft' | 'scheduled';
   scheduledAt: string;
-  sendInUserTimezone: boolean;
-  quietHoursStart: number;
-  quietHoursEnd: number;
   audienceFilters: Filters;
   /** Deep link the user is taken to when they tap the push or click
    *  the in-app CTA. Must match a route in the mobile allowlist
@@ -131,9 +128,6 @@ const defaultDraft = (): DraftCampaign => ({
   body: '',
   status: 'draft',
   scheduledAt: '',
-  sendInUserTimezone: true,
-  quietHoursStart: 22,
-  quietHoursEnd: 7,
   audienceFilters: {
     plans: [],
     subscriptionStatuses: [],
@@ -141,7 +135,6 @@ const defaultDraft = (): DraftCampaign => ({
   route: '/dashboard',
 });
 
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => hour);
 
 const FALLBACK_TEMPLATES: Array<Record<string, unknown>> = [
   // ── Activation ──────────────────────────────────────────────────────────
@@ -1122,36 +1115,6 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
               </div>
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-              <label className="flex items-center gap-2 text-sm text-gray-600">
-                <input
-                  type="checkbox"
-                  checked={draft.sendInUserTimezone}
-                  onChange={e => setDraft(prev => ({ ...prev, sendInUserTimezone: e.target.checked }))}
-                  className="h-4 w-4 rounded border-gray-300 text-[#1B5E20]"
-                />
-                Send in user timezone and respect quiet hours
-              </label>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span>Quiet hours</span>
-                <select
-                  value={draft.quietHoursStart}
-                  onChange={e => setDraft(prev => ({ ...prev, quietHoursStart: Number(e.target.value) }))}
-                  className="rounded-lg border border-gray-200 px-2 py-1"
-                >
-                  {HOUR_OPTIONS.map(hour => <option key={hour} value={hour}>{hour.toString().padStart(2, '0')}:00</option>)}
-                </select>
-                <span>to</span>
-                <select
-                  value={draft.quietHoursEnd}
-                  onChange={e => setDraft(prev => ({ ...prev, quietHoursEnd: Number(e.target.value) }))}
-                  className="rounded-lg border border-gray-200 px-2 py-1"
-                >
-                  {HOUR_OPTIONS.map(hour => <option key={hour} value={hour}>{hour.toString().padStart(2, '0')}:00</option>)}
-                </select>
-              </div>
-            </div>
-
             <div className="mt-5 flex flex-wrap items-center gap-3">
               {draft.status !== 'scheduled' && (
                 <button
@@ -1296,7 +1259,7 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
                       <span className="text-red-700">Failed: {Number(campaign.failedCount || 0).toLocaleString()}</span>
                     </p>
                     <p className="text-[10px] text-gray-400 mt-1">
-                      Skipped = users who opted out or were in quiet hours. Failed = actual delivery errors.
+                      Skipped = users who opted out of marketing push or don&apos;t have the app installed. Failed = actual delivery errors.
                     </p>
                     {campaign.scheduledAt ? (
                       <p className="text-xs text-gray-400 mt-1">Scheduled: {toLocalDateTime(Number(campaign.scheduledAt)) || '—'}</p>
