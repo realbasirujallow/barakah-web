@@ -1146,6 +1146,8 @@ export const api = {
     }, API_TIMEOUT, true),
   getAdminLifecycleDeliveries: (campaignId: number) =>
     apiFetch(`/admin/lifecycle/campaigns/${campaignId}/deliveries`, {}, API_TIMEOUT, true),
+  getAdminLifecycleDeliveriesBreakdown: (campaignId: number) =>
+    apiFetch(`/admin/lifecycle/campaigns/${campaignId}/deliveries/breakdown`, {}, API_TIMEOUT, true),
   sendAdminLifecycleCampaign: (campaignId: number) =>
     apiFetch(`/admin/lifecycle/campaigns/${campaignId}/send`, { method: 'POST' }, API_TIMEOUT, true),
   testAdminLifecycleCampaign: (campaignId: number, payload: Record<string, unknown>) =>

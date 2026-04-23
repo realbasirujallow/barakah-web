@@ -327,6 +327,10 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
   const [sendingCampaignId, setSendingCampaignId] = useState<number | null>(null);
   const [loadingDeliveries, setLoadingDeliveries] = useState<number | null>(null);
   const [deliveries, setDeliveries] = useState<Record<number, Array<Record<string, unknown>>>>({});
+  // Per-status histogram ({sent: 11, skipped_quiet_hours: 30, ...}) so
+  // admins can tell opt-outs from real failures. Populated alongside
+  // deliveries via the /deliveries/breakdown endpoint.
+  const [breakdowns, setBreakdowns] = useState<Record<number, Record<string, unknown>>>({});
   const [testEmail, setTestEmail] = useState('');
   const [savingRetention, setSavingRetention] = useState(false);
   const [broadcastStats, setBroadcastStats] = useState<BroadcastStats | null>(null);
@@ -501,16 +505,59 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
   const loadCampaignDeliveries = async (campaignId: number) => {
     setLoadingDeliveries(campaignId);
     try {
-      const data = await api.getAdminLifecycleDeliveries(campaignId);
+      // Fire both requests in parallel — the deliveries list gives the
+      // per-row detail for troubleshooting; the breakdown gives the
+      // per-status histogram the admin wants to see at a glance (so
+      // "Failed: 77" never again hides 76 opt-outs behind the number).
+      const [data, breakdown] = await Promise.all([
+        api.getAdminLifecycleDeliveries(campaignId),
+        api.getAdminLifecycleDeliveriesBreakdown(campaignId).catch(() => null),
+      ]);
       setDeliveries(prev => ({
         ...prev,
         [campaignId]: (data?.deliveries as Array<Record<string, unknown>> | undefined) ?? [],
       }));
+      if (breakdown) {
+        setBreakdowns(prev => ({ ...prev, [campaignId]: breakdown as Record<string, unknown> }));
+      }
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to load delivery report.', 'error');
     } finally {
       setLoadingDeliveries(null);
     }
+  };
+
+  /**
+   * Export the loaded delivery rows as a CSV the admin can drop into a
+   * spreadsheet or share with support. Avoids a server round-trip — uses
+   * whatever rows are already in memory from loadCampaignDeliveries
+   * (backend caps to 200 which covers the whole send for the sizes we
+   * ship to today).
+   */
+  const exportDeliveriesCsv = (campaignId: number, campaignName: string) => {
+    const rows = deliveries[campaignId] || [];
+    if (rows.length === 0) {
+      toast('No deliveries loaded yet — click View Deliveries first.', 'error');
+      return;
+    }
+    const headers = ['userId', 'channel', 'status', 'destination', 'errorMessage', 'sentAt'];
+    const escape = (v: unknown) => {
+      const s = v === null || v === undefined ? '' : String(v);
+      // RFC 4180: quote any field containing a comma, double quote, or newline,
+      // and escape embedded quotes by doubling them.
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const csv = [
+      headers.join(','),
+      ...rows.map(r => headers.map(h => escape((r as Record<string, unknown>)[h])).join(',')),
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${campaignName.replace(/[^a-z0-9-]+/gi, '_').slice(0, 40)}_deliveries_${campaignId}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const saveCampaignAndSend = async () => {
@@ -1133,6 +1180,8 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
           {campaigns.map(campaign => {
             const id = Number(campaign.id);
             const rows = deliveries[id];
+            const breakdown = breakdowns[id];
+            const byStatus = (breakdown?.byStatus as Record<string, number> | undefined) || {};
             return (
               <div key={id} className="rounded-2xl border border-gray-100 p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -1142,7 +1191,16 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
                       {String(campaign.channel || 'email')} · {String(campaign.status || 'draft')} · {String(campaign.templateKey || 'custom')}
                     </p>
                     <p className="text-xs text-gray-400 mt-2">
-                      Targets: {Number(campaign.targetCount || 0).toLocaleString()} · Sent: {Number(campaign.sentCount || 0).toLocaleString()} · Failed: {Number(campaign.failedCount || 0).toLocaleString()}
+                      Targets: <strong>{Number(campaign.targetCount || 0).toLocaleString()}</strong>
+                      {' · '}
+                      <span className="text-green-700">Sent: {Number(campaign.sentCount || 0).toLocaleString()}</span>
+                      {' · '}
+                      <span className="text-amber-700">Skipped: {Number(campaign.skippedCount || 0).toLocaleString()}</span>
+                      {' · '}
+                      <span className="text-red-700">Failed: {Number(campaign.failedCount || 0).toLocaleString()}</span>
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      Skipped = users who opted out or were in quiet hours. Failed = actual delivery errors.
                     </p>
                     {campaign.scheduledAt ? (
                       <p className="text-xs text-gray-400 mt-1">Scheduled: {toLocalDateTime(Number(campaign.scheduledAt)) || '—'}</p>
@@ -1173,28 +1231,74 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
                     >
                       {loadingDeliveries === id ? 'Loading...' : 'View Deliveries'}
                     </button>
+                    {rows && rows.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => exportDeliveriesCsv(id, String(campaign.name || `campaign_${id}`))}
+                        className="rounded-xl border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                        title="Download per-user delivery rows as CSV"
+                      >
+                        Export CSV
+                      </button>
+                    )}
                   </div>
                 </div>
+                {Object.keys(byStatus).length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {Object.entries(byStatus)
+                      .sort((a, b) => (b[1] as number) - (a[1] as number))
+                      .map(([status, count]) => (
+                        <span
+                          key={status}
+                          className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                            status === 'sent'
+                              ? 'bg-green-100 text-green-800'
+                              : status.startsWith('skipped')
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-red-100 text-red-800'
+                          }`}
+                          title={`${count} user(s) with status "${status}"`}
+                        >
+                          {status}: {count.toLocaleString()}
+                        </span>
+                      ))}
+                  </div>
+                )}
                 {rows && rows.length > 0 && (
-                  <div className="mt-4 overflow-x-auto rounded-xl border border-gray-100">
+                  <div className="mt-4 max-h-96 overflow-auto rounded-xl border border-gray-100">
                     <table className="min-w-full text-sm">
-                      <thead className="bg-gray-50 text-gray-500">
+                      <thead className="bg-gray-50 text-gray-500 sticky top-0 z-10">
                         <tr>
-                          <th className="px-3 py-2 text-left font-medium">User</th>
+                          <th className="px-3 py-2 text-left font-medium">User ID</th>
                           <th className="px-3 py-2 text-left font-medium">Channel</th>
                           <th className="px-3 py-2 text-left font-medium">Status</th>
                           <th className="px-3 py-2 text-left font-medium">Destination</th>
+                          <th className="px-3 py-2 text-left font-medium">Error / Note</th>
+                          <th className="px-3 py-2 text-left font-medium">Sent At</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {rows.slice(0, 8).map((delivery, index) => (
-                          <tr key={`${id}-${index}`} className="border-t border-gray-100">
-                            <td className="px-3 py-2 text-gray-700">{String(delivery.userId || '—')}</td>
-                            <td className="px-3 py-2 text-gray-700">{String(delivery.channel || '—')}</td>
-                            <td className="px-3 py-2 text-gray-700">{String(delivery.status || '—')}</td>
-                            <td className="px-3 py-2 text-gray-500">{String(delivery.destination || '—')}</td>
-                          </tr>
-                        ))}
+                        {rows.map((delivery, index) => {
+                          const status = String(delivery.status || '—');
+                          const err = delivery.errorMessage ? String(delivery.errorMessage) : '';
+                          const sentAtNum = typeof delivery.sentAt === 'number' ? delivery.sentAt : null;
+                          return (
+                            <tr key={`${id}-${index}`} className="border-t border-gray-100">
+                              <td className="px-3 py-2 font-mono text-xs text-gray-700">{String(delivery.userId || '—')}</td>
+                              <td className="px-3 py-2 text-gray-700">{String(delivery.channel || '—')}</td>
+                              <td className="px-3 py-2">
+                                <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${
+                                  status === 'sent' ? 'bg-green-50 text-green-700' :
+                                  status.startsWith('skipped') ? 'bg-amber-50 text-amber-700' :
+                                  'bg-red-50 text-red-700'
+                                }`}>{status}</span>
+                              </td>
+                              <td className="px-3 py-2 text-gray-500 font-mono text-xs break-all">{String(delivery.destination || '—')}</td>
+                              <td className="px-3 py-2 text-xs text-gray-500 max-w-sm break-words" title={err}>{err || '—'}</td>
+                              <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">{sentAtNum ? toLocalDateTime(sentAtNum) : '—'}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
