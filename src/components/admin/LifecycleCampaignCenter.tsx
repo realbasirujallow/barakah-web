@@ -31,6 +31,65 @@ type DraftCampaign = {
   quietHoursStart: number;
   quietHoursEnd: number;
   audienceFilters: Filters;
+  /** Deep link the user is taken to when they tap the push or click
+   *  the in-app CTA. Must match a route in the mobile allowlist
+   *  (barakah_app/lib/main.dart:512); unknown routes fall through to
+   *  /notifications on the client. */
+  route: string;
+};
+
+/**
+ * Deep-link targets the mobile app knows how to open. Keep in sync
+ * with the allowlist in barakah_app/lib/main.dart:512. Anything not
+ * on this list gets rewritten to /notifications by the mobile client,
+ * which is defensive but not useful for targeted campaigns.
+ */
+const DEEP_LINK_ROUTES: Array<{ value: string; label: string }> = [
+  { value: '/dashboard', label: '/dashboard — Home' },
+  { value: '/assets', label: '/assets — Linked bank accounts' },
+  { value: '/transactions', label: '/transactions — Transactions' },
+  { value: '/budget', label: '/budget — Budgets' },
+  { value: '/debts', label: '/debts — Debts' },
+  { value: '/bills', label: '/bills — Bills & recurring' },
+  { value: '/savings', label: '/savings — Savings goals' },
+  { value: '/net-worth', label: '/net-worth — Net worth' },
+  { value: '/zakat', label: '/zakat — Zakat calculator' },
+  { value: '/hawl', label: '/hawl — Hawl tracker' },
+  { value: '/sadaqah', label: '/sadaqah — Sadaqah tracker' },
+  { value: '/waqf', label: '/waqf — Waqf planning' },
+  { value: '/wasiyyah', label: '/wasiyyah — Islamic will' },
+  { value: '/faraid', label: '/faraid — Faraid calculator' },
+  { value: '/retirement-zakat', label: '/retirement-zakat' },
+  { value: '/riba', label: '/riba — Riba detector' },
+  { value: '/halal', label: '/halal — Stock screener' },
+  { value: '/investments', label: '/investments — Investments' },
+  { value: '/subscriptions', label: '/subscriptions — Subscription detector' },
+  { value: '/ramadan', label: '/ramadan — Ramadan mode' },
+  { value: '/prayers', label: '/prayers — Prayer times' },
+  { value: '/barakah-score', label: '/barakah-score' },
+  { value: '/billing', label: '/billing — Plan & billing' },
+  { value: '/family', label: '/family — Family plan' },
+  { value: '/household', label: '/household — Household profile' },
+  { value: '/referral', label: '/referral — Refer a friend' },
+  { value: '/settings', label: '/settings' },
+  { value: '/notifications', label: '/notifications — Inbox' },
+];
+
+/**
+ * Per-template smart default — when the admin picks a template card, we
+ * pre-fill the most useful landing screen. Unknown templates default to
+ * /dashboard (safe anywhere).
+ */
+const DEFAULT_ROUTE_BY_TEMPLATE: Record<string, string> = {
+  activation_link_accounts: '/assets',
+  activation_link_accounts_push: '/assets',
+  activation_finish_setup: '/dashboard',
+  ramadan: '/ramadan',
+  eid_al_fitr: '/dashboard',
+  inactive_checkin: '/dashboard',
+  trial_ending: '/billing',
+  upgrade_to_plus: '/billing',
+  zakat_reminder: '/zakat',
 };
 
 type BroadcastStats = {
@@ -79,6 +138,7 @@ const defaultDraft = (): DraftCampaign => ({
     plans: [],
     subscriptionStatuses: [],
   },
+  route: '/dashboard',
 });
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => hour);
@@ -570,7 +630,11 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
         const result = await api.broadcastPushNotification({
           title: draft.title || draft.name,
           body: draft.body,
-          route: '/dashboard',
+          // Use the admin-selected deep link — tapping the push lands
+          // the user on the intended screen (e.g. /assets for "link
+          // your bank"), not the generic dashboard. Backend sanitizes
+          // again server-side as a defense-in-depth layer.
+          route: draft.route || '/dashboard',
           // BUG FIX: pass the full audienceFilters so all selected plans (and
           // other criteria) reach the backend — previously only plans[0] was
           // sent, silently dropping every other selected plan.
@@ -667,6 +731,14 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
           next.subject = String(tpl.subject || '');
           next.title = String(tpl.title || '');
           next.body = String(tpl.body || '');
+        }
+        // Auto-pick a sensible landing screen for the template so the
+        // admin doesn't have to remember that a "link accounts" push
+        // should land on /assets, a zakat reminder on /zakat, etc.
+        // They can still override via the Deep link dropdown.
+        const suggested = DEFAULT_ROUTE_BY_TEMPLATE[templateKey];
+        if (suggested) {
+          next.route = suggested;
         }
       }
       return next;
@@ -938,6 +1010,27 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
                   }`}
                 />
               </label>
+
+              <label className="text-sm text-gray-600 md:col-span-2">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="font-medium text-gray-800">Deep link (where the tap lands)</span>
+                  <span className="text-xs text-gray-400">mobile validates against an allowlist</span>
+                </div>
+                <select
+                  value={draft.route}
+                  onChange={e => setDraft(prev => ({ ...prev, route: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                >
+                  {/* If the saved campaign has a route we don't know about,
+                      render it anyway so the admin can see and change it. */}
+                  {DEEP_LINK_ROUTES.some(r => r.value === draft.route)
+                    ? null
+                    : <option value={draft.route}>{draft.route} (saved)</option>}
+                  {DEEP_LINK_ROUTES.map(r => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </select>
+              </label>
             </div>
 
             {/* ── Audience filters ───────────────────────────────────────────── */}
@@ -1189,6 +1282,9 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
                     <p className="text-sm font-semibold text-gray-900">{String(campaign.name || 'Untitled')}</p>
                     <p className="text-xs text-gray-500 mt-1">
                       {String(campaign.channel || 'email')} · {String(campaign.status || 'draft')} · {String(campaign.templateKey || 'custom')}
+                      {campaign.route ? (
+                        <> · taps go to <span className="font-mono text-[11px] text-gray-600">{String(campaign.route)}</span></>
+                      ) : null}
                     </p>
                     <p className="text-xs text-gray-400 mt-2">
                       Targets: <strong>{Number(campaign.targetCount || 0).toLocaleString()}</strong>
