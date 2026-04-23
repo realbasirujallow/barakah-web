@@ -138,4 +138,22 @@ describe('background-poll API helpers do not force-logout on 401', () => {
 
     expect(logoutSpy).not.toHaveBeenCalled();
   });
+
+  // R12 hotfix (2026-04-23) regression — plaidGetAccounts fires on
+  // mount from SyncBanksButton on /dashboard/assets AND
+  // /dashboard/transactions (high-traffic pages). Default had been
+  // suppressUnauthorized=false, which re-opened the exact bug class
+  // the NotificationBell fix closed: a transient 401 on a background
+  // mount-time fetch cascading through the global refresh + verify
+  // loop and force-logging-out the user. Pins the contract so the
+  // default can't be silently flipped back to false.
+  it('plaidGetAccounts — no global logout on 401 (mount-time in SyncBanksButton)', async () => {
+    const { api } = await import('../lib/api');
+
+    await expect(api.plaidGetAccounts()).rejects.toThrow(
+      /session has expired|API error|Network|connection/,
+    );
+
+    expect(logoutSpy).not.toHaveBeenCalled();
+  });
 });
