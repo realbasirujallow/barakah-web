@@ -24,8 +24,10 @@ function detectPlatform(): Platform {
 
 function getFallbackUrl(platform: Platform): string {
   if (platform === 'ios') return IOS_URL;
-  // Until the Android Production track is live, Play Store URL 404s.
-  // Route Android users to the web dashboard so they can still use Barakah.
+  // Android is live on the Play Store. The IS_ANDROID_PUBLICLY_LAUNCHED
+  // switch stays wired as a kill-switch in case a listing ever gets
+  // pulled — if that happens, flipping the flag off routes Android
+  // users to the web dashboard instead of a 404.
   if (platform === 'android') {
     return IS_ANDROID_PUBLICLY_LAUNCHED ? ANDROID_URL : WEB_URL;
   }
@@ -124,8 +126,11 @@ export default function OpenBarakahPage() {
               Get it on Google Play
             </a>
           ) : (
+            // Fallback only fires when operator flips IS_ANDROID_PUBLICLY_LAUNCHED
+            // off — e.g. Play Store pulled the listing. Copy reflects that
+            // reality (not a pre-launch state) so users see accurate guidance.
             <span className="rounded-xl border border-dashed border-gray-300 px-4 py-3 text-sm font-semibold text-gray-500">
-              Android launching soon · use web for now
+              Android app temporarily unavailable · use web for now
             </span>
           )}
           <a href={WEB_URL} className="text-sm text-gray-400 underline underline-offset-2">
