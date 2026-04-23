@@ -540,7 +540,7 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
       toast('No deliveries loaded yet — click View Deliveries first.', 'error');
       return;
     }
-    const headers = ['userId', 'channel', 'status', 'destination', 'errorMessage', 'sentAt'];
+    const headers = ['userId', 'userEmail', 'channel', 'status', 'destination', 'errorMessage', 'createdAt', 'sentAt'];
     const escape = (v: unknown) => {
       const s = v === null || v === undefined ? '' : String(v);
       // RFC 4180: quote any field containing a comma, double quote, or newline,
@@ -1270,10 +1270,12 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
                       <thead className="bg-gray-50 text-gray-500 sticky top-0 z-10">
                         <tr>
                           <th className="px-3 py-2 text-left font-medium">User ID</th>
+                          <th className="px-3 py-2 text-left font-medium">Email</th>
                           <th className="px-3 py-2 text-left font-medium">Channel</th>
                           <th className="px-3 py-2 text-left font-medium">Status</th>
                           <th className="px-3 py-2 text-left font-medium">Destination</th>
                           <th className="px-3 py-2 text-left font-medium">Error / Note</th>
+                          <th className="px-3 py-2 text-left font-medium">Queued At</th>
                           <th className="px-3 py-2 text-left font-medium">Sent At</th>
                         </tr>
                       </thead>
@@ -1282,9 +1284,14 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
                           const status = String(delivery.status || '—');
                           const err = delivery.errorMessage ? String(delivery.errorMessage) : '';
                           const sentAtNum = typeof delivery.sentAt === 'number' ? delivery.sentAt : null;
+                          const createdAtNum = typeof delivery.createdAt === 'number' ? delivery.createdAt : null;
+                          const email = delivery.userEmail ? String(delivery.userEmail) : '';
                           return (
                             <tr key={`${id}-${index}`} className="border-t border-gray-100">
                               <td className="px-3 py-2 font-mono text-xs text-gray-700">{String(delivery.userId || '—')}</td>
+                              <td className="px-3 py-2 text-xs text-gray-700 break-all" title={email || undefined}>
+                                {email || <span className="text-gray-300">—</span>}
+                              </td>
                               <td className="px-3 py-2 text-gray-700">{String(delivery.channel || '—')}</td>
                               <td className="px-3 py-2">
                                 <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${
@@ -1293,8 +1300,9 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
                                   'bg-red-50 text-red-700'
                                 }`}>{status}</span>
                               </td>
-                              <td className="px-3 py-2 text-gray-500 font-mono text-xs break-all">{String(delivery.destination || '—')}</td>
+                              <td className="px-3 py-2 text-gray-500 font-mono text-[11px] break-all max-w-[12rem]">{String(delivery.destination || '—')}</td>
                               <td className="px-3 py-2 text-xs text-gray-500 max-w-sm break-words" title={err}>{err || '—'}</td>
+                              <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">{createdAtNum ? toLocalDateTime(createdAtNum) : '—'}</td>
                               <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">{sentAtNum ? toLocalDateTime(sentAtNum) : '—'}</td>
                             </tr>
                           );
