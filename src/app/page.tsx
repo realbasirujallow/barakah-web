@@ -274,7 +274,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
               <p className="text-lg md:text-xl font-extrabold text-[#1B5E20]">Bank-Grade</p>
-              <p className="text-xs text-gray-500 mt-1">AES-256 encryption at rest</p>
+              <p className="text-xs text-gray-500 mt-1">TLS 1.2+ in transit · AES-256 for bank secrets</p>
             </div>
             <div>
               <p className="text-lg md:text-xl font-extrabold text-[#1B5E20]">Zero</p>
@@ -351,7 +351,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <p className="text-center text-xs text-gray-400 mt-8">4.9 ★ average · App Store &amp; Google Play</p>
+          <p className="text-center text-xs text-gray-400 mt-8">Live on iOS &amp; Android · Built for Muslim households</p>
         </div>
       </section>
 

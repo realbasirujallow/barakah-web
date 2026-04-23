@@ -5,7 +5,7 @@ import Script from 'next/script';
 export const metadata: Metadata = {
   title: 'Security | How Barakah Protects Your Financial Data',
   description:
-    'Learn how Barakah protects your financial data with AES-256 encryption, httpOnly sessions, bcrypt password hashing, Plaid-secured bank linking, and zero third-party data sharing.',
+    'Learn how Barakah protects your financial data with TLS 1.2+ in transit, application-layer AES-256 encryption for bank-linking secrets, managed-disk encryption at rest, httpOnly sessions, bcrypt password hashing, and zero third-party data sharing.',
   alternates: {
     canonical: 'https://trybarakah.com/security',
   },
@@ -25,7 +25,7 @@ const securityFAQ = [
   {
     question: 'Is my financial data encrypted?',
     answer:
-      'Yes. All data is encrypted in transit using TLS 1.2+ (HTTPS) and encrypted at rest using AES-256. Database connections are encrypted, and backups are stored with server-side encryption.',
+      'Yes. Every connection uses TLS 1.2+ (HTTPS). Plaid access tokens and other bank-linking secrets are wrapped in application-layer AES-256-GCM before they reach the database. All other financial records sit on managed-disk-encrypted Postgres with encrypted backups. Database connections are encrypted end-to-end.',
   },
   {
     question: 'How does bank linking work?',
@@ -66,8 +66,8 @@ const securityFAQ = [
 
 const securityFeatures = [
   {
-    title: 'AES-256 Encryption',
-    desc: 'All financial data encrypted at rest using industry-standard AES-256 encryption.',
+    title: 'AES-256 for Bank Secrets',
+    desc: 'Plaid access tokens and other bank-linking secrets are wrapped in application-layer AES-256-GCM. All other records sit on managed-disk-encrypted Postgres with encrypted backups.',
     icon: '🔐',
   },
   {
