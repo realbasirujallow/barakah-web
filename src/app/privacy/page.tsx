@@ -54,10 +54,10 @@ export default function PrivacyPolicyPage() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-[#1B5E20]">3. Data Storage and Security</h2>
           <p className="text-gray-700 leading-relaxed">
-            Your data is stored on secure servers with encryption in transit (TLS/HTTPS) and industry-standard security practices. Authentication uses JWT tokens with secure expiration policies. Passwords are hashed using BCrypt.
+            Every connection uses TLS 1.2 or newer (HTTPS). Plaid access tokens and other bank-linking secrets are wrapped in application-layer AES-256-GCM before they reach the database. All other financial records sit on managed-disk-encrypted Postgres with encrypted backups. Passwords are never stored in any form &mdash; only a bcrypt hash. Authentication uses httpOnly, Secure, SameSite cookies carrying cryptographically-signed JWTs with short expiration windows.
           </p>
           <p className="text-gray-700 leading-relaxed">
-            While we implement commercially reasonable security measures, no system is 100% secure. We encourage you to use a strong, unique password for your Barakah account.
+            For the full technical breakdown, see our <a href="/trust" className="text-[#1B5E20] underline">Trust &amp; Security</a> page. While we implement commercially reasonable security measures, no system is 100% secure. We encourage you to use a strong, unique password for your Barakah account.
           </p>
         </section>
 

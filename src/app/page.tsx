@@ -22,7 +22,7 @@ import {
 const features = [
   { icon: '💰', title: 'Zakat Calculator', desc: "Multi-madhab nisab (gold or silver standard), live prices, Hawl tracker, and auto-categorized asset breakdown — supporting Hanafi, Shafi'i, Maliki, Hanbali, and AMJA methodologies." },
   { icon: '🛡️', title: 'Riba Detector', desc: 'Scan transactions to flag interest-bearing activity and stay halal-compliant with automatic alerts.' },
-  { icon: '✅', title: 'Halal Stock Screener', desc: '30,000+ stocks screened against AAOIFI Standard 21 — filter by halal or haram with sector breakdown.' },
+  { icon: '✅', title: 'Halal Stock Screener', desc: '30,000+ stocks screened using criteria based on AAOIFI Standard 21 — filter by halal or haram with sector breakdown.' },
   { icon: '📊', title: 'Budgets & Analytics', desc: 'Track spending by category and see where every dollar goes with visualized insights and trends.' },
   { icon: '💎', title: 'Net Worth Tracker', desc: 'Real-time net worth with assets, debts, and investments in one comprehensive dashboard.' },
   { icon: '🤲', title: 'Sadaqah & Waqf', desc: 'Log charitable giving and endowments alongside everyday finances with dedicated impact tracking.' },
@@ -163,6 +163,11 @@ export default function Home() {
       'query-input': 'required name=search_term_string',
     },
   };
+  // NOTE: no aggregateRating block here. Claiming a perfect 5.0 with
+  // a single review reads as misleading to both users and Google's
+  // structured-data validator. Once we have a real, verifiable App
+  // Store / Play Store rating we can wire in those values — until
+  // then, omitting the block is more honest than inflating it.
   const softwareApplicationSchema = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
@@ -173,11 +178,6 @@ export default function Home() {
       '@type': 'Offer',
       price: '0',
       priceCurrency: 'USD',
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '5.0',
-      ratingCount: '1',
     },
   };
 
