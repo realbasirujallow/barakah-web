@@ -369,11 +369,19 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
       throw new Error('Your session has expired. Please log in again.');
     }
 
-    // 429 from a non-auth endpoint should never be misclassified as a session
-    // problem — surface a clear rate-limit message instead of the generic
-    // "API error 429" string.
+    // 429 from any endpoint: prefer the SERVER'S message so the user sees
+    // the actual remaining-window guidance (e.g. "Too many login attempts.
+    // Please try again in 15 minutes.") instead of a generic "wait a
+    // moment." The old hardcoded string hid the most important piece of
+    // information the backend was trying to convey. Only fall back to the
+    // generic copy if the server returned no error text.
     if (res.status === 429) {
-      throw new Error('Too many requests right now. Please wait a moment and try again.');
+      throw new Error(
+        await extractErrorMessage(
+          res,
+          'Too many requests right now. Please wait a moment and try again.',
+        ),
+      );
     }
     // ── End silent refresh ─────────────────────────────────────────────────
 
