@@ -673,7 +673,7 @@ function SignupContent() {
 
           <div className="mb-4">
             <label htmlFor="signup-phone" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone number <span className="text-gray-400 font-normal">(optional)</span>
+              Phone number <span className="text-red-400">*</span>
             </label>
             <input
               id="signup-phone"
@@ -681,10 +681,11 @@ function SignupContent() {
               placeholder={phonePlaceholder}
               value={phoneNumber}
               onChange={e => setPhoneNumber(e.target.value)}
+              required
               maxLength={20}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
             />
-            <p className="text-xs text-gray-400 mt-1">Helps us reach you if there&apos;s an issue with your account. You can add this later in Profile.</p>
+            <p className="text-xs text-gray-400 mt-1">So our team can reach you by phone if there&apos;s an issue with your account. We never share your number and never use it for marketing.</p>
           </div>
 
           <div>
