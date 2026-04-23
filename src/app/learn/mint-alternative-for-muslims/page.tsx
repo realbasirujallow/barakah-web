@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://trybarakah.com/learn/mint-alternative-for-muslims' },
   openGraph: {
     title: 'Best Mint Alternative for Muslims 2026 — Free Halal Finance App',
-    description: 'Mint shut down. Switch to Barakah: the free Islamic finance app with zakat calculator, halal budgeting, riba detection, and more. No credit card needed.',
+    description: 'Mint shut down. Switch to Barakah: the free Islamic finance app with zakat calculator, halal budgeting, riba detection, and more. No credit card or debit card needed.',
     url: 'https://trybarakah.com/learn/mint-alternative-for-muslims',
     siteName: 'Barakah',
     type: 'article',
@@ -89,7 +89,7 @@ const faqSchema = {
       name: 'Is Barakah free like Mint was?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: `Yes. Barakah has a free plan that includes the full zakat calculator, manual transaction tracking, budgeting, and savings goals. The paid Plus plan ($9.99/month or less annually) adds bank account sync, halal stock screener, Faraid inheritance calculator, and the Barakah Score. There is a ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial of the Plus plan — no credit card required.`,
+        text: `Yes. Barakah has a free plan that includes the full zakat calculator, manual transaction tracking, budgeting, and savings goals. The paid Plus plan ($9.99/month or less annually) adds bank account sync, halal stock screener, Faraid inheritance calculator, and the Barakah Score. There is a ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial of the Plus plan — no credit card or debit card required.`,
       },
     },
     {
@@ -297,7 +297,7 @@ export default function MintAlternativeForMuslimsPage() {
           <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">How to Migrate from Mint to Barakah</h2>
           <ol className="space-y-4 mb-8">
             {[
-              { step: '1', title: 'Create your free Barakah account', desc: `Go to trybarakah.com and sign up. No credit card required. You get ${DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus free automatically.` },
+              { step: '1', title: 'Create your free Barakah account', desc: `Go to trybarakah.com and sign up. No credit card or debit card required. You get ${DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus free automatically.` },
               { step: '2', title: 'Connect your bank accounts', desc: 'Use the Bank Accounts section in your dashboard. We support 12,000+ institutions via Plaid — the same technology used by Venmo and Robinhood.' },
               { step: '3', title: 'Run your first zakat calculation', desc: 'Head to the Zakat dashboard. Enter your assets and let Barakah calculate your obligation with live gold/silver nisab prices. Takes under 2 minutes.' },
               { step: '4', title: 'Set up your hawl anniversary', desc: 'Barakah tracks your hawl (Islamic lunar year) and notifies you when your next zakat is due.' },

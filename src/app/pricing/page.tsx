@@ -44,7 +44,7 @@ const faqItems = [
   {
     question: 'Is there a free trial?',
     answer:
-      `Yes. Every signup gets ${DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Barakah Plus free, no credit card required. You can cancel or downgrade at any point; if you do nothing, your account drops to Free when the trial ends.`,
+      `Yes. Every signup gets ${DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Barakah Plus free, no credit card or debit card required. You can cancel or downgrade at any point; if you do nothing, your account drops to Free when the trial ends.`,
   },
   {
     question: 'Can I switch plans?',
@@ -203,7 +203,7 @@ export default function PricingPage() {
               Start your {DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free Plus trial
             </h2>
             <p className="text-lg text-green-100 mb-8 max-w-2xl mx-auto">
-              No credit card required. Every new account gets {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Barakah Plus on the house &mdash; run a zakat calc, link an account, and see why Muslim households choose Barakah over Monarch, YNAB, or Zoya.
+              No credit card or debit card required. Every new account gets {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Barakah Plus on the house &mdash; run a zakat calc, link an account, and see why Muslim households choose Barakah over Monarch, YNAB, or Zoya.
             </p>
             <Link
               href="/signup"
