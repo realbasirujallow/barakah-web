@@ -17,7 +17,11 @@ function fmtUSD(value: number): string {
 }
 
 export default function PricingToggle() {
-  const [isAnnual, setIsAnnual] = useState(false);
+  // Default to annual billing — the 17% (Plus) / 34% (Family) savings are
+  // the frame every visitor should see first. Monthly is still one tap away
+  // for users who prefer not to commit annually up front. This also
+  // improves LTV: annual plans churn dramatically less than monthly.
+  const [isAnnual, setIsAnnual] = useState(true);
 
   // Derived yearly-monthly equivalents and "vs monthly" savings
   const plusMonthly = parsePrice(PRICING.plus.monthly);
