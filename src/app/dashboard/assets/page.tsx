@@ -8,6 +8,7 @@ import { safeParse, validateAsset } from '../../../lib/schemas';
 import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
+import { SyncBanksButton } from '../../../components/SyncBanksButton';
 
 interface Asset {
   id: number;
@@ -344,9 +345,10 @@ export default function AssetsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Assets</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <SyncBanksButton onSynced={load} label="Sync balances" />
           {deletableAssets.length > 0 && (
             <button
               type="button"

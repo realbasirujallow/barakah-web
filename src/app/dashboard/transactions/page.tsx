@@ -9,6 +9,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
+import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
 import { trackFeatureUse } from '../../../lib/analytics';
 
@@ -401,9 +402,10 @@ export default function TransactionsPage() {
   return (
     <div>
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-[#1B5E20]">Transactions</h1>
         <div className="flex gap-2 flex-wrap justify-end">
+          <SyncBanksButton onSynced={load} label="Sync banks" />
           <button onClick={handleExportCsv} disabled={exportingCsv}
             className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1">
             {exportingCsv ? <span className="animate-spin w-3 h-3 border-2 border-[#1B5E20] border-t-transparent rounded-full inline-block" /> : '📥'} CSV
