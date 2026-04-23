@@ -36,7 +36,7 @@ const rows = [
   { feature: 'Islamic will / faraid', barakah: 'Faraid calculator + wasiyyah builder', monarch: 'None', winner: 'Barakah' as const },
   { feature: 'Credit score / monitoring', barakah: 'None', monarch: 'Built-in (Experian)', winner: 'Monarch' as const, note: 'Credit scores aren\'t Islamic-first — but they\'re useful data.' },
   { feature: 'Net-worth history', barakah: 'Yes, with integrity-hash snapshots', monarch: 'Excellent, with longest history view', winner: 'Monarch' as const },
-  { feature: 'Mobile app quality', barakah: 'Live on iOS; Android Q3 2026', monarch: '4.7 stars iOS, mature', winner: 'Monarch' as const, note: 'Monarch\'s UI is award-winning.' },
+  { feature: 'Mobile app quality', barakah: 'Live on iOS & Android', monarch: '4.7 stars iOS, mature', winner: 'Monarch' as const, note: 'Monarch\'s UI is award-winning; Barakah shipped iOS + Android in 2026.' },
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', monarch: 'No data sold (per privacy policy)', winner: 'Tie' as const },
 ];
 
