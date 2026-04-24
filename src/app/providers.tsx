@@ -2,10 +2,29 @@
 import { AuthProvider } from '../context/AuthContext';
 import { FeatureFlagsProvider } from '../context/FeatureFlagsContext';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { captureAcquisitionFromUrl } from '../lib/api';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { useEffect } from 'react';
 import Script from 'next/script';
+
+/**
+ * Pulls UTM params + document.referrer + landing pathname off window on
+ * first mount and stashes them in sessionStorage — picked up later by
+ * {@link captureAcquisitionFromUrl}'s companion on /auth/signup so the
+ * backend can tag the SIGNUP LifecycleEvent with acquisition metadata.
+ *
+ * Runs on every route mount (cheap — re-capture is a no-op unless a new
+ * utm_source is present), ensuring external campaign links like
+ * `trybarakah.com/?utm_source=ramadan-ig` still attribute correctly even
+ * when the user browses around before signing up.
+ */
+function AcquisitionCapture() {
+  useEffect(() => {
+    captureAcquisitionFromUrl();
+  }, []);
+  return null;
+}
 
 function PostHogInit({ children }: { children: React.ReactNode }) {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
@@ -67,6 +86,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <PostHogInit>
       <GoogleAnalytics />
+      <AcquisitionCapture />
       <ErrorBoundary>
         <AuthProvider>
           <FeatureFlagsProvider>{children}</FeatureFlagsProvider>

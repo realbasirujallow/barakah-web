@@ -19,6 +19,85 @@ function getCsrfToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+// ── Acquisition-attribution capture (UTM + referrer + landing path) ───────
+//
+// Captures the URL query string's UTM params + the document referrer + the
+// first-touch landing path on the very first navigation of the session, and
+// preserves them in sessionStorage until the user signs up (or the tab
+// closes). We forward them as X-App-UTM-* headers on /auth/signup so the
+// backend can write them into the SIGNUP lifecycle event's metadata_json
+// for the admin retargeting dashboard.
+//
+// First-touch wins: if a user lands on /zakat?utm_source=google, browses
+// around, and signs up from /signup, we still attribute them to the
+// original google landing — re-capture only happens if a NEW utm_source
+// arrives (external re-entry). This matches what GA4 / Mixpanel do.
+const UTM_STORAGE_KEY = 'barakah_acquisition';
+type AcquisitionPayload = {
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
+  utmTerm?: string;
+  landingPath?: string;
+  referer?: string;
+};
+
+function readAcquisition(): AcquisitionPayload {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = window.sessionStorage.getItem(UTM_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeAcquisition(payload: AcquisitionPayload) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.setItem(UTM_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    /* private-mode / quota — non-fatal */
+  }
+}
+
+export function captureAcquisitionFromUrl() {
+  if (typeof window === 'undefined') return;
+  try {
+    const url = new URL(window.location.href);
+    const qs = url.searchParams;
+    const newSource = qs.get('utm_source');
+    const existing = readAcquisition();
+    // Re-capture only if we have no record OR a fresh utm_source just arrived.
+    if (existing.utmSource && !newSource) return;
+    const payload: AcquisitionPayload = {
+      utmSource: newSource ?? existing.utmSource,
+      utmMedium: qs.get('utm_medium') ?? existing.utmMedium,
+      utmCampaign: qs.get('utm_campaign') ?? existing.utmCampaign,
+      utmContent: qs.get('utm_content') ?? existing.utmContent,
+      utmTerm: qs.get('utm_term') ?? existing.utmTerm,
+      landingPath: existing.landingPath ?? url.pathname,
+      referer: existing.referer ?? (typeof document !== 'undefined' ? document.referrer || undefined : undefined),
+    };
+    writeAcquisition(payload);
+  } catch {
+    /* malformed URL — silent */
+  }
+}
+
+function acquisitionHeaders(): Record<string, string> {
+  const a = readAcquisition();
+  const h: Record<string, string> = {};
+  if (a.utmSource) h['X-App-UTM-Source'] = a.utmSource;
+  if (a.utmMedium) h['X-App-UTM-Medium'] = a.utmMedium;
+  if (a.utmCampaign) h['X-App-UTM-Campaign'] = a.utmCampaign;
+  if (a.utmContent) h['X-App-UTM-Content'] = a.utmContent;
+  if (a.utmTerm) h['X-App-UTM-Term'] = a.utmTerm;
+  if (a.landingPath) h['X-App-Landing-Path'] = a.landingPath;
+  return h;
+}
+
 /**
  * First-nav CSRF bootstrap.
  *
@@ -251,6 +330,13 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
     if (method === 'POST' && !headers['Idempotency-Key']) {
       headers['Idempotency-Key'] = crypto.randomUUID();
     }
+  }
+
+  // Forward captured acquisition attribution on signup so the backend can
+  // tag the SIGNUP LifecycleEvent with the UTM / landing-path metadata
+  // used by the admin retargeting dashboard (/admin/acquisition).
+  if (endpoint === '/auth/signup') {
+    Object.assign(headers, acquisitionHeaders());
   }
 
   // credentials: 'include' ensures the auth_token and refresh_token httpOnly
@@ -1135,8 +1221,36 @@ export const api = {
   getAdminAnalytics: () => apiFetch('/admin/analytics', {}, API_TIMEOUT, true),
   getAdminFunnel: (days = 30) =>
     apiFetch(`/admin/funnel?days=${days}`, {}, API_TIMEOUT, true),
-  getAdminGrowth: () =>
-    apiFetch('/admin/growth', {}, API_TIMEOUT, true),
+  getAdminGrowth: (days = 30, since?: number, until?: number) => {
+    const qs = new URLSearchParams();
+    qs.set('days', String(days));
+    if (since) qs.set('since', String(since));
+    if (until) qs.set('until', String(until));
+    return apiFetch(`/admin/growth?${qs.toString()}`, {}, API_TIMEOUT, true);
+  },
+  /**
+   * Acquisition-channel breakdown for retargeting. Backend aggregates signups
+   * by UTM / referral / referer-host in the given window and joins to
+   * upgrades so the admin can see channel ROI, not just channel volume.
+   * See com.barakah.controller.AdminAnalyticsController#getAcquisition.
+   */
+  getAdminAcquisition: (days = 30, since?: number, until?: number) => {
+    const qs = new URLSearchParams();
+    qs.set('days', String(days));
+    if (since) qs.set('since', String(since));
+    if (until) qs.set('until', String(until));
+    return apiFetch(`/admin/acquisition?${qs.toString()}`, {}, API_TIMEOUT, true);
+  },
+  /** Pull the user-id cohort for a specific channel + window (for retargeting). */
+  getAdminAcquisitionCohort: (channel: string, days = 30, since?: number, until?: number, limit = 500) => {
+    const qs = new URLSearchParams();
+    qs.set('channel', channel);
+    qs.set('days', String(days));
+    qs.set('limit', String(limit));
+    if (since) qs.set('since', String(since));
+    if (until) qs.set('until', String(until));
+    return apiFetch(`/admin/acquisition/cohort?${qs.toString()}`, {}, API_TIMEOUT, true);
+  },
   /** Drop-off analyzer (2026-04-22): signups-but-no-upgrade cohort +
    *  last-event histogram + up to 30 full per-user event timelines. */
   getAdminDropoffAnalysis: (days = 30) =>
