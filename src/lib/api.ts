@@ -1277,6 +1277,16 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify({ enabled }),
     }, API_TIMEOUT, true),
+  /** List of email templates supported by the preview renderer. */
+  getAdminEmailPreviewTemplates: () =>
+    apiFetch('/admin/settings/email-preview/templates', {}, API_TIMEOUT, true),
+  /** Render a single template in a single locale with canned sample data.
+   *  Bypasses the kill switch so reviewers can see what a locale looks like
+   *  BEFORE flipping it on. */
+  getAdminEmailPreview: (template: string, locale: string) => {
+    const qs = new URLSearchParams({ template, locale });
+    return apiFetch(`/admin/settings/email-preview?${qs.toString()}`, {}, API_TIMEOUT, true);
+  },
   // ── Feature flags / experiments (V74, 2026-04-22) ─────────────────────
   // Internal replacement for PostHog feature-flag capability. See
   // barakah-backend/src/main/java/com/barakah/service/FeatureFlagService.java
