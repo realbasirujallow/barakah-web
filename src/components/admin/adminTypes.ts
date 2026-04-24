@@ -58,6 +58,21 @@ export interface EmailLogEntry {
   createdAt: number;
 }
 
+/**
+ * Detail view for a single email-log row — joins the base entry with the
+ * user row so the admin can see who the email went to (name, phone,
+ * account state) without opening a separate user lookup. Any user field
+ * may be null if the email targeted a deleted or system account.
+ */
+export interface EmailLogEntryDetail extends EmailLogEntry {
+  userFullName?: string | null;
+  userEmail?: string | null;
+  userPhone?: string | null;
+  userEmailVerified?: boolean | null;
+  userPlan?: string | null;
+  userCreatedAt?: number | null;
+}
+
 export interface EmailLogStats {
   totalSent: number;
   totalFailed: number;
