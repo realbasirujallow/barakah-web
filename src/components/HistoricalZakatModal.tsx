@@ -17,6 +17,19 @@ interface Props {
   onClose: (savedLunarYear: number | null) => void;
 }
 
+/**
+ * Rough Hijri → Gregorian year mapping for the input hint. The conversion
+ * factor 0.970224 is the ratio of lunar-year to solar-year length; off by
+ * ~1 day at the boundary but adequate for a "this Hijri year overlaps
+ * roughly 2023–2024" hint. The authoritative conversion is done server-side
+ * by Java's HijrahChronology.
+ */
+function hijriYearToGregorianApprox(hijriYear: number): { start: number; end: number } | null {
+  if (!Number.isFinite(hijriYear) || hijriYear < 1300 || hijriYear > 1600) return null;
+  const start = Math.round(hijriYear * 0.970224 + 621.5643);
+  return { start, end: start + 1 };
+}
+
 export default function HistoricalZakatModal({ currentLunarYear, open, onClose }: Props) {
   const [lunarYear, setLunarYear] = useState<string>(() => String(currentLunarYear - 1));
   const [zakatAmount, setZakatAmount] = useState<string>('');
@@ -27,6 +40,15 @@ export default function HistoricalZakatModal({ currentLunarYear, open, onClose }
   const [error, setError] = useState<string | null>(null);
 
   if (!open) return null;
+
+  const parsedYear = parseInt(lunarYear, 10);
+  const gregorianHint = hijriYearToGregorianApprox(parsedYear);
+  const parsedZakat = parseFloat(zakatAmount);
+  const parsedPaid = parseFloat(paidAmount);
+  const paidShortfall =
+    Number.isFinite(parsedZakat) && parsedZakat > 0 &&
+    Number.isFinite(parsedPaid) && parsedPaid > 0 &&
+    parsedPaid < parsedZakat;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,6 +138,11 @@ export default function HistoricalZakatModal({ currentLunarYear, open, onClose }
             min={1300}
             max={1600}
           />
+          {gregorianHint && (
+            <span className="mt-1 block text-xs text-gray-500">
+              ≈ Gregorian {gregorianHint.start}–{gregorianHint.end}
+            </span>
+          )}
         </label>
 
         <label className="block mb-3">
@@ -142,6 +169,11 @@ export default function HistoricalZakatModal({ currentLunarYear, open, onClose }
             className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200"
             required
           />
+          {paidShortfall && (
+            <span className="mt-1 block text-xs text-amber-700">
+              Paid is less than zakat due. Barakah will still record this, but note the shortfall may represent an outstanding obligation.
+            </span>
+          )}
         </label>
 
         <label className="block mb-3">
