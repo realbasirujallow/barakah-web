@@ -175,16 +175,54 @@ const ur: Translations = {
 
 const dictionaries: Record<string, Translations> = { en, ar, ur };
 
-let currentLocale = 'en';
+/** localStorage key for persisted locale selection. Must match the pre-paint
+ *  script in app/layout.tsx that reads this to set <html dir="rtl"> before
+ *  paint (avoids RTL-flash on cold loads for Arabic / Urdu users). */
+export const LOCALE_STORAGE_KEY = 'barakah_locale';
 
-/** Set the active locale. */
+/** Locales that render right-to-left. */
+const RTL_LOCALES = new Set(['ar', 'ur', 'fa', 'he']);
+
+function readStoredLocale(): string {
+  if (typeof window === 'undefined') return 'en';
+  try {
+    const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+    if (stored && dictionaries[stored]) return stored;
+  } catch {
+    /* private-mode / SSR */
+  }
+  return 'en';
+}
+
+let currentLocale = readStoredLocale();
+
+/** Set the active locale. Persists to localStorage and updates the
+ *  <html dir> attribute so RTL scripts align correctly. */
 export function setLocale(locale: string) {
   currentLocale = dictionaries[locale] ? locale : 'en';
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(LOCALE_STORAGE_KEY, currentLocale);
+    } catch {
+      /* quota / private mode — non-fatal */
+    }
+    try {
+      document.documentElement.dir = RTL_LOCALES.has(currentLocale) ? 'rtl' : 'ltr';
+      document.documentElement.lang = currentLocale;
+    } catch {
+      /* DOM not ready — pre-paint script has us covered */
+    }
+  }
 }
 
 /** Get the current locale. */
 export function getLocale(): string {
   return currentLocale;
+}
+
+/** Whether a locale is right-to-left. */
+export function isRtl(locale: string = currentLocale): boolean {
+  return RTL_LOCALES.has(locale);
 }
 
 /** Translate a key. Falls back to English if key is missing in current locale. */

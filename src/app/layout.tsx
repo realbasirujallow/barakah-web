@@ -316,6 +316,18 @@ export default async function RootLayout({
             __html: `(function(){try{if(localStorage.getItem('barakah_dark_mode')==='true')document.documentElement.classList.add('dark');}catch(e){}})();`,
           }}
         />
+        {/* Apply RTL direction + lang attribute before paint when the
+            persisted locale is Arabic / Urdu (or other RTL script). Without
+            this, Arabic users see one paint in LTR before the client-side
+            setLocale() swaps the `dir` attribute — visually jarring on cold
+            loads. Key must stay in lock-step with LOCALE_STORAGE_KEY in
+            src/lib/i18n.ts. */}
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var l=localStorage.getItem('barakah_locale');if(!l)return;var rtl={ar:1,ur:1,fa:1,he:1};document.documentElement.lang=l;document.documentElement.dir=rtl[l]?'rtl':'ltr';}catch(e){}})();`,
+          }}
+        />
         {/* JSON-LD below is `type="application/ld+json"` — browsers do NOT
             execute it as JavaScript, so script-src CSP doesn't apply.
             Leaving nonce off intentionally to avoid confusing SEO tools
