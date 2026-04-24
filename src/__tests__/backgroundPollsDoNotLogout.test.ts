@@ -189,4 +189,32 @@ describe('background-poll API helpers do not force-logout on 401', () => {
 
     expect(logoutSpy).not.toHaveBeenCalled();
   });
+
+  // R14 hardening (2026-04-24) — eight more mount-fired calls from
+  // /dashboard's own useEffect. Before this round, landing on the
+  // dashboard with a marginal session meant any ONE of these eight
+  // returning 401 would cascade into a forced /login?reason=expired.
+  // These tests pin the default so the widget grid stays a non-critical
+  // background read — the session check happens on the user's NEXT
+  // action (a click, a save, a navigation), not on landing.
+  const r14MountFiredCalls: Array<[string, () => Promise<unknown>]> = [
+    ['getAssets',              () => import('../lib/api').then(({api}) => api.getAssets())],
+    ['getAssetTotal',          () => import('../lib/api').then(({api}) => api.getAssetTotal())],
+    ['getSafeToSpend',         () => import('../lib/api').then(({api}) => api.getSafeToSpend())],
+    ['getPortfolioSummary',    () => import('../lib/api').then(({api}) => api.getPortfolioSummary())],
+    ['getPortfolioHistory',    () => import('../lib/api').then(({api}) => api.getPortfolioHistory())],
+    ['getDashboardWidgets',    () => import('../lib/api').then(({api}) => api.getDashboardWidgets())],
+    ['getDashboardInsights',   () => import('../lib/api').then(({api}) => api.getDashboardInsights())],
+    ['getIslamicCalendarToday',() => import('../lib/api').then(({api}) => api.getIslamicCalendarToday())],
+    ['getHawlDue',             () => import('../lib/api').then(({api}) => api.getHawlDue())],
+  ];
+
+  for (const [name, call] of r14MountFiredCalls) {
+    it(`${name} — no global logout on 401 (R14 dashboard mount-fired)`, async () => {
+      await expect(call()).rejects.toThrow(
+        /session has expired|API error|Network|connection/,
+      );
+      expect(logoutSpy).not.toHaveBeenCalled();
+    });
+  }
 });
