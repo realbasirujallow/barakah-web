@@ -37,10 +37,21 @@ const INDEXNOW_ENDPOINTS = [
 ];
 
 const HOST = 'trybarakah.com';
-const KEY_LOCATION = `https://${HOST}/indexnow-key.txt`;
 
-function getKey(): string | null {
-  return process.env.INDEXNOW_KEY?.trim() || null;
+// IndexNow's own convention is to name the key file `<KEY>.txt` so engines
+// can verify domain ownership by fetching a stable, deterministic URL.
+// The key here is committed to the repo (at public/<KEY>.txt) — it's NOT
+// a secret; the whole protocol relies on it being publicly readable.
+// Ops can rotate by generating a new key, committing the new file,
+// deleting the old file, and updating INDEXNOW_KEY env.
+const DEFAULT_INDEXNOW_KEY = 'd5f2356e29e7e921c18fc746bfedf59a';
+
+function getKey(): string {
+  return process.env.INDEXNOW_KEY?.trim() || DEFAULT_INDEXNOW_KEY;
+}
+
+function getKeyLocation(key: string): string {
+  return `https://${HOST}/${key}.txt`;
 }
 
 function normalizeUrls(input: unknown): string[] {
@@ -64,7 +75,7 @@ async function submitToIndexNow(urls: string[], key: string) {
   const payload = {
     host: HOST,
     key,
-    keyLocation: KEY_LOCATION,
+    keyLocation: getKeyLocation(key),
     urlList: urls,
   };
 
@@ -91,12 +102,6 @@ async function submitToIndexNow(urls: string[], key: string) {
 
 export async function POST(req: Request) {
   const key = getKey();
-  if (!key) {
-    return NextResponse.json(
-      { error: 'INDEXNOW_KEY not configured' },
-      { status: 503 },
-    );
-  }
 
   let body: unknown;
   try {
@@ -124,12 +129,6 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   const key = getKey();
-  if (!key) {
-    return NextResponse.json(
-      { error: 'INDEXNOW_KEY not configured' },
-      { status: 503 },
-    );
-  }
 
   const url = new URL(req.url).searchParams.get('url');
   const urls = normalizeUrls(url);
