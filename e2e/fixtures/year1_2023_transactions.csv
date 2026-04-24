@@ -1,0 +1,58 @@
+Date,Merchant,Category,Account,Amount,Notes
+2023-04-15,Salary,Paychecks,Chase Checking,5200.00,Biweekly paycheck
+2023-04-30,Rent Payment,Rent,Chase Checking,-1800.00,Monthly rent
+2023-04-22,Whole Foods,Groceries,Chase Checking,-180.45,Weekly groceries
+2023-04-29,Salary,Paychecks,Chase Checking,5200.00,Biweekly paycheck
+2023-05-02,Costco,Groceries,Chase Checking,-210.50,Bulk shopping
+2023-05-05,Shell,Gas & Fuel,Chase Checking,-65.20,Fill up
+2023-05-15,Salary,Paychecks,Chase Checking,5200.00,
+2023-05-20,Halal Meat Co,Groceries,Chase Checking,-145.00,
+2023-05-29,Salary,Paychecks,Chase Checking,5200.00,
+2023-05-30,Rent Payment,Rent,Chase Checking,-1800.00,
+2023-06-10,Amazon,Shopping,Chase Checking,-89.99,Household items
+2023-06-12,Salary,Paychecks,Chase Checking,5200.00,
+2023-06-26,Salary,Paychecks,Chase Checking,5200.00,
+2023-06-30,Rent Payment,Rent,Chase Checking,-1800.00,
+2023-07-04,Mosque Donation,Charity,Chase Checking,-250.00,Monthly sadaqah
+2023-07-10,Salary,Paychecks,Chase Checking,5200.00,
+2023-07-24,Salary,Paychecks,Chase Checking,5200.00,
+2023-07-30,Rent Payment,Rent,Chase Checking,-1800.00,
+2023-08-07,Salary,Paychecks,Chase Checking,5200.00,
+2023-08-15,Wedding Venue Deposit,Entertainment,Chase Checking,-8500.00,Wedding planning - deposit
+2023-08-21,Salary,Paychecks,Chase Checking,5200.00,
+2023-08-25,Wedding Catering Deposit,Food & Dining,Chase Checking,-4200.00,Halal caterer deposit
+2023-08-30,Rent Payment,Rent,Chase Checking,-1800.00,
+2023-09-04,Salary,Paychecks,Chase Checking,5200.00,
+2023-09-10,Bridal Dress,Shopping,Chase Checking,-2800.00,Wedding
+2023-09-18,Salary,Paychecks,Chase Checking,5200.00,
+2023-09-25,Wedding Photographer,Entertainment,Chase Checking,-2100.00,Wedding
+2023-09-30,Rent Payment,Rent,Chase Checking,-1800.00,
+2023-10-02,Salary,Paychecks,Chase Checking,5200.00,
+2023-10-12,Wedding Day Expenses,Entertainment,Chase Checking,-6500.00,Walima + misc
+2023-10-16,Salary,Paychecks,Chase Checking,5200.00,Post-wedding
+2023-10-25,Wedding Gifts,Income,Chase Checking,3200.00,Cash gifts from guests
+2023-10-30,Rent Payment,Rent,Chase Checking,-1800.00,
+2023-11-01,Salary Bonus,Bonus,Chase Checking,2500.00,Q3 performance bonus
+2023-11-13,Salary,Paychecks,Chase Checking,5200.00,
+2023-11-27,Salary,Paychecks,Chase Checking,5200.00,
+2023-11-30,Rent Payment,Rent,Chase Checking,-1800.00,
+2023-12-04,Halal Grocery,Groceries,Chase Checking,-225.80,
+2023-12-11,Salary,Paychecks,Chase Checking,5200.00,
+2023-12-20,Mosque Zakat-al-fitr,Charity,Chase Checking,-50.00,Wife + husband
+2023-12-25,Salary,Paychecks,Chase Checking,5200.00,
+2023-12-30,Rent Payment,Rent,Chase Checking,-1800.00,
+2024-01-08,Salary,Paychecks,Chase Checking,5200.00,
+2024-01-15,Costco Membership,Shopping,Chase Checking,-120.00,Annual
+2024-01-22,Salary,Paychecks,Chase Checking,5200.00,
+2024-01-30,Rent Payment,Rent,Chase Checking,-1800.00,
+2024-02-05,Salary,Paychecks,Chase Checking,5200.00,
+2024-02-14,Anniversary Dinner,Food & Dining,Chase Checking,-185.00,
+2024-02-19,Salary,Paychecks,Chase Checking,5200.00,
+2024-02-28,Rent Payment,Rent,Chase Checking,-1800.00,
+2024-03-04,Salary,Paychecks,Chase Checking,5200.00,
+2024-03-18,Salary,Paychecks,Chase Checking,5200.00,
+2024-03-20,Ramadan Mosque Donation,Charity,Chase Checking,-500.00,Ramadan extra sadaqah
+2024-03-30,Rent Payment,Rent,Chase Checking,-1800.00,
+2024-04-01,Salary,Paychecks,Chase Checking,5200.00,
+2024-04-10,Eid Gifts to Family,Gifts,Chase Checking,-400.00,Eid al-Fitr
+2024-04-15,Annual Zakat Payment,Charity,Chase Checking,-375.00,Annual zakat — year 1
