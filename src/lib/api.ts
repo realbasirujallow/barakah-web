@@ -590,8 +590,12 @@ export const api = {
     apiFetch('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
 
   // Assets
-  getAssets: () => apiFetch('/api/assets/list'),
-  getAssetTotal: () => apiFetch('/api/assets/total'),
+  // R14 hardening (2026-04-24): default suppressUnauthorized=true.
+  // getAssets + getAssetTotal both fire on mount from /dashboard and
+  // /dashboard/assets — a transient 401 on either used to cascade into
+  // a forced /login?reason=expired. Same bug class as R12/R13.
+  getAssets: (suppressUnauthorized = true) => apiFetch('/api/assets/list', {}, API_TIMEOUT, suppressUnauthorized),
+  getAssetTotal: (suppressUnauthorized = true) => apiFetch('/api/assets/total', {}, API_TIMEOUT, suppressUnauthorized),
   addAsset: (data: Record<string, unknown>) =>
     apiFetch('/api/assets/add', { method: 'POST', body: JSON.stringify(data) }),
   updateAsset: (id: number, data: Record<string, unknown>) =>
@@ -651,7 +655,8 @@ export const api = {
   copyBudget: (fromMonth: number, fromYear: number, toMonth: number, toYear: number) =>
     apiFetch('/api/budgets/copy-month', { method: 'POST', body: JSON.stringify({ fromMonth, fromYear, toMonth, toYear }) }),
   /** Safe-to-spend: how much free money is left this month after bills + budgets. */
-  getSafeToSpend: () => apiFetch('/api/budgets/safe-to-spend'),
+  // R14: mount-fired on /dashboard — suppress 401 to avoid forced logout on transient auth race.
+  getSafeToSpend: (suppressUnauthorized = true) => apiFetch('/api/budgets/safe-to-spend', {}, API_TIMEOUT, suppressUnauthorized),
   /** Cash-flow forecast for next N months. */
   getCashFlowForecast: (months = 3) => apiFetch(`/api/budgets/forecast?months=${months}`),
 
@@ -933,9 +938,10 @@ export const api = {
     apiFetch(`/api/investments/holdings/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteHolding: (id: number) =>
     apiFetch(`/api/investments/holdings/${id}`, { method: 'DELETE' }),
-  getPortfolioSummary: () => apiFetch('/api/investments/portfolio/summary'),
-  getPortfolioHistory: (days: number = 30) =>
-    apiFetch(`/api/investments/portfolio/history?days=${days}`),
+  // R14: mount-fired on /dashboard — suppress 401 default.
+  getPortfolioSummary: (suppressUnauthorized = true) => apiFetch('/api/investments/portfolio/summary', {}, API_TIMEOUT, suppressUnauthorized),
+  getPortfolioHistory: (days: number = 30, suppressUnauthorized = true) =>
+    apiFetch(`/api/investments/portfolio/history?days=${days}`, {}, API_TIMEOUT, suppressUnauthorized),
 
   // Net Worth
   takeNetWorthSnapshot: () => apiFetch('/api/net-worth/snapshot', { method: 'POST' }),
@@ -1345,12 +1351,14 @@ export const api = {
     apiFetch('/api/stripe/portal', { method: 'POST' }),
 
   /** Aggregated dashboard widget data (spending, budget, transactions, bills, net worth). */
-  getDashboardWidgets: () =>
-    apiFetch('/api/dashboard/widgets'),
+  // R14: mount-fired on /dashboard — suppress 401 default.
+  getDashboardWidgets: (suppressUnauthorized = true) =>
+    apiFetch('/api/dashboard/widgets', {}, API_TIMEOUT, suppressUnauthorized),
 
   /** Personalized financial insights (spending trends, nisab streak, zakat estimates, etc.). */
-  getDashboardInsights: () =>
-    apiFetch('/api/dashboard/insights'),
+  // R14: mount-fired on /dashboard — suppress 401 default.
+  getDashboardInsights: (suppressUnauthorized = true) =>
+    apiFetch('/api/dashboard/insights', {}, API_TIMEOUT, suppressUnauthorized),
 
   /** Start churn save flow — returns personalized save offers. */
   startChurnSaveFlow: () =>
@@ -1448,7 +1456,8 @@ export const api = {
     apiFetch('/api/assets/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
 
   // ── Islamic Calendar ─────────────────────────────────────────────────────────
-  getIslamicCalendarToday: () => apiFetch('/api/islamic-calendar/today'),
+  // R14: mount-fired on /dashboard — suppress 401 default.
+  getIslamicCalendarToday: (suppressUnauthorized = true) => apiFetch('/api/islamic-calendar/today', {}, API_TIMEOUT, suppressUnauthorized),
   getIslamicCalendarEvents: (year?: number) =>
     apiFetch(`/api/islamic-calendar/events${year ? `?year=${year}` : ''}`),
 
@@ -1461,7 +1470,8 @@ export const api = {
     apiFetch(`/api/hawl/zakat-summary?currency=${encodeURIComponent(currency)}`),
 
   // ── Hawl Due Reminders ──────────────────────────────────────────────────────
-  getHawlDue: (days = 30) => apiFetch(`/api/hawl/due?days=${days}`),
+  // R14: mount-fired on /dashboard — suppress 401 default.
+  getHawlDue: (days = 30, suppressUnauthorized = true) => apiFetch(`/api/hawl/due?days=${days}`, {}, API_TIMEOUT, suppressUnauthorized),
 
   // ── Wasiyyah PDF Export ─────────────────────────────────────────────────────
   // BUG FIX: use apiDownload() instead of raw fetch() so auth/CSRF/timeout/retry
