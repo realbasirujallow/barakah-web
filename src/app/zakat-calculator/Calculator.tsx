@@ -135,9 +135,16 @@ export default function Calculator() {
   // Use pre-calculated thresholds from the API when available, otherwise compute locally
   const nisabInGold = livePrices?.nisabGoldThreshold ?? (nisabGoldGrams * goldPricePerGram);
   const nisabInSilver = livePrices?.nisabSilverThreshold ?? (nisabSilverGrams * silverPricePerGram);
-  // AMJA gold standard: Use gold-only nisab
-  // This matches the backend's gold-based nisab calculation per AMJA recommendation
-  const nisabThreshold = nisabInGold; // AMJA gold standard for North American Muslims
+  // Madhab-aware nisab threshold:
+  //   - Hanafi (classical):  silver standard (595g silver). Lower threshold →
+  //     zakat becomes due sooner. This is the position of the madhab itself;
+  //     the AMJA gold-standard recommendation is a modern pragmatic overlay,
+  //     not classical Hanafi fiqh. Selecting "Hanafi" on this calculator
+  //     should reflect the madhab's own ruling.
+  //   - Shafi'i / Maliki / Hanbali:  gold standard (85g gold). Classical
+  //     position for these three schools AND the AMJA recommendation —
+  //     both align, so the threshold is unambiguous.
+  const nisabThreshold = selectedMadhab === 'hanafi' ? nisabInSilver : nisabInGold;
 
   const calculations = useMemo(() => {
     // Calculate total asset values
