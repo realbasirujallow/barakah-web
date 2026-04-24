@@ -1264,6 +1264,19 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(settings),
     }, API_TIMEOUT, true),
+  /**
+   * Per-locale kill switch for transactional email rendering. Returns the
+   * list of supported locales with their current enabled flag. English is
+   * always returned with canDisable=false.
+   */
+  getAdminEmailLocales: () =>
+    apiFetch('/admin/settings/email-locales', {}, API_TIMEOUT, true),
+  /** Flip a single locale on or off. English can't be disabled. */
+  setAdminEmailLocale: (locale: string, enabled: boolean) =>
+    apiFetch(`/admin/settings/email-locales/${encodeURIComponent(locale)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ enabled }),
+    }, API_TIMEOUT, true),
   // ── Feature flags / experiments (V74, 2026-04-22) ─────────────────────
   // Internal replacement for PostHog feature-flag capability. See
   // barakah-backend/src/main/java/com/barakah/service/FeatureFlagService.java

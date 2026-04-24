@@ -419,6 +419,12 @@ export default function AdminPage() {
           >
             🎯 Acquisition
           </Link>
+          <Link
+            href="/dashboard/admin/email-locales"
+            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+          >
+            ✉️ Email Locales
+          </Link>
           <button
             type="button"
             onClick={() => loadData(page)}
@@ -478,6 +484,12 @@ export default function AdminPage() {
           className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
         >
           🎯 Acquisition
+        </Link>
+        <Link
+          href="/dashboard/admin/email-locales"
+          className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
+        >
+          ✉️ Email Locales
         </Link>
       </div>
 
