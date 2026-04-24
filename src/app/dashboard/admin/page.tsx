@@ -425,6 +425,12 @@ export default function AdminPage() {
           >
             ✉️ Email Locales
           </Link>
+          <Link
+            href="/dashboard/admin/email-preview"
+            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+          >
+            👁️ Email Preview
+          </Link>
           <button
             type="button"
             onClick={() => loadData(page)}
@@ -490,6 +496,12 @@ export default function AdminPage() {
           className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
         >
           ✉️ Email Locales
+        </Link>
+        <Link
+          href="/dashboard/admin/email-preview"
+          className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
+        >
+          👁️ Email Preview
         </Link>
       </div>
 
