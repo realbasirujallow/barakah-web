@@ -608,7 +608,14 @@ export const api = {
     if (search) params.set('search', search);
     return apiFetch(`/api/transactions/list?${params}`);
   },
-  getTransactionUsage: () => apiFetch('/api/transactions/usage'),
+  // R13 hardening (2026-04-23): suppressUnauthorized=true.
+  // TransactionUsageMeter fires this on mount for every free-user surface
+  // (dashboard, transactions page, receipts, etc.). It is a NON-CRITICAL
+  // mount-time probe — a transient 401 must not cascade into a global logout.
+  // Same bug class as R12 (notifications, subscriptionStatus, plaid accounts).
+  // Regression test: backgroundPollsDoNotLogout.test.ts.
+  getTransactionUsage: (suppressUnauthorized = true) =>
+    apiFetch('/api/transactions/usage', {}, API_TIMEOUT, suppressUnauthorized),
   addTransaction: (data: Record<string, unknown>) =>
     apiFetch('/api/transactions/add', { method: 'POST', body: JSON.stringify(data) }),
   updateTransaction: (id: number, data: Record<string, unknown>) =>
@@ -1393,7 +1400,16 @@ export const api = {
     }),
 
   // ── Referral ────────────────────────────────────────────────────────────────
-  getReferralCode: () => apiFetch('/api/referral/code'),
+  // R13 hardening (2026-04-23): suppressUnauthorized=true.
+  // Fires on mount from ReferralPromptModal, ShareReceiptButton (on every
+  // receipt + pdf download in the app), the referral page, and the billing
+  // page. All are NON-CRITICAL mount-time reads that must NOT force a
+  // logout on a transient 401 — the user is actively using the app and the
+  // next real user-initiated action will surface a genuine auth failure if
+  // the session actually died. Same bug class as R12.
+  // Regression test: backgroundPollsDoNotLogout.test.ts.
+  getReferralCode: (suppressUnauthorized = true) =>
+    apiFetch('/api/referral/code', {}, API_TIMEOUT, suppressUnauthorized),
   trackReferralClick: (code: string) => apiFetch(`/api/referrals/click/${encodeURIComponent(code)}`, { method: 'POST' }),
 
   // ── Household profile (gender/DOB/marital + dependents/spouse) ─────────────

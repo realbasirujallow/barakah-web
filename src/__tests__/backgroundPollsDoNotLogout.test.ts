@@ -156,4 +156,37 @@ describe('background-poll API helpers do not force-logout on 401', () => {
 
     expect(logoutSpy).not.toHaveBeenCalled();
   });
+
+  // R13 hardening (2026-04-23) — getReferralCode fires on mount from
+  // ReferralPromptModal (dashboard), ShareReceiptButton (every receipt +
+  // PDF download), /dashboard/referral, and /dashboard/billing. It was
+  // the last unsuppressed mount-fired API in the session-logout audit.
+  // Default was suppressUnauthorized=false, which reopened the same bug
+  // class as notifications / plaid / subscription-status: transient 401 →
+  // global logout → /login?reason=expired mid-session. Pins the contract.
+  it('getReferralCode — no global logout on 401 (mount-time in modal / button / pages)', async () => {
+    const { api } = await import('../lib/api');
+
+    await expect(api.getReferralCode()).rejects.toThrow(
+      /session has expired|API error|Network|connection/,
+    );
+
+    expect(logoutSpy).not.toHaveBeenCalled();
+  });
+
+  // R13 hardening (2026-04-23) — getTransactionUsage fires on mount from
+  // TransactionUsageMeter, which is rendered on free-user surfaces
+  // (dashboard, transactions, receipts). The same bug class — a
+  // transient 401 during a mount probe would cascade through the
+  // silent-refresh loop into a forced /login?reason=expired. Pins the
+  // default so the meter stays a non-critical background read.
+  it('getTransactionUsage — no global logout on 401 (mount-time in TransactionUsageMeter)', async () => {
+    const { api } = await import('../lib/api');
+
+    await expect(api.getTransactionUsage()).rejects.toThrow(
+      /session has expired|API error|Network|connection/,
+    );
+
+    expect(logoutSpy).not.toHaveBeenCalled();
+  });
 });
