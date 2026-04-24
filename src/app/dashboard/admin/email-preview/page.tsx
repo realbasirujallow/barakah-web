@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../../lib/api';
 import { useAuth } from '../../../../context/AuthContext';
-import { useToast } from '../../../../lib/toast';
 import { logError } from '../../../../lib/logError';
 
 /**
@@ -112,7 +111,6 @@ function humanize(id: string): string {
 }
 
 export default function EmailPreviewPage() {
-  const { toast } = useToast();
   const { user, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState<string>('welcome');
