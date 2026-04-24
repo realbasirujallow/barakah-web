@@ -351,7 +351,43 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
         throw new Error(await extractErrorMessage(originalUnauthorizedResponse, 'We could not complete that request. Please try again.'));
       }
 
-      // Refresh returned 'expired' or retry after 'ok' also failed — session is gone.
+      // R15 hardening (2026-04-24): before firing the global logout, give the
+      // grace-window one more chance. A single refresh 401 can happen during
+      // a benign cross-tab race OR when the client's refresh_token cookie
+      // has been rotated server-side but the browser hasn't processed the
+      // latest Set-Cookie yet. A second refresh attempt ~250ms later
+      // typically lands on the current cookie and succeeds via the
+      // backend's REUSE_GRACE_WINDOW_MS replay tolerance (ec422e4).
+      //
+      // If THAT also fails, the session is genuinely gone. This replaces
+      // the old "one-strike-and-logout" behaviour that was kicking active
+      // users to /login mid-action during background-refresh races.
+      await new Promise(r => setTimeout(r, 250));
+      const secondRefresh = await deduplicatedRefresh();
+      if (secondRefresh === 'ok') {
+        try { localStorage.setItem('last_refresh_ts', String(Date.now())); } catch { /* SSR */ }
+        // Retry the original request one more time with the now-fresh cookies.
+        try {
+          const lastRes = await fetch(`${API_URL}${endpoint}`, {
+            ...options,
+            headers,
+            credentials: 'include',
+          });
+          if (lastRes.ok) {
+            const lastText = await lastRes.text();
+            if (!lastText) return null;
+            try { return JSON.parse(lastText); } catch { throw new Error('Unexpected server response.'); }
+          }
+          if (lastRes.status !== 401) {
+            throw new Error(await extractErrorMessage(lastRes, `API error ${lastRes.status}`));
+          }
+          // second retry still 401 — fall through to logout.
+        } catch (retryErr) {
+          throw retryErr;
+        }
+      }
+
+      // Refresh returned 'expired' twice or retry after 'ok' also failed — session is gone.
       // Only fire the global logout if the caller hasn't opted out.
       // Diagnostic: surface WHICH endpoint tripped the global logout so we can
       // spot unintended unsuppressed callers in live sessions.
@@ -361,6 +397,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
           endpoint,
           method: (options.method || 'GET').toUpperCase(),
           refreshResult,
+          secondRefresh,
           path: typeof window !== 'undefined' ? window.location.pathname : '',
         });
         onUnauthorizedCallback();
