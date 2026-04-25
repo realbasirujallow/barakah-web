@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'Free Faraid Calculator 2026 — Islamic Inheritance Distribution | Barakah',
@@ -74,7 +73,7 @@ const quranicShares = [
 export default function FaraidCalculatorPage() {
   return (
     <>
-      <Script
+      <script
         id="faraid-faq-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -93,7 +92,7 @@ export default function FaraidCalculatorPage() {
         }}
       />
 
-      <Script
+      <script
         id="faraid-howto-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -134,7 +133,7 @@ export default function FaraidCalculatorPage() {
         }}
       />
 
-      <Script
+      <script
         id="faraid-app-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{

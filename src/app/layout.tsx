@@ -223,81 +223,12 @@ export default async function RootLayout({
     },
   };
 
-  // FAQPage schema — targets Google's FAQ rich result feature. Each
-  // question/answer has to mirror copy that actually appears on a page
-  // reachable from the site; the answers below are short summaries of
-  // the corresponding /learn/* articles. Keep answers factual + fiqh-
-  // accurate; Google will penalise misleading FAQ markup.
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'Is Barakah really free to use?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. The core zakat calculator, hawl tracking, budget, transactions, and Islamic calendar are free forever. Plus and Family plans add bank sync, halal stock screener, faraid, and shared household finance for $9.99/mo and $14.99/mo respectively.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'How does Barakah calculate zakat?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Barakah sums your zakatable wealth (cash, savings, investments, business assets, gold/silver), subtracts deductible debts, compares against the live nisab threshold for your selected madhab (silver for Hanafi, gold for Shafi\'i / Maliki / Hanbali / AMJA), and applies the 2.5% rate once a full lunar year (hawl) has passed.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Which madhabs does Barakah support?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'All four Sunni schools — Hanafi, Shafi\'i, Maliki, Hanbali — plus the AMJA (Assembly of Muslim Jurists of America) gold-standard nisab methodology. You choose once in Fiqh Settings and every calculation respects that school\'s rules.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Is my bank data safe with Barakah?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Bank connections are via Plaid, the same provider used by Venmo, Coinbase, and American Express. Plaid uses bank-level encryption; Barakah never sees your bank credentials. All stored data is encrypted in transit (TLS 1.2+) and at rest (AES-256).',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Does Barakah track riba (interest)?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. The Riba Detector scans every transaction imported from your bank and flags interest credits, mortgage interest, and interest-bearing fees — giving you a running count you can purify or eliminate.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Is Barakah available on iPhone and Android?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. Download from the App Store (apps.apple.com/us/app/barakah-islamic-finance) or Google Play (play.google.com/store/apps/details?id=com.trybarakah.app). The web app at trybarakah.com syncs with both.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Does Barakah support budgeting like YNAB or Monarch?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. Barakah has envelope-style monthly budgets, bills, recurring detection, savings goals, and Plaid-powered transaction import — comparable to YNAB and Monarch but with halal-aware categorization, riba detection, and zakat built in.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Can I plan my Islamic will in Barakah?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. The Wasiyyah planner enforces the 1/3 bequest cap, blocks bequests to Qur\'anic heirs ("La wasiyyata li-warith"), and the Faraid calculator computes Qur\'anic inheritance shares for parents, spouse, children, and siblings automatically.',
-        },
-      },
-    ],
-  };
+  // FAQPage schema is intentionally NOT emitted globally. Google's
+  // structured-data spec allows only one FAQPage per page; emitting one
+  // sitewide collided with the per-page FAQPage on every /learn/* article
+  // (Search Console flagged "Duplicate field 'FAQPage'", WNC-10030322,
+  // 2026-04-25). The homepage FAQ now lives in src/app/page.tsx so it
+  // ships only on `/`.
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -341,13 +272,6 @@ export default async function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema).replace(/<\//g, '<\\/') }}
-        />
-        {/* FAQPage Schema — surfaces FAQ-style rich results on Google SERP for
-            zakat / halal-finance queries. Answers are short + factual so
-            Google's structured-data guidelines pass (no marketing fluff). */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/<\//g, '<\\/') }}
         />
         {/* WebSite Schema (enables Google Sitelinks Search Box) */}
         <script

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'Halal Mortgage Providers in the USA (2025) | Barakah',
@@ -101,7 +100,7 @@ export default function Page() {
 
   return (
     <>
-      <Script id="faq-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script id="faq-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       <article className="min-h-screen bg-white px-4 sm:px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">

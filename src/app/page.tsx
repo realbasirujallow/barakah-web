@@ -116,85 +116,112 @@ export default function Home() {
     if (!isLoading && user) router.replace('/dashboard');
   }, [user, isLoading, router]);
 
+  // Organization, WebSite, and SoftwareApplication JSON-LD are emitted
+  // sitewide from src/app/layout.tsx — re-emitting them here would
+  // duplicate them on the homepage and trip Google's "Duplicate field"
+  // structured-data warning (the same class of issue Search Console
+  // flagged for FAQPage on 2026-04-25, WNC-10030322).
+  //
+  // The homepage owns the FAQPage schema. Per-page FAQPage entries on
+  // /learn/* articles stay topical to those pages; this one targets the
+  // generic "is Barakah free / how does it calculate zakat / which
+  // madhabs" intent that lands on `/`.
+  //
+  // The schema is rendered BEFORE the auth gate so it lands in the SSR
+  // HTML regardless of `isLoading` / authenticated state — Googlebot
+  // would otherwise only see the spinner returned during SSR and miss
+  // the rich-result markup entirely.
+  const homepageFaqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Is Barakah really free to use?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. The core zakat calculator, hawl tracking, budget, transactions, and Islamic calendar are free forever. Plus and Family plans add bank sync, halal stock screener, faraid, and shared household finance for $9.99/mo and $14.99/mo respectively.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How does Barakah calculate zakat?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Barakah sums your zakatable wealth (cash, savings, investments, business assets, gold/silver), subtracts deductible debts, compares against the live nisab threshold for your selected madhab (silver for Hanafi, gold for Shafi\'i / Maliki / Hanbali / AMJA), and applies the 2.5% rate once a full lunar year (hawl) has passed.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Which madhabs does Barakah support?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'All four Sunni schools — Hanafi, Shafi\'i, Maliki, Hanbali — plus the AMJA (Assembly of Muslim Jurists of America) gold-standard nisab methodology. You choose once in Fiqh Settings and every calculation respects that school\'s rules.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is my bank data safe with Barakah?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Bank connections are via Plaid, the same provider used by Venmo, Coinbase, and American Express. Plaid uses bank-level encryption; Barakah never sees your bank credentials. All stored data is encrypted in transit (TLS 1.2+) and at rest (AES-256).',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Does Barakah track riba (interest)?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. The Riba Detector scans every transaction imported from your bank and flags interest credits, mortgage interest, and interest-bearing fees — giving you a running count you can purify or eliminate.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is Barakah available on iPhone and Android?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Download from the App Store (apps.apple.com/us/app/barakah-islamic-finance) or Google Play (play.google.com/store/apps/details?id=com.trybarakah.app). The web app at trybarakah.com syncs with both.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Does Barakah support budgeting like YNAB or Monarch?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Barakah has envelope-style monthly budgets, bills, recurring detection, savings goals, and Plaid-powered transaction import — comparable to YNAB and Monarch but with halal-aware categorization, riba detection, and zakat built in.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Can I plan my Islamic will in Barakah?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. The Wasiyyah planner enforces the 1/3 bequest cap, blocks bequests to Qur\'anic heirs ("La wasiyyata li-warith"), and the Faraid calculator computes Qur\'anic inheritance shares for parents, spouse, children, and siblings automatically.',
+        },
+      },
+    ],
+  };
+
+  const faqJsonLd = (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageFaqSchema).replace(/<\//g, '<\\/') }}
+    />
+  );
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center">
+        {faqJsonLd}
         <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
       </div>
     );
   }
-  if (user) return null;
-
-  // Organization + WebSite JSON-LD for the homepage. Root-level schema that
-  // Google uses for Knowledge Panel entries + sitelinks search box in SERP.
-  // Per Google's guidelines: one Organization + one WebSite per root domain.
-  const organizationSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Barakah',
-    alternateName: 'Barakah Finance',
-    url: 'https://trybarakah.com',
-    logo: 'https://trybarakah.com/icon.png',
-    description:
-      "Free Islamic finance app for Muslim households — zakat calculator, halal investing, riba detection, Islamic will planning, and family budgeting with fiqh rules built in.",
-    sameAs: [
-      'https://apps.apple.com/us/app/barakah-islamic-finance/id6761279229',
-      'https://play.google.com/store/apps/details?id=com.trybarakah.app',
-    ],
-    contactPoint: {
-      '@type': 'ContactPoint',
-      email: 'support@trybarakah.com',
-      contactType: 'customer support',
-      areaServed: 'Worldwide',
-      availableLanguage: ['English'],
-    },
-  };
-  const websiteSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'Barakah',
-    url: 'https://trybarakah.com',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: 'https://trybarakah.com/learn?q={search_term_string}',
-      },
-      'query-input': 'required name=search_term_string',
-    },
-  };
-  // NOTE: no aggregateRating block here. Claiming a perfect 5.0 with
-  // a single review reads as misleading to both users and Google's
-  // structured-data validator. Once we have a real, verifiable App
-  // Store / Play Store rating we can wire in those values — until
-  // then, omitting the block is more honest than inflating it.
-  const softwareApplicationSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: 'Barakah — Islamic Finance',
-    operatingSystem: 'iOS, Android, Web',
-    applicationCategory: 'FinanceApplication',
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-    },
-  };
+  if (user) return faqJsonLd;
 
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema) }}
-      />
+      {faqJsonLd}
 
       {/* ── Nav ── */}
       <header className="bg-white shadow-sm sticky top-0 z-50">

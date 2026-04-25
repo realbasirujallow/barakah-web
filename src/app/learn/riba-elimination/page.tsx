@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'How to Eliminate Riba from Your Finances: A Muslim\'s Complete Guide 2026 | Barakah',
@@ -97,7 +96,7 @@ const halalAlternatives = [
 export default function RibaEliminationPage() {
   return (
     <>
-      <Script
+      <script
         id="riba-faq-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -116,7 +115,7 @@ export default function RibaEliminationPage() {
         }}
       />
 
-      <Script
+      <script
         id="riba-article-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
