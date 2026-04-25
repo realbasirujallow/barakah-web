@@ -207,7 +207,7 @@ export default function PrayerTimesPage() {
     safeSetItem('prayerTimesLocation', JSON.stringify(location));
   };
 
-  const fetchTimes = useCallback(async (c: string, co: string, m: number, _preferredZone?: string | null) => {
+  const fetchTimes = useCallback(async (c: string, co: string, m: number) => {
     if (!c.trim() || !co.trim()) return;
     setLoading(true); setError(null);
     try {
@@ -250,7 +250,7 @@ export default function PrayerTimesPage() {
     setLoading(false);
   }, []);
 
-  const fetchTimesByCoordinates = useCallback(async (latitude: number, longitude: number, m: number, label = 'Current Location', _preferredZone?: string | null) => {
+  const fetchTimesByCoordinates = useCallback(async (latitude: number, longitude: number, m: number, label = 'Current Location') => {
     setLoading(true);
     setError(null);
     try {
@@ -310,10 +310,9 @@ export default function PrayerTimesPage() {
           typeof parsed.longitude === 'number'
         ) {
           const label = typeof parsed.label === 'string' ? parsed.label : 'Saved Location';
-          const savedZone = typeof parsed.timeZone === 'string' ? parsed.timeZone : null;
           setCity(`${parsed.latitude.toFixed(4)}, ${parsed.longitude.toFixed(4)}`);
           setCountry('GPS');
-          fetchTimesByCoordinates(parsed.latitude, parsed.longitude, savedMethod, label, savedZone);
+          fetchTimesByCoordinates(parsed.latitude, parsed.longitude, savedMethod, label);
           return;
         }
 
@@ -325,8 +324,7 @@ export default function PrayerTimesPage() {
           if (match) {
             const latitude = Number(match[1]);
             const longitude = Number(match[2]);
-            const savedZone = typeof parsed.timeZone === 'string' ? parsed.timeZone : null;
-            fetchTimesByCoordinates(latitude, longitude, savedMethod, 'Saved Location', savedZone);
+            fetchTimesByCoordinates(latitude, longitude, savedMethod, 'Saved Location');
             return;
           }
         }
@@ -334,8 +332,7 @@ export default function PrayerTimesPage() {
         if (typeof parsed.city === 'string' && typeof parsed.country === 'string') {
           setCity(parsed.city);
           setCountry(parsed.country);
-          const savedZone = typeof parsed.timeZone === 'string' ? parsed.timeZone : null;
-          fetchTimes(parsed.city, parsed.country, savedMethod, savedZone);
+          fetchTimes(parsed.city, parsed.country, savedMethod);
         }
       } catch (err) {
         logError(err, { context: 'Failed to restore saved prayer location' });
