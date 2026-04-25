@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';
 import Calculator from './Calculator';
 import NisabLivePrices, { GoldPricePerGram, SilverPricePerGram, GoldNisabUSD, SilverNisabUSD } from '../../components/NisabLivePrices';
 import { REFEREE_FIRST_MONTH_PRICE } from '../../lib/referralCopy';
@@ -100,7 +99,7 @@ const faqItems = [
 export default function ZakatCalculatorPage() {
   return (
     <>
-      <Script
+      <script
         id="zakat-calculator-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -119,7 +118,7 @@ export default function ZakatCalculatorPage() {
         }}
       />
 
-      <Script
+      <script
         id="zakat-howtocalculate-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -159,7 +158,7 @@ export default function ZakatCalculatorPage() {
         }}
       />
 
-      <Script
+      <script
         id="zakat-calculator-app-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'Security | How Barakah Protects Your Financial Data',
@@ -123,7 +122,7 @@ export default function SecurityPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <Script
+      <script
         id="security-faq-jsonld"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}

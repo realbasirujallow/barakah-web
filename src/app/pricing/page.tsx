@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';
 import { COMPETITOR_COMPARISON } from '../../lib/pricing';
 import {
   DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL,
@@ -71,7 +70,7 @@ export default function PricingPage() {
   return (
     <>
       {/* FAQPage JSON-LD */}
-      <Script
+      <script
         id="pricing-faq-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{

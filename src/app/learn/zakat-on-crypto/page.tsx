@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'Zakat on Cryptocurrency (Bitcoin, Ethereum) — Islamic Guide 2026 | Barakah',
@@ -17,7 +16,7 @@ export default function Page() {
 
   return (
     <>
-      <Script id="faq-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script id="faq-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           <nav className="mb-6 text-sm">

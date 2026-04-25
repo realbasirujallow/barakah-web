@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';
 
 export const metadata: Metadata = {
   title:
@@ -105,7 +104,7 @@ const comparisonRows = [
 export default function MadhabFinancePage() {
   return (
     <>
-      <Script
+      <script
         id="madhab-faq-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -124,7 +123,7 @@ export default function MadhabFinancePage() {
         }}
       />
 
-      <Script
+      <script
         id="madhab-article-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
