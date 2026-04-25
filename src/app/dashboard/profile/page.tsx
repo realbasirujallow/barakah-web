@@ -284,7 +284,13 @@ export default function ProfilePage() {
 
   const formatDate = (ts?: number) => {
     if (!ts) return '—';
-    return new Date(ts * 1000).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    // 2026-04-25 BUG FIX: previous code did `new Date(ts * 1000)` assuming
+    // the API returned createdAt in epoch SECONDS. The backend persists
+    // `users.created_at = System.currentTimeMillis()` and the API forwards
+    // it untouched, so it's MILLISECONDS — multiplying by 1000 again
+    // pushed the rendered date to the year 58244 (live E2E surfaced this
+    // on the apple-review account's "Member since" line).
+    return new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   const handleSavePreferences = async () => {
