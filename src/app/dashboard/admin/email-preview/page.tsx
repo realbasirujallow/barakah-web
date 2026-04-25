@@ -291,8 +291,25 @@ export default function EmailPreviewPage() {
                         <button
                           type="button"
                           onClick={() => {
-                            const w = window.open('', '_blank');
-                            if (w) { w.document.write(preview.html); w.document.close(); }
+                            // Open the rendered email HTML in a new tab as a Blob URL.
+                            // Previously did `window.open('') + document.write(preview.html)`
+                            // which executes in the same origin with full DOM access — if a
+                            // template variable ever rendered un-escaped attacker content the
+                            // popup would be a same-origin XSS sink. Blob URLs render in an
+                            // opaque origin, so even a stray <script> in the template can't
+                            // touch this admin's session storage / cookies.
+                            const blob = new Blob([preview.html], { type: 'text/html' });
+                            const url = URL.createObjectURL(blob);
+                            const w = window.open(url, '_blank', 'noopener,noreferrer');
+                            // Free the URL once the popup has had time to load (~30s is
+                            // generous; the Blob lives in memory until the URL is revoked
+                            // OR the document referencing it unloads).
+                            if (w) {
+                              setTimeout(() => URL.revokeObjectURL(url), 30_000);
+                            } else {
+                              // Popup blocked — clean up immediately.
+                              URL.revokeObjectURL(url);
+                            }
                           }}
                           className="text-xs px-2 py-1 bg-white border border-[#1B5E20] text-[#1B5E20] rounded hover:bg-green-50"
                         >
