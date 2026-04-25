@@ -207,31 +207,27 @@ export default function PrayerTimesPage() {
     safeSetItem('prayerTimesLocation', JSON.stringify(location));
   };
 
-  const fetchTimes = useCallback(async (c: string, co: string, m: number, preferredZone?: string | null) => {
+  const fetchTimes = useCallback(async (c: string, co: string, m: number, _preferredZone?: string | null) => {
     if (!c.trim() || !co.trim()) return;
     setLoading(true); setError(null);
     try {
-      // Use the calendar date at the praying location, not the device's local
-      // date. A user in PST at 11 PM checking London's Isha would otherwise get
-      // yesterday's schedule (London is already past midnight). If we have the
-      // IANA zone from a prior fetch for this city, apply the same
-      // Intl.DateTimeFormat approach used by the coordinate path.
-      const nowInstant = new Date();
-      let dateStr: string;
-      try {
-        if (preferredZone) {
-          const parts = new Intl.DateTimeFormat('en-GB', {
-            year: 'numeric', month: '2-digit', day: '2-digit', timeZone: preferredZone,
-          }).formatToParts(nowInstant);
-          const get = (k: string) => parts.find(p => p.type === k)?.value ?? '';
-          dateStr = `${parseInt(get('day'), 10)}-${parseInt(get('month'), 10)}-${get('year')}`;
-        } else {
-          dateStr = `${nowInstant.getDate()}-${nowInstant.getMonth() + 1}-${nowInstant.getFullYear()}`;
-        }
-      } catch {
-        dateStr = `${nowInstant.getDate()}-${nowInstant.getMonth() + 1}-${nowInstant.getFullYear()}`;
-      }
-      const url = `https://api.aladhan.com/v1/timingsByCity/${dateStr}?city=${encodeURIComponent(c)}&country=${encodeURIComponent(co)}&method=${m}`;
+      // 2026-04-25: switched from /v1/timingsByCity/{DD-MM-YYYY} to
+      // /v1/timingsByCity/{utc_seconds}. Aladhan resolves the timestamp into
+      // the city's local calendar date using the city's own timezone, so the
+      // request is correct regardless of what timezone the device is in.
+      //
+      // The previous DD-MM-YYYY path took the date from the *device* clock
+      // (or, on a re-fetch, from a previously-saved IANA zone). For a
+      // first-time search by a user whose device timezone differs from the
+      // praying location (e.g. PST device at 23:30 looking up London),
+      // Aladhan would return the previous day's prayer times — London is
+      // already past midnight in its own zone.
+      //
+      // Mirrors the Flutter R30 fix at services/prayer_times_service.dart.
+      // _preferredZone is now ignored (kept in the signature so the
+      // localStorage replay path doesn't have to change).
+      const nowUtcSeconds = Math.floor(Date.now() / 1000);
+      const url = `https://api.aladhan.com/v1/timingsByCity/${nowUtcSeconds}?city=${encodeURIComponent(c)}&country=${encodeURIComponent(co)}&method=${m}`;
       const res  = await fetch(url);
       if (!res.ok) {
         throw new Error(`Aladhan API error: ${res.status} ${res.statusText}`);
@@ -254,33 +250,18 @@ export default function PrayerTimesPage() {
     setLoading(false);
   }, []);
 
-  const fetchTimesByCoordinates = useCallback(async (latitude: number, longitude: number, m: number, label = 'Current Location', preferredZone?: string | null) => {
+  const fetchTimesByCoordinates = useCallback(async (latitude: number, longitude: number, m: number, label = 'Current Location', _preferredZone?: string | null) => {
     setLoading(true);
     setError(null);
     try {
-      // Use the calendar date at the praying location, not on the user's
-      // device. A traveller in PST at 11pm checking London's Isha is already
-      // past midnight in London — without this adjustment the API would
-      // return yesterday's times. If we know the IANA zone from a previous
-      // call for these coords (or the caller passed one), format the current
-      // instant in that zone; otherwise fall back to the device date.
-      const nowInstant = new Date();
-      let dateStr: string;
-      try {
-        const zone = preferredZone ?? null;
-        if (zone) {
-          const parts = new Intl.DateTimeFormat('en-GB', {
-            year: 'numeric', month: '2-digit', day: '2-digit', timeZone: zone,
-          }).formatToParts(nowInstant);
-          const get = (k: string) => parts.find(p => p.type === k)?.value ?? '';
-          dateStr = `${parseInt(get('day'), 10)}-${parseInt(get('month'), 10)}-${get('year')}`;
-        } else {
-          dateStr = `${nowInstant.getDate()}-${nowInstant.getMonth() + 1}-${nowInstant.getFullYear()}`;
-        }
-      } catch {
-        dateStr = `${nowInstant.getDate()}-${nowInstant.getMonth() + 1}-${nowInstant.getFullYear()}`;
-      }
-      const url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${latitude}&longitude=${longitude}&method=${m}`;
+      // 2026-04-25: switched from /v1/timings/{DD-MM-YYYY} to
+      // /v1/timings/{utc_seconds}. Aladhan resolves the timestamp into the
+      // location's local calendar date using the (lat, lon) pair's timezone,
+      // so the request is correct regardless of the device's timezone.
+      // See fetchTimes() for the full rationale; mirrors the Flutter R30 fix
+      // at services/prayer_times_service.dart.
+      const nowUtcSeconds = Math.floor(Date.now() / 1000);
+      const url = `https://api.aladhan.com/v1/timings/${nowUtcSeconds}?latitude=${latitude}&longitude=${longitude}&method=${m}`;
       const res = await fetch(url);
       if (!res.ok) {
         throw new Error(`Aladhan API error: ${res.status} ${res.statusText}`);
