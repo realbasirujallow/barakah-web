@@ -31,6 +31,7 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
   { href: '/dashboard/hawl', icon: '⏰', label: 'Hawl Tracker' },
   { href: '/dashboard/ibadah', icon: '🕋', label: 'Ibadah Finance' },
   { href: '/dashboard/import', icon: '📥', label: 'Import Data' },
+  { href: '/dashboard/market-prices', icon: '📈', label: 'Market Prices' },
   { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications' },
   { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times' },
   { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
