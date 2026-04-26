@@ -63,6 +63,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/compare/barakah-vs-musaffa`,               changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/compare/barakah-vs-ynab`,                  changeFrequency: 'monthly', priority: 0.87, lastModified: now },
     { url: `${baseUrl}/compare/barakah-vs-monarch`,               changeFrequency: 'monthly', priority: 0.87, lastModified: now },
+    { url: `${baseUrl}/compare/barakah-vs-quicken`,               changeFrequency: 'monthly', priority: 0.87, lastModified: now },
+    { url: `${baseUrl}/compare/barakah-vs-pocketguard`,           changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/compare/barakah-vs-zeta`,                  changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/compare/barakah-vs-rocketmoney`,           changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/halal-stock-screener`,               changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/halal-investing-guide`,              changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/is-my-mortgage-halal`,               changeFrequency: 'monthly', priority: 0.88, lastModified: now },
@@ -75,6 +79,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/halal-robo-advisor-comparison`,      changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/zakat-on-stock-options-rsus`,        changeFrequency: 'monthly', priority: 0.90, lastModified: now },
     { url: `${baseUrl}/learn/halal-mortgage-vs-rent-2026`,        changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/learn/ramadan-giving-tracker-setup`,       changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/learn/is-bitcoin-halal-2026`,              changeFrequency: 'monthly', priority: 0.92, lastModified: now },
+    { url: `${baseUrl}/learn/halal-life-insurance-vs-takaful`,    changeFrequency: 'monthly', priority: 0.90, lastModified: now },
 
     // ── Budgeting & household finance ─────────────────────────────────────────
     { url: `${baseUrl}/learn/halal-budgeting`,            changeFrequency: 'monthly', priority: 0.88, lastModified: now },

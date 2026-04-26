@@ -431,6 +431,18 @@ export default function AdminPage() {
           >
             👁️ Email Preview
           </Link>
+          <Link
+            href="/dashboard/admin/halal-screening"
+            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+          >
+            ☪️ Halal Screening
+          </Link>
+          <Link
+            href="/dashboard/admin/scorecard"
+            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+          >
+            📈 Scorecard
+          </Link>
           <button
             type="button"
             onClick={() => loadData(page)}
@@ -464,52 +476,6 @@ export default function AdminPage() {
           </div>
         </div>
       )}
-
-      {/* ── Quick nav to standalone admin pages ── */}
-      <div className="flex flex-wrap gap-2 mb-4 text-sm">
-        <Link
-          href="/dashboard/admin/scorecard"
-          className="bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg font-medium hover:bg-[#2E7D32]"
-        >
-          📈 Weekly Scorecard
-        </Link>
-        <Link
-          href="/dashboard/admin/funnel"
-          className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
-        >
-          🔄 Funnel
-        </Link>
-        <Link
-          href="/dashboard/admin/growth"
-          className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
-        >
-          📊 Growth
-        </Link>
-        <Link
-          href="/dashboard/admin/acquisition"
-          className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
-        >
-          🎯 Acquisition
-        </Link>
-        <Link
-          href="/dashboard/admin/email-locales"
-          className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
-        >
-          ✉️ Email Locales
-        </Link>
-        <Link
-          href="/dashboard/admin/email-preview"
-          className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
-        >
-          👁️ Email Preview
-        </Link>
-        <Link
-          href="/dashboard/admin/halal-screening"
-          className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
-        >
-          ☪️ Halal Screening
-        </Link>
-      </div>
 
       {/* ── Tab Navigation ── */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 overflow-x-auto">

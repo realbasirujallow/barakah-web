@@ -115,6 +115,27 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast }: Adm
                 )}
               </button>
             ))}
+            {(emailLogStats?.totalFailed ?? 0) > 0 && (
+              <button
+                type="button"
+                disabled={emailLogLoading}
+                onClick={async () => {
+                  if (!confirm(`Permanently delete ALL failed email entries older than 7 days? Recent failures (last 7 days) stay so you can still triage them.`)) return;
+                  try {
+                    const res = await api.adminCleanupFailedEmailLog(7);
+                    const deleted = (res as { deleted?: number })?.deleted ?? 0;
+                    toast(`Cleaned up ${deleted} stale failed entries`, 'success');
+                    loadPage(0, emailLogFilter);
+                  } catch (err) {
+                    toast(err instanceof Error ? err.message : 'Cleanup failed', 'error');
+                  }
+                }}
+                className="px-3 py-1.5 bg-white border border-red-300 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-50 disabled:opacity-50"
+                title="Bulk-delete failed entries older than 7 days"
+              >
+                🧹 Clean stale failures
+              </button>
+            )}
             <button
               type="button"
               disabled={emailLogLoading}
