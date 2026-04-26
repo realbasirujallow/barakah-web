@@ -16,7 +16,10 @@ import AnnualUpgradeModal from '../../components/AnnualUpgradeModal';
 import { isSetupComplete } from '../../lib/setup';
 
 // 'plus' = Plus or Family plan required | 'family' = Family plan only
-const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'family' }[] = [
+// `adminOnly` items render in a separate Admin section that's hidden from
+// non-admin users entirely. Lets the founder reach admin surfaces in one
+// click instead of typing each /dashboard/admin/X URL by hand.
+const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'family'; adminOnly?: boolean }[] = [
   { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
   // ── Free features (alphabetized) ──────────────────────────────────────────
   { href: '/dashboard/assets', icon: '💰', label: 'Assets' },
@@ -57,7 +60,17 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
   { href: '/dashboard/shared', icon: '👥', label: 'Shared Finances', gate: 'family' },
   { href: '/dashboard/waqf', icon: '🏛️', label: 'Waqf', gate: 'plus' },
   { href: '/dashboard/wasiyyah', icon: '📜', label: 'Wasiyyah', gate: 'plus' },
-  // Admin page is intentionally NOT listed here — access via direct URL only.
+  // ── Admin (founder/staff only — gated by user.isAdmin) ───────────────────
+  // Replaces the prior "type the URL by hand" pattern; admin surfaces are
+  // 1-click from any dashboard page now.
+  { href: '/dashboard/admin', icon: '🛠️', label: 'Admin Home', adminOnly: true },
+  { href: '/dashboard/admin/halal-screening', icon: '☪️', label: 'Halal Screening', adminOnly: true },
+  { href: '/dashboard/admin/email-locales', icon: '🌐', label: 'Email Locales', adminOnly: true },
+  { href: '/dashboard/admin/email-preview', icon: '👁️', label: 'Email Preview', adminOnly: true },
+  { href: '/dashboard/admin/acquisition', icon: '🎯', label: 'Acquisition', adminOnly: true },
+  { href: '/dashboard/admin/growth', icon: '📈', label: 'Growth', adminOnly: true },
+  { href: '/dashboard/admin/funnel', icon: '🪣', label: 'Funnel', adminOnly: true },
+  { href: '/dashboard/admin/scorecard', icon: '🧾', label: 'Scorecard', adminOnly: true },
 ];
 
 // Dark-mode external store helpers live in lib/useDarkMode.ts so that both
@@ -67,7 +80,7 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
 // guarantees we never drift from the authoritative DOM value (which the
 // bootstrap script flips before hydration to prevent FOUC).
 
-type SidebarSection = 'finance' | 'islamic' | 'premium' | 'account';
+type SidebarSection = 'finance' | 'islamic' | 'premium' | 'account' | 'admin';
 
 const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> = {
   finance: {
@@ -85,6 +98,10 @@ const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> 
   account: {
     label: 'Account',
     items: ['Billing & Plans', 'Import Data', 'Notifications', 'Profile & Settings', 'Refer a Friend'],
+  },
+  admin: {
+    label: 'Admin',
+    items: ['Admin Home', 'Halal Screening', 'Email Locales', 'Email Preview', 'Acquisition', 'Growth', 'Funnel', 'Scorecard'],
   },
 };
 
@@ -110,6 +127,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     islamic: true,
     premium: true,
     account: true,
+    admin: true,
   });
 
   const toggleSection = (section: SidebarSection) => {
@@ -223,9 +241,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   );
 
   const renderSection = (section: SidebarSection) => {
+    // Hard-gate the entire admin section: non-admins never see it. The
+    // adminOnly flag on each item is also enforced below as belt-and-
+    // suspenders in case a future refactor mis-categorizes one.
+    if (section === 'admin' && !user.isAdmin) return null;
+
     const isExpanded = expandedSections[section];
     const config = sectionConfig[section];
-    const sectionItems = navItems.filter(item => config.items.includes(item.label));
+    const sectionItems = navItems
+        .filter(item => config.items.includes(item.label))
+        .filter(item => !item.adminOnly || user.isAdmin);
     const filteredItems = sectionItems.filter(item => !item.gate || hasAccess(user.plan, item.gate, user.planExpiresAt));
     const lockedInSection = sectionItems.filter(item => item.gate && !hasAccess(user.plan, item.gate, user.planExpiresAt));
 
@@ -278,6 +303,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           {renderSection('islamic')}
           {renderSection('premium')}
           {renderSection('account')}
+          {/* Admin section renders below Account for visual separation;
+              the section itself short-circuits to null if !isAdmin. */}
+          {renderSection('admin')}
         </nav>
         <div className="p-4 border-t border-green-800 flex-shrink-0">
           <button
@@ -321,6 +349,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </button>
             <div className="flex items-center gap-4">
               {headerDate && <span className="text-xs text-gray-500 hidden md:block">📅 {headerDate}</span>}
+              {user.isAdmin && (
+                <Link
+                  href="/dashboard/admin"
+                  className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 hover:bg-amber-200 transition"
+                  title="Admin home"
+                >
+                  🛠️ Admin
+                </Link>
+              )}
               <button
                 onClick={toggleDarkMode}
                 className="text-gray-500 hover:text-[#1B5E20] text-lg transition"
