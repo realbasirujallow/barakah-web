@@ -236,6 +236,23 @@ export default function CategorizePage() {
     [minConfidence, suggestions],
   );
 
+  // Pagination for the Review Suggestions list. Was silently sliced to
+  // first 75 with no UI indicator that more existed; users with bigger
+  // ledgers couldn't reach suggestions 76+. Page size of 25 keeps each
+  // page short enough to scan without scrolling endlessly.
+  const PAGE_SIZE = 25;
+  const [page, setPage] = useState(0);
+  const totalPages = Math.max(1, Math.ceil(suggestions.length / PAGE_SIZE));
+  // Reset to first page whenever the underlying suggestions change
+  // (e.g., after Apply, Refresh, or Confirm trims the list).
+  useEffect(() => { setPage(0); }, [suggestions.length]);
+  const pagedSuggestions = useMemo(
+    () => suggestions.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE),
+    [page, suggestions],
+  );
+  const visibleStart = suggestions.length === 0 ? 0 : page * PAGE_SIZE + 1;
+  const visibleEnd = Math.min((page + 1) * PAGE_SIZE, suggestions.length);
+
   if (loading) {
     return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
   }
@@ -454,10 +471,14 @@ export default function CategorizePage() {
             <h2 className="text-lg font-semibold text-[#1B5E20]">Review Suggestions</h2>
             <p className="text-sm text-gray-500">Transfers, income, expenses, and saved-rule matches all show up here before you apply them.</p>
           </div>
-          <span className="text-sm text-gray-500">{suggestions.length} scanned</span>
+          <span className="text-sm text-gray-500">
+            {suggestions.length === 0
+              ? '0 scanned'
+              : `Showing ${visibleStart}–${visibleEnd} of ${suggestions.length}`}
+          </span>
         </div>
 
-        {suggestions.length > 0 ? suggestions.slice(0, 75).map(s => (
+        {suggestions.length > 0 ? pagedSuggestions.map(s => (
           <div key={s.transactionId} className={`bg-white rounded-xl p-4 ${s.wouldChange ? 'border-l-4 border-indigo-400' : 'border border-gray-100'}`}>
             <div className="flex justify-between items-start gap-4">
               <div>
@@ -508,6 +529,28 @@ export default function CategorizePage() {
           <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-100">
             <p className="text-4xl mb-3">🏷️</p>
             <p>No transactions to categorize yet.</p>
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-4">
+            <button
+              type="button"
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="px-3 py-1 rounded-lg text-sm font-medium bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ← Prev
+            </button>
+            <span className="text-sm text-gray-600">Page {page + 1} of {totalPages}</span>
+            <button
+              type="button"
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="px-3 py-1 rounded-lg text-sm font-medium bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next →
+            </button>
           </div>
         )}
       </div>
