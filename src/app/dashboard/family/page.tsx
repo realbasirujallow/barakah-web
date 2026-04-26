@@ -254,8 +254,14 @@ export default function FamilyPage() {
   return (
     <div className="max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Your family plan</h1>
+      {/* Phrasing matches the seat counter below: owner + N invitees = total
+          seats. Earlier copy said "Invite up to 5" while the counter showed
+          "Total seats: 6" — same number, two different ways of saying it,
+          easy for users to second-guess. We compute the inviteable count
+          from the actual seatsTotal so the marketing copy can never drift
+          from what the seat math reports. (QA flagged 2026-04-25.) */}
       <p className="text-gray-600 mb-6">
-        Invite up to 5 household members. One subscription covers everyone — members get full Plus access at no extra cost.
+        Up to {seatsTotal} household members on one plan, including you. One subscription covers everyone — members get full Plus access at no extra cost.
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
