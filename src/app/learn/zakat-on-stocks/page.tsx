@@ -106,7 +106,7 @@ export default function ZakatOnStocksPage() {
                 Zakat Guide
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-[#1B5E20]">Zakat on Stocks & Investments: How to Calculate in 2026</h1>
-              <p className="text-lg text-gray-700 dark:text-gray-300">A comprehensive guide to calculating zakat on stocks, mutual funds, ETFs, and cryptocurrency using the market value and net asset methods, with worked examples.</p>
+              <p className="text-lg text-gray-700 dark:text-gray-300">A complete guide to calculating zakat on stocks, mutual funds, ETFs, and cryptocurrency using the market value and net asset methods, with worked examples.</p>
               <div className="flex items-center gap-4 text-sm text-gray-600 border-t border-gray-200 pt-4 dark:text-gray-400 dark:border-gray-700">
                 <span>By Barakah Editorial Team</span>
                 <span>11 min read</span>

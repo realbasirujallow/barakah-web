@@ -279,7 +279,7 @@ export default function IslamicWillPage() {
             <section id="steps" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">Step-by-Step: Writing Your Islamic Will</h2>
               <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-                Follow these steps to create a comprehensive Islamic will:
+                Follow these steps to create a complete Islamic will:
               </p>
               <ol className="space-y-3 text-gray-700 list-decimal list-inside dark:text-gray-300">
                 <li><strong>Declare your shahada and faith.</strong> Begin with the testimony of faith and your intention that the will be executed according to Islamic law.</li>

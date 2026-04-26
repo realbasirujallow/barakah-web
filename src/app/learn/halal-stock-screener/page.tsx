@@ -42,7 +42,7 @@ const articleSchema = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: 'Halal Stock Screener 2026 — Screen 30,000+ Stocks for Islamic Compliance',
-  description: 'A comprehensive guide to halal stock screening using AAOIFI Standard 21 — business screen, financial ratio tests, and income purification.',
+  description: 'A complete guide to halal stock screening using AAOIFI Standard 21 — business screen, financial ratio tests, and income purification.',
   author: { '@type': 'Organization', name: 'Barakah', url: 'https://trybarakah.com' },
   publisher: { '@type': 'Organization', name: 'Barakah', logo: { '@type': 'ImageObject', url: 'https://trybarakah.com/icon.png' } },
   datePublished: '2024-03-15',

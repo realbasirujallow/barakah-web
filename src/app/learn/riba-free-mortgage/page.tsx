@@ -42,7 +42,7 @@ const articleSchema = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: 'Riba-Free Mortgage 2026 — Halal Islamic Home Financing Options for Muslims',
-  description: 'A comprehensive guide to halal home financing options for Muslims in the US — murabaha, diminishing musharakah, ijara, and how to find Islamic mortgage providers.',
+  description: 'A complete guide to halal home financing options for Muslims in the US — murabaha, diminishing musharakah, ijara, and how to find Islamic mortgage providers.',
   author: { '@type': 'Organization', name: 'Barakah', url: 'https://trybarakah.com' },
   publisher: { '@type': 'Organization', name: 'Barakah', logo: { '@type': 'ImageObject', url: 'https://trybarakah.com/icon.png' } },
   datePublished: '2024-04-01',

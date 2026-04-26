@@ -210,7 +210,7 @@ export default function Page() {
           <div className="bg-gradient-to-r from-[#1B5E20] to-teal-700 rounded-2xl p-8 text-white text-center mb-10">
             <h2 className="text-2xl font-bold mb-3">Track All Your Finances, Not Just Your Mortgage</h2>
             <p className="text-green-200 mb-6">
-              Whether you&apos;re saving for a down payment, tracking riba payments, or managing a halal mortgage — Barakah keeps your
+              Saving for a down payment, tracking riba payments, or managing a halal mortgage? Barakah keeps your
               full financial picture together with Islamic principles.
             </p>
             <Link href="/signup" className="bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">

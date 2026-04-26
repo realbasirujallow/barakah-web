@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Zakat on Gold & Jewelry: Complete 2026 Guide | Barakah',
-    description: 'Calculate zakat on gold with our comprehensive guide covering nisab, calculation methods, and scholarly positions.',
+    description: 'Calculate zakat on gold with our complete guide covering nisab, calculation methods, and scholarly positions.',
     url: 'https://trybarakah.com/learn/zakat-on-gold',
     type: 'article',
   },

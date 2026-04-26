@@ -52,7 +52,7 @@ const articleSchema = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: 'Zakat on Stock Options & RSUs: 2026 Guide',
-  description: 'Comprehensive guide to zakat on equity compensation — vested vs unvested treatment, valuation, and blackout window considerations.',
+  description: 'Complete guide to zakat on equity compensation — vested vs unvested treatment, valuation, and blackout window considerations.',
   url: 'https://trybarakah.com/learn/zakat-on-stock-options-rsus',
   datePublished: '2026-04-26',
   dateModified: '2026-04-26',

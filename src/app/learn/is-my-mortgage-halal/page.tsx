@@ -38,7 +38,7 @@ const faqItems = [
   },
   {
     q: 'Is Guidance Residential halal?',
-    a: "Guidance Residential uses a declining balance co-ownership (diminishing musharaka) structure reviewed and certified by the Shariah Supervisory Board. It is widely considered one of the most robust halal home financing options in the US.",
+    a: "Guidance Residential uses a declining balance co-ownership (diminishing musharaka) structure reviewed and certified by the Shariah Supervisory Board. It is widely considered one of the most established halal home financing options in the US.",
   },
 ];
 
