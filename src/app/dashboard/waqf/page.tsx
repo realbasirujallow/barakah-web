@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
+import { useFocusTrap } from '../../../lib/useFocusTrap';
 
 interface WaqfItem { id: number; organizationName: string; type: string; purpose: string; amount: number; date: number; recurring: boolean; status: string; description?: string; }
 interface Beneficiary { id: number; name: string; category: string; percentage: number; contact?: string; notes?: string; calculatedAmount: number; }
@@ -42,6 +43,32 @@ export default function WaqfPage() {
 
   const { toast } = useToast();
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
+
+  // ── Modal accessibility: focus trap + Escape close ──────────────────────
+  const formModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(formModalRef, showForm);
+  const benefModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(benefModalRef, showBenefForm);
+  const confirmModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(confirmModalRef, confirmAction !== null);
+  useEffect(() => {
+    if (!showForm) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowForm(false); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [showForm]);
+  useEffect(() => {
+    if (!showBenefForm) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowBenefForm(false); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [showBenefForm]);
+  useEffect(() => {
+    if (!confirmAction) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setConfirmAction(null); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [confirmAction]);
 
   const loadItems = useCallback(() => {
     setLoadingItems(true);
@@ -347,8 +374,14 @@ export default function WaqfPage() {
       {/* Contribution modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">{editItem ? 'Edit Waqf Contribution' : 'Add Waqf Contribution'}</h2>
+          <div
+            ref={formModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-md"
+          >
+            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">{editItem ? 'Edit Waqf Contribution' : 'Add Waqf Contribution'}</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Organization</label>
                 <input value={form.organizationName} onChange={e => setForm({ ...form, organizationName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Islamic Relief" /></div>
@@ -367,7 +400,7 @@ export default function WaqfPage() {
               <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.recurring} onChange={e => setForm({ ...form, recurring: e.target.checked })} className="w-4 h-4" /> Recurring</label>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button aria-label="Close contribution modal" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : editItem ? 'Update' : 'Add'}</button>
             </div>
           </div>
@@ -377,8 +410,14 @@ export default function WaqfPage() {
       {/* Beneficiary modal */}
       {showBenefForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">{editBenef ? 'Edit Beneficiary' : 'Add Beneficiary'}</h2>
+          <div
+            ref={benefModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-md"
+          >
+            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">{editBenef ? 'Edit Beneficiary' : 'Add Beneficiary'}</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Name / Organisation</label>
                 <input value={benefForm.name} onChange={e => setBenefForm({ ...benefForm, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Local Masjid, Sister Fatima" /></div>
@@ -398,7 +437,7 @@ export default function WaqfPage() {
                 <textarea value={benefForm.notes} onChange={e => setBenefForm({ ...benefForm, notes: e.target.value })} rows={2} className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none" placeholder="Specific intentions or conditions…" /></div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowBenefForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button aria-label="Close beneficiary modal" onClick={() => setShowBenefForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSaveBenef} disabled={savingBenef || !benefForm.name || !benefForm.percentage} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{savingBenef ? 'Saving...' : editBenef ? 'Update' : 'Add'}</button>
             </div>
           </div>
@@ -406,10 +445,16 @@ export default function WaqfPage() {
       )}
       {confirmAction && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-            <p className="text-gray-800 mb-6">{confirmAction.message}</p>
+          <div
+            ref={confirmModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-sm"
+          >
+            <p id="modal-title" className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" aria-label="Close confirmation modal" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>

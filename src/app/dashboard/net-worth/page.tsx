@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useCurrency } from '../../../lib/useCurrency';
+import EmptyState from '../../../components/EmptyState';
 
 interface Snapshot {
   id?: number;
@@ -251,6 +252,31 @@ export default function NetWorthPage() {
       </div>
 
       {/* History table */}
+      {history.length === 0 && !loading && (
+        <EmptyState
+          icon="📈"
+          title="Take your first snapshot"
+          description="A snapshot saves your assets, savings, and debts as a single number. Come back weekly and you'll see your trajectory clearly."
+          actions={[
+            { label: '📸 Take snapshot', onClick: takeSnapshot, primary: true },
+            { label: 'Add an asset', href: '/dashboard/assets' },
+          ]}
+          preview={
+            <div className="space-y-2">
+              {[
+                { label: 'Last week', delta: '+$1,240', cls: 'text-green-600' },
+                { label: 'Last month', delta: '+$8,560', cls: 'text-green-600' },
+                { label: 'Year to date', delta: '+$23,400', cls: 'text-green-600' },
+              ].map((s) => (
+                <div key={s.label} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                  <p className="font-medium text-gray-700">{s.label}</p>
+                  <span className={`font-semibold ${s.cls}`}>{s.delta}</span>
+                </div>
+              ))}
+            </div>
+          }
+        />
+      )}
       {history.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b">

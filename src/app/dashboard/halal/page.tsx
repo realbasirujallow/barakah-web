@@ -6,6 +6,7 @@ import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { trackFeatureUse, trackOnce } from '../../../lib/analytics';
+import EmptyState from '../../../components/EmptyState';
 interface HalalResult { symbol: string; name: string; isHalal: boolean; reason: string; sector: string; debtRatio?: number; }
 interface StockStats { totalStocks: number; halalCount: number; haramCount: number; sectorCount: number; }
 interface DetailResult { symbol: string; name: string; status: string; reason: string; sector: string; debtRatio?: number; }
@@ -312,7 +313,34 @@ export default function HalalPage() {
         )}
 
         {!loading && stocks.length === 0 && (
-          <p className="text-center text-gray-400 py-8">No stocks found matching your filters.</p>
+          <EmptyState
+            variant="bare"
+            icon="🔎"
+            title="No stocks match these filters"
+            description="Try clearing the sector filter or switching the compliance toggle. You can also type a ticker like AAPL and press Enter for a quick check."
+            actions={[
+              { label: 'Clear filters', onClick: () => { setSearch(''); setSector(''); setCompliance('all'); setPage(0); }, primary: true },
+            ]}
+            preview={
+              <div className="space-y-2">
+                {[
+                  { sym: 'AAPL', name: 'Apple Inc.', halal: true },
+                  { sym: 'MSFT', name: 'Microsoft Corp.', halal: true },
+                  { sym: 'JPM', name: 'JPMorgan Chase', halal: false },
+                ].map((s) => (
+                  <div key={s.sym} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                    <div>
+                      <p className="font-medium text-gray-700">{s.sym}</p>
+                      <p className="text-xs text-gray-400">{s.name}</p>
+                    </div>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.halal ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {s.halal ? '✅ Halal' : '❌ Haram'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            }
+          />
         )}
 
         {/* Pagination */}

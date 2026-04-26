@@ -6,6 +6,7 @@ import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useRouter } from 'next/navigation';
 import { trackFeatureUse, trackOnce } from '../../../lib/analytics';
+import EmptyState from '../../../components/EmptyState';
 
 // ── Existing interfaces ───────────────────────────────────────────────────────
 
@@ -459,42 +460,67 @@ export default function RibaPage() {
           ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'scan' && (
         <>
-          <div className={`rounded-2xl p-8 text-white mb-6 ${
-            noTransactions && !hasRibaDebts
-              ? 'bg-gradient-to-r from-gray-500 to-gray-400'
-              : isClean
+          {noTransactions && !hasRibaDebts ? (
+            <EmptyState
+              icon="🔎"
+              title="Nothing to scan yet"
+              description="Connect a bank or import a CSV and we'll flag any interest income or interest-bearing charges in your records."
+              actions={[
+                { label: 'Connect bank', href: '/dashboard/import', primary: true },
+                { label: 'Add transaction', href: '/dashboard/transactions' },
+              ]}
+              preview={
+                <div className="space-y-2">
+                  {[
+                    { desc: 'Bank interest (savings)', amt: '+$8.42', cls: 'text-red-600' },
+                    { desc: 'Credit-card APR charge', amt: '−$45.50', cls: 'text-red-600' },
+                    { desc: 'Investment APY payout', amt: '+$12.18', cls: 'text-red-600' },
+                  ].map((t) => (
+                    <div key={t.desc} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                      <div>
+                        <p className="font-medium text-gray-700">{t.desc}</p>
+                        <p className="text-xs text-gray-400">Flagged as riba</p>
+                      </div>
+                      <span className={`font-semibold ${t.cls}`}>{t.amt}</span>
+                    </div>
+                  ))}
+                </div>
+              }
+            />
+          ) : (
+            <div className={`rounded-2xl p-8 text-white mb-6 ${
+              isClean
                 ? 'bg-gradient-to-r from-green-600 to-emerald-500'
                 : 'bg-gradient-to-r from-red-600 to-orange-500'
-          }`}>
-            <div className="text-center">
-              <p className="text-6xl mb-3">{noTransactions && !hasRibaDebts ? '🔍' : isClean ? '✅' : '⚠️'}</p>
-              <p className="text-2xl font-bold">
-                {noTransactions && !hasRibaDebts ? 'No Data to Scan' : isClean ? 'Riba-Free!' : 'Riba Detected'}
-              </p>
-              <p className="text-white/80 mt-1">
-                {noTransactions && !hasRibaDebts
-                  ? 'Add transactions or debts to scan for riba (interest)'
-                  : `${result?.totalScanned || 0} transactions scanned${hasRibaDebts ? ` · ${ribaDebts.length} interest-bearing debt${ribaDebts.length !== 1 ? 's' : ''} found` : ''}`}
-              </p>
-            </div>
-
-            {!isClean && !noTransactions && result && (
-              <div className="grid grid-cols-3 gap-4 mt-6">
-                <div className="text-center">
-                  <p className="text-white/70 text-xs">Flagged</p>
-                  <p className="text-2xl font-bold">{flagged}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-white/70 text-xs">Riba Amount</p>
-                  <p className="text-2xl font-bold">{fmt(result.totalRibaAmount ?? 0)}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-white/70 text-xs">% of Total</p>
-                  <p className="text-2xl font-bold">{(result.ribaPercentage ?? 0).toFixed(1)}%</p>
-                </div>
+            }`}>
+              <div className="text-center">
+                <p className="text-6xl mb-3">{isClean ? '✅' : '⚠️'}</p>
+                <p className="text-2xl font-bold">
+                  {isClean ? 'Riba-Free!' : 'Riba Detected'}
+                </p>
+                <p className="text-white/80 mt-1">
+                  {`${result?.totalScanned || 0} transactions scanned${hasRibaDebts ? ` · ${ribaDebts.length} interest-bearing debt${ribaDebts.length !== 1 ? 's' : ''} found` : ''}`}
+                </p>
               </div>
-            )}
-          </div>
+
+              {!isClean && result && (
+                <div className="grid grid-cols-3 gap-4 mt-6">
+                  <div className="text-center">
+                    <p className="text-white/70 text-xs">Flagged</p>
+                    <p className="text-2xl font-bold">{flagged}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white/70 text-xs">Riba Amount</p>
+                    <p className="text-2xl font-bold">{fmt(result.totalRibaAmount ?? 0)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white/70 text-xs">% of Total</p>
+                    <p className="text-2xl font-bold">{(result.ribaPercentage ?? 0).toFixed(1)}%</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {isClean && !noTransactions && !hasRibaDebts && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-800 mb-6">
@@ -885,13 +911,31 @@ export default function RibaPage() {
 
               {/* Empty state */}
               {!journey || journey.totalGoals === 0 ? (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-8 text-center">
-                  <p className="text-4xl mb-3">🌱</p>
-                  <p className="text-lg font-semibold text-[#1B5E20] mb-1">Begin Your Riba-Free Journey</p>
-                  <p className="text-sm text-green-700">
-                    Add your interest-bearing sources above to start tracking your path to a riba-free life.
-                  </p>
-                </div>
+                <EmptyState
+                  icon="🌱"
+                  title="Start your riba-free journey"
+                  description="List the mortgages, credit cards, or interest-bearing accounts you want to clear, then mark each one eliminated as you replace it with a halal alternative."
+                  actions={[
+                    { label: 'Auto-detect from debts', onClick: handleLoadSuggestions, primary: true },
+                  ]}
+                  preview={
+                    <div className="space-y-2">
+                      {[
+                        { src: '🏠 Mortgage', name: 'Chase Mortgage', amt: '$240,000', status: 'Active' },
+                        { src: '💳 Credit Card', name: 'Discover Card', amt: '$3,400', status: 'In progress' },
+                        { src: '🚗 Car Loan', name: 'Toyota Finance', amt: '$11,200', status: 'Active' },
+                      ].map((g) => (
+                        <div key={g.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                          <div>
+                            <p className="font-medium text-gray-700">{g.src}</p>
+                            <p className="text-xs text-gray-400">{g.name} · {g.status}</p>
+                          </div>
+                          <span className="font-semibold text-red-600">{g.amt}</span>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                />
               ) : null}
 
               <div className="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
@@ -993,13 +1037,14 @@ export default function RibaPage() {
               )}
             </div>
           ) : (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-8 text-center">
-              <p className="text-4xl mb-3">✅</p>
-              <p className="text-lg font-semibold text-[#1B5E20] mb-1">No Riba to Purify</p>
-              <p className="text-sm text-green-700">
-                No interest income has been detected. If riba is found in the Scan tab, purification tracking will appear here.
-              </p>
-            </div>
+            <EmptyState
+              icon="✅"
+              title="Nothing to purify right now"
+              description="When the scanner finds interest income in your records, you can record charity donations here to purify it. Alhamdulillah — your records are clean so far."
+              actions={[
+                { label: 'Run a fresh scan', onClick: () => setActiveTab('scan'), primary: true },
+              ]}
+            />
           )}
 
           <div className="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">

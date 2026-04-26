@@ -13,6 +13,7 @@ import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
 import { trackFeatureUse } from '../../../lib/analytics';
+import { useFocusTrap } from '../../../lib/useFocusTrap';
 
 // ── Supported currencies ──────────────────────────────────────────────────────
 const CURRENCIES = [
@@ -155,6 +156,28 @@ export default function TransactionsPage() {
 
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // ── Modal accessibility: focus trap + Escape close ──────────────────────
+  const formModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(formModalRef, showForm);
+  const deleteModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(deleteModalRef, deleteConfirmation !== null);
+  useEffect(() => {
+    if (!showForm) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setShowForm(false); setEditTx(null); setFormError(null); }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [showForm]);
+  useEffect(() => {
+    if (deleteConfirmation === null) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDeleteConfirmation(null);
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [deleteConfirmation]);
 
   // Debounce search input (300ms)
   useEffect(() => {
@@ -677,8 +700,14 @@ export default function TransactionsPage() {
       {/* ── Add Transaction modal ───────────────────────────────────────────── */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">{editTx ? 'Edit Transaction' : 'Add Transaction'}</h2>
+          <div
+            ref={formModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-md"
+          >
+            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">{editTx ? 'Edit Transaction' : 'Add Transaction'}</h2>
             <div className="space-y-4">
               {/* Type */}
               <div>
@@ -764,7 +793,7 @@ export default function TransactionsPage() {
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => { setShowForm(false); setEditTx(null); setFormError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button aria-label="Close add transaction modal" onClick={() => { setShowForm(false); setEditTx(null); setFormError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.amount}
                 className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
                 {saving ? 'Saving...' : (editTx ? 'Save Changes' : 'Add')}
@@ -777,11 +806,17 @@ export default function TransactionsPage() {
       {/* ── Delete confirmation modal ─────────────────────────────────────── */}
       {deleteConfirmation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+          <div
+            ref={deleteModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-sm"
+          >
             <div className="flex items-start gap-3 mb-4">
               <span className="text-2xl">🗑️</span>
               <div className="flex-1">
-                <h3 className="font-bold text-gray-900">Delete transaction?</h3>
+                <h3 id="modal-title" className="font-bold text-gray-900">Delete transaction?</h3>
                 {deleteConfirmation.type === 'single' && (
                   <p className="text-sm text-gray-600 mt-1">This transaction will be permanently deleted and cannot be undone.</p>
                 )}
@@ -796,6 +831,7 @@ export default function TransactionsPage() {
             </div>
             <div className="flex gap-3">
               <button
+                aria-label="Close delete confirmation modal"
                 onClick={() => setDeleteConfirmation(null)}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50 font-medium"
               >

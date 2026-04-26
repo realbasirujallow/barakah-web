@@ -1,9 +1,10 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
+import { useFocusTrap } from '../../../lib/useFocusTrap';
 
 interface BillItem {
   id: number; name: string; category: string; amount: number;
@@ -149,6 +150,28 @@ export default function BillsPage() {
   const [deleteConfirmation, setDeleteConfirmation] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const { toast } = useToast();
+
+  // ── Modal accessibility: focus trap + Escape close ──────────────────────
+  const formModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(formModalRef, showForm);
+  const deleteModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(deleteModalRef, deleteConfirmation !== null);
+  useEffect(() => {
+    if (!showForm) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setShowForm(false); setEditBill(null); }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [showForm]);
+  useEffect(() => {
+    if (deleteConfirmation === null) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDeleteConfirmation(null);
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [deleteConfirmation]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -356,8 +379,14 @@ export default function BillsPage() {
       {/* Add / Edit Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">{editBill ? 'Edit Bill' : 'Add Bill'}</h2>
+          <div
+            ref={formModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-md"
+          >
+            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">{editBill ? 'Edit Bill' : 'Add Bill'}</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
@@ -415,6 +444,7 @@ export default function BillsPage() {
             <div className="flex gap-3 mt-6">
               <button
                 type="button"
+                aria-label="Close add bill modal"
                 onClick={() => { setShowForm(false); setEditBill(null); }}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
               >
@@ -436,17 +466,24 @@ export default function BillsPage() {
       {/* ── Delete confirmation modal ─────────────────────────────────────── */}
       {deleteConfirmation !== null && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+          <div
+            ref={deleteModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-sm"
+          >
             <div className="flex items-start gap-3 mb-4">
               <span className="text-2xl">🗑️</span>
               <div className="flex-1">
-                <h3 className="font-bold text-gray-900">Delete bill?</h3>
+                <h3 id="modal-title" className="font-bold text-gray-900">Delete bill?</h3>
                 <p className="text-sm text-gray-600 mt-1">This bill will be permanently deleted and cannot be undone.</p>
               </div>
             </div>
             <div className="flex gap-3">
               <button
                 type="button"
+                aria-label="Close delete bill modal"
                 onClick={() => setDeleteConfirmation(null)}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50 font-medium"
               >

@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
+import EmptyState from '../../../components/EmptyState';
 
 /**
  * Market Prices — live crypto + stock + watchlist.
@@ -340,11 +341,35 @@ export default function MarketPricesPage() {
       {tab === 'watchlist' && (
         <div className="bg-white rounded-2xl shadow-sm p-4">
           {watchlist.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
-              <p className="text-4xl mb-3">⭐</p>
-              <p className="font-medium text-gray-600">Your watchlist is empty</p>
-              <p className="text-sm mt-1">Add stocks from the Stock Search tab.</p>
-            </div>
+            <EmptyState
+              variant="bare"
+              icon="⭐"
+              title="Build your market watchlist"
+              description="Track gold (PAXG), Shariah-compliant stocks, or anything you check often. Prices refresh every 5 minutes."
+              actions={[
+                { label: 'Search a stock', onClick: () => setTab('stock'), primary: true },
+              ]}
+              preview={
+                <div className="space-y-2">
+                  {[
+                    { sym: 'PAXG', desc: 'Pax Gold', price: '$4,705.20', ch: '+2.1%', cls: 'text-green-600' },
+                    { sym: 'AAPL', desc: 'Apple Inc.', price: '$235.40', ch: '+0.4%', cls: 'text-green-600' },
+                    { sym: 'BTC', desc: 'Bitcoin', price: '$108,420', ch: '+1.8%', cls: 'text-green-600' },
+                  ].map((s) => (
+                    <div key={s.sym} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                      <div>
+                        <p className="font-medium text-gray-700">{s.sym}</p>
+                        <p className="text-xs text-gray-400">{s.desc}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-gray-700">{s.price}</p>
+                        <p className={`text-xs font-medium ${s.cls}`}>{s.ch}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              }
+            />
           ) : (
             <>
               <div className="flex items-center justify-between mb-3">
