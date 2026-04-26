@@ -8,6 +8,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
+import EmptyState from '../../../components/EmptyState';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
@@ -634,14 +635,32 @@ export default function TransactionsPage() {
           })}
         </div>
       ) : (
-        <div className="text-center py-20 bg-gradient-to-b from-white to-gray-50 rounded-2xl border border-gray-100">
-          <p className="text-6xl mb-4">📊</p>
-          <p className="text-gray-700 font-semibold text-lg mb-2">No transactions yet</p>
-          <p className="text-gray-500 text-sm mb-6">No transactions recorded yet. Add your first income, expense, or transfer to start building a clean ledger.</p>
-          <button onClick={openAdd} className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-xl hover:bg-[#2E7D32] font-medium text-sm">
-            + Add Your First Transaction
-          </button>
-        </div>
+        <EmptyState
+          icon="📊"
+          title="No transactions yet"
+          description="Add your first income, expense, or transfer manually — or connect your bank to import the last 90 days automatically."
+          actions={[
+            { label: '+ Add transaction', onClick: openAdd, primary: true },
+            { label: 'Connect bank', href: '/dashboard/import' },
+          ]}
+          preview={
+            <div className="space-y-2">
+              {[
+                { desc: 'Whole Foods Market', cat: 'Groceries', amt: '−$84.31', date: 'Today' },
+                { desc: 'Salary — Acme Corp', cat: 'Income', amt: '+$5,400.00', date: 'Apr 25' },
+                { desc: 'Sadaqah · Local masjid', cat: 'Sadaqah', amt: '−$50.00', date: 'Apr 24' },
+              ].map((t, i) => (
+                <div key={i} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                  <div>
+                    <p className="font-medium text-gray-700">{t.desc}</p>
+                    <p className="text-xs text-gray-400">{t.cat} · {t.date}</p>
+                  </div>
+                  <span className={t.amt.startsWith('+') ? 'font-semibold text-emerald-600' : 'font-semibold text-gray-700'}>{t.amt}</span>
+                </div>
+              ))}
+            </div>
+          }
+        />
       )}
 
       {/* ── Pagination ─────────────────────────────────────────────────────── */}

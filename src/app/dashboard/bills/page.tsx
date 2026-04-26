@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
+import EmptyState from '../../../components/EmptyState';
 
 interface BillItem {
   id: number; name: string; category: string; amount: number;
@@ -324,11 +325,32 @@ export default function BillsPage() {
       <Section title="✅ Paid"          items={paid}      color="text-green-700"  now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
 
       {bills.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-4xl mb-3">🧾</p>
-          <p className="font-medium text-gray-600">No bills added yet</p>
-          <p className="text-sm mt-1">Add your recurring bills to track due dates and get reminders</p>
-        </div>
+        <EmptyState
+          icon="🧾"
+          title="No bills added yet"
+          description="Track your recurring bills so you never miss a due date — Barakah sends a reminder 3 days before each one."
+          actions={[
+            { label: '+ Add bill', onClick: openAdd, primary: true },
+            { label: 'Auto-detect from bank', href: '/dashboard/import' },
+          ]}
+          preview={
+            <div className="space-y-2">
+              {[
+                { name: 'Mortgage', amt: '$1,840.00', due: 'Due in 5 days', status: 'upcoming' },
+                { name: 'Internet', amt: '$79.99', due: 'Due tomorrow', status: 'soon' },
+                { name: 'Phone', amt: '$45.00', due: 'Paid', status: 'paid' },
+              ].map((b) => (
+                <div key={b.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                  <div>
+                    <p className="font-medium text-gray-700">{b.name}</p>
+                    <p className={`text-xs ${b.status === 'soon' ? 'text-orange-600' : b.status === 'paid' ? 'text-emerald-600' : 'text-gray-400'}`}>{b.due}</p>
+                  </div>
+                  <span className="font-semibold text-gray-700">{b.amt}</span>
+                </div>
+              ))}
+            </div>
+          }
+        />
       )}
 
       {/* Add / Edit Modal */}

@@ -59,6 +59,7 @@ const TYPE_OPTIONS = [
 
 // Use canonical categories from DomainConstants (single source of truth)
 import { TRANSACTION_CATEGORIES } from '../../../lib/constants';
+import EmptyState from '../../../components/EmptyState';
 const CATEGORY_OPTIONS = ['', ...TRANSACTION_CATEGORIES];
 
 const DEFAULT_RULE_FORM = {
@@ -392,9 +393,26 @@ export default function CategorizePage() {
           <h2 className="text-lg font-semibold text-[#1B5E20] mb-1">Saved Rules</h2>
           <p className="text-sm text-gray-500 mb-4">Rules run from the smallest priority number to the largest.</p>
           {rules.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-200 p-6 text-sm text-gray-500">
-              No rules yet. Create your first one for transfers, payroll, reimbursements, or any other recurring pattern.
-            </div>
+            <EmptyState
+              variant="bare"
+              icon="🎯"
+              title="No auto-categorize rules yet"
+              description="Rules run on every new transaction. Use them for payroll, transfers, sadaqah patterns, or any recurring merchant."
+              preview={
+                <div className="space-y-2">
+                  {[
+                    { name: 'Payroll → Income', match: 'description contains "payroll"' },
+                    { name: 'Sadaqah → masjid', match: 'merchant equals "Local masjid"' },
+                    { name: 'Transfers → Internal', match: 'description starts with "Transfer to"' },
+                  ].map((r) => (
+                    <div key={r.name} className="bg-white rounded-xl p-3 border border-gray-100 text-sm text-left">
+                      <p className="font-medium text-gray-700">{r.name}</p>
+                      <p className="text-xs text-gray-400">{r.match}</p>
+                    </div>
+                  ))}
+                </div>
+              }
+            />
           ) : (
             <div className="space-y-3">
               {rules.map(rule => (
