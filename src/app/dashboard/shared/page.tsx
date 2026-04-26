@@ -54,6 +54,34 @@ interface SharedGoal {
   description?: string;
 }
 
+// Estate-share payload from /api/shared/groups/{id}/estate. Inner item arrays
+// (waqf, wasiyyahBeneficiaries, obligations) keep loose typing because each
+// element is owned by a different domain (Waqf entity / Wasiyyah beneficiary
+// row / Wasiyyah obligation row) and the JSX already uses field-by-field
+// `as string|number` casts. Top-level shape is what we need to lock down so
+// future readers know the optional flags + the nested members[] are real.
+interface EstateMember {
+  userId: number;
+  displayName: string;
+  role: string;
+  isSharing: boolean;
+  isSelf: boolean;
+  hasEstatePlan: boolean;
+  totalWaqf?: number;
+  totalShareAllocated?: number;
+  pendingObligations?: number;
+  waqf?: Record<string, unknown>[];
+  wasiyyahBeneficiaries?: Record<string, unknown>[];
+  obligations?: Record<string, unknown>[];
+}
+interface EstateData {
+  error?: string;
+  membersSharing?: number;
+  membersWithEstatePlan?: number;
+  groupTotalWaqf?: number;
+  members?: EstateMember[];
+}
+
 const emptyGroupForm = { name: '', description: '' };
 // `type` is required by the backend SharedTransactionRequest DTO (@NotBlank).
 // Default to "expense" because it's the overwhelmingly common case for shared
@@ -72,11 +100,7 @@ export default function SharedPage() {
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [activeTab, setActiveTab] = useState<'expenses' | 'budgets' | 'goals' | 'estate'>('expenses');
-  // Estate payload differs by group type (spousal, parental, sibling) and
-  // is rendered directly in JSX. Typing each shape is a bigger refactor
-  // than the type-safety gain; documented here as intentional.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [estateData, setEstateData] = useState<any>(null);
+  const [estateData, setEstateData] = useState<EstateData | null>(null);
   const [estateSharing, setEstateSharing] = useState(true);
 
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -656,32 +680,32 @@ export default function SharedPage() {
 
                   {/* Per-member estate cards */}
                   <div className="p-5 space-y-4">
-                    {estateData?.members?.length > 0 ? estateData.members.map((member: Record<string, unknown>) => {
-                      const waqfs = (member.waqf as Record<string, unknown>[]) || [];
-                      const beneficiaries = (member.wasiyyahBeneficiaries as Record<string, unknown>[]) || [];
-                      const obligations = (member.obligations as Record<string, unknown>[]) || [];
-                      const isSharing = member.isSharing as boolean;
-                      const isSelf = member.isSelf as boolean;
+                    {(estateData?.members?.length ?? 0) > 0 ? estateData!.members!.map((member) => {
+                      const waqfs = member.waqf || [];
+                      const beneficiaries = member.wasiyyahBeneficiaries || [];
+                      const obligations = member.obligations || [];
+                      const isSharing = member.isSharing;
+                      const isSelf = member.isSelf;
 
                       return (
-                        <div key={member.userId as number} className="border rounded-xl overflow-hidden">
+                        <div key={member.userId} className="border rounded-xl overflow-hidden">
                           {/* Member header */}
                           <div className={`px-4 py-3 flex items-center justify-between ${isSelf ? 'bg-emerald-50' : 'bg-gray-50'}`}>
                             <div className="flex items-center gap-2">
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isSelf ? 'bg-[#1B5E20] text-white' : 'bg-gray-200 text-gray-600'}`}>
-                                {((member.displayName as string) || 'M')[0].toUpperCase()}
+                                {(member.displayName || 'M')[0].toUpperCase()}
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900 text-sm">
-                                  {member.displayName as string}{isSelf && <span className="text-xs text-[#1B5E20] ml-1">(you)</span>}
+                                  {member.displayName}{isSelf && <span className="text-xs text-[#1B5E20] ml-1">(you)</span>}
                                 </p>
-                                <p className="text-xs text-gray-400">{member.role as string}</p>
+                                <p className="text-xs text-gray-400">{member.role}</p>
                               </div>
                             </div>
                             {!isSharing && (
                               <span className="text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full">Private</span>
                             )}
-                            {isSharing && (member.hasEstatePlan as boolean) && (
+                            {isSharing && member.hasEstatePlan && (
                               <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">Estate Plan Active</span>
                             )}
                           </div>
@@ -702,7 +726,7 @@ export default function SharedPage() {
                                       <p className="text-sm font-semibold text-emerald-600">{fmt((w.amount as number) || 0)}</p>
                                     </div>
                                   ))}
-                                  <p className="text-xs text-gray-400 mt-1">Total: {fmt((member.totalWaqf as number) || 0)}</p>
+                                  <p className="text-xs text-gray-400 mt-1">Total: {fmt(member.totalWaqf || 0)}</p>
                                 </div>
                               )}
 
@@ -719,7 +743,7 @@ export default function SharedPage() {
                                       <p className="text-sm font-semibold text-amber-600">{(b.sharePercentage as number)?.toFixed(1)}%</p>
                                     </div>
                                   ))}
-                                  <p className="text-xs text-gray-400 mt-1">Total allocated: {((member.totalShareAllocated as number) || 0).toFixed(1)}%</p>
+                                  <p className="text-xs text-gray-400 mt-1">Total allocated: {(member.totalShareAllocated || 0).toFixed(1)}%</p>
                                 </div>
                               )}
 
@@ -739,8 +763,8 @@ export default function SharedPage() {
                                       </div>
                                     </div>
                                   ))}
-                                  {(member.pendingObligations as number) > 0 && (
-                                    <p className="text-xs text-red-500 mt-1">Pending: {fmt(member.pendingObligations as number)}</p>
+                                  {(member.pendingObligations || 0) > 0 && (
+                                    <p className="text-xs text-red-500 mt-1">Pending: {fmt(member.pendingObligations || 0)}</p>
                                   )}
                                 </div>
                               )}
