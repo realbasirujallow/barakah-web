@@ -6,6 +6,7 @@ import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 import { useCurrency } from '../../../lib/useCurrency';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import EmptyState from '../../../components/EmptyState';
 
 interface Account {
   id: number;
@@ -499,16 +500,38 @@ export default function InvestmentsPage() {
 
       {/* Empty state — shown only when both sections are empty */}
       {accounts.length === 0 && assetAccounts.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-4xl mb-3">📈</p>
-          <p className="font-medium text-gray-600">No investment accounts yet.</p>
-          <p className="text-sm mt-2 max-w-sm mx-auto text-gray-400">
-            Click <strong>+ Add Account</strong> to track a brokerage account with holdings,
-            or go to{' '}
-            <Link href="/dashboard/assets" className="text-[#1B5E20] underline hover:no-underline">Assets</Link>
-            {' '}and add a 401(k), IRA, HSA, 529, or other investment asset — it will appear here automatically.
-          </p>
-        </div>
+        <EmptyState
+          icon="📈"
+          title="Track your halal investments"
+          description="Add a brokerage account or import from Plaid. Every holding is auto-screened against AAOIFI Standard 21 — you'll see a halal/haram tag next to each ticker."
+          actions={[
+            { label: '+ Add account', onClick: () => setShowAccountForm(true), primary: true },
+            { label: 'Add 401(k) / IRA', href: '/dashboard/assets' },
+          ]}
+          preview={
+            <div className="space-y-2">
+              {[
+                { sym: 'AAPL', name: 'Apple Inc.', value: '$12,450', tag: 'halal' },
+                { sym: 'MSFT', name: 'Microsoft Corp.', value: '$8,920', tag: 'halal' },
+                { sym: 'JPM', name: 'JPMorgan Chase', value: '$1,200', tag: 'haram' },
+              ].map((h) => (
+                <div key={h.sym} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600">{h.sym[0]}</div>
+                    <div>
+                      <p className="font-medium text-gray-700">{h.sym}</p>
+                      <p className="text-xs text-gray-400">{h.name}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-700">{h.value}</p>
+                    <span className={`text-[10px] uppercase font-bold tracking-wide ${h.tag === 'halal' ? 'text-emerald-600' : 'text-red-600'}`}>{h.tag === 'halal' ? '✓ Halal' : '✗ Haram'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          }
+        />
       )}
 
       {/* Add Account Modal */}

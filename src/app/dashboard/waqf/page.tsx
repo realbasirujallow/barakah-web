@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
+import EmptyState from '../../../components/EmptyState';
 
 interface WaqfItem { id: number; organizationName: string; type: string; purpose: string; amount: number; date: number; recurring: boolean; status: string; description?: string; }
 interface Beneficiary { id: number; name: string; category: string; percentage: number; contact?: string; notes?: string; calculatedAmount: number; }
@@ -245,7 +246,29 @@ export default function WaqfPage() {
                     </div>
                   </div>
                 ))}</div>
-              : <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-3">🕌</p><p>No waqf contributions yet.</p></div>
+              : <EmptyState
+                  icon="🕌"
+                  title="Begin your waqf legacy"
+                  description="Waqf is a perpetual endowment — sadaqah jariyah that continues to benefit you and others long after a single act of giving."
+                  actions={[{ label: '+ New contribution', onClick: openAdd, primary: true }]}
+                  preview={
+                    <div className="space-y-2">
+                      {[
+                        { org: 'Local masjid expansion', purpose: 'Mosque', amt: '$500.00' },
+                        { org: 'Yatim orphanage waqf', purpose: 'Orphans', amt: '$250.00' },
+                        { org: 'Islamic library endowment', purpose: 'Education', amt: '$100.00' },
+                      ].map((w) => (
+                        <div key={w.org} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                          <div>
+                            <p className="font-medium text-gray-700">{w.org}</p>
+                            <p className="text-xs text-gray-400">{w.purpose}</p>
+                          </div>
+                          <span className="font-semibold text-[#1B5E20]">{w.amt}</span>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                />
           }
         </>
       )}
