@@ -492,9 +492,19 @@ export default function ProfilePage() {
       {/* Location */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
         <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Location</h2>
-        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
-          Moved recently? Update your location to ensure accurate tax calculations for Zakat.
-        </p>
+        {/* Only show the prompt when no country has been set yet. Showing
+            "Moved recently? Update your location to ensure accurate tax
+            calculations for Zakat." after the user has already saved a
+            location is confusing — they just saved it; the warning then
+            implies "you didn't" which erodes trust. Once a location
+            exists, the success toast on save is sufficient feedback;
+            the section heading + populated field already communicates
+            state. (QA flagged 2026-04-25.) */}
+        {!locationForm.country && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
+            Set your country (and US state, if applicable) so we can apply the right Zakat tax rules. You can update this any time you move.
+          </p>
+        )}
         <div className="space-y-4">
           <div>
             <label htmlFor="profile-country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
