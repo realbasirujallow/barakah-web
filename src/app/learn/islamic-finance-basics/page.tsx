@@ -116,7 +116,7 @@ export default function IslamicFinanceBasicsPage() {
             <section id="what-is" className="space-y-4">
               <h2 className="text-2xl font-bold text-[#1B5E20]">What is Islamic Finance?</h2>
               <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-                Islamic finance is a comprehensive system of financial transactions and money management based on Islamic law (Sharia). Rather than viewing finance as purely technical and amoral, Islamic finance integrates ethics, fairness, and social responsibility into every financial decision.
+                Islamic finance is a complete system of financial transactions and money management based on Islamic law (Sharia). Rather than viewing finance as purely technical and amoral, Islamic finance integrates ethics, fairness, and social responsibility into every financial decision.
               </p>
               <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 The core philosophy is: <strong>Money is a means to achieve life goals, not the ultimate goal itself.</strong> Wealth should be earned ethically, managed responsibly, and shared generously through mechanisms like zakat.

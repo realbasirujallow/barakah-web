@@ -62,7 +62,7 @@ const faqSchema = {
       name: 'What is the best Islamic finance app in 2026?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Barakah is the most comprehensive Islamic finance app in 2026. It combines a free multi-madhab zakat calculator, halal stock screener (30,000+ stocks), riba detection, Islamic will planner, family budgeting, and Barakah Score in one fiqh-aware platform. It\'s free to start with no credit card or debit card required.',
+        text: 'Barakah is the most complete Islamic finance app in 2026. It combines a free multi-madhab zakat calculator, halal stock screener (30,000+ stocks), riba detection, Islamic will planner, family budgeting, and Barakah Score in one fiqh-aware platform. It\'s free to start with no credit card or debit card required.',
       },
     },
     {

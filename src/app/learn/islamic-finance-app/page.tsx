@@ -85,7 +85,7 @@ const faqSchema = {
       name: 'What is the best Islamic finance app in 2026?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Barakah is the most comprehensive Islamic finance app in 2026 for Muslim households. It combines zakat calculation, riba detection, halal stock screening, sadaqah tracking, Islamic will planning, and family budgeting — all built around fiqh principles. Zoya is the best dedicated halal stock screener. Wahed Invest is best for Sharia-compliant managed portfolios. For a complete household finance platform, Barakah is the top choice.',
+        text: 'Barakah is the most complete Islamic finance app in 2026 for Muslim households. It combines zakat calculation, riba detection, halal stock screening, sadaqah tracking, Islamic will planning, and family budgeting — all built around fiqh principles. Zoya is the best dedicated halal stock screener. Wahed Invest is best for Sharia-compliant managed portfolios. For a complete household finance platform, Barakah is the top choice.',
       },
     },
     {
@@ -109,7 +109,7 @@ const faqSchema = {
       name: 'What is the difference between Barakah and Zoya?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Zoya is a dedicated halal stock screener — it tells you whether a specific stock is halal or haram based on AAOIFI Standard 21 criteria. Barakah is a comprehensive Islamic household finance platform that includes a halal stock screener alongside zakat calculation, budgeting, riba detection, Islamic will planning, and sadaqah tracking. If you only want to screen stocks, Zoya is excellent. If you want your entire financial life to be fiqh-aware, Barakah is the better choice.",
+        text: "Zoya is a dedicated halal stock screener — it tells you whether a specific stock is halal or haram based on AAOIFI Standard 21 criteria. Barakah is a full Islamic household finance platform that includes a halal stock screener alongside zakat calculation, budgeting, riba detection, Islamic will planning, and sadaqah tracking. If you only want to screen stocks, Zoya is excellent. If you want your entire financial life to be fiqh-aware, Barakah is the better choice.",
       },
     },
     {
@@ -417,7 +417,7 @@ export default function IslamicFinanceAppPage() {
           <div className="bg-green-700 rounded-2xl p-8 text-center text-white mb-10">
             <h2 className="text-2xl font-bold mb-3">Try the Best Islamic Finance App — Free</h2>
             <p className="text-green-100 mb-6">
-              Start with our free zakat calculator, then unlock the full suite — halal screener, riba detector, family budgeting, and Islamic will planner.
+              Start with our free zakat calculator, then add the full suite — halal screener, riba detector, family budgeting, and Islamic will planner.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link

@@ -52,7 +52,7 @@ const articleSchema = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: 'Zakat on Cryptocurrency 2026: Complete Guide',
-  description: 'Comprehensive guide to calculating zakat on cryptocurrency in 2026 — covering Bitcoin, Ethereum, stablecoins, staking rewards, and madhab differences.',
+  description: 'Complete guide to calculating zakat on cryptocurrency in 2026 — covering Bitcoin, Ethereum, stablecoins, staking rewards, and madhab differences.',
   url: 'https://trybarakah.com/learn/zakat-on-cryptocurrency',
   datePublished: '2026-04-26',
   dateModified: '2026-04-26',

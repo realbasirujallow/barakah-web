@@ -64,7 +64,7 @@ const articleSchema = {
   '@type': 'Article',
   headline: 'Best Islamic Budgeting App 2026 — Halal Budget Tracker for Muslim Families',
   description:
-    'A comprehensive guide to the best Islamic budgeting apps for Muslim households — covering zakat automation, riba detection, sadaqah tracking, and halal expense management.',
+    'A complete guide to the best Islamic budgeting apps for Muslim households — covering zakat automation, riba detection, sadaqah tracking, and halal expense management.',
   image: 'https://trybarakah.com/og-image.png',
   author: { '@type': 'Organization', name: 'Barakah', url: 'https://trybarakah.com' },
   publisher: {
@@ -94,7 +94,7 @@ const faqSchema = {
       name: 'Is Barakah the best free Islamic budgeting app?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Barakah is the most comprehensive free Islamic budgeting app available. The free plan includes zakat calculation, expense tracking, category budgeting, and sadaqah goals. The Plus plan ($9.99/month) adds bank sync, halal stock screening, faraid calculator, and the Barakah Score. No other app combines all of these features in a single fiqh-aware platform.",
+        text: "Barakah is the most complete free Islamic budgeting app available. The free plan includes zakat calculation, expense tracking, category budgeting, and sadaqah goals. The Plus plan ($9.99/month) adds bank sync, halal stock screening, faraid calculator, and the Barakah Score. No other app combines all of these features in a single fiqh-aware platform.",
       },
     },
     {

@@ -42,7 +42,7 @@ const articleSchema = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: 'Halal Budgeting 2026 — Complete Islamic Guide to Managing Money',
-  description: 'A comprehensive guide to building a halal budget aligned with Islamic finance principles — zakat, riba avoidance, sadaqah goals, and more.',
+  description: 'A complete guide to building a halal budget aligned with Islamic finance principles — zakat, riba avoidance, sadaqah goals, and more.',
   author: { '@type': 'Organization', name: 'Barakah', url: 'https://trybarakah.com' },
   publisher: { '@type': 'Organization', name: 'Barakah', logo: { '@type': 'ImageObject', url: 'https://trybarakah.com/icon.png' } },
   datePublished: '2024-02-15',
