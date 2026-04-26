@@ -503,6 +503,12 @@ export default function AdminPage() {
         >
           👁️ Email Preview
         </Link>
+        <Link
+          href="/dashboard/admin/halal-screening"
+          className="bg-white border border-[#1B5E20] text-[#1B5E20] px-3 py-1.5 rounded-lg font-medium hover:bg-green-50"
+        >
+          ☪️ Halal Screening
+        </Link>
       </div>
 
       {/* ── Tab Navigation ── */}

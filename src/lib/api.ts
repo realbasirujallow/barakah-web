@@ -1257,6 +1257,14 @@ export const api = {
     apiFetch(`/admin/dropoff-analysis?days=${days}`, {}, API_TIMEOUT, true),
   getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
   getAdminOverview: () => apiFetch('/admin/overview', {}, API_TIMEOUT, true),
+  /**
+   * Halal-screening run history. Religious-trust observability — admins
+   * use this to confirm yesterday's daily scan ran, see what stocks
+   * flipped halal/haram, and verify users were notified. Returns the
+   * last 30 runs + a "lastSucceededAt" pointer for the dashboard badge.
+   */
+  getAdminHalalScreening: () =>
+    apiFetch('/admin/halal-screening', {}, API_TIMEOUT, true),
   getAdminOnboardingTrialSettings: () =>
     apiFetch('/admin/settings/onboarding-trial', {}, API_TIMEOUT, true),
   updateAdminOnboardingTrialSettings: (settings: { enabled: boolean; plan: string; durationDays: number }) =>
