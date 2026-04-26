@@ -12,7 +12,15 @@ export const metadata: Metadata = {
     description: 'Perpetual Islamic endowment — the oldest form of continuous charity.',
     url: 'https://trybarakah.com/fiqh-terms/waqf',
     type: 'article',
-  },
+    images: [
+      {
+        url: 'https://trybarakah.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Barakah — Islamic finance glossary',
+      },
+    ],
+},
 };
 
 export default function WaqfTermPage() {

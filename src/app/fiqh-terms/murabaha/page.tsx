@@ -12,7 +12,15 @@ export const metadata: Metadata = {
     description: 'The disclosed cost-plus sale used throughout Islamic trade finance.',
     url: 'https://trybarakah.com/fiqh-terms/murabaha',
     type: 'article',
-  },
+    images: [
+      {
+        url: 'https://trybarakah.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Barakah — Islamic finance glossary',
+      },
+    ],
+},
 };
 
 export default function MurabahaTermPage() {

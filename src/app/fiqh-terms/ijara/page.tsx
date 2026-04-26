@@ -12,7 +12,15 @@ export const metadata: Metadata = {
     description: 'The Islamic lease contract that underpins halal auto and equipment finance.',
     url: 'https://trybarakah.com/fiqh-terms/ijara',
     type: 'article',
-  },
+    images: [
+      {
+        url: 'https://trybarakah.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Barakah — Islamic finance glossary',
+      },
+    ],
+},
 };
 
 export default function IjaraTermPage() {

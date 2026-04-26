@@ -12,7 +12,15 @@ export const metadata: Metadata = {
     description: 'The halal alternative to conventional insurance.',
     url: 'https://trybarakah.com/fiqh-terms/takaful',
     type: 'article',
-  },
+    images: [
+      {
+        url: 'https://trybarakah.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Barakah — Islamic finance glossary',
+      },
+    ],
+},
 };
 
 export default function TakafulTermPage() {
