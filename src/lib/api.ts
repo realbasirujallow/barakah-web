@@ -1218,6 +1218,14 @@ export const api = {
     apiFetch(`/admin/email-log?status=${status}&page=${page}&size=${size}`, {}, API_TIMEOUT, true),
   adminGetEmailLogEntry: (id: number) =>
     apiFetch(`/admin/email-log/${id}`, {}, API_TIMEOUT, true),
+  /**
+   * Bulk-delete stale failed email_log rows older than N days. Default 7.
+   * Returns { deleted: number, olderThanDays: number }.
+   */
+  adminCleanupFailedEmailLog: (olderThanDays = 7) =>
+    apiFetch(`/admin/email-log/cleanup-failed?olderThanDays=${olderThanDays}`, {
+      method: 'POST',
+    }, API_TIMEOUT, true),
   getAdminAnalytics: () => apiFetch('/admin/analytics', {}, API_TIMEOUT, true),
   getAdminFunnel: (days = 30) =>
     apiFetch(`/admin/funnel?days=${days}`, {}, API_TIMEOUT, true),
