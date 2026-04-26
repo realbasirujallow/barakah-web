@@ -5,6 +5,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { toHijri } from '../../../lib/format';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import EmptyState from '../../../components/EmptyState';
 
 interface HawlItem {
   id: number;
@@ -592,13 +593,35 @@ function HawlPageContent() {
       )}
 
       {items.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-4xl mb-3">&#128197;</p>
-          <p className="mb-4">No assets tracked. Start tracking Hawl for zakat eligibility.</p>
-          <button type="button" onClick={handleImportAssets} disabled={importing} className="text-[#1B5E20] underline hover:text-[#2E7D32]">
-            {importing ? 'Importing...' : 'Import from your Assets'}
-          </button>
-        </div>
+        <EmptyState
+          icon="⏰"
+          title="Track your hawl for zakat"
+          description="Hawl is the 354-day Islamic lunar year your wealth must stay above nisab to be zakat-eligible. Import your assets and Barakah tracks the cycle daily."
+          actions={[
+            { label: importing ? 'Importing…' : 'Import from Assets', onClick: handleImportAssets, primary: true },
+            { label: 'Add asset manually', href: '/dashboard/assets' },
+          ]}
+          preview={
+            <div className="space-y-2">
+              {[
+                { name: 'Chase Savings', start: 'Hawl began Dhul-Hijjah 1446', days: 'Day 187 of 354', status: 'on-track' },
+                { name: 'Apple stock (AAPL)', start: 'Hawl began Muharram 1447', days: 'Day 102 of 354', status: 'on-track' },
+                { name: 'Cash on hand', start: 'Below nisab — paused', days: '0 days', status: 'paused' },
+              ].map((h) => (
+                <div key={h.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                  <div>
+                    <p className="font-medium text-gray-700">{h.name}</p>
+                    <p className="text-xs text-gray-400">{h.start}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-xs font-semibold ${h.status === 'on-track' ? 'text-emerald-600' : 'text-gray-400'}`}>{h.days}</p>
+                    <span className={`text-[10px] uppercase tracking-wide ${h.status === 'on-track' ? 'text-emerald-500' : 'text-gray-400'}`}>{h.status === 'on-track' ? '✓ Counting' : '⏸ Paused'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          }
+        />
       )}
 
       {/* ── Manual Wealth Adjustment ── */}

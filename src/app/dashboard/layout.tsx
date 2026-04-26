@@ -122,12 +122,26 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     // useSyncExternalStore subscribers so React re-renders with the new value.
     toggleDarkModeShared();
   };
+  // Sidebar density: only the section CONTAINING the current route opens
+  // by default; the others collapse so the nav doesn't bury the user in
+  // 30+ links on first load. Finance opens too because it's the most-
+  // used section on a typical session. Once the user toggles a section
+  // they keep that state for the rest of their session (in-memory, not
+  // persisted — keeps the no-storage promise).
+  const sectionForPath = (p: string): SidebarSection | null => {
+    for (const [section, config] of Object.entries(sectionConfig) as [SidebarSection, { items: string[] }][]) {
+      const items = navItems.filter(item => config.items.includes(item.label));
+      if (items.some(item => item.href === p)) return section;
+    }
+    return null;
+  };
+  const initialActiveSection = sectionForPath(pathname);
   const [expandedSections, setExpandedSections] = useState<Record<SidebarSection, boolean>>({
     finance: true,
-    islamic: true,
-    premium: true,
-    account: true,
-    admin: true,
+    islamic: initialActiveSection === 'islamic',
+    premium: initialActiveSection === 'premium',
+    account: initialActiveSection === 'account',
+    admin: initialActiveSection === 'admin',
   });
 
   const toggleSection = (section: SidebarSection) => {

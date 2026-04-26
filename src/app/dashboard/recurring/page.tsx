@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
+import EmptyState from '../../../components/EmptyState';
 
 interface RecurringTx {
   id: number;
@@ -196,11 +197,31 @@ export default function RecurringPage() {
       )}
 
       {transactions.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-5xl mb-4">🔁</p>
-          <p className="font-medium text-gray-600">No recurring transactions yet</p>
-          <p className="text-sm mt-1">Mark transactions as recurring from the Transactions page to see them here</p>
-        </div>
+        <EmptyState
+          icon="🔁"
+          title="No recurring transactions yet"
+          description="Mark a transaction as recurring on the Transactions page and Barakah will detect future instances automatically."
+          actions={[
+            { label: 'Open transactions', href: '/dashboard/transactions', primary: true },
+          ]}
+          preview={
+            <div className="space-y-2">
+              {[
+                { name: 'Netflix', cat: 'Subscriptions', cycle: 'Monthly · $15.49' },
+                { name: 'Gym membership', cat: 'Health', cycle: 'Monthly · $39.00' },
+                { name: 'iCloud storage', cat: 'Subscriptions', cycle: 'Monthly · $2.99' },
+              ].map((r) => (
+                <div key={r.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                  <div>
+                    <p className="font-medium text-gray-700">{r.name}</p>
+                    <p className="text-xs text-gray-400">{r.cat}</p>
+                  </div>
+                  <span className="text-xs text-gray-500">{r.cycle}</span>
+                </div>
+              ))}
+            </div>
+          }
+        />
       )}
     </div>
   );

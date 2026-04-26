@@ -46,6 +46,21 @@ html { font-size: 17px; }
 /* Increase minimum touch-target / click area on sidebar links and buttons */
 nav a, nav button { min-height: 2.5rem; }
 
+/* ── EmptyState mount animation ────────────────────────────────────────────
+   Subtle 200ms fade + 4px upward translation. Used by the EmptyState
+   component (motion-safe:animate-fade-up-200 utility). Tailwind v4
+   doesn't auto-generate keyframes for arbitrary names so we declare the
+   animation here and Tailwind's `motion-safe:` prefix ensures users with
+   prefers-reduced-motion never see it. */
+@keyframes fade-up-200 {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.motion-safe\:animate-fade-up-200 { animation: fade-up-200 200ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe\:animate-fade-up-200 { animation: none !important; }
+}
+
 /* Make small descriptive text slightly larger for readability */
 .text-xs { font-size: 0.8rem !important; line-height: 1.35 !important; }
 .text-sm { font-size: 0.9rem !important; line-height: 1.4 !important; }

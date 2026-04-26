@@ -46,9 +46,14 @@ export default function EmptyState({
   preview,
   variant = 'card',
 }: EmptyStateProps) {
-  const wrapperClass = variant === 'card'
+  // Subtle 200ms fade-up on mount. Matches Monarch's polish: empty
+  // states feel less abrupt when they ease in instead of pop. Animation
+  // is CSS-only (no library) and is gated by `prefers-reduced-motion`
+  // via Tailwind's motion-safe modifier — accessibility preserved.
+  const wrapperClass = (variant === 'card'
     ? 'bg-white border-2 border-dashed border-green-200 rounded-2xl p-8 text-center'
-    : 'p-8 text-center';
+    : 'p-8 text-center')
+    + ' motion-safe:animate-fade-up-200';
 
   return (
     <div className={wrapperClass}>
