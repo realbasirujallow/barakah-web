@@ -412,6 +412,14 @@ export default function DashboardPage() {
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-200">
           <div className="flex items-center justify-between mb-1">
+            {/* Headline value is the GROSS zakat (zakatDue), matching the
+                /dashboard/zakat detail page exactly. Earlier this widget
+                rendered `zakatRemaining ?? zakatDue` under a "Zakat Due"
+                label, which produced a confusing delta vs. the detail
+                page (e.g. $2,549.69 here vs $2,570.75 there for the same
+                user — flagged 2026-04-25 as a trust issue). Remaining /
+                paid progress now lives in the sub-line so the headline
+                stays consistent across surfaces. */}
             <p className="text-xs text-gray-500 uppercase tracking-wide">Zakat Due</p>
             <div className="flex items-center gap-1">
               {Boolean(totals?.zakatFullyPaid) && <span className="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">PAID</span>}
@@ -419,11 +427,11 @@ export default function DashboardPage() {
             </div>
           </div>
           <p className={`text-xl font-bold ${totals?.zakatFullyPaid ? 'text-green-600' : 'text-amber-600'}`}>
-            {hideZakat ? '••••••' : (loading ? '...' : fmt((totals?.zakatRemaining as number) ?? (totals?.zakatDue as number) ?? 0))}
+            {hideZakat ? '••••••' : (loading ? '...' : fmt((totals?.zakatDue as number) ?? 0))}
           </p>
           {!hideZakat && !loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid) && (
             <p className="text-xs text-gray-500 mt-1">
-              Paid: {fmt((totals?.zakatPaid as number) || 0)} of {fmt((totals?.zakatDue as number) || 0)}
+              Paid {fmt((totals?.zakatPaid as number) || 0)} · Remaining {fmt((totals?.zakatRemaining as number) ?? Math.max(0, ((totals?.zakatDue as number) || 0) - ((totals?.zakatPaid as number) || 0)))}
             </p>
           )}
         </div>

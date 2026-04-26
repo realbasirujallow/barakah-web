@@ -255,12 +255,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex">
       {/* Sidebar */}
-      <aside id="dashboard-sidebar" className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#1B5E20] text-white transform transition-transform lg:translate-x-0 lg:static lg:flex-shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-6 border-b border-green-800">
+      {/* Sidebar uses a 3-row flex column (header / scrollable nav / footer)
+          so the scrollable region grows to fill the available space and
+          never collides with the bottom controls. The previous layout
+          subtracted a hardcoded `calc(100vh - 140px)` from the nav's
+          maxHeight while the actual chrome (header ~88px + footer ~110px)
+          was closer to 200px, so the bottom-most nav items rendered
+          underneath the absolute-positioned Dark Mode / Sign Out buttons —
+          legible-letters-on-letters bug visible at smaller heights. */}
+      <aside id="dashboard-sidebar" className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#1B5E20] text-white transform transition-transform lg:translate-x-0 lg:static lg:flex-shrink-0 flex flex-col h-screen ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-6 border-b border-green-800 flex-shrink-0">
           <h1 className="text-xl font-bold">&#127769; Barakah</h1>
           <p className="text-green-300 text-sm mt-1">{user.name}</p>
         </div>
-        <nav className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 140px)' }}>
+        <nav className="p-4 overflow-y-auto flex-1 min-h-0">
           {/* Dashboard — always at top, ungrouped */}
           {renderNavLink(navItems[0], false)}
           <div className="my-3 border-t border-green-700" />
@@ -271,7 +279,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           {renderSection('premium')}
           {renderSection('account')}
         </nav>
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-green-800">
+        <div className="p-4 border-t border-green-800 flex-shrink-0">
           <button
             onClick={toggleDarkMode}
             className="w-full text-left px-4 py-2 text-green-300 hover:text-white text-sm transition flex items-center gap-2 mb-1"
