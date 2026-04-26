@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
@@ -7,6 +7,7 @@ import { useToast } from '../../../lib/toast';
 import { useCurrency } from '../../../lib/useCurrency';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import EmptyState from '../../../components/EmptyState';
+import { useFocusTrap } from '../../../lib/useFocusTrap';
 
 interface Account {
   id: number;
@@ -106,6 +107,32 @@ export default function InvestmentsPage() {
   const [addHoldingFor, setAddHoldingFor] = useState<number | null>(null);
   const [holdingForm, setHoldingForm] = useState(emptyHoldingForm);
   const [savingHolding, setSavingHolding] = useState(false);
+
+  // ── Modal accessibility: focus trap + Escape close ──────────────────────
+  const accountModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(accountModalRef, showAccountForm);
+  const holdingModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(holdingModalRef, addHoldingFor !== null);
+  const confirmModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(confirmModalRef, confirmAction !== null);
+  useEffect(() => {
+    if (!showAccountForm) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowAccountForm(false); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [showAccountForm]);
+  useEffect(() => {
+    if (addHoldingFor === null) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setAddHoldingFor(null); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [addHoldingFor]);
+  useEffect(() => {
+    if (!confirmAction) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setConfirmAction(null); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [confirmAction]);
 
   const fmtPct = (n: number) => `${n >= 0 ? '+' : ''}${(n || 0).toFixed(2)}%`;
 
@@ -537,8 +564,14 @@ export default function InvestmentsPage() {
       {/* Add Account Modal */}
       {showAccountForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Investment Account</h2>
+          <div
+            ref={accountModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-md"
+          >
+            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">Add Investment Account</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
@@ -571,6 +604,7 @@ export default function InvestmentsPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button
+                aria-label="Close add account modal"
                 onClick={() => setShowAccountForm(false)}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
               >
@@ -591,8 +625,14 @@ export default function InvestmentsPage() {
       {/* Add Holding Modal */}
       {addHoldingFor !== null && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Holding</h2>
+          <div
+            ref={holdingModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-md"
+          >
+            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">Add Holding</h2>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -649,6 +689,7 @@ export default function InvestmentsPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button
+                aria-label="Close add holding modal"
                 onClick={() => setAddHoldingFor(null)}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
               >
@@ -667,10 +708,16 @@ export default function InvestmentsPage() {
       )}
       {confirmAction && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-            <p className="text-gray-800 mb-6">{confirmAction.message}</p>
+          <div
+            ref={confirmModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-sm"
+          >
+            <p id="modal-title" className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" aria-label="Close confirmation modal" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>

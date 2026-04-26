@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import EmptyState from '../../../components/EmptyState';
 import { safeParse, validateWasiyyahBeneficiary } from '../../../lib/schemas';
 
 interface Beneficiary {
@@ -418,11 +419,35 @@ function WasiyyahPageContent() {
               })}
             </div>
           ) : (
-            <div className="text-center py-16 text-gray-400">
-              <p className="text-4xl mb-3">📜</p>
-              <p className="font-medium text-gray-600">No beneficiaries yet.</p>
-              <p className="text-sm mt-1">Planning your estate is a Sunnah.</p>
-            </div>
+            <EmptyState
+              icon="📜"
+              title="Write your wasiyyah today"
+              description="The Prophet (ﷺ) said a Muslim should not sleep two nights without their will written. Add beneficiaries and your family will know exactly what was intended."
+              actions={[
+                { label: '+ Add beneficiary', onClick: () => setShowForm(true), primary: true },
+                { label: '📖 Read the guide', onClick: () => setShowSharesInfo(true) },
+              ]}
+              preview={
+                <div className="space-y-2">
+                  {[
+                    { name: 'Spouse', rel: 'Wife', share: '1/8 (12.5%)', tag: 'FARD' },
+                    { name: 'Sons (×2)', rel: 'Children', share: '5/12 each', tag: 'FARD' },
+                    { name: 'Daughter', rel: 'Child', share: '5/24 (20.8%)', tag: 'FARD' },
+                  ].map((b) => (
+                    <div key={b.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                      <div>
+                        <p className="font-medium text-gray-700">{b.name}</p>
+                        <p className="text-xs text-gray-400">{b.rel}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-[#1B5E20]">{b.share}</p>
+                        <span className="text-[10px] font-bold text-green-700">{b.tag}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              }
+            />
           )}
         </>
       )}
@@ -485,11 +510,31 @@ function WasiyyahPageContent() {
               })}
             </div>
           ) : (
-            <div className="text-center py-16 text-gray-400">
-              <p className="text-4xl mb-3">⚖️</p>
-              <p className="font-medium text-gray-600">No obligations recorded.</p>
-              <p className="text-sm mt-1">If you have unpaid Zakat, loans, or other Islamic duties, record them here.</p>
-            </div>
+            <EmptyState
+              icon="⚖️"
+              title="Record your Islamic obligations"
+              description="Unpaid Zakat, kaffarah, or loans must be settled from your estate before inheritance is divided. Recording them here makes that easier on your family."
+              actions={[
+                { label: '+ Record obligation', onClick: () => setShowObForm(true), primary: true },
+              ]}
+              preview={
+                <div className="space-y-2">
+                  {[
+                    { type: '🕌 Unpaid Zakat', desc: 'Zakat for 2024 owed', amt: '$640' },
+                    { type: '💰 Unpaid loan', desc: 'Borrowed from Yusuf in 2023', amt: '$1,200' },
+                    { type: '📿 Kaffarah', desc: 'Broken oath atonement', amt: '$60' },
+                  ].map((o) => (
+                    <div key={o.type} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                      <div>
+                        <p className="font-medium text-gray-700">{o.type}</p>
+                        <p className="text-xs text-gray-400">{o.desc}</p>
+                      </div>
+                      <span className="font-semibold text-amber-700">{o.amt}</span>
+                    </div>
+                  ))}
+                </div>
+              }
+            />
           )}
         </>
       )}

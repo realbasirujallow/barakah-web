@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { logError } from '../../../lib/logError';
+import EmptyState from '../../../components/EmptyState';
 
 interface PrayerTimings { Fajr: string; Sunrise: string; Dhuhr: string; Asr: string; Maghrib: string; Isha: string; }
 
@@ -549,11 +550,30 @@ export default function PrayerTimesPage() {
       )}
 
       {!searched && !loading && (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-5xl mb-4">🕌</p>
-          <p className="font-medium text-gray-600">Enter your city to see prayer times</p>
-          <p className="text-sm mt-1">Times are calculated using established Islamic methods</p>
-        </div>
+        <EmptyState
+          icon="🕌"
+          title="Set your location for prayer times"
+          description="We use Aladhan with your chosen calculation method (ISNA, MWL, Umm al-Qura, and others). Use My Location is the fastest way to start."
+          actions={[
+            { label: '📍 Use my location', onClick: handleUseMyLocation, primary: true },
+          ]}
+          preview={
+            <div className="bg-white rounded-xl overflow-hidden text-sm">
+              {[
+                { name: '🌙 Fajr', time: '5:14' },
+                { name: '☀️ Dhuhr', time: '12:32' },
+                { name: '🌤️ Asr', time: '3:48' },
+                { name: '🌇 Maghrib', time: '6:12' },
+                { name: '🌃 Isha', time: '7:34' },
+              ].map((p, i, arr) => (
+                <div key={p.name} className={`flex justify-between items-center px-3 py-2 ${i < arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                  <span className="font-medium text-gray-700">{p.name}</span>
+                  <span className="font-semibold text-gray-700">{p.time}</span>
+                </div>
+              ))}
+            </div>
+          }
+        />
       )}
     </div>
   );
