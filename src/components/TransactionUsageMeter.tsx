@@ -28,11 +28,25 @@ interface UsageData {
 // so a dashboard left open overnight past the month-end reset showed
 // a stale / negative "Resets in N days" and didn't reset the meter
 // until the tab was refreshed.
+// useSyncExternalStore contract: getSnapshot must return value-equal results
+// across consecutive synchronous calls. `Math.floor(Date.now()/1000)` advances
+// every second, so on slow Mobile Chrome (Android 10) the second can roll
+// over BETWEEN React's render-time read and the mount-effect's verification
+// read — React then thinks the store changed and forces a re-render, which
+// loops infinitely. Reproduced 2026-04-26 (Sentry 0be993e6, /dashboard,
+// "Maximum update depth exceeded"). Same root cause + same fix as TrialBanner.
+//
+// Fix: cache the value at module scope; only refresh when the interval ticks.
+let _cachedNowSec = typeof window === 'undefined' ? 0 : Math.floor(Date.now() / 1000);
 function subscribeMinute(onChange: () => void): () => void {
-  const id = window.setInterval(onChange, 60_000);
+  _cachedNowSec = Math.floor(Date.now() / 1000); // refresh on subscribe so we're not stale from a prior mount
+  const id = window.setInterval(() => {
+    _cachedNowSec = Math.floor(Date.now() / 1000);
+    onChange();
+  }, 60_000);
   return () => window.clearInterval(id);
 }
-const getNowClient = () => Math.floor(Date.now() / 1000);
+const getNowClient = () => _cachedNowSec;
 const getNowServer = () => 0; // meter is client-only; SSR renders nothing
 
 export function TransactionUsageMeter() {

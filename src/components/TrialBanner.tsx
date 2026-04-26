@@ -11,11 +11,29 @@ import { trackPaywallViewed } from '../lib/analytics';
 // React value during render without tripping the component-purity rule.
 // We re-notify subscribers every minute; that's precise enough for a
 // day/hour countdown and keeps CPU use negligible.
+// `getNowClient` MUST return value-equal results across consecutive synchronous
+// calls — that's React's useSyncExternalStore contract. `() => Date.now()`
+// violates this: between React's render-time call and the mount-effect's
+// snapshot check (a few ms later), Date.now() has advanced, so React thinks
+// the store changed and forces a re-render. After re-render, the same gap
+// happens again → infinite loop. Reproduced 2026-04-26 on Chrome Mobile
+// Android 10 (Sentry 0be993e6 on /dashboard, "Maximum update depth exceeded").
+//
+// Fix: cache the value at module scope; only refresh when the interval
+// explicitly ticks. Snapshot is then stable between renders and only changes
+// when subscribers are notified — exactly what useSyncExternalStore expects.
+let _cachedNow = typeof window === 'undefined' ? 0 : Date.now();
 function subscribeMinute(onChange: () => void): () => void {
-  const id = window.setInterval(onChange, 60_000);
+  // Refresh immediately on subscribe so the first read after mount isn't
+  // stale from a prior session.
+  _cachedNow = Date.now();
+  const id = window.setInterval(() => {
+    _cachedNow = Date.now();
+    onChange();
+  }, 60_000);
   return () => window.clearInterval(id);
 }
-const getNowClient = () => Date.now();
+const getNowClient = () => _cachedNow;
 const getNowServer = () => 0; // banner is client-only; server render renders nothing
 
 /**
