@@ -1,23 +1,30 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { COMPETITOR_COMPARISON } from '../../lib/pricing';
+import { COMPETITOR_COMPARISON, PRICING } from '../../lib/pricing';
 import {
   DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL,
   DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL,
 } from '../../lib/trial';
 import PricingToggle from './PricingToggle';
 
+// Pricing strings come from the PRICING constant so SEO metadata can
+// never drift from the pricing-card UI. Previously hardcoded "$9.99/mo"
+// and "$14.99/mo" — if PRICING ever changed, the SERP snippet would
+// stale-link to the wrong number for days.
+const PLUS_MONTHLY = `${PRICING.plus.monthly}${PRICING.plus.monthlyPeriod}`;
+const FAMILY_MONTHLY = `${PRICING.family.monthly}${PRICING.family.monthlyPeriod}`;
+
 export const metadata: Metadata = {
   title: 'Pricing — Barakah Islamic Finance | Compare Plans',
   description:
-    'Compare Barakah plans: Free, Plus ($9.99/mo), and Family ($14.99/mo). See how Barakah compares to Monarch, YNAB, and Zoya. The most affordable Islamic finance platform.',
+    `Compare Barakah plans: Free, Plus (${PLUS_MONTHLY}), and Family (${FAMILY_MONTHLY}). See how Barakah compares to Monarch, YNAB, and Zoya. The most affordable Islamic finance platform.`,
   alternates: {
     canonical: 'https://trybarakah.com/pricing',
   },
   openGraph: {
     title: 'Pricing — Barakah Islamic Finance | Compare Plans',
     description:
-      'Compare Barakah plans: Free, Plus ($9.99/mo), and Family ($14.99/mo). The most affordable Islamic finance platform with features no one else has.',
+      `Compare Barakah plans: Free, Plus (${PLUS_MONTHLY}), and Family (${FAMILY_MONTHLY}). The most affordable Islamic finance platform with features no one else has.`,
     url: 'https://trybarakah.com/pricing',
     siteName: 'Barakah',
     type: 'website',

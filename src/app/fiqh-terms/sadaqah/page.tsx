@@ -12,7 +12,15 @@ export const metadata: Metadata = {
     description: 'Voluntary charity given any time, any amount, any asset.',
     url: 'https://trybarakah.com/fiqh-terms/sadaqah',
     type: 'article',
-  },
+    images: [
+      {
+        url: 'https://trybarakah.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Barakah — Islamic finance glossary',
+      },
+    ],
+},
 };
 
 export default function SadaqahTermPage() {

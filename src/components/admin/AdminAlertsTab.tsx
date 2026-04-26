@@ -37,7 +37,12 @@ export function AdminAlertsTab({ overview, alertCount, setActiveTab, openUser }:
             {overview!.pastDueUsers.map(u => {
               const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
               return (
-                <div key={u.id} className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 cursor-pointer" onClick={() => { setActiveTab('users'); openUser(u); }}>
+                <button
+                  key={u.id}
+                  type="button"
+                  className="w-full text-left flex items-center justify-between px-5 py-3 hover:bg-gray-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-300"
+                  onClick={() => { setActiveTab('users'); openUser(u); }}
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-xs font-bold">
                       {(u.name || u.email)[0].toUpperCase()}
@@ -51,7 +56,7 @@ export function AdminAlertsTab({ overview, alertCount, setActiveTab, openUser }:
                     <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span>
                     <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">Past Due</span>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -72,7 +77,12 @@ export function AdminAlertsTab({ overview, alertCount, setActiveTab, openUser }:
               const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
               const days = daysUntil(u.planExpiresAt);
               return (
-                <div key={u.id} className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 cursor-pointer" onClick={() => { setActiveTab('users'); openUser(u); }}>
+                <button
+                  key={u.id}
+                  type="button"
+                  className="w-full text-left flex items-center justify-between px-5 py-3 hover:bg-gray-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-300"
+                  onClick={() => { setActiveTab('users'); openUser(u); }}
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold">
                       {(u.name || u.email)[0].toUpperCase()}
@@ -90,7 +100,7 @@ export function AdminAlertsTab({ overview, alertCount, setActiveTab, openUser }:
                       {days !== null ? (days <= 0 ? 'Expired' : `${days}d left`) : '—'}
                     </span>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>

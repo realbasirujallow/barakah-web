@@ -12,7 +12,15 @@ export const metadata: Metadata = {
     description: 'Interest or usury — categorically prohibited in Islam.',
     url: 'https://trybarakah.com/fiqh-terms/riba',
     type: 'article',
-  },
+    images: [
+      {
+        url: 'https://trybarakah.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Barakah — Islamic finance glossary',
+      },
+    ],
+},
 };
 
 export default function RibaTermPage() {

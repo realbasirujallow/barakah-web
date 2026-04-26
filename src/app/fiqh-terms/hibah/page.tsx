@@ -12,7 +12,15 @@ export const metadata: Metadata = {
     description: "The Islamic gift that transfers ownership during the giver's lifetime.",
     url: 'https://trybarakah.com/fiqh-terms/hibah',
     type: 'article',
-  },
+    images: [
+      {
+        url: 'https://trybarakah.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Barakah — Islamic finance glossary',
+      },
+    ],
+},
 };
 
 export default function HibahTermPage() {

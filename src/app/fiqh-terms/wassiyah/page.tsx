@@ -12,7 +12,15 @@ export const metadata: Metadata = {
     description: 'The Islamic will: discretionary bequests up to 1/3 of the estate.',
     url: 'https://trybarakah.com/fiqh-terms/wassiyah',
     type: 'article',
-  },
+    images: [
+      {
+        url: 'https://trybarakah.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Barakah — Islamic finance glossary',
+      },
+    ],
+},
 };
 
 export default function WassiyahTermPage() {

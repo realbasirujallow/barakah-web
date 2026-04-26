@@ -12,7 +12,15 @@ export const metadata: Metadata = {
     description: 'The lunar year holding period that makes zakat due.',
     url: 'https://trybarakah.com/fiqh-terms/hawl',
     type: 'article',
-  },
+    images: [
+      {
+        url: 'https://trybarakah.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Barakah — Islamic finance glossary',
+      },
+    ],
+},
 };
 
 export default function HawlTermPage() {
