@@ -7,6 +7,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
+import EmptyState from '../../../components/EmptyState';
 
 interface DebtItem {
   id: number;
@@ -536,10 +537,25 @@ export default function DebtsPage() {
       {tab === 'projector' && (
         <div className="space-y-6">
           {debts.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">
-              <p className="text-4xl mb-3">🔮</p>
-              <p className="font-medium">Add some debts first to see payoff projections.</p>
-            </div>
+            <EmptyState
+              icon="🔮"
+              title="No debts to project"
+              description="Add a debt and Barakah projects how long it takes to pay off — including how much faster an extra monthly payment gets you to riba-free."
+              actions={[{ label: 'Add a debt', href: '#', primary: true }]}
+              preview={
+                <div className="space-y-2">
+                  {[
+                    { name: 'Auto loan (riba)', balance: '$18,400', payoff: '38 months → 26 with $200/mo extra' },
+                    { name: 'Credit card', balance: '$3,200', payoff: '14 months → 8 with $200/mo extra' },
+                  ].map((d) => (
+                    <div key={d.name} className="bg-white rounded-xl p-3 text-left text-sm">
+                      <p className="font-medium text-gray-700">{d.name}</p>
+                      <p className="text-xs text-gray-400">Balance: {d.balance} · {d.payoff}</p>
+                    </div>
+                  ))}
+                </div>
+              }
+            />
           ) : (
             <>
               {/* Extra payment slider */}

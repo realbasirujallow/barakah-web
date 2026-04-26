@@ -7,6 +7,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { SkeletonPage } from '../SkeletonCard';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
+import EmptyState from '../../../components/EmptyState';
 
 interface Goal { id: number; name: string; category: string; targetAmount: number; currentAmount: number; description: string; deadline: number | null; }
 const CATS = ['hajj', 'umrah', 'emergency', 'education', 'wedding', 'home', 'vehicle', 'business', 'retirement', 'other'];
@@ -282,14 +283,31 @@ export default function SavingsPage() {
           })}
         </div>
       ) : (
-        <div className="text-center py-20 bg-gradient-to-b from-white to-gray-50 rounded-2xl border border-gray-100">
-          <p className="text-6xl mb-4">🎯</p>
-          <p className="text-gray-700 font-semibold text-lg mb-2">No savings goals yet</p>
-          <p className="text-gray-500 text-sm mb-6">No savings goals yet. Set your first goal for Hajj, Umrah, an emergency fund, or anything that matters to you.</p>
-          <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-xl hover:bg-[#2E7D32] font-medium text-sm">
-            + Set Your First Goal
-          </button>
-        </div>
+        <EmptyState
+          icon="🎯"
+          title="Set your first savings goal"
+          description="Track progress toward Hajj, Umrah, a wedding, an emergency fund, or anything that matters to your household."
+          actions={[{ label: '+ Set your first goal', onClick: () => setShowForm(true), primary: true }]}
+          preview={
+            <div className="space-y-2">
+              {[
+                { name: 'Hajj 2027', target: '$8,500', progress: '$2,400', pct: 28 },
+                { name: 'Emergency fund', target: '$15,000', progress: '$11,200', pct: 75 },
+                { name: 'Wedding', target: '$25,000', progress: '$5,600', pct: 22 },
+              ].map((g) => (
+                <div key={g.name} className="bg-white rounded-xl p-3 text-left text-sm">
+                  <div className="flex justify-between items-center mb-1">
+                    <p className="font-medium text-gray-700">{g.name}</p>
+                    <span className="text-xs text-gray-500">{g.progress} / {g.target}</span>
+                  </div>
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#1B5E20] rounded-full" style={{ width: `${g.pct}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          }
+        />
       )}
 
       {/* ── New goal modal ─────────────────────────────────────────────────── */}

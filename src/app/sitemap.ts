@@ -26,6 +26,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/scholars`,    changeFrequency: 'monthly', priority: 0.70, lastModified: now },
     { url: `${baseUrl}/trust`,       changeFrequency: 'monthly', priority: 0.72, lastModified: now },
     { url: `${baseUrl}/security`,    changeFrequency: 'monthly', priority: 0.72, lastModified: now },
+    { url: `${baseUrl}/press`,       changeFrequency: 'monthly', priority: 0.65, lastModified: now },
 
     // ── Learn hub index ───────────────────────────────────────────────────────
     { url: `${baseUrl}/learn`, changeFrequency: 'weekly', priority: 0.92, lastModified: now },
@@ -69,6 +70,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/diminishing-musharaka-explained`,    changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/riba-free-mortgage`,                 changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/riba-elimination`,                   changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/learn/zakat-on-cryptocurrency`,            changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/learn/is-my-401k-halal`,                   changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/learn/halal-robo-advisor-comparison`,      changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/learn/zakat-on-stock-options-rsus`,        changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-vs-rent-2026`,        changeFrequency: 'monthly', priority: 0.90, lastModified: now },
 
     // ── Budgeting & household finance ─────────────────────────────────────────
     { url: `${baseUrl}/learn/halal-budgeting`,            changeFrequency: 'monthly', priority: 0.88, lastModified: now },
