@@ -149,6 +149,43 @@ const nextConfig: NextConfig = {
         source: "/(.*)",
         headers: securityHeaders,
       },
+      {
+        // Defense-in-depth CSP for API responses (proxy.ts middleware
+        // matcher EXCLUDES /api/*, so the strict nonce CSP never reaches
+        // them — they fall back to the static CSP above which permits
+        // `script-src 'unsafe-inline'`). If a frontend caller ever does
+        // `.innerHTML = jsonResponse.someField` (a stored-XSS vector
+        // flagged in the 2026-04-25 security audit, finding #1), the
+        // injected `<script>` could execute under the relaxed static
+        // CSP. This entry layers a strict no-script CSP specifically
+        // for API responses so even that worst case has no script
+        // surface to attack — multiple CSP headers on the same response
+        // are intersected by the browser, so the most-restrictive wins
+        // per directive (RFC 7762 + browser behaviour).
+        //
+        // API responses are JSON only; they don't need scripts, styles,
+        // images, frames, or fonts. Locking everything down except
+        // self-connect (which APIs need to set Access-Control-* etc.)
+        // is correct for the surface.
+        source: "/api/(.*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'none'",
+              "script-src 'none'",
+              "style-src 'none'",
+              "img-src 'none'",
+              "font-src 'none'",
+              "frame-src 'none'",
+              "frame-ancestors 'none'",
+              "object-src 'none'",
+              "base-uri 'none'",
+              "form-action 'none'",
+            ].join("; "),
+          },
+        ],
+      },
       // NOTE: no custom Cache-Control for /_next/static/* — Next.js already
       // applies `public, max-age=31536000, immutable` to that path
       // automatically, and overriding it with the same value only adds a
@@ -231,6 +268,22 @@ const nextConfig: NextConfig = {
       {
         source: "/dashboard/fiqh-settings",
         destination: "/dashboard/fiqh",
+        permanent: true,
+      },
+      // QA 2026-04-25: the dashboard sidebar's "Stock Screener" link points
+      // to /dashboard/halal, but external bookmarks, marketing material, and
+      // App Store metadata reference both /dashboard/halal-stocks and
+      // /dashboard/stock-screener (the obvious slug for "halal stock
+      // screener"). Both used to 404. Redirect to the canonical /dashboard/halal
+      // so deep links keep working without surfacing the rebrand to users.
+      {
+        source: "/dashboard/halal-stocks",
+        destination: "/dashboard/halal",
+        permanent: true,
+      },
+      {
+        source: "/dashboard/stock-screener",
+        destination: "/dashboard/halal",
         permanent: true,
       },
     ];
