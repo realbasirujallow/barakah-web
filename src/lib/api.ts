@@ -949,8 +949,11 @@ export const api = {
   calculateRetirementZakat: (data: { balance: number; accountType?: string; employerMatchPercent?: number; state?: string }) =>
     apiFetch('/api/zakat/calculate-retirement', { method: 'POST', body: JSON.stringify(data) }),
   // FEATURE 1: Multi-Madhab Nisab Selector
-  getNisabMethodologies: () => apiFetch('/api/zakat/nisab-methodologies'),
-  getNisabMethodology: () => apiFetch('/api/zakat/nisab-methodology'),
+  // R15 hardening: mount-fired from /dashboard/fiqh, must suppress 401.
+  getNisabMethodologies: (suppressUnauthorized = true) =>
+    apiFetch('/api/zakat/nisab-methodologies', {}, API_TIMEOUT, suppressUnauthorized),
+  getNisabMethodology: (suppressUnauthorized = true) =>
+    apiFetch('/api/zakat/nisab-methodology', {}, API_TIMEOUT, suppressUnauthorized),
   setNisabMethodology: (methodology: string) =>
     apiFetch('/api/zakat/nisab-methodology', { method: 'POST', body: JSON.stringify({ methodology }) }),
   // FEATURE 2: Zakat al-Fitr Calculator
@@ -1710,8 +1713,9 @@ export const api = {
   updateFiqhRules: (rules: Record<string, unknown>) =>
     apiFetch('/api/fiqh/rules', { method: 'PUT', body: JSON.stringify(rules) }),
 
-  getFiqhSchools: () =>
-    apiFetch('/api/fiqh/schools'),
+  // R15 hardening: mount-fired from /dashboard/fiqh, must suppress 401.
+  getFiqhSchools: (suppressUnauthorized = true) =>
+    apiFetch('/api/fiqh/schools', {}, API_TIMEOUT, suppressUnauthorized),
 
   // ─── Financial Ledger ────────────────────────────────────────
   getFinancialLedger: (page = 0, size = 50) =>

@@ -199,7 +199,11 @@ export default function HalalPage() {
           halal/haram statuses are current rather than just trusting a
           static list. Hidden until we have at least one successful run. */}
       {screeningStatus?.lastSucceededAt && (
-        <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full text-xs text-green-800">
+        <div
+          role="status"
+          aria-label={`Halal screening last ran ${formatTimeAgo(screeningStatus.lastSucceededAt)} with ${screeningStatus.statusChanges} status change${screeningStatus.statusChanges === 1 ? '' : 's'}`}
+          className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full text-xs text-green-800"
+        >
           <span aria-hidden="true">✓</span>
           <span>
             Re-screened {formatTimeAgo(screeningStatus.lastSucceededAt)}
