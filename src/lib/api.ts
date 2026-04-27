@@ -1012,6 +1012,10 @@ export const api = {
     apiFetch('/api/halal/sectors', {}, API_TIMEOUT, suppressUnauthorized),
   getHalalStats: (suppressUnauthorized = true) =>
     apiFetch('/api/halal/stats', {}, API_TIMEOUT, suppressUnauthorized),
+  // User-facing screening freshness badge (last successful daily scan).
+  // Mount-fired alongside the rest of /dashboard/halal — same guard.
+  getHalalScreeningStatus: (suppressUnauthorized = true) =>
+    apiFetch('/api/halal/screening-status', {}, API_TIMEOUT, suppressUnauthorized),
 
   // Analytics
   getTransactionSummary: (period: string = 'month') =>

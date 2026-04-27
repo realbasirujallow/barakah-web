@@ -10,6 +10,24 @@ import EmptyState from '../../../components/EmptyState';
 interface HalalResult { symbol: string; name: string; isHalal: boolean; reason: string; sector: string; debtRatio?: number; }
 interface StockStats { totalStocks: number; halalCount: number; haramCount: number; sectorCount: number; }
 interface DetailResult { symbol: string; name: string; status: string; reason: string; sector: string; debtRatio?: number; }
+interface ScreeningStatus { lastSucceededAt: number | null; statusChanges: number; symbolsChecked: number; }
+
+/** Human-friendly "X minutes/hours/days ago" for the freshness badge.
+ *  Capped at "30+ days" — beyond that the user should treat the data
+ *  as stale and we want the wording to reflect that. */
+function formatTimeAgo(epochMs: number | null): string {
+  if (!epochMs) return 'never';
+  const diff = Date.now() - epochMs;
+  if (diff < 0) return 'just now';
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return '30+ days ago';
+}
 
 const PAGE_SIZE = 50;
 
@@ -52,6 +70,7 @@ export default function HalalPage() {
   // Stats & sectors
   const [stats, setStats] = useState<StockStats | null>(null);
   const [sectors, setSectors] = useState<{ sector: string; count: number }[]>([]);
+  const [screeningStatus, setScreeningStatus] = useState<ScreeningStatus | null>(null);
 
   // Debounce search for screener filtering
   useEffect(() => {
@@ -74,6 +93,17 @@ export default function HalalPage() {
       const s = d?.sectors;
       setSectors(Array.isArray(s) ? s : []);
     }).catch(() => toast('Failed to load sectors', 'error'));
+    // Trust signal: surfaces last-successful-scan freshness so users
+    // don't have to take the halal/haram statuses on faith. Silent on
+    // error — a missing badge is far better than a broken page.
+    api.getHalalScreeningStatus().then((d: { lastSucceededAt?: number | null; statusChanges?: number; symbolsChecked?: number; error?: string }) => {
+      if (d?.error) return;
+      setScreeningStatus({
+        lastSucceededAt: d?.lastSucceededAt ?? null,
+        statusChanges: d?.statusChanges ?? 0,
+        symbolsChecked: d?.symbolsChecked ?? 0,
+      });
+    }).catch(() => { /* badge is non-critical */ });
   }, [toast]);
 
   // Fetch stocks when filters or page change
@@ -162,7 +192,27 @@ export default function HalalPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-6">Stock Screener</h1>
+      <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Stock Screener</h1>
+
+      {/* Freshness badge — daily re-screen status. Surfaces the same data
+          the admin observability dashboard uses, so users can confirm that
+          halal/haram statuses are current rather than just trusting a
+          static list. Hidden until we have at least one successful run. */}
+      {screeningStatus?.lastSucceededAt && (
+        <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full text-xs text-green-800">
+          <span aria-hidden="true">✓</span>
+          <span>
+            Re-screened {formatTimeAgo(screeningStatus.lastSucceededAt)}
+            {' · '}
+            {screeningStatus.statusChanges === 0
+              ? 'no status changes'
+              : `${screeningStatus.statusChanges} status change${screeningStatus.statusChanges === 1 ? '' : 's'}`}
+            {screeningStatus.symbolsChecked > 0 && (
+              <span className="text-green-600"> · {screeningStatus.symbolsChecked.toLocaleString()} symbols</span>
+            )}
+          </span>
+        </div>
+      )}
 
       {/* Stats bar */}
       {stats && (
