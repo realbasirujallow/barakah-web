@@ -173,7 +173,61 @@ const ur: Translations = {
   errReloadPage: 'صفحہ دوبارہ لوڈ کریں',
 };
 
-const dictionaries: Record<string, Translations> = { en, ar, ur };
+const fr: Translations = {
+  // Navigation
+  dashboard: 'Tableau de bord',
+  assets: 'Actifs',
+  transactions: 'Transactions',
+  budgets: 'Budgets',
+  debts: 'Dettes',
+  bills: 'Factures',
+  settings: 'Paramètres',
+
+  // Dashboard
+  goodMorning: 'Bonjour',
+  goodAfternoon: 'Bon après-midi',
+  goodEvening: 'Bonsoir',
+  welcomeBack: 'Bon retour sur Barakah. Que vos finances soient bénies de barakah.',
+  netWorth: 'Valeur nette',
+  zakatDue: 'Zakat due',
+  zakatEligible: 'Éligible à la Zakat',
+  spendingThisMonth: 'Dépenses ce mois-ci',
+  recentTransactions: 'Transactions récentes',
+  upcomingBills: 'Factures à venir',
+  quickActions: 'Actions rapides',
+  exploreFeatures: 'Explorer les fonctionnalités',
+
+  // Islamic
+  islamicDate: 'Date hégirienne',
+  prayerTimes: 'Heures de prière',
+  zakatReminders: 'Rappels de Zakat',
+  hawlTracker: 'Suivi du Hawl',
+  ibadahFinance: 'Finance des actes d\'adoration',
+  ramadanMode: 'Mode Ramadan',
+  fiqhSettings: 'Paramètres du fiqh',
+  sadaqah: 'Sadaqa',
+  wasiyyah: 'Wasiyyah',
+  waqf: 'Waqf',
+  faraid: 'Calculateur de Faraid',
+
+  // Common
+  save: 'Enregistrer',
+  cancel: 'Annuler',
+  delete: 'Supprimer',
+  confirm: 'Confirmer',
+  viewAll: 'Tout voir',
+  upgrade: 'Mettre à niveau',
+  loading: 'Chargement…',
+
+  // Error boundary (Round 27)
+  errSomethingWentWrong: 'Une erreur est survenue',
+  errTryAgainMessage: 'Une erreur inattendue s\'est produite. Veuillez réessayer.',
+  errReloadMessage: 'Cette page rencontre une erreur récurrente. Veuillez recharger la page.',
+  errTryAgain: 'Réessayer',
+  errReloadPage: 'Recharger la page',
+};
+
+const dictionaries: Record<string, Translations> = { en, ar, ur, fr };
 
 /** localStorage key for persisted locale selection. Must match the pre-paint
  *  script in app/layout.tsx that reads this to set <html dir="rtl"> before
@@ -235,4 +289,5 @@ export const SUPPORTED_LOCALES = [
   { code: 'en', label: 'English' },
   { code: 'ar', label: 'العربية' },
   { code: 'ur', label: 'اردو' },
+  { code: 'fr', label: 'Français' },
 ] as const;
