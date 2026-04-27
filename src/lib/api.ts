@@ -1004,8 +1004,14 @@ export const api = {
     const qs = p.toString();
     return apiFetch(`/api/halal/list${qs ? `?${qs}` : ''}`);
   },
-  getHalalSectors: () => apiFetch('/api/halal/sectors'),
-  getHalalStats: () => apiFetch('/api/halal/stats'),
+  // R15 hardening (2026-04-26): default suppressUnauthorized=true.
+  // Both are mount-fired from /dashboard/halal — a 401 during a stale
+  // session would silently log the user out without these guards. See
+  // /test/backgroundPollsDoNotLogout.test.ts.
+  getHalalSectors: (suppressUnauthorized = true) =>
+    apiFetch('/api/halal/sectors', {}, API_TIMEOUT, suppressUnauthorized),
+  getHalalStats: (suppressUnauthorized = true) =>
+    apiFetch('/api/halal/stats', {}, API_TIMEOUT, suppressUnauthorized),
 
   // Analytics
   getTransactionSummary: (period: string = 'month') =>
@@ -1115,7 +1121,11 @@ export const api = {
     apiFetch('/api/shared/estate-sharing', { method: 'PUT', body: JSON.stringify({ enabled }) }),
 
   // Ramadan
-  getRamadanGoals: () => apiFetch('/api/ramadan/goals'),
+  // R15 hardening (2026-04-26): default suppressUnauthorized=true.
+  // Mount-fired from /dashboard/ramadan; without the guard a stale-session
+  // 401 silently logs the user out.
+  getRamadanGoals: (suppressUnauthorized = true) =>
+    apiFetch('/api/ramadan/goals', {}, API_TIMEOUT, suppressUnauthorized),
   saveRamadanGoals: (data: Record<string, unknown>) =>
     apiFetch('/api/ramadan/goals', { method: 'PUT', body: JSON.stringify(data) }),
 
@@ -1684,8 +1694,11 @@ export const api = {
     }),
 
   // ─── Fiqh Configuration ──────────────────────────────────────
-  getFiqhConfig: () =>
-    apiFetch('/api/fiqh/config'),
+  // R15 hardening (2026-04-26): default suppressUnauthorized=true.
+  // Mount-fired from /dashboard/retirement-zakat; without the guard a stale-
+  // session 401 silently logs the user out.
+  getFiqhConfig: (suppressUnauthorized = true) =>
+    apiFetch('/api/fiqh/config', {}, API_TIMEOUT, suppressUnauthorized),
 
   setMadhab: (madhab: string) =>
     apiFetch('/api/fiqh/madhab', { method: 'POST', body: JSON.stringify({ madhab }) }),
