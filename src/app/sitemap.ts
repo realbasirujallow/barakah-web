@@ -117,14 +117,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/mint-alternative-for-muslims`, changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/islamic-budgeting-app`,      changeFrequency: 'monthly', priority: 0.90, lastModified: now },
 
-    // ── UK-specific SEO (Week 12) ────────────────────────────────────────────
+    // ── UK-specific SEO ──────────────────────────────────────────────────────
     { url: `${baseUrl}/zakat-uk`,                 changeFrequency: 'weekly',  priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/nisab-gbp`,          changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
 
-    // ── Ramadan 2027 seasonal landing (Week 6) ────────────────────────────────
+    // ── Ramadan 2027 seasonal landing ────────────────────────────────────────
     { url: `${baseUrl}/ramadan`,                 changeFrequency: 'weekly',  priority: 0.92, lastModified: now },
 
-    // ── Halal Stocks — per-ticker (Week 6) ───────────────────────────────────
+    // ── Halal Stocks — per-ticker ────────────────────────────────────────────
     { url: `${baseUrl}/halal-stocks`,            changeFrequency: 'weekly',  priority: 0.93, lastModified: now },
     { url: `${baseUrl}/halal-stocks/aapl`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
     { url: `${baseUrl}/halal-stocks/msft`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
@@ -133,7 +133,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/halal-stocks/nvda`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
 
 
-    // ── Fiqh Terms Glossary (Week 4) ─────────────────────────────────────────
+    // ── Fiqh Terms Glossary ──────────────────────────────────────────────────
     { url: `${baseUrl}/fiqh-terms`,              changeFrequency: 'monthly', priority: 0.90, lastModified: now },
     { url: `${baseUrl}/fiqh-terms/zakat`,        changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/fiqh-terms/nisab`,        changeFrequency: 'monthly', priority: 0.85, lastModified: now },
@@ -150,11 +150,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/fiqh-terms/faraid`,       changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/fiqh-terms/wassiyah`,     changeFrequency: 'monthly', priority: 0.85, lastModified: now },
 
-    // ── Trust / verification (Week 7) ────────────────────────────────────────
+    // ── Trust / verification ─────────────────────────────────────────────────
     { url: `${baseUrl}/verify`, changeFrequency: 'monthly', priority: 0.80, lastModified: now },
     { url: `${baseUrl}/transparency`, changeFrequency: 'monthly', priority: 0.82, lastModified: now },
 
-    // ── Ambassador / outreach infrastructure (Week 11) ───────────────────────
+    // ── Ambassador / outreach infrastructure ─────────────────────────────────
     { url: `${baseUrl}/ambassadors`, changeFrequency: 'monthly', priority: 0.75, lastModified: now },
 
     // ── Auth pages ───────────────────────────────────────────────────────────
