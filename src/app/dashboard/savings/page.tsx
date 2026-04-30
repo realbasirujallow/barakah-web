@@ -10,6 +10,7 @@ import { useAuth, hasAccess } from '../../../context/AuthContext';
 import EmptyState from '../../../components/EmptyState';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { FormHelp } from '../../../components/dashboard/FormHelp';
 
 interface Goal { id: number; name: string; category: string; targetAmount: number; currentAmount: number; description: string; deadline: number | null; }
 const CATS = ['hajj', 'umrah', 'emergency', 'education', 'wedding', 'home', 'vehicle', 'business', 'retirement', 'other'];
@@ -358,8 +359,18 @@ export default function SavingsPage() {
                 <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {CATS.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
                 </select></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Target Amount</label>
-                <input type="number" step="0.01" value={form.targetAmount} onChange={e => setForm({ ...form, targetAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="10000" /></div>
+              <div>
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                  Target Amount
+                  <FormHelp ariaLabel="About target amount">
+                    The full amount you&apos;re saving toward, in your preferred
+                    currency. You can change this later as the goal evolves
+                    (e.g. Hajj cost increases or you upgrade to a different
+                    package).
+                  </FormHelp>
+                </label>
+                <input type="number" step="0.01" value={form.targetAmount} onChange={e => setForm({ ...form, targetAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="10000" />
+              </div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
                 <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             </div>

@@ -5,6 +5,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { SkeletonPage } from '../SkeletonCard';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { FormHelp } from '../../../components/dashboard/FormHelp';
 
 interface BudgetItem { id: number; category: string; monthlyLimit: number; spent: number; month: number; year: number; color: string; }
 const CATEGORIES = [
@@ -287,13 +288,29 @@ export default function BudgetPage() {
             <h2 className="text-xl font-bold text-primary mb-4">{editItem ? 'Edit Budget' : 'Add Budget'}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                  Category
+                  <FormHelp ariaLabel="About budget categories">
+                    Pick the category this budget caps. Spending across all
+                    transactions tagged with this category counts toward
+                    the limit. Use multiple budgets to track several
+                    categories in parallel.
+                  </FormHelp>
+                </label>
                 <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {CATEGORIES.map(c => <option key={c} value={c}>{catLabel(c)}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Limit</label>
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                  Monthly Limit
+                  <FormHelp ariaLabel="About monthly limit">
+                    The maximum you intend to spend in this category for
+                    the selected month. You&apos;ll see a warning toast at 80%
+                    and 100% — Barakah doesn&apos;t block transactions, just
+                    warns.
+                  </FormHelp>
+                </label>
                 <input type="number" step="0.01" value={form.monthlyLimit} onChange={e => setForm({ ...form, monthlyLimit: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="500.00" />
               </div>
