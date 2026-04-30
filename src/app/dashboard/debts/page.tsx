@@ -511,7 +511,7 @@ export default function DebtsPage() {
                   const halal = d.ribaFree || ISLAMIC_TYPES.includes(d.type);
                   return (
                     <div key={d.id} className="flex items-start gap-3 opacity-60">
-                      <div className="flex-1 bg-white rounded-xl p-4 border border-gray-200">
+                      <div className="flex-1 bg-card rounded-xl p-4 border border-border">
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
