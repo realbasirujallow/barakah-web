@@ -66,17 +66,18 @@
   --chart-4: oklch(0.55 0.18 25);
   --chart-5: oklch(0.62 0.15 290);
 
-  /* Sidebar (Phase 4.3 / 2026-04-27). Light mode is a near-white surface
-     with a subtle teal tint so the sidebar reads as brand-aligned without
-     dominating the eye like the old saturated #1B5E20. Active item uses
-     --primary (the new softer teal). */
-  --sidebar: oklch(0.99 0.005 165);
+  /* Sidebar (Phase 4.3 / 2026-04-27, contrast bump 4.4).
+     Slightly more separation from the main content (--background = pure
+     white) by deepening the sidebar surface to oklch 0.965. Still very
+     light — Monarch's sidebar L is ~0.97 — but now visually distinct
+     from the page area without dominating the eye. */
+  --sidebar: oklch(0.965 0.008 175);
   --sidebar-foreground: oklch(0.205 0 0);
   --sidebar-primary: oklch(0.43 0.13 165);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.96 0.01 165);
+  --sidebar-accent: oklch(0.93 0.012 175);
   --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.92 0.005 165);
+  --sidebar-border: oklch(0.90 0.005 175);
   --sidebar-ring: oklch(0.43 0.13 165);
 
   /* ── Legacy Barakah brand tokens (do not remove) ───────────────────────

@@ -10,6 +10,7 @@ import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { Pencil, Trash2 } from 'lucide-react';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
@@ -594,8 +595,12 @@ export default function TransactionsPage() {
             const presentation = txPresentation(tx);
             return (
             <div key={tx.id}
-              onClick={selectMode ? () => toggleSelect(tx.id) : undefined}
-              className={`bg-white rounded-xl p-4 flex justify-between items-center transition ${selectMode ? 'cursor-pointer' : ''} ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-primary bg-green-50/30' : ''}`}>
+              onClick={selectMode ? () => toggleSelect(tx.id) : () => openEdit(tx)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectMode ? toggleSelect(tx.id) : openEdit(tx); } }}
+              aria-label={`${tx.description || tx.category} — click to ${selectMode ? 'select' : 'edit'}`}
+              className={`group bg-card rounded-xl p-4 flex justify-between items-center cursor-pointer border border-transparent transition-all hover:border-primary/20 hover:bg-accent/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
               <div className="flex items-center gap-3">
                 {selectMode && (
                   <input type="checkbox" checked={selectedIds.has(tx.id) || selectAllPages}
@@ -646,13 +651,33 @@ export default function TransactionsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <p className={`text-lg font-bold ${presentation.amountClass}`}>
+                <p className={`text-lg font-bold tabular-nums ${presentation.amountClass}`}>
                   {presentation.sign}{txAmount(tx, fmt)}
                 </p>
                 {!selectMode && (
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => openEdit(tx)} className="text-gray-400 hover:text-primary text-sm px-1" title="Edit">✏️</button>
-                    <button onClick={() => handleDelete(tx.id)} className="text-gray-400 hover:text-red-600 text-sm" title="Delete">🗑️</button>
+                  // Inline actions — always visible on touch (no group-hover
+                  // gating), but de-emphasized via opacity until the row is
+                  // hovered/focused on desktop. Click stops propagation so
+                  // hitting these doesn't ALSO fire the row-level edit.
+                  <div className="flex items-center gap-1 sm:opacity-60 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); openEdit(tx); }}
+                      aria-label={`Edit ${tx.description || tx.category}`}
+                      title="Edit"
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleDelete(tx.id); }}
+                      aria-label={`Delete ${tx.description || tx.category}`}
+                      title="Delete"
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
               </div>
