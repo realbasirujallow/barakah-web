@@ -5,6 +5,7 @@ import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useCurrency } from '../../../lib/useCurrency';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -180,27 +181,30 @@ function AnalyticsPageContent() {
 
   return (
     <div role="main">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Analytics</h1>
-        <div className="flex gap-2" role="tablist" aria-label="Period selection">
-          {periods.map((p) => (
-            <button
-              key={p.value}
-              onClick={() => setPeriod(p.value)}
-              role="tab"
-              aria-selected={period === p.value}
-              aria-label={`Select ${p.label}`}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                period === p.value
-                  ? 'bg-[#1B5E20] text-white'
-                  : 'bg-white text-[#1B5E20] border border-green-200 hover:bg-green-50'
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <PageHeader
+        title="Analytics"
+        subtitle="Income vs spending trends across periods, with halal/haram breakdowns"
+        actions={
+          <div className="flex gap-2" role="tablist" aria-label="Period selection">
+            {periods.map((p) => (
+              <button
+                key={p.value}
+                onClick={() => setPeriod(p.value)}
+                role="tab"
+                aria-selected={period === p.value}
+                aria-label={`Select ${p.label}`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  period === p.value
+                    ? 'bg-[#1B5E20] text-white'
+                    : 'bg-white text-[#1B5E20] border border-green-200 hover:bg-green-50'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

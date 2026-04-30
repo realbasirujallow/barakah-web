@@ -33,6 +33,7 @@ import { AdminEmailLogTab } from '../../../components/admin/AdminEmailLogTab';
 import { AdminExperimentsTab } from '../../../components/admin/AdminExperimentsTab';
 import { AdminUserDetailModal } from '../../../components/admin/AdminUserDetailModal';
 import { AdminGrantTrialModal } from '../../../components/admin/AdminGrantTrialModal';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import type {
   AdminUser,
   OnboardingTrialSettings,
@@ -391,67 +392,63 @@ export default function AdminPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-start justify-between mb-6 gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1B5E20]">Admin Dashboard</h1>
-          <p className="text-xs text-gray-400 mt-1">
-            Last updated: {lastRefreshed.toLocaleTimeString()} · Auto-refreshes every 30 minutes
-          </p>
-        </div>
-        {/* Sibling dashboards live on their own routes (conversion funnel + growth
-            KPIs) — surface direct links here so admins don't have to know the URLs. */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Link
-            href="/dashboard/admin/funnel"
-            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
-          >
-            📉 Funnel
-          </Link>
-          <Link
-            href="/dashboard/admin/growth"
-            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
-          >
-            📈 Growth
-          </Link>
-          <Link
-            href="/dashboard/admin/acquisition"
-            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
-          >
-            🎯 Acquisition
-          </Link>
-          <Link
-            href="/dashboard/admin/email-locales"
-            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
-          >
-            ✉️ Email Locales
-          </Link>
-          <Link
-            href="/dashboard/admin/email-preview"
-            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
-          >
-            👁️ Email Preview
-          </Link>
-          <Link
-            href="/dashboard/admin/halal-screening"
-            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
-          >
-            ☪️ Halal Screening
-          </Link>
-          <Link
-            href="/dashboard/admin/scorecard"
-            className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
-          >
-            📈 Scorecard
-          </Link>
-          <button
-            type="button"
-            onClick={() => loadData(page)}
-            className="px-4 py-2 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-[#2E7D32] transition font-medium"
-          >
-            ↻ Refresh
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Admin Dashboard"
+        subtitle={`Last updated: ${lastRefreshed.toLocaleTimeString()} · Auto-refreshes every 30 minutes`}
+        actions={
+          <>
+            <Link
+              href="/dashboard/admin/funnel"
+              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+            >
+              📉 Funnel
+            </Link>
+            <Link
+              href="/dashboard/admin/growth"
+              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+            >
+              📈 Growth
+            </Link>
+            <Link
+              href="/dashboard/admin/acquisition"
+              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+            >
+              🎯 Acquisition
+            </Link>
+            <Link
+              href="/dashboard/admin/email-locales"
+              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+            >
+              ✉️ Email Locales
+            </Link>
+            <Link
+              href="/dashboard/admin/email-preview"
+              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+            >
+              👁️ Email Preview
+            </Link>
+            <Link
+              href="/dashboard/admin/halal-screening"
+              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+            >
+              ☪️ Halal Screening
+            </Link>
+            <Link
+              href="/dashboard/admin/scorecard"
+              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+            >
+              📈 Scorecard
+            </Link>
+            <button
+              type="button"
+              onClick={() => loadData(page)}
+              className="px-4 py-2 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-[#2E7D32] transition font-medium"
+            >
+              ↻ Refresh
+            </button>
+          </>
+        }
+      />
 
       {/* ── Alerts Banner ── */}
       {alertCount > 0 && (

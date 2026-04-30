@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface RecurringTx {
   id: number;
@@ -137,19 +138,19 @@ export default function RecurringPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1B5E20]">Recurring Transactions</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your automatically-repeating transactions</p>
-        </div>
-        <button
-          onClick={handleProcessNow}
-          disabled={processing || active.length === 0}
-          className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2E7D32] disabled:opacity-50 font-medium"
-        >
-          {processing ? 'Processing...' : '▶ Process Now'}
-        </button>
-      </div>
+      <PageHeader
+        title="Recurring Transactions"
+        subtitle="Manage your automatically-repeating transactions"
+        actions={
+          <button
+            onClick={handleProcessNow}
+            disabled={processing || active.length === 0}
+            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2E7D32] disabled:opacity-50 font-medium"
+          >
+            {processing ? 'Processing...' : '▶ Process Now'}
+          </button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">

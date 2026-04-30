@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface PrayerTimings { Fajr: string; Sunrise: string; Dhuhr: string; Asr: string; Maghrib: string; Isha: string; }
 
@@ -398,10 +399,10 @@ export default function PrayerTimesPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Prayer Times</h1>
-        <p className="text-gray-500 text-sm mt-1">{dateStr} · {timeStr}</p>
-      </div>
+      <PageHeader
+        title="Prayer Times"
+        subtitle={`${dateStr} · ${timeStr}`}
+      />
 
       {/* Location search */}
       <div className="bg-white rounded-2xl p-5 mb-6 shadow-sm">

@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import { useCurrency } from '../../../lib/useCurrency';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface LedgerEntry {
   id?: number;
@@ -180,10 +181,11 @@ export default function AuditLedgerPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-[#1B5E20] mb-2">Audit Ledger</h1>
-          <p className="text-gray-600">Complete transaction history and system adjustments</p>
-        </div>
+        <PageHeader
+          title="Audit Ledger"
+          subtitle="Journal entries with debit/credit double-entry"
+          className="mb-8"
+        />
 
         {/* Filter Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">

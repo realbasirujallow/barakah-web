@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Group {
   id: number;
@@ -1005,27 +1006,26 @@ export default function SharedPage() {
   // Groups list view
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Shared Finances</h1>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowJoinForm(true)}
-            className="border border-[#1B5E20] text-[#1B5E20] px-4 py-2 rounded-lg hover:bg-green-50 font-medium text-sm"
-          >
-            Join Group
-          </button>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
-          >
-            + Create Group
-          </button>
-        </div>
-      </div>
-
-      <p className="text-sm text-gray-500 mb-6">
-        Track shared expenses with family, roommates, or travel companions. Expenses are split equally and balances are calculated automatically.
-      </p>
+      <PageHeader
+        title="Shared Finances"
+        subtitle="Track shared expenses with family, roommates, or travel companions. Expenses are split equally and balances are calculated automatically."
+        actions={
+          <>
+            <button
+              onClick={() => setShowJoinForm(true)}
+              className="border border-[#1B5E20] text-[#1B5E20] px-4 py-2 rounded-lg hover:bg-green-50 font-medium text-sm"
+            >
+              Join Group
+            </button>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
+            >
+              + Create Group
+            </button>
+          </>
+        }
+      />
 
       {groups.length === 0 ? (
         <div className="text-center py-16 text-gray-400">

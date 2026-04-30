@@ -14,6 +14,8 @@ const Tooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr
 const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
 const Legend = dynamic(() => import('recharts').then(mod => mod.Legend), { ssr: false });
 
+import { PageHeader } from '../../../components/dashboard/PageHeader';
+
 interface MonthlyPoint {
   month: string;    // "2025-12"
   income: number;
@@ -172,18 +174,18 @@ export default function SummaryPage() {
   return (
     <div className="max-w-2xl mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1B5E20]">Financial Summary</h1>
-          <p className="text-sm text-gray-500 mt-1">Overview of your income and spending</p>
-        </div>
-        <button
-          onClick={handleCopy}
-          className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2E7D32] font-medium transition"
-        >
-          {copied ? '✓ Copied' : '📋 Copy Summary'}
-        </button>
-      </div>
+      <PageHeader
+        title="Financial Summary"
+        subtitle="Overview of your income and spending"
+        actions={
+          <button
+            onClick={handleCopy}
+            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2E7D32] font-medium transition"
+          >
+            {copied ? '✓ Copied' : '📋 Copy Summary'}
+          </button>
+        }
+      />
 
       {/* Controls */}
       <div className="flex gap-3 mb-6 flex-wrap">

@@ -7,6 +7,7 @@ import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 /**
  * Family-plan household management page.
@@ -253,16 +254,16 @@ export default function FamilyPage() {
   // ── Owner view ──────────────────────────────────────────────────────────
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Your family plan</h1>
       {/* Phrasing matches the seat counter below: owner + N invitees = total
           seats. Earlier copy said "Invite up to 5" while the counter showed
           "Total seats: 6" — same number, two different ways of saying it,
           easy for users to second-guess. We compute the inviteable count
           from the actual seatsTotal so the marketing copy can never drift
           from what the seat math reports. (QA flagged 2026-04-25.) */}
-      <p className="text-gray-600 mb-6">
-        Up to {seatsTotal} household members on one plan, including you. One subscription covers everyone — members get full Plus access at no extra cost.
-      </p>
+      <PageHeader
+        title="Your family plan"
+        subtitle={`Up to ${seatsTotal} household members on one plan, including you. One subscription covers everyone — members get full Plus access at no extra cost.`}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] text-white rounded-2xl p-5 text-center">

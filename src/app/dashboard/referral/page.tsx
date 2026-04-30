@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { trackReferralShare } from '../../../lib/analytics';
 import { REFEREE_FIRST_MONTH_PRICE, REFEREE_REGULAR_PRICE } from '../../../lib/referralCopy';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 // Fire both the GA4 share event and the backend REFERRAL_SHARED lifecycle
 // event so the admin viral-loop funnel reflects this surface.
@@ -101,8 +102,11 @@ export default function ReferralPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Refer a Friend</h1>
-      <p className="text-gray-600 mb-4">Share Barakah with friends and family.</p>
+      <PageHeader
+        title="Refer a Friend"
+        subtitle="Share Barakah with friends and family."
+        className="mb-4"
+      />
 
       {/* Reward summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">

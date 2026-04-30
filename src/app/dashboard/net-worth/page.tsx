@@ -5,6 +5,7 @@ import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useCurrency } from '../../../lib/useCurrency';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Snapshot {
   id?: number;
@@ -142,16 +143,19 @@ export default function NetWorthPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Net Worth</h1>
-        <button
-          onClick={takeSnapshot}
-          disabled={snapping}
-          className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium disabled:opacity-50"
-        >
-          {snapping ? 'Calculating...' : '📸 Take Snapshot'}
-        </button>
-      </div>
+      <PageHeader
+        title="Net Worth"
+        subtitle="Assets minus debts, with halal-vs-haram split"
+        actions={
+          <button
+            onClick={takeSnapshot}
+            disabled={snapping}
+            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium disabled:opacity-50"
+          >
+            {snapping ? 'Calculating...' : '📸 Take Snapshot'}
+          </button>
+        }
+      />
 
       {error && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4 text-sm text-yellow-800">

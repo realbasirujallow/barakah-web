@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 
 interface WaqfItem { id: number; organizationName: string; type: string; purpose: string; amount: number; date: number; recurring: boolean; status: string; description?: string; }
@@ -211,11 +212,16 @@ export default function WaqfPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Waqf (Endowment)</h1>
-        {tab === 'contributions' && <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Contribution</button>}
-        {tab === 'distribution' && <button onClick={openAddBenef} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Beneficiary</button>}
-      </div>
+      <PageHeader
+        title="Waqf (Endowment)"
+        subtitle="Endowment tracking — properties, books, perpetual charity"
+        actions={
+          <>
+            {tab === 'contributions' && <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Contribution</button>}
+            {tab === 'distribution' && <button onClick={openAddBenef} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Beneficiary</button>}
+          </>
+        }
+      />
 
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5 text-sm text-indigo-900 mb-6 space-y-3">
         <h3 className="font-bold text-base">📖 Islamic Guidance on Waqf</h3>

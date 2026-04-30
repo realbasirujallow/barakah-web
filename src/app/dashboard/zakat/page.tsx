@@ -9,6 +9,7 @@ import { useToast } from '../../../lib/toast';
 import { safeParse, safeParseWithFallback, validateZakatCalculation, validateZakatPaymentsResponse, validateNisabInfo, formatTimeAgo } from '../../../lib/schemas';
 import ShareReceiptButton from '../../../components/ShareReceiptButton';
 import HistoricalZakatModal from '../../../components/HistoricalZakatModal';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { trackFirstZakatCalc, trackFeatureUse, trackOnce } from '../../../lib/analytics';
 
 interface ZakatCalculation {
@@ -592,54 +593,55 @@ export default function ZakatPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-[#1B5E20]">Zakat Calculator</h1>
-          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{lunarYear} AH</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleHideZakat}
-            className="text-sm text-gray-500 hover:text-gray-700 underline"
-          >
-            {hideZakat ? 'Show' : 'Hide'}
-          </button>
-          {tab === 'calculator' && (
-            <>
-              <button
-                onClick={() => setHistoricalModalOpen(true)}
-                className="text-sm bg-amber-100 text-amber-800 px-3 py-1 rounded-lg hover:bg-amber-200 font-medium"
-                title="Record zakat you paid before joining Barakah"
-              >
-                Historical Paid
-              </button>
-              <button
-                onClick={handleViewReceipt}
-                disabled={receiptLoading}
-                className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-lg hover:bg-green-200 disabled:opacity-50 font-medium"
-                title="View calculation receipt"
-              >
-                {receiptLoading ? 'Loading...' : 'View Receipt'}
-              </button>
-              <button
-                onClick={handleExportPDF}
-                disabled={exporting}
-                className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 disabled:opacity-50 font-medium"
-                title="Export as PDF"
-              >
-                {exporting ? 'Exporting...' : 'Export PDF'}
-              </button>
-            </>
-          )}
-          <div className="flex bg-gray-100 rounded-lg p-1 flex-wrap">
-            <button onClick={() => setTab('calculator')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'calculator' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Overview</button>
-            <button onClick={() => setTab('assets')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'assets' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Asset Calc</button>
-            <button onClick={() => setTab('payments')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'payments' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Payments</button>
-            <button onClick={() => setTab('fitr')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'fitr' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Al-Fitr</button>
-            <button onClick={() => { setTab('references'); loadScholarlyReferences(); }} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'references' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Sources</button>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Zakat Calculator"
+        subtitle="Calculate gross zakat due across cash, gold, stocks, and savings"
+        icon={<span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{lunarYear} AH</span>}
+        actions={
+          <>
+            <button
+              onClick={toggleHideZakat}
+              className="text-sm text-gray-500 hover:text-gray-700 underline"
+            >
+              {hideZakat ? 'Show' : 'Hide'}
+            </button>
+            {tab === 'calculator' && (
+              <>
+                <button
+                  onClick={() => setHistoricalModalOpen(true)}
+                  className="text-sm bg-amber-100 text-amber-800 px-3 py-1 rounded-lg hover:bg-amber-200 font-medium"
+                  title="Record zakat you paid before joining Barakah"
+                >
+                  Historical Paid
+                </button>
+                <button
+                  onClick={handleViewReceipt}
+                  disabled={receiptLoading}
+                  className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-lg hover:bg-green-200 disabled:opacity-50 font-medium"
+                  title="View calculation receipt"
+                >
+                  {receiptLoading ? 'Loading...' : 'View Receipt'}
+                </button>
+                <button
+                  onClick={handleExportPDF}
+                  disabled={exporting}
+                  className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 disabled:opacity-50 font-medium"
+                  title="Export as PDF"
+                >
+                  {exporting ? 'Exporting...' : 'Export PDF'}
+                </button>
+              </>
+            )}
+            <div className="flex bg-gray-100 rounded-lg p-1 flex-wrap">
+              <button onClick={() => setTab('calculator')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'calculator' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Overview</button>
+              <button onClick={() => setTab('assets')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'assets' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Asset Calc</button>
+              <button onClick={() => setTab('payments')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'payments' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Payments</button>
+              <button onClick={() => setTab('fitr')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'fitr' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Al-Fitr</button>
+              <button onClick={() => { setTab('references'); loadScholarlyReferences(); }} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'references' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Sources</button>
+            </div>
+          </>
+        }
+      />
 
       {tab === 'calculator' ? (
         <>

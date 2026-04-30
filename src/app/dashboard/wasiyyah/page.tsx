@@ -5,6 +5,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { safeParse, validateWasiyyahBeneficiary } from '../../../lib/schemas';
 
 interface Beneficiary {
@@ -250,40 +251,43 @@ function WasiyyahPageContent() {
         </a>
       </div>
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Wasiyyah (Islamic Will)</h1>
-        <div className="flex gap-2">
-          {/* Islamic Shares Info button */}
-          <button
-            type="button"
-            onClick={() => setShowSharesInfo(true)}
-            title="Islamic Inheritance Guide"
-            className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium"
-          >
-            📖 Guide
-          </button>
-          <button
-            type="button"
-            disabled={exporting}
-            onClick={async () => {
-              setExporting(true);
-              try { await api.downloadWasiyyahPdf(); }
-              catch (err) { toast(err instanceof Error ? err.message : 'Failed to export PDF', 'error'); }
-              finally { setExporting(false); }
-            }}
-            className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium flex items-center gap-1 disabled:opacity-50"
-          >
-            {exporting ? 'Exporting...' : '📄 PDF'}
-          </button>
-          <button
-            type="button"
-            onClick={() => tab === 'beneficiaries' ? setShowForm(true) : setShowObForm(true)}
-            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
-          >
-            {tab === 'beneficiaries' ? '+ Add Beneficiary' : '+ Record Obligation'}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Wasiyyah (Islamic Will)"
+        subtitle="1/3 bequest within Islamic estate planning rules"
+        actions={
+          <>
+            {/* Islamic Shares Info button */}
+            <button
+              type="button"
+              onClick={() => setShowSharesInfo(true)}
+              title="Islamic Inheritance Guide"
+              className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium"
+            >
+              📖 Guide
+            </button>
+            <button
+              type="button"
+              disabled={exporting}
+              onClick={async () => {
+                setExporting(true);
+                try { await api.downloadWasiyyahPdf(); }
+                catch (err) { toast(err instanceof Error ? err.message : 'Failed to export PDF', 'error'); }
+                finally { setExporting(false); }
+              }}
+              className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium flex items-center gap-1 disabled:opacity-50"
+            >
+              {exporting ? 'Exporting...' : '📄 PDF'}
+            </button>
+            <button
+              type="button"
+              onClick={() => tab === 'beneficiaries' ? setShowForm(true) : setShowObForm(true)}
+              className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
+            >
+              {tab === 'beneficiaries' ? '+ Add Beneficiary' : '+ Record Obligation'}
+            </button>
+          </>
+        }
+      />
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6" role="tablist" aria-label="Wasiyyah sections">

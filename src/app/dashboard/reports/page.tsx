@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import Link from 'next/link';
 
 type Period = 'week' | 'month' | 'year' | 'all';
@@ -81,12 +82,11 @@ function ReportsPageContent() {
 
   return (
     <div className="max-w-2xl">
-      {/* Hero banner */}
-      <div className="bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] rounded-2xl p-8 text-white mb-8 text-center">
-        <p className="text-5xl mb-3">📄</p>
-        <h1 className="text-2xl font-bold mb-1">Reports & Exports</h1>
-        <p className="text-green-200 text-sm">Generate professional financial reports and download your data</p>
-      </div>
+      <PageHeader
+        title="Reports & Exports"
+        icon="📄"
+        subtitle="Generate professional financial reports and download your data"
+      />
 
       {/* Period selector — for time-based reports */}
       <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
