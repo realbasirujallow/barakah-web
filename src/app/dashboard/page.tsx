@@ -16,6 +16,7 @@ import { SpendingDrillDown } from '../../components/dashboard/SpendingDrillDown'
 import { PeriodPicker, type Period } from '../../components/dashboard/PeriodPicker';
 import { GettingStartedChecklist, type GettingStartedItem } from '../../components/dashboard/GettingStartedChecklist';
 import { DailyRitual, buildRitualItems } from '../../components/dashboard/DailyRitual';
+import { getLastVisit, labelForRoute, type LastVisit } from '../../lib/lastVisit';
 import { Badge } from '../../components/ui/badge';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
@@ -97,6 +98,11 @@ export default function DashboardPage() {
   const [insights, setInsights] = useState<{type: string; severity: string; title: string; body: string}[]>([]);
   // Phase 12.1: count of transactions awaiting review — feeds DailyRitual.
   const [reviewCount, setReviewCount] = useState(0);
+  // Phase 14: last meaningful dashboard visit, hydrated client-side.
+  const [lastVisit, setLastVisit] = useState<LastVisit | null>(null);
+  useEffect(() => {
+    setLastVisit(getLastVisit());
+  }, []);
   // Phase 12.3 (2026-04-30): collapse the dense widget grid below
   // OVERVIEW behind a single disclosure. Default-closed for users
   // already past onboarding (the new top-of-page = Daily Ritual +
@@ -553,6 +559,22 @@ export default function DashboardPage() {
             </Link>
           </p>
         </div>
+      )}
+
+      {/* Phase 14 (2026-04-30): "Continue where you left off" chip.
+          Single-line shortcut to the user's last meaningful dashboard
+          page (lib/lastVisit.ts records visits per route). Auto-hides
+          when there's no recorded visit, when the recorded route is
+          stale (>7 days), or when the user has no data yet (the empty
+          state CTA wins instead). */}
+      {!hasNoData && lastVisit && (
+        <Link
+          href={lastVisit.pathname}
+          className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-medium hover:bg-primary/10 transition-colors"
+        >
+          <span aria-hidden="true">↩</span>
+          <span>Pick up where you left off — {labelForRoute(lastVisit.pathname)}</span>
+        </Link>
       )}
 
       {/* Phase 11 (2026-04-30): Daily Ritual — top-of-fold answer to
