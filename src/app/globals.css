@@ -286,7 +286,27 @@ main { contain: layout paint; }
   .stagger-fade > *:nth-child(10) { animation-delay: 270ms; }
 }
 
-/* ── Dark mode legacy overrides (kept for marketing/older dashboard code) ── */
+/* ── Dark mode legacy overrides ────────────────────────────────────────────
+   Phase 8 cleanup (Apr 27 2026): the bulk of dashboard pages now use
+   semantic tokens (bg-card, text-foreground, text-muted-foreground,
+   border-border) which auto-flip in dark mode via the OKLCH variables
+   above. The overrides below are kept ONLY for the patterns that
+   semantic tokens don't already cover:
+
+   • Marketing pages still using `bg-white` / `bg-[#FFF8E1]` literally
+     (homepage, pricing, learn, compare). Without these the marketing
+     pages would render a white card on a dark page.
+   • Tailwind `gray-*` legacy classes that pre-date the semantic-token
+     migration. ~30 dashboard pages still reference them; sweeping
+     them all is a separate phase.
+   • Form input chrome where shadcn primitives weren't yet adopted.
+
+   Removed: every `.dark .text-[#1B5E20]`, `.bg-[#1B5E20]`,
+   `border-[#1B5E20]`, `ring-[#1B5E20]`, and `hover:bg-[#2E7D32]`
+   override. Phase 3.4 + 6.6 + 7.x swept all 761 inline references to
+   `text-primary` / `bg-primary` / `border-primary` — the dark-mode
+   token already lifts `--primary` from oklch(0.43) to oklch(0.65) so
+   no manual override is needed. */
 .dark .bg-white { background-color: var(--card-bg) !important; }
 .dark .bg-\[#FFF8E1\] { background-color: oklch(0.145 0 0) !important; }
 .dark .text-gray-900 { color: var(--text-primary) !important; }
@@ -305,7 +325,7 @@ main { contain: layout paint; }
   border-color: var(--border-color) !important;
 }
 
-/* Additional dark overrides for dashboard patterns */
+/* Additional dark overrides for the few non-token patterns left. */
 .dark .bg-white\/50, .dark .bg-white\/80 { background-color: rgba(26, 46, 29, 0.8) !important; }
 .dark .bg-\[\#FFF3CD\] { background-color: #2a3a1e !important; }
 .dark .bg-green-50 { background-color: #152018 !important; }
@@ -317,16 +337,9 @@ main { contain: layout paint; }
 .dark .bg-purple-50 { background-color: #201a2a !important; }
 .dark .shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,0.3) !important; }
 .dark .shadow-md { box-shadow: 0 4px 6px rgba(0,0,0,0.4) !important; }
-.dark .text-\[\#1B5E20\] { color: #4ade80 !important; }
-.dark .border-\[\#1B5E20\] { border-color: #4ade80 !important; }
-.dark .bg-\[\#1B5E20\] { background-color: #166534 !important; }
-.dark .hover\:bg-\[\#2E7D32\]:hover { background-color: #15803d !important; }
 .dark .hover\:bg-green-50:hover { background-color: #152018 !important; }
 .dark .hover\:bg-gray-50:hover { background-color: #152018 !important; }
 .dark .hover\:bg-gray-100:hover { background-color: #1a2e1d !important; }
-.dark .ring-\[\#1B5E20\] { --tw-ring-color: #4ade80 !important; }
-.dark .focus\:border-\[\#1B5E20\]:focus { border-color: #4ade80 !important; }
-.dark .focus\:ring-\[\#1B5E20\]:focus { --tw-ring-color: #4ade80 !important; }
 .dark .divide-gray-100 > :not(:last-child) { border-color: #1f3024 !important; }
 .dark .divide-gray-200 > :not(:last-child) { border-color: var(--border-color) !important; }
 .dark table thead tr { background-color: #152018 !important; }

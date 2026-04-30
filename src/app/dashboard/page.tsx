@@ -442,19 +442,49 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Empty-state CTA for new users */}
+      {/* Phase 8.2 — Monarch-style empty state. Layered explanation:
+          - Big bold value prop (not just "connect bank")
+          - 3 specific outcomes the user gets (not generic "track spending")
+          - Primary CTA + secondary sample-data + a third "set up manually" link
+          - Sample-data caveat in muted-foreground
+          - Dotted-border card uses semantic tokens so dark mode auto-flips */}
       {hasNoData && (
-        <div className="bg-white border-2 border-dashed border-green-200 rounded-2xl p-8 mb-6 text-center">
-          <span className="text-5xl block mb-3">🏦</span>
-          <h3 className="text-xl font-bold text-primary mb-2">Connect your bank accounts to get started</h3>
-          <p className="text-gray-500 text-sm mb-4 max-w-md mx-auto">
-            Link your accounts to automatically track spending, monitor your net worth, and calculate zakat with precision.
+        <div className="bg-card border-2 border-dashed border-primary/30 rounded-2xl p-8 mb-6 text-center motion-safe:animate-fade-up-200">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-3xl mb-3">
+            <span aria-hidden="true">🏦</span>
+          </div>
+          <h3 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
+            Set up Barakah in 60 seconds
+          </h3>
+          <p className="text-muted-foreground text-sm mb-5 max-w-md mx-auto leading-relaxed">
+            Connect a bank to auto-import transactions, or start with sample data
+            and explore every feature first. Either way: zero setup, halal-aware
+            from minute one.
           </p>
+
+          {/* 3 outcomes as small chips — Monarch's pattern of telling
+              users what they actually get, not what the action does. */}
+          <div className="flex flex-wrap gap-2 justify-center mb-5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
+              <span aria-hidden="true">📊</span> Auto-categorise spending
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
+              <span aria-hidden="true">🕌</span> Zakat calculated automatically
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
+              <span aria-hidden="true">🛡️</span> Riba flagged on every charge
+            </span>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/dashboard/import" className="inline-block bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition">
-              Connect Accounts
+            <Link
+              href="/dashboard/import"
+              className="inline-flex items-center justify-center bg-primary text-primary-foreground px-6 py-3 rounded-md font-semibold hover:bg-primary/90 transition-colors"
+            >
+              Connect a bank
             </Link>
             <button
+              type="button"
               onClick={async () => {
                 try {
                   await api.seedDemoData();
@@ -462,12 +492,17 @@ export default function DashboardPage() {
                   window.location.reload();
                 } catch { toast('Could not load sample data.', 'error'); }
               }}
-              className="inline-block border border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition"
+              className="inline-flex items-center justify-center border border-border bg-card text-foreground px-6 py-3 rounded-md font-semibold hover:bg-accent transition-colors"
             >
-              Load Sample Data to Explore
+              Try with sample data
             </button>
           </div>
-          <p className="text-gray-400 text-xs mt-3">Sample data lets you explore every feature. Replace with real data anytime.</p>
+          <p className="text-muted-foreground text-xs mt-4">
+            Prefer manual?{' '}
+            <Link href="/dashboard/transactions" className="text-primary hover:underline font-medium">
+              Add your first transaction →
+            </Link>
+          </p>
         </div>
       )}
 
