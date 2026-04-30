@@ -108,7 +108,8 @@ describe('admin-specific surface behavior', () => {
       />,
     );
 
-    expect(screen.getByText('Subscribed / Trial Seats')).toBeInTheDocument();
+    expect(screen.getByText('Nominal Access Seats')).toBeInTheDocument();
+    expect(screen.getByText(/truly paid/i)).toBeInTheDocument();
     expect(screen.getByText(/on trial, paid, or inherited access/i)).toBeInTheDocument();
     expect(screen.getByText(/not true paid accounts/i)).toBeInTheDocument();
   });

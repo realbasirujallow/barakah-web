@@ -42,6 +42,13 @@ export function AdminOverviewTab({
   setSearch,
   openUser,
 }: AdminOverviewTabProps) {
+  const truePaidAccounts = overview
+    ? (overview.activePlus ?? 0) + (overview.activeFamily ?? 0)
+    : 0;
+  const truePaidConversion = overview && overview.totalUsers > 0
+    ? ((truePaidAccounts / overview.totalUsers) * 100).toFixed(1)
+    : '0.0';
+
   return (
     <div className="space-y-6">
 
@@ -68,14 +75,14 @@ export function AdminOverviewTab({
             <p className="text-green-200 text-xs font-medium mb-1">Total Users</p>
             <p className="text-3xl font-bold">{overview.totalUsers.toLocaleString()}</p>
             <p className="text-green-200 text-xs mt-1">
-              {overview.conversionRate}% on trial, paid, or inherited access
+              {truePaidConversion}% truly paid
             </p>
           </div>
           <div className="bg-white rounded-2xl p-5 border">
-            <p className="text-gray-400 text-xs font-medium mb-1">Subscribed / Trial Seats</p>
+            <p className="text-gray-400 text-xs font-medium mb-1">Nominal Access Seats</p>
             <p className="text-3xl font-bold text-gray-800">{overview.paidUsers}</p>
             <p className="text-gray-400 text-xs mt-1">
-              {overview.subscribedPlus} Plus · {overview.subscribedFamily} Family
+              {overview.conversionRate}% of users on trial, paid, or inherited access
             </p>
             <p className="text-gray-400 text-[11px] mt-0.5 italic">
               Includes active trials + inherited family seats; not true paid accounts
