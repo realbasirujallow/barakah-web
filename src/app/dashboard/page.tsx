@@ -12,6 +12,7 @@ import { TransactionUsageMeter } from '../../components/TransactionUsageMeter';
 import { PRICING } from '../../lib/pricing';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { KpiCard, KpiChange } from '../../components/dashboard/KpiCard';
+import { SpendingDrillDown } from '../../components/dashboard/SpendingDrillDown';
 import { Badge } from '../../components/ui/badge';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
@@ -77,6 +78,9 @@ export default function DashboardPage() {
   const [hijri, setHijri] = useState<HijriData | null>(null);
   const [hawlDue, setHawlDue] = useState<HawlDue | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  // Phase 2.4 (2026-04-27): controls the spending breakdown <Sheet>.
+  // Founder-reported gap — clicking the spending KPI used to be a no-op.
+  const [spendingDrillOpen, setSpendingDrillOpen] = useState(false);
   const [portfolioSummary, setPortfolioSummary] = useState<PortfolioSummary | null>(null);
   const [latestPortfolioSnapshot, setLatestPortfolioSnapshot] = useState<PortfolioHistorySnapshot | null>(null);
   const [widgets, setWidgets] = useState<DashboardWidgets | null>(null);
@@ -484,12 +488,22 @@ export default function DashboardPage() {
 
       {/* ── Spending + Budget ──────────────────────────────────────────────── */}
       <div role="region" aria-label="Spending and budget overview" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Spending Summary */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
+        {/* Spending Summary
+            Phase 2.4 (2026-04-27): card now opens <SpendingDrillDown> on
+            click. Whole card is the click target (button) so the user
+            doesn't have to hunt for a tiny "details" link. The bottom
+            "View full breakdown" inline link is gone — its destination
+            (/dashboard/summary) is reachable from inside the drill-down. */}
+        <button
+          type="button"
+          onClick={() => setSpendingDrillOpen(true)}
+          className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden text-left w-full hover:shadow-md hover:border-gray-200 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Open spending breakdown for this month"
+        >
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="min-w-0">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Spending This Month</p>
-              <p className="text-2xl font-bold text-gray-900 truncate">
+              <p className="text-2xl font-bold text-gray-900 truncate tabular-nums">
                 {widgets?.spending ? fmt(widgets.spending.thisMonth) : loading ? '...' : fmt(0)}
               </p>
             </div>
@@ -515,7 +529,7 @@ export default function DashboardPage() {
                     <div className="flex-1 bg-gray-100 rounded-full h-2 min-w-0">
                       <div className="bg-[#1B5E20] rounded-full h-2 transition-all" style={{ width: `${Math.min((cat.amount / max) * 100, 100)}%` }} />
                     </div>
-                    <span className="text-xs font-medium text-gray-900 flex-shrink-0 text-right">{fmt(cat.amount)}</span>
+                    <span className="text-xs font-medium text-gray-900 flex-shrink-0 text-right tabular-nums">{fmt(cat.amount)}</span>
                   </div>
                 );
               })}
@@ -524,10 +538,10 @@ export default function DashboardPage() {
           {(!widgets?.spending || widgets.spending.thisMonth === 0) && !loading && (
             <p className="text-gray-400 text-sm mt-2">No spending recorded yet this month.</p>
           )}
-          <Link href="/dashboard/summary" className="inline-block mt-3 text-sm font-medium text-[#1B5E20] hover:underline">
-            View full breakdown →
-          </Link>
-        </div>
+          <span className="inline-block mt-3 text-sm font-medium text-[#1B5E20]">
+            See breakdown →
+          </span>
+        </button>
 
         {/* Budget Overview */}
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
@@ -831,6 +845,16 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Phase 2.4: Spending breakdown drawer (slides in from the right
+          when the user clicks the Spending This Month card). */}
+      <SpendingDrillDown
+        open={spendingDrillOpen}
+        onOpenChange={setSpendingDrillOpen}
+        fmt={fmt}
+        spending={widgets?.spending ?? null}
+        loading={loading}
+      />
     </div>
   );
 }
