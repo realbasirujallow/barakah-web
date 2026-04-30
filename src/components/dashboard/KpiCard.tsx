@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -42,6 +43,14 @@ export interface KpiCardProps {
   href?: string;
   /** Extra className passed through to the outermost element. */
   className?: string;
+  /**
+   * Optional sparkline data (Phase 4 / 2026-04-27). When provided, a
+   * thin area chart renders behind the value text — Monarch / Rocket
+   * Money use this for instant trend context without burning a full
+   * card on a chart. Each entry is a single data point; we render
+   * just one series. Negative `tone` flips the sparkline to rose.
+   */
+  sparkline?: Array<{ value: number }>;
 }
 
 const toneClass: Record<NonNullable<KpiCardProps['tone']>, string> = {
@@ -52,6 +61,16 @@ const toneClass: Record<NonNullable<KpiCardProps['tone']>, string> = {
   muted:    'text-muted-foreground',
 };
 
+// Tailwind variable maps for sparkline tones — keep full class strings
+// here so JIT doesn't purge the runtime-derived stroke/fill colours.
+const sparklineStroke: Record<NonNullable<KpiCardProps['tone']>, string> = {
+  default:  'var(--primary)',
+  positive: 'oklch(0.62 0.15 165)',  // emerald
+  negative: 'oklch(0.62 0.20 22)',   // rose
+  warning:  'oklch(0.72 0.16 75)',   // amber
+  muted:    'var(--muted-foreground)',
+};
+
 export function KpiCard({
   label,
   value,
@@ -60,16 +79,47 @@ export function KpiCard({
   tone = 'default',
   href,
   className,
+  sparkline,
 }: KpiCardProps) {
+  const hasSparkline = Array.isArray(sparkline) && sparkline.length >= 2;
+  const stroke = sparklineStroke[tone];
+  const gradientId = React.useId();
+
   const inner = (
     <Card
       className={cn(
-        'gap-2 py-4 transition-shadow',
+        'relative gap-2 py-4 transition-shadow overflow-hidden',
         href && 'hover:shadow-md cursor-pointer',
         className,
       )}
     >
-      <CardContent className="px-5">
+      {hasSparkline && (
+        // Sparkline lives in the card's lower half, behind the text.
+        // 32px tall, full width, 60% opacity so the headline number
+        // wins the visual weight competition. pointer-events-none
+        // so it can't intercept clicks for the optional href.
+        <div className="absolute inset-x-0 bottom-0 h-12 opacity-60 pointer-events-none" aria-hidden="true">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={sparkline} margin={{ top: 6, right: 0, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={stroke} stopOpacity={0.45} />
+                  <stop offset="100%" stopColor={stroke} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke={stroke}
+                strokeWidth={1.5}
+                fill={`url(#${gradientId})`}
+                isAnimationActive={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+      <CardContent className="relative px-5">
         <div className="flex items-center justify-between gap-2 mb-1">
           <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
             {label}

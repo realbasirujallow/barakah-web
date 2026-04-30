@@ -435,6 +435,17 @@ export default function DashboardPage() {
               />
             ) : null
           }
+          // Sparkline trend over the last N days from the existing
+          // /api/dashboard/widgets payload. Hidden when the user has
+          // toggled "Hide" so we don't leak shape information.
+          sparkline={
+            !hideNetWorth && widgets?.netWorthMini?.history
+              ? widgets.netWorthMini.history.map(p => ({ value: p.netWorth }))
+              : undefined
+          }
+          tone={
+            (widgets?.netWorthMini?.changeAmount ?? 0) >= 0 ? 'default' : 'negative'
+          }
         />
         {/* Headline value is the GROSS zakat (zakatDue), matching the
             /dashboard/zakat detail page exactly. Earlier this widget
