@@ -11,6 +11,8 @@ import ReferralPromptModal, { useReferralPrompt } from '../../components/Referra
 import { TransactionUsageMeter } from '../../components/TransactionUsageMeter';
 import { PRICING } from '../../lib/pricing';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { KpiCard, KpiChange } from '../../components/dashboard/KpiCard';
+import { Badge } from '../../components/ui/badge';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
 interface HijriData { hijriDate: string; hijriMonthName: string; isRamadan: boolean; upcomingEvents: IslamicEvent[]; }
@@ -394,63 +396,71 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Summary Cards (full width, above grid) ──────────────────────── */}
+      {/* ── Summary KPI Cards (Phase 2 / 2026-04-27) ─────────────────────────
+           Migrated from inline div+text-xl to the shared <KpiCard> primitive.
+           Larger numbers (text-3xl), tabular-nums, semantic shadcn tokens
+           (bg-card, text-muted-foreground, border-border) — matches the
+           Monarch / Linear "premium dashboard" pattern. */}
       <div role="region" aria-label="Financial summary" className={`grid gap-4 mb-5 ${hasInvestmentPulse ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`}>
-        <div className="bg-white rounded-xl p-4 border border-gray-200">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Net Worth</p>
-            <button onClick={toggleHideNetWorth} className="text-[10px] text-gray-400 hover:text-gray-600">{hideNetWorth ? 'Show' : 'Hide'}</button>
-          </div>
-          <p className="text-xl font-bold text-gray-900">
-            {hideNetWorth ? '••••••' : (loading ? '...' : fmt(netWorthValue))}
-          </p>
-          {!hideNetWorth && widgets?.netWorthMini?.changeAmount != null && (
-            <p className={`text-xs mt-1 font-medium ${(widgets.netWorthMini.changeAmount || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {(widgets.netWorthMini.changeAmount || 0) >= 0 ? '▲' : '▼'} {fmt(Math.abs(widgets.netWorthMini.changeAmount || 0))} ({(widgets.netWorthMini.changePercent || 0).toFixed(1)}%)
-            </p>
-          )}
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-gray-200">
-          <div className="flex items-center justify-between mb-1">
-            {/* Headline value is the GROSS zakat (zakatDue), matching the
-                /dashboard/zakat detail page exactly. Earlier this widget
-                rendered `zakatRemaining ?? zakatDue` under a "Zakat Due"
-                label, which produced a confusing delta vs. the detail
-                page (e.g. $2,549.69 here vs $2,570.75 there for the same
-                user — flagged 2026-04-25 as a trust issue). Remaining /
-                paid progress now lives in the sub-line so the headline
-                stays consistent across surfaces. */}
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Zakat Due</p>
+        <KpiCard
+          label="Net Worth"
+          value={hideNetWorth ? '••••••' : (loading ? '…' : fmt(netWorthValue))}
+          trailingLabel={
+            <button onClick={toggleHideNetWorth} className="text-[10px] text-muted-foreground hover:text-foreground">
+              {hideNetWorth ? 'Show' : 'Hide'}
+            </button>
+          }
+          footer={
+            !hideNetWorth ? (
+              <KpiChange
+                amount={widgets?.netWorthMini?.changeAmount}
+                percent={widgets?.netWorthMini?.changePercent}
+                format={fmt}
+              />
+            ) : null
+          }
+        />
+        {/* Headline value is the GROSS zakat (zakatDue), matching the
+            /dashboard/zakat detail page exactly. Earlier this widget
+            rendered `zakatRemaining ?? zakatDue` under a "Zakat Due"
+            label, which produced a confusing delta vs. the detail
+            page (e.g. $2,549.69 here vs $2,570.75 there for the same
+            user — flagged 2026-04-25 as a trust issue). Remaining /
+            paid progress now lives in the sub-line so the headline
+            stays consistent across surfaces. */}
+        <KpiCard
+          label="Zakat Due"
+          tone={totals?.zakatFullyPaid ? 'positive' : 'warning'}
+          value={hideZakat ? '••••••' : (loading ? '…' : fmt((totals?.zakatDue as number) ?? 0))}
+          trailingLabel={
             <div className="flex items-center gap-1">
-              {Boolean(totals?.zakatFullyPaid) && <span className="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">PAID</span>}
-              <button onClick={toggleHideZakat} className="text-[10px] text-gray-400 hover:text-gray-600">{hideZakat ? 'Show' : 'Hide'}</button>
+              {Boolean(totals?.zakatFullyPaid) && (
+                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 text-[10px] font-bold uppercase">Paid</Badge>
+              )}
+              <button onClick={toggleHideZakat} className="text-[10px] text-muted-foreground hover:text-foreground">
+                {hideZakat ? 'Show' : 'Hide'}
+              </button>
             </div>
-          </div>
-          <p className={`text-xl font-bold ${totals?.zakatFullyPaid ? 'text-green-600' : 'text-amber-600'}`}>
-            {hideZakat ? '••••••' : (loading ? '...' : fmt((totals?.zakatDue as number) ?? 0))}
-          </p>
-          {!hideZakat && !loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid) && (
-            <p className="text-xs text-gray-500 mt-1">
-              Paid {fmt((totals?.zakatPaid as number) || 0)} · Remaining {fmt((totals?.zakatRemaining as number) ?? Math.max(0, ((totals?.zakatDue as number) || 0) - ((totals?.zakatPaid as number) || 0)))}
-            </p>
-          )}
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-gray-200">
-          <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Zakat Eligible</p>
-          <p className={`text-xl font-bold ${totals?.zakatEligible ? 'text-green-600' : 'text-gray-400'}`}>
-            {loading ? '...' : (totals?.zakatEligible ? 'Yes' : 'Not Yet')}
-          </p>
-        </div>
+          }
+          footer={
+            !hideZakat && !loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid)
+              ? <>Paid {fmt((totals?.zakatPaid as number) || 0)} · Remaining {fmt((totals?.zakatRemaining as number) ?? Math.max(0, ((totals?.zakatDue as number) || 0) - ((totals?.zakatPaid as number) || 0)))}</>
+              : null
+          }
+        />
+        <KpiCard
+          label="Zakat Eligible"
+          tone={totals?.zakatEligible ? 'positive' : 'muted'}
+          value={loading ? '…' : (totals?.zakatEligible ? 'Yes' : 'Not Yet')}
+        />
         {hasInvestmentPulse && (
-          <Link href="/dashboard/investments" className="block bg-white rounded-xl p-4 border border-gray-200 hover:border-gray-300 transition">
-            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Market Today</p>
-            <p className={`text-xl font-bold ${dayMove >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {dayMove >= 0 ? '+' : ''}{fmt(dayMove)}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              {dayMovePct >= 0 ? '+' : ''}{dayMovePct.toFixed(2)}% · {fmt(portfolioSummary?.totalValue || 0)}
-            </p>
-          </Link>
+          <KpiCard
+            label="Market Today"
+            tone={dayMove >= 0 ? 'positive' : 'negative'}
+            value={`${dayMove >= 0 ? '+' : ''}${fmt(dayMove)}`}
+            footer={`${dayMovePct >= 0 ? '+' : ''}${dayMovePct.toFixed(2)}% · ${fmt(portfolioSummary?.totalValue || 0)}`}
+            href="/dashboard/investments"
+          />
         )}
       </div>
 
