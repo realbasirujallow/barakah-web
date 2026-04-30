@@ -893,18 +893,26 @@ export default function DashboardPage() {
       </div>{/* END RIGHT COLUMN */}
       </div>{/* END TWO-COLUMN GRID */}
 
-      {/* Quick Actions */}
+      {/* Quick Actions
+          Phase 10 (2026-04-30): Reduced from a feature-catalog grid to
+          4 personalized shortcuts. The "Explore Features" grid that
+          followed has been removed entirely — every feature is one click
+          away in the sidebar, so duplicating them on the dashboard
+          added noise without aiding navigation. (Per third-party UX
+          audit: "Best apps lead with calm, narrow daily flow; Barakah
+          was leading with a feature catalog.") */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-foreground tracking-tight mb-3">Quick Actions</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Quick Actions</h2>
         <div className="stagger-fade grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickActions.map(c => (
             <Link
               key={c.href + c.label}
               href={c.href}
-              className="bg-white rounded-xl p-4 hover:shadow-md transition group border border-gray-100"
+              className="bg-card rounded-xl p-4 hover:shadow-md hover:border-primary/20 transition-all group border border-border"
             >
-              <div className="text-2xl mb-2">{c.icon}</div>
-              <h3 className="font-semibold text-primary group-hover:underline text-sm">{c.label}</h3>
+              <div className="text-2xl mb-2" aria-hidden="true">{c.icon}</div>
+              <h3 className="font-semibold text-foreground group-hover:text-primary text-sm">{c.label}</h3>
+              {c.desc && <p className="text-muted-foreground text-xs mt-0.5">{c.desc}</p>}
             </Link>
           ))}
         </div>
@@ -926,21 +934,14 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Feature cards grid */}
-      <h2 className="text-xl font-bold text-primary mb-4">Explore Features</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {cards.map(c => (
-          <Link
-            key={c.href}
-            href={c.href}
-            className="bg-white rounded-xl p-5 hover:shadow-md transition group"
-          >
-            <div className="text-3xl mb-2">{c.icon}</div>
-            <h3 className="font-semibold text-primary group-hover:underline">{c.label}</h3>
-            <p className="text-gray-500 text-xs mt-1">{c.desc}</p>
-          </Link>
-        ))}
-      </div>
+      {/* Phase 10: "Explore Features" grid removed.
+          Reasoning: it duplicated the sidebar (every feature was already one
+          click away there), added 16 more cards of visual noise, and made
+          the dashboard read as a feature catalog instead of a daily
+          control surface. Sidebar is the canonical feature index now.
+          The `cards` array is intentionally retained at the top of this
+          file in case a future surface (e.g. a /dashboard/features
+          discovery page) wants the same data. */}
 
       {/* ── Free plan: Transaction usage + Plus feature teasers ──────────── */}
       {user?.plan === 'free' && (
