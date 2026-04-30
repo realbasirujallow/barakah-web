@@ -10,7 +10,7 @@
  * on the page needs it.
  */
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { fmtFullTs } from './adminFormatting';
 
@@ -23,31 +23,50 @@ export function AdminDeletedTab({ toast }: AdminDeletedTabProps) {
   const [deletedUsers, setDeletedUsers] = useState<any[] | null>(null);
   const [deletedUsersLoading, setDeletedUsersLoading] = useState(false);
   const [churnData, setChurnData] = useState<Record<string, number> | null>(null);
+  const [lastLoadedAt, setLastLoadedAt] = useState<number | null>(null);
+
+  const loadDeletedUsers = useCallback(async () => {
+    setDeletedUsersLoading(true);
+    try {
+      const [usersRes, churnRes] = await Promise.all([
+        api.adminGetDeletedUsers(),
+        api.adminGetChurnAnalysis(),
+      ]);
+      setDeletedUsers(usersRes?.users ?? []);
+      setChurnData(churnRes ?? null);
+      setLastLoadedAt(Date.now());
+    } catch {
+      toast('Failed to load deleted users', 'error');
+    } finally {
+      setDeletedUsersLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    void loadDeletedUsers();
+  }, [loadDeletedUsers]);
+
+  const isIdentityRedacted = (u: Record<string, unknown>) =>
+    typeof u.email === 'string' && u.email.endsWith('@deleted.local');
 
   return (
     <div className="bg-white rounded-2xl p-6 border border-gray-200">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-lg font-bold text-gray-900">Deleted User Archive</h2>
-          <p className="text-sm text-gray-500">Contact info preserved for remarketing and churn analysis.</p>
+          <p className="text-sm text-gray-500">
+            Recent deletions, churn reasons, and privacy-safe archive rows. Some self-serve deletions intentionally redact PII by default.
+          </p>
+          {lastLoadedAt && (
+            <p className="text-xs text-gray-400 mt-1">Last refreshed {new Date(lastLoadedAt).toLocaleString()}</p>
+          )}
         </div>
         <button
-          onClick={async () => {
-            setDeletedUsersLoading(true);
-            try {
-              const [usersRes, churnRes] = await Promise.all([
-                api.adminGetDeletedUsers(),
-                api.adminGetChurnAnalysis(),
-              ]);
-              setDeletedUsers(usersRes?.users ?? []);
-              setChurnData(churnRes ?? null);
-            } catch { toast('Failed to load deleted users', 'error'); }
-            finally { setDeletedUsersLoading(false); }
-          }}
+          onClick={() => { void loadDeletedUsers(); }}
           disabled={deletedUsersLoading}
           className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50"
         >
-          {deletedUsersLoading ? 'Loading...' : deletedUsers ? 'Refresh' : 'Load Deleted Users'}
+          {deletedUsersLoading ? 'Loading...' : 'Refresh'}
         </button>
       </div>
 
@@ -89,16 +108,32 @@ export function AdminDeletedTab({ toast }: AdminDeletedTabProps) {
               {deletedUsers.map((u, i) => (
                 <tr key={(u.userId as number | undefined) ?? (u.id as number | undefined) ?? (u.email as string | undefined) ?? i} className="hover:bg-gray-50">
                   <td className="px-3 py-3">
-                    <p className="font-medium text-gray-900 text-sm">{String(u.fullName || '—')}</p>
-                    <p className="text-xs text-gray-400">{String(u.email || '')}</p>
-                    {u.phoneNumber && <p className="text-xs text-gray-400">{String(u.phoneNumber)}</p>}
+                    {isIdentityRedacted(u) ? (
+                      <>
+                        <p className="font-medium text-gray-900 text-sm">
+                          User #{String(u.originalUserId ?? u.userId ?? '—')}
+                        </p>
+                        <p className="text-xs text-amber-600">Identity redacted by privacy-default deletion flow</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-medium text-gray-900 text-sm">{String(u.fullName || '—')}</p>
+                        <p className="text-xs text-gray-400">{String(u.email || '')}</p>
+                        {u.phoneNumber && <p className="text-xs text-gray-400">{String(u.phoneNumber)}</p>}
+                      </>
+                    )}
                   </td>
                   <td className="px-3 py-3 text-xs">{String(u.planAtDeletion || 'free')}</td>
                   <td className="px-3 py-3 text-xs text-gray-600">
                     {u.deletionReason ? String(u.deletionReason).replace(/_/g, ' ') : <span className="text-gray-300">—</span>}
                     {u.deletionNote && <p className="text-[10px] text-gray-400 italic mt-0.5">{String(u.deletionNote)}</p>}
                   </td>
-                  <td className="px-3 py-3 text-xs text-gray-500">{u.deletionDate ? fmtFullTs(Number(u.deletionDate)) : '—'}</td>
+                  <td className="px-3 py-3 text-xs text-gray-500">
+                    {u.deletionDate ? fmtFullTs(Number(u.deletionDate)) : '—'}
+                    {typeof u.deletionDate === 'number' && (Date.now() - Number(u.deletionDate)) < 24 * 60 * 60 * 1000 && (
+                      <p className="text-[10px] text-green-700 font-semibold mt-0.5">Deleted today</p>
+                    )}
+                  </td>
                   <td className="px-3 py-3 text-xs">{String(u.deletionSource || '')}</td>
                   <td className="px-3 py-3">
                     {u.reactivated

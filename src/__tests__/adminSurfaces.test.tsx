@@ -4,9 +4,12 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import AnnualUpgradeBanner from '../components/AnnualUpgradeBanner';
 import AnnualUpgradeModal from '../components/AnnualUpgradeModal';
+import { AdminDeletedTab } from '../components/admin/AdminDeletedTab';
 import { AdminOverviewTab } from '../components/admin/AdminOverviewTab';
 
-const { subscriptionStatusMock, useAuthMock } = vi.hoisted(() => ({
+const { adminGetChurnAnalysisMock, adminGetDeletedUsersMock, subscriptionStatusMock, useAuthMock } = vi.hoisted(() => ({
+  adminGetChurnAnalysisMock: vi.fn(),
+  adminGetDeletedUsersMock: vi.fn(),
   subscriptionStatusMock: vi.fn(),
   useAuthMock: vi.fn(),
 }));
@@ -23,6 +26,8 @@ vi.mock('../context/AuthContext', () => ({
 
 vi.mock('../lib/api', () => ({
   api: {
+    adminGetChurnAnalysis: () => adminGetChurnAnalysisMock(),
+    adminGetDeletedUsers: () => adminGetDeletedUsersMock(),
     subscriptionStatus: () => subscriptionStatusMock(),
   },
 }));
@@ -33,6 +38,8 @@ vi.mock('../lib/useFocusTrap', () => ({
 
 describe('admin-specific surface behavior', () => {
   beforeEach(() => {
+    adminGetChurnAnalysisMock.mockReset();
+    adminGetDeletedUsersMock.mockReset();
     subscriptionStatusMock.mockReset();
     useAuthMock.mockReset();
     useAuthMock.mockReturnValue({
@@ -112,5 +119,34 @@ describe('admin-specific surface behavior', () => {
     expect(screen.getByText(/truly paid/i)).toBeInTheDocument();
     expect(screen.getByText(/on trial, paid, or inherited access/i)).toBeInTheDocument();
     expect(screen.getByText(/not true paid accounts/i)).toBeInTheDocument();
+  });
+
+  it('auto-loads deleted users and labels privacy-redacted rows clearly', async () => {
+    adminGetDeletedUsersMock.mockResolvedValue({
+      users: [
+        {
+          originalUserId: 42,
+          email: 'redacted+42@deleted.local',
+          deletionDate: Date.now(),
+          deletionSource: 'self',
+          planAtDeletion: 'plus',
+        },
+      ],
+    });
+    adminGetChurnAnalysisMock.mockResolvedValue({
+      total_deleted: 1,
+      remarketing_eligible: 0,
+    });
+
+    render(<AdminDeletedTab toast={() => undefined} />);
+
+    await waitFor(() => {
+      expect(adminGetDeletedUsersMock).toHaveBeenCalledTimes(1);
+      expect(adminGetChurnAnalysisMock).toHaveBeenCalledTimes(1);
+    });
+
+    expect(screen.getByText('User #42')).toBeInTheDocument();
+    expect(screen.getByText(/identity redacted by privacy-default deletion flow/i)).toBeInTheDocument();
+    expect(screen.getByText(/deleted today/i)).toBeInTheDocument();
   });
 });
