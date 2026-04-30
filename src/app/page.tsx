@@ -7,110 +7,84 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { PRICING, FREE_FEATURES, PLUS_FEATURES, FAMILY_FEATURES, COMPETITOR_COMPARISON } from '../lib/pricing';
 import {
-  DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL,
-  DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL,
-} from '../lib/trial';
-import {
   IOS_APP_STORE_URL,
   ANDROID_PLAY_STORE_URL,
   ANDROID_FALLBACK_URL,
   IS_ANDROID_PUBLICLY_LAUNCHED,
 } from '../lib/appStore';
+import { useI18n } from '../lib/i18n';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import {
+  HOME_LEARNING_RESOURCES,
+  PUBLIC_FEATURE_CARDS,
+  localizeCompetitorFeature,
+  localizeText,
+} from '../lib/publicContent';
 
 // ── Data ────────────────────────────────────────────────────────────────────
-
-const features = [
-  { icon: '💰', title: 'Zakat Calculator', desc: "Multi-madhab nisab (gold or silver standard), live prices, Hawl tracker, and auto-categorized asset breakdown — supporting Hanafi, Shafi'i, Maliki, Hanbali, and AMJA methodologies." },
-  { icon: '🛡️', title: 'Riba Detector', desc: 'Scan transactions to flag interest-bearing activity and stay halal-compliant with automatic alerts.' },
-  { icon: '✅', title: 'Halal Stock Screener', desc: '30,000+ stocks screened using criteria based on AAOIFI Standard 21 — filter by halal or haram with sector breakdown.' },
-  { icon: '📊', title: 'Budgets & Analytics', desc: 'Track spending by category and see where every dollar goes with visualized insights and trends.' },
-  { icon: '💎', title: 'Net Worth Tracker', desc: 'Real-time net worth with assets, debts, and investments in one comprehensive dashboard.' },
-  { icon: '🤲', title: 'Sadaqah & Waqf', desc: 'Log charitable giving and endowments alongside everyday finances with dedicated impact tracking.' },
-  { icon: '📜', title: 'Wasiyyah & Estate Obligations', desc: 'Record your Islamic will, beneficiaries, and outstanding obligations (Zakat, Kaffarah, loans) for family.' },
-  { icon: '🎯', title: 'Savings Goals', desc: 'Set goals for Hajj, emergency funds, or any milestone — with automatic Hajj savings template.' },
-  { icon: '⭐', title: 'Barakah Score', desc: 'Your Islamic financial health score (0–100) across Zakat, Riba-free living, Sadaqah, Hawl, and debt.' },
-  { icon: '🕌', title: 'Prayer Times', desc: "Daily salah schedule for any city worldwide, with next prayer countdown and Jumu'ah times." },
-  { icon: '🔄', title: 'Subscription Detector', desc: 'Automatically detect recurring subscriptions from your transactions — flag haram services instantly.' },
-  { icon: '🔔', title: 'Smart Islamic Reminders', desc: 'Bill due alerts, Hawl anniversaries, Zakat nisab threshold alerts, and savings milestones built-in.' },
-  { icon: '👥', title: 'Shared Family Finances', desc: 'Family plan lets up to 6 members track shared expenses, group transactions, and family Zakat.' },
-  { icon: '🌍', title: 'Multi-Currency Support', desc: 'Track finances across USD, GBP, EUR, AED, and 50+ currencies with live exchange rates daily.' },
-];
-
-
-const learningResources = [
-  { title: 'Zakat on Gold', href: '/learn/zakat-on-gold', desc: 'Understand how gold-based nisab works and calculate your zakat obligation.' },
-  { title: 'Zakat on Retirement Accounts', href: '/learn/zakat-on-retirement-accounts', desc: 'Navigate zakat rules for 401(k)s, IRAs, and other retirement savings.' },
-  { title: 'Zakat on Savings', href: '/learn/zakat-on-savings', desc: 'Learn which savings are zakatable and how to calculate your obligation.' },
-  { title: 'Nisab Threshold', href: '/learn/nisab', desc: 'Understand the nisab threshold and how it\'s calculated with current gold and silver prices.' },
-  { title: 'Zakat Al-Fitr', href: '/learn/zakat-al-fitr', desc: 'Master Zakat Al-Fitr, the charity given at the end of Ramadan.' },
-  { title: 'Islamic Finance Basics', href: '/learn/islamic-finance-basics', desc: 'Learn the fundamentals of Islamic finance principles and halal investing.' },
-  { title: 'Riba Elimination Guide', href: '/learn/riba-elimination', desc: 'Step-by-step guide to removing interest from mortgages, credit cards, and loans.' },
-  { title: 'Madhab & Your Finances', href: '/learn/madhab-finance', desc: 'How Hanafi, Shafi\'i, Maliki, and Hanbali rulings affect zakat and estate planning.' },
-  { title: 'Islamic Inheritance (Faraid)', href: '/faraid-calculator', desc: 'Calculate Quranic inheritance shares for all heirs with automatic Awl and Radd.' },
-];
-
-const plans = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: 'forever',
-    annual: null,
-    color: 'border-gray-200',
-    badge: null,
-    features: [...FREE_FEATURES],
-    missing: [
-      'Bank account sync',
-      'Riba Elimination Journey',
-      'Faraid Calculator',
-      'Zakat receipts',
-      'Safe-to-spend',
-      'Halal screener',
-      'Barakah Score',
-      'Shared finances',
-    ],
-    cta: 'Get Started Free',
-    ctaHref: '/signup',
-    ctaStyle: 'border border-[#1B5E20] text-[#1B5E20] hover:bg-green-50',
-  },
-  {
-    name: 'Plus',
-    price: PRICING.plus.monthly,
-    period: PRICING.plus.monthlyPeriod,
-    annual: `${PRICING.plus.yearly}/yr · save 17%`,
-    color: 'border-[#1B5E20] ring-2 ring-[#1B5E20]',
-    badge: 'Most Popular',
-    features: [...PLUS_FEATURES],
-    missing: [],
-    note: 'Need shared household workflows? Family adds up to 6 members with household zakat visibility and estate continuity.',
-    cta: `Start ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Free Trial`,
-    ctaHref: '/signup',
-    ctaStyle: 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]',
-  },
-  {
-    name: 'Family',
-    price: PRICING.family.monthly,
-    period: PRICING.family.monthlyPeriod,
-    annual: `${PRICING.family.yearly}/yr · save 34%`,
-    color: 'border-purple-300',
-    badge: 'For Households',
-    features: [...FAMILY_FEATURES],
-    missing: [],
-    cta: 'Start Family',
-    ctaHref: '/signup',
-    ctaStyle: 'bg-purple-600 text-white hover:bg-purple-700',
-  },
-];
 
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function Home() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const { t, locale } = useI18n();
   // Default to annual billing on homepage pricing — same rationale as
   // /pricing page: 17%/34% savings should be the first frame every
   // visitor sees, and annual plans churn less (LTV win).
   const [isAnnual, setIsAnnual] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const plans = [
+    {
+      name: 'Free',
+      price: '$0',
+      period: 'forever',
+      annual: null,
+      color: 'border-gray-200',
+      badge: null,
+      features: [...FREE_FEATURES],
+      missing: [
+        'Bank account sync',
+        'Riba Elimination Journey',
+        'Faraid Calculator',
+        'Zakat receipts',
+        'Safe-to-spend',
+        'Halal screener',
+        'Barakah Score',
+        'Shared finances',
+      ],
+      cta: t('pricingGetStartedFree'),
+      ctaHref: '/signup',
+      ctaStyle: 'border border-[#1B5E20] text-[#1B5E20] hover:bg-green-50',
+    },
+    {
+      name: 'Plus',
+      price: PRICING.plus.monthly,
+      period: PRICING.plus.monthlyPeriod,
+      annual: `${PRICING.plus.yearly}/yr · save 17%`,
+      color: 'border-[#1B5E20] ring-2 ring-[#1B5E20]',
+      badge: t('pricingMostPopular'),
+      features: [...PLUS_FEATURES],
+      missing: [],
+      note: 'Need shared household workflows? Family adds up to 6 members with household zakat visibility and estate continuity.',
+      cta: t('homePrimaryCta'),
+      ctaHref: '/signup',
+      ctaStyle: 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]',
+    },
+    {
+      name: 'Family',
+      price: PRICING.family.monthly,
+      period: PRICING.family.monthlyPeriod,
+      annual: `${PRICING.family.yearly}/yr · save 34%`,
+      color: 'border-purple-300',
+      badge: t('pricingForHouseholds'),
+      features: [...FAMILY_FEATURES],
+      missing: [],
+      cta: t('pricingStartFamily'),
+      ctaHref: '/signup',
+      ctaStyle: 'bg-purple-600 text-white hover:bg-purple-700',
+    },
+  ];
 
   useEffect(() => {
     if (!isLoading && user) router.replace('/dashboard');
@@ -228,12 +202,12 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <span className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</span>
           <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
-            <a href="#features" className="hover:text-[#1B5E20] transition">Features</a>
-            <Link href="/pricing" className="hover:text-[#1B5E20] transition">Pricing</Link>
-            <Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link>
-            <Link href="/careers" className="hover:text-[#1B5E20] transition">Careers</Link>
-            <Link href="/trust" className="hover:text-[#1B5E20] transition">Trust</Link>
-            <Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link>
+            <a href="#features" className="hover:text-[#1B5E20] transition">{t('navFeatures')}</a>
+            <Link href="/pricing" className="hover:text-[#1B5E20] transition">{t('navPricing')}</Link>
+            <Link href="/learn" className="hover:text-[#1B5E20] transition">{t('navLearn')}</Link>
+            <Link href="/careers" className="hover:text-[#1B5E20] transition">{t('navCareers')}</Link>
+            <Link href="/trust" className="hover:text-[#1B5E20] transition">{t('navTrust')}</Link>
+            <Link href="/contact" className="hover:text-[#1B5E20] transition">{t('navContact')}</Link>
           </nav>
           <div className="flex items-center gap-3">
             {/* Hamburger menu button - visible on mobile only */}
@@ -250,9 +224,10 @@ export default function Home() {
               <div className="w-6 h-0.5 bg-[#1B5E20]"></div>
               <div className="w-6 h-0.5 bg-[#1B5E20]"></div>
             </button>
-            <Link href="/login" className="text-sm text-[#1B5E20] font-medium hover:underline">Sign In</Link>
+            <LanguageSwitcher compact className="hidden sm:flex" />
+            <Link href="/login" className="text-sm text-[#1B5E20] font-medium hover:underline">{t('navSignIn')}</Link>
             <Link href="/signup" className="bg-[#1B5E20] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
-              Get Started Free
+              {t('navGetStarted')}
             </Link>
           </div>
         </div>
@@ -260,12 +235,13 @@ export default function Home() {
         {mobileMenuOpen && (
           <div id="mobile-menu-panel" className="md:hidden bg-white border-t border-gray-100">
             <nav className="max-w-6xl mx-auto px-6 py-4 flex flex-col gap-3 text-sm text-gray-600">
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Features</a>
-              <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Pricing</Link>
-              <Link href="/learn" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Learn</Link>
-              <Link href="/careers" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Careers</Link>
-              <Link href="/trust" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Trust</Link>
-              <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">Contact</Link>
+              <LanguageSwitcher className="mb-2" />
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">{t('navFeatures')}</a>
+              <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">{t('navPricing')}</Link>
+              <Link href="/learn" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">{t('navLearn')}</Link>
+              <Link href="/careers" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">{t('navCareers')}</Link>
+              <Link href="/trust" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">{t('navTrust')}</Link>
+              <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">{t('navContact')}</Link>
             </nav>
           </div>
         )}
@@ -275,29 +251,29 @@ export default function Home() {
       <section className="flex flex-col items-center justify-center text-center px-6 py-24">
         <p className="text-5xl mb-4">🌙</p>
         <p className="text-xs text-[#1B5E20] font-semibold mb-6 inline-block bg-green-50 px-4 py-2 rounded-full border border-[#1B5E20]">
-          🎁 {`${DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus free with every signup · no credit card or debit card required`}
+          🎁 {t('homeTrialPill')}
         </p>
         <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] leading-tight mb-4">
-          The money app<br className="hidden sm:block" /> built for Muslim households
+          {t('homeHeroTitle')}
         </h1>
         <p className="text-gray-600 text-lg max-w-xl mx-auto mb-8">
-          Zakat, hawl, halal investing, budgets, and estate planning in one place &mdash; with fiqh rules built in, so every number you see already respects your deen.
+          {t('homeHeroSubtitle')}
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold text-base hover:bg-[#2E7D32] transition shadow">
-            Start {DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Free Trial
+            {t('homePrimaryCta')}
           </Link>
           <Link href="/login" className="bg-white text-[#1B5E20] border border-[#1B5E20] px-8 py-3.5 rounded-xl font-bold text-base hover:bg-green-50 transition">
-            Sign In
+            {t('homeSecondaryCta')}
           </Link>
         </div>
-        <p className="text-xs text-gray-400 mt-4">Plus tier free for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} &middot; Drops to free plan after &middot; Your data is yours</p>
+        <p className="text-xs text-gray-400 mt-4">{t('homeTrialFinePrint')}</p>
       </section>
 
       {/* ── Trust Indicators Bar ── */}
       <section className="bg-white py-6 px-6 border-b border-gray-100">
         <div className="max-w-5xl mx-auto">
-          <p className="text-center text-xs text-gray-400 uppercase tracking-wider font-semibold mb-4">Trusted by Muslim households worldwide</p>
+          <p className="text-center text-xs text-gray-400 uppercase tracking-wider font-semibold mb-4">{t('homeTrustedHeading')}</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
               <p className="text-lg md:text-xl font-extrabold text-[#1B5E20]">Bank-Grade</p>
@@ -386,15 +362,15 @@ export default function Home() {
       <section id="features" className="bg-white py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">
-            One system for money, obligations, and family continuity
+            {t('homeFeaturesHeading')}
           </h2>
-          <p className="text-center text-gray-500 mb-12">From spending and savings to zakat, waqf, and wasiyyah, each tool connects to the life a Muslim household is actually trying to live.</p>
+          <p className="text-center text-gray-500 mb-12">{t('homeFeaturesSubheading')}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-max">
-            {features.map(f => (
-              <div key={f.title} className="bg-[#FFF8E1] rounded-2xl p-5 hover:shadow-md transition h-full">
-                <p className="text-3xl mb-3">{f.icon}</p>
-                <h3 className="font-bold text-[#1B5E20] mb-2">{f.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{f.desc}</p>
+            {PUBLIC_FEATURE_CARDS.map((feature) => (
+              <div key={feature.title.en} className="bg-[#FFF8E1] rounded-2xl p-5 hover:shadow-md transition h-full">
+                <p className="text-3xl mb-3">{feature.icon}</p>
+                <h3 className="font-bold text-[#1B5E20] mb-2">{localizeText(feature.title, locale)}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{localizeText(feature.desc, locale)}</p>
               </div>
             ))}
           </div>
@@ -405,10 +381,10 @@ export default function Home() {
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-3">
-            Why Barakah feels different
+            {t('homeDifferentHeading')}
           </h2>
           <p className="text-center text-gray-500 mb-12 max-w-xl mx-auto">
-            Most apps help with one slice of the problem. Barakah connects everyday money management with fiqh choices, family accountability, and end-of-life preparedness.
+            {t('homeDifferentSubheading')}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-2xl p-6 text-center">
@@ -462,12 +438,12 @@ export default function Home() {
       {/* ── Pricing ── */}
       <section id="pricing" className="bg-white py-20 px-6">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">Simple, Honest Pricing</h2>
-          <p className="text-center text-gray-500 mb-8">Clear pricing, no hidden upsells, and no data selling.</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">{t('homePricingHeading')}</h2>
+          <p className="text-center text-gray-500 mb-8">{t('homePricingSubheading')}</p>
 
           {/* Billing Toggle */}
           <div className="flex justify-center items-center gap-4 mb-12">
-            <span className={`text-sm font-medium ${!isAnnual ? 'text-[#1B5E20]' : 'text-gray-500'}`}>Monthly</span>
+            <span className={`text-sm font-medium ${!isAnnual ? 'text-[#1B5E20]' : 'text-gray-500'}`}>{t('monthly')}</span>
             <button
               onClick={() => setIsAnnual(!isAnnual)}
               className="relative inline-flex h-7 w-12 items-center rounded-full bg-gray-300 transition"
@@ -479,7 +455,7 @@ export default function Home() {
               />
             </button>
             <span className={`text-sm font-medium ${isAnnual ? 'text-[#1B5E20]' : 'text-gray-500'}`}>
-              Annual <span className="text-xs text-green-600 font-bold">(Save 17-34%)</span>
+              {t('annual')} <span className="text-xs text-green-600 font-bold">({t('saveRange')})</span>
             </span>
           </div>
 
@@ -536,8 +512,8 @@ export default function Home() {
 
           {/* Competitor Comparison Table */}
           <div className="mt-16">
-            <h3 className="text-xl md:text-2xl font-bold text-center text-[#1B5E20] mb-2">How Barakah Compares</h3>
-            <p className="text-center text-gray-500 mb-8">Same powerful budgeting. Plus Islamic finance tools no one else has.</p>
+            <h3 className="text-xl md:text-2xl font-bold text-center text-[#1B5E20] mb-2">{t('homeCompareHeading')}</h3>
+            <p className="text-center text-gray-500 mb-8">{t('homeCompareSubheading')}</p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
@@ -553,7 +529,7 @@ export default function Home() {
                 <tbody>
                   {COMPETITOR_COMPARISON.map((row, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-gray-50' : ''}>
-                      <td className="py-2.5 px-4 text-gray-700">{row.feature}</td>
+                      <td className="py-2.5 px-4 text-gray-700">{localizeCompetitorFeature(row.feature, locale)}</td>
                       <td className="py-2.5 px-4 text-center bg-green-50 font-semibold text-[#1B5E20]">
                         {typeof row.barakah === 'boolean' ? (row.barakah ? '✓' : '✗') : row.barakah}
                       </td>
@@ -576,7 +552,7 @@ export default function Home() {
             </div>
             <div className="text-center mt-6">
               <Link href="/pricing" className="text-[#1B5E20] font-semibold hover:underline">
-                View full pricing details →
+                {t('viewFullPricing')} →
               </Link>
             </div>
           </div>
@@ -587,9 +563,9 @@ export default function Home() {
       <section className="bg-white py-16 px-6">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-3xl mb-3">🕌</p>
-          <h2 className="text-2xl font-bold text-[#1B5E20] mb-3">Built on Islamic Principles</h2>
+          <h2 className="text-2xl font-bold text-[#1B5E20] mb-3">{t('homePrinciplesHeading')}</h2>
           <p className="text-gray-600 leading-relaxed">
-            Barakah supports multiple schools of Islamic jurisprudence for zakat and related rules, flags riba-bearing activity, and helps households track obligations that are often scattered across spreadsheets, reminders, and private notes. We are a decision-support tool, not a fatwa service, so specific rulings should still be confirmed with a qualified scholar.
+            {t('homePrinciplesBody')}
           </p>
         </div>
       </section>
@@ -599,9 +575,9 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-xs text-[#1B5E20] uppercase tracking-wider font-semibold mb-2">Who Builds Barakah</p>
-            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">Built by a Cybersecurity Professional</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">{t('homeFounderHeading')}</h2>
             <p className="text-gray-600 max-w-xl mx-auto">
-              Your financial data deserves the same protection as enterprise systems. Barakah is built by someone who has spent over a decade securing them.
+              {t('homeFounderSubheading')}
             </p>
           </div>
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
@@ -635,41 +611,53 @@ export default function Home() {
       </section>
 
       {/* ── Free Zakat Calculator ── */}
+      {/* ── Free tools (Zakat + Faraid calculators in one section) ──
+           Phase 13 (2026-04-30): merged from two consecutive single-CTA
+           sections (Free Zakat / Faraid) into one two-up grid. Same
+           CTAs, same destinations, same fine-print — but one block
+           of homepage real estate instead of two. Reduces total
+           homepage section count and removes the "two near-identical
+           hero-CTA blocks back-to-back" pattern the audit flagged. */}
       <section className="py-20 px-6 bg-[#FFF8E1]">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-4xl mb-4">🧮</p>
-            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">Free Zakat Calculator</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto mb-8">
-              Calculate your zakat obligation instantly with our free, multi-madhab zakat calculator. Use live gold and silver nisab references, review asset categories clearly, and move into a fuller household finance system only if you need more.
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-2">Free tools — no signup</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Calculate zakat and Islamic inheritance shares right now. Both run in your browser, free, with no account needed.
             </p>
-            <Link
-              href="/zakat-calculator"
-              className="inline-block bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition shadow"
-            >
-              Try Zakat Calculator Now
-            </Link>
-            <p className="text-gray-400 text-sm mt-3">No signup required — try it free in 30 seconds</p>
           </div>
-        </div>
-      </section>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Zakat calculator card */}
+            <div className="bg-white rounded-2xl p-8 text-center border border-gray-100 hover:shadow-md transition">
+              <p className="text-4xl mb-3">🧮</p>
+              <h3 className="text-xl font-bold text-[#1B5E20] mb-2">{t('homeFreeZakatHeading')}</h3>
+              <p className="text-gray-600 text-sm mb-5">
+                {t('homeFreeZakatSubheading')}
+              </p>
+              <Link
+                href="/zakat-calculator"
+                className="inline-block bg-[#1B5E20] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#2E7D32] transition shadow"
+              >
+                {t('homeFreeZakatCta')}
+              </Link>
+              <p className="text-gray-400 text-xs mt-3">{t('homeFreeZakatFinePrint')}</p>
+            </div>
 
-      {/* ── Faraid Calculator ── */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-4xl mb-4">⚖️</p>
-            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">Free Islamic Inheritance Calculator</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto mb-8">
-              Calculate Faraid (Islamic inheritance distribution) per Quran 4:11-12. Supports all Quranic heirs with automatic Awl, Radd, and blocking rules. The only calculator that respects your madhab.
-            </p>
-            <Link
-              href="/faraid-calculator"
-              className="inline-block bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition shadow"
-            >
-              Try Faraid Calculator
-            </Link>
-            <p className="text-gray-400 text-sm mt-3">No signup required — calculate Islamic inheritance instantly</p>
+            {/* Faraid calculator card */}
+            <div className="bg-white rounded-2xl p-8 text-center border border-gray-100 hover:shadow-md transition">
+              <p className="text-4xl mb-3">⚖️</p>
+              <h3 className="text-xl font-bold text-[#1B5E20] mb-2">{t('homeFaraidHeading')}</h3>
+              <p className="text-gray-600 text-sm mb-5">
+                {t('homeFaraidSubheading')}
+              </p>
+              <Link
+                href="/faraid-calculator"
+                className="inline-block bg-[#1B5E20] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#2E7D32] transition shadow"
+              >
+                {t('homeFaraidCta')}
+              </Link>
+              <p className="text-gray-400 text-xs mt-3">{t('homeFaraidFinePrint')}</p>
+            </div>
           </div>
         </div>
       </section>
@@ -678,21 +666,21 @@ export default function Home() {
       <section className="py-20 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">Learn About Islamic Finance</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">{t('homeLearnHeading')}</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Learn the fiqh and practical thinking behind zakat, nisab, halal investing, household obligations, and Islamic estate planning.
+              {t('homeLearnSubheading')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {learningResources.map(resource => (
+            {HOME_LEARNING_RESOURCES.map(resource => (
               <Link
                 key={resource.href}
                 href={resource.href}
                 className="bg-[#FFF8E1] hover:shadow-md transition rounded-2xl p-6 border border-gray-100"
               >
-                <h3 className="font-bold text-[#1B5E20] mb-2">{resource.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{resource.desc}</p>
-                <div className="mt-4 text-[#1B5E20] font-semibold text-sm">Learn More →</div>
+                <h3 className="font-bold text-[#1B5E20] mb-2">{localizeText(resource.title, locale)}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{localizeText(resource.desc, locale)}</p>
+                <div className="mt-4 text-[#1B5E20] font-semibold text-sm">{t('learnMore')} →</div>
               </Link>
             ))}
           </div>
@@ -701,7 +689,7 @@ export default function Home() {
               href="/learn"
               className="inline-block bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition"
             >
-              View All Articles
+              {t('viewAllArticles')}
             </Link>
           </div>
         </div>
@@ -710,8 +698,8 @@ export default function Home() {
       {/* ── Download on App Stores ── */}
       <section className="py-16 px-6 bg-gray-50">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">Available Everywhere You Are</h2>
-          <p className="text-gray-600 mb-8">Download on iOS or Android, or use the web app from any browser.</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">{t('homeEverywhereHeading')}</h2>
+          <p className="text-gray-600 mb-8">{t('homeEverywhereSubheading')}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a
               href={IOS_APP_STORE_URL}
@@ -761,14 +749,14 @@ export default function Home() {
 
       {/* ── CTA strip ── */}
       <section className="bg-[#1B5E20] py-14 px-6 text-center">
-        <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Build a more faithful financial system for your household</h2>
-        <p className="text-green-200 mb-6 text-sm">Start with daily money. Stay for zakat discipline, household clarity, and estate readiness.</p>
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">{t('homeCtaHeading')}</h2>
+        <p className="text-green-200 mb-6 text-sm">{t('homeCtaBody')}</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/signup" className="inline-block bg-white text-[#1B5E20] px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition shadow">
-            Create Free Account
+            {t('homeCtaPrimary')}
           </Link>
           <Link href="/refer" className="inline-block border-2 border-white text-white px-8 py-3.5 rounded-xl font-bold hover:bg-white hover:text-[#1B5E20] transition">
-            Refer a Friend — Get 1 Month Free
+            {t('homeCtaSecondary')}
           </Link>
         </div>
       </section>
@@ -781,12 +769,12 @@ export default function Home() {
             <div>
               <h3 className="font-bold text-[#1B5E20] mb-3">🌙 Barakah</h3>
               <p className="text-xs text-gray-600 leading-relaxed">
-                Fiqh-aware household finance for Muslims who want daily money, Islamic obligations, and family continuity to live in one place.
+                {t('homeFooterBrandBody')}
               </p>
             </div>
             {/* Company */}
             <div>
-              <h4 className="font-semibold text-gray-900 text-sm mb-3">Company</h4>
+              <h4 className="font-semibold text-gray-900 text-sm mb-3">{t('homeFooterCompany')}</h4>
               <ul className="space-y-2 text-xs text-gray-600">
                 <li><Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link></li>
                 <li><Link href="/careers" className="hover:text-[#1B5E20] transition">Careers</Link></li>
@@ -797,13 +785,13 @@ export default function Home() {
             </div>
             {/* Legal */}
             <div>
-              <h4 className="font-semibold text-gray-900 text-sm mb-3">Legal</h4>
+              <h4 className="font-semibold text-gray-900 text-sm mb-3">{t('homeFooterLegal')}</h4>
               <ul className="space-y-2 text-xs text-gray-600">
                 <li><Link href="/privacy" className="hover:text-[#1B5E20] transition">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-[#1B5E20] transition">Terms of Service</Link></li>
                 <li><Link href="/disclaimer" className="hover:text-[#1B5E20] transition">Disclaimer</Link></li>
                 <li><Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link></li>
-                <li><a href="mailto:support@trybarakah.com" className="hover:text-[#1B5E20] transition">Support</a></li>
+                <li><a href="mailto:support@trybarakah.com" className="hover:text-[#1B5E20] transition">{t('homeFooterSupport')}</a></li>
               </ul>
             </div>
           </div>
@@ -825,7 +813,7 @@ export default function Home() {
               </div>
               <p className="text-xs text-gray-500 text-center md:text-right">
                 <span className="block">© {new Date().getFullYear()} Barakah. All rights reserved.</span>
-                <span className="block mt-1">Not a fatwa — consult a qualified scholar for guidance on Islamic rulings.</span>
+                <span className="block mt-1">{t('homeFooterFatwa')}</span>
               </p>
             </div>
           </div>
