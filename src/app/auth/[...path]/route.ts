@@ -90,6 +90,28 @@ async function handler(
   const cookie = request.headers.get('cookie');
   if (cookie) headers.set('Cookie', cookie);
 
+  // Preserve browser/auth-signup context that the backend uses for locale,
+  // platform, and acquisition attribution. Keep this allowlist explicit
+  // rather than forwarding every header blindly.
+  const passthroughHeaders: Array<[string, string]> = [
+    ['accept-language', 'Accept-Language'],
+    ['user-agent', 'User-Agent'],
+    ['x-client-platform', 'X-Client-Platform'],
+    ['x-app-locale', 'X-App-Locale'],
+    ['x-app-utm-source', 'X-App-UTM-Source'],
+    ['x-app-utm-medium', 'X-App-UTM-Medium'],
+    ['x-app-utm-campaign', 'X-App-UTM-Campaign'],
+    ['x-app-utm-content', 'X-App-UTM-Content'],
+    ['x-app-utm-term', 'X-App-UTM-Term'],
+    ['x-app-landing-path', 'X-App-Landing-Path'],
+    ['x-app-referer', 'X-App-Referer'],
+    ['referer', 'Referer'],
+  ];
+  for (const [incoming, outgoing] of passthroughHeaders) {
+    const value = request.headers.get(incoming);
+    if (value) headers.set(outgoing, value);
+  }
+
   // Forward CSRF token
   const csrf = request.headers.get('x-xsrf-token');
   if (csrf) headers.set('X-XSRF-TOKEN', csrf);

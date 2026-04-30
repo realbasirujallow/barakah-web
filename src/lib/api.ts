@@ -95,6 +95,10 @@ function acquisitionHeaders(): Record<string, string> {
   if (a.utmContent) h['X-App-UTM-Content'] = a.utmContent;
   if (a.utmTerm) h['X-App-UTM-Term'] = a.utmTerm;
   if (a.landingPath) h['X-App-Landing-Path'] = a.landingPath;
+  // Preserve the *original* external referrer captured on the first page load.
+  // The browser's live Referer on /auth/signup is usually just /signup, which
+  // makes organic / social signups collapse into "internal" or "direct".
+  if (a.referer) h['X-App-Referer'] = a.referer;
   return h;
 }
 
