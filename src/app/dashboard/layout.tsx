@@ -97,28 +97,57 @@ const navItems: { href: string; icon: LucideIcon; label: string; gate?: 'plus' |
 // guarantees we never drift from the authoritative DOM value (which the
 // bootstrap script flips before hydration to prevent FOUC).
 
-type SidebarSection = 'finance' | 'islamic' | 'premium' | 'account' | 'admin';
+// Phase 12.2 (Apr 30 2026) — IA rebuild per the third-party UX audit.
+//
+// Old sections: Finance / Islamic / Premium / Account / Admin
+// (Premium grouped by *plan tier* instead of by *use case*, which forced
+// users to mentally cross-reference "what category does this fall under"
+// against "do I have access to this." Audit called this out specifically.)
+//
+// New sections, by USE not by PLAN — premium-gated items live in their
+// natural bucket with the "Plus" pill indicating gating:
+//   • Spending  — daily money flow (transactions, budget, recurring,
+//                 subscription detector, riba detector, auto-categorize,
+//                 analytics, audit ledger)
+//   • Plan      — multi-month / yearly horizon (savings goals, debts,
+//                 bills, retirement zakat, net worth, investments,
+//                 stock screener, assets, barakah score, financial
+//                 summary, reports, market prices, import data)
+//   • Islamic   — fiqh-bound tools (zakat, zakat anniversary, sadaqah,
+//                 prayer times, ramadan mode, fiqh settings, ibadah
+//                 finance, inheritance calculator, islamic will,
+//                 endowment)
+//   • Family    — household scope (family, shared finances)
+//   • Profile   — personal account chrome (billing & plans, profile &
+//                 settings, notifications, refer a friend)
+//   • Admin     — founder/staff (kept as-is, hidden for non-admins)
+//
+// Premium items keep their `gate: 'plus' | 'family'` flag in navItems —
+// the pill renders next to them regardless of which section they live
+// in now. Free-tier users still see locked entries so they understand
+// what's available with an upgrade.
+type SidebarSection = 'spending' | 'plan' | 'islamic' | 'family' | 'profile' | 'admin';
 
-// Phase 10 (Apr 30 2026): item lists updated to match the renamed labels
-// — "Hawl Tracker" → "Zakat Anniversary", "Faraid Calculator" → "Inheritance
-// Calculator", "Wasiyyah" → "Islamic Will", "Waqf" → "Endowment". Section
-// names still describe the bucket, not the labels inside.
 const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> = {
-  finance: {
-    label: 'Finance',
-    items: ['Assets', 'Audit Ledger', 'Bills', 'Budget', 'Debts', 'Recurring', 'Savings Goals', 'Transactions'],
+  spending: {
+    label: 'Spending',
+    items: ['Transactions', 'Budget', 'Recurring', 'Audit Ledger', 'Auto-Categorize', 'Analytics', 'Riba Detector', 'Subscription Detector'],
+  },
+  plan: {
+    label: 'Plan',
+    items: ['Savings Goals', 'Debts', 'Bills', 'Retirement Zakat', 'Assets', 'Net Worth', 'Investments', 'Stock Screener', 'Market Prices', 'Barakah Score', 'Financial Summary', 'Reports', 'Import Data'],
   },
   islamic: {
     label: 'Islamic',
-    items: ['Ibadah Finance', 'Fiqh Settings', 'Zakat Anniversary', 'Prayer Times', 'Ramadan Mode', 'Retirement Zakat', 'Sadaqah', 'Zakat'],
+    items: ['Zakat', 'Zakat Anniversary', 'Sadaqah', 'Prayer Times', 'Ramadan Mode', 'Fiqh Settings', 'Ibadah Finance', 'Inheritance Calculator', 'Islamic Will', 'Endowment'],
   },
-  premium: {
-    label: 'Premium',
-    items: ['Analytics', 'Auto-Categorize', 'Barakah Score', 'Family', 'Inheritance Calculator', 'Financial Summary', 'Stock Screener', 'Investments', 'Net Worth', 'Riba Detector', 'Shared Finances', 'Subscription Detector', 'Endowment', 'Islamic Will'],
+  family: {
+    label: 'Family',
+    items: ['Family', 'Shared Finances'],
   },
-  account: {
-    label: 'Account',
-    items: ['Billing & Plans', 'Import Data', 'Notifications', 'Profile & Settings', 'Refer a Friend'],
+  profile: {
+    label: 'Profile',
+    items: ['Profile & Settings', 'Billing & Plans', 'Notifications', 'Refer a Friend'],
   },
   admin: {
     label: 'Admin',
@@ -157,11 +186,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return null;
   };
   const initialActiveSection = sectionForPath(pathname);
+  // Phase 12.2: Spending is the universal "open by default" — every user
+  // looks at transactions/budget regularly. The currently-active section
+  // also opens (so the user sees the link they're on highlighted).
+  // Everything else collapses to keep the sidebar calm on first paint.
   const [expandedSections, setExpandedSections] = useState<Record<SidebarSection, boolean>>({
-    finance: true,
+    spending: true,
+    plan: initialActiveSection === 'plan',
     islamic: initialActiveSection === 'islamic',
-    premium: initialActiveSection === 'premium',
-    account: initialActiveSection === 'account',
+    family: initialActiveSection === 'family',
+    profile: initialActiveSection === 'profile',
     admin: initialActiveSection === 'admin',
   });
 
@@ -354,10 +388,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="my-2 h-px bg-sidebar-border" />
 
           {/* Collapsible sections */}
-          {renderSection('finance')}
+          {renderSection('spending')}
+          {renderSection('plan')}
           {renderSection('islamic')}
-          {renderSection('premium')}
-          {renderSection('account')}
+          {renderSection('family')}
+          {renderSection('profile')}
           {renderSection('admin')}
         </nav>
         <div className="px-3 py-3 border-t border-sidebar-border flex-shrink-0 space-y-0.5">
