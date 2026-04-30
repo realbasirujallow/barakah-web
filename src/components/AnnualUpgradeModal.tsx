@@ -43,7 +43,7 @@ export default function AnnualUpgradeModal() {
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!user || (user.plan !== 'plus' && user.plan !== 'family')) return;
+    if (!user || user.isAdmin || (user.plan !== 'plus' && user.plan !== 'family')) return;
 
     // Check cooldown first — cheapest check
     const dismissedUntil = safeGet(MODAL_DISMISSED_UNTIL_KEY);
@@ -107,7 +107,7 @@ export default function AnnualUpgradeModal() {
   const modalRef = useRef<HTMLDivElement>(null);
   useFocusTrap(modalRef, open);
 
-  if (!open || !user) return null;
+  if (!open || !user || user.isAdmin) return null;
 
   const isFamily = user.plan === 'family';
   const monthlyPrice = isFamily ? PRICING.family.monthly : PRICING.plus.monthly;
