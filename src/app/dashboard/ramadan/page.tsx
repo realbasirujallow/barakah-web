@@ -5,6 +5,7 @@ import { toHijri } from '../../../lib/format';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 /* ── Hijri date calculation ──────────────────────────────────────────
    Uses the Kuwaiti algorithm (imported from format.ts for consistency).
@@ -219,14 +220,10 @@ export default function RamadanPage() {
   return (
     <div className="max-w-2xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Ramadan Mode</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {hijri.day} {hijri.monthName} {hijri.year} AH
-          {' · '}
-          {now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-        </p>
-      </div>
+      <PageHeader
+        title="Ramadan Mode"
+        subtitle={`${hijri.day} ${hijri.monthName} ${hijri.year} AH · ${now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`}
+      />
 
       {/* Ramadan status card */}
       {ramadan.inRamadan ? (

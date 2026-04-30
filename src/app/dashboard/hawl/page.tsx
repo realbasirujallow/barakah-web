@@ -6,6 +6,7 @@ import { useToast } from '../../../lib/toast';
 import { toHijri } from '../../../lib/format';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface HawlItem {
   id: number;
@@ -355,15 +356,18 @@ function HawlPageContent() {
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Hawl Tracker</h1>
-        <div className="flex gap-2">
-          <button type="button" onClick={handleImportAssets} disabled={importing} className="border border-[#1B5E20] text-[#1B5E20] px-4 py-2 rounded-lg hover:bg-green-50 font-medium disabled:opacity-50 text-sm">
-            {importing ? 'Importing...' : 'Import Assets'}
-          </button>
-          <button type="button" onClick={() => { setForm(prev => ({ ...prev, nisabThreshold: defaultNisabThreshold })); setShowForm(true); }} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Track Asset</button>
-        </div>
-      </div>
+      <PageHeader
+        title="Hawl Tracker"
+        subtitle="Track lunar-year holding periods for each zakatable asset"
+        actions={
+          <>
+            <button type="button" onClick={handleImportAssets} disabled={importing} className="border border-[#1B5E20] text-[#1B5E20] px-4 py-2 rounded-lg hover:bg-green-50 font-medium disabled:opacity-50 text-sm">
+              {importing ? 'Importing...' : 'Import Assets'}
+            </button>
+            <button type="button" onClick={() => { setForm(prev => ({ ...prev, nisabThreshold: defaultNisabThreshold })); setShowForm(true); }} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Track Asset</button>
+          </>
+        }
+      />
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm text-amber-900 mb-6 space-y-3">
         <h3 className="font-bold text-base">📖 Islamic Guidance on Hawl</h3>

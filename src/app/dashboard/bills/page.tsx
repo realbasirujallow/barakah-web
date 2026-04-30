@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 
 interface BillItem {
@@ -304,10 +305,13 @@ export default function BillsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Bills & Reminders</h1>
-        <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Bill</button>
-      </div>
+      <PageHeader
+        title="Bills & Reminders"
+        subtitle="Upcoming dues with overdue alerts and recurring schedules"
+        actions={
+          <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Bill</button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">

@@ -6,6 +6,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { validateStripeUrl } from '../../../lib/validateUrl';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface SadaqahItem { id: number; amount: number; recipientName: string; category: string; date: number; description: string; recurring: boolean; anonymous: boolean; }
 interface Stats { totalDonated: number; donationCount: number; thisMonthTotal: number; topCategory: string; }
@@ -141,10 +142,13 @@ function SadaqahContent() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Sadaqah Tracker</h1>
-        <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Give Sadaqah</button>
-      </div>
+      <PageHeader
+        title="Sadaqah Tracker"
+        subtitle="Voluntary charity log with Ramadan and tax categories"
+        actions={
+          <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Give Sadaqah</button>
+        }
+      />
 
       <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-sm text-green-900 mb-6 space-y-3">
         <h3 className="font-bold text-base">📖 Islamic Guidance on Sadaqah</h3>

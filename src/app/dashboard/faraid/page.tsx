@@ -8,6 +8,7 @@ import Link from 'next/link';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
 } from 'recharts';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -328,10 +329,11 @@ export default function FaraidPage() {
   return (
     <div className="max-w-6xl mx-auto py-8 px-4 space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Faraid Calculator</h1>
-        <p className="text-gray-500 mt-1">Islamic Inheritance Distribution</p>
-      </div>
+      <PageHeader
+        title="Faraid Calculator"
+        subtitle="Islamic inheritance distribution per Sunni / Shia rules"
+        className="mb-0"
+      />
 
       {prefilled && (
         <div className="bg-green-50 border border-green-200 text-green-900 rounded-xl px-4 py-3 text-sm flex items-center justify-between gap-3">

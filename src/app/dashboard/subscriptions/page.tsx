@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Subscription {
   name: string;
@@ -88,15 +89,19 @@ export default function SubscriptionsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Subscription Detector</h1>
-        <button
-          onClick={loadSubscriptions}
-          className="px-4 py-2 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-green-800 transition"
-        >
-          Re-scan
-        </button>
-      </div>
+      <PageHeader
+        title="Subscription Detector"
+        subtitle="Detect recurring charges and flag riba-bearing ones"
+        className="mb-0"
+        actions={
+          <button
+            onClick={loadSubscriptions}
+            className="px-4 py-2 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-green-800 transition"
+          >
+            Re-scan
+          </button>
+        }
+      />
 
       {error && (
         <div className="bg-red-50 text-red-600 p-4 rounded-lg">{error}</div>

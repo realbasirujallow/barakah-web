@@ -13,6 +13,7 @@ import {
 import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useCurrency } from '../../../lib/useCurrency';
 import { trackFirstAccountLink, trackOnce } from '../../../lib/analytics';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 /* -- Asset / Debt type options (match the assets + debts pages) ------------ */
 const ASSET_TYPES = [
@@ -510,7 +511,11 @@ function ImportPageInner() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-[#1B5E20]">Import Data</h1>
+      <PageHeader
+        title="Import Data"
+        subtitle="Connect banks via Plaid or upload CSV statements to populate your ledger"
+        className="mb-0"
+      />
 
       {/* ── Plaid Bank Linking ──────────────────────────────────────────── */}
       <div className="bg-white border border-green-200 rounded-xl p-6">

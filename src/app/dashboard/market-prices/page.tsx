@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 /**
  * Market Prices — live crypto + stock + watchlist.
@@ -212,13 +213,11 @@ export default function MarketPricesPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Market Prices</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Live crypto and stock prices. Used for zakat asset valuation and
-          general market reference.
-        </p>
-      </div>
+      <PageHeader
+        title="Market Prices"
+        subtitle="Live crypto and stock prices. Used for zakat asset valuation and general market reference."
+        className="mb-4"
+      />
 
       {/* Tab bar */}
       <div className="flex gap-1 bg-white rounded-xl p-1 shadow-sm mb-4">

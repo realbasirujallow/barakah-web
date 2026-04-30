@@ -7,6 +7,7 @@ import { useToast } from '../../../lib/toast';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { trackFeatureUse, trackOnce } from '../../../lib/analytics';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 interface HalalResult { symbol: string; name: string; isHalal: boolean; reason: string; sector: string; debtRatio?: number; }
 interface StockStats { totalStocks: number; halalCount: number; haramCount: number; sectorCount: number; }
 interface DetailResult { symbol: string; name: string; status: string; reason: string; sector: string; debtRatio?: number; }
@@ -192,7 +193,10 @@ export default function HalalPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Stock Screener</h1>
+      <PageHeader
+        title="Stock Screener"
+        subtitle="AAOIFI-screened stocks with debt/interest ratio analysis"
+      />
 
       {/* Freshness badge — daily re-screen status. Surfaces the same data
           the admin observability dashboard uses, so users can confirm that

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface CategorySuggestion {
   transactionId: number;
@@ -259,18 +260,19 @@ export default function CategorizePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1B5E20]">Transaction Rules</h1>
-          <p className="text-sm text-gray-500 mt-1">Review imported activity, save matching rules, and keep transfers, income, and expenses clean automatically.</p>
-        </div>
-        <button
-          onClick={loadAll}
-          className="border border-[#1B5E20] text-[#1B5E20] px-4 py-2 rounded-xl hover:bg-green-50 font-medium text-sm"
-        >
-          Refresh
-        </button>
-      </div>
+      <PageHeader
+        title="Transaction Rules"
+        subtitle="Review imported activity, save matching rules, and keep transfers, income, and expenses clean automatically."
+        className="mb-0"
+        actions={
+          <button
+            onClick={loadAll}
+            className="border border-[#1B5E20] text-[#1B5E20] px-4 py-2 rounded-xl hover:bg-green-50 font-medium text-sm"
+          >
+            Refresh
+          </button>
+        }
+      />
 
       <div className="bg-gradient-to-r from-indigo-700 to-cyan-600 rounded-2xl p-8 text-white">
         <div className="flex justify-between items-start gap-6 flex-wrap">

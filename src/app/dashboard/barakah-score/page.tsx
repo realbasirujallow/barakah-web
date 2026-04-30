@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import Link from 'next/link';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Pillar { name: string; score: number; max: number; note: string; pct: number; }
 interface ScoreData { totalScore: number; maxScore: number; grade: string; overallNote: string; pillars: Pillar[]; }
@@ -221,10 +222,10 @@ export default function BarakahScorePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Barakah Score</h1>
-        <p className="text-sm text-gray-500 mt-1">Your Islamic financial wellness across 5 pillars</p>
-      </div>
+      <PageHeader
+        title="Barakah Score"
+        subtitle="Your Islamic financial wellness across 5 pillars"
+      />
 
       {/* Gauge */}
       <div className="bg-white rounded-2xl p-6 mb-4 flex flex-col items-center shadow-sm">

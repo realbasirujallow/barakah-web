@@ -9,6 +9,7 @@ import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Asset {
   id: number;
@@ -345,22 +346,26 @@ export default function AssetsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Assets</h1>
-        <div className="flex items-center gap-2 flex-wrap">
-          <SyncBanksButton onSynced={load} label="Sync balances" />
-          {deletableAssets.length > 0 && (
-            <button
-              type="button"
-              onClick={() => { setSelectMode(s => !s); setSelectedIds(new Set()); }}
-              className={`px-3 py-2 rounded-lg text-sm font-medium border transition ${selectMode ? 'bg-red-50 border-red-200 text-red-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-            >
-              {selectMode ? 'Cancel' : 'Select'}
-            </button>
-          )}
-          <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm">+ Add Asset</button>
-        </div>
-      </div>
+      <PageHeader
+        title="Assets"
+        subtitle="Cash, gold, real estate, and investments — flagged by zakat eligibility"
+        className="mb-4"
+        actions={
+          <>
+            <SyncBanksButton onSynced={load} label="Sync balances" />
+            {deletableAssets.length > 0 && (
+              <button
+                type="button"
+                onClick={() => { setSelectMode(s => !s); setSelectedIds(new Set()); }}
+                className={`px-3 py-2 rounded-lg text-sm font-medium border transition ${selectMode ? 'bg-red-50 border-red-200 text-red-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+              >
+                {selectMode ? 'Cancel' : 'Select'}
+              </button>
+            )}
+            <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm">+ Add Asset</button>
+          </>
+        }
+      />
 
       <div className={`mb-4 rounded-2xl border p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between ${
         plaidSyncAccess ? 'bg-[#F7FBF7] border-green-200' : 'bg-amber-50 border-amber-200'

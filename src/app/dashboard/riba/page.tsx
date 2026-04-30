@@ -7,6 +7,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useRouter } from 'next/navigation';
 import { trackFeatureUse, trackOnce } from '../../../lib/analytics';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 // ── Existing interfaces ───────────────────────────────────────────────────────
 
@@ -433,7 +434,10 @@ export default function RibaPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-6">Riba Detector</h1>
+      <PageHeader
+        title="Riba Detector"
+        subtitle="Scan transactions for interest charges and track purification of haram income"
+      />
 
       {/* ── Tab Bar ── */}
       <div className="flex border-b border-gray-200 mb-6">

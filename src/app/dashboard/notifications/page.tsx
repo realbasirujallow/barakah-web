@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { isSafeInternalPath } from '../../../lib/safePath';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Notification {
   id: number;
@@ -117,17 +118,17 @@ export default function NotificationsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1B5E20]">Notifications</h1>
-          {unreadCount > 0 && <p className="text-sm text-gray-500 mt-1">{unreadCount} unread</p>}
-        </div>
-        {unreadCount > 0 && (
-          <button type="button" onClick={markAllRead} className="text-sm text-[#1B5E20] border border-[#1B5E20] px-3 py-1.5 rounded-lg hover:bg-green-50 transition">
-            Mark all read
-          </button>
-        )}
-      </div>
+      <PageHeader
+        title="Notifications"
+        subtitle={unreadCount > 0 ? `${unreadCount} unread` : 'Reminders, alerts, and household activity'}
+        actions={
+          unreadCount > 0 ? (
+            <button type="button" onClick={markAllRead} className="text-sm text-[#1B5E20] border border-[#1B5E20] px-3 py-1.5 rounded-lg hover:bg-green-50 transition">
+              Mark all read
+            </button>
+          ) : undefined
+        }
+      />
 
       {loadError && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-center justify-between gap-3">
