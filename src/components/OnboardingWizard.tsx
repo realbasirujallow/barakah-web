@@ -7,46 +7,54 @@ interface OnboardingWizardProps {
   onComplete: () => void;
 }
 
+// Phase 13.3 (Apr 30 2026) — copy reframed to lead with plain English so
+// new users don't stall on Arabic terminology. Each step now opens with
+// the outcome ("calculate zakat in 60 seconds") instead of the mechanic
+// ("track your hawl"). Audit recommendation: "Hawl Tracker becomes Zakat
+// Anniversary; Wasiyyah becomes Islamic Will." Action button labels
+// match the new sidebar labels (Phase 10) so the wizard doesn't say
+// "Open Hawl Tracker" while the destination page is now called "Zakat
+// Anniversary."
 const steps = [
   {
     icon: '🕌',
     title: 'Welcome to Barakah',
-    subtitle: 'Halal-first Islamic finance platform',
-    body: 'Barakah helps you manage your wealth according to Islamic principles — from Zakat calculation to halal investment screening, right from your browser.',
+    subtitle: 'Money management built on Islamic principles',
+    body: 'Track your wealth, plan zakat, screen halal investments, and prepare your Islamic estate — all in one place. Free to start.',
   },
   {
     icon: '⏰',
-    title: 'Set Up Your Zakat in 2 Minutes',
-    subtitle: 'Track your Hawl — the Islamic lunar year',
-    body: 'Add your zakatable assets (cash, gold, stocks, crypto) and Barakah will track the 354-day Hawl period and remind you when Zakat is due.',
-    action: { label: 'Go to Hawl Tracker', href: '/dashboard/hawl' },
+    title: 'Calculate zakat in 60 seconds',
+    subtitle: 'And watch the lunar year automatically',
+    body: 'Add your zakatable assets — cash, gold, stocks, crypto. Barakah tracks the 354-day holding period (hawl) and reminds you when zakat is due.',
+    action: { label: 'Open Zakat Anniversary', href: '/dashboard/hawl' },
   },
   {
     icon: '📊',
-    title: 'Track Income & Expenses',
-    subtitle: 'Automatic categorization with halal-awareness',
-    body: 'Record your transactions and Barakah will sort them by category, flag interest-bearing charges, and show what share of your spending is Islamic-compliant.',
+    title: 'Track income & expenses',
+    subtitle: 'Auto-categorised, halal-aware',
+    body: 'Log transactions and Barakah sorts them by category, flags interest charges (riba), and shows what share of your spending is halal-compliant.',
     action: { label: 'Add First Transaction', href: '/dashboard/transactions' },
   },
   {
     icon: '💰',
-    title: 'Manage Your Assets',
-    subtitle: 'Net worth tracking across currencies',
-    body: 'Add cash, gold, silver, real estate, stocks, and crypto. Barakah calculates your net worth and Zakat eligibility across multiple currencies.',
+    title: 'See your full net worth',
+    subtitle: 'Across cash, gold, real estate, stocks, and crypto',
+    body: 'Add every asset class. Barakah computes your total wealth, applies the nisab threshold, and tells you whether you owe zakat for the year.',
     action: { label: 'Add Assets', href: '/dashboard/assets' },
   },
   {
     icon: '📜',
-    title: 'Plan Your Estate (Wasiyyah)',
-    subtitle: "Prepare your Islamic will according to Qur'anic inheritance",
-    body: "Add beneficiaries with Islamic Fara'id shares, record financial obligations, and generate a printable PDF — all based on Qur'an and Sunnah.",
-    action: { label: 'Start Your Wasiyyah', href: '/dashboard/wasiyyah' },
+    title: 'Plan your Islamic will',
+    subtitle: 'Faraid-aware inheritance shares, in minutes',
+    body: 'List beneficiaries with their Qur\'anic inheritance shares, log obligations, and generate a printable PDF — all built on the rules of Qur\'an and Sunnah.',
+    action: { label: 'Start your Islamic Will', href: '/dashboard/wasiyyah' },
   },
   {
     icon: '🤲',
-    title: "You're All Set!",
-    subtitle: 'May your wealth be blessed with Barakah',
-    body: 'Explore features like Halal Stock Screener, Riba Detector, Prayer Times, Sadaqah Tracker, Budget Planning, and more from your dashboard.',
+    title: "You're all set",
+    subtitle: 'May your wealth be blessed with barakah',
+    body: 'Halal stock screener, riba detector, prayer times, sadaqah log, budget — all available from the sidebar. Start with one and grow from there.',
   },
 ];
 
