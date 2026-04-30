@@ -10,6 +10,7 @@ import { safeParse, safeParseWithFallback, validateZakatCalculation, validateZak
 import ShareReceiptButton from '../../../components/ShareReceiptButton';
 import HistoricalZakatModal from '../../../components/HistoricalZakatModal';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { KpiCard } from '../../../components/dashboard/KpiCard';
 import { trackFirstZakatCalc, trackFeatureUse, trackOnce } from '../../../lib/analytics';
 
 interface ZakatCalculation {
@@ -668,19 +669,15 @@ export default function ZakatPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl p-5">
-              <p className="text-gray-500 text-sm">Total Wealth</p>
-              <p className="text-2xl font-bold text-primary">
-                {hideZakat ? '••••••' : fmt((data?.totalWealth as number) || 0)}
-              </p>
-            </div>
-            <div className="bg-white rounded-xl p-5">
-              <p className="text-gray-500 text-sm">Zakatable Wealth</p>
-              <p className="text-2xl font-bold text-primary">
-                {hideZakat ? '••••••' : fmt((data?.zakatableWealth as number) || 0)}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">After deductions &amp; exemptions</p>
-            </div>
+            <KpiCard
+              label="Total Wealth"
+              value={hideZakat ? '••••••' : fmt((data?.totalWealth as number) || 0)}
+            />
+            <KpiCard
+              label="Zakatable Wealth"
+              value={hideZakat ? '••••••' : fmt((data?.zakatableWealth as number) || 0)}
+              footer="After deductions & exemptions"
+            />
             <div className="bg-white rounded-xl p-5">
               <p className="text-gray-500 text-sm flex items-center gap-1">
                 Nisab Threshold
