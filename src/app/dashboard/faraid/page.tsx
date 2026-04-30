@@ -330,8 +330,8 @@ export default function FaraidPage() {
     <div className="max-w-6xl mx-auto py-8 px-4 space-y-8">
       {/* Header */}
       <PageHeader
-        title="Faraid Calculator"
-        subtitle="Islamic inheritance distribution per Sunni / Shia rules"
+        title="Inheritance Calculator"
+        subtitle="Faraid — Qur&apos;anic inheritance shares, Sunni / Shia rules"
         className="mb-0"
       />
 

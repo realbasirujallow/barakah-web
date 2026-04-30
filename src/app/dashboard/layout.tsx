@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, ReactNode, useState } from 'react';
 import { ToastProvider } from '../../lib/toast';
 import { useDarkMode, toggleDarkMode as toggleDarkModeShared } from '../../lib/useDarkMode';
+import { recordVisit } from '../../lib/lastVisit';
 import {
   LayoutDashboard, Wallet, BookOpen, CreditCard, Receipt, PieChart, Landmark,
   Users, Scale, BookMarked, CalendarClock, Heart, Upload, LineChart, Bell,
@@ -245,6 +246,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       router.replace('/setup');
     }
   }, [isLoading, router, user]);
+
+  // Phase 14 (2026-04-30): record the user's last meaningful dashboard
+  // visit so the home page can show "Continue where you left off". The
+  // recorder skips /dashboard root + admin/billing/import (per the
+  // SKIP_PREFIXES list in lastVisit.ts) so the home page never points
+  // back at itself.
+  useEffect(() => {
+    if (pathname) recordVisit(pathname);
+  }, [pathname]);
 
   // ── Keyboard shortcuts ───────────────────────────────────────────────────
   useEffect(() => {

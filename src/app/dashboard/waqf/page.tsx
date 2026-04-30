@@ -213,8 +213,8 @@ export default function WaqfPage() {
   return (
     <div>
       <PageHeader
-        title="Waqf (Endowment)"
-        subtitle="Endowment tracking — properties, books, perpetual charity"
+        title="Endowment"
+        subtitle="Waqf — perpetual charity assets (properties, books, water wells)"
         actions={
           <>
             {tab === 'contributions' && <button onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Contribution</button>}
