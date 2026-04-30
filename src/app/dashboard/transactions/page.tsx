@@ -9,6 +9,8 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { Pencil, Trash2 } from 'lucide-react';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
@@ -403,7 +405,7 @@ export default function TransactionsPage() {
     <div className="text-center py-20">
       <p className="text-4xl mb-3">⚠️</p>
       <p className="text-red-600 font-medium mb-4">{error}</p>
-      <button onClick={load} className="bg-[#1B5E20] text-white px-5 py-2 rounded-lg hover:bg-[#2E7D32] text-sm font-medium">
+      <button onClick={load} className="bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:bg-primary/90 text-sm font-medium">
         Retry
       </button>
     </div>
@@ -425,27 +427,29 @@ export default function TransactionsPage() {
 
   return (
     <div>
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Transactions</h1>
-        <div className="flex gap-2 flex-wrap justify-end">
-          <SyncBanksButton onSynced={load} label="Sync banks" />
-          <button onClick={handleExportCsv} disabled={exportingCsv}
-            className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1">
-            {exportingCsv ? <span className="animate-spin w-3 h-3 border-2 border-[#1B5E20] border-t-transparent rounded-full inline-block" /> : '📥'} CSV
-          </button>
-          <button onClick={handleExportPdf} disabled={exportingPdf}
-            className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1">
-            {exportingPdf ? <span className="animate-spin w-3 h-3 border-2 border-[#1B5E20] border-t-transparent rounded-full inline-block" /> : '📄'} PDF
-          </button>
-          {txs.length > 0 && (
-            selectMode
-              ? <button onClick={exitSelectMode} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">Cancel</button>
-              : <button onClick={() => setSelectMode(true)} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">Select</button>
-          )}
-          <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add</button>
-        </div>
-      </div>
+      <PageHeader
+        title="Transactions"
+        subtitle="Income, expenses, and transfers across every linked account"
+        actions={
+          <>
+            <SyncBanksButton onSynced={load} label="Sync banks" />
+            <button onClick={handleExportCsv} disabled={exportingCsv}
+              className="border border-primary text-primary px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1">
+              {exportingCsv ? <span className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full inline-block" /> : '📥'} CSV
+            </button>
+            <button onClick={handleExportPdf} disabled={exportingPdf}
+              className="border border-primary text-primary px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1">
+              {exportingPdf ? <span className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full inline-block" /> : '📄'} PDF
+            </button>
+            {txs.length > 0 && (
+              selectMode
+                ? <button onClick={exitSelectMode} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">Cancel</button>
+                : <button onClick={() => setSelectMode(true)} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">Select</button>
+            )}
+            <button onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add</button>
+          </>
+        }
+      />
 
       {exportError && <div className="mb-4 bg-red-50 text-red-700 text-sm px-4 py-2 rounded-lg">{exportError}</div>}
 
@@ -453,7 +457,7 @@ export default function TransactionsPage() {
         plaidSyncAccess ? 'bg-[#F7FBF7] border-green-200' : 'bg-amber-50 border-amber-200'
       }`}>
         <div>
-          <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-[#1B5E20]' : 'text-amber-900'}`}>
+          <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-primary' : 'text-amber-900'}`}>
             {hasLinkedPlaidTransactions
               ? (plaidSyncAccess ? 'Keep your transaction feed alive.' : 'Your imported feed is visible, but syncing is paused.')
               : 'Connect your accounts to stop manual ledger work.'}
@@ -472,7 +476,7 @@ export default function TransactionsPage() {
           <Link
             href="/dashboard/import"
             className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-              plaidSyncAccess ? 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
+              plaidSyncAccess ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
             }`}
           >
             {hasLinkedPlaidTransactions ? 'Manage Linked Accounts' : 'Connect Accounts'}
@@ -480,7 +484,7 @@ export default function TransactionsPage() {
           {!plaidSyncAccess && (
             <Link
               href="/dashboard/billing"
-              className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32]"
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
             >
               Upgrade to Keep Syncing
             </Link>
@@ -508,7 +512,7 @@ export default function TransactionsPage() {
       <div className="flex flex-wrap gap-2 mb-4 items-center">
         {['all', 'income', 'expense', 'transfer'].map(f => (
           <button key={f} onClick={() => { setFilter(f); setPage(0); exitSelectMode(); }}
-            className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${filter === f ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>{f}</button>
+            className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${filter === f ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>{f}</button>
         ))}
         <button onClick={() => { setFilter('needs_review'); setPage(0); exitSelectMode(); }}
           className={`px-3 py-1 rounded-lg text-sm font-medium flex items-center gap-1.5 ${filter === 'needs_review' ? 'bg-amber-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>
@@ -526,7 +530,7 @@ export default function TransactionsPage() {
           placeholder="Search transactions..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="ml-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none w-40 sm:w-56"
+          className="ml-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none w-40 sm:w-56"
         />
         {search && (
           <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600 text-sm">✕</button>
@@ -535,7 +539,7 @@ export default function TransactionsPage() {
           <span className="text-xs text-gray-500">Show:</span>
           {PAGE_SIZE_OPTIONS.map(n => (
             <button key={n} onClick={() => handlePageSizeChange(n)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition ${pageSize === n ? 'bg-[#1B5E20] text-white border-[#1B5E20]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>{n}</button>
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition ${pageSize === n ? 'bg-primary text-primary-foreground border-primary' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>{n}</button>
           ))}
         </div>
       </div>
@@ -591,8 +595,17 @@ export default function TransactionsPage() {
             const presentation = txPresentation(tx);
             return (
             <div key={tx.id}
-              onClick={selectMode ? () => toggleSelect(tx.id) : undefined}
-              className={`bg-white rounded-xl p-4 flex justify-between items-center transition ${selectMode ? 'cursor-pointer' : ''} ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-[#1B5E20] bg-green-50/30' : ''}`}>
+              onClick={selectMode ? () => toggleSelect(tx.id) : () => openEdit(tx)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  if (selectMode) toggleSelect(tx.id); else openEdit(tx);
+                }
+              }}
+              aria-label={`${tx.description || tx.category} — click to ${selectMode ? 'select' : 'edit'}`}
+              className={`group bg-card rounded-xl p-4 flex justify-between items-center cursor-pointer border border-transparent transition-all hover:border-primary/20 hover:bg-accent/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
               <div className="flex items-center gap-3">
                 {selectMode && (
                   <input type="checkbox" checked={selectedIds.has(tx.id) || selectAllPages}
@@ -629,7 +642,7 @@ export default function TransactionsPage() {
                   {tx.tags && tx.tags.trim() !== '' && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {tx.tags.split(',').map(tag => tag.trim()).filter(Boolean).map((tag, i) => (
-                        <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-[#1B5E20]">
+                        <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-primary">
                           {tag}
                         </span>
                       ))}
@@ -643,13 +656,33 @@ export default function TransactionsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <p className={`text-lg font-bold ${presentation.amountClass}`}>
+                <p className={`text-lg font-bold tabular-nums ${presentation.amountClass}`}>
                   {presentation.sign}{txAmount(tx, fmt)}
                 </p>
                 {!selectMode && (
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => openEdit(tx)} className="text-gray-400 hover:text-[#1B5E20] text-sm px-1" title="Edit">✏️</button>
-                    <button onClick={() => handleDelete(tx.id)} className="text-gray-400 hover:text-red-600 text-sm" title="Delete">🗑️</button>
+                  // Inline actions — always visible on touch (no group-hover
+                  // gating), but de-emphasized via opacity until the row is
+                  // hovered/focused on desktop. Click stops propagation so
+                  // hitting these doesn't ALSO fire the row-level edit.
+                  <div className="flex items-center gap-1 sm:opacity-60 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); openEdit(tx); }}
+                      aria-label={`Edit ${tx.description || tx.category}`}
+                      title="Edit"
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleDelete(tx.id); }}
+                      aria-label={`Delete ${tx.description || tx.category}`}
+                      title="Delete"
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
               </div>
@@ -707,7 +740,7 @@ export default function TransactionsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">{editTx ? 'Edit Transaction' : 'Add Transaction'}</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editTx ? 'Edit Transaction' : 'Add Transaction'}</h2>
             <div className="space-y-4">
               {/* Type */}
               <div>
@@ -795,7 +828,7 @@ export default function TransactionsPage() {
             <div className="flex gap-3 mt-6">
               <button aria-label="Close add transaction modal" onClick={() => { setShowForm(false); setEditTx(null); setFormError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.amount}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">
                 {saving ? 'Saving...' : (editTx ? 'Save Changes' : 'Add')}
               </button>
             </div>

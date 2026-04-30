@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Subscription {
   name: string;
@@ -75,10 +76,10 @@ export default function SubscriptionsPage() {
   if (loading) {
     return (
       <div className="p-6 space-y-4">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Subscription Detector</h1>
+        <h1 className="text-2xl font-bold text-primary">Subscription Detector</h1>
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1B5E20] mx-auto mb-4" />
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto mb-4" />
             <p className="text-gray-500">Analyzing your transactions for recurring subscriptions...</p>
           </div>
         </div>
@@ -88,15 +89,19 @@ export default function SubscriptionsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Subscription Detector</h1>
-        <button
-          onClick={loadSubscriptions}
-          className="px-4 py-2 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-green-800 transition"
-        >
-          Re-scan
-        </button>
-      </div>
+      <PageHeader
+        title="Subscription Detector"
+        subtitle="Detect recurring charges and flag riba-bearing ones"
+        className="mb-0"
+        actions={
+          <button
+            onClick={loadSubscriptions}
+            className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-green-800 transition"
+          >
+            Re-scan
+          </button>
+        }
+      />
 
       {error && (
         <div className="bg-red-50 text-red-600 p-4 rounded-lg">{error}</div>
@@ -106,7 +111,7 @@ export default function SubscriptionsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
           <p className="text-sm text-gray-500 dark:text-gray-400">Detected</p>
-          <p className="text-2xl font-bold text-[#1B5E20]">{subscriptions.length}</p>
+          <p className="text-2xl font-bold text-primary">{subscriptions.length}</p>
           <p className="text-xs text-gray-400">subscriptions</p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">

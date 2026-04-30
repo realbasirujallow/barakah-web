@@ -134,49 +134,72 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
       aria-modal="true"
       aria-labelledby="onboarding-wizard-title"
     >
-      <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-xl">
-        {/* Progress */}
+      <div className="bg-card rounded-2xl w-full max-w-lg overflow-hidden shadow-xl border border-border">
+        {/* Progress — Phase 6.4 polish: bg-primary token + bg-muted track */}
         <div className="flex gap-1 px-6 pt-5">
           {steps.map((_, i) => (
-            <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i <= step ? 'bg-[#1B5E20]' : 'bg-gray-200'}`} />
+            <div
+              key={i}
+              className={`h-1.5 flex-1 rounded-full transition-all ${
+                i <= step ? 'bg-primary' : 'bg-muted'
+              }`}
+            />
           ))}
+        </div>
+        <div className="px-6 pt-2 pb-1">
+          <p className="text-xs text-muted-foreground tabular-nums">
+            Step {step + 1} of {steps.length}
+          </p>
         </div>
 
         {/* Content */}
-        <div className="px-6 pt-6 pb-4 text-center">
-          <div className="text-5xl mb-4">{current.icon}</div>
-          <h2 id="onboarding-wizard-title" className="text-2xl font-bold text-[#1B5E20] mb-1">{current.title}</h2>
-          <p className="text-sm text-gray-500 mb-4">{current.subtitle}</p>
-          <p className="text-gray-700 text-sm leading-relaxed mb-5">{current.body}</p>
+        <div className="px-6 pt-2 pb-4 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-3xl mb-3">
+            <span aria-hidden="true">{current.icon}</span>
+          </div>
+          <h2 id="onboarding-wizard-title" className="text-2xl font-semibold tracking-tight text-foreground mb-1">{current.title}</h2>
+          <p className="text-sm text-muted-foreground mb-4">{current.subtitle}</p>
+          <p className="text-foreground/80 text-sm leading-relaxed mb-5 max-w-md mx-auto">{current.body}</p>
 
           {current.action && (
             // BUG FIX: was onClick={handleSkip} which permanently dismissed
             // the wizard; now advances to the next step so returning to the
             // dashboard after visiting the linked feature resumes from step N+1.
-            <Link href={current.action.href} onClick={handleNext}
-              className="inline-block bg-green-50 text-[#1B5E20] px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-100 border border-green-200 transition mb-2">
-              {current.action.label} →
+            <Link
+              href={current.action.href}
+              onClick={handleNext}
+              className="inline-flex items-center gap-1 bg-primary/10 text-primary px-5 py-2 rounded-md text-sm font-medium hover:bg-primary/15 border border-primary/20 transition-colors mb-2"
+            >
+              {current.action.label}
+              <span aria-hidden="true">→</span>
             </Link>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 pb-6">
-          <button onClick={handleSkip} className="text-sm text-gray-400 hover:text-gray-600">
+        <div className="flex items-center justify-between px-6 pb-6 pt-2 border-t border-border">
+          <button
+            onClick={handleSkip}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             Skip tour
           </button>
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             {step > 0 && (
-              <button onClick={() => {
-                try { localStorage.setItem(STEP_KEY, String(step - 1)); } catch {}
-                setStep(step - 1);
-              }}
-                className="px-5 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+              <button
+                onClick={() => {
+                  try { localStorage.setItem(STEP_KEY, String(step - 1)); } catch {}
+                  setStep(step - 1);
+                }}
+                className="px-5 py-2 border border-border rounded-md text-sm text-foreground hover:bg-accent transition-colors"
+              >
                 Back
               </button>
             )}
-            <button onClick={handleNext}
-              className="px-6 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-medium hover:bg-[#2E7D32]">
+            <button
+              onClick={handleNext}
+              className="px-6 py-2 bg-primary text-primary-foreground rounded-md text-sm font-semibold hover:bg-primary/90 transition-colors"
+            >
               {isLast ? 'Get Started' : 'Next'}
             </button>
           </div>

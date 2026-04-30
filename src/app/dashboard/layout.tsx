@@ -229,35 +229,40 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen flex items-center justify-center bg-[#FFF8E1]">
       <div className="text-center">
         <p className="text-4xl mb-3">&#127769;</p>
-        <p className="text-[#1B5E20] font-medium">Signing out...</p>
+        <p className="text-primary font-medium">Signing out...</p>
       </div>
     </div>
   );
 
+  // ── Phase 4.3 (2026-04-27) — Monarch-style sidebar tokens ─────────────
+  // Light surface (bg-sidebar = oklch 0.99 0.005 165, subtle teal-tinted
+  // off-white) with dark foreground (text-sidebar-foreground). Active
+  // route gets bg-primary text-primary-foreground (the new softer teal
+  // pill). Section header buttons use text-muted-foreground; hover
+  // surfaces use bg-sidebar-accent. Every colour now respects light/
+  // dark mode via the OKLCH variables in globals.css.
   const renderNavLink = (item: typeof navItems[0], locked: boolean) => (
     <Link
       key={item.href}
       href={item.href}
       onClick={() => setSidebarOpen(false)}
       aria-label={item.label}
-      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition ${
+      aria-current={pathname === item.href ? 'page' : undefined}
+      className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
         pathname === item.href
-          ? 'bg-green-800 text-white font-semibold'
+          ? 'bg-primary text-primary-foreground font-semibold'
           : locked
-            ? 'text-green-600 hover:bg-green-800/30'
-            : 'text-green-200 hover:bg-green-800/50'
+            ? 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
       }`}
     >
-      <span>{item.icon}</span>
-      <span className="flex-1">{item.label}</span>
-      {locked && <span className="text-xs opacity-60">🔒</span>}
+      <span aria-hidden="true">{item.icon}</span>
+      <span className="flex-1 truncate">{item.label}</span>
+      {locked && <span className="text-xs opacity-60" aria-label="Premium only">🔒</span>}
     </Link>
   );
 
   const renderSection = (section: SidebarSection) => {
-    // Hard-gate the entire admin section: non-admins never see it. The
-    // adminOnly flag on each item is also enforced below as belt-and-
-    // suspenders in case a future refactor mis-categorizes one.
     if (section === 'admin' && !user.isAdmin) return null;
 
     const isExpanded = expandedSections[section];
@@ -271,18 +276,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     if (filteredItems.length === 0 && lockedInSection.length === 0) return null;
 
     return (
-      <div key={section} className="mb-2">
+      <div key={section} className="mb-1">
         <button
           onClick={() => toggleSection(section)}
-          className="w-full flex items-center gap-2 px-4 py-2 text-green-400 hover:text-green-200 text-xs uppercase tracking-wide font-medium transition"
+          aria-expanded={isExpanded}
+          className="w-full flex items-center gap-2 px-3 py-1.5 text-muted-foreground hover:text-foreground text-[11px] uppercase tracking-wider font-semibold transition-colors"
         >
-          <span className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
+          <span className={`transition-transform text-[8px] ${isExpanded ? 'rotate-90' : ''}`} aria-hidden="true">
             ▶
           </span>
           {config.label}
         </button>
         {isExpanded && (
-          <div className="space-y-1 pl-2">
+          <div className="space-y-0.5 mt-0.5">
             {filteredItems.map(item => renderNavLink(item, false))}
             {lockedInSection.map(item => renderNavLink(item, true))}
           </div>
@@ -293,44 +299,54 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex">
-      {/* Sidebar */}
-      {/* Sidebar uses a 3-row flex column (header / scrollable nav / footer)
-          so the scrollable region grows to fill the available space and
-          never collides with the bottom controls. The previous layout
-          subtracted a hardcoded `calc(100vh - 140px)` from the nav's
-          maxHeight while the actual chrome (header ~88px + footer ~110px)
-          was closer to 200px, so the bottom-most nav items rendered
-          underneath the absolute-positioned Dark Mode / Sign Out buttons —
-          legible-letters-on-letters bug visible at smaller heights. */}
-      <aside id="dashboard-sidebar" className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#1B5E20] text-white transform transition-transform lg:translate-x-0 lg:static lg:flex-shrink-0 flex flex-col h-screen ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-6 border-b border-green-800 flex-shrink-0">
-          <h1 className="text-xl font-bold">&#127769; Barakah</h1>
-          <p className="text-green-300 text-sm mt-1">{user.name}</p>
+      {/*
+        Phase 4.3 sidebar — Monarch-style light surface with semantic
+        shadcn tokens. The sidebar is now a 3-row flex column (header /
+        scrollable nav / footer); the visible chrome reads as
+        bg-sidebar / text-sidebar-foreground / border-sidebar-border so
+        light & dark modes auto-derive from globals.css. The active
+        nav item is a brand-teal pill (bg-primary text-primary-foreground)
+        — much closer to Monarch's clean active state than the old
+        saturated dark-green block.
+      */}
+      <aside
+        id="dashboard-sidebar"
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border transform transition-transform lg:translate-x-0 lg:static lg:flex-shrink-0 flex flex-col h-screen ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <div className="px-5 py-5 border-b border-sidebar-border flex-shrink-0">
+          <h1 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+            <span aria-hidden="true">🌙</span>
+            <span>Barakah</span>
+          </h1>
+          <p className="text-muted-foreground text-xs mt-0.5 truncate">{user.name}</p>
         </div>
-        <nav className="p-4 overflow-y-auto flex-1 min-h-0">
+        <nav className="px-3 py-3 overflow-y-auto flex-1 min-h-0">
           {/* Dashboard — always at top, ungrouped */}
           {renderNavLink(navItems[0], false)}
-          <div className="my-3 border-t border-green-700" />
+          <div className="my-2 h-px bg-sidebar-border" />
 
           {/* Collapsible sections */}
           {renderSection('finance')}
           {renderSection('islamic')}
           {renderSection('premium')}
           {renderSection('account')}
-          {/* Admin section renders below Account for visual separation;
-              the section itself short-circuits to null if !isAdmin. */}
           {renderSection('admin')}
         </nav>
-        <div className="p-4 border-t border-green-800 flex-shrink-0">
+        <div className="px-3 py-3 border-t border-sidebar-border flex-shrink-0 space-y-0.5">
           <button
             onClick={toggleDarkMode}
-            className="w-full text-left px-4 py-2 text-green-300 hover:text-white text-sm transition flex items-center gap-2 mb-1"
+            className="w-full text-left px-3 py-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md text-sm transition-colors flex items-center gap-2"
             title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            {darkMode ? '☀️' : '🌙'} {darkMode ? 'Light Mode' : 'Dark Mode'}
+            <span aria-hidden="true">{darkMode ? '☀️' : '🌙'}</span>
+            <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
           </button>
-          <button onClick={() => logout('logout')} className="w-full text-left px-4 py-2 text-green-300 hover:text-white text-sm transition">
-            &#x2192; Sign Out
+          <button
+            onClick={() => logout('logout')}
+            className="w-full text-left px-3 py-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md text-sm transition-colors flex items-center gap-2"
+          >
+            <span aria-hidden="true">→</span>
+            <span>Sign Out</span>
           </button>
         </div>
       </aside>
@@ -342,7 +358,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Main content — ToastProvider hoisted to wrap the full shell so
           NotificationBell, SessionTimeoutModal, AnnualUpgradeModal,
-          FeedbackWidget, and OnboardingWizard can all dispatch toasts. */}
+          FeedbackWidget, and OnboardingWizard can all dispatch toasts.
+
+          Phase 7.5: skip-to-content link is the first focusable element
+          when sighted/keyboard users tab onto the dashboard. Hidden by
+          default, becomes visible on focus. WCAG 2.4.1 (Bypass Blocks). */}
+      <a
+        href="#dashboard-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-3 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:font-semibold focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        Skip to main content
+      </a>
       <ToastProvider>
         <div className="flex-1 flex flex-col min-h-screen">
           <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between lg:justify-end">
@@ -351,7 +377,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 is open/closed. The marketing hamburger (/app/page.tsx)
                 got the same treatment in Round 18. */}
             <button
-              className="lg:hidden text-[#1B5E20]"
+              className="lg:hidden text-primary"
               onClick={() => setSidebarOpen(true)}
               aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={sidebarOpen}
@@ -374,23 +400,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               )}
               <button
                 onClick={toggleDarkMode}
-                className="text-gray-500 hover:text-[#1B5E20] text-lg transition"
+                className="text-gray-500 hover:text-primary text-lg transition"
                 title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                 aria-label="Toggle dark mode"
               >
                 {darkMode ? '☀️' : '🌙'}
               </button>
               <NotificationBell />
-              <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-[#1B5E20]">{user.name}</span></p>
+              <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-primary">{user.name}</span></p>
             </div>
           </header>
-          <main className="flex-1 p-6 overflow-auto">
+          <main id="dashboard-main" tabIndex={-1} className="flex-1 p-6 overflow-auto">
             <TrialBanner />
             <AnnualUpgradeBanner />
             {children}
           </main>
           <footer className="px-6 py-3 text-center text-xs text-gray-400 border-t bg-white">
-            <Link href="/disclaimer" className="hover:text-[#1B5E20] hover:underline transition">
+            <Link href="/disclaimer" className="hover:text-primary hover:underline transition">
               ⚠️ Disclaimer &amp; Islamic Guidance Notice
             </Link>
             <span className="mx-2">·</span>

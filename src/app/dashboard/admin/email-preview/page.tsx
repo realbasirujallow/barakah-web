@@ -164,7 +164,7 @@ export default function EmailPreviewPage() {
   if (isAuthLoading || !isAdminKnown) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -175,17 +175,17 @@ export default function EmailPreviewPage() {
       <div className="max-w-[1600px] mx-auto">
         <Link
           href="/dashboard/admin"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1B5E20] hover:underline mb-3"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mb-3"
         >
           <span aria-hidden="true">←</span>
           Back to Admin Dashboard
         </Link>
 
         <div className="mb-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#1B5E20]">Email template preview</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary">Email template preview</h1>
           <p className="text-sm text-gray-600 mt-1">
             Every transactional email rendered with sample data in every supported locale. Use this to sanity-check <code className="bg-gray-100 rounded px-1">ar</code>, <code className="bg-gray-100 rounded px-1">ur</code>, and <code className="bg-gray-100 rounded px-1">fr</code> translations before flipping a locale on via{' '}
-            <Link href="/dashboard/admin/email-locales" className="text-[#1B5E20] underline">email locales</Link>.
+            <Link href="/dashboard/admin/email-locales" className="text-primary underline">email locales</Link>.
           </p>
           <p className="text-xs text-gray-500 mt-1">
             Locale kill switch is <em>bypassed</em> in this view — disabled locales are still rendered so you can review what you&apos;re about to turn on.
@@ -209,7 +209,7 @@ export default function EmailPreviewPage() {
                           onClick={() => setSelectedTemplate(id)}
                           className={`w-full text-left px-2 py-1.5 rounded text-sm ${
                             selectedTemplate === id
-                              ? 'bg-[#1B5E20] text-white font-medium'
+                              ? 'bg-primary text-primary-foreground font-medium'
                               : 'text-gray-700 hover:bg-green-50'
                           }`}
                         >
@@ -227,7 +227,7 @@ export default function EmailPreviewPage() {
             <div className="bg-white rounded-xl shadow-sm p-3 mb-4 flex items-center justify-between flex-wrap gap-2">
               <div>
                 <p className="text-xs text-gray-500">Template</p>
-                <p className="font-mono text-sm text-[#1B5E20] font-semibold">{selectedTemplate}</p>
+                <p className="font-mono text-sm text-primary font-semibold">{selectedTemplate}</p>
               </div>
               <div className="flex gap-1">
                 <button
@@ -235,8 +235,8 @@ export default function EmailPreviewPage() {
                   onClick={() => setZoomLocale('all')}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                     zoomLocale === 'all'
-                      ? 'bg-[#1B5E20] text-white'
-                      : 'bg-white text-[#1B5E20] border border-[#1B5E20] hover:bg-green-50'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-white text-primary border border-primary hover:bg-green-50'
                   }`}
                 >
                   All 4
@@ -248,8 +248,8 @@ export default function EmailPreviewPage() {
                     onClick={() => setZoomLocale(l.code)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                       zoomLocale === l.code
-                        ? 'bg-[#1B5E20] text-white'
-                        : 'bg-white text-[#1B5E20] border border-[#1B5E20] hover:bg-green-50'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-white text-primary border border-primary hover:bg-green-50'
                     }`}
                   >
                     {l.label}
@@ -311,7 +311,7 @@ export default function EmailPreviewPage() {
                               URL.revokeObjectURL(url);
                             }
                           }}
-                          className="text-xs px-2 py-1 bg-white border border-[#1B5E20] text-[#1B5E20] rounded hover:bg-green-50"
+                          className="text-xs px-2 py-1 bg-white border border-primary text-primary rounded hover:bg-green-50"
                         >
                           Open
                         </button>

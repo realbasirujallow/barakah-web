@@ -14,6 +14,8 @@ const Tooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr
 const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
 const Legend = dynamic(() => import('recharts').then(mod => mod.Legend), { ssr: false });
 
+import { PageHeader } from '../../../components/dashboard/PageHeader';
+
 interface MonthlyPoint {
   month: string;    // "2025-12"
   income: number;
@@ -135,7 +137,7 @@ export default function SummaryPage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
 
@@ -172,18 +174,18 @@ export default function SummaryPage() {
   return (
     <div className="max-w-2xl mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1B5E20]">Financial Summary</h1>
-          <p className="text-sm text-gray-500 mt-1">Overview of your income and spending</p>
-        </div>
-        <button
-          onClick={handleCopy}
-          className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2E7D32] font-medium transition"
-        >
-          {copied ? '✓ Copied' : '📋 Copy Summary'}
-        </button>
-      </div>
+      <PageHeader
+        title="Financial Summary"
+        subtitle="Overview of your income and spending"
+        actions={
+          <button
+            onClick={handleCopy}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm hover:bg-primary/90 font-medium transition"
+          >
+            {copied ? '✓ Copied' : '📋 Copy Summary'}
+          </button>
+        }
+      />
 
       {/* Controls */}
       <div className="flex gap-3 mb-6 flex-wrap">
@@ -193,7 +195,7 @@ export default function SummaryPage() {
               key={p.value}
               onClick={() => setPeriod(p.value as 'month' | 'year')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                period === p.value ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+                period === p.value ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-100'
               }`}
             >
               {p.label}
@@ -206,7 +208,7 @@ export default function SummaryPage() {
               key={m}
               onClick={() => setMonths(m)}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-                months === m ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+                months === m ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-100'
               }`}
             >
               {m}m
@@ -250,7 +252,7 @@ export default function SummaryPage() {
       {/* Trend chart */}
       {chartData.length > 0 && (
         <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
-          <h2 className="font-semibold text-[#1B5E20] mb-4">Income vs Expenses — Last {months} Months</h2>
+          <h2 className="font-semibold text-primary mb-4">Income vs Expenses — Last {months} Months</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={chartData} margin={{ top: 0, right: 0, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -267,7 +269,7 @@ export default function SummaryPage() {
 
       {/* Top spending categories */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
-        <h2 className="font-semibold text-[#1B5E20] mb-4">Top Spending Categories</h2>
+        <h2 className="font-semibold text-primary mb-4">Top Spending Categories</h2>
         {expenseEntries.length === 0 ? (
           <p className="text-gray-400 text-sm text-center py-4">No expense data for this period</p>
         ) : (
@@ -302,10 +304,10 @@ export default function SummaryPage() {
       {/* Shareable text preview */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="font-semibold text-[#1B5E20]">Text Summary</h2>
+          <h2 className="font-semibold text-primary">Text Summary</h2>
           <button
             onClick={handleCopy}
-            className="text-sm text-[#1B5E20] hover:underline font-medium"
+            className="text-sm text-primary hover:underline font-medium"
           >
             {copied ? '✓ Copied!' : 'Copy'}
           </button>

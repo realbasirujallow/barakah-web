@@ -4,6 +4,8 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { SkeletonPage } from '../SkeletonCard';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { FormHelp } from '../../../components/dashboard/FormHelp';
 
 interface BudgetItem { id: number; category: string; monthlyLimit: number; spent: number; month: number; year: number; color: string; }
 const CATEGORIES = [
@@ -200,17 +202,19 @@ export default function BudgetPage() {
 
   return (
     <div>
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Budget Planning</h1>
-        <div className="flex gap-2">
-          <button type="button" onClick={handleCopyMonth} disabled={copyingMonth}
-            className="px-3 py-2 text-sm border border-[#1B5E20] text-[#1B5E20] rounded-lg hover:bg-green-50 transition disabled:opacity-50">
-            {copyingMonth ? 'Copying...' : '📋 Copy Last Month'}
-          </button>
-          <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Budget</button>
-        </div>
-      </div>
+      <PageHeader
+        title="Budget Planning"
+        subtitle={`${MONTHS[viewMonth - 1]} ${viewYear} · category-level limits with auto rollover`}
+        actions={
+          <>
+            <button type="button" onClick={handleCopyMonth} disabled={copyingMonth}
+              className="px-3 py-2 text-sm border border-primary text-primary rounded-lg hover:bg-green-50 transition disabled:opacity-50">
+              {copyingMonth ? 'Copying...' : '📋 Copy Last Month'}
+            </button>
+            <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Budget</button>
+          </>
+        }
+      />
 
       {/* ── Month Navigation ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-center gap-4 mb-6">
@@ -223,7 +227,7 @@ export default function BudgetPage() {
 
       {/* ── Summary cards ──────────────────────────────────────────────────── */}
       <div className="grid md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Budget</p><p className="text-2xl font-bold text-[#1B5E20]">{fmt(totalBudget)}</p></div>
+        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Budget</p><p className="text-2xl font-bold text-primary">{fmt(totalBudget)}</p></div>
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Spent</p><p className="text-2xl font-bold text-orange-600">{fmt(totalSpent)}</p></div>
         <div className="bg-white rounded-xl p-5">
           <p className="text-gray-500 text-sm">Remaining</p>
@@ -260,7 +264,7 @@ export default function BudgetPage() {
                   </div>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className={`h-2 rounded-full transition-all ${over ? 'bg-red-600' : pct >= 90 ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-[#1B5E20]'}`} style={{ width: `${pct}%` }} />
+                  <div className={`h-2 rounded-full transition-all ${over ? 'bg-red-600' : pct >= 90 ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
                 </div>
               </div>
             );
@@ -271,7 +275,7 @@ export default function BudgetPage() {
           <p className="text-6xl mb-4">📋</p>
           <p className="text-gray-700 font-semibold text-lg mb-2">No budgets set up yet</p>
           <p className="text-gray-500 text-sm mb-6">{viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear() ? 'No budgets set up yet. Create your first budget to start managing your spending.' : 'No budgets were set for this month. Use "Copy Last Month" or create a new one.'}</p>
-          <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-xl hover:bg-[#2E7D32] font-medium text-sm">
+          <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl hover:bg-primary/90 font-medium text-sm">
             + Create Your First Budget
           </button>
         </div>
@@ -281,16 +285,32 @@ export default function BudgetPage() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">{editItem ? 'Edit Budget' : 'Add Budget'}</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">{editItem ? 'Edit Budget' : 'Add Budget'}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                  Category
+                  <FormHelp ariaLabel="About budget categories">
+                    Pick the category this budget caps. Spending across all
+                    transactions tagged with this category counts toward
+                    the limit. Use multiple budgets to track several
+                    categories in parallel.
+                  </FormHelp>
+                </label>
                 <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {CATEGORIES.map(c => <option key={c} value={c}>{catLabel(c)}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Limit</label>
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                  Monthly Limit
+                  <FormHelp ariaLabel="About monthly limit">
+                    The maximum you intend to spend in this category for
+                    the selected month. You&apos;ll see a warning toast at 80%
+                    and 100% — Barakah doesn&apos;t block transactions, just
+                    warns.
+                  </FormHelp>
+                </label>
                 <input type="number" step="0.01" value={form.monthlyLimit} onChange={e => setForm({ ...form, monthlyLimit: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="500.00" />
               </div>
@@ -311,7 +331,7 @@ export default function BudgetPage() {
             <div className="flex gap-3 mt-4">
               <button type="button" onClick={() => setShowForm(false)} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handleSave} disabled={saving || !form.monthlyLimit}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">
                 {saving ? 'Saving...' : editItem ? 'Update' : 'Add'}
               </button>
             </div>

@@ -126,7 +126,7 @@ export default function AcquisitionPage() {
   if (isAuthLoading || !isAdminKnown) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -137,14 +137,14 @@ export default function AcquisitionPage() {
       <div className="max-w-5xl mx-auto">
         <Link
           href="/dashboard/admin"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1B5E20] hover:underline mb-4"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mb-4"
         >
           <span aria-hidden="true">←</span>
           Back to Admin Dashboard
         </Link>
 
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-[#1B5E20]">Acquisition & Retargeting</h1>
+          <h1 className="text-3xl font-bold text-primary">Acquisition & Retargeting</h1>
           <p className="text-sm text-gray-600 mt-1">
             Signups grouped by the channel that drove them (UTM tags + referral codes + Referer heuristics). Click any row to pull the user-ID cohort for retargeting.
           </p>
@@ -162,8 +162,8 @@ export default function AcquisitionPage() {
                     onClick={() => { setDays(d); setSince(''); setUntil(''); }}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                       days === d && !since && !until
-                        ? 'bg-[#1B5E20] text-white'
-                        : 'bg-white text-[#1B5E20] border border-[#1B5E20] hover:bg-green-50'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-white text-primary border border-primary hover:bg-green-50'
                     }`}
                   >
                     {d}d
@@ -192,7 +192,7 @@ export default function AcquisitionPage() {
             <button
               type="button"
               onClick={() => void reload()}
-              className="px-4 py-1.5 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-[#2E7D32] font-medium"
+              className="px-4 py-1.5 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-medium"
             >
               Apply
             </button>
@@ -210,17 +210,17 @@ export default function AcquisitionPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="bg-white rounded-xl p-4 shadow-sm">
                 <p className="text-xs font-semibold text-gray-500 uppercase">Window</p>
-                <p className="text-sm mt-1 font-medium text-[#1B5E20]">
+                <p className="text-sm mt-1 font-medium text-primary">
                   {formatDate(data.windowStartMs)} → {formatDate(data.windowEndMs)}
                 </p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm">
                 <p className="text-xs font-semibold text-gray-500 uppercase">Total signups</p>
-                <p className="text-2xl font-bold text-[#1B5E20] mt-1">{data.totalSignups}</p>
+                <p className="text-2xl font-bold text-primary mt-1">{data.totalSignups}</p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm">
                 <p className="text-xs font-semibold text-gray-500 uppercase">Overall paid-conversion</p>
-                <p className="text-2xl font-bold text-[#1B5E20] mt-1">{pct(data.overallUpgradeRate)}</p>
+                <p className="text-2xl font-bold text-primary mt-1">{pct(data.overallUpgradeRate)}</p>
                 <p className="text-xs text-gray-500">{data.totalUpgrades} upgrades</p>
               </div>
             </div>
@@ -253,7 +253,7 @@ export default function AcquisitionPage() {
                             type="button"
                             onClick={() => void pullCohort(row.channel)}
                             disabled={cohortLoading === row.channel}
-                            className="px-3 py-1 text-xs bg-[#1B5E20] text-white rounded-lg font-medium hover:bg-[#2E7D32] disabled:opacity-50"
+                            className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50"
                           >
                             {cohortLoading === row.channel ? '…' : 'Pull cohort'}
                           </button>
@@ -271,7 +271,7 @@ export default function AcquisitionPage() {
           <div className="bg-white rounded-xl p-4 mt-6 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h2 className="font-semibold text-[#1B5E20]">
+                <h2 className="font-semibold text-primary">
                   Cohort: <span className="font-mono text-sm">{cohort.channel}</span>
                 </h2>
                 <p className="text-xs text-gray-500">
@@ -281,7 +281,7 @@ export default function AcquisitionPage() {
               <button
                 type="button"
                 onClick={copyCohortCsv}
-                className="px-3 py-1.5 text-sm bg-white border border-[#1B5E20] text-[#1B5E20] rounded-lg font-medium hover:bg-green-50"
+                className="px-3 py-1.5 text-sm bg-white border border-primary text-primary rounded-lg font-medium hover:bg-green-50"
               >
                 Copy CSV
               </button>

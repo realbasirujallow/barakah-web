@@ -127,7 +127,7 @@ export default function ScorecardPage() {
   if (isAuthLoading || !isAdminKnown) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -136,13 +136,13 @@ export default function ScorecardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
-        <Link href="/dashboard/admin" className="text-sm text-[#1B5E20] hover:underline">
+        <Link href="/dashboard/admin" className="text-sm text-primary hover:underline">
           ← Admin
         </Link>
 
         <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between mt-3 mb-6 gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-[#1B5E20]">📈 Weekly Scorecard</h1>
+            <h1 className="text-3xl font-bold text-primary">📈 Weekly Scorecard</h1>
             <p className="text-sm text-gray-600 mt-1">
               Monday-morning 10-minute view. The numbers here are the source-of-truth
               signals for the $1M ARR glide path.
@@ -151,7 +151,7 @@ export default function ScorecardPage() {
           <button
             onClick={load}
             disabled={loading}
-            className="text-sm bg-white border border-[#1B5E20] text-[#1B5E20] px-4 py-2 rounded-lg hover:bg-green-50 disabled:opacity-50"
+            className="text-sm bg-white border border-primary text-primary px-4 py-2 rounded-lg hover:bg-green-50 disabled:opacity-50"
           >
             {loading ? 'Refreshing…' : 'Refresh'}
           </button>
@@ -159,7 +159,7 @@ export default function ScorecardPage() {
 
         {loading ? (
           <div className="flex justify-center py-20">
-            <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
           </div>
         ) : (
           <>
@@ -168,7 +168,7 @@ export default function ScorecardPage() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <p className="text-sm text-gray-500">Annual Run Rate</p>
-                  <p className="text-4xl font-bold text-[#1B5E20]">
+                  <p className="text-4xl font-bold text-primary">
                     {fmt(overview?.arr ?? 0)}
                   </p>
                   {growth?.totals?.mrrUsd && (
@@ -231,12 +231,12 @@ export default function ScorecardPage() {
             {/* ── Funnel snapshot ──────────────────────────────────────── */}
             <section className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 shadow-sm">
               <div className="flex justify-between items-baseline mb-4">
-                <h2 className="text-lg font-bold text-[#1B5E20]">
+                <h2 className="text-lg font-bold text-primary">
                   Funnel (last 30 days)
                 </h2>
                 <Link
                   href="/dashboard/admin/funnel"
-                  className="text-sm text-[#1B5E20] underline"
+                  className="text-sm text-primary underline"
                 >
                   Full funnel →
                 </Link>
@@ -258,13 +258,13 @@ export default function ScorecardPage() {
                               </span>
                             )}
                           </span>
-                          <span className="font-mono text-[#1B5E20] font-semibold">
+                          <span className="font-mono text-primary font-semibold">
                             {stage.count.toLocaleString()} · {pct.toFixed(0)}%
                           </span>
                         </div>
                         <div className="w-full bg-gray-100 rounded h-2">
                           <div
-                            className="bg-[#1B5E20] rounded h-2 transition-all"
+                            className="bg-primary rounded h-2 transition-all"
                             style={{ width: `${Math.max(1, pct)}%` }}
                           />
                         </div>
@@ -273,19 +273,19 @@ export default function ScorecardPage() {
                   })}
                   <div className="grid grid-cols-3 gap-2 pt-4 mt-3 border-t text-xs text-gray-600">
                     <div>
-                      <p className="font-semibold text-[#1B5E20]">
+                      <p className="font-semibold text-primary">
                         {(funnel.conversionRates.signupToActivated * 100).toFixed(1)}%
                       </p>
                       <p>signup → activated</p>
                     </div>
                     <div>
-                      <p className="font-semibold text-[#1B5E20]">
+                      <p className="font-semibold text-primary">
                         {(funnel.conversionRates.activatedToPaid * 100).toFixed(1)}%
                       </p>
                       <p>activated → paid</p>
                     </div>
                     <div>
-                      <p className="font-semibold text-[#1B5E20]">
+                      <p className="font-semibold text-primary">
                         {(funnel.conversionRates.signupToPaid * 100).toFixed(1)}%
                       </p>
                       <p>signup → paid (overall)</p>
@@ -344,7 +344,7 @@ export default function ScorecardPage() {
             <section className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 shadow-sm">
               <div className="flex justify-between items-baseline mb-3">
                 <div>
-                  <h2 className="text-lg font-bold text-[#1B5E20]">
+                  <h2 className="text-lg font-bold text-primary">
                     Drop-off autopsy — last 30 days
                   </h2>
                   <p className="text-xs text-gray-600 mt-1">
@@ -354,7 +354,7 @@ export default function ScorecardPage() {
                 </div>
                 {dropoff && (
                   <span className="text-sm text-gray-600">
-                    Cohort size: <b className="text-[#1B5E20]">{dropoff.cohortSize}</b>
+                    Cohort size: <b className="text-primary">{dropoff.cohortSize}</b>
                   </span>
                 )}
               </div>
@@ -396,7 +396,7 @@ export default function ScorecardPage() {
                         return (
                           <div
                             key={tl.userId}
-                            className="border border-gray-200 rounded p-2 hover:border-[#1B5E20]"
+                            className="border border-gray-200 rounded p-2 hover:border-primary"
                           >
                             <button
                               onClick={() => setExpandedTimelineUserId(expanded ? null : tl.userId)}
@@ -410,7 +410,7 @@ export default function ScorecardPage() {
                                   </span>
                                 )}
                               </span>
-                              <span className="text-[#1B5E20]">
+                              <span className="text-primary">
                                 last: {latest?.eventType ?? '—'} {expanded ? '▴' : '▾'}
                               </span>
                             </button>
@@ -421,7 +421,7 @@ export default function ScorecardPage() {
                                     <span className="text-gray-400">
                                       {new Date(e.createdAt).toISOString().slice(0, 19).replace('T', ' ')}
                                     </span>{' '}
-                                    <span className="text-[#1B5E20]">{e.eventType}</span>
+                                    <span className="text-primary">{e.eventType}</span>
                                     {e.source && <span className="text-gray-400"> · {e.source}</span>}
                                   </li>
                                 ))}
@@ -442,7 +442,7 @@ export default function ScorecardPage() {
 
             {/* ── Operator notes ───────────────────────────────────── */}
             <section className="bg-white rounded-2xl border border-dashed border-gray-300 p-6">
-              <h2 className="text-lg font-bold text-[#1B5E20] mb-2">
+              <h2 className="text-lg font-bold text-primary mb-2">
                 Monday review checklist
               </h2>
               <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
@@ -475,7 +475,7 @@ function Kpi({
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
       <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="text-2xl font-bold text-[#1B5E20] mt-1">{value}</p>
+      <p className="text-2xl font-bold text-primary mt-1">{value}</p>
       {hint && <p className="text-xs text-gray-500 mt-1">{hint}</p>}
     </div>
   );
@@ -512,7 +512,7 @@ function AdminLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="bg-white border border-gray-200 rounded-xl p-4 text-center hover:border-[#1B5E20] transition text-sm font-medium text-gray-700"
+      className="bg-white border border-gray-200 rounded-xl p-4 text-center hover:border-primary transition text-sm font-medium text-gray-700"
     >
       {label}
     </Link>

@@ -108,7 +108,7 @@ export default function FunnelPage() {
   if (isAuthLoading || !isAdminKnown) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -127,7 +127,7 @@ export default function FunnelPage() {
             patterns so users don't have to hunt for it. */}
         <Link
           href="/dashboard/admin"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1B5E20] hover:underline mb-4"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mb-4"
         >
           <span aria-hidden="true">←</span>
           Back to Admin Dashboard
@@ -135,7 +135,7 @@ export default function FunnelPage() {
 
         <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-[#1B5E20]">Conversion Funnel</h1>
+            <h1 className="text-3xl font-bold text-primary">Conversion Funnel</h1>
             <p className="text-sm text-gray-600 mt-1">
               Distinct users reaching each lifecycle stage in the rolling window. Drop-off shows how many fell off between adjacent stages.
             </p>
@@ -147,8 +147,8 @@ export default function FunnelPage() {
                 onClick={() => setDays(d)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                   days === d
-                    ? 'bg-[#1B5E20] text-white'
-                    : 'bg-white text-[#1B5E20] border border-[#1B5E20] hover:bg-green-50'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-white text-primary border border-primary hover:bg-green-50'
                 }`}
               >
                 {d}d
@@ -156,7 +156,7 @@ export default function FunnelPage() {
             ))}
             <Link
               href="/dashboard/admin/growth"
-              className="ml-2 text-sm font-medium text-[#1B5E20] bg-white border border-[#1B5E20] rounded-lg px-3 py-1.5 hover:bg-green-50 transition"
+              className="ml-2 text-sm font-medium text-primary bg-white border border-primary rounded-lg px-3 py-1.5 hover:bg-green-50 transition"
             >
               Growth view →
             </Link>
@@ -186,24 +186,24 @@ export default function FunnelPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <div className="bg-white rounded-xl p-5 shadow-sm">
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Signup → Activated</p>
-                <p className="text-3xl font-bold text-[#1B5E20] mt-1">{pct(data.conversionRates.signupToActivated)}</p>
+                <p className="text-3xl font-bold text-primary mt-1">{pct(data.conversionRates.signupToActivated)}</p>
                 <p className="text-xs text-gray-500 mt-1">reached first transaction</p>
               </div>
               <div className="bg-white rounded-xl p-5 shadow-sm">
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Activated → Paid</p>
-                <p className="text-3xl font-bold text-[#1B5E20] mt-1">{pct(data.conversionRates.activatedToPaid)}</p>
+                <p className="text-3xl font-bold text-primary mt-1">{pct(data.conversionRates.activatedToPaid)}</p>
                 <p className="text-xs text-gray-500 mt-1">upgraded after first action</p>
               </div>
               <div className="bg-white rounded-xl p-5 shadow-sm">
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Signup → Paid</p>
-                <p className="text-3xl font-bold text-[#1B5E20] mt-1">{pct(data.conversionRates.signupToPaid)}</p>
+                <p className="text-3xl font-bold text-primary mt-1">{pct(data.conversionRates.signupToPaid)}</p>
                 <p className="text-xs text-gray-500 mt-1">end-to-end conversion</p>
               </div>
             </div>
 
             {/* Funnel stages with bars */}
             <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
-              <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Stages</h2>
+              <h2 className="text-lg font-semibold text-primary mb-4">Stages</h2>
               <div className="space-y-3">
                 {data.stages.map((stage, idx) => {
                   const widthPct = (stage.count / maxCount) * 100;
@@ -219,7 +219,7 @@ export default function FunnelPage() {
                             </span>
                           )}
                         </div>
-                        <span className="text-sm font-bold text-[#1B5E20]">{stage.count.toLocaleString()}</span>
+                        <span className="text-sm font-bold text-primary">{stage.count.toLocaleString()}</span>
                       </div>
                       <div className="h-6 bg-gray-100 rounded-md overflow-hidden">
                         <div
@@ -237,7 +237,7 @@ export default function FunnelPage() {
             {/* Top paywall triggers — tells you which Plus features are most
                 "wanted" by Free users; prioritize contextual upgrade prompts here. */}
             <div className="bg-white rounded-xl p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-[#1B5E20] mb-2">Top paywall triggers</h2>
+              <h2 className="text-lg font-semibold text-primary mb-2">Top paywall triggers</h2>
               <p className="text-sm text-gray-600 mb-3">
                 Endpoints that most often returned 403 Plus-required in this window. High-traffic paywalls = best places to put contextual upgrade prompts.
               </p>
@@ -256,7 +256,7 @@ export default function FunnelPage() {
                       {data.topPaywallEndpoints.map((row, i) => (
                         <tr key={i} className="border-b border-gray-100 last:border-b-0">
                           <td className="py-2 font-mono text-xs">{row.endpoint}</td>
-                          <td className="py-2 text-right font-bold text-[#1B5E20]">{row.count.toLocaleString()}</td>
+                          <td className="py-2 text-right font-bold text-primary">{row.count.toLocaleString()}</td>
                         </tr>
                       ))}
                     </tbody>

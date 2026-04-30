@@ -7,6 +7,7 @@ import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 /**
  * Family-plan household management page.
@@ -166,7 +167,7 @@ export default function FamilyPage() {
   if (!hasFamily) {
     return (
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Family plan</h1>
+        <h1 className="text-2xl font-bold text-primary mb-2">Family plan</h1>
         <p className="text-gray-600 mb-8">
           Family gives up to 6 household members shared access to all Plus features — one subscription, one household, shared budgets, estate visibility, and zakat tracking.
         </p>
@@ -180,7 +181,7 @@ export default function FamilyPage() {
               <button
                 type="button"
                 onClick={() => load()}
-                className="inline-block bg-[#1B5E20] text-white py-3 px-6 rounded-xl font-semibold hover:bg-[#2E7D32] transition"
+                className="inline-block bg-primary text-primary-foreground py-3 px-6 rounded-xl font-semibold hover:bg-primary/90 transition"
               >
                 Refresh household
               </button>
@@ -195,7 +196,7 @@ export default function FamilyPage() {
               </p>
               <Link
                 href="/dashboard/billing"
-                className="inline-block bg-[#1B5E20] text-white py-3 px-6 rounded-xl font-semibold hover:bg-[#2E7D32] transition"
+                className="inline-block bg-primary text-primary-foreground py-3 px-6 rounded-xl font-semibold hover:bg-primary/90 transition"
               >
                 Upgrade to Family — $14.99/mo
               </Link>
@@ -217,14 +218,14 @@ export default function FamilyPage() {
     const ownerMember = members.find(m => m.role === 'owner');
     return (
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Your family plan</h1>
+        <h1 className="text-2xl font-bold text-primary mb-2">Your family plan</h1>
         <p className="text-gray-600 mb-8">
           You&rsquo;re a member of {ownerMember?.fullName ?? 'this'}&apos;s Barakah Family household.
           All Plus features are covered by their subscription.
         </p>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h2 className="font-semibold text-[#1B5E20] mb-4">Household members ({members.length})</h2>
+          <h2 className="font-semibold text-primary mb-4">Household members ({members.length})</h2>
           <ul className="divide-y divide-gray-100">
             {members.map(m => (
               <li key={m.userId} className="py-3 flex items-center justify-between">
@@ -232,7 +233,7 @@ export default function FamilyPage() {
                   <p className="font-medium text-gray-900">{m.fullName ?? m.email}</p>
                   <p className="text-sm text-gray-500">{m.email}</p>
                 </div>
-                <span className={`text-xs uppercase font-semibold px-2 py-1 rounded ${m.role === 'owner' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-700'}`}>
+                <span className={`text-xs uppercase font-semibold px-2 py-1 rounded ${m.role === 'owner' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-700'}`}>
                   {m.role}
                 </span>
               </li>
@@ -253,16 +254,16 @@ export default function FamilyPage() {
   // ── Owner view ──────────────────────────────────────────────────────────
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Your family plan</h1>
       {/* Phrasing matches the seat counter below: owner + N invitees = total
           seats. Earlier copy said "Invite up to 5" while the counter showed
           "Total seats: 6" — same number, two different ways of saying it,
           easy for users to second-guess. We compute the inviteable count
           from the actual seatsTotal so the marketing copy can never drift
           from what the seat math reports. (QA flagged 2026-04-25.) */}
-      <p className="text-gray-600 mb-6">
-        Up to {seatsTotal} household members on one plan, including you. One subscription covers everyone — members get full Plus access at no extra cost.
-      </p>
+      <PageHeader
+        title="Your family plan"
+        subtitle={`Up to ${seatsTotal} household members on one plan, including you. One subscription covers everyone — members get full Plus access at no extra cost.`}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] text-white rounded-2xl p-5 text-center">
@@ -270,18 +271,18 @@ export default function FamilyPage() {
           <p className="text-green-100 text-sm mt-1">Seats used</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
-          <p className="text-3xl font-bold text-[#1B5E20]">{seatsTotal - seatsUsed}</p>
+          <p className="text-3xl font-bold text-primary">{seatsTotal - seatsUsed}</p>
           <p className="text-gray-500 text-sm mt-1">Seats left</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
-          <p className="text-3xl font-bold text-[#1B5E20]">{seatsTotal}</p>
+          <p className="text-3xl font-bold text-primary">{seatsTotal}</p>
           <p className="text-gray-500 text-sm mt-1">Total seats</p>
         </div>
       </div>
 
       {/* Invite form */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h2 className="font-semibold text-[#1B5E20] mb-2">Invite a household member</h2>
+        <h2 className="font-semibold text-primary mb-2">Invite a household member</h2>
         <p className="text-sm text-gray-500 mb-4">They&apos;ll receive a link that expires in 7 days.</p>
         <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-2">
           <input
@@ -291,12 +292,12 @@ export default function FamilyPage() {
             value={inviteEmail}
             onChange={e => setInviteEmail(e.target.value)}
             disabled={seatsUsed >= seatsTotal || sending}
-            className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none disabled:bg-gray-50"
+            className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none disabled:bg-gray-50"
           />
           <button
             type="submit"
             disabled={seatsUsed >= seatsTotal || sending || !inviteEmail.trim()}
-            className="bg-[#1B5E20] text-white rounded-xl px-6 py-3 text-sm font-semibold hover:bg-[#2E7D32] transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="bg-primary text-primary-foreground rounded-xl px-6 py-3 text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {sending ? 'Sending…' : 'Send invite'}
           </button>
@@ -308,7 +309,7 @@ export default function FamilyPage() {
 
       {/* Members list */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h2 className="font-semibold text-[#1B5E20] mb-4">Members ({members.length})</h2>
+        <h2 className="font-semibold text-primary mb-4">Members ({members.length})</h2>
         <ul className="divide-y divide-gray-100">
           {members.map(m => (
             <li key={m.userId} className="py-3 flex items-center justify-between gap-3">
@@ -318,7 +319,7 @@ export default function FamilyPage() {
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {m.role === 'owner' && (
-                  <span className="text-xs uppercase font-semibold bg-[#1B5E20] text-white px-2 py-1 rounded">Owner</span>
+                  <span className="text-xs uppercase font-semibold bg-primary text-primary-foreground px-2 py-1 rounded">Owner</span>
                 )}
                 {m.role === 'member' && (
                   <button
@@ -337,7 +338,7 @@ export default function FamilyPage() {
       {/* Pending invites */}
       {pendingInvites.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h2 className="font-semibold text-[#1B5E20] mb-4">Pending invites ({pendingInvites.length})</h2>
+          <h2 className="font-semibold text-primary mb-4">Pending invites ({pendingInvites.length})</h2>
           <ul className="divide-y divide-gray-100">
             {pendingInvites.map(inv => (
               <li key={inv.id} className="py-3 flex items-center justify-between gap-3">
@@ -360,7 +361,7 @@ export default function FamilyPage() {
       {/* Past invites */}
       {pastInvites.length > 0 && (
         <details className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <summary className="cursor-pointer font-semibold text-[#1B5E20]">Previous invites ({pastInvites.length})</summary>
+          <summary className="cursor-pointer font-semibold text-primary">Previous invites ({pastInvites.length})</summary>
           <ul className="divide-y divide-gray-100 mt-3">
             {pastInvites.map(inv => (
               <li key={inv.id} className="py-3 flex items-center justify-between">

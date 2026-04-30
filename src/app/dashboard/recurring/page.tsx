@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface RecurringTx {
   id: number;
@@ -60,7 +61,7 @@ function TxRow({ tx, fmt, toggling, onToggle }: TxRowProps) {
           disabled={toggling === tx.id}
           title={tx.recurringActive ? 'Pause recurring' : 'Resume recurring'}
           className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors focus:outline-none ${
-            tx.recurringActive ? 'bg-[#1B5E20]' : 'bg-gray-300'
+            tx.recurringActive ? 'bg-primary' : 'bg-gray-300'
           } disabled:opacity-60`}
         >
           <span className={`inline-block w-4 h-4 bg-white rounded-full shadow transform transition-transform ${
@@ -123,7 +124,7 @@ export default function RecurringPage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
 
@@ -137,25 +138,25 @@ export default function RecurringPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1B5E20]">Recurring Transactions</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your automatically-repeating transactions</p>
-        </div>
-        <button
-          onClick={handleProcessNow}
-          disabled={processing || active.length === 0}
-          className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2E7D32] disabled:opacity-50 font-medium"
-        >
-          {processing ? 'Processing...' : '▶ Process Now'}
-        </button>
-      </div>
+      <PageHeader
+        title="Recurring Transactions"
+        subtitle="Manage your automatically-repeating transactions"
+        actions={
+          <button
+            onClick={handleProcessNow}
+            disabled={processing || active.length === 0}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50 font-medium"
+          >
+            {processing ? 'Processing...' : '▶ Process Now'}
+          </button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-white rounded-xl p-4 shadow-sm text-center">
           <p className="text-gray-500 text-xs">Active</p>
-          <p className="text-2xl font-bold text-[#1B5E20]">{active.length}</p>
+          <p className="text-2xl font-bold text-primary">{active.length}</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm text-center">
           <p className="text-gray-500 text-xs">Paused</p>
@@ -179,7 +180,7 @@ export default function RecurringPage() {
       {active.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center">
-            <h2 className="font-semibold text-[#1B5E20]">Active ({active.length})</h2>
+            <h2 className="font-semibold text-primary">Active ({active.length})</h2>
             <span className="text-xs text-gray-400">Toggle to pause</span>
           </div>
           {active.map(tx => <TxRow key={tx.id} tx={tx} fmt={fmt} toggling={toggling} onToggle={handleToggle} />)}

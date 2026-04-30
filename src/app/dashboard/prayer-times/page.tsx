@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface PrayerTimings { Fajr: string; Sunrise: string; Dhuhr: string; Asr: string; Maghrib: string; Isha: string; }
 
@@ -398,10 +399,10 @@ export default function PrayerTimesPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Prayer Times</h1>
-        <p className="text-gray-500 text-sm mt-1">{dateStr} · {timeStr}</p>
-      </div>
+      <PageHeader
+        title="Prayer Times"
+        subtitle={`${dateStr} · ${timeStr}`}
+      />
 
       {/* Location search */}
       <div className="bg-white rounded-2xl p-5 mb-6 shadow-sm">
@@ -417,7 +418,7 @@ export default function PrayerTimesPage() {
               onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
               placeholder="City (e.g. London)"
               autoComplete="off"
-              className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1B5E20]"
+              className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary"
             />
             {loadingSuggestions && (
               <span className="absolute right-3 top-2.5 text-gray-400 text-xs">...</span>
@@ -430,7 +431,7 @@ export default function PrayerTimesPage() {
                   <button
                     key={i}
                     type="button"
-                    className="w-full text-left px-4 py-2.5 text-sm hover:bg-green-50 hover:text-[#1B5E20] border-b border-gray-50 last:border-b-0 transition-colors"
+                    className="w-full text-left px-4 py-2.5 text-sm hover:bg-green-50 hover:text-primary border-b border-gray-50 last:border-b-0 transition-colors"
                     onMouseDown={e => { e.preventDefault(); handleSelectSuggestion(s); }}
                   >
                     <span className="font-medium">{s.city}</span>
@@ -446,12 +447,12 @@ export default function PrayerTimesPage() {
             onChange={e => setCountry(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
             placeholder="Country code (e.g. GB)"
-            className="w-36 border rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1B5E20]"
+            className="w-36 border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary"
           />
           <button
             onClick={handleSearch}
             disabled={loading || !city || !country}
-            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50 transition"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition"
           >
             {loading ? '...' : 'Get Times'}
           </button>
@@ -477,7 +478,7 @@ export default function PrayerTimesPage() {
           <select
             value={method}
             onChange={e => { void handleMethodChange(Number(e.target.value)); }}
-            className="w-full border rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#1B5E20]"
+            className="w-full border rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-primary"
           >
             {CALC_METHODS.map(cm => <option key={cm.id} value={cm.id}>{cm.name}</option>)}
           </select>
@@ -520,18 +521,18 @@ export default function PrayerTimesPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{PRAYER_ICONS[prayer]}</span>
                     <div>
-                      <p className={`font-semibold ${isNext ? 'text-[#1B5E20]' : 'text-gray-800'} ${isSunrise ? 'text-gray-500' : ''}`}>
+                      <p className={`font-semibold ${isNext ? 'text-primary' : 'text-gray-800'} ${isSunrise ? 'text-gray-500' : ''}`}>
                         {PRAYER_LABELS[prayer]}
                       </p>
                       {isSunrise && <p className="text-xs text-gray-400">Not a salah — marks end of Fajr time</p>}
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-lg font-bold ${isNext ? 'text-[#1B5E20]' : isSunrise ? 'text-gray-400' : 'text-gray-700'}`}>
+                    <p className={`text-lg font-bold ${isNext ? 'text-primary' : isSunrise ? 'text-gray-400' : 'text-gray-700'}`}>
                       {(timings as unknown as Record<string, string>)[prayer]}
                     </p>
                     {isNext && (
-                      <p className="text-xs text-[#1B5E20] font-medium">
+                      <p className="text-xs text-primary font-medium">
                         {getCountdown((timings as unknown as Record<string, string>)[prayer], locationTimeZone)} away
                       </p>
                     )}

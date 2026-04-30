@@ -5,6 +5,7 @@ import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useCurrency } from '../../../lib/useCurrency';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -180,27 +181,30 @@ function AnalyticsPageContent() {
 
   return (
     <div role="main">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Analytics</h1>
-        <div className="flex gap-2" role="tablist" aria-label="Period selection">
-          {periods.map((p) => (
-            <button
-              key={p.value}
-              onClick={() => setPeriod(p.value)}
-              role="tab"
-              aria-selected={period === p.value}
-              aria-label={`Select ${p.label}`}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                period === p.value
-                  ? 'bg-[#1B5E20] text-white'
-                  : 'bg-white text-[#1B5E20] border border-green-200 hover:bg-green-50'
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <PageHeader
+        title="Analytics"
+        subtitle="Income vs spending trends across periods, with halal/haram breakdowns"
+        actions={
+          <div className="flex gap-2" role="tablist" aria-label="Period selection">
+            {periods.map((p) => (
+              <button
+                key={p.value}
+                onClick={() => setPeriod(p.value)}
+                role="tab"
+                aria-selected={period === p.value}
+                aria-label={`Select ${p.label}`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  period === p.value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-white text-primary border border-green-200 hover:bg-green-50'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -229,7 +233,7 @@ function AnalyticsPageContent() {
       <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-[#1B5E20]">Month-over-Month</h2>
+            <h2 className="text-lg font-semibold text-primary">Month-over-Month</h2>
             <p className="text-xs text-gray-500 mt-0.5">Last 13 months — income vs spending trends</p>
           </div>
           <div className="flex gap-2" role="tablist" aria-label="Chart type selection">
@@ -238,7 +242,7 @@ function AnalyticsPageContent() {
               role="tab"
               aria-selected={activeChart === 'mom'}
               aria-label="Bar chart view"
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'mom' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'mom' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               Bar
             </button>
@@ -247,7 +251,7 @@ function AnalyticsPageContent() {
               role="tab"
               aria-selected={activeChart === 'trend'}
               aria-label="Line chart view"
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'trend' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'trend' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               Line
             </button>
@@ -345,7 +349,7 @@ function AnalyticsPageContent() {
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         {/* Income vs Expense Bar */}
         <div className="bg-white rounded-2xl p-6 shadow-sm" role="region" aria-label="Income vs Expenses chart">
-          <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Income vs Expenses</h2>
+          <h2 className="text-lg font-semibold text-primary mb-4">Income vs Expenses</h2>
           {overviewData.every((d) => d.amount === 0) ? (
             <p className="text-gray-400 text-center py-12">No transaction data for this period</p>
           ) : (
@@ -373,7 +377,7 @@ function AnalyticsPageContent() {
 
         {/* Period Comparison Trend */}
         <div className="bg-white rounded-2xl p-6 shadow-sm" role="region" aria-label="Period Comparison chart">
-          <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Period Comparison</h2>
+          <h2 className="text-lg font-semibold text-primary mb-4">Period Comparison</h2>
           {[allPeriods.week, allPeriods.month, allPeriods.year].every(p => !p || (p.totalIncome === 0 && p.totalExpenses === 0)) ? (
             <p className="text-gray-400 text-center py-12">No transaction data available</p>
           ) : (
@@ -403,7 +407,7 @@ function AnalyticsPageContent() {
       {/* Year-over-Year Comparison */}
       {yoyData.length >= 2 && (
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="text-lg font-semibold text-[#1B5E20] mb-1">Year-over-Year</h2>
+          <h2 className="text-lg font-semibold text-primary mb-1">Year-over-Year</h2>
           <p className="text-xs text-gray-500 mb-4">Annual income vs spending — based on imported data</p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -424,7 +428,7 @@ function AnalyticsPageContent() {
                   return (
                     <tr key={yr.year} className={`border-b border-gray-100 ${isCurrentYear ? 'bg-green-50' : ''}`}>
                       <td className="py-3 px-3 font-semibold text-gray-800">
-                        {yr.year} {isCurrentYear && <span className="text-xs text-[#1B5E20] font-normal ml-1">(YTD)</span>}
+                        {yr.year} {isCurrentYear && <span className="text-xs text-primary font-normal ml-1">(YTD)</span>}
                       </td>
                       <td className="py-3 px-3 text-right text-green-700 font-medium">{fmt(yr.income)}</td>
                       <td className="py-3 px-3 text-right text-red-600 font-medium">{fmt(yr.expenses)}</td>
@@ -453,7 +457,7 @@ function AnalyticsPageContent() {
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         {/* Expense Breakdown */}
         <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Expense Breakdown</h2>
+          <h2 className="text-lg font-semibold text-primary mb-4">Expense Breakdown</h2>
           {expenseData.length === 0 ? (
             <p className="text-gray-400 text-center py-12">No expenses in this period</p>
           ) : (
@@ -499,7 +503,7 @@ function AnalyticsPageContent() {
 
         {/* Income Breakdown */}
         <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Income Breakdown</h2>
+          <h2 className="text-lg font-semibold text-primary mb-4">Income Breakdown</h2>
           {incomeData.length === 0 ? (
             <p className="text-gray-400 text-center py-12">No income in this period</p>
           ) : (
@@ -547,12 +551,12 @@ function AnalyticsPageContent() {
       {/* ── Halal Spending Analysis ────────────────────────────────────────── */}
       {halalAnalysis && halalAnalysis.totalTransactions > 0 && (
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Halal Spending Analysis</h2>
+          <h2 className="text-lg font-semibold text-primary mb-4">Halal Spending Analysis</h2>
 
           {/* Ratio Cards */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="bg-green-50 rounded-xl p-4 text-center">
-              <p className="text-3xl font-bold text-[#1B5E20]">{halalAnalysis.halalRatio}%</p>
+              <p className="text-3xl font-bold text-primary">{halalAnalysis.halalRatio}%</p>
               <p className="text-xs text-gray-600 mt-1">Halal Ratio</p>
             </div>
             <div className="bg-green-50 rounded-xl p-4 text-center">
@@ -575,7 +579,7 @@ function AnalyticsPageContent() {
               <span>Halal</span><span>Needs Review</span>
             </div>
             <div className="w-full h-4 bg-amber-100 rounded-full overflow-hidden">
-              <div className="h-full bg-[#1B5E20] rounded-full transition-all" style={{ width: `${halalAnalysis.halalRatio}%` }} />
+              <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${halalAnalysis.halalRatio}%` }} />
             </div>
           </div>
 
@@ -640,7 +644,7 @@ function AnalyticsPageContent() {
 
       {/* Top Categories Table */}
       <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Top Spending Categories</h2>
+        <h2 className="text-lg font-semibold text-primary mb-4">Top Spending Categories</h2>
         {expenseData.length === 0 ? (
           <p className="text-gray-400 text-center py-8">No expense data</p>
         ) : (

@@ -6,6 +6,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { validateStripeUrl } from '../../../lib/validateUrl';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface SadaqahItem { id: number; amount: number; recipientName: string; category: string; date: number; description: string; recurring: boolean; anonymous: boolean; }
 interface Stats { totalDonated: number; donationCount: number; thisMonthTotal: number; topCategory: string; }
@@ -135,16 +136,19 @@ function SadaqahContent() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
 
   const effectiveAmount = donateAmount ?? (donateCustom ? parseFloat(donateCustom) : 0);
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Sadaqah Tracker</h1>
-        <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Give Sadaqah</button>
-      </div>
+      <PageHeader
+        title="Sadaqah Tracker"
+        subtitle="Voluntary charity log with Ramadan and tax categories"
+        actions={
+          <button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Give Sadaqah</button>
+        }
+      />
 
       <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-sm text-green-900 mb-6 space-y-3">
         <h3 className="font-bold text-base">📖 Islamic Guidance on Sadaqah</h3>
@@ -175,7 +179,7 @@ function SadaqahContent() {
         <div className="flex items-center gap-3 mb-4">
           <span className="text-3xl">🌿</span>
           <div>
-            <h2 className="text-lg font-bold text-[#1B5E20]">Give Sadaqah via Barakah</h2>
+            <h2 className="text-lg font-bold text-primary">Give Sadaqah via Barakah</h2>
             <p className="text-sm text-gray-500">We collect your donation and distribute it to verified causes on your behalf. Secure payment via Stripe.</p>
           </div>
         </div>
@@ -200,8 +204,8 @@ function SadaqahContent() {
                 onClick={() => { setDonateAmount(amt); setDonateCustom(''); }}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold border transition ${
                   donateAmount === amt
-                    ? 'bg-[#1B5E20] text-white border-[#1B5E20]'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-[#1B5E20]'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-primary'
                 }`}
               >
                 ${amt}
@@ -211,8 +215,8 @@ function SadaqahContent() {
               onClick={() => setDonateAmount(null)}
               className={`px-4 py-2 rounded-lg text-sm font-semibold border transition ${
                 donateAmount === null
-                  ? 'bg-[#1B5E20] text-white border-[#1B5E20]'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-[#1B5E20]'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-primary'
               }`}
             >
               Custom
@@ -237,7 +241,7 @@ function SadaqahContent() {
         <button
           onClick={handleDonate}
           disabled={donating || effectiveAmount <= 0}
-          className="w-full bg-[#1B5E20] hover:bg-[#2E7D32] text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-50"
+          className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-50"
         >
           {donating ? 'Redirecting to payment…' : `Donate ${effectiveAmount > 0 ? `$${effectiveAmount}` : ''} via Barakah`}
         </button>
@@ -255,14 +259,14 @@ function SadaqahContent() {
             {items.slice(0, displayCount).map(item => (
               <div key={item.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
                 <div>
-                  <p className="font-semibold text-[#1B5E20]">{item.recipientName || item.category}</p>
+                  <p className="font-semibold text-primary">{item.recipientName || item.category}</p>
                   <p className="text-sm text-gray-500 capitalize">{item.category} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString()}
                     {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">Recurring</span>}
                     {item.anonymous && <span className="ml-1 bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">Anonymous</span>}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <p className="text-lg font-bold text-[#1B5E20]">{fmt(item.amount)}</p>
+                  <p className="text-lg font-bold text-primary">{fmt(item.amount)}</p>
                   <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
                 </div>
               </div>
@@ -273,7 +277,7 @@ function SadaqahContent() {
               <button
                 type="button"
                 onClick={() => setDisplayCount(displayCount + 10)}
-                className="bg-[#1B5E20] text-white px-6 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
+                className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm"
               >
                 Show More
               </button>
@@ -288,7 +292,7 @@ function SadaqahContent() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Record Sadaqah</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">Record Sadaqah</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
                 <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="50.00" /></div>
@@ -307,7 +311,7 @@ function SadaqahContent() {
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowForm(false)} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Record'}</button>
+              <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Record'}</button>
             </div>
           </div>
         </div>
@@ -337,7 +341,7 @@ function SadaqahContent() {
 
 export default function SadaqahPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>}>
+    <Suspense fallback={<div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>}>
       <SadaqahContent />
     </Suspense>
   );

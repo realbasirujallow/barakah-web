@@ -53,7 +53,7 @@ export function FeedbackWidget() {
         <button
           onClick={open}
           title="Send feedback"
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-[#1B5E20] text-white text-sm font-semibold px-4 py-2.5 rounded-full shadow-lg hover:bg-[#2E7D32] transition"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground text-sm font-semibold px-4 py-2.5 rounded-full shadow-lg hover:bg-primary/90 transition"
         >
           <span>💬</span>
           <span>Feedback</span>
@@ -64,7 +64,7 @@ export function FeedbackWidget() {
       {status !== 'idle' && (
         <div className="fixed bottom-6 right-6 z-50 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
           {/* Header */}
-          <div className="bg-[#1B5E20] px-4 py-3 flex items-center justify-between">
+          <div className="bg-primary px-4 py-3 flex items-center justify-between">
             <span className="text-white font-semibold text-sm">Send Feedback</span>
             <button
               onClick={close}
@@ -84,7 +84,7 @@ export function FeedbackWidget() {
                 <p className="text-gray-500 text-xs mt-1">Your feedback helps us improve Barakah for everyone.</p>
                 <button
                   onClick={close}
-                  className="mt-4 text-xs text-[#1B5E20] underline hover:no-underline"
+                  className="mt-4 text-xs text-primary underline hover:no-underline"
                 >
                   Close
                 </button>
@@ -100,7 +100,7 @@ export function FeedbackWidget() {
                     required
                     value={form.subject}
                     onChange={e => setForm({ ...form, subject: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30 bg-white"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white"
                   >
                     <option value="">Select…</option>
                     {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
@@ -117,7 +117,7 @@ export function FeedbackWidget() {
                     value={form.message}
                     onChange={e => setForm({ ...form, message: e.target.value })}
                     maxLength={2000}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30 resize-none"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
                   />
                 </div>
 
@@ -128,7 +128,7 @@ export function FeedbackWidget() {
                 <button
                   type="submit"
                   disabled={status === 'sending'}
-                  className="w-full bg-[#1B5E20] text-white py-2 rounded-lg text-sm font-semibold hover:bg-[#2E7D32] transition disabled:opacity-60"
+                  className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-60"
                 >
                   {status === 'sending' ? 'Sending…' : 'Submit Feedback'}
                 </button>

@@ -66,15 +66,19 @@
   --chart-4: oklch(0.55 0.18 25);
   --chart-5: oklch(0.62 0.15 290);
 
-  /* Sidebar (used by shadcn's <Sidebar> primitive in Phase 2). */
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  /* Sidebar (Phase 4.3 / 2026-04-27, contrast bump 4.4).
+     Slightly more separation from the main content (--background = pure
+     white) by deepening the sidebar surface to oklch 0.965. Still very
+     light — Monarch's sidebar L is ~0.97 — but now visually distinct
+     from the page area without dominating the eye. */
+  --sidebar: oklch(0.965 0.008 175);
+  --sidebar-foreground: oklch(0.205 0 0);
   --sidebar-primary: oklch(0.43 0.13 165);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0.005 165);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.93 0.012 175);
   --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-border: oklch(0.90 0.005 175);
+  --sidebar-ring: oklch(0.43 0.13 165);
 
   /* ── Legacy Barakah brand tokens (do not remove) ───────────────────────
      Marketing pages and several dashboard widgets still reference these
@@ -237,7 +241,72 @@ nav a, nav button { min-height: 2.5rem; }
   }
 }
 
-/* ── Dark mode legacy overrides (kept for marketing/older dashboard code) ── */
+/* Phase 6.7 (Apr 27 2026) — motion polish.
+   Subtle, GPU-friendly defaults that lift the perceived quality without
+   any per-component changes.
+
+   1. Smooth bg/border/colour transitions on every interactive element
+      (links, buttons, [role=button]) at 150ms — Linear / Vercel use
+      this as their global polish baseline. Honors prefers-reduced-
+      motion to keep accessibility commitments.
+
+   2. CSS containment on the main scroll area — paints the dashboard's
+      large card grid lazily on scroll instead of repainting the whole
+      tree, which keeps frame-rate tight on long pages.
+
+   3. Stagger the fade-up animation for cards-in-a-grid so a re-render
+      doesn't pop the whole row at once. Used by .stagger-fade > *. */
+@media (prefers-reduced-motion: no-preference) {
+  a, button, [role="button"], summary {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+main { contain: layout paint; }
+
+@keyframes stagger-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .stagger-fade > * {
+    animation: stagger-fade-up 280ms ease-out both;
+  }
+  .stagger-fade > *:nth-child(1)  { animation-delay: 0ms; }
+  .stagger-fade > *:nth-child(2)  { animation-delay: 30ms; }
+  .stagger-fade > *:nth-child(3)  { animation-delay: 60ms; }
+  .stagger-fade > *:nth-child(4)  { animation-delay: 90ms; }
+  .stagger-fade > *:nth-child(5)  { animation-delay: 120ms; }
+  .stagger-fade > *:nth-child(6)  { animation-delay: 150ms; }
+  .stagger-fade > *:nth-child(7)  { animation-delay: 180ms; }
+  .stagger-fade > *:nth-child(8)  { animation-delay: 210ms; }
+  .stagger-fade > *:nth-child(9)  { animation-delay: 240ms; }
+  .stagger-fade > *:nth-child(10) { animation-delay: 270ms; }
+}
+
+/* ── Dark mode legacy overrides ────────────────────────────────────────────
+   Phase 8 cleanup (Apr 27 2026): the bulk of dashboard pages now use
+   semantic tokens (bg-card, text-foreground, text-muted-foreground,
+   border-border) which auto-flip in dark mode via the OKLCH variables
+   above. The overrides below are kept ONLY for the patterns that
+   semantic tokens don't already cover:
+
+   • Marketing pages still using `bg-white` / `bg-[#FFF8E1]` literally
+     (homepage, pricing, learn, compare). Without these the marketing
+     pages would render a white card on a dark page.
+   • Tailwind `gray-*` legacy classes that pre-date the semantic-token
+     migration. ~30 dashboard pages still reference them; sweeping
+     them all is a separate phase.
+   • Form input chrome where shadcn primitives weren't yet adopted.
+
+   Removed: every `.dark .text-[#1B5E20]`, `.bg-[#1B5E20]`,
+   `border-[#1B5E20]`, `ring-[#1B5E20]`, and `hover:bg-[#2E7D32]`
+   override. Phase 3.4 + 6.6 + 7.x swept all 761 inline references to
+   `text-primary` / `bg-primary` / `border-primary` — the dark-mode
+   token already lifts `--primary` from oklch(0.43) to oklch(0.65) so
+   no manual override is needed. */
 .dark .bg-white { background-color: var(--card-bg) !important; }
 .dark .bg-\[#FFF8E1\] { background-color: oklch(0.145 0 0) !important; }
 .dark .text-gray-900 { color: var(--text-primary) !important; }
@@ -256,7 +325,7 @@ nav a, nav button { min-height: 2.5rem; }
   border-color: var(--border-color) !important;
 }
 
-/* Additional dark overrides for dashboard patterns */
+/* Additional dark overrides for the few non-token patterns left. */
 .dark .bg-white\/50, .dark .bg-white\/80 { background-color: rgba(26, 46, 29, 0.8) !important; }
 .dark .bg-\[\#FFF3CD\] { background-color: #2a3a1e !important; }
 .dark .bg-green-50 { background-color: #152018 !important; }
@@ -268,16 +337,9 @@ nav a, nav button { min-height: 2.5rem; }
 .dark .bg-purple-50 { background-color: #201a2a !important; }
 .dark .shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,0.3) !important; }
 .dark .shadow-md { box-shadow: 0 4px 6px rgba(0,0,0,0.4) !important; }
-.dark .text-\[\#1B5E20\] { color: #4ade80 !important; }
-.dark .border-\[\#1B5E20\] { border-color: #4ade80 !important; }
-.dark .bg-\[\#1B5E20\] { background-color: #166534 !important; }
-.dark .hover\:bg-\[\#2E7D32\]:hover { background-color: #15803d !important; }
 .dark .hover\:bg-green-50:hover { background-color: #152018 !important; }
 .dark .hover\:bg-gray-50:hover { background-color: #152018 !important; }
 .dark .hover\:bg-gray-100:hover { background-color: #1a2e1d !important; }
-.dark .ring-\[\#1B5E20\] { --tw-ring-color: #4ade80 !important; }
-.dark .focus\:border-\[\#1B5E20\]:focus { border-color: #4ade80 !important; }
-.dark .focus\:ring-\[\#1B5E20\]:focus { --tw-ring-color: #4ade80 !important; }
 .dark .divide-gray-100 > :not(:last-child) { border-color: #1f3024 !important; }
 .dark .divide-gray-200 > :not(:last-child) { border-color: var(--border-color) !important; }
 .dark table thead tr { background-color: #152018 !important; }

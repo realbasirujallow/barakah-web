@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 
 interface BillItem {
@@ -108,7 +109,7 @@ function BillRow({ b, now, deletingId, onPaid, onEdit, onDelete }: BillRowProps)
             ✓ Paid
           </button>
         )}
-        {!b.readOnly && <button type="button" onClick={() => onEdit(b)} className="text-gray-400 hover:text-[#1B5E20] text-sm px-1">✏️</button>}
+        {!b.readOnly && <button type="button" onClick={() => onEdit(b)} className="text-gray-400 hover:text-primary text-sm px-1">✏️</button>}
         {!b.readOnly && <button type="button" onClick={() => onDelete(b.id)} disabled={deletingId === b.id} className="text-gray-400 hover:text-red-600 text-sm px-1 disabled:opacity-50" title={deletingId === b.id ? 'Deleting...' : 'Delete'}>{deletingId === b.id ? '⏳' : '🗑️'}</button>}
       </div>
     </div>
@@ -268,7 +269,7 @@ export default function BillsPage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
 
@@ -304,16 +305,19 @@ export default function BillsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Bills & Reminders</h1>
-        <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Bill</button>
-      </div>
+      <PageHeader
+        title="Bills & Reminders"
+        subtitle="Upcoming dues with overdue alerts and recurring schedules"
+        actions={
+          <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Bill</button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <div className="bg-white rounded-xl p-4">
           <p className="text-gray-500 text-xs">Total Bills</p>
-          <p className="text-2xl font-bold text-[#1B5E20]">{bills.length}</p>
+          <p className="text-2xl font-bold text-primary">{bills.length}</p>
         </div>
         <div className="bg-white rounded-xl p-4">
           <p className="text-gray-500 text-xs">Overdue</p>
@@ -386,14 +390,14 @@ export default function BillsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">{editBill ? 'Edit Bill' : 'Add Bill'}</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editBill ? 'Edit Bill' : 'Add Bill'}</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                 <input
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
                   placeholder="e.g. Electric Bill"
                 />
               </div>
@@ -402,7 +406,7 @@ export default function BillsPage() {
                 <select
                   value={form.category}
                   onChange={e => setForm({ ...form, category: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
                 >
                   {CATEGORIES.map(c => (
                     <option key={c.value} value={c.value}>{c.icon} {c.label}</option>
@@ -415,7 +419,7 @@ export default function BillsPage() {
                   type="number" step="0.01" min="0"
                   value={form.amount}
                   onChange={e => setForm({ ...form, amount: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
                   placeholder="0.00"
                 />
               </div>
@@ -425,7 +429,7 @@ export default function BillsPage() {
                   <select
                     value={form.frequency}
                     onChange={e => setForm({ ...form, frequency: e.target.value })}
-                    className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
                   >
                     {FREQS.map(f => <option key={f} value={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</option>)}
                   </select>
@@ -436,7 +440,7 @@ export default function BillsPage() {
                     type="number" min="1" max="31"
                     value={form.dueDay}
                     onChange={e => setForm({ ...form, dueDay: e.target.value })}
-                    className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
@@ -454,7 +458,7 @@ export default function BillsPage() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving || !form.name || !form.amount}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
                 {saving ? 'Saving...' : (editBill ? 'Save Changes' : 'Add Bill')}
               </button>

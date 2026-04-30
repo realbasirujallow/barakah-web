@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusTrap } from '@/lib/useFocusTrap';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useAuth } from '../../../context/AuthContext';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { saveCurrencyPreference } from '../../../lib/useCurrency';
@@ -310,13 +311,16 @@ export default function ProfilePage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-6">Profile & Settings</h1>
+      <PageHeader
+        title="Profile & Settings"
+        subtitle="Account info, locale, currency, and security"
+      />
 
       {/* Account summary card */}
       <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
@@ -334,7 +338,7 @@ export default function ProfilePage() {
 
       {/* Subscription Plan */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-        <h2 className="text-lg font-bold text-[#1B5E20] mb-2">Subscription Plan</h2>
+        <h2 className="text-lg font-bold text-primary mb-2">Subscription Plan</h2>
         {(() => {
           const planKey = profile?.plan ?? 'free';
           const info = PLAN_INFO[planKey] ?? PLAN_INFO.free;
@@ -351,15 +355,15 @@ export default function ProfilePage() {
                 <>
                   {/* Billing toggle */}
                   <div className="flex items-center gap-3 mb-4">
-                    <span className={`text-xs font-medium ${billingPeriod === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
+                    <span className={`text-xs font-medium ${billingPeriod === 'monthly' ? 'text-primary' : 'text-gray-400'}`}>Monthly</span>
                     <button
                       type="button"
                       onClick={() => setBillingPeriod(b => b === 'monthly' ? 'yearly' : 'monthly')}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${billingPeriod === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${billingPeriod === 'yearly' ? 'bg-primary' : 'bg-gray-300'}`}
                     >
                       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${billingPeriod === 'yearly' ? 'translate-x-5' : ''}`} />
                     </button>
-                    <span className={`text-xs font-medium ${billingPeriod === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
+                    <span className={`text-xs font-medium ${billingPeriod === 'yearly' ? 'text-primary' : 'text-gray-400'}`}>Yearly</span>
                     {billingPeriod === 'yearly' && (
                       <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save up to 34%</span>
                     )}
@@ -368,9 +372,9 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Plus Plan */}
                     {planKey === 'free' && (
-                      <div className="border-2 border-[#1B5E20] rounded-xl p-5 relative">
-                        <span className="absolute -top-3 left-4 bg-[#1B5E20] text-white text-xs font-bold px-2 py-0.5 rounded-full">Most Popular</span>
-                        <h3 className="text-lg font-bold text-[#1B5E20]">Barakah Plus</h3>
+                      <div className="border-2 border-primary rounded-xl p-5 relative">
+                        <span className="absolute -top-3 left-4 bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">Most Popular</span>
+                        <h3 className="text-lg font-bold text-primary">Barakah Plus</h3>
                         <p className="text-2xl font-extrabold text-gray-900 mt-1">
                           {billingPeriod === 'yearly' ? PRICING.plus.yearly : PRICING.plus.monthly}
                           <span className="text-sm font-normal text-gray-500">{billingPeriod === 'yearly' ? '/year' : '/month'}</span>
@@ -394,7 +398,7 @@ export default function ProfilePage() {
                         <button
                           onClick={() => handleUpgrade('plus')}
                           disabled={upgradingPlan !== null}
-                          className="mt-4 w-full bg-[#1B5E20] text-white py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition disabled:opacity-60"
+                          className="mt-4 w-full bg-primary text-primary-foreground py-2 rounded-lg font-semibold hover:bg-primary/90 transition disabled:opacity-60"
                           type="button"
                         >
                           {upgradingPlan === 'plus' ? 'Redirecting...' : 'Upgrade to Plus'}
@@ -444,7 +448,7 @@ export default function ProfilePage() {
 
       {/* Personal Info */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-        <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Personal Information</h2>
+        <h2 className="text-lg font-bold text-primary mb-4">Personal Information</h2>
         <div className="space-y-4">
           <div>
             <label htmlFor="profile-full-name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
@@ -482,7 +486,7 @@ export default function ProfilePage() {
             type="button"
             onClick={handleSaveName}
             disabled={savingName || !nameForm.fullName || !nameForm.email}
-            className="bg-[#1B5E20] text-white px-5 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium"
+            className="bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
           >
             {savingName ? 'Saving...' : 'Save Changes'}
           </button>
@@ -491,7 +495,7 @@ export default function ProfilePage() {
 
       {/* Location */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-        <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Location</h2>
+        <h2 className="text-lg font-bold text-primary mb-4">Location</h2>
         {/* Only show the prompt when no country has been set yet. Showing
             "Moved recently? Update your location to ensure accurate tax
             calculations for Zakat." after the user has already saved a
@@ -603,7 +607,7 @@ export default function ProfilePage() {
             type="button"
             onClick={handleSaveLocation}
             disabled={savingLocation || !locationForm.country}
-            className="bg-[#1B5E20] text-white px-5 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium"
+            className="bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
           >
             {savingLocation ? 'Saving...' : 'Update Location'}
           </button>
@@ -619,7 +623,7 @@ export default function ProfilePage() {
 
       {/* Change Password */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-        <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Change Password</h2>
+        <h2 className="text-lg font-bold text-primary mb-4">Change Password</h2>
         <div className="space-y-4">
           <div>
             <label htmlFor="profile-current-password" className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
@@ -693,7 +697,7 @@ export default function ProfilePage() {
             type="button"
             onClick={handleChangePassword}
             disabled={savingPw || !pwForm.currentPassword || !pwForm.newPassword || !pwForm.confirmPassword}
-            className="bg-[#1B5E20] text-white px-5 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium"
+            className="bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
           >
             {savingPw ? 'Updating...' : 'Update Password'}
           </button>
@@ -702,7 +706,7 @@ export default function ProfilePage() {
 
       {/* Currency Preference - FEATURE 4 */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-        <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Currency</h2>
+        <h2 className="text-lg font-bold text-primary mb-4">Currency</h2>
         <p className="text-sm text-gray-500 mb-3">Choose your preferred currency for displaying amounts across Barakah.</p>
         <div className="flex items-center gap-3">
           <select
@@ -742,7 +746,7 @@ export default function ProfilePage() {
               setSavingCurrency(false);
             }}
             disabled={savingCurrency || selectedCurrency === (profile?.preferredCurrency || 'USD')}
-            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
           >
             {savingCurrency ? 'Saving...' : 'Save'}
           </button>
@@ -751,7 +755,7 @@ export default function ProfilePage() {
 
       {/* Account Info (read-only) */}
       <div className="bg-white rounded-2xl shadow-sm p-6">
-        <h2 className="text-lg font-bold text-[#1B5E20] mb-4">Account Details</h2>
+        <h2 className="text-lg font-bold text-primary mb-4">Account Details</h2>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between py-2 border-b border-gray-50">
             <span className="text-gray-500">User ID</span>
@@ -775,7 +779,7 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={toggleDarkMode}
-            className={`relative w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-[#1B5E20]' : 'bg-gray-200'}`}
+            className={`relative w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-primary' : 'bg-gray-200'}`}
           >
             <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0'}`} />
           </button>
@@ -809,7 +813,7 @@ export default function ProfilePage() {
                     ...prev,
                     [key]: e.target.checked,
                   } : prev)}
-                  className="h-4 w-4 rounded border-gray-300 text-[#1B5E20] focus:ring-[#1B5E20]"
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
               </label>
             ))}
@@ -821,7 +825,7 @@ export default function ProfilePage() {
                 type="text"
                 value={preferences.timeZone}
                 onChange={e => setPreferences(prev => prev ? { ...prev, timeZone: e.target.value } : prev)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 placeholder="America/Indiana/Indianapolis"
               />
             </label>
@@ -830,7 +834,7 @@ export default function ProfilePage() {
               <select
                 value={preferences.quietHoursStart}
                 onChange={e => setPreferences(prev => prev ? { ...prev, quietHoursStart: Number(e.target.value) } : prev)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               >
                 {Array.from({ length: 24 }, (_, hour) => (
                   <option key={hour} value={hour}>{hour.toString().padStart(2, '0')}:00</option>
@@ -842,7 +846,7 @@ export default function ProfilePage() {
               <select
                 value={preferences.quietHoursEnd}
                 onChange={e => setPreferences(prev => prev ? { ...prev, quietHoursEnd: Number(e.target.value) } : prev)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20]"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               >
                 {Array.from({ length: 24 }, (_, hour) => (
                   <option key={hour} value={hour}>{hour.toString().padStart(2, '0')}:00</option>
@@ -855,7 +859,7 @@ export default function ProfilePage() {
               type="button"
               onClick={handleSavePreferences}
               disabled={savingPreferences}
-              className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-60"
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
             >
               {savingPreferences ? 'Saving...' : 'Save Preferences'}
             </button>
@@ -883,7 +887,7 @@ export default function ProfilePage() {
               URL.revokeObjectURL(url);
             } catch { toast('Failed to export data. Please try again.', 'error'); } finally { setDownloadingData(false); }
           }}
-          className="text-[#1B5E20] border border-[#1B5E20] px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition disabled:opacity-50"
+          className="text-primary border border-primary px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition disabled:opacity-50"
         >
           {downloadingData ? 'Downloading...' : '📥 Download My Data'}
         </button>
@@ -947,7 +951,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => { setShowRetentionModal(false); setShowDeleteConfirm(false); setDeleteMsg(null); }}
-                    className="flex-1 bg-[#1B5E20] text-white py-2.5 rounded-lg font-semibold hover:bg-green-800 transition text-sm"
+                    className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-lg font-semibold hover:bg-green-800 transition text-sm"
                   >
                     I&apos;ll Stay
                   </button>
