@@ -66,15 +66,18 @@
   --chart-4: oklch(0.55 0.18 25);
   --chart-5: oklch(0.62 0.15 290);
 
-  /* Sidebar (used by shadcn's <Sidebar> primitive in Phase 2). */
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  /* Sidebar (Phase 4.3 / 2026-04-27). Light mode is a near-white surface
+     with a subtle teal tint so the sidebar reads as brand-aligned without
+     dominating the eye like the old saturated #1B5E20. Active item uses
+     --primary (the new softer teal). */
+  --sidebar: oklch(0.99 0.005 165);
+  --sidebar-foreground: oklch(0.205 0 0);
   --sidebar-primary: oklch(0.43 0.13 165);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0.005 165);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.96 0.01 165);
   --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-border: oklch(0.92 0.005 165);
+  --sidebar-ring: oklch(0.43 0.13 165);
 
   /* ── Legacy Barakah brand tokens (do not remove) ───────────────────────
      Marketing pages and several dashboard widgets still reference these
