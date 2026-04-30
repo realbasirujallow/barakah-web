@@ -95,6 +95,25 @@ export default function DashboardPage() {
   const [widgets, setWidgets] = useState<DashboardWidgets | null>(null);
   const [safeToSpend, setSafeToSpend] = useState<{safeToSpend: number; dailySafeToSpend?: number; totalIncome: number; totalSpent: number; totalBillsDue: number; totalBudgeted: number; daysRemainingInMonth: number} | null>(null);
   const [insights, setInsights] = useState<{type: string; severity: string; title: string; body: string}[]>([]);
+  // Phase 12.1: count of transactions awaiting review — feeds DailyRitual.
+  const [reviewCount, setReviewCount] = useState(0);
+  // Phase 12.3 (2026-04-30): collapse the dense widget grid below
+  // OVERVIEW behind a single disclosure. Default-closed for users
+  // already past onboarding (the new top-of-page = Daily Ritual +
+  // OVERVIEW + KPI row is the calm "first answer", and the widget
+  // grid expands when the user wants more detail). Persisted so
+  // returning power users keep their open state.
+  const [moreDetailsOpen, setMoreDetailsOpen] = useState(false);
+  useEffect(() => {
+    setMoreDetailsOpen(safeGetItem('barakah_dashboard_details_open') === 'true');
+  }, []);
+  const toggleMoreDetails = () => {
+    setMoreDetailsOpen(prev => {
+      const next = !prev;
+      safeSetItem('barakah_dashboard_details_open', String(next));
+      return next;
+    });
+  };
   const { toast } = useToast();
   const { user } = useAuth();
   const { show: showReferralPrompt, dismiss: dismissReferralPrompt } = useReferralPrompt();
@@ -141,7 +160,7 @@ export default function DashboardPage() {
     let cancelled = false;
 
     const loadDashboard = async () => {
-      const [assetResult, hijriResult, hawlResult, portfolioResult, portfolioHistoryResult, widgetResult, safeToSpendResult, insightsResult] = await Promise.allSettled([
+      const [assetResult, hijriResult, hawlResult, portfolioResult, portfolioHistoryResult, widgetResult, safeToSpendResult, insightsResult, reviewQueueResult] = await Promise.allSettled([
         api.getAssetTotal(),
         api.getIslamicCalendarToday(),
         api.getHawlDue(30),
@@ -150,6 +169,11 @@ export default function DashboardPage() {
         api.getDashboardWidgets(),
         api.getSafeToSpend(),
         api.getDashboardInsights(),
+        // Phase 12.1 (2026-04-30): cheapest possible review-count fetch
+        // (size=1 → totalElements). Powers the "X transactions need
+        // review" rung in <DailyRitual>. Same pattern the transactions
+        // page already uses for its tab badge.
+        api.getReviewQueue(0, 1),
       ]);
 
       if (cancelled) return;
@@ -191,6 +215,10 @@ export default function DashboardPage() {
       }
       if (insightsResult.status === 'fulfilled' && Array.isArray(insightsResult.value?.insights)) {
         setInsights(insightsResult.value.insights);
+      }
+      if (reviewQueueResult.status === 'fulfilled') {
+        const totalElements = (reviewQueueResult.value as { totalElements?: number })?.totalElements ?? 0;
+        setReviewCount(totalElements);
       }
       setLoading(false);
     };
@@ -268,7 +296,7 @@ export default function DashboardPage() {
     bills: widgets?.upcomingBills
       ? { overdueCount: widgets.upcomingBills.overdueCount, upcomingCount: widgets.upcomingBills.upcomingCount }
       : null,
-    reviewCount: 0,
+    reviewCount,
     insights,
     fmt,
   });
@@ -652,8 +680,38 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ══════════════ TWO-COLUMN LAYOUT ══════════════ */}
-      <div className="grid lg:grid-cols-[3fr_2fr] gap-6 mb-6">
+      {/* Phase 12.3 — More-details disclosure.
+          Above-fold (Daily Ritual + OVERVIEW + KPI summary + Quick
+          Actions) answers the audit's three daily questions:
+            1. What needs attention?  (DailyRitual)
+            2. How am I doing?        (KPIs + Overview)
+            3. What now?              (Quick Actions)
+          The 12-widget grid below contains valuable but secondary
+          context — spending by category, budget burn, recent transactions,
+          upcoming bills, net-worth chart. We keep it intact and one
+          click away rather than removing functionality, but no longer
+          render it on first paint. */}
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          More details
+        </h2>
+        <button
+          type="button"
+          onClick={toggleMoreDetails}
+          aria-expanded={moreDetailsOpen}
+          aria-controls="dashboard-more-details"
+          className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+        >
+          {moreDetailsOpen ? 'Hide' : 'Show'}
+          <span aria-hidden="true" className={`transition-transform inline-block ${moreDetailsOpen ? 'rotate-180' : ''}`}>▾</span>
+        </button>
+      </div>
+
+      {/* ══════════════ TWO-COLUMN LAYOUT (collapsible) ══════════════ */}
+      <div
+        id="dashboard-more-details"
+        hidden={!moreDetailsOpen}
+        className="grid lg:grid-cols-[3fr_2fr] gap-6 mb-6">
 
       {/* ── LEFT COLUMN ─────────────────────────────────────────────────────── */}
       <div className="space-y-5">
