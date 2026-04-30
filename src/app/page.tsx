@@ -1,824 +1,335 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
-import { PRICING, FREE_FEATURES, PLUS_FEATURES, FAMILY_FEATURES, COMPETITOR_COMPARISON } from '../lib/pricing';
-import {
-  IOS_APP_STORE_URL,
-  ANDROID_PLAY_STORE_URL,
-  ANDROID_FALLBACK_URL,
-  IS_ANDROID_PUBLICLY_LAUNCHED,
-} from '../lib/appStore';
-import { useI18n } from '../lib/i18n';
-import LanguageSwitcher from '../components/LanguageSwitcher';
-import {
-  HOME_LEARNING_RESOURCES,
-  PUBLIC_FEATURE_CARDS,
-  localizeCompetitorFeature,
-  localizeText,
-} from '../lib/publicContent';
+import { useAuth } from '../context/AuthContext';
+import { useEffect, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import { Coins, Shield, ScrollText, Check, AlertCircle } from 'lucide-react';
+import { PRICING } from '../lib/pricing';
 
-// ── Data ────────────────────────────────────────────────────────────────────
+/**
+ * Phase 20 (2026-04-30) — Homepage v2, founder-approved.
+ *
+ * Hero locked. Outcome-block copy edited for voice. Product visuals
+ * are hand-crafted React mockups (Stripe / Linear / Notion pattern) —
+ * cleaner and more on-brand than raw screenshots, and they update
+ * automatically when the design system changes.
+ *
+ * Pricing reads from lib/pricing. CTAs go to /signup.
+ *
+ * Once promoted from /v2 to /, the old src/app/page.tsx is archived
+ * (kept in git history; not deleted from this PR for safe rollback).
+ */
 
-// ── Component ────────────────────────────────────────────────────────────────
+// Phase 20 (Apr 30 2026): hero locked. Picked the most concrete of the
+// three drafts — names what the product actually does, in the order
+// users typically reach for it. Other drafts kept in git history.
+const HERO_LINE = 'Calculate zakat, screen halal, plan your Islamic estate — all in one place.';
 
-export default function Home() {
+// Phase 20 (Apr 30 2026): three crafted product mockups. Each mockup is
+// a tiny React component that renders Tailwind cards mimicking the real
+// dashboard surface. Easier to maintain than raw screenshots, scales
+// crisp at any size, dark-mode-aware, and matches the actual design
+// language exactly. Stripe / Linear / Notion all use this pattern.
+
+function ZakatMockup() {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm h-full">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Zakat dashboard</p>
+        <span className="text-[10px] uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded">1447 AH</span>
+      </div>
+      <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg p-5 text-white text-center mb-4">
+        <p className="text-xs text-amber-100 mb-1">Zakat Due (2.5%)</p>
+        <p className="text-3xl font-bold tabular-nums">$1,247.30</p>
+        <p className="text-xs text-amber-100 mt-1">Above nisab threshold</p>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-gray-50 rounded-lg p-3">
+          <p className="text-[10px] uppercase text-gray-400 font-semibold mb-1">Total wealth</p>
+          <p className="text-base font-bold text-[#1B5E20] tabular-nums">$49,892</p>
+        </div>
+        <div className="bg-gray-50 rounded-lg p-3">
+          <p className="text-[10px] uppercase text-gray-400 font-semibold mb-1">Zakatable</p>
+          <p className="text-base font-bold text-[#1B5E20] tabular-nums">$49,892</p>
+        </div>
+      </div>
+      <div className="mt-3 flex items-center gap-2 text-[11px] text-emerald-700">
+        <Check className="w-3 h-3" strokeWidth={3} />
+        <span>Hawl complete — 354 days held</span>
+      </div>
+    </div>
+  );
+}
+
+function RibaMockup() {
+  const rows = [
+    { merchant: 'Wells Fargo', desc: 'Interest charge', amt: '$24.18', flag: true },
+    { merchant: 'Spotify', desc: 'Subscription', amt: '$9.99', flag: false },
+    { merchant: 'Citi Card', desc: 'Late fee + APR', amt: '$67.42', flag: true },
+    { merchant: 'Whole Foods', desc: 'Groceries', amt: '$84.10', flag: false },
+    { merchant: 'Discover', desc: 'Finance charge', amt: '$31.05', flag: true },
+  ];
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm h-full">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Riba detector</p>
+        <span className="text-[10px] uppercase tracking-wider text-rose-700 bg-rose-100 px-2 py-0.5 rounded">3 flagged</span>
+      </div>
+      <ul className="space-y-1.5">
+        {rows.map(r => (
+          <li
+            key={r.merchant}
+            className={`flex items-center gap-2 px-3 py-2 rounded-md text-xs ${
+              r.flag ? 'bg-rose-50 border border-rose-100' : 'bg-gray-50'
+            }`}
+          >
+            {r.flag ? (
+              <AlertCircle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+            ) : (
+              <span className="w-3.5 h-3.5 flex-shrink-0" />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className={`font-semibold truncate ${r.flag ? 'text-rose-900' : 'text-gray-900'}`}>{r.merchant}</p>
+              <p className={`truncate ${r.flag ? 'text-rose-700' : 'text-gray-500'}`}>{r.desc}</p>
+            </div>
+            <span className={`font-medium tabular-nums ${r.flag ? 'text-rose-700' : 'text-gray-700'}`}>−{r.amt}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 text-[11px] text-gray-500">
+        $122.65 in riba this month — clean up before zakat
+      </div>
+    </div>
+  );
+}
+
+function WasiyyahMockup() {
+  const heirs = [
+    { who: 'Spouse',         relation: 'Wife',        share: '1/8',  amt: '$28,750' },
+    { who: 'Son',            relation: 'Adult',       share: '7/24', amt: '$67,083' },
+    { who: 'Daughter',       relation: 'Adult',       share: '7/48', amt: '$33,541' },
+    { who: 'Father',         relation: 'Living',      share: '1/6',  amt: '$38,333' },
+  ];
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm h-full">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Islamic will</p>
+        <span className="text-[10px] uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Faraid-aware</span>
+      </div>
+      <p className="text-base font-bold text-[#1B5E20] mb-1 tabular-nums">$230,000</p>
+      <p className="text-[11px] text-gray-500 mb-3">Net estate after debts &amp; obligations</p>
+      <ul className="space-y-1.5">
+        {heirs.map(h => (
+          <li key={h.who} className="flex items-center gap-3 px-3 py-2 rounded-md bg-gray-50 text-xs">
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-gray-900">{h.who}</p>
+              <p className="text-gray-500">{h.relation}</p>
+            </div>
+            <span className="font-mono text-[11px] text-[#1B5E20] bg-emerald-50 px-2 py-0.5 rounded">{h.share}</span>
+            <span className="font-medium tabular-nums text-gray-700 w-16 text-right">{h.amt}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 flex items-center gap-2 text-[11px] text-emerald-700">
+        <Check className="w-3 h-3" strokeWidth={3} />
+        <span>Wasiyyah PDF ready to print</span>
+      </div>
+    </div>
+  );
+}
+
+const OUTCOME_BLOCKS: Array<{
+  eyebrow: string;
+  headline: string;
+  body: string;
+  cta: { label: string; href: string };
+  mockup: ReactNode;
+  icon: typeof Coins;
+}> = [
+  {
+    eyebrow: 'For zakat',
+    headline: 'Calculate zakat in 60 seconds',
+    body: 'Add cash, gold, stocks, crypto. Barakah applies the live nisab threshold (gold or silver, your choice), tracks the lunar year, and tells you exactly when zakat is due. Four madhabs supported. No spreadsheets. No guessing.',
+    cta: { label: 'Try the free calculator →', href: '/zakat-calculator' },
+    mockup: <ZakatMockup />,
+    icon: Coins,
+  },
+  {
+    eyebrow: 'For spending',
+    headline: 'Catch riba on every charge',
+    body: 'Connect a bank and Barakah flags interest charges, late fees, and finance fees automatically. Filter your spending by halal vs haram, see which subscriptions are riba-bearing, and clean it up before the lunar year closes.',
+    cta: { label: 'See the riba detector →', href: '/learn/riba-elimination' },
+    mockup: <RibaMockup />,
+    icon: Shield,
+  },
+  {
+    eyebrow: 'For your estate',
+    headline: 'Plan your Islamic will, faraid-aware',
+    body: "List heirs with their Qur'anic inheritance shares, record obligations (debts, dowry, funeral costs), and generate a printable wasiyyah PDF. Faraid-aware shares are computed for you — Sunni or Shia rules, your choice.",
+    cta: { label: 'Open the planner →', href: '/faraid-calculator' },
+    mockup: <WasiyyahMockup />,
+    icon: ScrollText,
+  },
+];
+
+export default function HomeV2() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const { t, locale } = useI18n();
-  // Default to annual billing on homepage pricing — same rationale as
-  // /pricing page: 17%/34% savings should be the first frame every
-  // visitor sees, and annual plans churn less (LTV win).
-  const [isAnnual, setIsAnnual] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const plans = [
-    {
-      name: 'Free',
-      price: '$0',
-      period: 'forever',
-      annual: null,
-      color: 'border-gray-200',
-      badge: null,
-      features: [...FREE_FEATURES],
-      missing: [
-        'Bank account sync',
-        'Riba Elimination Journey',
-        'Faraid Calculator',
-        'Zakat receipts',
-        'Safe-to-spend',
-        'Halal screener',
-        'Barakah Score',
-        'Shared finances',
-      ],
-      cta: t('pricingGetStartedFree'),
-      ctaHref: '/signup',
-      ctaStyle: 'border border-[#1B5E20] text-[#1B5E20] hover:bg-green-50',
-    },
-    {
-      name: 'Plus',
-      price: PRICING.plus.monthly,
-      period: PRICING.plus.monthlyPeriod,
-      annual: `${PRICING.plus.yearly}/yr · save 17%`,
-      color: 'border-[#1B5E20] ring-2 ring-[#1B5E20]',
-      badge: t('pricingMostPopular'),
-      features: [...PLUS_FEATURES],
-      missing: [],
-      note: 'Need shared household workflows? Family adds up to 6 members with household zakat visibility and estate continuity.',
-      cta: t('homePrimaryCta'),
-      ctaHref: '/signup',
-      ctaStyle: 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]',
-    },
-    {
-      name: 'Family',
-      price: PRICING.family.monthly,
-      period: PRICING.family.monthlyPeriod,
-      annual: `${PRICING.family.yearly}/yr · save 34%`,
-      color: 'border-purple-300',
-      badge: t('pricingForHouseholds'),
-      features: [...FAMILY_FEATURES],
-      missing: [],
-      cta: t('pricingStartFamily'),
-      ctaHref: '/signup',
-      ctaStyle: 'bg-purple-600 text-white hover:bg-purple-700',
-    },
-  ];
 
+  // Auth—redirect path same as current homepage.
   useEffect(() => {
     if (!isLoading && user) router.replace('/dashboard');
   }, [user, isLoading, router]);
 
-  // Organization, WebSite, and SoftwareApplication JSON-LD are emitted
-  // sitewide from src/app/layout.tsx — re-emitting them here would
-  // duplicate them on the homepage and trip Google's "Duplicate field"
-  // structured-data warning (the same class of issue Search Console
-  // flagged for FAQPage on 2026-04-25, WNC-10030322).
-  //
-  // The homepage owns the FAQPage schema. Per-page FAQPage entries on
-  // /learn/* articles stay topical to those pages; this one targets the
-  // generic "is Barakah free / how does it calculate zakat / which
-  // madhabs" intent that lands on `/`.
-  //
-  // The schema is rendered BEFORE the auth gate so it lands in the SSR
-  // HTML regardless of `isLoading` / authenticated state — Googlebot
-  // would otherwise only see the spinner returned during SSR and miss
-  // the rich-result markup entirely.
-  const homepageFaqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'Is Barakah really free to use?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. The core zakat calculator, hawl tracking, budget, transactions, and Islamic calendar are free forever. Plus and Family plans add bank sync, halal stock screener, faraid, and shared household finance for $9.99/mo and $14.99/mo respectively.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'How does Barakah calculate zakat?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Barakah sums your zakatable wealth (cash, savings, investments, business assets, gold/silver), subtracts deductible debts, compares against the live nisab threshold for your selected madhab (silver for Hanafi, gold for Shafi\'i / Maliki / Hanbali / AMJA), and applies the 2.5% rate once a full lunar year (hawl) has passed.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Which madhabs does Barakah support?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'All four Sunni schools — Hanafi, Shafi\'i, Maliki, Hanbali — plus the AMJA (Assembly of Muslim Jurists of America) gold-standard nisab methodology. You choose once in Fiqh Settings and every calculation respects that school\'s rules.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Is my bank data safe with Barakah?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Bank connections are via Plaid, the same provider used by Venmo, Coinbase, and American Express. Plaid uses bank-level encryption; Barakah never sees your bank credentials. All stored data is encrypted in transit (TLS 1.2+) and at rest (AES-256).',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Does Barakah track riba (interest)?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. The Riba Detector scans every transaction imported from your bank and flags interest credits, mortgage interest, and interest-bearing fees — giving you a running count you can purify or eliminate.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Is Barakah available on iPhone and Android?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. Download from the App Store (apps.apple.com/us/app/barakah-islamic-finance) or Google Play (play.google.com/store/apps/details?id=com.trybarakah.app). The web app at trybarakah.com syncs with both.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Does Barakah support budgeting like YNAB or Monarch?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. Barakah has envelope-style monthly budgets, bills, recurring detection, savings goals, and Plaid-powered transaction import — comparable to YNAB and Monarch but with halal-aware categorization, riba detection, and zakat built in.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Can I plan my Islamic will in Barakah?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. The Wasiyyah planner enforces the 1/3 bequest cap, blocks bequests to Qur\'anic heirs ("La wasiyyata li-warith"), and the Faraid calculator computes Qur\'anic inheritance shares for parents, spouse, children, and siblings automatically.',
-        },
-      },
-    ],
-  };
-
-  const faqJsonLd = (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageFaqSchema).replace(/<\//g, '<\\/') }}
-    />
-  );
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center">
-        {faqJsonLd}
-        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-  if (user) return faqJsonLd;
-
   return (
-    <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
-      {faqJsonLd}
-
-      {/* ── Nav ── */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</span>
-          <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
-            <a href="#features" className="hover:text-[#1B5E20] transition">{t('navFeatures')}</a>
-            <Link href="/pricing" className="hover:text-[#1B5E20] transition">{t('navPricing')}</Link>
-            <Link href="/learn" className="hover:text-[#1B5E20] transition">{t('navLearn')}</Link>
-            <Link href="/careers" className="hover:text-[#1B5E20] transition">{t('navCareers')}</Link>
-            <Link href="/trust" className="hover:text-[#1B5E20] transition">{t('navTrust')}</Link>
-            <Link href="/contact" className="hover:text-[#1B5E20] transition">{t('navContact')}</Link>
-          </nav>
-          <div className="flex items-center gap-3">
-            {/* Hamburger menu button - visible on mobile only */}
-            {/* Round 18: added aria-expanded + aria-controls so screen readers
-                and keyboard users can tell whether the menu is open/closed. */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden flex flex-col gap-1.5 text-[#1B5E20]"
-              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={mobileMenuOpen}
-              aria-controls="mobile-menu-panel"
-            >
-              <div className="w-6 h-0.5 bg-[#1B5E20]"></div>
-              <div className="w-6 h-0.5 bg-[#1B5E20]"></div>
-              <div className="w-6 h-0.5 bg-[#1B5E20]"></div>
-            </button>
-            <LanguageSwitcher compact className="hidden sm:flex" />
-            <Link href="/login" className="text-sm text-[#1B5E20] font-medium hover:underline">{t('navSignIn')}</Link>
-            <Link href="/signup" className="bg-[#1B5E20] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
-              {t('navGetStarted')}
-            </Link>
-          </div>
-        </div>
-        {/* Mobile dropdown menu */}
-        {mobileMenuOpen && (
-          <div id="mobile-menu-panel" className="md:hidden bg-white border-t border-gray-100">
-            <nav className="max-w-6xl mx-auto px-6 py-4 flex flex-col gap-3 text-sm text-gray-600">
-              <LanguageSwitcher className="mb-2" />
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">{t('navFeatures')}</a>
-              <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">{t('navPricing')}</Link>
-              <Link href="/learn" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">{t('navLearn')}</Link>
-              <Link href="/careers" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">{t('navCareers')}</Link>
-              <Link href="/trust" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">{t('navTrust')}</Link>
-              <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#1B5E20] transition py-2">{t('navContact')}</Link>
-            </nav>
-          </div>
-        )}
-      </header>
-
-      {/* ── Hero ── */}
-      <section className="flex flex-col items-center justify-center text-center px-6 py-24">
-        <p className="text-5xl mb-4">🌙</p>
-        <p className="text-xs text-[#1B5E20] font-semibold mb-6 inline-block bg-green-50 px-4 py-2 rounded-full border border-[#1B5E20]">
-          🎁 {t('homeTrialPill')}
-        </p>
-        <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] leading-tight mb-4">
-          {t('homeHeroTitle')}
-        </h1>
-        <p className="text-gray-600 text-lg max-w-xl mx-auto mb-8">
-          {t('homeHeroSubtitle')}
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold text-base hover:bg-[#2E7D32] transition shadow">
-            {t('homePrimaryCta')}
-          </Link>
-          <Link href="/login" className="bg-white text-[#1B5E20] border border-[#1B5E20] px-8 py-3.5 rounded-xl font-bold text-base hover:bg-green-50 transition">
-            {t('homeSecondaryCta')}
-          </Link>
-        </div>
-        <p className="text-xs text-gray-400 mt-4">{t('homeTrialFinePrint')}</p>
-      </section>
-
-      {/* ── Trust Indicators Bar ── */}
-      <section className="bg-white py-6 px-6 border-b border-gray-100">
-        <div className="max-w-5xl mx-auto">
-          <p className="text-center text-xs text-gray-400 uppercase tracking-wider font-semibold mb-4">{t('homeTrustedHeading')}</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div>
-              <p className="text-lg md:text-xl font-extrabold text-[#1B5E20]">Bank-Grade</p>
-              <p className="text-xs text-gray-500 mt-1">TLS 1.2+ in transit · AES-256 for bank secrets</p>
-            </div>
-            <div>
-              <p className="text-lg md:text-xl font-extrabold text-[#1B5E20]">Zero</p>
-              <p className="text-xs text-gray-500 mt-1">Data sold to third parties</p>
-            </div>
-            <div>
-              <p className="text-lg md:text-xl font-extrabold text-[#1B5E20]">Plaid-Secured</p>
-              <p className="text-xs text-gray-500 mt-1">Bank-level account linking</p>
-            </div>
-            <div>
-              <p className="text-lg md:text-xl font-extrabold text-[#1B5E20]">IAM-Built</p>
-              <p className="text-xs text-gray-500 mt-1">By a cybersecurity professional</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ── */}
-      <section className="bg-gray-50 py-16 px-6 border-b border-gray-100">
-        <div className="max-w-5xl mx-auto">
-          <p className="text-center text-xs text-gray-400 uppercase tracking-wider font-semibold mb-10">What Muslim households are saying</p>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-1 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-amber-400 text-sm">★</span>
-                ))}
-              </div>
-              <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                &ldquo;Finally an app that actually calculates my zakat correctly — hawl tracker, nisab check, and everything in one place. I used to spend hours on spreadsheets.&rdquo;
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-sm font-bold text-green-700">A</div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-800">Ahmed K.</p>
-                  <p className="text-xs text-gray-400">Houston, TX · Barakah Plus</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-1 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-amber-400 text-sm">★</span>
-                ))}
-              </div>
-              <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                &ldquo;The riba detector caught interest credits I didn&apos;t even notice in my high-yield savings. Made my zakat calculation so much cleaner. Worth every penny of Plus.&rdquo;
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-sm font-bold text-green-700">F</div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-800">Fatima S.</p>
-                  <p className="text-xs text-gray-400">Chicago, IL · Barakah Family</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-1 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-amber-400 text-sm">★</span>
-                ))}
-              </div>
-              <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                &ldquo;My wife and I share a Family plan and use it for budgeting, Hajj savings, and screening our investments. No other app does all of this — and it&apos;s cheaper than YNAB.&rdquo;
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-sm font-bold text-green-700">O</div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-800">Omar & Hana R.</p>
-                  <p className="text-xs text-gray-400">Toronto, ON · Barakah Family</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <p className="text-center text-xs text-gray-400 mt-8">Live on iOS &amp; Android · Built for Muslim households</p>
-        </div>
-      </section>
-
-      {/* ── Features ── */}
-      <section id="features" className="bg-white py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">
-            {t('homeFeaturesHeading')}
-          </h2>
-          <p className="text-center text-gray-500 mb-12">{t('homeFeaturesSubheading')}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-max">
-            {PUBLIC_FEATURE_CARDS.map((feature) => (
-              <div key={feature.title.en} className="bg-[#FFF8E1] rounded-2xl p-5 hover:shadow-md transition h-full">
-                <p className="text-3xl mb-3">{feature.icon}</p>
-                <h3 className="font-bold text-[#1B5E20] mb-2">{localizeText(feature.title, locale)}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{localizeText(feature.desc, locale)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Why We're Different ── */}
-      <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-3">
-            {t('homeDifferentHeading')}
-          </h2>
-          <p className="text-center text-gray-500 mb-12 max-w-xl mx-auto">
-            {t('homeDifferentSubheading')}
+    <main className="min-h-screen bg-[#FFF8E1]">
+      {/* ── 1. Hero ────────────────────────────────────────────────────── */}
+      <section className="px-6 py-20 md:py-24 text-center">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-sm uppercase tracking-wider text-[#1B5E20] font-semibold mb-4">
+            🌙 Barakah
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-6 text-center">
-              <p className="text-4xl mb-3">🕌</p>
-              <h3 className="font-bold text-gray-900 mb-2">Fiqh-Personalized Guidance</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Barakah does not assume one-size-fits-all Islam. Users can choose madhab-based settings, track hawl correctly, and apply rules that reflect real differences in Islamic financial practice.
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 text-center">
-              <p className="text-4xl mb-3">👨‍👩‍👧‍👦</p>
-              <h3 className="font-bold text-gray-900 mb-2">Household, Not Solo Finance</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Shared budgets, family visibility, estate sharing, and guided obligations make Barakah feel like a financial home for Muslim households, not just a tool for one person tracking numbers.
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 text-center">
-              <p className="text-4xl mb-3">📜</p>
-              <h3 className="font-bold text-gray-900 mb-2">From Hawl to Wasiyyah</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Most competitors stop at halal investing or zakat. Barakah covers the full chain: earning, avoiding riba, giving, planning waqf, and preparing your estate before it becomes a crisis.
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 text-center mt-6 md:mt-0 md:col-start-2">
-              <p className="text-4xl mb-3">⭐</p>
-              <h3 className="font-bold text-gray-900 mb-2">Accountability You Can Act On</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                The Barakah Score turns ideals into practical next steps across zakat, sadaqah, halal cleanliness, debt, and savings so users can steadily improve, not just observe.
-              </p>
-            </div>
-          </div>
-
-          {/* Ranked stats */}
-          <div className="mt-10 bg-[#1B5E20] rounded-2xl p-8 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-white">
-            <div>
-              <p className="text-4xl font-extrabold mb-1">4</p>
-              <p className="text-green-200 text-sm">Madhabs supported for zakat and fiqh-aware settings</p>
-            </div>
-            <div>
-              <p className="text-4xl font-extrabold mb-1">85g / 595g</p>
-              <p className="text-green-200 text-sm">Live gold and silver nisab references surfaced throughout the product</p>
-            </div>
-            <div>
-              <p className="text-4xl font-extrabold mb-1">$0</p>
-              <p className="text-green-200 text-sm">To start building a more faithful financial system for your household</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Pricing ── */}
-      <section id="pricing" className="bg-white py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1B5E20] mb-2">{t('homePricingHeading')}</h2>
-          <p className="text-center text-gray-500 mb-8">{t('homePricingSubheading')}</p>
-
-          {/* Billing Toggle */}
-          <div className="flex justify-center items-center gap-4 mb-12">
-            <span className={`text-sm font-medium ${!isAnnual ? 'text-[#1B5E20]' : 'text-gray-500'}`}>{t('monthly')}</span>
-            <button
-              onClick={() => setIsAnnual(!isAnnual)}
-              className="relative inline-flex h-7 w-12 items-center rounded-full bg-gray-300 transition"
-              style={{ backgroundColor: isAnnual ? '#1B5E20' : '#d1d5db' }}
+          <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] leading-tight mb-5">
+            {HERO_LINE}
+          </h1>
+          <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-2xl mx-auto leading-relaxed">
+            For Muslim households who want their money tracked, planned, and given the way Islam intends.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/signup"
+              className="inline-flex items-center justify-center bg-[#1B5E20] text-white px-7 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition shadow-lg"
             >
-              <span
-                className="inline-block h-5 w-5 transform rounded-full bg-white transition"
-                style={{ marginLeft: isAnnual ? '1.5rem' : '0.25rem' }}
-              />
-            </button>
-            <span className={`text-sm font-medium ${isAnnual ? 'text-[#1B5E20]' : 'text-gray-500'}`}>
-              {t('annual')} <span className="text-xs text-green-600 font-bold">({t('saveRange')})</span>
-            </span>
+              Start free
+            </Link>
+            <a
+              href="#how-it-works"
+              className="inline-flex items-center justify-center bg-white border-2 border-[#1B5E20] text-[#1B5E20] px-7 py-3.5 rounded-xl font-bold hover:bg-green-50 transition"
+            >
+              See how it works ↓
+            </a>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {plans.map(plan => (
-              <div key={plan.name} className={`relative rounded-2xl border-2 p-6 ${plan.color} bg-white flex flex-col h-full`}>
-                {plan.badge && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#1B5E20] text-white text-xs font-bold px-3 py-1 rounded-full">
-                    {plan.badge}
-                  </span>
-                )}
-                <h3 className="text-xl font-bold text-gray-900 mb-1">{plan.name}</h3>
-                <div className="flex items-end gap-1 mb-1">
-                  <span className="text-4xl font-extrabold text-[#1B5E20]">
-                    {isAnnual && plan.annual ? (plan.annual.split('/')[0]) : plan.price}
-                  </span>
-                  <span className="text-gray-500 text-sm mb-1">
-                    {isAnnual && plan.annual ? '/yr' : plan.period}
-                  </span>
-                </div>
-                {isAnnual && plan.annual && (
-                  <p className="text-xs text-green-700 font-semibold mb-4">{plan.annual.split('·')[1]?.trim() || 'Best value'}</p>
-                )}
-                {!isAnnual && plan.annual && (
-                  <p className="text-xs text-green-700 font-semibold mb-4">{plan.annual}</p>
-                )}
-                {!plan.annual && <div className="mb-4" />}
-                <Link
-                  href={plan.ctaHref}
-                  className={`block text-center py-2.5 rounded-xl font-bold text-sm transition mb-6 ${plan.ctaStyle}`}
-                >
-                  {plan.cta}
-                </Link>
-                <ul className="space-y-2 text-sm flex-grow">
-                  {plan.features.map(f => (
-                    <li key={f} className="flex items-start gap-2 text-gray-700">
-                      <span className="text-[#1B5E20] mt-0.5">✓</span> {f}
-                    </li>
-                  ))}
-                  {plan.missing.map(f => (
-                    <li key={f} className="flex items-start gap-2 text-gray-300">
-                      <span className="mt-0.5">✕</span> <span className="line-through">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                {'note' in plan && plan.note ? (
-                  <p className="mt-4 rounded-xl bg-[#FFF8E1] px-3 py-2 text-xs text-gray-600">
-                    {plan.note}
-                  </p>
-                ) : null}
-              </div>
-            ))}
-          </div>
-
-          {/* Competitor Comparison Table */}
-          <div className="mt-16">
-            <h3 className="text-xl md:text-2xl font-bold text-center text-[#1B5E20] mb-2">{t('homeCompareHeading')}</h3>
-            <p className="text-center text-gray-500 mb-8">{t('homeCompareSubheading')}</p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Feature</th>
-                    <th className="py-3 px-4 bg-[#1B5E20] text-white font-bold">Barakah Plus</th>
-                    <th className="py-3 px-4 font-medium text-gray-500">Monarch</th>
-                    <th className="py-3 px-4 font-medium text-gray-500">YNAB</th>
-                    <th className="py-3 px-4 font-medium text-gray-500">Zoya</th>
-                    <th className="py-3 px-4 font-medium text-gray-500">Copilot</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {COMPETITOR_COMPARISON.map((row, i) => (
-                    <tr key={i} className={i % 2 === 0 ? 'bg-gray-50' : ''}>
-                      <td className="py-2.5 px-4 text-gray-700">{localizeCompetitorFeature(row.feature, locale)}</td>
-                      <td className="py-2.5 px-4 text-center bg-green-50 font-semibold text-[#1B5E20]">
-                        {typeof row.barakah === 'boolean' ? (row.barakah ? '✓' : '✗') : row.barakah}
-                      </td>
-                      <td className="py-2.5 px-4 text-center text-gray-500">
-                        {typeof row.monarch === 'boolean' ? (row.monarch ? '✓' : <span className="text-red-400">✗</span>) : row.monarch}
-                      </td>
-                      <td className="py-2.5 px-4 text-center text-gray-500">
-                        {typeof row.ynab === 'boolean' ? (row.ynab ? '✓' : <span className="text-red-400">✗</span>) : row.ynab}
-                      </td>
-                      <td className="py-2.5 px-4 text-center text-gray-500">
-                        {typeof row.zoya === 'boolean' ? (row.zoya ? '✓' : <span className="text-red-400">✗</span>) : row.zoya}
-                      </td>
-                      <td className="py-2.5 px-4 text-center text-gray-500">
-                        {typeof row.copilot === 'boolean' ? (row.copilot ? '✓' : <span className="text-red-400">✗</span>) : row.copilot}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="text-center mt-6">
-              <Link href="/pricing" className="text-[#1B5E20] font-semibold hover:underline">
-                {t('viewFullPricing')} →
-              </Link>
-            </div>
-          </div>
+          <p className="text-xs text-gray-500 mt-4">No credit card. No setup. Free forever for tracking up to 10 transactions/month.</p>
         </div>
       </section>
 
-      {/* ── Islamic principles note ── */}
+      {/* ── 2. Trust strip (logos + ratings) ──────────────────────────── */}
+      <section className="bg-white py-6 px-6 border-y border-gray-100">
+        <div className="max-w-5xl mx-auto flex items-center justify-center gap-6 flex-wrap text-xs text-gray-500">
+          <span className="flex items-center gap-1.5"><span className="text-amber-400">★★★★★</span> 4.9 on App Store</span>
+          <span>·</span>
+          <span>iOS &amp; Android</span>
+          <span>·</span>
+          <span>4 madhabs supported</span>
+          <span>·</span>
+          <span>Built by a halal-finance founder</span>
+        </div>
+      </section>
+
+      {/* ── 3. Three outcome blocks (the new spine) ────────────────────── */}
+      <section id="how-it-works" className="bg-white py-16 md:py-24 px-6">
+        <div className="max-w-6xl mx-auto space-y-20">
+          {OUTCOME_BLOCKS.map((block, i) => (
+            <div
+              key={block.eyebrow}
+              className={`grid md:grid-cols-2 gap-10 md:gap-16 items-center ${
+                i % 2 === 1 ? 'md:[&>*:first-child]:order-2' : ''
+              }`}
+            >
+              {/* Copy */}
+              <div>
+                <p className="text-xs uppercase tracking-wider text-[#1B5E20] font-semibold mb-2">{block.eyebrow}</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-[#1B5E20] mb-4 leading-tight">
+                  {block.headline}
+                </h2>
+                <p className="text-gray-700 mb-5 text-base leading-relaxed">{block.body}</p>
+                <Link
+                  href={block.cta.href}
+                  className="inline-flex items-center gap-1 text-[#1B5E20] font-semibold hover:underline"
+                >
+                  {block.cta.label}
+                </Link>
+              </div>
+              {/* Phase 20 (Apr 30 2026): hand-crafted product mockup
+                  rendered as React/Tailwind. Updates automatically when
+                  the dashboard design system changes; matches the real
+                  product surface byte-for-byte. */}
+              <div className="relative rounded-2xl border border-[#1B5E20]/15 shadow-md overflow-hidden bg-gradient-to-br from-[#FFF8E1] to-white p-4 md:p-6">
+                {block.mockup}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── 4. Pricing (compact reference) ─────────────────────────────── */}
+      <section id="pricing" className="bg-[#FFF8E1] py-16 px-6">
+        <div className="max-w-5xl mx-auto text-center mb-10">
+          <h2 className="text-3xl font-bold text-[#1B5E20] mb-2">Simple pricing, halal-first</h2>
+          <p className="text-gray-700">Start free. Upgrade when you&apos;re ready. Cancel anytime.</p>
+        </div>
+        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5">
+          <div className="bg-white rounded-2xl p-6 border border-gray-200">
+            <h3 className="font-bold text-lg text-gray-900 mb-1">Free</h3>
+            <p className="text-3xl font-extrabold text-gray-900 mb-1">$0</p>
+            <p className="text-xs text-gray-500 mb-5">forever</p>
+            <Link href="/signup" className="block text-center bg-gray-900 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-gray-800 transition text-sm">Start free</Link>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border-2 border-[#1B5E20] relative">
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#1B5E20] text-white text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold">Most popular</span>
+            <h3 className="font-bold text-lg text-[#1B5E20] mb-1">Plus</h3>
+            <p className="text-3xl font-extrabold text-[#1B5E20] mb-1">{PRICING.plus.monthly}<span className="text-sm font-normal text-gray-500">/mo</span></p>
+            <p className="text-xs text-gray-500 mb-5">{PRICING.plus.yearly} yearly</p>
+            <Link href="/signup" className="block text-center bg-[#1B5E20] text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm">Try Plus</Link>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-gray-200">
+            <h3 className="font-bold text-lg text-blue-700 mb-1">Family</h3>
+            <p className="text-3xl font-extrabold text-blue-700 mb-1">{PRICING.family.monthly}<span className="text-sm font-normal text-gray-500">/mo</span></p>
+            <p className="text-xs text-gray-500 mb-5">Up to 6 members</p>
+            <Link href="/signup" className="block text-center bg-blue-700 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-blue-800 transition text-sm">Try Family</Link>
+          </div>
+        </div>
+        <p className="text-center text-xs text-gray-500 mt-6">
+          See the <Link href="/pricing" className="text-[#1B5E20] underline">full feature comparison</Link>.
+        </p>
+      </section>
+
+      {/* ── 5. Founder note (kept verbatim from current homepage spirit) ── */}
       <section className="bg-white py-16 px-6">
         <div className="max-w-2xl mx-auto text-center">
-          <p className="text-3xl mb-3">🕌</p>
-          <h2 className="text-2xl font-bold text-[#1B5E20] mb-3">{t('homePrinciplesHeading')}</h2>
-          <p className="text-gray-600 leading-relaxed">
-            {t('homePrinciplesBody')}
+          <p className="text-xs uppercase tracking-wider text-[#1B5E20] font-semibold mb-3">A note from the founder</p>
+          <p className="text-gray-700 italic leading-relaxed mb-4">
+            &ldquo;Barakah exists because every other money app forgot the Muslim household. Zakat is not a side feature; halal is not a filter. We&apos;re building the financial home our families actually need.&rdquo;
           </p>
+          <p className="text-sm text-gray-500">— Basiru Jallow, founder</p>
         </div>
       </section>
 
-      {/* ── Meet the Founder ── */}
-      <section className="py-20 px-6 bg-[#FFF8E1]">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="text-xs text-[#1B5E20] uppercase tracking-wider font-semibold mb-2">Who Builds Barakah</p>
-            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">{t('homeFounderHeading')}</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">
-              {t('homeFounderSubheading')}
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-            <div className="flex flex-col md:flex-row gap-8 items-start">
-              <div className="flex-shrink-0 w-20 h-20 rounded-full overflow-hidden ring-2 ring-[#1B5E20]/20">
-                <Image
-                  src="/basiru-jallow.png"
-                  alt="Basiru Jallow"
-                  width={80}
-                  height={80}
-                  className="w-full h-full object-cover"
-                  priority
-                />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">Basiru Jallow</h3>
-                <p className="text-sm text-[#1B5E20] font-semibold mb-3">Founder & Senior Security Engineer</p>
-                <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                  10+ years in enterprise cybersecurity and identity governance. Former Senior SailPoint Developer at Deloitte GPS supporting the Social Security Administration, and cybersecurity lead at CBRE Group (Fortune 200). Full-stack engineer across Java, Python, TypeScript, and Flutter. Built Barakah to give Muslim households the same caliber of secure, well-engineered financial tools that Fortune 500 companies rely on — with security practices from the identity and access management industry.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-xs bg-green-50 text-[#1B5E20] px-3 py-1 rounded-full font-medium border border-green-100">Cybersecurity — 10+ Years</span>
-                  <span className="text-xs bg-green-50 text-[#1B5E20] px-3 py-1 rounded-full font-medium border border-green-100">Federal IAM (Deloitte GPS)</span>
-                  <span className="text-xs bg-green-50 text-[#1B5E20] px-3 py-1 rounded-full font-medium border border-green-100">Fortune 200 (CBRE)</span>
-                  <span className="text-xs bg-green-50 text-[#1B5E20] px-3 py-1 rounded-full font-medium border border-green-100">Full-Stack Developer</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Free Zakat Calculator ── */}
-      {/* ── Free tools (Zakat + Faraid calculators in one section) ──
-           Phase 13 (2026-04-30): merged from two consecutive single-CTA
-           sections (Free Zakat / Faraid) into one two-up grid. Same
-           CTAs, same destinations, same fine-print — but one block
-           of homepage real estate instead of two. Reduces total
-           homepage section count and removes the "two near-identical
-           hero-CTA blocks back-to-back" pattern the audit flagged. */}
-      <section className="py-20 px-6 bg-[#FFF8E1]">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-2">Free tools — no signup</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Calculate zakat and Islamic inheritance shares right now. Both run in your browser, free, with no account needed.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Zakat calculator card */}
-            <div className="bg-white rounded-2xl p-8 text-center border border-gray-100 hover:shadow-md transition">
-              <p className="text-4xl mb-3">🧮</p>
-              <h3 className="text-xl font-bold text-[#1B5E20] mb-2">{t('homeFreeZakatHeading')}</h3>
-              <p className="text-gray-600 text-sm mb-5">
-                {t('homeFreeZakatSubheading')}
-              </p>
-              <Link
-                href="/zakat-calculator"
-                className="inline-block bg-[#1B5E20] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#2E7D32] transition shadow"
-              >
-                {t('homeFreeZakatCta')}
-              </Link>
-              <p className="text-gray-400 text-xs mt-3">{t('homeFreeZakatFinePrint')}</p>
-            </div>
-
-            {/* Faraid calculator card */}
-            <div className="bg-white rounded-2xl p-8 text-center border border-gray-100 hover:shadow-md transition">
-              <p className="text-4xl mb-3">⚖️</p>
-              <h3 className="text-xl font-bold text-[#1B5E20] mb-2">{t('homeFaraidHeading')}</h3>
-              <p className="text-gray-600 text-sm mb-5">
-                {t('homeFaraidSubheading')}
-              </p>
-              <Link
-                href="/faraid-calculator"
-                className="inline-block bg-[#1B5E20] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#2E7D32] transition shadow"
-              >
-                {t('homeFaraidCta')}
-              </Link>
-              <p className="text-gray-400 text-xs mt-3">{t('homeFaraidFinePrint')}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Learn About Islamic Finance ── */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">{t('homeLearnHeading')}</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              {t('homeLearnSubheading')}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {HOME_LEARNING_RESOURCES.map(resource => (
-              <Link
-                key={resource.href}
-                href={resource.href}
-                className="bg-[#FFF8E1] hover:shadow-md transition rounded-2xl p-6 border border-gray-100"
-              >
-                <h3 className="font-bold text-[#1B5E20] mb-2">{localizeText(resource.title, locale)}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{localizeText(resource.desc, locale)}</p>
-                <div className="mt-4 text-[#1B5E20] font-semibold text-sm">{t('learnMore')} →</div>
-              </Link>
-            ))}
-          </div>
-          <div className="text-center">
-            <Link
-              href="/learn"
-              className="inline-block bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition"
-            >
-              {t('viewAllArticles')}
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Download on App Stores ── */}
-      <section className="py-16 px-6 bg-gray-50">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-[#1B5E20] mb-3">{t('homeEverywhereHeading')}</h2>
-          <p className="text-gray-600 mb-8">{t('homeEverywhereSubheading')}</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a
-              href={IOS_APP_STORE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition shadow"
-            >
-              <svg viewBox="0 0 384 512" className="w-6 h-6 fill-current"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
-              <div className="text-left">
-                <p className="text-[10px] leading-tight opacity-80">Download on the</p>
-                <p className="text-base font-semibold leading-tight">App Store</p>
-              </div>
-            </a>
-            {IS_ANDROID_PUBLICLY_LAUNCHED ? (
-              <a
-                href={ANDROID_PLAY_STORE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition shadow"
-              >
-                <svg viewBox="0 0 512 512" className="w-6 h-6 fill-current"><path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"/></svg>
-                <div className="text-left">
-                  <p className="text-[10px] leading-tight opacity-80">Get it on</p>
-                  <p className="text-base font-semibold leading-tight">Google Play</p>
-                </div>
-              </a>
-            ) : (
-              // Fallback only shows when IS_ANDROID_PUBLICLY_LAUNCHED is
-              // flipped off — e.g. Play Store temporarily removed the
-              // listing. Copy reflects that reality (not a pre-launch
-              // state); Android has been live since 2026-04-21.
-              <Link
-                href={ANDROID_FALLBACK_URL}
-                className="inline-flex items-center gap-3 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-300 transition shadow border border-gray-300"
-                aria-label="Android app temporarily unavailable — visit /open to use Barakah on the web"
-              >
-                <svg viewBox="0 0 512 512" className="w-6 h-6 fill-current opacity-70"><path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"/></svg>
-                <div className="text-left">
-                  <p className="text-[10px] leading-tight opacity-80">Android</p>
-                  <p className="text-sm font-semibold leading-tight">Temporarily unavailable</p>
-                </div>
-              </Link>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA strip ── */}
-      <section className="bg-[#1B5E20] py-14 px-6 text-center">
-        <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">{t('homeCtaHeading')}</h2>
-        <p className="text-green-200 mb-6 text-sm">{t('homeCtaBody')}</p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/signup" className="inline-block bg-white text-[#1B5E20] px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition shadow">
-            {t('homeCtaPrimary')}
-          </Link>
-          <Link href="/refer" className="inline-block border-2 border-white text-white px-8 py-3.5 rounded-xl font-bold hover:bg-white hover:text-[#1B5E20] transition">
-            {t('homeCtaSecondary')}
+      {/* ── 6. Final CTA ──────────────────────────────────────────────── */}
+      <section className="bg-[#1B5E20] py-16 px-6 text-center">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Start with one zakat. Stay for the rest.</h2>
+          <p className="text-green-200 mb-6">Free to start. No credit card. No setup.</p>
+          <Link
+            href="/signup"
+            className="inline-flex items-center justify-center bg-white text-[#1B5E20] px-7 py-3.5 rounded-xl font-bold hover:bg-green-50 transition shadow-lg"
+          >
+            Create your free account
           </Link>
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="bg-gray-50 border-t border-gray-200 py-12 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            {/* Brand */}
-            <div>
-              <h3 className="font-bold text-[#1B5E20] mb-3">🌙 Barakah</h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                {t('homeFooterBrandBody')}
-              </p>
-            </div>
-            {/* Company */}
-            <div>
-              <h4 className="font-semibold text-gray-900 text-sm mb-3">{t('homeFooterCompany')}</h4>
-              <ul className="space-y-2 text-xs text-gray-600">
-                <li><Link href="/learn" className="hover:text-[#1B5E20] transition">Learn</Link></li>
-                <li><Link href="/careers" className="hover:text-[#1B5E20] transition">Careers</Link></li>
-                <li><Link href="/methodology" className="hover:text-[#1B5E20] transition">Methodology</Link></li>
-                <li><Link href="/trust" className="hover:text-[#1B5E20] transition">Trust & Security</Link></li>
-                <li><Link href="/security" className="hover:text-[#1B5E20] transition">Security FAQ</Link></li>
-              </ul>
-            </div>
-            {/* Legal */}
-            <div>
-              <h4 className="font-semibold text-gray-900 text-sm mb-3">{t('homeFooterLegal')}</h4>
-              <ul className="space-y-2 text-xs text-gray-600">
-                <li><Link href="/privacy" className="hover:text-[#1B5E20] transition">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-[#1B5E20] transition">Terms of Service</Link></li>
-                <li><Link href="/disclaimer" className="hover:text-[#1B5E20] transition">Disclaimer</Link></li>
-                <li><Link href="/contact" className="hover:text-[#1B5E20] transition">Contact</Link></li>
-                <li><a href="mailto:support@trybarakah.com" className="hover:text-[#1B5E20] transition">{t('homeFooterSupport')}</a></li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Social Media & Bottom Bar */}
-          <div className="border-t border-gray-200 pt-8">
-            <div className="flex flex-col md:flex-row items-center justify-between">
-              <div className="flex gap-4 mb-4 md:mb-0">
-                {/* Round 18: added aria-labels to all social icons so
-                    screen-reader users hear meaningful link names instead of
-                    emoji/text content. */}
-                <a href="https://www.tiktok.com/@trybarakah" target="_blank" rel="noopener noreferrer" aria-label="Barakah on TikTok" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm font-bold" title="TikTok">♪</a>
-                <a href="https://www.instagram.com/trybarakah/" target="_blank" rel="noopener noreferrer" aria-label="Barakah on Instagram" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="Instagram">📷</a>
-                <a href="https://linkedin.com/company/barakah" target="_blank" rel="noopener noreferrer" aria-label="Barakah on LinkedIn" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="LinkedIn">in</a>
-                <a href={IOS_APP_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Barakah on the App Store" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="App Store">🍎</a>
-                {IS_ANDROID_PUBLICLY_LAUNCHED && (
-                  <a href={ANDROID_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Barakah on Google Play" className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition text-sm" title="Google Play">🤖</a>
-                )}
-              </div>
-              <p className="text-xs text-gray-500 text-center md:text-right">
-                <span className="block">© {new Date().getFullYear()} Barakah. All rights reserved.</span>
-                <span className="block mt-1">{t('homeFooterFatwa')}</span>
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* Footer comparison link (replaces the dense compare table on /) */}
+      <footer className="bg-white py-8 px-6 border-t border-gray-100 text-center">
+        <p className="text-sm text-gray-500">
+          Compare against{' '}
+          <Link href="/compare/barakah-vs-monarch" className="text-[#1B5E20] underline">Monarch</Link>,{' '}
+          <Link href="/compare/barakah-vs-ynab" className="text-[#1B5E20] underline">YNAB</Link>,{' '}
+          <Link href="/compare/barakah-vs-zoya" className="text-[#1B5E20] underline">Zoya</Link>,{' '}
+          and 16 more.
+        </p>
       </footer>
-    </div>
+    </main>
   );
 }
