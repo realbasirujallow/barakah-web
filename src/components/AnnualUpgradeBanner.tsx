@@ -37,10 +37,10 @@ export default function AnnualUpgradeBanner() {
     let isMounted = true;
 
     const loadBanner = async () => {
-      if (!user) {
+      if (!user || user.isAdmin) {
         if (isMounted) {
           setShow(false);
-          setLoaded(false);
+          setLoaded(Boolean(user?.isAdmin));
         }
         return;
       }
@@ -83,7 +83,7 @@ export default function AnnualUpgradeBanner() {
     };
   }, [user]);
 
-  if (!user || !loaded || !show) return null;
+  if (!user || user.isAdmin || !loaded || !show) return null;
 
   const isFamily = user.plan === 'family';
   const savingPct = isFamily ? PRICING.family.yearlySaving : PRICING.plus.yearlySaving; // 'Save 34%' or 'Save 17%'

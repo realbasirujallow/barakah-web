@@ -67,16 +67,18 @@ export function AdminOverviewTab({
           <div className="bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] rounded-2xl p-5 text-white">
             <p className="text-green-200 text-xs font-medium mb-1">Total Users</p>
             <p className="text-3xl font-bold">{overview.totalUsers.toLocaleString()}</p>
-            <p className="text-green-200 text-xs mt-1">{overview.conversionRate}% paid conversion</p>
+            <p className="text-green-200 text-xs mt-1">
+              {overview.conversionRate}% on trial, paid, or inherited access
+            </p>
           </div>
           <div className="bg-white rounded-2xl p-5 border">
-            <p className="text-gray-400 text-xs font-medium mb-1">Paying Subscribers</p>
+            <p className="text-gray-400 text-xs font-medium mb-1">Subscribed / Trial Seats</p>
             <p className="text-3xl font-bold text-gray-800">{overview.paidUsers}</p>
             <p className="text-gray-400 text-xs mt-1">
               {overview.subscribedPlus} Plus · {overview.subscribedFamily} Family
             </p>
             <p className="text-gray-400 text-[11px] mt-0.5 italic">
-              Includes trials + inherited family seats
+              Includes active trials + inherited family seats; not true paid accounts
             </p>
           </div>
           <div className="bg-white rounded-2xl p-5 border">
