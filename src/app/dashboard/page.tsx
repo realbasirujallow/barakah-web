@@ -15,6 +15,7 @@ import { KpiCard, KpiChange, KpiSkeleton } from '../../components/dashboard/KpiC
 import { SpendingDrillDown } from '../../components/dashboard/SpendingDrillDown';
 import { PeriodPicker, type Period } from '../../components/dashboard/PeriodPicker';
 import { GettingStartedChecklist, type GettingStartedItem } from '../../components/dashboard/GettingStartedChecklist';
+import { DailyRitual, buildRitualItems } from '../../components/dashboard/DailyRitual';
 import { Badge } from '../../components/ui/badge';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
@@ -251,6 +252,26 @@ export default function DashboardPage() {
   }, []);
   const isTrialExpired = user?.plan === 'free' && user?.planExpiresAt && user.planExpiresAt < currentTimestamp;
   const hasNoData = !loading && netWorthValue === 0 && !widgets?.recentTransactions?.transactions?.length;
+
+  // Phase 11 (2026-04-30): Daily Ritual — derived from data the dashboard
+  // already has loaded. No new endpoints, no extra fetches. Returns
+  // 0-3 actionable callouts. Review-count is conservatively 0 until
+  // we wire the /api/transactions/review-count endpoint into this page.
+  const ritualItems = buildRitualItems({
+    hawlDue,
+    zakatEligible: totals?.zakatEligible,
+    zakatFullyPaid: totals?.zakatFullyPaid,
+    zakatDue: totals?.zakatDue,
+    budget: widgets?.budgetOverview
+      ? { totalRemaining: widgets.budgetOverview.totalRemaining, totalBudgeted: widgets.budgetOverview.totalBudgeted }
+      : null,
+    bills: widgets?.upcomingBills
+      ? { overdueCount: widgets.upcomingBills.overdueCount, upcomingCount: widgets.upcomingBills.upcomingCount }
+      : null,
+    reviewCount: 0,
+    insights,
+    fmt,
+  });
 
   // Phase 6.4: activation checklist. Derived from data already loaded;
   // no extra API calls. Auto-dismisses when every item is done. Hidden
@@ -504,6 +525,15 @@ export default function DashboardPage() {
             </Link>
           </p>
         </div>
+      )}
+
+      {/* Phase 11 (2026-04-30): Daily Ritual — top-of-fold answer to
+          "what should I look at today?". Renders above OVERVIEW so the
+          first thing the user sees is action, not a wall of numbers.
+          Auto-hides when there are no actionable items AND the user
+          already has data. */}
+      {!hasNoData && ritualItems.length > 0 && (
+        <DailyRitual items={ritualItems} />
       )}
 
       {/* Phase 6.4: Getting-started checklist — only for users not yet
