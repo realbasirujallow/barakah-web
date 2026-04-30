@@ -280,16 +280,28 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Compact Greeting (single line, Monarch-style) ─────────────────── */}
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-base font-semibold text-gray-900 flex items-center gap-2">
-          <span>{greeting.emoji}</span>
-          {greeting.text}{user?.name ? `, ${user.name}` : ''}
-          {hijri?.hijriDate && (
-            <span className="text-gray-400 font-normal text-sm ml-2">· {hijri.hijriDate}</span>
-          )}
-        </p>
-      </div>
+      {/* ── Page header (Phase 2.1 / 2026-04-27) ──────────────────────────────
+           Promoted from a one-line greeting to a proper page-header with
+           hierarchy: text-2xl semibold title + smaller muted subtitle. The
+           greeting emoji is decorative only (aria-hidden); the Gregorian
+           date + Hijri date in the subtitle help orient zakat/hawl users
+           who think in lunar months. */}
+      <header className="mb-6 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <span aria-hidden="true">{greeting.emoji}</span>
+            <span>
+              {greeting.text}
+              {user?.name ? <span className="text-muted-foreground font-normal">, </span> : null}
+              {user?.name ? user.name : null}
+            </span>
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+            {hijri?.hijriDate ? <> · {hijri.hijriDate}</> : null}
+          </p>
+        </div>
+      </header>
 
       {/* ── Weekly Insight Banner (like Monarch's Weekly Recap) ────────────── */}
       {insights.length > 0 && (
