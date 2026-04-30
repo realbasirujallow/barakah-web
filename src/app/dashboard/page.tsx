@@ -407,7 +407,7 @@ export default function DashboardPage() {
       {/* ── Islamic Calendar + Zakat Reminders (compact row above grid) ────── */}
       <div className="grid md:grid-cols-2 gap-4 mb-4">
         {hijri && (
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
+          <div className="bg-card rounded-xl p-4 border border-border">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Islamic Date</p>
@@ -639,7 +639,7 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={() => setSpendingDrillOpen(true)}
-          className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden text-left w-full hover:shadow-md hover:border-gray-200 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="bg-card rounded-2xl p-5 border border-border overflow-hidden text-left w-full hover:shadow-md hover:border-primary/20 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label="Open spending breakdown for this month"
         >
           <div className="flex items-center justify-between gap-2 mb-3">
@@ -686,7 +686,7 @@ export default function DashboardPage() {
         </button>
 
         {/* Budget Overview */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100">
+        <div className="bg-card rounded-2xl p-5 border border-border">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">Budget — {new Date().toLocaleString(undefined, { month: 'long', year: 'numeric' })}</p>
@@ -739,7 +739,7 @@ export default function DashboardPage() {
 
       {/* ── Safe to Spend ──────────────────────────────────────────────── */}
       {safeToSpend && (
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 mb-6">
+        <div className="bg-card rounded-2xl p-5 border border-border mb-6">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Safe to Spend</p>
           <p className={`text-3xl font-bold ${safeToSpend.safeToSpend > 0 ? 'text-green-600' : 'text-red-600'}`}>
             {fmt(safeToSpend.safeToSpend)}
@@ -813,7 +813,7 @@ export default function DashboardPage() {
       {/* ── RIGHT COLUMN ────────────────────────────────────────────────────── */}
       <div className="space-y-4 min-w-0">
         {/* Recent Transactions */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
+        <div className="bg-card rounded-2xl p-5 border border-border overflow-hidden">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Recent Transactions</p>
             <Link href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline">View all</Link>
@@ -846,7 +846,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Upcoming Bills / Recurring */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100">
+        <div className="bg-card rounded-2xl p-5 border border-border">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">Upcoming Bills</p>
