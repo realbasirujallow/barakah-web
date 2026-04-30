@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 /**
  * Reusable empty-state component for dashboard pages.
@@ -7,6 +8,14 @@ import type { ReactNode } from 'react';
  * Inspired by Monarch's empty-state pattern: instead of a blank canvas
  * with a single CTA, show users a representative preview of what the
  * screen WILL look like once they have data, plus 1-3 actions.
+ *
+ * Phase 4 polish (2026-04-27):
+ *   • Hardcoded #1B5E20 swapped for semantic tokens (bg-primary,
+ *     text-primary, etc.) so light/dark mode are consistent.
+ *   • Icon disc grew from 56px to 64px and uses bg-primary/10 for a
+ *     softer, Monarch-style halo instead of the harsher bg-green-50.
+ *   • Border-dashed stays — it's the universal "this is where data
+ *     would go" cue and Monarch + Rocket Money both use it.
  *
  * Three slots:
  *   - icon: emoji or short svg-string (renders in a soft circle)
@@ -28,7 +37,7 @@ export interface EmptyStateAction {
 }
 
 interface EmptyStateProps {
-  icon: string;
+  icon: string | ReactNode;
   title: string;
   description?: string;
   actions?: EmptyStateAction[];
@@ -50,29 +59,37 @@ export default function EmptyState({
   // states feel less abrupt when they ease in instead of pop. Animation
   // is CSS-only (no library) and is gated by `prefers-reduced-motion`
   // via Tailwind's motion-safe modifier — accessibility preserved.
-  const wrapperClass = (variant === 'card'
-    ? 'bg-white border-2 border-dashed border-green-200 rounded-2xl p-8 text-center'
-    : 'p-8 text-center')
-    + ' motion-safe:animate-fade-up-200';
+  const wrapperClass = cn(
+    variant === 'card'
+      ? 'bg-card border-2 border-dashed border-primary/20 rounded-2xl p-8 text-center'
+      : 'p-8 text-center',
+    'motion-safe:animate-fade-up-200',
+  );
+
+  const baseButton =
+    'inline-flex items-center justify-center px-5 py-2.5 rounded-md font-semibold text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+  const primaryButton =
+    'bg-primary text-primary-foreground hover:bg-primary/90';
+  const secondaryButton =
+    'bg-card border border-border text-foreground hover:bg-accent';
 
   return (
     <div className={wrapperClass}>
-      <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-50 text-3xl mb-3">
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-3xl mb-3">
         <span aria-hidden="true">{icon}</span>
       </div>
-      <h3 className="text-xl font-bold text-[#1B5E20] mb-1">{title}</h3>
+      <h3 className="text-xl font-semibold text-foreground tracking-tight mb-1">{title}</h3>
       {description && (
-        <p className="text-gray-500 text-sm mb-4 max-w-md mx-auto leading-relaxed">{description}</p>
+        <p className="text-muted-foreground text-sm mb-5 max-w-md mx-auto leading-relaxed">{description}</p>
       )}
       {actions.length > 0 && (
         <div className="flex flex-col sm:flex-row gap-2 justify-center mt-2">
           {actions.map((action, i) => {
-            const baseClass = action.primary || i === 0
-              ? 'inline-flex items-center justify-center bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm'
-              : 'inline-flex items-center justify-center bg-white border border-gray-300 text-[#1B5E20] px-5 py-2.5 rounded-lg font-semibold hover:bg-gray-50 transition text-sm';
+            const isPrimary = action.primary || i === 0;
+            const className = cn(baseButton, isPrimary ? primaryButton : secondaryButton);
             if (action.href) {
               return (
-                <Link key={action.label} href={action.href} className={baseClass}>
+                <Link key={action.label} href={action.href} className={className}>
                   {action.label}
                 </Link>
               );
@@ -82,7 +99,7 @@ export default function EmptyState({
                 key={action.label}
                 type="button"
                 onClick={action.onClick}
-                className={baseClass}
+                className={className}
               >
                 {action.label}
               </button>
@@ -93,8 +110,8 @@ export default function EmptyState({
       {preview && (
         <div className="mt-6 text-left max-w-md mx-auto">
           <div className="flex items-center gap-2 mb-2 justify-center">
-            <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Sample preview</span>
-            <span className="h-px flex-1 bg-gray-200 max-w-[60px]" />
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Sample preview</span>
+            <span className="h-px flex-1 bg-border max-w-[60px]" />
           </div>
           <div className="opacity-60 pointer-events-none select-none">
             {preview}

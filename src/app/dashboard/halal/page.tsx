@@ -7,6 +7,7 @@ import { useToast } from '../../../lib/toast';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { trackFeatureUse, trackOnce } from '../../../lib/analytics';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 interface HalalResult { symbol: string; name: string; isHalal: boolean; reason: string; sector: string; debtRatio?: number; }
 interface StockStats { totalStocks: number; halalCount: number; haramCount: number; sectorCount: number; }
 interface DetailResult { symbol: string; name: string; status: string; reason: string; sector: string; debtRatio?: number; }
@@ -170,7 +171,7 @@ export default function HalalPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -178,11 +179,11 @@ export default function HalalPage() {
   if (user && !hasPaidAccess) {
     return (
       <div className="p-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20] mb-4">Halal Stock Screener</h1>
+        <h1 className="text-2xl font-bold text-primary mb-4">Halal Stock Screener</h1>
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
           <p className="text-amber-800 font-semibold mb-2">Plus or Family plan required</p>
           <p className="text-amber-700 text-sm mb-4">Upgrade to screen stocks for Shariah compliance, view sector breakdowns, and more.</p>
-          <Link href="/dashboard/billing" className="inline-block bg-[#1B5E20] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition-colors">
+          <Link href="/dashboard/billing" className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-lg font-semibold hover:bg-primary/90 transition-colors">
             View Plans
           </Link>
         </div>
@@ -192,7 +193,10 @@ export default function HalalPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Stock Screener</h1>
+      <PageHeader
+        title="Stock Screener"
+        subtitle="AAOIFI-screened stocks with debt/interest ratio analysis"
+      />
 
       {/* Freshness badge — daily re-screen status. Surfaces the same data
           the admin observability dashboard uses, so users can confirm that
@@ -290,7 +294,7 @@ export default function HalalPage() {
               <button
                 onClick={handleQuickCheck}
                 disabled={checking}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#1B5E20] text-white px-3 py-1 rounded-md text-sm hover:bg-[#2E7D32] disabled:opacity-50"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-md text-sm hover:bg-primary/90 disabled:opacity-50"
               >
                 {checking ? '...' : 'Check'}
               </button>
@@ -339,7 +343,7 @@ export default function HalalPage() {
         {/* Loading */}
         {loading && (
           <div className="flex justify-center py-8">
-            <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
           </div>
         )}
 
@@ -403,7 +407,7 @@ export default function HalalPage() {
             <button
               onClick={() => setPage(p => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="text-sm text-[#1B5E20] font-medium disabled:opacity-30"
+              className="text-sm text-primary font-medium disabled:opacity-30"
             >
               &larr; Previous
             </button>
@@ -413,7 +417,7 @@ export default function HalalPage() {
             <button
               onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="text-sm text-[#1B5E20] font-medium disabled:opacity-30"
+              className="text-sm text-primary font-medium disabled:opacity-30"
             >
               Next &rarr;
             </button>

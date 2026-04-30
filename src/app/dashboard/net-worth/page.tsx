@@ -5,6 +5,7 @@ import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useCurrency } from '../../../lib/useCurrency';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Snapshot {
   id?: number;
@@ -129,29 +130,32 @@ export default function NetWorthPage() {
   if (isLoading || (user && !hasPaidAccess)) {
     return (
       <div className="flex justify-center py-20">
-        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Net Worth</h1>
-        <button
-          onClick={takeSnapshot}
-          disabled={snapping}
-          className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium disabled:opacity-50"
-        >
-          {snapping ? 'Calculating...' : '📸 Take Snapshot'}
-        </button>
-      </div>
+      <PageHeader
+        title="Net Worth"
+        subtitle="Assets minus debts, with halal-vs-haram split"
+        actions={
+          <button
+            onClick={takeSnapshot}
+            disabled={snapping}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium disabled:opacity-50"
+          >
+            {snapping ? 'Calculating...' : '📸 Take Snapshot'}
+          </button>
+        }
+      />
 
       {error && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4 text-sm text-yellow-800">
@@ -194,7 +198,7 @@ export default function NetWorthPage() {
             disabled={loading}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed ${
               period === p.key
-                ? 'bg-[#1B5E20] text-white'
+                ? 'bg-primary text-primary-foreground'
                 : 'bg-white text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -212,7 +216,7 @@ export default function NetWorthPage() {
 
       {/* Breakdown card */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-        <h2 className="font-bold text-[#1B5E20] mb-4">Breakdown</h2>
+        <h2 className="font-bold text-primary mb-4">Breakdown</h2>
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
@@ -280,7 +284,7 @@ export default function NetWorthPage() {
       {history.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b">
-            <h2 className="font-bold text-[#1B5E20]">Snapshot History</h2>
+            <h2 className="font-bold text-primary">Snapshot History</h2>
             <p className="text-xs text-gray-500 mt-1">A snapshot is recorded once per day when you visit this page</p>
           </div>
           <div className="divide-y">

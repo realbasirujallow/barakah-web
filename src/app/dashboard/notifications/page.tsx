@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { isSafeInternalPath } from '../../../lib/safePath';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Notification {
   id: number;
@@ -117,17 +118,17 @@ export default function NotificationsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1B5E20]">Notifications</h1>
-          {unreadCount > 0 && <p className="text-sm text-gray-500 mt-1">{unreadCount} unread</p>}
-        </div>
-        {unreadCount > 0 && (
-          <button type="button" onClick={markAllRead} className="text-sm text-[#1B5E20] border border-[#1B5E20] px-3 py-1.5 rounded-lg hover:bg-green-50 transition">
-            Mark all read
-          </button>
-        )}
-      </div>
+      <PageHeader
+        title="Notifications"
+        subtitle={unreadCount > 0 ? `${unreadCount} unread` : 'Reminders, alerts, and household activity'}
+        actions={
+          unreadCount > 0 ? (
+            <button type="button" onClick={markAllRead} className="text-sm text-primary border border-primary px-3 py-1.5 rounded-lg hover:bg-green-50 transition">
+              Mark all read
+            </button>
+          ) : undefined
+        }
+      />
 
       {loadError && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-center justify-between gap-3">
@@ -144,7 +145,7 @@ export default function NotificationsPage() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
         </div>
       ) : !loadError && notifications.length === 0 ? (
         <div className="text-center py-20 text-gray-400">
@@ -160,7 +161,7 @@ export default function NotificationsPage() {
             // code nested a <button> inside <a> / <button>, which is
             // invalid HTML — browsers strip/relocate the inner button
             // and screen readers report broken interaction semantics.
-            const rowClass = `bg-white rounded-xl flex gap-4 hover:shadow-md transition group relative ${!n.read ? 'border-l-4 border-[#1B5E20]' : ''}`;
+            const rowClass = `bg-white rounded-xl flex gap-4 hover:shadow-md transition group relative ${!n.read ? 'border-l-4 border-primary' : ''}`;
             const activationInner = (
               <>
                 <span className="text-2xl flex-shrink-0">{icon}</span>
@@ -169,7 +170,7 @@ export default function NotificationsPage() {
                   {n.body && <p className="text-sm text-gray-500 mt-0.5">{n.body}</p>}
                   <p className="text-xs text-gray-400 mt-1">{fmtTime(n.createdAt)}</p>
                 </div>
-                {!n.read && <div className="w-2.5 h-2.5 bg-[#1B5E20] rounded-full mt-1.5 flex-shrink-0" />}
+                {!n.read && <div className="w-2.5 h-2.5 bg-primary rounded-full mt-1.5 flex-shrink-0" />}
               </>
             );
             const activation = isSafeInternalPath(n.link) ? (

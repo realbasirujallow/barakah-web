@@ -8,6 +8,7 @@ import { REFEREE_FIRST_MONTH_PRICE } from '../../../lib/referralCopy';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { PRICING } from '../../../lib/pricing';
 import { trackPaywallViewed, trackUpgradeStarted } from '../../../lib/analytics';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 // ── Plan tier ranking ────────────────────────────────────────────────────────
 const PLAN_TIER: Record<string, number> = { free: 0, plus: 1, family: 2 };
@@ -250,16 +251,16 @@ function BillingContent() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Billing & Plans</h1>
-        <p className="text-gray-500 mt-1">
-          {statusLoading ? (
+      <PageHeader
+        title="Billing & Plans"
+        className="mb-8"
+        subtitle={
+          statusLoading ? (
             <span className="inline-block w-32 h-4 bg-gray-200 rounded animate-pulse" />
           ) : (
             <>
               You&apos;re on the{' '}
-              <span className="font-semibold capitalize text-gray-700">{currentPlan}</span> plan
+              <span className="font-semibold capitalize text-foreground">{currentPlan}</span> plan
               {isPastDue && (
                 <span className="ml-2 text-red-600 font-medium text-sm">
                   ⚠️ Payment past due — please update your payment method
@@ -271,9 +272,9 @@ function BillingContent() {
                 </span>
               )}
             </>
-          )}
-        </p>
-      </div>
+          )
+        }
+      />
 
       {/* Success / Cancel banners */}
       {params.get('success') === 'true' && (
@@ -316,7 +317,7 @@ function BillingContent() {
                   type="button"
                   onClick={handleAcceptSaveOffer}
                   disabled={loading === 'save-offer'}
-                  className="rounded-xl bg-[#1B5E20] px-4 py-3 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-60"
+                  className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
                 >
                   {loading === 'save-offer' ? 'Applying offer...' : 'Keep My Plan With This Offer'}
                 </button>
@@ -344,15 +345,15 @@ function BillingContent() {
       {/* Billing toggle */}
       <div className="flex flex-col items-center mb-6 gap-2">
         <div className="flex items-center gap-3">
-          <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
+          <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-primary' : 'text-gray-400'}`}>Monthly</span>
           <button
             onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
-            className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
+            className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-primary' : 'bg-gray-300'}`}
             aria-label={billing === 'yearly' ? 'Switch to monthly billing' : 'Switch to annual billing'}
           >
             <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-7' : ''}`} />
           </button>
-          <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>
+          <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-primary' : 'text-gray-400'}`}>
             Yearly
           </span>
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full transition-colors ${
@@ -383,15 +384,15 @@ function BillingContent() {
               key={plan.id}
               className={`relative rounded-2xl border flex flex-col p-6 transition-shadow ${
                 isCurrent
-                  ? 'border-[#1B5E20] ring-2 ring-[#1B5E20] shadow-md'
+                  ? 'border-primary ring-2 ring-primary shadow-md'
                   : isHighlight
-                  ? 'border-[#1B5E20] shadow-sm'
+                  ? 'border-primary shadow-sm'
                   : 'border-gray-200'
               } bg-white`}
             >
               {/* Badge */}
               {'badge' in plan && plan.badge && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#1B5E20] text-white text-xs font-semibold px-3 py-1 rounded-full">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
                   {plan.badge}
                 </span>
               )}
@@ -399,7 +400,7 @@ function BillingContent() {
               <h2 className="text-lg font-bold text-gray-800 mt-1">{plan.name}</h2>
 
               <div className="mt-2 mb-4">
-                <span className="text-3xl font-extrabold text-[#1B5E20]">{price}</span>
+                <span className="text-3xl font-extrabold text-primary">{price}</span>
                 <span className="text-gray-400 text-sm">{period}</span>
                 {billing === 'yearly' && plan.yearlySaving && (
                   <span className="ml-2 text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
@@ -411,7 +412,7 @@ function BillingContent() {
               <ul className="space-y-2 flex-1 mb-5">
                 {plan.features.map(f => (
                   <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-[#1B5E20] font-bold mt-0.5">✓</span>
+                    <span className="text-primary font-bold mt-0.5">✓</span>
                     {f}
                   </li>
                 ))}
@@ -427,7 +428,7 @@ function BillingContent() {
 
                 if (isCurrent) {
                   return (
-                    <div className="text-center text-sm font-semibold text-[#1B5E20] py-2 bg-green-50 rounded-xl">
+                    <div className="text-center text-sm font-semibold text-primary py-2 bg-green-50 rounded-xl">
                       ✅ Current Plan
                     </div>
                   );
@@ -454,7 +455,7 @@ function BillingContent() {
                   <button
                     onClick={() => handleUpgrade(plan.id as 'plus' | 'family')}
                     disabled={loading === plan.id}
-                    className="w-full bg-[#1B5E20] text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-[#155016] disabled:opacity-50 transition-colors"
+                    className="w-full bg-primary text-primary-foreground rounded-xl py-2.5 text-sm font-semibold hover:bg-[#155016] disabled:opacity-50 transition-colors"
                   >
                     {loading === plan.id ? (
                       <span className="flex items-center justify-center gap-2">
@@ -483,7 +484,7 @@ function BillingContent() {
             <button
               onClick={handleManage}
               disabled={loading === 'portal'}
-              className="rounded-xl border border-[#1B5E20] px-4 py-3 text-sm font-semibold text-[#1B5E20] hover:bg-green-50 disabled:opacity-60"
+              className="rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary hover:bg-green-50 disabled:opacity-60"
             >
               {loading === 'portal' ? 'Opening portal...' : 'Open Billing Portal'}
             </button>
@@ -520,14 +521,14 @@ function BillingContent() {
             />
             <button
               onClick={copyCode}
-              className="px-4 py-2 bg-[#1B5E20] text-white text-xs font-semibold rounded-lg hover:bg-[#2E7D32] transition whitespace-nowrap"
+              className="px-4 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:bg-primary/90 transition whitespace-nowrap"
             >
               {copied ? '✓ Copied!' : 'Copy Link'}
             </button>
           </div>
 
           <div className="flex items-center gap-4 text-xs text-gray-500">
-            <span>Your code: <strong className="text-[#1B5E20] font-mono text-sm">{referral.referralCode}</strong></span>
+            <span>Your code: <strong className="text-primary font-mono text-sm">{referral.referralCode}</strong></span>
             <span>·</span>
             <span>Rewards triggered: <strong>{referral.referralCount}</strong></span>
             {typeof referral.referralClicks === 'number' && (

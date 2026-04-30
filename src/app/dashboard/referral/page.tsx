@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { trackReferralShare } from '../../../lib/analytics';
 import { REFEREE_FIRST_MONTH_PRICE, REFEREE_REGULAR_PRICE } from '../../../lib/referralCopy';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 // Fire both the GA4 share event and the backend REFERRAL_SHARED lifecycle
 // event so the admin viral-loop funnel reflects this surface.
@@ -79,7 +80,7 @@ export default function ReferralPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#1B5E20] border-t-transparent" />
+      <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent" />
     </div>
   );
 
@@ -90,7 +91,7 @@ export default function ReferralPage() {
       {/* Round 18: retry button so users aren't stranded on a transient error. */}
       <button
         onClick={load}
-        className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition"
+        className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-semibold hover:bg-primary/90 transition"
       >
         Try again
       </button>
@@ -101,8 +102,11 @@ export default function ReferralPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Refer a Friend</h1>
-      <p className="text-gray-600 mb-4">Share Barakah with friends and family.</p>
+      <PageHeader
+        title="Refer a Friend"
+        subtitle="Share Barakah with friends and family."
+        className="mb-4"
+      />
 
       {/* Reward summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -138,7 +142,7 @@ export default function ReferralPage() {
 
       {/* Share Link */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-        <h2 className="font-semibold text-[#1B5E20] mb-3">Your Referral Link</h2>
+        <h2 className="font-semibold text-primary mb-3">Your Referral Link</h2>
         <div className="flex gap-2">
           <input
             type="text"
@@ -152,7 +156,7 @@ export default function ReferralPage() {
             className={`px-5 py-3 rounded-xl font-medium text-sm transition ${
               copied
                 ? 'bg-green-100 text-green-700 border border-green-300'
-                : 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]'
+                : 'bg-primary text-primary-foreground hover:bg-primary/90'
             }`}
           >
             {copied ? '✅ Copied!' : '📋 Copy'}
@@ -199,24 +203,24 @@ export default function ReferralPage() {
 
       {/* How it works */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <h2 className="font-semibold text-[#1B5E20] mb-4">How it works</h2>
+        <h2 className="font-semibold text-primary mb-4">How it works</h2>
         <div className="space-y-4">
           <div className="flex gap-4 items-start">
-            <span className="bg-green-100 text-[#1B5E20] rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">1</span>
+            <span className="bg-green-100 text-primary rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">1</span>
             <div>
               <p className="font-medium">Share your link</p>
               <p className="text-gray-500 text-sm">Send your unique referral link to friends and family.</p>
             </div>
           </div>
           <div className="flex gap-4 items-start">
-            <span className="bg-green-100 text-[#1B5E20] rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">2</span>
+            <span className="bg-green-100 text-primary rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">2</span>
             <div>
               <p className="font-medium">They sign up</p>
               <p className="text-gray-500 text-sm">When someone signs up using your link, they&apos;re linked to your account.</p>
             </div>
           </div>
           <div className="flex gap-4 items-start">
-            <span className="bg-green-100 text-[#1B5E20] rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">3</span>
+            <span className="bg-green-100 text-primary rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">3</span>
             <div>
               <p className="font-medium">Earn rewards</p>
               <p className="text-gray-500 text-sm">Once they verify their email, <strong>you earn a free extra month</strong> and <strong>they get their first paid month for {REFEREE_FIRST_MONTH_PRICE}</strong> — automatically applied at checkout.</p>

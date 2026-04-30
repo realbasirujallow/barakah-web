@@ -3,7 +3,27 @@
 import { useCallback, useMemo, useSyncExternalStore } from 'react';
 
 const CURRENCY_KEY = 'barakah_preferred_currency';
-const LOCALE_KEY = 'barakah_locale';
+/**
+ * Round 27 (Apr 27 2026) — number-formatting locale is now its own
+ * preference, decoupled from UI translation locale.
+ *
+ * Why: `barakah_locale` (UI strings) and number formatting were
+ * aliased to the same localStorage key. That meant a user who picked
+ * French in the language switcher would see "0,00 $US" instead of
+ * "$0.00" — French translation is fine, French currency formatting
+ * is jarring on an en-US browser. The two settings should be
+ * orthogonal: a Spanish speaker in Texas can want UI in Spanish but
+ * numbers in en-US, and that's a totally normal preference.
+ *
+ * Default behavior:
+ *   • If `barakah_number_locale` is set → use it.
+ *   • Else → fall back to `navigator.language` (browser preference).
+ *   • Else → undefined → Intl picks the user-agent default.
+ *
+ * The legacy `barakah_locale` key is intentionally NOT read here
+ * anymore — it was the source of the regression.
+ */
+const NUMBER_LOCALE_KEY = 'barakah_number_locale';
 const CURRENCY_CHANGE_EVENT = 'barakah:currency-change';
 
 // ── External store helpers ─────────────────────────────────────────────────
@@ -14,7 +34,7 @@ const CURRENCY_CHANGE_EVENT = 'barakah:currency-change';
 function subscribe(cb: () => void): () => void {
   if (typeof window === 'undefined') return () => {};
   const onStorage = (e: StorageEvent) => {
-    if (e.key === CURRENCY_KEY || e.key === LOCALE_KEY) cb();
+    if (e.key === CURRENCY_KEY || e.key === NUMBER_LOCALE_KEY) cb();
   };
   window.addEventListener('storage', onStorage);
   window.addEventListener(CURRENCY_CHANGE_EVENT, cb);
@@ -35,16 +55,17 @@ function serverSnapshot(): string {
 
 function localeSnapshot(): string | undefined {
   if (typeof window === 'undefined') return undefined;
-  // Round 23: locale preference can come from 3 sources, in priority
-  // order:
-  //   1. `barakah_locale` localStorage (explicit user override)
+  // Round 27 (Apr 27 2026): priority is now
+  //   1. `barakah_number_locale` (explicit user override for numbers)
   //   2. `navigator.language` (browser default — matches OS locale)
   //   3. undefined → `Intl.NumberFormat` picks the user-agent default
-  // We NEVER hardcode `en-US` anymore. A French user in Paris with
-  // their browser set to fr-FR sees `1 234,56 €` for EUR instead of
-  // `€1,234.56`; Arabic users see `١٬٢٣٤٫٥٦ د.إ` for AED.
+  //
+  // We do NOT read `barakah_locale` anymore — that's the UI translation
+  // locale, which should not control number formatting. (Previously
+  // they were aliased and a user picking French in the language switcher
+  // got "0,00 $US" everywhere they expected "$0.00".)
   return (
-    localStorage.getItem(LOCALE_KEY) ||
+    localStorage.getItem(NUMBER_LOCALE_KEY) ||
     (typeof navigator !== 'undefined' ? navigator.language : undefined) ||
     undefined
   );
@@ -129,16 +150,20 @@ export function saveCurrencyPreference(currency: string): void {
 }
 
 /**
- * Round 23: explicit locale override, persisted to localStorage. Most
- * users never need this — `useCurrency` defaults to `navigator.language`
- * which matches the OS locale on all modern browsers. Use this only if
- * we add a "Language" dropdown in Settings later.
+ * Round 23 + 27: explicit number-formatting locale override, persisted
+ * to localStorage. Most users never need this — `useCurrency` defaults
+ * to `navigator.language` which matches the OS locale.
+ *
+ * Note: this writes to `barakah_number_locale`, NOT the UI translation
+ * `barakah_locale`. They're independent concerns (see Round 27 comment
+ * in this file) — picking French translations does not change number
+ * formatting and vice versa.
  */
 export function saveLocalePreference(locale: string): void {
   if (typeof window !== 'undefined' && locale) {
     // Round 26: same safeSetItem treatment as saveCurrencyPreference.
     try {
-      localStorage.setItem(LOCALE_KEY, locale);
+      localStorage.setItem(NUMBER_LOCALE_KEY, locale);
     } catch { /* quota / private mode — accept silently */ }
     window.dispatchEvent(new Event(CURRENCY_CHANGE_EVENT));
   }

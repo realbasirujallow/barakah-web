@@ -9,6 +9,8 @@ import { SkeletonPage } from '../SkeletonCard';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import EmptyState from '../../../components/EmptyState';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { FormHelp } from '../../../components/dashboard/FormHelp';
 
 interface Goal { id: number; name: string; category: string; targetAmount: number; currentAmount: number; description: string; deadline: number | null; }
 const CATS = ['hajj', 'umrah', 'emergency', 'education', 'wedding', 'home', 'vehicle', 'business', 'retirement', 'other'];
@@ -199,7 +201,7 @@ export default function SavingsPage() {
         </div>
         <Link
           href="/dashboard/billing"
-          className="inline-block bg-[#1B5E20] text-white px-8 py-3 rounded-xl font-bold hover:bg-green-800 transition"
+          className="inline-block bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold hover:bg-green-800 transition"
         >
           Upgrade to Plus — from $9.99/mo
         </Link>
@@ -216,11 +218,13 @@ export default function SavingsPage() {
 
   return (
     <div>
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Savings Goals</h1>
-        <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ New Goal</button>
-      </div>
+      <PageHeader
+        title="Savings Goals"
+        subtitle="Track progress toward Hajj, emergency fund, and other halal goals"
+        actions={
+          <button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ New Goal</button>
+        }
+      />
 
       {/* ── Aggregate banner ───────────────────────────────────────────────── */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-500 rounded-2xl p-6 text-white mb-6">
@@ -284,7 +288,7 @@ export default function SavingsPage() {
               <div key={g.id} className={`bg-white rounded-xl p-4 ${done ? 'border-l-4 border-green-500' : ''}`}>
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="font-semibold text-[#1B5E20] flex items-center gap-1.5">
+                    <p className="font-semibold text-primary flex items-center gap-1.5">
                       {g.name}{done && <span className="text-green-600 text-sm">✅</span>}
                     </p>
                     <p className="text-sm text-gray-500 capitalize">{g.category}{g.description ? ` • ${g.description}` : ''}</p>
@@ -328,7 +332,7 @@ export default function SavingsPage() {
                     <span className="text-xs text-gray-500">{g.progress} / {g.target}</span>
                   </div>
                   <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#1B5E20] rounded-full" style={{ width: `${g.pct}%` }} />
+                    <div className="h-full bg-primary rounded-full" style={{ width: `${g.pct}%` }} />
                   </div>
                 </div>
               ))}
@@ -347,7 +351,7 @@ export default function SavingsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">New Savings Goal</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">New Savings Goal</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Goal Name</label>
                 <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Hajj Fund" /></div>
@@ -355,14 +359,24 @@ export default function SavingsPage() {
                 <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {CATS.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
                 </select></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Target Amount</label>
-                <input type="number" step="0.01" value={form.targetAmount} onChange={e => setForm({ ...form, targetAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="10000" /></div>
+              <div>
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                  Target Amount
+                  <FormHelp ariaLabel="About target amount">
+                    The full amount you&apos;re saving toward, in your preferred
+                    currency. You can change this later as the goal evolves
+                    (e.g. Hajj cost increases or you upgrade to a different
+                    package).
+                  </FormHelp>
+                </label>
+                <input type="number" step="0.01" value={form.targetAmount} onChange={e => setForm({ ...form, targetAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="10000" />
+              </div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
                 <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             </div>
             <div className="flex gap-3 mt-6">
               <button type="button" aria-label="Close new goal modal" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.targetAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Create'}</button>
+              <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.targetAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Create'}</button>
             </div>
           </div>
         </div>
@@ -378,14 +392,14 @@ export default function SavingsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-sm"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-2">Contribute</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-2">Contribute</h2>
             <p className="text-gray-500 text-sm mb-4">{contModal.name} • {fmt(contModal.currentAmount)} / {fmt(contModal.targetAmount)}</p>
             {contError && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg mb-2">{contError}</div>}
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
               <input type="number" step="0.01" value={contAmount} onChange={e => { setContAmount(e.target.value); setContError(null); }} className={`w-full border rounded-lg px-3 py-2 text-gray-900 ${contError ? 'border-red-400' : ''}`} placeholder="100" /></div>
             <div className="flex gap-3 mt-6">
               <button type="button" aria-label="Close contribute modal" onClick={() => setContModal(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handleContribute} disabled={saving || !contAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Contribute'}</button>
+              <button type="button" onClick={handleContribute} disabled={saving || !contAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Contribute'}</button>
             </div>
           </div>
         </div>

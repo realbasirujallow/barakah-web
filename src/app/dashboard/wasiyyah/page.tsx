@@ -5,6 +5,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { safeParse, validateWasiyyahBeneficiary } from '../../../lib/schemas';
 
 interface Beneficiary {
@@ -225,7 +226,7 @@ function WasiyyahPageContent() {
     load();
   };
 
-  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
 
   // NOTE: totalPending sums raw amounts across obligations without currency
   // conversion, then displays with the user's preferred currency. This is
@@ -245,45 +246,48 @@ function WasiyyahPageContent() {
             Family plan members can view each other&apos;s wills and estate plans through Shared Finances.
           </p>
         </div>
-        <a href="/dashboard/shared" className="text-xs text-[#1B5E20] font-semibold hover:underline whitespace-nowrap self-center">
+        <a href="/dashboard/shared" className="text-xs text-primary font-semibold hover:underline whitespace-nowrap self-center">
           Go to Shared Finances &rarr;
         </a>
       </div>
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Wasiyyah (Islamic Will)</h1>
-        <div className="flex gap-2">
-          {/* Islamic Shares Info button */}
-          <button
-            type="button"
-            onClick={() => setShowSharesInfo(true)}
-            title="Islamic Inheritance Guide"
-            className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium"
-          >
-            📖 Guide
-          </button>
-          <button
-            type="button"
-            disabled={exporting}
-            onClick={async () => {
-              setExporting(true);
-              try { await api.downloadWasiyyahPdf(); }
-              catch (err) { toast(err instanceof Error ? err.message : 'Failed to export PDF', 'error'); }
-              finally { setExporting(false); }
-            }}
-            className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium flex items-center gap-1 disabled:opacity-50"
-          >
-            {exporting ? 'Exporting...' : '📄 PDF'}
-          </button>
-          <button
-            type="button"
-            onClick={() => tab === 'beneficiaries' ? setShowForm(true) : setShowObForm(true)}
-            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
-          >
-            {tab === 'beneficiaries' ? '+ Add Beneficiary' : '+ Record Obligation'}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Wasiyyah (Islamic Will)"
+        subtitle="1/3 bequest within Islamic estate planning rules"
+        actions={
+          <>
+            {/* Islamic Shares Info button */}
+            <button
+              type="button"
+              onClick={() => setShowSharesInfo(true)}
+              title="Islamic Inheritance Guide"
+              className="border border-primary text-primary px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium"
+            >
+              📖 Guide
+            </button>
+            <button
+              type="button"
+              disabled={exporting}
+              onClick={async () => {
+                setExporting(true);
+                try { await api.downloadWasiyyahPdf(); }
+                catch (err) { toast(err instanceof Error ? err.message : 'Failed to export PDF', 'error'); }
+                finally { setExporting(false); }
+              }}
+              className="border border-primary text-primary px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium flex items-center gap-1 disabled:opacity-50"
+            >
+              {exporting ? 'Exporting...' : '📄 PDF'}
+            </button>
+            <button
+              type="button"
+              onClick={() => tab === 'beneficiaries' ? setShowForm(true) : setShowObForm(true)}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm"
+            >
+              {tab === 'beneficiaries' ? '+ Add Beneficiary' : '+ Record Obligation'}
+            </button>
+          </>
+        }
+      />
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6" role="tablist" aria-label="Wasiyyah sections">
@@ -294,7 +298,7 @@ function WasiyyahPageContent() {
             onClick={() => setTab(t)}
             role="tab"
             aria-selected={tab === t}
-            className={`px-5 py-2 rounded-full text-sm font-semibold transition ${tab === t ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`px-5 py-2 rounded-full text-sm font-semibold transition ${tab === t ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
           >
             {t === 'beneficiaries'
               ? `📜 Beneficiaries (${items.length})`
@@ -392,7 +396,7 @@ function WasiyyahPageContent() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-[#1B5E20]">{b.beneficiaryName}</p>
+                        <p className="font-semibold text-primary">{b.beneficiaryName}</p>
                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isFixed ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
                           {isFixed ? 'FARD' : 'VOLUNTARY'}
                         </span>
@@ -402,7 +406,7 @@ function WasiyyahPageContent() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      <p className={`text-2xl font-bold ${isFixed ? 'text-[#1B5E20]' : 'text-orange-600'}`}>
+                      <p className={`text-2xl font-bold ${isFixed ? 'text-primary' : 'text-orange-600'}`}>
                         {b.sharePercentage}%
                       </p>
                       <button
@@ -440,7 +444,7 @@ function WasiyyahPageContent() {
                         <p className="text-xs text-gray-400">{b.rel}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-[#1B5E20]">{b.share}</p>
+                        <p className="font-semibold text-primary">{b.share}</p>
                         <span className="text-[10px] font-bold text-green-700">{b.tag}</span>
                       </div>
                     </div>
@@ -488,7 +492,7 @@ function WasiyyahPageContent() {
                           <button
                             type="button"
                             onClick={() => markFulfilled(ob)}
-                            className="text-xs text-[#1B5E20] hover:underline font-medium"
+                            className="text-xs text-primary hover:underline font-medium"
                           >
                             {ob.status === 'pending' ? '✓ Mark fulfilled' : '↩ Mark pending'}
                           </button>
@@ -545,9 +549,9 @@ function WasiyyahPageContent() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-2xl">📖</span>
-              <h2 className="text-xl font-bold text-[#1B5E20]">Islamic Inheritance Guide</h2>
+              <h2 className="text-xl font-bold text-primary">Islamic Inheritance Guide</h2>
             </div>
-            <p className="text-sm font-semibold text-[#1B5E20] mb-3">
+            <p className="text-sm font-semibold text-primary mb-3">
               Qur&apos;anic Inheritance Shares (Surah An-Nisa 4:11-12)
             </p>
             {Object.keys(islamicShares).length > 0 ? (
@@ -575,7 +579,7 @@ function WasiyyahPageContent() {
             <button
               type="button"
               onClick={() => setShowSharesInfo(false)}
-              className="w-full bg-[#1B5E20] text-white rounded-lg py-2.5 font-medium hover:bg-[#2E7D32]"
+              className="w-full bg-primary text-primary-foreground rounded-lg py-2.5 font-medium hover:bg-primary/90"
             >
               Close
             </button>
@@ -587,7 +591,7 @@ function WasiyyahPageContent() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Beneficiary</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">Add Beneficiary</h2>
             {formError && (
               <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg mb-4">
                 ⚠️ {formError}
@@ -692,7 +696,7 @@ function WasiyyahPageContent() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving || !form.beneficiaryName || !form.sharePercentage}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Add Beneficiary'}
               </button>
@@ -705,7 +709,7 @@ function WasiyyahPageContent() {
       {showObForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-1">Record an Obligation</h2>
+            <h2 className="text-xl font-bold text-primary mb-1">Record an Obligation</h2>
             <p className="text-sm text-gray-500 mb-4">An Islamic duty to be settled from your estate</p>
             <div className="space-y-4">
               <div>
@@ -716,7 +720,7 @@ function WasiyyahPageContent() {
                       key={t.value}
                       type="button"
                       onClick={() => setObForm({ ...obForm, type: t.value })}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium transition ${obForm.type === t.value ? 'bg-[#1B5E20] border-[#1B5E20] text-white' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium transition ${obForm.type === t.value ? 'bg-primary border-primary text-white' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
                     >
                       <span>{t.emoji}</span> {t.label}
                     </button>
@@ -788,7 +792,7 @@ function WasiyyahPageContent() {
                 type="button"
                 onClick={handleObSave}
                 disabled={saving || !obForm.description || !obForm.amount}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Record Obligation'}
               </button>

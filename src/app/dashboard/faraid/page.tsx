@@ -8,6 +8,7 @@ import Link from 'next/link';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
 } from 'recharts';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -297,7 +298,7 @@ export default function FaraidPage() {
       <div className="max-w-2xl mx-auto py-16 px-4 text-center">
         <div className="bg-white border border-gray-200 rounded-2xl p-10 shadow-sm">
           <div className="text-5xl mb-4">📜</div>
-          <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">
+          <h1 className="text-2xl font-bold text-primary mb-2">
             Faraid Calculator
           </h1>
           <p className="text-gray-600 mb-6">
@@ -306,7 +307,7 @@ export default function FaraidPage() {
           </p>
           <Link
             href="/dashboard/billing"
-            className="inline-block bg-[#1B5E20] text-white font-semibold px-8 py-3 rounded-xl hover:bg-[#2E7D32] transition"
+            className="inline-block bg-primary text-primary-foreground font-semibold px-8 py-3 rounded-xl hover:bg-primary/90 transition"
           >
             Upgrade to Plus
           </Link>
@@ -328,10 +329,11 @@ export default function FaraidPage() {
   return (
     <div className="max-w-6xl mx-auto py-8 px-4 space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Faraid Calculator</h1>
-        <p className="text-gray-500 mt-1">Islamic Inheritance Distribution</p>
-      </div>
+      <PageHeader
+        title="Faraid Calculator"
+        subtitle="Islamic inheritance distribution per Sunni / Shia rules"
+        className="mb-0"
+      />
 
       {prefilled && (
         <div className="bg-green-50 border border-green-200 text-green-900 rounded-xl px-4 py-3 text-sm flex items-center justify-between gap-3">
@@ -353,7 +355,7 @@ export default function FaraidPage() {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Left — Estate Details */}
         <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-5">
-          <h2 className="text-lg font-semibold text-[#1B5E20]">Estate Details</h2>
+          <h2 className="text-lg font-semibold text-primary">Estate Details</h2>
 
           <CurrencyInput label="Total Estate Value" value={form.estateValue} onChange={(v) => setNumber('estateValue', v)} symbol={currencySymbol} />
           <CurrencyInput label="Funeral Expenses" value={form.funeralExpenses} onChange={(v) => setNumber('funeralExpenses', v)} symbol={currencySymbol} />
@@ -363,7 +365,7 @@ export default function FaraidPage() {
 
         {/* Right — Heirs */}
         <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-6">
-          <h2 className="text-lg font-semibold text-[#1B5E20]">Heirs</h2>
+          <h2 className="text-lg font-semibold text-primary">Heirs</h2>
 
           {/* Spouse */}
           <fieldset>
@@ -468,7 +470,7 @@ export default function FaraidPage() {
         type="button"
         onClick={calculate}
         disabled={loading}
-        className="w-full bg-[#1B5E20] text-white font-semibold py-3.5 rounded-xl hover:bg-[#2E7D32] transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-primary text-primary-foreground font-semibold py-3.5 rounded-xl hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? 'Calculating...' : 'Calculate Faraid Distribution'}
       </button>
@@ -478,7 +480,7 @@ export default function FaraidPage() {
         <div className="space-y-8">
           {/* Deduction Flow */}
           <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Deduction Flow</h2>
+            <h2 className="text-lg font-semibold text-primary mb-4">Deduction Flow</h2>
             <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
               <FlowCard label="Total Estate" amount={result.estateValue} />
               <FlowArrow />
@@ -499,7 +501,7 @@ export default function FaraidPage() {
 
           {/* Heir Distribution Table */}
           <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Heir Distribution</h2>
+            <h2 className="text-lg font-semibold text-primary mb-4">Heir Distribution</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -518,7 +520,7 @@ export default function FaraidPage() {
                         <td className="py-3 pr-4 text-gray-600">
                           {(adj.adjustedShare * 100).toFixed(2)}%
                         </td>
-                        <td className="py-3 pr-4 text-right font-semibold text-[#1B5E20]">
+                        <td className="py-3 pr-4 text-right font-semibold text-primary">
                           {fmt(adj.amount)}
                         </td>
                         <td className="py-3 text-gray-500 text-xs">
@@ -535,7 +537,7 @@ export default function FaraidPage() {
           {/* Pie Chart */}
           {pieData.length > 0 && (
             <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Distribution Chart</h2>
+              <h2 className="text-lg font-semibold text-primary mb-4">Distribution Chart</h2>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -566,7 +568,7 @@ export default function FaraidPage() {
           {/* Special Rules */}
           {(result.awlApplied || result.raddApplied) && (
             <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-3">
-              <h2 className="text-lg font-semibold text-[#1B5E20] mb-2">Special Rules Applied</h2>
+              <h2 className="text-lg font-semibold text-primary mb-2">Special Rules Applied</h2>
               {result.awlApplied && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-800">
                   <span className="font-semibold">Awl (Proportional Reduction):</span> The total prescribed shares exceeded 100%.
@@ -585,18 +587,18 @@ export default function FaraidPage() {
           {/* Blocking Rules */}
           {(blockingRules.siblingsBlocked || blockingRules.maternalSiblingsBlocked) && (
             <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-3">
-              <h2 className="text-lg font-semibold text-[#1B5E20] mb-2">Blocking Rules</h2>
+              <h2 className="text-lg font-semibold text-primary mb-2">Blocking Rules</h2>
               {blockingRules.siblingsBlocked && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700">
                   <span className="font-semibold">Siblings blocked</span> by{' '}
-                  <span className="text-[#1B5E20] font-medium">{blockingRules.siblingBlockedBy || 'closer heirs'}</span>.
+                  <span className="text-primary font-medium">{blockingRules.siblingBlockedBy || 'closer heirs'}</span>.
                   In Islamic inheritance law, certain closer relatives exclude more distant ones from inheriting.
                 </div>
               )}
               {blockingRules.maternalSiblingsBlocked && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700">
                   <span className="font-semibold">Maternal siblings blocked</span> by{' '}
-                  <span className="text-[#1B5E20] font-medium">{blockingRules.maternalBlockedBy || 'closer heirs'}</span>.
+                  <span className="text-primary font-medium">{blockingRules.maternalBlockedBy || 'closer heirs'}</span>.
                   Maternal half-siblings are excluded when certain relatives are present.
                 </div>
               )}
@@ -617,7 +619,7 @@ export default function FaraidPage() {
               onClick={() => setEducationOpen(!educationOpen)}
               className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition"
             >
-              <h2 className="text-lg font-semibold text-[#1B5E20]">Quranic References</h2>
+              <h2 className="text-lg font-semibold text-primary">Quranic References</h2>
               <svg
                 className={`w-5 h-5 text-gray-400 transition-transform ${educationOpen ? 'rotate-180' : ''}`}
                 fill="none"
@@ -691,7 +693,7 @@ function CurrencyInput({
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
           placeholder="0.00"
-          className="w-full pl-7 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/20 focus:border-[#1B5E20]"
+          className="w-full pl-7 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         />
       </div>
     </div>
@@ -717,7 +719,7 @@ function IntInput({
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
         placeholder="0"
-        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/20 focus:border-[#1B5E20]"
+        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
       />
     </div>
   );
@@ -740,7 +742,7 @@ function FlowCard({
     <div
       className={`flex flex-col items-center px-4 py-3 rounded-xl border text-center min-w-[120px] ${
         highlight
-          ? 'bg-[#1B5E20] text-white border-[#1B5E20]'
+          ? 'bg-primary text-primary-foreground border-primary'
           : 'bg-gray-50 border-gray-200 text-gray-800'
       }`}
     >

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import Link from 'next/link';
 
 type Period = 'week' | 'month' | 'year' | 'all';
@@ -81,12 +82,11 @@ function ReportsPageContent() {
 
   return (
     <div className="max-w-2xl">
-      {/* Hero banner */}
-      <div className="bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] rounded-2xl p-8 text-white mb-8 text-center">
-        <p className="text-5xl mb-3">📄</p>
-        <h1 className="text-2xl font-bold mb-1">Reports & Exports</h1>
-        <p className="text-green-200 text-sm">Generate professional financial reports and download your data</p>
-      </div>
+      <PageHeader
+        title="Reports & Exports"
+        icon="📄"
+        subtitle="Generate professional financial reports and download your data"
+      />
 
       {/* Period selector — for time-based reports */}
       <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
@@ -99,7 +99,7 @@ function ReportsPageContent() {
               onClick={() => setPeriod(p.value)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition border ${
                 period === p.value
-                  ? 'bg-[#1B5E20] text-white border-[#1B5E20]'
+                  ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
               }`}
             >
@@ -132,7 +132,7 @@ function ReportsPageContent() {
                 </div>
                 <p className="text-sm text-gray-500">{r.desc}</p>
                 {r.periodPicker && (
-                  <p className="text-xs text-[#1B5E20] font-medium mt-1">
+                  <p className="text-xs text-primary font-medium mt-1">
                     Period: {PERIODS.find(p => p.value === period)?.label}
                   </p>
                 )}
@@ -142,7 +142,7 @@ function ReportsPageContent() {
                   type="button"
                   onClick={() => handleGenerate(r.id)}
                   disabled={isLoading}
-                  className="flex-shrink-0 flex items-center gap-1.5 bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium transition"
+                  className="flex-shrink-0 flex items-center gap-1.5 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium transition"
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-1.5">
@@ -155,7 +155,7 @@ function ReportsPageContent() {
                 </button>
               )}
               {r.href && (
-                <span className="flex-shrink-0 text-[#1B5E20] text-lg">→</span>
+                <span className="flex-shrink-0 text-primary text-lg">→</span>
               )}
             </div>
           );

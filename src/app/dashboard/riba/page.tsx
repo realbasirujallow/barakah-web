@@ -7,6 +7,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useRouter } from 'next/navigation';
 import { trackFeatureUse, trackOnce } from '../../../lib/analytics';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 // ── Existing interfaces ───────────────────────────────────────────────────────
 
@@ -404,10 +405,10 @@ export default function RibaPage() {
   // caused the spinner to render briefly before router.replace completed.
   if (!isLoading && user && !hasPaidAccess) return null;
   if (isLoading) {
-    return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
+    return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
   }
 
-  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
 
   // ── Scan derived state ──────────────────────────────────────────────────────
   const noTransactions = !result || result.totalScanned === 0;
@@ -433,7 +434,10 @@ export default function RibaPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-6">Riba Detector</h1>
+      <PageHeader
+        title="Riba Detector"
+        subtitle="Scan transactions for interest charges and track purification of haram income"
+      />
 
       {/* ── Tab Bar ── */}
       <div className="flex border-b border-gray-200 mb-6">
@@ -443,13 +447,13 @@ export default function RibaPage() {
             onClick={() => setActiveTab(tab.key)}
             className={`px-6 py-3 text-sm font-medium transition-colors relative ${
               activeTab === tab.key
-                ? 'text-[#1B5E20] font-bold'
+                ? 'text-primary font-bold'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {tab.label}
             {activeTab === tab.key && (
-              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#1B5E20] rounded-t" />
+              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary rounded-t" />
             )}
           </button>
         ))}
@@ -627,7 +631,7 @@ export default function RibaPage() {
                         type="button"
                         onClick={() => handlePurifyTransaction(tx)}
                         disabled={purifyingTxnId !== null}
-                        className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#154a19] transition disabled:opacity-50 whitespace-nowrap"
+                        className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#154a19] transition disabled:opacity-50 whitespace-nowrap"
                         title={`Record ${fmt(tx.amount)} as donated to charity`}
                       >
                         {purifyingTxnId === tx.transactionId ? 'Recording…' : `🤲 Purify ${fmt(tx.amount)}`}
@@ -652,7 +656,7 @@ export default function RibaPage() {
         <>
           {journeyLoading && (
             <div className="flex justify-center py-20">
-              <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
             </div>
           )}
 
@@ -661,7 +665,7 @@ export default function RibaPage() {
               <p className="text-red-700 font-medium mb-2">{journeyError}</p>
               <button
                 onClick={loadJourney}
-                className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-semibold hover:bg-[#154a19] transition"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-[#154a19] transition"
               >
                 Retry
               </button>
@@ -717,7 +721,7 @@ export default function RibaPage() {
               {/* ── Active Goals List ── */}
               {activeGoals.length > 0 && (
                 <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-[#1B5E20] mb-3">Active Goals</h2>
+                  <h2 className="text-lg font-semibold text-primary mb-3">Active Goals</h2>
                   <div className="space-y-3">
                     {activeGoals.map(goal => (
                       <div key={goal.id} className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
@@ -740,7 +744,7 @@ export default function RibaPage() {
                           <div className="mb-3">
                             <button
                               onClick={() => toggleAlternative(goal.id)}
-                              className="text-xs font-medium text-[#1B5E20] hover:underline flex items-center gap-1"
+                              className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
                             >
                               <span>{expandedAlternatives.has(goal.id) ? '▾' : '▸'}</span>
                               Halal Alternative
@@ -779,7 +783,7 @@ export default function RibaPage() {
 
               {/* ── Add Goal Section ── */}
               <div className="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-6">
-                <h2 className="text-lg font-semibold text-[#1B5E20] mb-4">Add Riba Source</h2>
+                <h2 className="text-lg font-semibold text-primary mb-4">Add Riba Source</h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
@@ -787,7 +791,7 @@ export default function RibaPage() {
                     <select
                       value={goalForm.sourceType}
                       onChange={e => setGoalForm(prev => ({ ...prev, sourceType: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1B5E20] outline-none bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
                     >
                       {SOURCE_TYPES.map(t => (
                         <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>
@@ -801,7 +805,7 @@ export default function RibaPage() {
                       value={goalForm.sourceName}
                       onChange={e => setGoalForm(prev => ({ ...prev, sourceName: e.target.value }))}
                       placeholder="e.g. Chase Mortgage, Discover Card"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1B5E20] outline-none"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
                     />
                   </div>
                   <div>
@@ -813,7 +817,7 @@ export default function RibaPage() {
                       value={goalForm.currentAmount}
                       onChange={e => setGoalForm(prev => ({ ...prev, currentAmount: e.target.value }))}
                       placeholder="0.00"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1B5E20] outline-none"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
                     />
                   </div>
                   <div>
@@ -823,7 +827,7 @@ export default function RibaPage() {
                       onChange={e => setGoalForm(prev => ({ ...prev, notes: e.target.value }))}
                       placeholder="Any additional details..."
                       rows={1}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#1B5E20] outline-none resize-none"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
                     />
                   </div>
                 </div>
@@ -832,14 +836,14 @@ export default function RibaPage() {
                   <button
                     onClick={handleCreateGoal}
                     disabled={submittingGoal || !goalForm.sourceName.trim() || !goalForm.currentAmount}
-                    className="px-5 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-semibold hover:bg-[#154a19] transition disabled:opacity-50"
+                    className="px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-[#154a19] transition disabled:opacity-50"
                   >
                     {submittingGoal ? 'Adding...' : 'Add Goal'}
                   </button>
                   <button
                     onClick={handleLoadSuggestions}
                     disabled={loadingSuggestions}
-                    className="px-5 py-2 bg-white border border-[#1B5E20] text-[#1B5E20] rounded-lg text-sm font-semibold hover:bg-green-50 transition disabled:opacity-50"
+                    className="px-5 py-2 bg-white border border-primary text-primary rounded-lg text-sm font-semibold hover:bg-green-50 transition disabled:opacity-50"
                   >
                     {loadingSuggestions ? 'Detecting...' : 'Auto-Detect from Debts'}
                   </button>
@@ -861,7 +865,7 @@ export default function RibaPage() {
                               notes: s.notes,
                             });
                           }}
-                          className="text-left bg-white border border-green-200 rounded-lg p-3 hover:border-[#1B5E20] hover:shadow-sm transition"
+                          className="text-left bg-white border border-green-200 rounded-lg p-3 hover:border-primary hover:shadow-sm transition"
                         >
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${SOURCE_TYPE_COLORS[s.sourceType] ?? 'bg-gray-100 text-gray-700'}`}>
                             {s.sourceType.replace(/_/g, ' ')}
@@ -878,7 +882,7 @@ export default function RibaPage() {
               {/* ── Milestones (Eliminated Goals) ── */}
               {eliminatedGoals.length > 0 && (
                 <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-[#1B5E20] mb-3">Milestones</h2>
+                  <h2 className="text-lg font-semibold text-primary mb-3">Milestones</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {eliminatedGoals.map(goal => (
                       <div key={goal.id} className="bg-green-50 border border-green-200 rounded-xl p-5">

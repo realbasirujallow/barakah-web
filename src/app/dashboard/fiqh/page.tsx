@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface FiqhConfig {
   madhab?: string;
@@ -222,10 +223,11 @@ export default function FiqhSettingsPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] p-4 sm:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-[#1B5E20] mb-2">Fiqh Settings</h1>
-          <p className="text-gray-600">Configure your Islamic finance preferences and interpretation methodology</p>
-        </div>
+        <PageHeader
+          title="Fiqh Settings"
+          subtitle="Configure your Islamic finance preferences and interpretation methodology"
+          className="mb-8"
+        />
 
         {/* Tabs */}
         <div className="flex gap-4 mb-6">
@@ -254,7 +256,7 @@ export default function FiqhSettingsPage() {
         {/* Madhab Tab */}
         {activeTab === 'madhab' && (
           <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-            <h2 className="text-2xl font-bold text-[#1B5E20] mb-6">Select Your School of Thought</h2>
+            <h2 className="text-2xl font-bold text-primary mb-6">Select Your School of Thought</h2>
 
             {schools.length > 0 ? (
               <div className="space-y-4">
@@ -263,7 +265,7 @@ export default function FiqhSettingsPage() {
                     key={school.value}
                     className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition ${
                       selectedMadhab === school.value
-                        ? 'border-[#1B5E20] bg-green-50 ring-1 ring-[#1B5E20]'
+                        ? 'border-primary bg-green-50 ring-1 ring-primary'
                         : 'border-gray-200 hover:border-green-700 hover:bg-green-50'
                     }`}
                   >
@@ -274,10 +276,10 @@ export default function FiqhSettingsPage() {
                       checked={selectedMadhab === school.value}
                       onChange={() => handleMadhabChange(school.value)}
                       disabled={saving}
-                      className="mt-1 w-5 h-5 text-[#1B5E20] accent-[#1B5E20]"
+                      className="mt-1 w-5 h-5 text-primary accent-[#1B5E20]"
                     />
                     <div className="flex-1">
-                      <p className="font-semibold text-[#1B5E20]">{school.displayName}</p>
+                      <p className="font-semibold text-primary">{school.displayName}</p>
                       {school.founder && (
                         <p className="text-sm text-green-800 font-medium">{school.founder}</p>
                       )}
@@ -322,7 +324,7 @@ export default function FiqhSettingsPage() {
 
             {/* Nisab Methodology — has a Hanafi ↔ silver auto-link with madhab */}
             <div className="mt-8 pt-8 border-t border-gray-200">
-              <h2 className="text-2xl font-bold text-[#1B5E20] mb-2">Nisab Threshold Methodology</h2>
+              <h2 className="text-2xl font-bold text-primary mb-2">Nisab Threshold Methodology</h2>
               <p className="text-sm text-gray-600 mb-2">
                 Choose how Barakah calculates the nisab threshold (the minimum wealth above which zakat becomes obligatory).
                 Switching your madhab to <strong>Hanafi</strong> auto-selects the classical silver standard here, and switching back to
@@ -343,7 +345,7 @@ export default function FiqhSettingsPage() {
                     key={opt.value}
                     className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition ${
                       nisabMethodology === opt.value
-                        ? 'border-[#1B5E20] bg-green-50 ring-1 ring-[#1B5E20]'
+                        ? 'border-primary bg-green-50 ring-1 ring-primary'
                         : 'border-gray-200 hover:border-green-700 hover:bg-green-50'
                     }`}
                   >
@@ -354,10 +356,10 @@ export default function FiqhSettingsPage() {
                       checked={nisabMethodology === opt.value}
                       onChange={() => handleNisabChange(opt.value)}
                       disabled={savingNisab}
-                      className="mt-1 w-5 h-5 text-[#1B5E20] accent-[#1B5E20]"
+                      className="mt-1 w-5 h-5 text-primary accent-[#1B5E20]"
                     />
                     <div className="flex-1">
-                      <p className="font-semibold text-[#1B5E20]">{opt.title}</p>
+                      <p className="font-semibold text-primary">{opt.title}</p>
                       <p className="text-sm text-gray-600 mt-1">{opt.desc}</p>
                     </div>
                   </label>
@@ -370,13 +372,13 @@ export default function FiqhSettingsPage() {
         {/* Rules Tab */}
         {activeTab === 'rules' && (
           <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-            <h2 className="text-2xl font-bold text-[#1B5E20] mb-6">Fiqh Rules</h2>
+            <h2 className="text-2xl font-bold text-primary mb-6">Fiqh Rules</h2>
 
             <div className="space-y-6">
               {/* Jewelry Zakatable */}
               <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div>
-                  <p className="font-semibold text-[#1B5E20]">Jewelry is Zakatable</p>
+                  <p className="font-semibold text-primary">Jewelry is Zakatable</p>
                   <p className="text-sm text-gray-600 mt-1">Count jewelry toward Zakat calculation</p>
                 </div>
                 <input
@@ -390,7 +392,7 @@ export default function FiqhSettingsPage() {
               {/* Hawl Reset on Nisab Drop */}
               <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div>
-                  <p className="font-semibold text-[#1B5E20]">Reset Hawl on Nisab Drop</p>
+                  <p className="font-semibold text-primary">Reset Hawl on Nisab Drop</p>
                   <p className="text-sm text-gray-600 mt-1">Reset the lunar year counter if wealth drops below Nisab</p>
                 </div>
                 <input
@@ -404,7 +406,7 @@ export default function FiqhSettingsPage() {
               {/* Wasiyyah Exceed Third with Consent */}
               <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div>
-                  <p className="font-semibold text-[#1B5E20]">Wasiyyah Exceed Third with Consent</p>
+                  <p className="font-semibold text-primary">Wasiyyah Exceed Third with Consent</p>
                   <p className="text-sm text-gray-600 mt-1">Allow bequests exceeding 1/3 with heirs&apos; consent</p>
                 </div>
                 <input
@@ -418,7 +420,7 @@ export default function FiqhSettingsPage() {
               {/* Radd Includes Spouse */}
               <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div>
-                  <p className="font-semibold text-[#1B5E20]">Radd Includes Spouse</p>
+                  <p className="font-semibold text-primary">Radd Includes Spouse</p>
                   <p className="text-sm text-gray-600 mt-1">Include spouse in inheritance distribution through Radd</p>
                 </div>
                 <input
@@ -431,7 +433,7 @@ export default function FiqhSettingsPage() {
 
               {/* Fitr Type */}
               <div className="p-4 border border-gray-200 rounded-lg">
-                <label className="block font-semibold text-[#1B5E20] mb-2">Zakat al-Fitr Type</label>
+                <label className="block font-semibold text-primary mb-2">Zakat al-Fitr Type</label>
                 <select
                   value={rules.fitrType}
                   onChange={(e) => handleRuleChange('fitrType', e.target.value)}
@@ -446,7 +448,7 @@ export default function FiqhSettingsPage() {
 
               {/* Debt Method */}
               <div className="p-4 border border-gray-200 rounded-lg">
-                <label className="block font-semibold text-[#1B5E20] mb-2">Debt Calculation Method</label>
+                <label className="block font-semibold text-primary mb-2">Debt Calculation Method</label>
                 <select
                   value={rules.debtMethod}
                   onChange={(e) => handleRuleChange('debtMethod', e.target.value)}
@@ -461,7 +463,7 @@ export default function FiqhSettingsPage() {
 
               {/* Retirement Method */}
               <div className="p-4 border border-gray-200 rounded-lg">
-                <label className="block font-semibold text-[#1B5E20] mb-2">Retirement Account Zakat Method</label>
+                <label className="block font-semibold text-primary mb-2">Retirement Account Zakat Method</label>
                 <select
                   value={rules.retirementMethod}
                   onChange={(e) => handleRuleChange('retirementMethod', e.target.value)}

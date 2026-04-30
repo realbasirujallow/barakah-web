@@ -11,6 +11,11 @@ import ReferralPromptModal, { useReferralPrompt } from '../../components/Referra
 import { TransactionUsageMeter } from '../../components/TransactionUsageMeter';
 import { PRICING } from '../../lib/pricing';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { KpiCard, KpiChange, KpiSkeleton } from '../../components/dashboard/KpiCard';
+import { SpendingDrillDown } from '../../components/dashboard/SpendingDrillDown';
+import { PeriodPicker, type Period } from '../../components/dashboard/PeriodPicker';
+import { GettingStartedChecklist, type GettingStartedItem } from '../../components/dashboard/GettingStartedChecklist';
+import { Badge } from '../../components/ui/badge';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
 interface HijriData { hijriDate: string; hijriMonthName: string; isRamadan: boolean; upcomingEvents: IslamicEvent[]; }
@@ -75,6 +80,15 @@ export default function DashboardPage() {
   const [hijri, setHijri] = useState<HijriData | null>(null);
   const [hawlDue, setHawlDue] = useState<HawlDue | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  // Phase 2.4 (2026-04-27): controls the spending breakdown <Sheet>.
+  // Founder-reported gap — clicking the spending KPI used to be a no-op.
+  const [spendingDrillOpen, setSpendingDrillOpen] = useState(false);
+  // Phase 6.2 (2026-04-27): KPI-row period selector. Drives the visual
+  // window of the sparkline; the underlying widget data is server-side
+  // computed (currently 30 days). When the backend exposes additional
+  // ranges this state becomes the request param. Defaults to "30D"
+  // because that's what every Monarch/Rocket-Money user sees first.
+  const [kpiPeriod, setKpiPeriod] = useState<Period>('30d');
   const [portfolioSummary, setPortfolioSummary] = useState<PortfolioSummary | null>(null);
   const [latestPortfolioSnapshot, setLatestPortfolioSnapshot] = useState<PortfolioHistorySnapshot | null>(null);
   const [widgets, setWidgets] = useState<DashboardWidgets | null>(null);
@@ -238,6 +252,57 @@ export default function DashboardPage() {
   const isTrialExpired = user?.plan === 'free' && user?.planExpiresAt && user.planExpiresAt < currentTimestamp;
   const hasNoData = !loading && netWorthValue === 0 && !widgets?.recentTransactions?.transactions?.length;
 
+  // Phase 6.4: activation checklist. Derived from data already loaded;
+  // no extra API calls. Auto-dismisses when every item is done. Hidden
+  // for users dismissing or with no data (they're seeing the empty
+  // state CTA which already has Connect Bank guidance).
+  const [gettingStartedDismissed, setGettingStartedDismissed] = useState(false);
+  useEffect(() => {
+    setGettingStartedDismissed(safeGetItem('barakah_getting_started_dismissed') === 'true');
+  }, []);
+  const dismissGettingStarted = () => {
+    safeSetItem('barakah_getting_started_dismissed', 'true');
+    setGettingStartedDismissed(true);
+  };
+  const gettingStartedItems: GettingStartedItem[] = [
+    {
+      id: 'bank',
+      label: 'Connect a bank account',
+      description: 'Auto-import transactions and balances',
+      href: '/dashboard/import',
+      done: ((widgets?.netWorthMini?.totalAssets ?? 0) > 0)
+        || ((widgets?.recentTransactions?.totalCount ?? 0) > 0),
+    },
+    {
+      id: 'tx',
+      label: 'Add or import a transaction',
+      description: 'Track income and expenses',
+      href: '/dashboard/transactions',
+      done: (widgets?.recentTransactions?.totalCount ?? 0) > 0,
+    },
+    {
+      id: 'asset',
+      label: 'Add an asset (cash, gold, stocks)',
+      description: 'Build your zakat-ready net worth',
+      href: '/dashboard/assets',
+      done: (totals?.totalWealth ?? 0) > 0,
+    },
+    {
+      id: 'budget',
+      label: 'Set up a budget',
+      description: 'Cap spending by category',
+      href: '/dashboard/budget',
+      done: !!(widgets?.budgetOverview && widgets.budgetOverview.totalBudgeted > 0),
+    },
+    {
+      id: 'goal',
+      label: 'Create a savings goal',
+      description: 'Hajj, emergency fund, or anything else',
+      href: '/dashboard/savings',
+      done: false, // No widget reports savings yet — defaults to "open"
+    },
+  ];
+
   return (
     <div>
       {/* Onboarding Wizard for first-time users */}
@@ -254,7 +319,7 @@ export default function DashboardPage() {
               <p className="text-sm text-amber-700">Upgrade to keep syncing your accounts and accessing premium features.</p>
             </div>
           </div>
-          <Link href="/dashboard/billing" className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#2E7D32] transition flex-shrink-0">
+          <Link href="/dashboard/billing" className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/90 transition flex-shrink-0">
             Upgrade Now
           </Link>
         </div>
@@ -278,16 +343,28 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Compact Greeting (single line, Monarch-style) ─────────────────── */}
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-base font-semibold text-gray-900 flex items-center gap-2">
-          <span>{greeting.emoji}</span>
-          {greeting.text}{user?.name ? `, ${user.name}` : ''}
-          {hijri?.hijriDate && (
-            <span className="text-gray-400 font-normal text-sm ml-2">· {hijri.hijriDate}</span>
-          )}
-        </p>
-      </div>
+      {/* ── Page header (Phase 2.1 / 2026-04-27) ──────────────────────────────
+           Promoted from a one-line greeting to a proper page-header with
+           hierarchy: text-2xl semibold title + smaller muted subtitle. The
+           greeting emoji is decorative only (aria-hidden); the Gregorian
+           date + Hijri date in the subtitle help orient zakat/hawl users
+           who think in lunar months. */}
+      <header className="mb-6 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <span aria-hidden="true">{greeting.emoji}</span>
+            <span>
+              {greeting.text}
+              {user?.name ? <span className="text-muted-foreground font-normal">, </span> : null}
+              {user?.name ? user.name : null}
+            </span>
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+            {hijri?.hijriDate ? <> · {hijri.hijriDate}</> : null}
+          </p>
+        </div>
+      </header>
 
       {/* ── Weekly Insight Banner (like Monarch's Weekly Recap) ────────────── */}
       {insights.length > 0 && (
@@ -299,7 +376,7 @@ export default function DashboardPage() {
               <p className="text-xs text-green-600 mt-0.5">{insights.length - 1} more insight{insights.length > 2 ? 's' : ''}</p>
             )}
           </div>
-          <Link href="/dashboard/analytics" className="text-xs text-[#1B5E20] font-semibold hover:underline flex-shrink-0">View all →</Link>
+          <Link href="/dashboard/analytics" className="text-xs text-primary font-semibold hover:underline flex-shrink-0">View all →</Link>
         </div>
       )}
 
@@ -313,7 +390,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Link href="/dashboard/referral" className="bg-[#1B5E20] text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-[#2E7D32] transition">
+            <Link href="/dashboard/referral" className="bg-primary text-primary-foreground px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-primary/90 transition">
               Share
             </Link>
             <button
@@ -334,7 +411,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Islamic Date</p>
-                <p className="text-base font-bold text-[#1B5E20]">{hijri.hijriDate}</p>
+                <p className="text-base font-bold text-primary">{hijri.hijriDate}</p>
               </div>
               {hijri.upcomingEvents.length > 0 && (
                 <div className="text-right">
@@ -356,28 +433,58 @@ export default function DashboardPage() {
                 {hawlDue.dueCount > 0 ? (
                   <p className="text-base font-bold text-amber-700">{hawlDue.dueCount} due now</p>
                 ) : (
-                  <p className="text-base font-bold text-[#1B5E20]">{hawlDue.upcomingCount} upcoming</p>
+                  <p className="text-base font-bold text-primary">{hawlDue.upcomingCount} upcoming</p>
                 )}
               </div>
-              <Link href="/dashboard/hawl" className="text-xs text-[#1B5E20] font-medium hover:underline">View →</Link>
+              <Link href="/dashboard/hawl" className="text-xs text-primary font-medium hover:underline">View →</Link>
             </div>
           </div>
         )}
       </div>
 
-      {/* Empty-state CTA for new users */}
+      {/* Phase 8.2 — Monarch-style empty state. Layered explanation:
+          - Big bold value prop (not just "connect bank")
+          - 3 specific outcomes the user gets (not generic "track spending")
+          - Primary CTA + secondary sample-data + a third "set up manually" link
+          - Sample-data caveat in muted-foreground
+          - Dotted-border card uses semantic tokens so dark mode auto-flips */}
       {hasNoData && (
-        <div className="bg-white border-2 border-dashed border-green-200 rounded-2xl p-8 mb-6 text-center">
-          <span className="text-5xl block mb-3">🏦</span>
-          <h3 className="text-xl font-bold text-[#1B5E20] mb-2">Connect your bank accounts to get started</h3>
-          <p className="text-gray-500 text-sm mb-4 max-w-md mx-auto">
-            Link your accounts to automatically track spending, monitor your net worth, and calculate zakat with precision.
+        <div className="bg-card border-2 border-dashed border-primary/30 rounded-2xl p-8 mb-6 text-center motion-safe:animate-fade-up-200">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-3xl mb-3">
+            <span aria-hidden="true">🏦</span>
+          </div>
+          <h3 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
+            Set up Barakah in 60 seconds
+          </h3>
+          <p className="text-muted-foreground text-sm mb-5 max-w-md mx-auto leading-relaxed">
+            Connect a bank to auto-import transactions, or start with sample data
+            and explore every feature first. Either way: zero setup, halal-aware
+            from minute one.
           </p>
+
+          {/* 3 outcomes as small chips — Monarch's pattern of telling
+              users what they actually get, not what the action does. */}
+          <div className="flex flex-wrap gap-2 justify-center mb-5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
+              <span aria-hidden="true">📊</span> Auto-categorise spending
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
+              <span aria-hidden="true">🕌</span> Zakat calculated automatically
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
+              <span aria-hidden="true">🛡️</span> Riba flagged on every charge
+            </span>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/dashboard/import" className="inline-block bg-[#1B5E20] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
-              Connect Accounts
+            <Link
+              href="/dashboard/import"
+              className="inline-flex items-center justify-center bg-primary text-primary-foreground px-6 py-3 rounded-md font-semibold hover:bg-primary/90 transition-colors"
+            >
+              Connect a bank
             </Link>
             <button
+              type="button"
               onClick={async () => {
                 try {
                   await api.seedDemoData();
@@ -385,72 +492,133 @@ export default function DashboardPage() {
                   window.location.reload();
                 } catch { toast('Could not load sample data.', 'error'); }
               }}
-              className="inline-block border border-[#1B5E20] text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition"
+              className="inline-flex items-center justify-center border border-border bg-card text-foreground px-6 py-3 rounded-md font-semibold hover:bg-accent transition-colors"
             >
-              Load Sample Data to Explore
+              Try with sample data
             </button>
           </div>
-          <p className="text-gray-400 text-xs mt-3">Sample data lets you explore every feature. Replace with real data anytime.</p>
+          <p className="text-muted-foreground text-xs mt-4">
+            Prefer manual?{' '}
+            <Link href="/dashboard/transactions" className="text-primary hover:underline font-medium">
+              Add your first transaction →
+            </Link>
+          </p>
         </div>
       )}
 
-      {/* ── Summary Cards (full width, above grid) ──────────────────────── */}
-      <div role="region" aria-label="Financial summary" className={`grid gap-4 mb-5 ${hasInvestmentPulse ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`}>
-        <div className="bg-white rounded-xl p-4 border border-gray-200">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Net Worth</p>
-            <button onClick={toggleHideNetWorth} className="text-[10px] text-gray-400 hover:text-gray-600">{hideNetWorth ? 'Show' : 'Hide'}</button>
-          </div>
-          <p className="text-xl font-bold text-gray-900">
-            {hideNetWorth ? '••••••' : (loading ? '...' : fmt(netWorthValue))}
-          </p>
-          {!hideNetWorth && widgets?.netWorthMini?.changeAmount != null && (
-            <p className={`text-xs mt-1 font-medium ${(widgets.netWorthMini.changeAmount || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {(widgets.netWorthMini.changeAmount || 0) >= 0 ? '▲' : '▼'} {fmt(Math.abs(widgets.netWorthMini.changeAmount || 0))} ({(widgets.netWorthMini.changePercent || 0).toFixed(1)}%)
-            </p>
-          )}
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-gray-200">
-          <div className="flex items-center justify-between mb-1">
-            {/* Headline value is the GROSS zakat (zakatDue), matching the
-                /dashboard/zakat detail page exactly. Earlier this widget
-                rendered `zakatRemaining ?? zakatDue` under a "Zakat Due"
-                label, which produced a confusing delta vs. the detail
-                page (e.g. $2,549.69 here vs $2,570.75 there for the same
-                user — flagged 2026-04-25 as a trust issue). Remaining /
-                paid progress now lives in the sub-line so the headline
-                stays consistent across surfaces. */}
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Zakat Due</p>
+      {/* Phase 6.4: Getting-started checklist — only for users not yet
+          activated. Auto-hides when all items are done. */}
+      {!gettingStartedDismissed && !hasNoData && (
+        <GettingStartedChecklist
+          items={gettingStartedItems}
+          onDismiss={dismissGettingStarted}
+        />
+      )}
+
+      {/* ── Summary KPI Cards (Phase 2 / 2026-04-27) ─────────────────────────
+           Migrated from inline div+text-xl to the shared <KpiCard> primitive.
+           Larger numbers (text-3xl), tabular-nums, semantic shadcn tokens
+           (bg-card, text-muted-foreground, border-border) — matches the
+           Monarch / Linear "premium dashboard" pattern.
+
+           Phase 6.2: Period picker rendered to the right of the section
+           heading, exactly like Monarch's "Last 30 days / 90 days / YTD /
+           1Y" toggle above the summary row. */}
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Overview</h2>
+        <PeriodPicker value={kpiPeriod} onChange={setKpiPeriod} />
+      </div>
+      <div role="region" aria-label="Financial summary" className={`stagger-fade grid gap-3 sm:gap-4 mb-5 ${hasInvestmentPulse ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'}`}>
+        {loading && !widgets ? (
+          // Phase 7.1: skeleton placeholders sized identically to KpiCard
+          // so layout doesn't shift when /api/dashboard/widgets returns.
+          // Render the same number of slots the loaded layout expects.
+          <>
+            <KpiSkeleton />
+            <KpiSkeleton />
+            <KpiSkeleton />
+            {hasInvestmentPulse && <KpiSkeleton />}
+          </>
+        ) : (
+        <>
+        <KpiCard
+          label="Net Worth"
+          value={hideNetWorth ? '••••••' : (loading ? '…' : fmt(netWorthValue))}
+          trailingLabel={
+            <button onClick={toggleHideNetWorth} className="text-[10px] text-muted-foreground hover:text-foreground">
+              {hideNetWorth ? 'Show' : 'Hide'}
+            </button>
+          }
+          footer={
+            !hideNetWorth ? (
+              <KpiChange
+                amount={widgets?.netWorthMini?.changeAmount}
+                percent={widgets?.netWorthMini?.changePercent}
+                format={fmt}
+              />
+            ) : null
+          }
+          // Sparkline trend over the last N days from the existing
+          // /api/dashboard/widgets payload. Hidden when the user has
+          // toggled "Hide" so we don't leak shape information.
+          // Each point also carries its date label so the Recharts
+          // tooltip can show "Apr 27 — $12,345" on hover.
+          sparkline={
+            !hideNetWorth && widgets?.netWorthMini?.history
+              ? widgets.netWorthMini.history.map(p => ({
+                  value: p.netWorth,
+                  label: new Date(p.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                }))
+              : undefined
+          }
+          sparklineFormat={fmt}
+          tone={
+            (widgets?.netWorthMini?.changeAmount ?? 0) >= 0 ? 'default' : 'negative'
+          }
+        />
+        {/* Headline value is the GROSS zakat (zakatDue), matching the
+            /dashboard/zakat detail page exactly. Earlier this widget
+            rendered `zakatRemaining ?? zakatDue` under a "Zakat Due"
+            label, which produced a confusing delta vs. the detail
+            page (e.g. $2,549.69 here vs $2,570.75 there for the same
+            user — flagged 2026-04-25 as a trust issue). Remaining /
+            paid progress now lives in the sub-line so the headline
+            stays consistent across surfaces. */}
+        <KpiCard
+          label="Zakat Due"
+          tone={totals?.zakatFullyPaid ? 'positive' : 'warning'}
+          value={hideZakat ? '••••••' : (loading ? '…' : fmt((totals?.zakatDue as number) ?? 0))}
+          trailingLabel={
             <div className="flex items-center gap-1">
-              {Boolean(totals?.zakatFullyPaid) && <span className="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">PAID</span>}
-              <button onClick={toggleHideZakat} className="text-[10px] text-gray-400 hover:text-gray-600">{hideZakat ? 'Show' : 'Hide'}</button>
+              {Boolean(totals?.zakatFullyPaid) && (
+                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 text-[10px] font-bold uppercase">Paid</Badge>
+              )}
+              <button onClick={toggleHideZakat} className="text-[10px] text-muted-foreground hover:text-foreground">
+                {hideZakat ? 'Show' : 'Hide'}
+              </button>
             </div>
-          </div>
-          <p className={`text-xl font-bold ${totals?.zakatFullyPaid ? 'text-green-600' : 'text-amber-600'}`}>
-            {hideZakat ? '••••••' : (loading ? '...' : fmt((totals?.zakatDue as number) ?? 0))}
-          </p>
-          {!hideZakat && !loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid) && (
-            <p className="text-xs text-gray-500 mt-1">
-              Paid {fmt((totals?.zakatPaid as number) || 0)} · Remaining {fmt((totals?.zakatRemaining as number) ?? Math.max(0, ((totals?.zakatDue as number) || 0) - ((totals?.zakatPaid as number) || 0)))}
-            </p>
-          )}
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-gray-200">
-          <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Zakat Eligible</p>
-          <p className={`text-xl font-bold ${totals?.zakatEligible ? 'text-green-600' : 'text-gray-400'}`}>
-            {loading ? '...' : (totals?.zakatEligible ? 'Yes' : 'Not Yet')}
-          </p>
-        </div>
+          }
+          footer={
+            !hideZakat && !loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid)
+              ? <>Paid {fmt((totals?.zakatPaid as number) || 0)} · Remaining {fmt((totals?.zakatRemaining as number) ?? Math.max(0, ((totals?.zakatDue as number) || 0) - ((totals?.zakatPaid as number) || 0)))}</>
+              : null
+          }
+        />
+        <KpiCard
+          label="Zakat Eligible"
+          tone={totals?.zakatEligible ? 'positive' : 'muted'}
+          value={loading ? '…' : (totals?.zakatEligible ? 'Yes' : 'Not Yet')}
+        />
         {hasInvestmentPulse && (
-          <Link href="/dashboard/investments" className="block bg-white rounded-xl p-4 border border-gray-200 hover:border-gray-300 transition">
-            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Market Today</p>
-            <p className={`text-xl font-bold ${dayMove >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {dayMove >= 0 ? '+' : ''}{fmt(dayMove)}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              {dayMovePct >= 0 ? '+' : ''}{dayMovePct.toFixed(2)}% · {fmt(portfolioSummary?.totalValue || 0)}
-            </p>
-          </Link>
+          <KpiCard
+            label="Market Today"
+            tone={dayMove >= 0 ? 'positive' : 'negative'}
+            value={`${dayMove >= 0 ? '+' : ''}${fmt(dayMove)}`}
+            footer={`${dayMovePct >= 0 ? '+' : ''}${dayMovePct.toFixed(2)}% · ${fmt(portfolioSummary?.totalValue || 0)}`}
+            href="/dashboard/investments"
+          />
+        )}
+        </>
         )}
       </div>
 
@@ -461,13 +629,23 @@ export default function DashboardPage() {
       <div className="space-y-5">
 
       {/* ── Spending + Budget ──────────────────────────────────────────────── */}
-      <div role="region" aria-label="Spending and budget overview" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Spending Summary */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
+      <div role="region" aria-label="Spending and budget overview" className="stagger-fade grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Spending Summary
+            Phase 2.4 (2026-04-27): card now opens <SpendingDrillDown> on
+            click. Whole card is the click target (button) so the user
+            doesn't have to hunt for a tiny "details" link. The bottom
+            "View full breakdown" inline link is gone — its destination
+            (/dashboard/summary) is reachable from inside the drill-down. */}
+        <button
+          type="button"
+          onClick={() => setSpendingDrillOpen(true)}
+          className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden text-left w-full hover:shadow-md hover:border-gray-200 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Open spending breakdown for this month"
+        >
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="min-w-0">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Spending This Month</p>
-              <p className="text-2xl font-bold text-gray-900 truncate">
+              <p className="text-2xl font-bold text-gray-900 truncate tabular-nums">
                 {widgets?.spending ? fmt(widgets.spending.thisMonth) : loading ? '...' : fmt(0)}
               </p>
             </div>
@@ -491,9 +669,9 @@ export default function DashboardPage() {
                     <span className="text-sm flex-shrink-0">{CATEGORY_ICONS[cat.category] || '📋'}</span>
                     <span className="text-xs text-gray-700 w-16 md:w-24 truncate capitalize flex-shrink-0">{cat.category.replace(/_/g, ' ')}</span>
                     <div className="flex-1 bg-gray-100 rounded-full h-2 min-w-0">
-                      <div className="bg-[#1B5E20] rounded-full h-2 transition-all" style={{ width: `${Math.min((cat.amount / max) * 100, 100)}%` }} />
+                      <div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${Math.min((cat.amount / max) * 100, 100)}%` }} />
                     </div>
-                    <span className="text-xs font-medium text-gray-900 flex-shrink-0 text-right">{fmt(cat.amount)}</span>
+                    <span className="text-xs font-medium text-gray-900 flex-shrink-0 text-right tabular-nums">{fmt(cat.amount)}</span>
                   </div>
                 );
               })}
@@ -502,10 +680,10 @@ export default function DashboardPage() {
           {(!widgets?.spending || widgets.spending.thisMonth === 0) && !loading && (
             <p className="text-gray-400 text-sm mt-2">No spending recorded yet this month.</p>
           )}
-          <Link href="/dashboard/summary" className="inline-block mt-3 text-sm font-medium text-[#1B5E20] hover:underline">
-            View full breakdown →
-          </Link>
-        </div>
+          <span className="inline-block mt-3 text-sm font-medium text-primary">
+            See breakdown →
+          </span>
+        </button>
 
         {/* Budget Overview */}
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
@@ -536,7 +714,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="bg-gray-100 rounded-full h-2.5">
                     <div
-                      className={`rounded-full h-2.5 transition-all ${cat.percentage > 100 ? 'bg-red-500' : cat.percentage > 80 ? 'bg-amber-500' : 'bg-[#1B5E20]'}`}
+                      className={`rounded-full h-2.5 transition-all ${cat.percentage > 100 ? 'bg-red-500' : cat.percentage > 80 ? 'bg-amber-500' : 'bg-primary'}`}
                       style={{ width: `${Math.min(cat.percentage, 100)}%` }}
                     />
                   </div>
@@ -546,13 +724,13 @@ export default function DashboardPage() {
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-400 text-sm">No budgets set up yet.</p>
-              <Link href="/dashboard/budget" className="text-sm text-[#1B5E20] font-medium hover:underline mt-1 inline-block">
+              <Link href="/dashboard/budget" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
                 Create your first budget →
               </Link>
             </div>
           )}
           {widgets?.budgetOverview?.categories && widgets.budgetOverview.categories.length > 0 && (
-            <Link href="/dashboard/budget" className="inline-block mt-3 text-sm font-medium text-[#1B5E20] hover:underline">
+            <Link href="/dashboard/budget" className="inline-block mt-3 text-sm font-medium text-primary hover:underline">
               Manage budgets →
             </Link>
           )}
@@ -604,7 +782,7 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
-            <Link href="/dashboard/net-worth" className="text-xs text-[#1B5E20] font-medium hover:underline">Details →</Link>
+            <Link href="/dashboard/net-worth" className="text-xs text-primary font-medium hover:underline">Details →</Link>
           </div>
           {!hideNetWorth && (
             <div className="h-32 mt-1">
@@ -638,7 +816,7 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Recent Transactions</p>
-            <Link href="/dashboard/transactions" className="text-sm text-[#1B5E20] font-medium hover:underline">View all</Link>
+            <Link href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline">View all</Link>
           </div>
           {widgets?.recentTransactions?.transactions && widgets.recentTransactions.transactions.length > 0 ? (
             <div className="divide-y divide-gray-50">
@@ -660,7 +838,7 @@ export default function DashboardPage() {
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-400 text-sm">No transactions yet.</p>
-              <Link href="/dashboard/transactions" className="text-sm text-[#1B5E20] font-medium hover:underline mt-1 inline-block">
+              <Link href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
                 Add your first transaction →
               </Link>
             </div>
@@ -678,7 +856,7 @@ export default function DashboardPage() {
                 </p>
               )}
             </div>
-            <Link href="/dashboard/bills" className="text-sm text-[#1B5E20] font-medium hover:underline">View all</Link>
+            <Link href="/dashboard/bills" className="text-sm text-primary font-medium hover:underline">View all</Link>
           </div>
           {widgets?.upcomingBills?.bills && widgets.upcomingBills.bills.length > 0 ? (
             <div className="space-y-2">
@@ -700,7 +878,7 @@ export default function DashboardPage() {
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-400 text-sm">No upcoming bills.</p>
-              <Link href="/dashboard/bills" className="text-sm text-[#1B5E20] font-medium hover:underline mt-1 inline-block">
+              <Link href="/dashboard/bills" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
                 Add your first bill →
               </Link>
             </div>
@@ -717,8 +895,8 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div className="mb-6">
-        <h2 className="text-lg font-bold text-[#1B5E20] mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <h2 className="text-lg font-semibold text-foreground tracking-tight mb-3">Quick Actions</h2>
+        <div className="stagger-fade grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickActions.map(c => (
             <Link
               key={c.href + c.label}
@@ -726,7 +904,7 @@ export default function DashboardPage() {
               className="bg-white rounded-xl p-4 hover:shadow-md transition group border border-gray-100"
             >
               <div className="text-2xl mb-2">{c.icon}</div>
-              <h3 className="font-semibold text-[#1B5E20] group-hover:underline text-sm">{c.label}</h3>
+              <h3 className="font-semibold text-primary group-hover:underline text-sm">{c.label}</h3>
             </Link>
           ))}
         </div>
@@ -741,7 +919,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/dashboard/billing"
-            className="bg-white text-[#1B5E20] px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-50 transition flex-shrink-0"
+            className="bg-white text-primary px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-50 transition flex-shrink-0"
           >
             Upgrade
           </Link>
@@ -749,7 +927,7 @@ export default function DashboardPage() {
       )}
 
       {/* Feature cards grid */}
-      <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Explore Features</h2>
+      <h2 className="text-xl font-bold text-primary mb-4">Explore Features</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {cards.map(c => (
           <Link
@@ -758,7 +936,7 @@ export default function DashboardPage() {
             className="bg-white rounded-xl p-5 hover:shadow-md transition group"
           >
             <div className="text-3xl mb-2">{c.icon}</div>
-            <h3 className="font-semibold text-[#1B5E20] group-hover:underline">{c.label}</h3>
+            <h3 className="font-semibold text-primary group-hover:underline">{c.label}</h3>
             <p className="text-gray-500 text-xs mt-1">{c.desc}</p>
           </Link>
         ))}
@@ -773,23 +951,23 @@ export default function DashboardPage() {
           {/* Feature teaser cards */}
           <div className="grid md:grid-cols-3 gap-4">
             <Link href="/dashboard/barakah-score" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
-              <div className="absolute top-3 right-3 bg-green-100 text-[#1B5E20] text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
+              <div className="absolute top-3 right-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
               <div className="text-2xl mb-2">📊</div>
-              <h4 className="font-semibold text-gray-900 group-hover:text-[#1B5E20]">Financial Insights</h4>
+              <h4 className="font-semibold text-gray-900 group-hover:text-primary">Financial Insights</h4>
               <p className="text-xs text-gray-500 mt-1">Barakah Score, spending trends, and halal ratio — see your full picture.</p>
             </Link>
 
             <Link href="/dashboard/halal" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
-              <div className="absolute top-3 right-3 bg-green-100 text-[#1B5E20] text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
+              <div className="absolute top-3 right-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
               <div className="text-2xl mb-2">🔍</div>
-              <h4 className="font-semibold text-gray-900 group-hover:text-[#1B5E20]">Halal Finance Check</h4>
+              <h4 className="font-semibold text-gray-900 group-hover:text-primary">Halal Finance Check</h4>
               <p className="text-xs text-gray-500 mt-1">Screen 30,000+ stocks and detect interest in your accounts.</p>
             </Link>
 
             <Link href="/dashboard/net-worth" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
-              <div className="absolute top-3 right-3 bg-green-100 text-[#1B5E20] text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
+              <div className="absolute top-3 right-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
               <div className="text-2xl mb-2">📈</div>
-              <h4 className="font-semibold text-gray-900 group-hover:text-[#1B5E20]">Net Worth Tracking</h4>
+              <h4 className="font-semibold text-gray-900 group-hover:text-primary">Net Worth Tracking</h4>
               <p className="text-xs text-gray-500 mt-1">Assets minus debts, tracked over time with trend analysis.</p>
             </Link>
           </div>
@@ -802,13 +980,23 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/dashboard/billing"
-              className="bg-white text-[#1B5E20] px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-green-50 transition flex-shrink-0"
+              className="bg-white text-primary px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-green-50 transition flex-shrink-0"
             >
               View Plans
             </Link>
           </div>
         </div>
       )}
+
+      {/* Phase 2.4: Spending breakdown drawer (slides in from the right
+          when the user clicks the Spending This Month card). */}
+      <SpendingDrillDown
+        open={spendingDrillOpen}
+        onOpenChange={setSpendingDrillOpen}
+        fmt={fmt}
+        spending={widgets?.spending ?? null}
+        loading={loading}
+      />
     </div>
   );
 }

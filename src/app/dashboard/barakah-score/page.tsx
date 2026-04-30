@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import Link from 'next/link';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Pillar { name: string; score: number; max: number; note: string; pct: number; }
 interface ScoreData { totalScore: number; maxScore: number; grade: string; overallNote: string; pillars: Pillar[]; }
@@ -153,7 +154,7 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
 
           <Link
             href={meta.href}
-            className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-[#1B5E20] hover:underline"
+            className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
             onClick={e => e.stopPropagation()}
           >
             Go to {pillar.name.split(' ')[0]} →
@@ -190,7 +191,7 @@ export default function BarakahScorePage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
 
@@ -204,7 +205,7 @@ export default function BarakahScorePage() {
           : 'We couldn\'t calculate your score right now. This usually means you need to add more financial data (assets, transactions, zakat payments) first.'}
       </p>
       <div className="flex gap-3 justify-center">
-        <a href="/dashboard" className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-medium hover:bg-[#2E7D32] transition">Go to Dashboard</a>
+        <a href="/dashboard" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition">Go to Dashboard</a>
         <button onClick={() => void loadScore()} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Try Again</button>
       </div>
     </div>
@@ -221,10 +222,10 @@ export default function BarakahScorePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Barakah Score</h1>
-        <p className="text-sm text-gray-500 mt-1">Your Islamic financial wellness across 5 pillars</p>
-      </div>
+      <PageHeader
+        title="Barakah Score"
+        subtitle="Your Islamic financial wellness across 5 pillars"
+      />
 
       {/* Gauge */}
       <div className="bg-white rounded-2xl p-6 mb-4 flex flex-col items-center shadow-sm">

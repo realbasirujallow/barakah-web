@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 
 interface WaqfItem { id: number; organizationName: string; type: string; purpose: string; amount: number; date: number; recurring: boolean; status: string; description?: string; }
@@ -211,11 +212,16 @@ export default function WaqfPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Waqf (Endowment)</h1>
-        {tab === 'contributions' && <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Contribution</button>}
-        {tab === 'distribution' && <button onClick={openAddBenef} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Beneficiary</button>}
-      </div>
+      <PageHeader
+        title="Waqf (Endowment)"
+        subtitle="Endowment tracking — properties, books, perpetual charity"
+        actions={
+          <>
+            {tab === 'contributions' && <button onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Contribution</button>}
+            {tab === 'distribution' && <button onClick={openAddBenef} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Beneficiary</button>}
+          </>
+        }
+      />
 
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5 text-sm text-indigo-900 mb-6 space-y-3">
         <h3 className="font-bold text-base">📖 Islamic Guidance on Waqf</h3>
@@ -239,7 +245,7 @@ export default function WaqfPage() {
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 w-fit">
         {(['contributions', 'distribution'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${tab === t ? 'bg-white text-[#1B5E20] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${tab === t ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
             {t === 'contributions' ? '🕌 Contributions' : '📊 Distribution'}
           </button>
         ))}
@@ -256,18 +262,18 @@ export default function WaqfPage() {
             </div>
           )}
           {loadingItems
-            ? <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>
+            ? <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>
             : items.length > 0
               ? <div className="space-y-2">{items.map(item => (
                   <div key={item.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
                     <div>
-                      <p className="font-semibold text-[#1B5E20]">{item.organizationName || item.purpose}</p>
+                      <p className="font-semibold text-primary">{item.organizationName || item.purpose}</p>
                       <p className="text-sm text-gray-500 capitalize">{item.purpose} • {item.type} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString()}
                         {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">Recurring</span>}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <p className="text-lg font-bold text-[#1B5E20]">{fmt(item.amount)}</p>
+                      <p className="text-lg font-bold text-primary">{fmt(item.amount)}</p>
                       <button onClick={() => openEdit(item)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
                       <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
                     </div>
@@ -290,7 +296,7 @@ export default function WaqfPage() {
                             <p className="font-medium text-gray-700">{w.org}</p>
                             <p className="text-xs text-gray-400">{w.purpose}</p>
                           </div>
-                          <span className="font-semibold text-[#1B5E20]">{w.amt}</span>
+                          <span className="font-semibold text-primary">{w.amt}</span>
                         </div>
                       ))}
                     </div>
@@ -305,11 +311,11 @@ export default function WaqfPage() {
         <>
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="bg-white rounded-xl p-4 text-center">
-              <p className="text-2xl font-bold text-[#1B5E20]">{allocatedPct.toFixed(1)}%</p>
+              <p className="text-2xl font-bold text-primary">{allocatedPct.toFixed(1)}%</p>
               <p className="text-xs text-gray-500 mt-1">Allocated</p>
             </div>
             <div className="bg-white rounded-xl p-4 text-center">
-              <p className={`text-2xl font-bold ${unallocatedPct > 0 ? 'text-amber-600' : 'text-[#1B5E20]'}`}>{unallocatedPct.toFixed(1)}%</p>
+              <p className={`text-2xl font-bold ${unallocatedPct > 0 ? 'text-amber-600' : 'text-primary'}`}>{unallocatedPct.toFixed(1)}%</p>
               <p className="text-xs text-gray-500 mt-1">Unallocated</p>
             </div>
             <div className="bg-white rounded-xl p-4 text-center">
@@ -323,14 +329,14 @@ export default function WaqfPage() {
               <span>Allocation progress</span><span>{allocatedPct.toFixed(1)} / 100%</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-              <div className={`h-3 rounded-full transition-all ${allocatedPct >= 100 ? 'bg-[#1B5E20]' : 'bg-teal-500'}`} style={{ width: `${Math.min(allocatedPct, 100)}%` }} />
+              <div className={`h-3 rounded-full transition-all ${allocatedPct >= 100 ? 'bg-primary' : 'bg-teal-500'}`} style={{ width: `${Math.min(allocatedPct, 100)}%` }} />
             </div>
             {unallocatedPct > 0 && <p className="text-xs text-amber-600 mt-2">⚠ {unallocatedPct.toFixed(1)}% unallocated — add a beneficiary or increase an existing share.</p>}
-            {allocatedPct >= 100 && <p className="text-xs text-[#1B5E20] mt-2">✓ 100% of your Waqf is fully distributed.</p>}
+            {allocatedPct >= 100 && <p className="text-xs text-primary mt-2">✓ 100% of your Waqf is fully distributed.</p>}
           </div>
 
           {loadingDist
-            ? <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>
+            ? <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>
             : beneficiaries.length > 0
               ? <div className="space-y-3">{beneficiaries.map(b => (
                   <div key={b.id} className="bg-white rounded-xl p-4">
@@ -344,7 +350,7 @@ export default function WaqfPage() {
                         {b.notes && <p className="text-xs text-gray-400 mt-0.5 italic">{b.notes}</p>}
                       </div>
                       <div className="text-right ml-4">
-                        <p className="text-xl font-bold text-[#1B5E20]">{b.percentage}%</p>
+                        <p className="text-xl font-bold text-primary">{b.percentage}%</p>
                         {totalWaqf > 0 && <p className="text-sm text-teal-700 font-medium">{fmt(b.calculatedAmount)}</p>}
                       </div>
                     </div>
@@ -381,7 +387,7 @@ export default function WaqfPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">{editItem ? 'Edit Waqf Contribution' : 'Add Waqf Contribution'}</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editItem ? 'Edit Waqf Contribution' : 'Add Waqf Contribution'}</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Organization</label>
                 <input value={form.organizationName} onChange={e => setForm({ ...form, organizationName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Islamic Relief" /></div>
@@ -401,7 +407,7 @@ export default function WaqfPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button aria-label="Close contribution modal" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : editItem ? 'Update' : 'Add'}</button>
+              <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : editItem ? 'Update' : 'Add'}</button>
             </div>
           </div>
         </div>
@@ -417,7 +423,7 @@ export default function WaqfPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">{editBenef ? 'Edit Beneficiary' : 'Add Beneficiary'}</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editBenef ? 'Edit Beneficiary' : 'Add Beneficiary'}</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Name / Organisation</label>
                 <input value={benefForm.name} onChange={e => setBenefForm({ ...benefForm, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Local Masjid, Sister Fatima" /></div>
@@ -438,7 +444,7 @@ export default function WaqfPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button aria-label="Close beneficiary modal" onClick={() => setShowBenefForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSaveBenef} disabled={savingBenef || !benefForm.name || !benefForm.percentage} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{savingBenef ? 'Saving...' : editBenef ? 'Update' : 'Add'}</button>
+              <button onClick={handleSaveBenef} disabled={savingBenef || !benefForm.name || !benefForm.percentage} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{savingBenef ? 'Saving...' : editBenef ? 'Update' : 'Add'}</button>
             </div>
           </div>
         </div>
