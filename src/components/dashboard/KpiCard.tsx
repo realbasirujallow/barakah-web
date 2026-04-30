@@ -151,7 +151,7 @@ export function KpiCard({
           </p>
           {trailingLabel ? <div className="flex-shrink-0">{trailingLabel}</div> : null}
         </div>
-        <p className={cn('text-3xl font-bold tabular-nums leading-tight', toneClass[tone])}>
+        <p className={cn('text-2xl md:text-3xl font-bold tabular-nums leading-tight', toneClass[tone])}>
           {value}
         </p>
         {footer ? <div className="text-xs text-muted-foreground mt-1.5">{footer}</div> : null}
@@ -167,6 +167,35 @@ export function KpiCard({
     );
   }
   return inner;
+}
+
+/**
+ * Phase 7.1 (Apr 27 2026) — skeleton sized identically to <KpiCard>.
+ *
+ * Use during the 1-3 second API latency window before
+ * /api/dashboard/widgets returns. Dimensions match the real card so
+ * there's zero layout shift when data arrives — same gap-2 / py-4 /
+ * px-5 / text-3xl height. Three muted-bar rows mirror label / value /
+ * footer.
+ *
+ * Usage:
+ *   {loading
+ *     ? <KpiSkeleton />
+ *     : <KpiCard label="Net Worth" value={...} ... />}
+ */
+export function KpiSkeleton({ className }: { className?: string }) {
+  return (
+    <Card className={cn('gap-2 py-4 animate-pulse', className)}>
+      <CardContent className="px-5">
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="h-3 w-20 rounded bg-muted" />
+          <div className="h-3 w-8 rounded bg-muted" />
+        </div>
+        <div className="h-8 w-32 rounded bg-muted mb-2" />
+        <div className="h-3 w-24 rounded bg-muted" />
+      </CardContent>
+    </Card>
+  );
 }
 
 /**

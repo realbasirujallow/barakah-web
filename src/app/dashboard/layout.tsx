@@ -358,7 +358,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Main content — ToastProvider hoisted to wrap the full shell so
           NotificationBell, SessionTimeoutModal, AnnualUpgradeModal,
-          FeedbackWidget, and OnboardingWizard can all dispatch toasts. */}
+          FeedbackWidget, and OnboardingWizard can all dispatch toasts.
+
+          Phase 7.5: skip-to-content link is the first focusable element
+          when sighted/keyboard users tab onto the dashboard. Hidden by
+          default, becomes visible on focus. WCAG 2.4.1 (Bypass Blocks). */}
+      <a
+        href="#dashboard-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-3 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:font-semibold focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        Skip to main content
+      </a>
       <ToastProvider>
         <div className="flex-1 flex flex-col min-h-screen">
           <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between lg:justify-end">
@@ -400,7 +410,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-primary">{user.name}</span></p>
             </div>
           </header>
-          <main className="flex-1 p-6 overflow-auto">
+          <main id="dashboard-main" tabIndex={-1} className="flex-1 p-6 overflow-auto">
             <TrialBanner />
             <AnnualUpgradeBanner />
             {children}

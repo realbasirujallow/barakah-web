@@ -11,7 +11,7 @@ import ReferralPromptModal, { useReferralPrompt } from '../../components/Referra
 import { TransactionUsageMeter } from '../../components/TransactionUsageMeter';
 import { PRICING } from '../../lib/pricing';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { KpiCard, KpiChange } from '../../components/dashboard/KpiCard';
+import { KpiCard, KpiChange, KpiSkeleton } from '../../components/dashboard/KpiCard';
 import { SpendingDrillDown } from '../../components/dashboard/SpendingDrillDown';
 import { PeriodPicker, type Period } from '../../components/dashboard/PeriodPicker';
 import { GettingStartedChecklist, type GettingStartedItem } from '../../components/dashboard/GettingStartedChecklist';
@@ -493,7 +493,19 @@ export default function DashboardPage() {
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Overview</h2>
         <PeriodPicker value={kpiPeriod} onChange={setKpiPeriod} />
       </div>
-      <div role="region" aria-label="Financial summary" className={`stagger-fade grid gap-4 mb-5 ${hasInvestmentPulse ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`}>
+      <div role="region" aria-label="Financial summary" className={`stagger-fade grid gap-3 sm:gap-4 mb-5 ${hasInvestmentPulse ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'}`}>
+        {loading && !widgets ? (
+          // Phase 7.1: skeleton placeholders sized identically to KpiCard
+          // so layout doesn't shift when /api/dashboard/widgets returns.
+          // Render the same number of slots the loaded layout expects.
+          <>
+            <KpiSkeleton />
+            <KpiSkeleton />
+            <KpiSkeleton />
+            {hasInvestmentPulse && <KpiSkeleton />}
+          </>
+        ) : (
+        <>
         <KpiCard
           label="Net Worth"
           value={hideNetWorth ? '••••••' : (loading ? '…' : fmt(netWorthValue))}
@@ -571,6 +583,8 @@ export default function DashboardPage() {
             href="/dashboard/investments"
           />
         )}
+        </>
+        )}
       </div>
 
       {/* ══════════════ TWO-COLUMN LAYOUT ══════════════ */}
@@ -580,7 +594,7 @@ export default function DashboardPage() {
       <div className="space-y-5">
 
       {/* ── Spending + Budget ──────────────────────────────────────────────── */}
-      <div role="region" aria-label="Spending and budget overview" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div role="region" aria-label="Spending and budget overview" className="stagger-fade grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Spending Summary
             Phase 2.4 (2026-04-27): card now opens <SpendingDrillDown> on
             click. Whole card is the click target (button) so the user
@@ -846,8 +860,8 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div className="mb-6">
-        <h2 className="text-lg font-bold text-primary mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <h2 className="text-lg font-semibold text-foreground tracking-tight mb-3">Quick Actions</h2>
+        <div className="stagger-fade grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickActions.map(c => (
             <Link
               key={c.href + c.label}
