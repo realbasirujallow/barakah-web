@@ -84,7 +84,7 @@ export function FeedbackWidget() {
                 <p className="text-gray-500 text-xs mt-1">Your feedback helps us improve Barakah for everyone.</p>
                 <button
                   onClick={close}
-                  className="mt-4 text-xs text-[#1B5E20] underline hover:no-underline"
+                  className="mt-4 text-xs text-primary underline hover:no-underline"
                 >
                   Close
                 </button>
@@ -100,7 +100,7 @@ export function FeedbackWidget() {
                     required
                     value={form.subject}
                     onChange={e => setForm({ ...form, subject: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30 bg-white"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white"
                   >
                     <option value="">Select…</option>
                     {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
@@ -117,7 +117,7 @@ export function FeedbackWidget() {
                     value={form.message}
                     onChange={e => setForm({ ...form, message: e.target.value })}
                     maxLength={2000}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30 resize-none"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
                   />
                 </div>
 

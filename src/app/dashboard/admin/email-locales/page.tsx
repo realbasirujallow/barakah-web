@@ -81,7 +81,7 @@ export default function EmailLocalesPage() {
   if (isAuthLoading || !isAdminKnown) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -92,14 +92,14 @@ export default function EmailLocalesPage() {
       <div className="max-w-3xl mx-auto">
         <Link
           href="/dashboard/admin"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1B5E20] hover:underline mb-4"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mb-4"
         >
           <span aria-hidden="true">←</span>
           Back to Admin Dashboard
         </Link>
 
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-[#1B5E20]">Transactional email locales</h1>
+          <h1 className="text-3xl font-bold text-primary">Transactional email locales</h1>
           <p className="text-sm text-gray-600 mt-1">
             Each toggle controls whether transactional emails render in that locale for users who have it set on their profile. When disabled, affected users still receive emails — but in English via the bundle fallback. Use this as a kill switch if a translation regresses in prod.
           </p>
@@ -124,7 +124,7 @@ export default function EmailLocalesPage() {
                 return (
                   <li key={row.locale} className="flex items-center justify-between p-4 sm:p-5">
                     <div>
-                      <p className="font-semibold text-[#1B5E20] flex items-center gap-2">
+                      <p className="font-semibold text-primary flex items-center gap-2">
                         {name}
                         <span className="text-gray-500 text-sm font-normal">{native}</span>
                         <span className="font-mono text-xs text-gray-400 bg-gray-50 rounded px-1.5 py-0.5">{row.locale}</span>

@@ -521,7 +521,7 @@ function ImportPageInner() {
       <div className="bg-white border border-green-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-bold text-[#1B5E20]">Connect Your Bank</h2>
+            <h2 className="text-lg font-bold text-primary">Connect Your Bank</h2>
             <p className="text-sm text-gray-500">Automatically import balances and transactions from supported institutions.</p>
           </div>
           <div className="flex items-center gap-2">
@@ -529,7 +529,7 @@ function ImportPageInner() {
               <button
                 onClick={handlePlaidSyncAll}
                 disabled={plaidSyncingAll || plaidSyncing !== null}
-                className="border border-[#1B5E20] text-[#1B5E20] px-4 py-2.5 rounded-lg font-semibold hover:bg-green-50 transition text-sm disabled:opacity-50 flex items-center gap-1.5"
+                className="border border-primary text-primary px-4 py-2.5 rounded-lg font-semibold hover:bg-green-50 transition text-sm disabled:opacity-50 flex items-center gap-1.5"
               >
                 {plaidSyncingAll ? (
                   <><span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-green-700 border-t-transparent rounded-full" />Syncing all…</>
@@ -556,7 +556,7 @@ function ImportPageInner() {
             ) : (
               <Link
                 href="/dashboard/billing"
-                className="border border-[#1B5E20] text-[#1B5E20] px-5 py-2.5 rounded-lg font-semibold hover:bg-green-50 transition text-sm"
+                className="border border-primary text-primary px-5 py-2.5 rounded-lg font-semibold hover:bg-green-50 transition text-sm"
               >
                 Upgrade for Plaid
               </Link>
@@ -566,7 +566,7 @@ function ImportPageInner() {
 
         {!statusLoading && !plaidAccess && (
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5 mb-4">
-            <h3 className="text-lg font-bold text-[#1B5E20] mb-2">Upgrade to Connect Your Bank</h3>
+            <h3 className="text-lg font-bold text-primary mb-2">Upgrade to Connect Your Bank</h3>
             <p className="text-sm text-gray-600 mb-3">
               Automatically sync balances, transactions, and bills from your bank accounts.
             </p>
@@ -669,7 +669,7 @@ function ImportPageInner() {
           onDrop={onDrop}
           onClick={() => fileRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-16 text-center cursor-pointer transition ${
-            dragActive ? 'border-[#1B5E20] bg-green-50' : 'border-gray-300 hover:border-[#1B5E20] hover:bg-green-50/50'
+            dragActive ? 'border-primary bg-green-50' : 'border-gray-300 hover:border-primary hover:bg-green-50/50'
           }`}
         >
           <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={onFileChange} aria-label="Upload CSV file" />
@@ -737,7 +737,7 @@ function ImportPageInner() {
             {updateCount > 0 && (
               <span className="text-blue-600 font-medium">({updateCount} updating existing, {createCount} new)</span>
             )}
-            <button onClick={() => setAccounts(prev => prev.map(a => ({ ...a, skip: false })))} className="text-[#1B5E20] hover:underline">Select all</button>
+            <button onClick={() => setAccounts(prev => prev.map(a => ({ ...a, skip: false })))} className="text-primary hover:underline">Select all</button>
             <button onClick={() => setAccounts(prev => prev.map(a => ({ ...a, skip: true })))} className="text-red-600 hover:underline">Deselect all</button>
           </div>
 
@@ -829,7 +829,7 @@ function ImportPageInner() {
 
           <div className="flex items-center gap-4 text-sm">
             <span className="text-gray-500">{activeTxnCount} of {transactions.length} transactions selected</span>
-            <button onClick={() => setTransactions(prev => prev.map(t => ({ ...t, skip: false })))} className="text-[#1B5E20] hover:underline">Select all</button>
+            <button onClick={() => setTransactions(prev => prev.map(t => ({ ...t, skip: false })))} className="text-primary hover:underline">Select all</button>
             <button onClick={() => setTransactions(prev => prev.map(t => ({ ...t, skip: true })))} className="text-red-600 hover:underline">Deselect all</button>
           </div>
 
@@ -883,7 +883,7 @@ function ImportPageInner() {
       {step === 'done' && result && (
         <div className="bg-white rounded-xl border shadow-sm p-8 text-center space-y-4">
           <p className="text-5xl">&#127881;</p>
-          <h2 className="text-xl font-bold text-[#1B5E20]">Import Complete!</h2>
+          <h2 className="text-xl font-bold text-primary">Import Complete!</h2>
 
           {result.format === 'balances' && (() => { const r = result as BalancesResult; return (
             <div className="flex justify-center gap-6 text-lg flex-wrap">

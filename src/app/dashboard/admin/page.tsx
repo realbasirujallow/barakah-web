@@ -358,7 +358,7 @@ export default function AdminPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -399,43 +399,43 @@ export default function AdminPage() {
           <>
             <Link
               href="/dashboard/admin/funnel"
-              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
             >
               📉 Funnel
             </Link>
             <Link
               href="/dashboard/admin/growth"
-              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
             >
               📈 Growth
             </Link>
             <Link
               href="/dashboard/admin/acquisition"
-              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
             >
               🎯 Acquisition
             </Link>
             <Link
               href="/dashboard/admin/email-locales"
-              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
             >
               ✉️ Email Locales
             </Link>
             <Link
               href="/dashboard/admin/email-preview"
-              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
             >
               👁️ Email Preview
             </Link>
             <Link
               href="/dashboard/admin/halal-screening"
-              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
             >
               ☪️ Halal Screening
             </Link>
             <Link
               href="/dashboard/admin/scorecard"
-              className="px-3 py-2 text-sm bg-white text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium"
+              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
             >
               📈 Scorecard
             </Link>
@@ -483,7 +483,7 @@ export default function AdminPage() {
             onClick={() => setActiveTab(tab)}
             className={`flex-none whitespace-nowrap py-2 px-3 rounded-lg text-sm font-medium transition min-w-fit ${
               activeTab === tab
-                ? 'bg-white text-[#1B5E20] shadow-sm'
+                ? 'bg-white text-primary shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >

@@ -167,7 +167,7 @@ export default function FamilyPage() {
   if (!hasFamily) {
     return (
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Family plan</h1>
+        <h1 className="text-2xl font-bold text-primary mb-2">Family plan</h1>
         <p className="text-gray-600 mb-8">
           Family gives up to 6 household members shared access to all Plus features — one subscription, one household, shared budgets, estate visibility, and zakat tracking.
         </p>
@@ -218,14 +218,14 @@ export default function FamilyPage() {
     const ownerMember = members.find(m => m.role === 'owner');
     return (
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-[#1B5E20] mb-2">Your family plan</h1>
+        <h1 className="text-2xl font-bold text-primary mb-2">Your family plan</h1>
         <p className="text-gray-600 mb-8">
           You&rsquo;re a member of {ownerMember?.fullName ?? 'this'}&apos;s Barakah Family household.
           All Plus features are covered by their subscription.
         </p>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h2 className="font-semibold text-[#1B5E20] mb-4">Household members ({members.length})</h2>
+          <h2 className="font-semibold text-primary mb-4">Household members ({members.length})</h2>
           <ul className="divide-y divide-gray-100">
             {members.map(m => (
               <li key={m.userId} className="py-3 flex items-center justify-between">
@@ -271,18 +271,18 @@ export default function FamilyPage() {
           <p className="text-green-100 text-sm mt-1">Seats used</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
-          <p className="text-3xl font-bold text-[#1B5E20]">{seatsTotal - seatsUsed}</p>
+          <p className="text-3xl font-bold text-primary">{seatsTotal - seatsUsed}</p>
           <p className="text-gray-500 text-sm mt-1">Seats left</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
-          <p className="text-3xl font-bold text-[#1B5E20]">{seatsTotal}</p>
+          <p className="text-3xl font-bold text-primary">{seatsTotal}</p>
           <p className="text-gray-500 text-sm mt-1">Total seats</p>
         </div>
       </div>
 
       {/* Invite form */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h2 className="font-semibold text-[#1B5E20] mb-2">Invite a household member</h2>
+        <h2 className="font-semibold text-primary mb-2">Invite a household member</h2>
         <p className="text-sm text-gray-500 mb-4">They&apos;ll receive a link that expires in 7 days.</p>
         <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-2">
           <input
@@ -292,7 +292,7 @@ export default function FamilyPage() {
             value={inviteEmail}
             onChange={e => setInviteEmail(e.target.value)}
             disabled={seatsUsed >= seatsTotal || sending}
-            className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none disabled:bg-gray-50"
+            className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none disabled:bg-gray-50"
           />
           <button
             type="submit"
@@ -309,7 +309,7 @@ export default function FamilyPage() {
 
       {/* Members list */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h2 className="font-semibold text-[#1B5E20] mb-4">Members ({members.length})</h2>
+        <h2 className="font-semibold text-primary mb-4">Members ({members.length})</h2>
         <ul className="divide-y divide-gray-100">
           {members.map(m => (
             <li key={m.userId} className="py-3 flex items-center justify-between gap-3">
@@ -338,7 +338,7 @@ export default function FamilyPage() {
       {/* Pending invites */}
       {pendingInvites.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h2 className="font-semibold text-[#1B5E20] mb-4">Pending invites ({pendingInvites.length})</h2>
+          <h2 className="font-semibold text-primary mb-4">Pending invites ({pendingInvites.length})</h2>
           <ul className="divide-y divide-gray-100">
             {pendingInvites.map(inv => (
               <li key={inv.id} className="py-3 flex items-center justify-between gap-3">
@@ -361,7 +361,7 @@ export default function FamilyPage() {
       {/* Past invites */}
       {pastInvites.length > 0 && (
         <details className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <summary className="cursor-pointer font-semibold text-[#1B5E20]">Previous invites ({pastInvites.length})</summary>
+          <summary className="cursor-pointer font-semibold text-primary">Previous invites ({pastInvites.length})</summary>
           <ul className="divide-y divide-gray-100 mt-3">
             {pastInvites.map(inv => (
               <li key={inv.id} className="py-3 flex items-center justify-between">

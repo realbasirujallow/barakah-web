@@ -99,7 +99,7 @@ function ReportsPageContent() {
               onClick={() => setPeriod(p.value)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition border ${
                 period === p.value
-                  ? 'bg-[#1B5E20] text-white border-[#1B5E20]'
+                  ? 'bg-[#1B5E20] text-white border-primary'
                   : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
               }`}
             >
@@ -132,7 +132,7 @@ function ReportsPageContent() {
                 </div>
                 <p className="text-sm text-gray-500">{r.desc}</p>
                 {r.periodPicker && (
-                  <p className="text-xs text-[#1B5E20] font-medium mt-1">
+                  <p className="text-xs text-primary font-medium mt-1">
                     Period: {PERIODS.find(p => p.value === period)?.label}
                   </p>
                 )}
@@ -155,7 +155,7 @@ function ReportsPageContent() {
                 </button>
               )}
               {r.href && (
-                <span className="flex-shrink-0 text-[#1B5E20] text-lg">→</span>
+                <span className="flex-shrink-0 text-primary text-lg">→</span>
               )}
             </div>
           );

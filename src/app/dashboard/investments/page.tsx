@@ -224,7 +224,7 @@ export default function InvestmentsPage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
 
@@ -471,7 +471,7 @@ export default function InvestmentsPage() {
                     <div className="px-4 py-3 bg-gray-50 flex justify-between items-center border-t">
                       <button
                         onClick={() => { setAddHoldingFor(account.id); setHoldingForm(emptyHoldingForm); }}
-                        className="text-sm text-[#1B5E20] font-medium hover:underline"
+                        className="text-sm text-primary font-medium hover:underline"
                       >
                         + Add Holding
                       </button>
@@ -495,7 +495,7 @@ export default function InvestmentsPage() {
         <div className="space-y-3 mb-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-gray-700">Retirement &amp; Savings Accounts</h2>
-            <Link href="/dashboard/assets" className="text-sm text-[#1B5E20] hover:underline">
+            <Link href="/dashboard/assets" className="text-sm text-primary hover:underline">
               Manage in Assets →
             </Link>
           </div>
@@ -520,7 +520,7 @@ export default function InvestmentsPage() {
               </div>
               <div className="text-right">
                 <p className="font-bold text-gray-900 text-lg">{fmt(asset.value || 0)}</p>
-                <Link href="/dashboard/assets" className="text-xs text-[#1B5E20] hover:underline">
+                <Link href="/dashboard/assets" className="text-xs text-primary hover:underline">
                   Edit →
                 </Link>
               </div>
@@ -575,7 +575,7 @@ export default function InvestmentsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">Add Investment Account</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">Add Investment Account</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
@@ -636,7 +636,7 @@ export default function InvestmentsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">Add Holding</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">Add Holding</h2>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>

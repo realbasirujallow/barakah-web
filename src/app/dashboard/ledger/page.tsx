@@ -191,7 +191,7 @@ export default function AuditLedgerPage() {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="w-full sm:w-auto">
-              <label htmlFor="ledger-type" className="block text-sm font-semibold text-[#1B5E20] mb-2">Filter by Type</label>
+              <label htmlFor="ledger-type" className="block text-sm font-semibold text-primary mb-2">Filter by Type</label>
               <select
                 id="ledger-type"
                 value={selectedType}
@@ -207,7 +207,7 @@ export default function AuditLedgerPage() {
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-600">Total Entries</p>
-              <p className="text-2xl font-bold text-[#1B5E20]">{total}</p>
+              <p className="text-2xl font-bold text-primary">{total}</p>
             </div>
           </div>
         </div>
@@ -239,7 +239,7 @@ export default function AuditLedgerPage() {
                       <td className="px-6 py-4 text-sm text-gray-700">
                         {formatDate(getEntryDate(entry))}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-[#1B5E20]">
+                      <td className="px-6 py-4 text-sm font-medium text-primary">
                         {entryType.replace(/_/g, ' ')}
                       </td>
                       <td className="px-6 py-4 text-sm text-right font-mono text-gray-700">
@@ -283,8 +283,8 @@ export default function AuditLedgerPage() {
               Previous
             </button>
             <div className="text-gray-600">
-              Page <span className="font-bold text-[#1B5E20]">{page + 1}</span> of{' '}
-              <span className="font-bold text-[#1B5E20]">{totalPages}</span>
+              Page <span className="font-bold text-primary">{page + 1}</span> of{' '}
+              <span className="font-bold text-primary">{totalPages}</span>
             </div>
             <button
               onClick={() => setPage(Math.min(totalPages - 1, page + 1))}

@@ -123,7 +123,7 @@ export default function NotificationsPage() {
         subtitle={unreadCount > 0 ? `${unreadCount} unread` : 'Reminders, alerts, and household activity'}
         actions={
           unreadCount > 0 ? (
-            <button type="button" onClick={markAllRead} className="text-sm text-[#1B5E20] border border-[#1B5E20] px-3 py-1.5 rounded-lg hover:bg-green-50 transition">
+            <button type="button" onClick={markAllRead} className="text-sm text-primary border border-primary px-3 py-1.5 rounded-lg hover:bg-green-50 transition">
               Mark all read
             </button>
           ) : undefined
@@ -145,7 +145,7 @@ export default function NotificationsPage() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
         </div>
       ) : !loadError && notifications.length === 0 ? (
         <div className="text-center py-20 text-gray-400">
@@ -161,7 +161,7 @@ export default function NotificationsPage() {
             // code nested a <button> inside <a> / <button>, which is
             // invalid HTML — browsers strip/relocate the inner button
             // and screen readers report broken interaction semantics.
-            const rowClass = `bg-white rounded-xl flex gap-4 hover:shadow-md transition group relative ${!n.read ? 'border-l-4 border-[#1B5E20]' : ''}`;
+            const rowClass = `bg-white rounded-xl flex gap-4 hover:shadow-md transition group relative ${!n.read ? 'border-l-4 border-primary' : ''}`;
             const activationInner = (
               <>
                 <span className="text-2xl flex-shrink-0">{icon}</span>

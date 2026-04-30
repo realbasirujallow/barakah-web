@@ -315,7 +315,7 @@ export default function DebtsPage() {
   const projAvalanche  = useMemo(() => simulatePayoff(debts, extra, 'avalanche'), [debts, extra]);
   const projSnowball   = useMemo(() => simulatePayoff(debts, extra, 'snowball'), [debts, extra]);
 
-  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
 
   const totalDebt  = debts.reduce((s, d) => s + d.remainingAmount, 0);
   const paidOffDebts = debts.filter(d => d.remainingAmount === 0);
@@ -353,7 +353,7 @@ export default function DebtsPage() {
         plaidSyncAccess ? 'bg-[#F7FBF7] border-green-200' : 'bg-amber-50 border-amber-200'
       }`}>
         <div>
-          <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-[#1B5E20]' : 'text-amber-900'}`}>
+          <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-primary' : 'text-amber-900'}`}>
             {hasLinkedPlaidDebts
               ? (plaidSyncAccess ? 'Keep card and loan balances fresh.' : 'Your linked liabilities are visible, but syncing is paused.')
               : 'Connect cards and loans for a fuller debt view.'}
@@ -476,11 +476,11 @@ export default function DebtsPage() {
                         {!d.readOnly ? (
                           <>
                             <button type="button" onClick={() => { setPayModal(d); setPayAmount(String(d.monthlyPayment)); }} className="bg-[#1B5E20] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#2E7D32]">Pay</button>
-                            <button type="button" onClick={() => openEdit(d)} className="text-gray-500 hover:text-[#1B5E20] text-sm border border-gray-300 px-3 py-1 rounded-lg">Edit</button>
+                            <button type="button" onClick={() => openEdit(d)} className="text-gray-500 hover:text-primary text-sm border border-gray-300 px-3 py-1 rounded-lg">Edit</button>
                             <button type="button" onClick={() => handleDelete(d.id)} disabled={deletingId === d.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === d.id ? 'Deleting...' : 'Del'}</button>
                           </>
                         ) : (
-                          <Link href="/dashboard/import" className="text-gray-500 hover:text-[#1B5E20] text-sm border border-gray-300 px-3 py-1 rounded-lg">Manage</Link>
+                          <Link href="/dashboard/import" className="text-gray-500 hover:text-primary text-sm border border-gray-300 px-3 py-1 rounded-lg">Manage</Link>
                         )}
                       </div>
                     </div>
@@ -564,13 +564,13 @@ export default function DebtsPage() {
             <>
               {/* Extra payment slider */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <h2 className="font-bold text-[#1B5E20] text-lg mb-1">Extra Monthly Payment</h2>
+                <h2 className="font-bold text-primary text-lg mb-1">Extra Monthly Payment</h2>
                 <p className="text-sm text-gray-500 mb-4">How much extra can you put toward debt each month, beyond minimums?</p>
                 <div className="flex items-center gap-4">
                   <input type="range" min={0} max={2000} step={25} value={extra}
                     onChange={e => setExtra(Number(e.target.value))}
                     className="flex-1 accent-[#1B5E20]" />
-                  <span className="text-xl font-bold text-[#1B5E20] w-24 text-right">{fmt(extra)}</span>
+                  <span className="text-xl font-bold text-primary w-24 text-right">{fmt(extra)}</span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-400 mt-1">
                   <span>{symbol}0</span><span>{symbol}500</span><span>{symbol}1,000</span><span>{symbol}1,500</span><span>{symbol}2,000</span>
@@ -584,11 +584,11 @@ export default function DebtsPage() {
               {/* Strategy comparison */}
               <div className="grid md:grid-cols-2 gap-4">
                 {/* Avalanche */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border-t-4 border-[#1B5E20]">
+                <div className="bg-white rounded-2xl p-6 shadow-sm border-t-4 border-primary">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-2xl">🏔️</span>
                     <div>
-                      <p className="font-bold text-[#1B5E20]">Avalanche</p>
+                      <p className="font-bold text-primary">Avalanche</p>
                       <p className="text-xs text-gray-500">Highest interest rate first — saves the most money</p>
                     </div>
                   </div>
@@ -665,7 +665,7 @@ export default function DebtsPage() {
 
               {/* Per-debt breakdown */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <h2 className="font-bold text-[#1B5E20] mb-4">Your Debts at a Glance</h2>
+                <h2 className="font-bold text-primary mb-4">Your Debts at a Glance</h2>
                 <div className="space-y-3">
                   {[...debts].sort((a, b) => b.interestRate - a.interestRate).map(d => {
                     const monthsLeft = d.monthlyPayment > 0 && d.remainingAmount > 0
@@ -703,7 +703,7 @@ export default function DebtsPage() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">{editDebt ? 'Edit Debt' : 'Add Debt'}</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">{editDebt ? 'Edit Debt' : 'Add Debt'}</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                 <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Home Mortgage" /></div>
@@ -738,7 +738,7 @@ export default function DebtsPage() {
       {payModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-2">Make Payment</h2>
+            <h2 className="text-xl font-bold text-primary mb-2">Make Payment</h2>
             <p className="text-gray-500 text-sm mb-4">{payModal.name} • Remaining: {fmt(payModal.remainingAmount)}</p>
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
               <input type="number" step="0.01" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>

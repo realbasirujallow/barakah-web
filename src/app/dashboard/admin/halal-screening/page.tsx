@@ -101,7 +101,7 @@ export default function AdminHalalScreeningPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
         <p className="text-gray-700">Admin access required.</p>
-        <Link href="/dashboard" className="text-[#1B5E20] underline">← Back to dashboard</Link>
+        <Link href="/dashboard" className="text-primary underline">← Back to dashboard</Link>
       </div>
     );
   }
@@ -110,8 +110,8 @@ export default function AdminHalalScreeningPage() {
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Link href="/dashboard/admin" className="text-sm text-[#1B5E20] hover:underline">← Admin</Link>
-          <h1 className="text-2xl font-bold text-[#1B5E20] mt-1">Halal-screening monitor</h1>
+          <Link href="/dashboard/admin" className="text-sm text-primary hover:underline">← Admin</Link>
+          <h1 className="text-2xl font-bold text-primary mt-1">Halal-screening monitor</h1>
           <p className="text-sm text-gray-500 mt-1">
             Daily AAOIFI re-screen of every stock symbol any user holds. Religious-trust observability —
             verify the scan ran and that users with newly-haram holdings were notified.
@@ -178,7 +178,7 @@ export default function AdminHalalScreeningPage() {
           {/* Run history */}
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-[#1B5E20]">Last 30 runs</h2>
+              <h2 className="text-lg font-semibold text-primary">Last 30 runs</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -211,7 +211,7 @@ export default function AdminHalalScreeningPage() {
                         {r.failureReason && <span className="text-red-700 text-xs">{r.failureReason}</span>}
                         {r.flippedSymbols.length > 0 && (
                           <details>
-                            <summary className="cursor-pointer text-[#1B5E20] text-xs">
+                            <summary className="cursor-pointer text-primary text-xs">
                               {r.flippedSymbols.length} flip{r.flippedSymbols.length === 1 ? '' : 's'}
                             </summary>
                             <ul className="mt-1.5 space-y-1 text-xs text-gray-700">

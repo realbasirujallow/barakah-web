@@ -80,7 +80,7 @@ export default function ReferralPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#1B5E20] border-t-transparent" />
+      <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent" />
     </div>
   );
 
@@ -142,7 +142,7 @@ export default function ReferralPage() {
 
       {/* Share Link */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-        <h2 className="font-semibold text-[#1B5E20] mb-3">Your Referral Link</h2>
+        <h2 className="font-semibold text-primary mb-3">Your Referral Link</h2>
         <div className="flex gap-2">
           <input
             type="text"
@@ -203,24 +203,24 @@ export default function ReferralPage() {
 
       {/* How it works */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <h2 className="font-semibold text-[#1B5E20] mb-4">How it works</h2>
+        <h2 className="font-semibold text-primary mb-4">How it works</h2>
         <div className="space-y-4">
           <div className="flex gap-4 items-start">
-            <span className="bg-green-100 text-[#1B5E20] rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">1</span>
+            <span className="bg-green-100 text-primary rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">1</span>
             <div>
               <p className="font-medium">Share your link</p>
               <p className="text-gray-500 text-sm">Send your unique referral link to friends and family.</p>
             </div>
           </div>
           <div className="flex gap-4 items-start">
-            <span className="bg-green-100 text-[#1B5E20] rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">2</span>
+            <span className="bg-green-100 text-primary rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">2</span>
             <div>
               <p className="font-medium">They sign up</p>
               <p className="text-gray-500 text-sm">When someone signs up using your link, they&apos;re linked to your account.</p>
             </div>
           </div>
           <div className="flex gap-4 items-start">
-            <span className="bg-green-100 text-[#1B5E20] rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">3</span>
+            <span className="bg-green-100 text-primary rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">3</span>
             <div>
               <p className="font-medium">Earn rewards</p>
               <p className="text-gray-500 text-sm">Once they verify their email, <strong>you earn a free extra month</strong> and <strong>they get their first paid month for {REFEREE_FIRST_MONTH_PRICE}</strong> — automatically applied at checkout.</p>

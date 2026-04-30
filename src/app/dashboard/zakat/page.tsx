@@ -568,7 +568,7 @@ export default function ZakatPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div role="status" aria-label="Loading zakat data..." className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full">
+        <div role="status" aria-label="Loading zakat data..." className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full">
           <span className="sr-only">Loading...</span>
         </div>
       </div>
@@ -633,11 +633,11 @@ export default function ZakatPage() {
               </>
             )}
             <div className="flex bg-gray-100 rounded-lg p-1 flex-wrap">
-              <button onClick={() => setTab('calculator')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'calculator' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Overview</button>
-              <button onClick={() => setTab('assets')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'assets' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Asset Calc</button>
-              <button onClick={() => setTab('payments')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'payments' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Payments</button>
-              <button onClick={() => setTab('fitr')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'fitr' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Al-Fitr</button>
-              <button onClick={() => { setTab('references'); loadScholarlyReferences(); }} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'references' ? 'bg-white shadow text-[#1B5E20]' : 'text-gray-500'}`}>Sources</button>
+              <button onClick={() => setTab('calculator')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'calculator' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>Overview</button>
+              <button onClick={() => setTab('assets')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'assets' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>Asset Calc</button>
+              <button onClick={() => setTab('payments')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'payments' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>Payments</button>
+              <button onClick={() => setTab('fitr')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'fitr' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>Al-Fitr</button>
+              <button onClick={() => { setTab('references'); loadScholarlyReferences(); }} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'references' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>Sources</button>
             </div>
           </>
         }
@@ -670,13 +670,13 @@ export default function ZakatPage() {
           <div className="grid md:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl p-5">
               <p className="text-gray-500 text-sm">Total Wealth</p>
-              <p className="text-2xl font-bold text-[#1B5E20]">
+              <p className="text-2xl font-bold text-primary">
                 {hideZakat ? '••••••' : fmt((data?.totalWealth as number) || 0)}
               </p>
             </div>
             <div className="bg-white rounded-xl p-5">
               <p className="text-gray-500 text-sm">Zakatable Wealth</p>
-              <p className="text-2xl font-bold text-[#1B5E20]">
+              <p className="text-2xl font-bold text-primary">
                 {hideZakat ? '••••••' : fmt((data?.zakatableWealth as number) || 0)}
               </p>
               <p className="text-xs text-gray-400 mt-1">After deductions &amp; exemptions</p>
@@ -729,7 +729,7 @@ export default function ZakatPage() {
           {/* How Your Zakat Is Calculated — Asset Breakdown */}
           {!hideZakat && data?.breakdown && Array.isArray(data.breakdown) && (data.breakdown as Record<string, unknown>[]).length > 0 && (
             <div className="mt-6 bg-white rounded-xl p-5">
-              <h3 className="text-sm font-semibold text-[#1B5E20] mb-3">How Your Zakat Is Calculated</h3>
+              <h3 className="text-sm font-semibold text-primary mb-3">How Your Zakat Is Calculated</h3>
               <p className="text-xs text-gray-500 mb-4">Each asset you&apos;ve added is classified as zakatable or exempt. Here&apos;s the breakdown:</p>
               <div className="space-y-2">
                 {(data.breakdown as Record<string, unknown>[]).map((item, i) => (
@@ -766,7 +766,7 @@ export default function ZakatPage() {
               )}
               <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-baseline">
                 <p className="text-sm font-medium text-gray-700">Net Zakatable Wealth</p>
-                <p className="text-lg font-bold text-[#1B5E20]">{fmt((data?.zakatableWealth as number) || 0)}</p>
+                <p className="text-lg font-bold text-primary">{fmt((data?.zakatableWealth as number) || 0)}</p>
               </div>
             </div>
           )}
@@ -795,7 +795,7 @@ export default function ZakatPage() {
                     key={m.code as string}
                     className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition ${
                       selectedMethodology === m.code
-                        ? 'border-[#1B5E20] bg-green-50'
+                        ? 'border-primary bg-green-50'
                         : 'border-gray-200 hover:border-gray-300'
                     } ${savingMethodology ? 'opacity-50 pointer-events-none' : ''}`}
                   >
@@ -817,7 +817,7 @@ export default function ZakatPage() {
               </div>
               {savingMethodology && (
                 <div className="flex items-center gap-2 mt-3">
-                  <div className="animate-spin w-3 h-3 border-2 border-[#1B5E20] border-t-transparent rounded-full" />
+                  <div className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full" />
                   <p className="text-xs text-gray-500">Updating methodology...</p>
                 </div>
               )}
@@ -896,7 +896,7 @@ export default function ZakatPage() {
                     value={manualAssets[fieldKey as keyof typeof manualAssets] || ''}
                     onChange={e => setAsset(fieldKey, parseFloat(e.target.value) || 0)}
                     placeholder="0"
-                    className="w-28 border rounded-lg px-2 py-1.5 text-sm text-right text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+                    className="w-28 border rounded-lg px-2 py-1.5 text-sm text-right text-gray-900 focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
@@ -905,7 +905,7 @@ export default function ZakatPage() {
             return (
               <>
                 <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
-                  <h3 className="font-semibold text-[#1B5E20] mb-3">Assets (Zakatable)</h3>
+                  <h3 className="font-semibold text-primary mb-3">Assets (Zakatable)</h3>
                   <AssetRow label="Cash & Bank Accounts" icon="💵" fieldKey="cash" hint="Checking, savings, and cash on hand" />
                   <AssetRow label="Gold" icon="🥇" fieldKey="gold" hint="Market value of gold owned" />
                   <AssetRow label="Silver" icon="🥈" fieldKey="silver" hint="Market value of silver owned" />
@@ -950,7 +950,7 @@ export default function ZakatPage() {
                   </div>
                   <div className="bg-white rounded-xl p-3 shadow-sm">
                     <p className="text-xs text-gray-500">Net Wealth</p>
-                    <p className="font-bold text-[#1B5E20]">{fmt(netWealth)}</p>
+                    <p className="font-bold text-primary">{fmt(netWealth)}</p>
                   </div>
                 </div>
 
@@ -998,7 +998,7 @@ export default function ZakatPage() {
 
           {/* Payment History */}
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-[#1B5E20]">Payment History</h2>
+            <h2 className="text-lg font-semibold text-primary">Payment History</h2>
             <button onClick={handleShowPaymentForm} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm">+ Record Payment</button>
           </div>
 
@@ -1017,7 +1017,7 @@ export default function ZakatPage() {
                   <div key={p.id as number} className="bg-white rounded-xl p-4 flex items-center gap-4">
                     <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center text-xl">🕌</div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-[#1B5E20]">{hideZakat ? '••••' : fmt(p.amount as number)}</p>
+                      <p className="font-bold text-primary">{hideZakat ? '••••' : fmt(p.amount as number)}</p>
                       {p.recipient ? <p className="text-gray-500 text-sm truncate">{String(p.recipient)}</p> : null}
                       {p.notes ? <p className="text-gray-400 text-xs truncate">{String(p.notes)}</p> : null}
                       <p className="text-gray-400 text-xs">{date.toLocaleDateString()}</p>
@@ -1085,14 +1085,14 @@ export default function ZakatPage() {
               max="100"
               value={householdSize}
               onChange={(e) => handleHouseholdSizeChange(parseInt(e.target.value) || 1)}
-              className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-[#1B5E20]"
+              className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
             />
             <p className="text-xs text-gray-500 mt-2">Enter the number of people in your household (1-100)</p>
           </div>
 
           {loadingFitr ? (
             <div className="flex justify-center py-12">
-              <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
             </div>
           ) : fitrData ? (
             <>
@@ -1105,17 +1105,17 @@ export default function ZakatPage() {
               <div className="grid md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                   <p className="text-gray-500 text-xs">Minimum</p>
-                  <p className="text-xl font-bold text-[#1B5E20]">{fmt((fitrData.minimumAmount as number) || 0)}</p>
+                  <p className="text-xl font-bold text-primary">{fmt((fitrData.minimumAmount as number) || 0)}</p>
                   <p className="text-xs text-gray-400 mt-1">Per person</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                   <p className="text-gray-500 text-xs">Recommended</p>
-                  <p className="text-xl font-bold text-[#1B5E20]">{fmt((fitrData.recommendedAmount as number) || 0)}</p>
+                  <p className="text-xl font-bold text-primary">{fmt((fitrData.recommendedAmount as number) || 0)}</p>
                   <p className="text-xs text-gray-400 mt-1">Per person</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                   <p className="text-gray-500 text-xs">Generous</p>
-                  <p className="text-xl font-bold text-[#1B5E20]">{fmt((fitrData.generousAmount as number) || 0)}</p>
+                  <p className="text-xl font-bold text-primary">{fmt((fitrData.generousAmount as number) || 0)}</p>
                   <p className="text-xs text-gray-400 mt-1">Per person</p>
                 </div>
               </div>
@@ -1130,7 +1130,7 @@ export default function ZakatPage() {
               </div>
 
               <div className="bg-white rounded-xl p-5">
-                <p className="font-semibold text-[#1B5E20] mb-3">Purpose & Reward</p>
+                <p className="font-semibold text-primary mb-3">Purpose & Reward</p>
                 <p className="text-sm text-gray-700">
                   Zakat al-Fitr is prescribed to purify those who fasted from any indecent act or speech during Ramadan. It is an obligation and a form of charity that should be given before the Eid prayer for it to be accepted. All Muslims must give Zakat al-Fitr, including children, the elderly, and the sick.
                 </p>
@@ -1141,7 +1141,7 @@ export default function ZakatPage() {
               <p className="text-lg mb-2">Unable to load Zakat al-Fitr information</p>
               <button
                 onClick={loadZakatAlFitr}
-                className="text-[#1B5E20] font-medium hover:underline text-sm"
+                className="text-primary font-medium hover:underline text-sm"
               >
                 Try again
               </button>
@@ -1158,7 +1158,7 @@ export default function ZakatPage() {
 
           {loadingReferences ? (
             <div className="flex justify-center py-12">
-              <div role="status" aria-label="Loading scholarly references..." className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full">
+              <div role="status" aria-label="Loading scholarly references..." className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full">
                 <span className="sr-only">Loading...</span>
               </div>
             </div>
@@ -1169,7 +1169,7 @@ export default function ZakatPage() {
                   <div className="flex gap-3">
                     <div className="shrink-0 w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-lg">📖</div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-[#1B5E20] text-sm">{String(ref.ruling ?? '')}</h3>
+                      <h3 className="font-semibold text-primary text-sm">{String(ref.ruling ?? '')}</h3>
                       {ref.source ? (
                         <p className="text-xs text-gray-600 mt-1">
                           <strong>Source:</strong> {String(ref.source)}
@@ -1238,7 +1238,7 @@ export default function ZakatPage() {
             {/* Methodology Section */}
             {receipt.methodology ? (
               <div>
-                <h3 className="text-sm font-bold text-[#1B5E20] uppercase tracking-wide mb-3 border-b border-green-200 pb-2">Methodology</h3>
+                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">Methodology</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
                     { label: 'Madhab', value: String((receipt.methodology as Record<string, unknown>)?.madhab ?? 'N/A') },
@@ -1259,7 +1259,7 @@ export default function ZakatPage() {
             {/* Fiqh Rules Applied */}
             {receipt.fiqhRules ? (
               <div>
-                <h3 className="text-sm font-bold text-[#1B5E20] uppercase tracking-wide mb-3 border-b border-green-200 pb-2">Fiqh Rules Applied</h3>
+                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">Fiqh Rules Applied</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
                     { label: 'Jewelry Zakatable', value: (receipt.fiqhRules as Record<string, unknown>)?.jewelryZakatable ? 'Yes' : 'No' },
@@ -1293,7 +1293,7 @@ export default function ZakatPage() {
               ];
               return (
                 <div>
-                  <h3 className="text-sm font-bold text-[#1B5E20] uppercase tracking-wide mb-3 border-b border-green-200 pb-2">10-Step Calculation Trace</h3>
+                  <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">10-Step Calculation Trace</h3>
                   <div className="bg-gray-50 rounded-xl overflow-hidden">
                     {steps.map((step, idx) => {
                       const raw = trace[step.key];
@@ -1313,9 +1313,9 @@ export default function ZakatPage() {
                             <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${isHighlight ? 'bg-[#1B5E20] text-white' : 'bg-gray-200 text-gray-600'}`}>
                               {step.num}
                             </span>
-                            <span className={`text-sm ${isHighlight ? 'font-semibold text-[#1B5E20]' : 'text-gray-700'}`}>{step.label}</span>
+                            <span className={`text-sm ${isHighlight ? 'font-semibold text-primary' : 'text-gray-700'}`}>{step.label}</span>
                           </div>
-                          <span className={`text-sm font-mono ${isHighlight ? 'font-bold text-[#1B5E20] text-base' : 'text-gray-800'}`}>
+                          <span className={`text-sm font-mono ${isHighlight ? 'font-bold text-primary text-base' : 'text-gray-800'}`}>
                             {displayValue}
                           </span>
                         </div>
@@ -1329,15 +1329,15 @@ export default function ZakatPage() {
             {/* Payment Status */}
             {receipt.paymentStatus ? (
               <div>
-                <h3 className="text-sm font-bold text-[#1B5E20] uppercase tracking-wide mb-3 border-b border-green-200 pb-2">Payment Status</h3>
+                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">Payment Status</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-green-50 rounded-lg p-4 text-center">
                     <p className="text-xs text-gray-500 font-medium">Lunar Year</p>
-                    <p className="text-lg font-bold text-[#1B5E20] mt-1">{String((receipt.paymentStatus as Record<string, unknown>)?.currentLunarYear ?? lunarYear)} AH</p>
+                    <p className="text-lg font-bold text-primary mt-1">{String((receipt.paymentStatus as Record<string, unknown>)?.currentLunarYear ?? lunarYear)} AH</p>
                   </div>
                   <div className="bg-green-50 rounded-lg p-4 text-center">
                     <p className="text-xs text-gray-500 font-medium">Zakat Paid</p>
-                    <p className="text-lg font-bold text-[#1B5E20] mt-1">{fmt(Number((receipt.paymentStatus as Record<string, unknown>)?.zakatPaid) || 0)}</p>
+                    <p className="text-lg font-bold text-primary mt-1">{fmt(Number((receipt.paymentStatus as Record<string, unknown>)?.zakatPaid) || 0)}</p>
                   </div>
                   <div className="bg-amber-50 rounded-lg p-4 text-center">
                     <p className="text-xs text-gray-500 font-medium">Remaining</p>
@@ -1350,7 +1350,7 @@ export default function ZakatPage() {
             {/* References */}
             {receipt.references ? (
               <div>
-                <h3 className="text-sm font-bold text-[#1B5E20] uppercase tracking-wide mb-3 border-b border-green-200 pb-2">References</h3>
+                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">References</h3>
                 <div className="space-y-2">
                   {Array.isArray((receipt.references as Record<string, unknown>)?.quran) && ((receipt.references as Record<string, unknown>).quran as string[]).map((verse: string, idx: number) => (
                     <div key={idx} className="flex items-start gap-2 bg-green-50 rounded-lg p-3">
@@ -1409,7 +1409,7 @@ export default function ZakatPage() {
       {showChecklist && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Zakat Eligibility Checklist</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">Zakat Eligibility Checklist</h2>
             <p className="text-sm text-gray-600 mb-4">Before recording your zakat payment, please confirm the following:</p>
 
             <div className="space-y-3 mb-6">
@@ -1488,7 +1488,7 @@ export default function ZakatPage() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Record Zakat Payment — {lunarYear} AH</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">Record Zakat Payment — {lunarYear} AH</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{`Amount (${currency})`}</label>
@@ -1516,7 +1516,7 @@ export default function ZakatPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 w-full max-w-sm text-center">
             <p className="text-6xl mb-4">🌟</p>
-            <h2 className="text-2xl font-bold text-[#1B5E20] mb-2">Mabrook!</h2>
+            <h2 className="text-2xl font-bold text-primary mb-2">Mabrook!</h2>
             <p className="text-xl text-amber-600 font-bold mb-4">مبروك</p>
             <p className="text-gray-600 mb-2">You have fulfilled your Zakat obligation for {lunarYear} AH. May Allah accept it from you and bless your wealth.</p>
             <p className="text-gray-400 italic mb-6">تقبل الله منك</p>

@@ -345,7 +345,7 @@ function BillingContent() {
       {/* Billing toggle */}
       <div className="flex flex-col items-center mb-6 gap-2">
         <div className="flex items-center gap-3">
-          <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
+          <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-primary' : 'text-gray-400'}`}>Monthly</span>
           <button
             onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
             className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
@@ -353,7 +353,7 @@ function BillingContent() {
           >
             <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-7' : ''}`} />
           </button>
-          <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>
+          <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-primary' : 'text-gray-400'}`}>
             Yearly
           </span>
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full transition-colors ${
@@ -384,9 +384,9 @@ function BillingContent() {
               key={plan.id}
               className={`relative rounded-2xl border flex flex-col p-6 transition-shadow ${
                 isCurrent
-                  ? 'border-[#1B5E20] ring-2 ring-[#1B5E20] shadow-md'
+                  ? 'border-primary ring-2 ring-primary shadow-md'
                   : isHighlight
-                  ? 'border-[#1B5E20] shadow-sm'
+                  ? 'border-primary shadow-sm'
                   : 'border-gray-200'
               } bg-white`}
             >
@@ -400,7 +400,7 @@ function BillingContent() {
               <h2 className="text-lg font-bold text-gray-800 mt-1">{plan.name}</h2>
 
               <div className="mt-2 mb-4">
-                <span className="text-3xl font-extrabold text-[#1B5E20]">{price}</span>
+                <span className="text-3xl font-extrabold text-primary">{price}</span>
                 <span className="text-gray-400 text-sm">{period}</span>
                 {billing === 'yearly' && plan.yearlySaving && (
                   <span className="ml-2 text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
@@ -412,7 +412,7 @@ function BillingContent() {
               <ul className="space-y-2 flex-1 mb-5">
                 {plan.features.map(f => (
                   <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-[#1B5E20] font-bold mt-0.5">✓</span>
+                    <span className="text-primary font-bold mt-0.5">✓</span>
                     {f}
                   </li>
                 ))}
@@ -428,7 +428,7 @@ function BillingContent() {
 
                 if (isCurrent) {
                   return (
-                    <div className="text-center text-sm font-semibold text-[#1B5E20] py-2 bg-green-50 rounded-xl">
+                    <div className="text-center text-sm font-semibold text-primary py-2 bg-green-50 rounded-xl">
                       ✅ Current Plan
                     </div>
                   );
@@ -484,7 +484,7 @@ function BillingContent() {
             <button
               onClick={handleManage}
               disabled={loading === 'portal'}
-              className="rounded-xl border border-[#1B5E20] px-4 py-3 text-sm font-semibold text-[#1B5E20] hover:bg-green-50 disabled:opacity-60"
+              className="rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary hover:bg-green-50 disabled:opacity-60"
             >
               {loading === 'portal' ? 'Opening portal...' : 'Open Billing Portal'}
             </button>
@@ -528,7 +528,7 @@ function BillingContent() {
           </div>
 
           <div className="flex items-center gap-4 text-xs text-gray-500">
-            <span>Your code: <strong className="text-[#1B5E20] font-mono text-sm">{referral.referralCode}</strong></span>
+            <span>Your code: <strong className="text-primary font-mono text-sm">{referral.referralCode}</strong></span>
             <span>·</span>
             <span>Rewards triggered: <strong>{referral.referralCount}</strong></span>
             {typeof referral.referralClicks === 'number' && (

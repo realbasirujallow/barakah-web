@@ -136,7 +136,7 @@ function SadaqahContent() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
 
   const effectiveAmount = donateAmount ?? (donateCustom ? parseFloat(donateCustom) : 0);
 
@@ -179,7 +179,7 @@ function SadaqahContent() {
         <div className="flex items-center gap-3 mb-4">
           <span className="text-3xl">🌿</span>
           <div>
-            <h2 className="text-lg font-bold text-[#1B5E20]">Give Sadaqah via Barakah</h2>
+            <h2 className="text-lg font-bold text-primary">Give Sadaqah via Barakah</h2>
             <p className="text-sm text-gray-500">We collect your donation and distribute it to verified causes on your behalf. Secure payment via Stripe.</p>
           </div>
         </div>
@@ -204,8 +204,8 @@ function SadaqahContent() {
                 onClick={() => { setDonateAmount(amt); setDonateCustom(''); }}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold border transition ${
                   donateAmount === amt
-                    ? 'bg-[#1B5E20] text-white border-[#1B5E20]'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-[#1B5E20]'
+                    ? 'bg-[#1B5E20] text-white border-primary'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-primary'
                 }`}
               >
                 ${amt}
@@ -215,8 +215,8 @@ function SadaqahContent() {
               onClick={() => setDonateAmount(null)}
               className={`px-4 py-2 rounded-lg text-sm font-semibold border transition ${
                 donateAmount === null
-                  ? 'bg-[#1B5E20] text-white border-[#1B5E20]'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-[#1B5E20]'
+                  ? 'bg-[#1B5E20] text-white border-primary'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-primary'
               }`}
             >
               Custom
@@ -259,14 +259,14 @@ function SadaqahContent() {
             {items.slice(0, displayCount).map(item => (
               <div key={item.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
                 <div>
-                  <p className="font-semibold text-[#1B5E20]">{item.recipientName || item.category}</p>
+                  <p className="font-semibold text-primary">{item.recipientName || item.category}</p>
                   <p className="text-sm text-gray-500 capitalize">{item.category} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString()}
                     {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">Recurring</span>}
                     {item.anonymous && <span className="ml-1 bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">Anonymous</span>}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <p className="text-lg font-bold text-[#1B5E20]">{fmt(item.amount)}</p>
+                  <p className="text-lg font-bold text-primary">{fmt(item.amount)}</p>
                   <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
                 </div>
               </div>
@@ -292,7 +292,7 @@ function SadaqahContent() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Record Sadaqah</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">Record Sadaqah</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
                 <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="50.00" /></div>
@@ -341,7 +341,7 @@ function SadaqahContent() {
 
 export default function SadaqahPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>}>
+    <Suspense fallback={<div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>}>
       <SadaqahContent />
     </Suspense>
   );

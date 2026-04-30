@@ -207,7 +207,7 @@ export default function BudgetPage() {
         actions={
           <>
             <button type="button" onClick={handleCopyMonth} disabled={copyingMonth}
-              className="px-3 py-2 text-sm border border-[#1B5E20] text-[#1B5E20] rounded-lg hover:bg-green-50 transition disabled:opacity-50">
+              className="px-3 py-2 text-sm border border-primary text-primary rounded-lg hover:bg-green-50 transition disabled:opacity-50">
               {copyingMonth ? 'Copying...' : '📋 Copy Last Month'}
             </button>
             <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Budget</button>
@@ -226,7 +226,7 @@ export default function BudgetPage() {
 
       {/* ── Summary cards ──────────────────────────────────────────────────── */}
       <div className="grid md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Budget</p><p className="text-2xl font-bold text-[#1B5E20]">{fmt(totalBudget)}</p></div>
+        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Budget</p><p className="text-2xl font-bold text-primary">{fmt(totalBudget)}</p></div>
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Spent</p><p className="text-2xl font-bold text-orange-600">{fmt(totalSpent)}</p></div>
         <div className="bg-white rounded-xl p-5">
           <p className="text-gray-500 text-sm">Remaining</p>
@@ -284,7 +284,7 @@ export default function BudgetPage() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">{editItem ? 'Edit Budget' : 'Add Budget'}</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">{editItem ? 'Edit Budget' : 'Add Budget'}</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>

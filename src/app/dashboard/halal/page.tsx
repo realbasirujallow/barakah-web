@@ -171,7 +171,7 @@ export default function HalalPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -179,7 +179,7 @@ export default function HalalPage() {
   if (user && !hasPaidAccess) {
     return (
       <div className="p-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20] mb-4">Halal Stock Screener</h1>
+        <h1 className="text-2xl font-bold text-primary mb-4">Halal Stock Screener</h1>
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
           <p className="text-amber-800 font-semibold mb-2">Plus or Family plan required</p>
           <p className="text-amber-700 text-sm mb-4">Upgrade to screen stocks for Shariah compliance, view sector breakdowns, and more.</p>
@@ -343,7 +343,7 @@ export default function HalalPage() {
         {/* Loading */}
         {loading && (
           <div className="flex justify-center py-8">
-            <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
           </div>
         )}
 
@@ -407,7 +407,7 @@ export default function HalalPage() {
             <button
               onClick={() => setPage(p => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="text-sm text-[#1B5E20] font-medium disabled:opacity-30"
+              className="text-sm text-primary font-medium disabled:opacity-30"
             >
               &larr; Previous
             </button>
@@ -417,7 +417,7 @@ export default function HalalPage() {
             <button
               onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="text-sm text-[#1B5E20] font-medium disabled:opacity-30"
+              className="text-sm text-primary font-medium disabled:opacity-30"
             >
               Next &rarr;
             </button>

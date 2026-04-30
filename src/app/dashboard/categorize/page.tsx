@@ -255,7 +255,7 @@ export default function CategorizePage() {
   const visibleEnd = Math.min((page + 1) * PAGE_SIZE, suggestions.length);
 
   if (loading) {
-    return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" /></div>;
+    return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
   }
 
   return (
@@ -267,7 +267,7 @@ export default function CategorizePage() {
         actions={
           <button
             onClick={loadAll}
-            className="border border-[#1B5E20] text-[#1B5E20] px-4 py-2 rounded-xl hover:bg-green-50 font-medium text-sm"
+            className="border border-primary text-primary px-4 py-2 rounded-xl hover:bg-green-50 font-medium text-sm"
           >
             Refresh
           </button>
@@ -338,7 +338,7 @@ export default function CategorizePage() {
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-semibold text-[#1B5E20]">Rule Builder</h2>
+              <h2 className="text-lg font-semibold text-primary">Rule Builder</h2>
               <p className="text-sm text-gray-500">Set one rule and Barakah will keep applying it to future matches.</p>
             </div>
             {editingRuleId && (
@@ -409,7 +409,7 @@ export default function CategorizePage() {
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-lg font-semibold text-[#1B5E20] mb-1">Saved Rules</h2>
+          <h2 className="text-lg font-semibold text-primary mb-1">Saved Rules</h2>
           <p className="text-sm text-gray-500 mb-4">Rules run from the smallest priority number to the largest.</p>
           {rules.length === 0 ? (
             <EmptyState
@@ -448,7 +448,7 @@ export default function CategorizePage() {
                         {MATCH_FIELDS.find(option => option.value === rule.matchField)?.label || rule.matchField} {OPERATORS.find(option => option.value === rule.matchOperator)?.label?.toLowerCase() || rule.matchOperator} &quot;{rule.matchValue || 'any value'}&quot;
                       </p>
                       {(rule.typeOverride || rule.categoryOverride) && (
-                        <p className="text-xs text-[#1B5E20] mt-1">
+                        <p className="text-xs text-primary mt-1">
                           Applies: {rule.typeOverride ? formatType(rule.typeOverride) : 'keep type'}
                           {' • '}
                           {rule.categoryOverride ? formatCategory(rule.categoryOverride) : 'keep category'}
@@ -456,7 +456,7 @@ export default function CategorizePage() {
                       )}
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => handleEditRule(rule)} className="text-sm text-[#1B5E20] hover:underline">Edit</button>
+                      <button onClick={() => handleEditRule(rule)} className="text-sm text-primary hover:underline">Edit</button>
                       <button onClick={() => handleDeleteRule(rule.id)} className="text-sm text-red-600 hover:underline">Delete</button>
                     </div>
                   </div>
@@ -470,7 +470,7 @@ export default function CategorizePage() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-[#1B5E20]">Review Suggestions</h2>
+            <h2 className="text-lg font-semibold text-primary">Review Suggestions</h2>
             <p className="text-sm text-gray-500">Transfers, income, expenses, and saved-rule matches all show up here before you apply them.</p>
           </div>
           <span className="text-sm text-gray-500">

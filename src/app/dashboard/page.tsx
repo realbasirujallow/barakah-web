@@ -317,7 +317,7 @@ export default function DashboardPage() {
               <p className="text-xs text-green-600 mt-0.5">{insights.length - 1} more insight{insights.length > 2 ? 's' : ''}</p>
             )}
           </div>
-          <Link href="/dashboard/analytics" className="text-xs text-[#1B5E20] font-semibold hover:underline flex-shrink-0">View all →</Link>
+          <Link href="/dashboard/analytics" className="text-xs text-primary font-semibold hover:underline flex-shrink-0">View all →</Link>
         </div>
       )}
 
@@ -352,7 +352,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Islamic Date</p>
-                <p className="text-base font-bold text-[#1B5E20]">{hijri.hijriDate}</p>
+                <p className="text-base font-bold text-primary">{hijri.hijriDate}</p>
               </div>
               {hijri.upcomingEvents.length > 0 && (
                 <div className="text-right">
@@ -374,10 +374,10 @@ export default function DashboardPage() {
                 {hawlDue.dueCount > 0 ? (
                   <p className="text-base font-bold text-amber-700">{hawlDue.dueCount} due now</p>
                 ) : (
-                  <p className="text-base font-bold text-[#1B5E20]">{hawlDue.upcomingCount} upcoming</p>
+                  <p className="text-base font-bold text-primary">{hawlDue.upcomingCount} upcoming</p>
                 )}
               </div>
-              <Link href="/dashboard/hawl" className="text-xs text-[#1B5E20] font-medium hover:underline">View →</Link>
+              <Link href="/dashboard/hawl" className="text-xs text-primary font-medium hover:underline">View →</Link>
             </div>
           </div>
         )}
@@ -387,7 +387,7 @@ export default function DashboardPage() {
       {hasNoData && (
         <div className="bg-white border-2 border-dashed border-green-200 rounded-2xl p-8 mb-6 text-center">
           <span className="text-5xl block mb-3">🏦</span>
-          <h3 className="text-xl font-bold text-[#1B5E20] mb-2">Connect your bank accounts to get started</h3>
+          <h3 className="text-xl font-bold text-primary mb-2">Connect your bank accounts to get started</h3>
           <p className="text-gray-500 text-sm mb-4 max-w-md mx-auto">
             Link your accounts to automatically track spending, monitor your net worth, and calculate zakat with precision.
           </p>
@@ -403,7 +403,7 @@ export default function DashboardPage() {
                   window.location.reload();
                 } catch { toast('Could not load sample data.', 'error'); }
               }}
-              className="inline-block border border-[#1B5E20] text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition"
+              className="inline-block border border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition"
             >
               Load Sample Data to Explore
             </button>
@@ -538,7 +538,7 @@ export default function DashboardPage() {
           {(!widgets?.spending || widgets.spending.thisMonth === 0) && !loading && (
             <p className="text-gray-400 text-sm mt-2">No spending recorded yet this month.</p>
           )}
-          <span className="inline-block mt-3 text-sm font-medium text-[#1B5E20]">
+          <span className="inline-block mt-3 text-sm font-medium text-primary">
             See breakdown →
           </span>
         </button>
@@ -582,13 +582,13 @@ export default function DashboardPage() {
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-400 text-sm">No budgets set up yet.</p>
-              <Link href="/dashboard/budget" className="text-sm text-[#1B5E20] font-medium hover:underline mt-1 inline-block">
+              <Link href="/dashboard/budget" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
                 Create your first budget →
               </Link>
             </div>
           )}
           {widgets?.budgetOverview?.categories && widgets.budgetOverview.categories.length > 0 && (
-            <Link href="/dashboard/budget" className="inline-block mt-3 text-sm font-medium text-[#1B5E20] hover:underline">
+            <Link href="/dashboard/budget" className="inline-block mt-3 text-sm font-medium text-primary hover:underline">
               Manage budgets →
             </Link>
           )}
@@ -640,7 +640,7 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
-            <Link href="/dashboard/net-worth" className="text-xs text-[#1B5E20] font-medium hover:underline">Details →</Link>
+            <Link href="/dashboard/net-worth" className="text-xs text-primary font-medium hover:underline">Details →</Link>
           </div>
           {!hideNetWorth && (
             <div className="h-32 mt-1">
@@ -674,7 +674,7 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl p-5 border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Recent Transactions</p>
-            <Link href="/dashboard/transactions" className="text-sm text-[#1B5E20] font-medium hover:underline">View all</Link>
+            <Link href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline">View all</Link>
           </div>
           {widgets?.recentTransactions?.transactions && widgets.recentTransactions.transactions.length > 0 ? (
             <div className="divide-y divide-gray-50">
@@ -696,7 +696,7 @@ export default function DashboardPage() {
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-400 text-sm">No transactions yet.</p>
-              <Link href="/dashboard/transactions" className="text-sm text-[#1B5E20] font-medium hover:underline mt-1 inline-block">
+              <Link href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
                 Add your first transaction →
               </Link>
             </div>
@@ -714,7 +714,7 @@ export default function DashboardPage() {
                 </p>
               )}
             </div>
-            <Link href="/dashboard/bills" className="text-sm text-[#1B5E20] font-medium hover:underline">View all</Link>
+            <Link href="/dashboard/bills" className="text-sm text-primary font-medium hover:underline">View all</Link>
           </div>
           {widgets?.upcomingBills?.bills && widgets.upcomingBills.bills.length > 0 ? (
             <div className="space-y-2">
@@ -736,7 +736,7 @@ export default function DashboardPage() {
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-400 text-sm">No upcoming bills.</p>
-              <Link href="/dashboard/bills" className="text-sm text-[#1B5E20] font-medium hover:underline mt-1 inline-block">
+              <Link href="/dashboard/bills" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
                 Add your first bill →
               </Link>
             </div>
@@ -753,7 +753,7 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div className="mb-6">
-        <h2 className="text-lg font-bold text-[#1B5E20] mb-3">Quick Actions</h2>
+        <h2 className="text-lg font-bold text-primary mb-3">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickActions.map(c => (
             <Link
@@ -762,7 +762,7 @@ export default function DashboardPage() {
               className="bg-white rounded-xl p-4 hover:shadow-md transition group border border-gray-100"
             >
               <div className="text-2xl mb-2">{c.icon}</div>
-              <h3 className="font-semibold text-[#1B5E20] group-hover:underline text-sm">{c.label}</h3>
+              <h3 className="font-semibold text-primary group-hover:underline text-sm">{c.label}</h3>
             </Link>
           ))}
         </div>
@@ -777,7 +777,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/dashboard/billing"
-            className="bg-white text-[#1B5E20] px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-50 transition flex-shrink-0"
+            className="bg-white text-primary px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-50 transition flex-shrink-0"
           >
             Upgrade
           </Link>
@@ -785,7 +785,7 @@ export default function DashboardPage() {
       )}
 
       {/* Feature cards grid */}
-      <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Explore Features</h2>
+      <h2 className="text-xl font-bold text-primary mb-4">Explore Features</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {cards.map(c => (
           <Link
@@ -794,7 +794,7 @@ export default function DashboardPage() {
             className="bg-white rounded-xl p-5 hover:shadow-md transition group"
           >
             <div className="text-3xl mb-2">{c.icon}</div>
-            <h3 className="font-semibold text-[#1B5E20] group-hover:underline">{c.label}</h3>
+            <h3 className="font-semibold text-primary group-hover:underline">{c.label}</h3>
             <p className="text-gray-500 text-xs mt-1">{c.desc}</p>
           </Link>
         ))}
@@ -809,23 +809,23 @@ export default function DashboardPage() {
           {/* Feature teaser cards */}
           <div className="grid md:grid-cols-3 gap-4">
             <Link href="/dashboard/barakah-score" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
-              <div className="absolute top-3 right-3 bg-green-100 text-[#1B5E20] text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
+              <div className="absolute top-3 right-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
               <div className="text-2xl mb-2">📊</div>
-              <h4 className="font-semibold text-gray-900 group-hover:text-[#1B5E20]">Financial Insights</h4>
+              <h4 className="font-semibold text-gray-900 group-hover:text-primary">Financial Insights</h4>
               <p className="text-xs text-gray-500 mt-1">Barakah Score, spending trends, and halal ratio — see your full picture.</p>
             </Link>
 
             <Link href="/dashboard/halal" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
-              <div className="absolute top-3 right-3 bg-green-100 text-[#1B5E20] text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
+              <div className="absolute top-3 right-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
               <div className="text-2xl mb-2">🔍</div>
-              <h4 className="font-semibold text-gray-900 group-hover:text-[#1B5E20]">Halal Finance Check</h4>
+              <h4 className="font-semibold text-gray-900 group-hover:text-primary">Halal Finance Check</h4>
               <p className="text-xs text-gray-500 mt-1">Screen 30,000+ stocks and detect interest in your accounts.</p>
             </Link>
 
             <Link href="/dashboard/net-worth" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
-              <div className="absolute top-3 right-3 bg-green-100 text-[#1B5E20] text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
+              <div className="absolute top-3 right-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
               <div className="text-2xl mb-2">📈</div>
-              <h4 className="font-semibold text-gray-900 group-hover:text-[#1B5E20]">Net Worth Tracking</h4>
+              <h4 className="font-semibold text-gray-900 group-hover:text-primary">Net Worth Tracking</h4>
               <p className="text-xs text-gray-500 mt-1">Assets minus debts, tracked over time with trend analysis.</p>
             </Link>
           </div>
@@ -838,7 +838,7 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/dashboard/billing"
-              className="bg-white text-[#1B5E20] px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-green-50 transition flex-shrink-0"
+              className="bg-white text-primary px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-green-50 transition flex-shrink-0"
             >
               View Plans
             </Link>

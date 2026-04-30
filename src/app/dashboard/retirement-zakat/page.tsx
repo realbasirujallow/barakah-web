@@ -155,12 +155,12 @@ export default function RetirementZakatPage() {
           {/* Form Section */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-bold text-[#1B5E20] mb-6">Account Details</h2>
+              <h2 className="text-xl font-bold text-primary mb-6">Account Details</h2>
 
               <form onSubmit={handleCalculate} className="space-y-4">
                 {/* Balance */}
                 <div>
-                  <label className="block text-sm font-semibold text-[#1B5E20] mb-2">Total Account Balance ({symbol})</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Total Account Balance ({symbol})</label>
                   <input
                     type="number"
                     step="0.01"
@@ -174,7 +174,7 @@ export default function RetirementZakatPage() {
 
                 {/* Account Type */}
                 <div>
-                  <label className="block text-sm font-semibold text-[#1B5E20] mb-2">Account Type</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Account Type</label>
                   <select
                     value={accountType}
                     onChange={(e) => setAccountType(e.target.value)}
@@ -193,7 +193,7 @@ export default function RetirementZakatPage() {
 
                 {/* Employer Match — optional, unlocks the Employer Match Only card */}
                 <div>
-                  <label className="block text-sm font-semibold text-[#1B5E20] mb-2">
+                  <label className="block text-sm font-semibold text-primary mb-2">
                     Employer Contribution (%) — optional
                   </label>
                   <input
@@ -213,7 +213,7 @@ export default function RetirementZakatPage() {
 
                 {/* State */}
                 <div>
-                  <label className="block text-sm font-semibold text-[#1B5E20] mb-2">State (Optional)</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">State (Optional)</label>
                   <select
                     value={state}
                     onChange={(e) => setState(e.target.value)}
@@ -264,20 +264,20 @@ export default function RetirementZakatPage() {
               <div className="space-y-6">
                 {/* Account Summary */}
                 <div className="bg-white rounded-lg shadow-lg p-6">
-                  <h3 className="text-lg font-bold text-[#1B5E20] mb-4">Account Summary</h3>
+                  <h3 className="text-lg font-bold text-primary mb-4">Account Summary</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">Balance</p>
-                      <p className="text-xl font-bold text-[#1B5E20]">{formatCurrency(results.balance || 0)}</p>
+                      <p className="text-xl font-bold text-primary">{formatCurrency(results.balance || 0)}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Account Type</p>
-                      <p className="text-xl font-bold text-[#1B5E20]">{results.accountType || accountType}</p>
+                      <p className="text-xl font-bold text-primary">{results.accountType || accountType}</p>
                     </div>
                     {results.nisab && (
                       <div>
                         <p className="text-sm text-gray-600">Nisab</p>
-                        <p className="text-xl font-bold text-[#1B5E20]">{formatCurrency(results.nisab)}</p>
+                        <p className="text-xl font-bold text-primary">{formatCurrency(results.nisab)}</p>
                       </div>
                     )}
                   </div>
@@ -293,7 +293,7 @@ export default function RetirementZakatPage() {
                   }`}>
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h4 className="text-lg font-bold text-[#1B5E20]">Full Accessible Balance (AMJA)</h4>
+                        <h4 className="text-lg font-bold text-primary">Full Accessible Balance (AMJA)</h4>
                         {getMethodRecommendation('full_accessible') && (
                           <p className="text-xs text-green-700 font-semibold">YOUR PREFERRED METHOD</p>
                         )}
@@ -323,7 +323,7 @@ export default function RetirementZakatPage() {
                   }`}>
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h4 className="text-lg font-bold text-[#1B5E20]">Employer Match Only</h4>
+                        <h4 className="text-lg font-bold text-primary">Employer Match Only</h4>
                         {getMethodRecommendation('employer_match_only') && (
                           <p className="text-xs text-green-700 font-semibold">YOUR PREFERRED METHOD</p>
                         )}
@@ -353,7 +353,7 @@ export default function RetirementZakatPage() {
                   }`}>
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h4 className="text-lg font-bold text-[#1B5E20]">On Withdrawal Only</h4>
+                        <h4 className="text-lg font-bold text-primary">On Withdrawal Only</h4>
                         {getMethodRecommendation('on_withdrawal_only') && (
                           <p className="text-xs text-green-700 font-semibold">YOUR PREFERRED METHOD</p>
                         )}
