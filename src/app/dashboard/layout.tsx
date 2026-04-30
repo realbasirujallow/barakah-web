@@ -5,6 +5,15 @@ import Link from 'next/link';
 import { useEffect, ReactNode, useState } from 'react';
 import { ToastProvider } from '../../lib/toast';
 import { useDarkMode, toggleDarkMode as toggleDarkModeShared } from '../../lib/useDarkMode';
+import {
+  LayoutDashboard, Wallet, BookOpen, CreditCard, Receipt, PieChart, Landmark,
+  Users, Scale, BookMarked, CalendarClock, Heart, Upload, LineChart, Bell,
+  Moon, User, RefreshCw, Gift, FileBarChart, PiggyBank, HandHeart, Target,
+  ArrowLeftRight, Coins, BarChart3, Tags, Star, FileText, ShieldCheck,
+  TrendingUp, Gem, Shield, ShoppingCart, Building2, ScrollText, Wrench,
+  Globe, Eye, Crosshair, Filter, Award,
+  type LucideIcon,
+} from 'lucide-react';
 
 import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
@@ -19,58 +28,66 @@ import { isSetupComplete } from '../../lib/setup';
 // `adminOnly` items render in a separate Admin section that's hidden from
 // non-admin users entirely. Lets the founder reach admin surfaces in one
 // click instead of typing each /dashboard/admin/X URL by hand.
-const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'family'; adminOnly?: boolean }[] = [
-  { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
+// Phase 10 (Apr 30 2026) — Lucide icons replace emoji nav glyphs and
+// plain-language labels lead for Islamic modules. The competitive UX
+// audit (third-party agent, Apr 30) flagged emoji nav as "utility-heavy"
+// and Hawl/Faraid/Wasiyyah/Waqf as "cognitive load for new users."
+//
+// Plain-language strategy: lead with the English meaning; users who
+// recognise the Arabic term still see it on the destination page header.
+// Words kept in Arabic where they are well-known to the audience and
+// where the English translation loses precision (Sadaqah, Fiqh, Ibadah,
+// Ramadan, Zakat).
+const navItems: { href: string; icon: LucideIcon; label: string; gate?: 'plus' | 'family'; adminOnly?: boolean }[] = [
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   // ── Free features (alphabetized) ──────────────────────────────────────────
-  { href: '/dashboard/assets', icon: '💰', label: 'Assets' },
-  { href: '/dashboard/ledger', icon: '📋', label: 'Audit Ledger' },
-  { href: '/dashboard/billing', icon: '💳', label: 'Billing & Plans' },
-  { href: '/dashboard/bills', icon: '🔔', label: 'Bills' },
-  { href: '/dashboard/budget', icon: '📊', label: 'Budget' },
-  { href: '/dashboard/debts', icon: '💳', label: 'Debts' },
-  { href: '/dashboard/family', icon: '👨‍👩‍👧‍👦', label: 'Family', gate: 'family' },
-  { href: '/dashboard/faraid', icon: '⚖️', label: 'Faraid Calculator', gate: 'plus' },
-  { href: '/dashboard/fiqh', icon: '📚', label: 'Fiqh Settings' },
-  { href: '/dashboard/hawl', icon: '⏰', label: 'Hawl Tracker' },
-  { href: '/dashboard/ibadah', icon: '🕋', label: 'Ibadah Finance' },
-  { href: '/dashboard/import', icon: '📥', label: 'Import Data' },
-  { href: '/dashboard/market-prices', icon: '📈', label: 'Market Prices' },
-  { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications' },
-  { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times' },
-  { href: '/dashboard/profile', icon: '👤', label: 'Profile & Settings' },
-  { href: '/dashboard/ramadan', icon: '🌙', label: 'Ramadan Mode' },
-  { href: '/dashboard/recurring', icon: '🔁', label: 'Recurring' },
-  { href: '/dashboard/referral', icon: '🎁', label: 'Refer a Friend' },
-  { href: '/dashboard/reports', icon: '📊', label: 'Reports' },
-  { href: '/dashboard/retirement-zakat', icon: '🏦', label: 'Retirement Zakat' },
-  { href: '/dashboard/sadaqah', icon: '🤲', label: 'Sadaqah' },
-  { href: '/dashboard/savings', icon: '🎯', label: 'Savings Goals' },
-  { href: '/dashboard/transactions', icon: '📝', label: 'Transactions' },
-  { href: '/dashboard/zakat', icon: '🕌', label: 'Zakat' },
+  { href: '/dashboard/assets', icon: Wallet, label: 'Assets' },
+  { href: '/dashboard/ledger', icon: BookOpen, label: 'Audit Ledger' },
+  { href: '/dashboard/billing', icon: CreditCard, label: 'Billing & Plans' },
+  { href: '/dashboard/bills', icon: Receipt, label: 'Bills' },
+  { href: '/dashboard/budget', icon: PieChart, label: 'Budget' },
+  { href: '/dashboard/debts', icon: Landmark, label: 'Debts' },
+  { href: '/dashboard/family', icon: Users, label: 'Family', gate: 'family' },
+  { href: '/dashboard/faraid', icon: Scale, label: 'Inheritance Calculator', gate: 'plus' },
+  { href: '/dashboard/fiqh', icon: BookMarked, label: 'Fiqh Settings' },
+  { href: '/dashboard/hawl', icon: CalendarClock, label: 'Zakat Anniversary' },
+  { href: '/dashboard/ibadah', icon: Heart, label: 'Ibadah Finance' },
+  { href: '/dashboard/import', icon: Upload, label: 'Import Data' },
+  { href: '/dashboard/market-prices', icon: LineChart, label: 'Market Prices' },
+  { href: '/dashboard/notifications', icon: Bell, label: 'Notifications' },
+  { href: '/dashboard/prayer-times', icon: Moon, label: 'Prayer Times' },
+  { href: '/dashboard/profile', icon: User, label: 'Profile & Settings' },
+  { href: '/dashboard/ramadan', icon: Moon, label: 'Ramadan Mode' },
+  { href: '/dashboard/recurring', icon: RefreshCw, label: 'Recurring' },
+  { href: '/dashboard/referral', icon: Gift, label: 'Refer a Friend' },
+  { href: '/dashboard/reports', icon: FileBarChart, label: 'Reports' },
+  { href: '/dashboard/retirement-zakat', icon: PiggyBank, label: 'Retirement Zakat' },
+  { href: '/dashboard/sadaqah', icon: HandHeart, label: 'Sadaqah' },
+  { href: '/dashboard/savings', icon: Target, label: 'Savings Goals' },
+  { href: '/dashboard/transactions', icon: ArrowLeftRight, label: 'Transactions' },
+  { href: '/dashboard/zakat', icon: Coins, label: 'Zakat' },
   // ── Premium features (alphabetized) ───────────────────────────────────────
-  { href: '/dashboard/analytics', icon: '📊', label: 'Analytics', gate: 'plus' },
-  { href: '/dashboard/categorize', icon: '🔄', label: 'Auto-Categorize', gate: 'plus' },
-  { href: '/dashboard/barakah-score', icon: '⭐', label: 'Barakah Score', gate: 'plus' },
-  { href: '/dashboard/summary', icon: '📋', label: 'Financial Summary', gate: 'plus' },
-  { href: '/dashboard/halal', icon: '✅', label: 'Stock Screener', gate: 'plus' },
-  { href: '/dashboard/investments', icon: '📈', label: 'Investments', gate: 'plus' },
-  { href: '/dashboard/net-worth', icon: '💎', label: 'Net Worth', gate: 'plus' },
-  { href: '/dashboard/riba', icon: '🛡️', label: 'Riba Detector', gate: 'plus' },
-  { href: '/dashboard/subscriptions', icon: '🔄', label: 'Subscription Detector', gate: 'plus' },
-  { href: '/dashboard/shared', icon: '👥', label: 'Shared Finances', gate: 'family' },
-  { href: '/dashboard/waqf', icon: '🏛️', label: 'Waqf', gate: 'plus' },
-  { href: '/dashboard/wasiyyah', icon: '📜', label: 'Wasiyyah', gate: 'plus' },
+  { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics', gate: 'plus' },
+  { href: '/dashboard/categorize', icon: Tags, label: 'Auto-Categorize', gate: 'plus' },
+  { href: '/dashboard/barakah-score', icon: Star, label: 'Barakah Score', gate: 'plus' },
+  { href: '/dashboard/summary', icon: FileText, label: 'Financial Summary', gate: 'plus' },
+  { href: '/dashboard/halal', icon: ShieldCheck, label: 'Stock Screener', gate: 'plus' },
+  { href: '/dashboard/investments', icon: TrendingUp, label: 'Investments', gate: 'plus' },
+  { href: '/dashboard/net-worth', icon: Gem, label: 'Net Worth', gate: 'plus' },
+  { href: '/dashboard/riba', icon: Shield, label: 'Riba Detector', gate: 'plus' },
+  { href: '/dashboard/subscriptions', icon: ShoppingCart, label: 'Subscription Detector', gate: 'plus' },
+  { href: '/dashboard/shared', icon: Users, label: 'Shared Finances', gate: 'family' },
+  { href: '/dashboard/waqf', icon: Building2, label: 'Endowment', gate: 'plus' },
+  { href: '/dashboard/wasiyyah', icon: ScrollText, label: 'Islamic Will', gate: 'plus' },
   // ── Admin (founder/staff only — gated by user.isAdmin) ───────────────────
-  // Replaces the prior "type the URL by hand" pattern; admin surfaces are
-  // 1-click from any dashboard page now.
-  { href: '/dashboard/admin', icon: '🛠️', label: 'Admin Home', adminOnly: true },
-  { href: '/dashboard/admin/halal-screening', icon: '☪️', label: 'Halal Screening', adminOnly: true },
-  { href: '/dashboard/admin/email-locales', icon: '🌐', label: 'Email Locales', adminOnly: true },
-  { href: '/dashboard/admin/email-preview', icon: '👁️', label: 'Email Preview', adminOnly: true },
-  { href: '/dashboard/admin/acquisition', icon: '🎯', label: 'Acquisition', adminOnly: true },
-  { href: '/dashboard/admin/growth', icon: '📈', label: 'Growth', adminOnly: true },
-  { href: '/dashboard/admin/funnel', icon: '🪣', label: 'Funnel', adminOnly: true },
-  { href: '/dashboard/admin/scorecard', icon: '🧾', label: 'Scorecard', adminOnly: true },
+  { href: '/dashboard/admin', icon: Wrench, label: 'Admin Home', adminOnly: true },
+  { href: '/dashboard/admin/halal-screening', icon: ShieldCheck, label: 'Halal Screening', adminOnly: true },
+  { href: '/dashboard/admin/email-locales', icon: Globe, label: 'Email Locales', adminOnly: true },
+  { href: '/dashboard/admin/email-preview', icon: Eye, label: 'Email Preview', adminOnly: true },
+  { href: '/dashboard/admin/acquisition', icon: Crosshair, label: 'Acquisition', adminOnly: true },
+  { href: '/dashboard/admin/growth', icon: TrendingUp, label: 'Growth', adminOnly: true },
+  { href: '/dashboard/admin/funnel', icon: Filter, label: 'Funnel', adminOnly: true },
+  { href: '/dashboard/admin/scorecard', icon: Award, label: 'Scorecard', adminOnly: true },
 ];
 
 // Dark-mode external store helpers live in lib/useDarkMode.ts so that both
@@ -82,6 +99,10 @@ const navItems: { href: string; icon: string; label: string; gate?: 'plus' | 'fa
 
 type SidebarSection = 'finance' | 'islamic' | 'premium' | 'account' | 'admin';
 
+// Phase 10 (Apr 30 2026): item lists updated to match the renamed labels
+// — "Hawl Tracker" → "Zakat Anniversary", "Faraid Calculator" → "Inheritance
+// Calculator", "Wasiyyah" → "Islamic Will", "Waqf" → "Endowment". Section
+// names still describe the bucket, not the labels inside.
 const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> = {
   finance: {
     label: 'Finance',
@@ -89,11 +110,11 @@ const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> 
   },
   islamic: {
     label: 'Islamic',
-    items: ['Ibadah Finance', 'Fiqh Settings', 'Hawl Tracker', 'Prayer Times', 'Ramadan Mode', 'Retirement Zakat', 'Sadaqah', 'Zakat'],
+    items: ['Ibadah Finance', 'Fiqh Settings', 'Zakat Anniversary', 'Prayer Times', 'Ramadan Mode', 'Retirement Zakat', 'Sadaqah', 'Zakat'],
   },
   premium: {
     label: 'Premium',
-    items: ['Analytics', 'Auto-Categorize', 'Barakah Score', 'Family', 'Faraid Calculator', 'Financial Summary', 'Stock Screener', 'Investments', 'Net Worth', 'Riba Detector', 'Shared Finances', 'Subscription Detector', 'Waqf', 'Wasiyyah'],
+    items: ['Analytics', 'Auto-Categorize', 'Barakah Score', 'Family', 'Inheritance Calculator', 'Financial Summary', 'Stock Screener', 'Investments', 'Net Worth', 'Riba Detector', 'Shared Finances', 'Subscription Detector', 'Endowment', 'Islamic Will'],
   },
   account: {
     label: 'Account',
@@ -241,26 +262,33 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // pill). Section header buttons use text-muted-foreground; hover
   // surfaces use bg-sidebar-accent. Every colour now respects light/
   // dark mode via the OKLCH variables in globals.css.
-  const renderNavLink = (item: typeof navItems[0], locked: boolean) => (
-    <Link
-      key={item.href}
-      href={item.href}
-      onClick={() => setSidebarOpen(false)}
-      aria-label={item.label}
-      aria-current={pathname === item.href ? 'page' : undefined}
-      className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
-        pathname === item.href
-          ? 'bg-primary text-primary-foreground font-semibold'
-          : locked
-            ? 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-      }`}
-    >
-      <span aria-hidden="true">{item.icon}</span>
-      <span className="flex-1 truncate">{item.label}</span>
-      {locked && <span className="text-xs opacity-60" aria-label="Premium only">🔒</span>}
-    </Link>
-  );
+  const renderNavLink = (item: typeof navItems[0], locked: boolean) => {
+    const Icon = item.icon;
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={() => setSidebarOpen(false)}
+        aria-label={item.label}
+        aria-current={pathname === item.href ? 'page' : undefined}
+        className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+          pathname === item.href
+            ? 'bg-primary text-primary-foreground font-semibold'
+            : locked
+              ? 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+              : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+        }`}
+      >
+        <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+        <span className="flex-1 truncate">{item.label}</span>
+        {locked && (
+          <span className="text-[10px] uppercase tracking-wider opacity-60 font-semibold" aria-label="Premium only">
+            Plus
+          </span>
+        )}
+      </Link>
+    );
+  };
 
   const renderSection = (section: SidebarSection) => {
     if (section === 'admin' && !user.isAdmin) return null;

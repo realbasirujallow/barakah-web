@@ -8,6 +8,11 @@
 # URL Inspection is for FORCING a re-crawl on high-priority pages.
 
 ## Tier 1 — highest priority (conversion + tools). Submit day 1.
+# NOTE (2026-04-30): /signup intentionally has robots: { index:false, follow:false }
+# in src/app/signup/layout.tsx + signup/head.tsx so GSC URL Inspection rejects it
+# with "indexing issues detected". If you want signup discoverable for queries
+# like "barakah signup", remove the noindex from those two files first, then
+# add /signup back to this Tier 1 list.
 https://trybarakah.com
 https://trybarakah.com/zakat-calculator
 https://trybarakah.com/faraid-calculator
@@ -15,7 +20,6 @@ https://trybarakah.com/halal-stocks
 https://trybarakah.com/pricing
 https://trybarakah.com/compare
 https://trybarakah.com/try
-https://trybarakah.com/signup
 https://trybarakah.com/features
 https://trybarakah.com/learn
 
