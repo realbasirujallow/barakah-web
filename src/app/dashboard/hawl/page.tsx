@@ -357,8 +357,8 @@ function HawlPageContent() {
       )}
 
       <PageHeader
-        title="Hawl Tracker"
-        subtitle="Track lunar-year holding periods for each zakatable asset"
+        title="Zakat Anniversary"
+        subtitle="Track the lunar-year holding period (hawl) for each zakatable asset"
         actions={
           <>
             <button type="button" onClick={handleImportAssets} disabled={importing} className="border border-primary text-primary px-4 py-2 rounded-lg hover:bg-green-50 font-medium disabled:opacity-50 text-sm">

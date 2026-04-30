@@ -252,8 +252,8 @@ function WasiyyahPageContent() {
       </div>
 
       <PageHeader
-        title="Wasiyyah (Islamic Will)"
-        subtitle="1/3 bequest within Islamic estate planning rules"
+        title="Islamic Will"
+        subtitle="Wasiyyah — the 1/3 bequest within Qur&apos;anic estate-planning rules"
         actions={
           <>
             {/* Islamic Shares Info button */}
