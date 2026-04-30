@@ -362,7 +362,7 @@ export default function SharedPage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
 
@@ -377,18 +377,18 @@ export default function SharedPage() {
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => { setActiveGroup(null); setSummary(null); setTransactions([]); }}
-            className="text-[#1B5E20] hover:underline text-sm font-medium"
+            className="text-primary hover:underline text-sm font-medium"
           >
             ← All Groups
           </button>
-          <h1 className="text-2xl font-bold text-[#1B5E20]">{activeGroup.name}</h1>
+          <h1 className="text-2xl font-bold text-primary">{activeGroup.name}</h1>
         </div>
 
         {/* Invite code */}
         <div className="bg-white rounded-xl p-4 mb-4 flex items-center justify-between shadow-sm">
           <div>
             <p className="text-xs text-gray-500">Invite Code</p>
-            <p className="font-mono font-bold text-[#1B5E20] text-lg">{activeGroup.inviteCode}</p>
+            <p className="font-mono font-bold text-primary text-lg">{activeGroup.inviteCode}</p>
           </div>
           <button
             onClick={() => copyInviteCode(activeGroup.inviteCode)}
@@ -400,7 +400,7 @@ export default function SharedPage() {
 
         {loadingDetail ? (
           <div className="flex justify-center py-10">
-            <div className="animate-spin w-6 h-6 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+            <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full" />
           </div>
         ) : (
           <>
@@ -420,7 +420,7 @@ export default function SharedPage() {
             {(positiveBalances.length > 0 || negativeBalances.length > 0) && (
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-4">
                 <div className="px-5 py-4 border-b">
-                  <h2 className="font-bold text-[#1B5E20]">Balances</h2>
+                  <h2 className="font-bold text-primary">Balances</h2>
                 </div>
                 <div className="divide-y">
                   {balances.map(b => (
@@ -447,7 +447,7 @@ export default function SharedPage() {
                   onClick={() => setActiveTab('expenses')}
                   className={`flex-1 px-4 py-3 font-medium text-sm transition ${
                     activeTab === 'expenses'
-                      ? 'text-[#1B5E20] border-b-2 border-[#1B5E20]'
+                      ? 'text-primary border-b-2 border-primary'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
@@ -457,7 +457,7 @@ export default function SharedPage() {
                   onClick={() => setActiveTab('budgets')}
                   className={`flex-1 px-4 py-3 font-medium text-sm transition ${
                     activeTab === 'budgets'
-                      ? 'text-[#1B5E20] border-b-2 border-[#1B5E20]'
+                      ? 'text-primary border-b-2 border-primary'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
@@ -467,7 +467,7 @@ export default function SharedPage() {
                   onClick={() => setActiveTab('goals')}
                   className={`flex-1 px-4 py-3 font-medium text-sm transition ${
                     activeTab === 'goals'
-                      ? 'text-[#1B5E20] border-b-2 border-[#1B5E20]'
+                      ? 'text-primary border-b-2 border-primary'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
@@ -477,7 +477,7 @@ export default function SharedPage() {
                   onClick={() => setActiveTab('estate')}
                   className={`flex-1 px-4 py-3 font-medium text-sm transition ${
                     activeTab === 'estate'
-                      ? 'text-[#1B5E20] border-b-2 border-[#1B5E20]'
+                      ? 'text-primary border-b-2 border-primary'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
@@ -489,7 +489,7 @@ export default function SharedPage() {
               {activeTab === 'expenses' && (
                 <div>
                   <div className="px-5 py-4 border-b flex justify-between items-center">
-                    <h2 className="font-bold text-[#1B5E20]">Transactions</h2>
+                    <h2 className="font-bold text-primary">Transactions</h2>
                     <button
                       onClick={() => { setShowAddTx(true); setTxForm(emptyTxForm); }}
                       className="text-sm bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg hover:bg-[#2E7D32]"
@@ -530,7 +530,7 @@ export default function SharedPage() {
               {activeTab === 'budgets' && (
                 <div>
                   <div className="px-5 py-4 border-b flex justify-between items-center">
-                    <h2 className="font-bold text-[#1B5E20]">Budgets</h2>
+                    <h2 className="font-bold text-primary">Budgets</h2>
                     <button
                       onClick={() => { setShowAddBudget(true); setBudgetForm({ category: '', monthlyLimit: '' }); }}
                       className="text-sm bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg hover:bg-[#2E7D32]"
@@ -568,7 +568,7 @@ export default function SharedPage() {
               {activeTab === 'goals' && (
                 <div>
                   <div className="px-5 py-4 border-b flex justify-between items-center">
-                    <h2 className="font-bold text-[#1B5E20]">Goals</h2>
+                    <h2 className="font-bold text-primary">Goals</h2>
                     <button
                       onClick={() => { setShowAddGoal(true); setGoalForm({ name: '', targetAmount: '', targetDate: '', description: '' }); }}
                       className="text-sm bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg hover:bg-[#2E7D32]"
@@ -629,7 +629,7 @@ export default function SharedPage() {
                   <div className="px-5 py-4 border-b">
                     <div className="flex justify-between items-center">
                       <div>
-                        <h2 className="font-bold text-[#1B5E20]">Family Estate</h2>
+                        <h2 className="font-bold text-primary">Family Estate</h2>
                         <p className="text-xs text-gray-500 mt-1">Waqf endowments and Wasiyyah (wills) shared by family members</p>
                       </div>
                       <label className="flex items-center gap-2 cursor-pointer">
@@ -664,7 +664,7 @@ export default function SharedPage() {
                     <div className="px-5 py-4 border-b bg-gradient-to-r from-emerald-50 to-amber-50">
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
-                          <p className="text-2xl font-bold text-[#1B5E20]">{estateData.membersSharing || 0}</p>
+                          <p className="text-2xl font-bold text-primary">{estateData.membersSharing || 0}</p>
                           <p className="text-xs text-gray-500">Members Sharing</p>
                         </div>
                         <div>
@@ -698,7 +698,7 @@ export default function SharedPage() {
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900 text-sm">
-                                  {member.displayName}{isSelf && <span className="text-xs text-[#1B5E20] ml-1">(you)</span>}
+                                  {member.displayName}{isSelf && <span className="text-xs text-primary ml-1">(you)</span>}
                                 </p>
                                 <p className="text-xs text-gray-400">{member.role}</p>
                               </div>
@@ -806,7 +806,7 @@ export default function SharedPage() {
         {showAddTx && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Transaction</h2>
+              <h2 className="text-xl font-bold text-primary mb-4">Add Transaction</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -861,7 +861,7 @@ export default function SharedPage() {
         {showAddBudget && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Budget</h2>
+              <h2 className="text-xl font-bold text-primary mb-4">Add Budget</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
@@ -906,7 +906,7 @@ export default function SharedPage() {
         {showAddGoal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Add Goal</h2>
+              <h2 className="text-xl font-bold text-primary mb-4">Add Goal</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Goal Name</label>
@@ -970,7 +970,7 @@ export default function SharedPage() {
         {showContributeGoal !== null && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Contribute to Goal</h2>
+              <h2 className="text-xl font-bold text-primary mb-4">Contribute to Goal</h2>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Amount ({currency})</label>
                 <input
@@ -1013,7 +1013,7 @@ export default function SharedPage() {
           <>
             <button
               onClick={() => setShowJoinForm(true)}
-              className="border border-[#1B5E20] text-[#1B5E20] px-4 py-2 rounded-lg hover:bg-green-50 font-medium text-sm"
+              className="border border-primary text-primary px-4 py-2 rounded-lg hover:bg-green-50 font-medium text-sm"
             >
               Join Group
             </button>
@@ -1061,7 +1061,7 @@ export default function SharedPage() {
       {showCreateForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Create Shared Group</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">Create Shared Group</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Group Name</label>
@@ -1105,7 +1105,7 @@ export default function SharedPage() {
       {showJoinForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">Join a Group</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">Join a Group</h2>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Invite Code</label>
               <input

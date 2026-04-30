@@ -433,12 +433,12 @@ export default function TransactionsPage() {
           <>
             <SyncBanksButton onSynced={load} label="Sync banks" />
             <button onClick={handleExportCsv} disabled={exportingCsv}
-              className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1">
-              {exportingCsv ? <span className="animate-spin w-3 h-3 border-2 border-[#1B5E20] border-t-transparent rounded-full inline-block" /> : '📥'} CSV
+              className="border border-primary text-primary px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1">
+              {exportingCsv ? <span className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full inline-block" /> : '📥'} CSV
             </button>
             <button onClick={handleExportPdf} disabled={exportingPdf}
-              className="border border-[#1B5E20] text-[#1B5E20] px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1">
-              {exportingPdf ? <span className="animate-spin w-3 h-3 border-2 border-[#1B5E20] border-t-transparent rounded-full inline-block" /> : '📄'} PDF
+              className="border border-primary text-primary px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1">
+              {exportingPdf ? <span className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full inline-block" /> : '📄'} PDF
             </button>
             {txs.length > 0 && (
               selectMode
@@ -456,7 +456,7 @@ export default function TransactionsPage() {
         plaidSyncAccess ? 'bg-[#F7FBF7] border-green-200' : 'bg-amber-50 border-amber-200'
       }`}>
         <div>
-          <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-[#1B5E20]' : 'text-amber-900'}`}>
+          <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-primary' : 'text-amber-900'}`}>
             {hasLinkedPlaidTransactions
               ? (plaidSyncAccess ? 'Keep your transaction feed alive.' : 'Your imported feed is visible, but syncing is paused.')
               : 'Connect your accounts to stop manual ledger work.'}
@@ -529,7 +529,7 @@ export default function TransactionsPage() {
           placeholder="Search transactions..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="ml-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none w-40 sm:w-56"
+          className="ml-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none w-40 sm:w-56"
         />
         {search && (
           <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600 text-sm">✕</button>
@@ -538,7 +538,7 @@ export default function TransactionsPage() {
           <span className="text-xs text-gray-500">Show:</span>
           {PAGE_SIZE_OPTIONS.map(n => (
             <button key={n} onClick={() => handlePageSizeChange(n)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition ${pageSize === n ? 'bg-[#1B5E20] text-white border-[#1B5E20]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>{n}</button>
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition ${pageSize === n ? 'bg-[#1B5E20] text-white border-primary' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>{n}</button>
           ))}
         </div>
       </div>
@@ -595,7 +595,7 @@ export default function TransactionsPage() {
             return (
             <div key={tx.id}
               onClick={selectMode ? () => toggleSelect(tx.id) : undefined}
-              className={`bg-white rounded-xl p-4 flex justify-between items-center transition ${selectMode ? 'cursor-pointer' : ''} ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-[#1B5E20] bg-green-50/30' : ''}`}>
+              className={`bg-white rounded-xl p-4 flex justify-between items-center transition ${selectMode ? 'cursor-pointer' : ''} ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-primary bg-green-50/30' : ''}`}>
               <div className="flex items-center gap-3">
                 {selectMode && (
                   <input type="checkbox" checked={selectedIds.has(tx.id) || selectAllPages}
@@ -632,7 +632,7 @@ export default function TransactionsPage() {
                   {tx.tags && tx.tags.trim() !== '' && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {tx.tags.split(',').map(tag => tag.trim()).filter(Boolean).map((tag, i) => (
-                        <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-[#1B5E20]">
+                        <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-primary">
                           {tag}
                         </span>
                       ))}
@@ -651,7 +651,7 @@ export default function TransactionsPage() {
                 </p>
                 {!selectMode && (
                   <div className="flex items-center gap-2">
-                    <button onClick={() => openEdit(tx)} className="text-gray-400 hover:text-[#1B5E20] text-sm px-1" title="Edit">✏️</button>
+                    <button onClick={() => openEdit(tx)} className="text-gray-400 hover:text-primary text-sm px-1" title="Edit">✏️</button>
                     <button onClick={() => handleDelete(tx.id)} className="text-gray-400 hover:text-red-600 text-sm" title="Delete">🗑️</button>
                   </div>
                 )}
@@ -710,7 +710,7 @@ export default function TransactionsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">{editTx ? 'Edit Transaction' : 'Add Transaction'}</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editTx ? 'Edit Transaction' : 'Add Transaction'}</h2>
             <div className="space-y-4">
               {/* Type */}
               <div>

@@ -124,7 +124,7 @@ export default function RecurringPage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
 
@@ -156,7 +156,7 @@ export default function RecurringPage() {
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-white rounded-xl p-4 shadow-sm text-center">
           <p className="text-gray-500 text-xs">Active</p>
-          <p className="text-2xl font-bold text-[#1B5E20]">{active.length}</p>
+          <p className="text-2xl font-bold text-primary">{active.length}</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm text-center">
           <p className="text-gray-500 text-xs">Paused</p>
@@ -180,7 +180,7 @@ export default function RecurringPage() {
       {active.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center">
-            <h2 className="font-semibold text-[#1B5E20]">Active ({active.length})</h2>
+            <h2 className="font-semibold text-primary">Active ({active.length})</h2>
             <span className="text-xs text-gray-400">Toggle to pause</span>
           </div>
           {active.map(tx => <TxRow key={tx.id} tx={tx} fmt={fmt} toggling={toggling} onToggle={handleToggle} />)}

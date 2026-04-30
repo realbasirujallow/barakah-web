@@ -287,7 +287,7 @@ export default function SavingsPage() {
               <div key={g.id} className={`bg-white rounded-xl p-4 ${done ? 'border-l-4 border-green-500' : ''}`}>
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="font-semibold text-[#1B5E20] flex items-center gap-1.5">
+                    <p className="font-semibold text-primary flex items-center gap-1.5">
                       {g.name}{done && <span className="text-green-600 text-sm">✅</span>}
                     </p>
                     <p className="text-sm text-gray-500 capitalize">{g.category}{g.description ? ` • ${g.description}` : ''}</p>
@@ -350,7 +350,7 @@ export default function SavingsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-4">New Savings Goal</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">New Savings Goal</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Goal Name</label>
                 <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Hajj Fund" /></div>
@@ -381,7 +381,7 @@ export default function SavingsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-sm"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-[#1B5E20] mb-2">Contribute</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-2">Contribute</h2>
             <p className="text-gray-500 text-sm mb-4">{contModal.name} • {fmt(contModal.currentAmount)} / {fmt(contModal.targetAmount)}</p>
             {contError && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg mb-2">{contError}</div>}
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>

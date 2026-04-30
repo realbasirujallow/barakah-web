@@ -154,7 +154,7 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
 
           <Link
             href={meta.href}
-            className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-[#1B5E20] hover:underline"
+            className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
             onClick={e => e.stopPropagation()}
           >
             Go to {pillar.name.split(' ')[0]} →
@@ -191,7 +191,7 @@ export default function BarakahScorePage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
 

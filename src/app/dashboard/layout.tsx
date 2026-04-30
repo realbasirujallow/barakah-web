@@ -229,7 +229,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen flex items-center justify-center bg-[#FFF8E1]">
       <div className="text-center">
         <p className="text-4xl mb-3">&#127769;</p>
-        <p className="text-[#1B5E20] font-medium">Signing out...</p>
+        <p className="text-primary font-medium">Signing out...</p>
       </div>
     </div>
   );
@@ -351,7 +351,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 is open/closed. The marketing hamburger (/app/page.tsx)
                 got the same treatment in Round 18. */}
             <button
-              className="lg:hidden text-[#1B5E20]"
+              className="lg:hidden text-primary"
               onClick={() => setSidebarOpen(true)}
               aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={sidebarOpen}
@@ -374,14 +374,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               )}
               <button
                 onClick={toggleDarkMode}
-                className="text-gray-500 hover:text-[#1B5E20] text-lg transition"
+                className="text-gray-500 hover:text-primary text-lg transition"
                 title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                 aria-label="Toggle dark mode"
               >
                 {darkMode ? '☀️' : '🌙'}
               </button>
               <NotificationBell />
-              <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-[#1B5E20]">{user.name}</span></p>
+              <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-primary">{user.name}</span></p>
             </div>
           </header>
           <main className="flex-1 p-6 overflow-auto">
@@ -390,7 +390,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             {children}
           </main>
           <footer className="px-6 py-3 text-center text-xs text-gray-400 border-t bg-white">
-            <Link href="/disclaimer" className="hover:text-[#1B5E20] hover:underline transition">
+            <Link href="/disclaimer" className="hover:text-primary hover:underline transition">
               ⚠️ Disclaimer &amp; Islamic Guidance Notice
             </Link>
             <span className="mx-2">·</span>

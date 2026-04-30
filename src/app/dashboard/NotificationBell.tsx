@@ -151,7 +151,7 @@ export function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-lg hover:bg-green-50 text-gray-600 hover:text-[#1B5E20] transition"
+        className="relative p-2 rounded-lg hover:bg-green-50 text-gray-600 hover:text-primary transition"
         aria-label="Notifications"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -171,7 +171,7 @@ export function NotificationBell() {
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <p className="font-semibold text-gray-800 text-sm">Notifications</p>
             {unreadCount > 0 && (
-              <button onClick={markAllRead} className="text-xs text-[#1B5E20] hover:underline font-medium">
+              <button onClick={markAllRead} className="text-xs text-primary hover:underline font-medium">
                 Mark all read
               </button>
             )}
@@ -180,7 +180,7 @@ export function NotificationBell() {
           <div className="max-h-96 overflow-y-auto">
             {loading && (
               <div className="flex justify-center py-8">
-                <div className="animate-spin w-5 h-5 border-2 border-[#1B5E20] border-t-transparent rounded-full" />
+                <div className="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full" />
               </div>
             )}
 
@@ -247,7 +247,7 @@ export function NotificationBell() {
 
           <Link
             href="/dashboard/notifications"
-            className="block text-center py-3 text-xs text-[#1B5E20] font-medium hover:bg-green-50 transition border-t border-gray-100"
+            className="block text-center py-3 text-xs text-primary font-medium hover:bg-green-50 transition border-t border-gray-100"
             onClick={() => setOpen(false)}
           >
             View all notifications →

@@ -338,7 +338,7 @@ export default function AssetsPage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div role="status" aria-label="Loading assets..." className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full">
+      <div role="status" aria-label="Loading assets..." className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full">
         <span className="sr-only">Loading...</span>
       </div>
     </div>
@@ -371,7 +371,7 @@ export default function AssetsPage() {
         plaidSyncAccess ? 'bg-[#F7FBF7] border-green-200' : 'bg-amber-50 border-amber-200'
       }`}>
         <div>
-          <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-[#1B5E20]' : 'text-amber-900'}`}>
+          <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-primary' : 'text-amber-900'}`}>
             {hasLinkedPlaidAssets
               ? (plaidSyncAccess ? 'Keep your linked balances fresh.' : 'Your linked balances are visible, but syncing is paused.')
               : 'Connect bank and investment accounts.'}
@@ -466,7 +466,7 @@ export default function AssetsPage() {
       {showBreakdown && total?.breakdown ? (
         <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-[#1B5E20]">Zakat Calculation Breakdown</h2>
+            <h2 className="text-lg font-bold text-primary">Zakat Calculation Breakdown</h2>
             <button type="button" onClick={() => setShowBreakdown(false)} className="text-gray-400 hover:text-gray-600">✕</button>
           </div>
           <div className="grid grid-cols-3 gap-3 mb-4">
@@ -477,7 +477,7 @@ export default function AssetsPage() {
           <div className="border-t pt-3 mb-3">
             <p className="text-xs text-gray-500 mb-1">Nisab Threshold: {fmt((total?.nisab as number) || 5686.20)}</p>
             <p className="text-xs text-gray-500">Zakat Rate: 2.5% of zakatable wealth</p>
-            <p className="text-sm font-semibold text-[#1B5E20] mt-1">Zakat Due = {fmt((total?.zakatableWealth as number) || 0)} × 2.5% = {fmt((total?.zakatDue as number) || 0)}</p>
+            <p className="text-sm font-semibold text-primary mt-1">Zakat Due = {fmt((total?.zakatableWealth as number) || 0)} × 2.5% = {fmt((total?.zakatDue as number) || 0)}</p>
           </div>
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {(total.breakdown as Array<Record<string, unknown>>).map((item, i) => (
@@ -515,7 +515,7 @@ export default function AssetsPage() {
       ) : (
         <div className="space-y-4">
           {assets.map(a => (
-            <div key={a.id} className={`bg-white rounded-xl shadow-sm overflow-hidden transition ${selectMode && selectedIds.has(a.id) ? 'ring-2 ring-[#1B5E20]/40' : ''}`}>
+            <div key={a.id} className={`bg-white rounded-xl shadow-sm overflow-hidden transition ${selectMode && selectedIds.has(a.id) ? 'ring-2 ring-primary/40' : ''}`}>
               <div className="p-4 flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   {selectMode && (
@@ -530,7 +530,7 @@ export default function AssetsPage() {
                   )}
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-[#1B5E20]">{a.name}</p>
+                      <p className="font-semibold text-primary">{a.name}</p>
                       {a.readOnly && (
                         <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                           Linked via Plaid
@@ -555,7 +555,7 @@ export default function AssetsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <p className="text-lg font-bold text-[#1B5E20]">{fmt(a.value)}</p>
+                  <p className="text-lg font-bold text-primary">{fmt(a.value)}</p>
                   {!selectMode && (
                     <>
                       {!a.readOnly && (
@@ -565,7 +565,7 @@ export default function AssetsPage() {
                         </>
                       )}
                       {a.readOnly && (
-                        <Link href="/dashboard/import" className="text-gray-500 hover:text-[#1B5E20] text-sm border border-gray-300 px-3 py-1 rounded-lg">
+                        <Link href="/dashboard/import" className="text-gray-500 hover:text-primary text-sm border border-gray-300 px-3 py-1 rounded-lg">
                           Manage
                         </Link>
                       )}
@@ -610,7 +610,7 @@ export default function AssetsPage() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md my-4">
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-4">{editItem ? 'Edit Asset' : 'Add Asset'}</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">{editItem ? 'Edit Asset' : 'Add Asset'}</h2>
             <div className="space-y-4">
               <div>
                 <label htmlFor="asset-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>

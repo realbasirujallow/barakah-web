@@ -137,7 +137,7 @@ export default function SummaryPage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
 
@@ -252,7 +252,7 @@ export default function SummaryPage() {
       {/* Trend chart */}
       {chartData.length > 0 && (
         <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
-          <h2 className="font-semibold text-[#1B5E20] mb-4">Income vs Expenses — Last {months} Months</h2>
+          <h2 className="font-semibold text-primary mb-4">Income vs Expenses — Last {months} Months</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={chartData} margin={{ top: 0, right: 0, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -269,7 +269,7 @@ export default function SummaryPage() {
 
       {/* Top spending categories */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
-        <h2 className="font-semibold text-[#1B5E20] mb-4">Top Spending Categories</h2>
+        <h2 className="font-semibold text-primary mb-4">Top Spending Categories</h2>
         {expenseEntries.length === 0 ? (
           <p className="text-gray-400 text-sm text-center py-4">No expense data for this period</p>
         ) : (
@@ -304,10 +304,10 @@ export default function SummaryPage() {
       {/* Shareable text preview */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="font-semibold text-[#1B5E20]">Text Summary</h2>
+          <h2 className="font-semibold text-primary">Text Summary</h2>
           <button
             onClick={handleCopy}
-            className="text-sm text-[#1B5E20] hover:underline font-medium"
+            className="text-sm text-primary hover:underline font-medium"
           >
             {copied ? '✓ Copied!' : 'Copy'}
           </button>

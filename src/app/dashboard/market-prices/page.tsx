@@ -229,7 +229,7 @@ export default function MarketPricesPage() {
             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition ${
               tab === t
                 ? 'bg-[#1B5E20] text-white shadow'
-                : 'text-gray-600 hover:bg-green-50 hover:text-[#1B5E20]'
+                : 'text-gray-600 hover:bg-green-50 hover:text-primary'
             }`}
           >
             {t === 'crypto' && '💎 Crypto'}
@@ -248,7 +248,7 @@ export default function MarketPricesPage() {
               type="button"
               onClick={() => void loadCryptos()}
               disabled={loadingCryptos}
-              className="text-xs text-[#1B5E20] font-medium hover:underline disabled:opacity-50"
+              className="text-xs text-primary font-medium hover:underline disabled:opacity-50"
             >
               {loadingCryptos ? 'Refreshing…' : 'Refresh'}
             </button>
@@ -294,7 +294,7 @@ export default function MarketPricesPage() {
               onChange={e => setStockSymbol(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleStockSearch()}
               placeholder="Ticker (e.g. AAPL, TSLA)"
-              className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1B5E20] uppercase"
+              className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary uppercase"
               maxLength={10}
             />
             <button
@@ -314,12 +314,12 @@ export default function MarketPricesPage() {
           {stockResult && (
             <div className="mt-4 border border-gray-100 rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-lg font-bold text-[#1B5E20]">{stockResult.symbol}</p>
+                <p className="text-lg font-bold text-primary">{stockResult.symbol}</p>
                 <button
                   type="button"
                   onClick={() => addToWatchlist(stockResult.symbol)}
                   disabled={watchlist.includes(stockResult.symbol)}
-                  className="text-xs px-3 py-1 rounded-full border border-[#1B5E20] text-[#1B5E20] font-medium hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-xs px-3 py-1 rounded-full border border-primary text-primary font-medium hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {watchlist.includes(stockResult.symbol) ? 'In watchlist ✓' : '+ Add to watchlist'}
                 </button>
@@ -376,7 +376,7 @@ export default function MarketPricesPage() {
                 <button
                   type="button"
                   onClick={() => void loadWatchlistPrices()}
-                  className="text-xs text-[#1B5E20] font-medium hover:underline"
+                  className="text-xs text-primary font-medium hover:underline"
                 >
                   Refresh
                 </button>

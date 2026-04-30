@@ -130,14 +130,14 @@ export default function NetWorthPage() {
   if (isLoading || (user && !hasPaidAccess)) {
     return (
       <div className="flex justify-center py-20">
-        <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
     </div>
   );
 
@@ -216,7 +216,7 @@ export default function NetWorthPage() {
 
       {/* Breakdown card */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-        <h2 className="font-bold text-[#1B5E20] mb-4">Breakdown</h2>
+        <h2 className="font-bold text-primary mb-4">Breakdown</h2>
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
@@ -284,7 +284,7 @@ export default function NetWorthPage() {
       {history.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b">
-            <h2 className="font-bold text-[#1B5E20]">Snapshot History</h2>
+            <h2 className="font-bold text-primary">Snapshot History</h2>
             <p className="text-xs text-gray-500 mt-1">A snapshot is recorded once per day when you visit this page</p>
           </div>
           <div className="divide-y">

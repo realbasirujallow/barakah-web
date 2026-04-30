@@ -76,10 +76,10 @@ export default function SubscriptionsPage() {
   if (loading) {
     return (
       <div className="p-6 space-y-4">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Subscription Detector</h1>
+        <h1 className="text-2xl font-bold text-primary">Subscription Detector</h1>
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1B5E20] mx-auto mb-4" />
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto mb-4" />
             <p className="text-gray-500">Analyzing your transactions for recurring subscriptions...</p>
           </div>
         </div>
@@ -111,7 +111,7 @@ export default function SubscriptionsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
           <p className="text-sm text-gray-500 dark:text-gray-400">Detected</p>
-          <p className="text-2xl font-bold text-[#1B5E20]">{subscriptions.length}</p>
+          <p className="text-2xl font-bold text-primary">{subscriptions.length}</p>
           <p className="text-xs text-gray-400">subscriptions</p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
