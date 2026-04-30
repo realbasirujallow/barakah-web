@@ -91,7 +91,7 @@ export default function ReferralPage() {
       {/* Round 18: retry button so users aren't stranded on a transient error. */}
       <button
         onClick={load}
-        className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition"
+        className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-semibold hover:bg-primary/90 transition"
       >
         Try again
       </button>
@@ -156,7 +156,7 @@ export default function ReferralPage() {
             className={`px-5 py-3 rounded-xl font-medium text-sm transition ${
               copied
                 ? 'bg-green-100 text-green-700 border border-green-300'
-                : 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]'
+                : 'bg-primary text-primary-foreground hover:bg-primary/90'
             }`}
           >
             {copied ? '✅ Copied!' : '📋 Copy'}

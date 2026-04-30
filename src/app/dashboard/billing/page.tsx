@@ -317,7 +317,7 @@ function BillingContent() {
                   type="button"
                   onClick={handleAcceptSaveOffer}
                   disabled={loading === 'save-offer'}
-                  className="rounded-xl bg-[#1B5E20] px-4 py-3 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-60"
+                  className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
                 >
                   {loading === 'save-offer' ? 'Applying offer...' : 'Keep My Plan With This Offer'}
                 </button>
@@ -348,7 +348,7 @@ function BillingContent() {
           <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-primary' : 'text-gray-400'}`}>Monthly</span>
           <button
             onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
-            className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
+            className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-primary' : 'bg-gray-300'}`}
             aria-label={billing === 'yearly' ? 'Switch to monthly billing' : 'Switch to annual billing'}
           >
             <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-7' : ''}`} />
@@ -392,7 +392,7 @@ function BillingContent() {
             >
               {/* Badge */}
               {'badge' in plan && plan.badge && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#1B5E20] text-white text-xs font-semibold px-3 py-1 rounded-full">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
                   {plan.badge}
                 </span>
               )}
@@ -455,7 +455,7 @@ function BillingContent() {
                   <button
                     onClick={() => handleUpgrade(plan.id as 'plus' | 'family')}
                     disabled={loading === plan.id}
-                    className="w-full bg-[#1B5E20] text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-[#155016] disabled:opacity-50 transition-colors"
+                    className="w-full bg-primary text-primary-foreground rounded-xl py-2.5 text-sm font-semibold hover:bg-[#155016] disabled:opacity-50 transition-colors"
                   >
                     {loading === plan.id ? (
                       <span className="flex items-center justify-center gap-2">
@@ -521,7 +521,7 @@ function BillingContent() {
             />
             <button
               onClick={copyCode}
-              className="px-4 py-2 bg-[#1B5E20] text-white text-xs font-semibold rounded-lg hover:bg-[#2E7D32] transition whitespace-nowrap"
+              className="px-4 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:bg-primary/90 transition whitespace-nowrap"
             >
               {copied ? '✓ Copied!' : 'Copy Link'}
             </button>

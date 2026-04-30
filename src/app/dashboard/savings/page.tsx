@@ -200,7 +200,7 @@ export default function SavingsPage() {
         </div>
         <Link
           href="/dashboard/billing"
-          className="inline-block bg-[#1B5E20] text-white px-8 py-3 rounded-xl font-bold hover:bg-green-800 transition"
+          className="inline-block bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold hover:bg-green-800 transition"
         >
           Upgrade to Plus — from $9.99/mo
         </Link>
@@ -221,7 +221,7 @@ export default function SavingsPage() {
         title="Savings Goals"
         subtitle="Track progress toward Hajj, emergency fund, and other halal goals"
         actions={
-          <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ New Goal</button>
+          <button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ New Goal</button>
         }
       />
 
@@ -331,7 +331,7 @@ export default function SavingsPage() {
                     <span className="text-xs text-gray-500">{g.progress} / {g.target}</span>
                   </div>
                   <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#1B5E20] rounded-full" style={{ width: `${g.pct}%` }} />
+                    <div className="h-full bg-primary rounded-full" style={{ width: `${g.pct}%` }} />
                   </div>
                 </div>
               ))}
@@ -365,7 +365,7 @@ export default function SavingsPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button type="button" aria-label="Close new goal modal" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.targetAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Create'}</button>
+              <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.targetAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Create'}</button>
             </div>
           </div>
         </div>
@@ -388,7 +388,7 @@ export default function SavingsPage() {
               <input type="number" step="0.01" value={contAmount} onChange={e => { setContAmount(e.target.value); setContError(null); }} className={`w-full border rounded-lg px-3 py-2 text-gray-900 ${contError ? 'border-red-400' : ''}`} placeholder="100" /></div>
             <div className="flex gap-3 mt-6">
               <button type="button" aria-label="Close contribute modal" onClick={() => setContModal(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handleContribute} disabled={saving || !contAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Contribute'}</button>
+              <button type="button" onClick={handleContribute} disabled={saving || !contAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Contribute'}</button>
             </div>
           </div>
         </div>

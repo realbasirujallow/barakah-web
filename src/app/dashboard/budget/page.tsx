@@ -210,7 +210,7 @@ export default function BudgetPage() {
               className="px-3 py-2 text-sm border border-primary text-primary rounded-lg hover:bg-green-50 transition disabled:opacity-50">
               {copyingMonth ? 'Copying...' : '📋 Copy Last Month'}
             </button>
-            <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Budget</button>
+            <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Budget</button>
           </>
         }
       />
@@ -263,7 +263,7 @@ export default function BudgetPage() {
                   </div>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className={`h-2 rounded-full transition-all ${over ? 'bg-red-600' : pct >= 90 ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-[#1B5E20]'}`} style={{ width: `${pct}%` }} />
+                  <div className={`h-2 rounded-full transition-all ${over ? 'bg-red-600' : pct >= 90 ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
                 </div>
               </div>
             );
@@ -274,7 +274,7 @@ export default function BudgetPage() {
           <p className="text-6xl mb-4">📋</p>
           <p className="text-gray-700 font-semibold text-lg mb-2">No budgets set up yet</p>
           <p className="text-gray-500 text-sm mb-6">{viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear() ? 'No budgets set up yet. Create your first budget to start managing your spending.' : 'No budgets were set for this month. Use "Copy Last Month" or create a new one.'}</p>
-          <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-xl hover:bg-[#2E7D32] font-medium text-sm">
+          <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl hover:bg-primary/90 font-medium text-sm">
             + Create Your First Budget
           </button>
         </div>
@@ -314,7 +314,7 @@ export default function BudgetPage() {
             <div className="flex gap-3 mt-4">
               <button type="button" onClick={() => setShowForm(false)} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handleSave} disabled={saving || !form.monthlyLimit}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">
                 {saving ? 'Saving...' : editItem ? 'Update' : 'Add'}
               </button>
             </div>

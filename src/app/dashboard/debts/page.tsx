@@ -336,14 +336,14 @@ export default function DebtsPage() {
         subtitle="Riba-aware payoff plan — distinguishes haram interest from halal financing"
         className="mb-4"
         actions={
-          <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Debt</button>
+          <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Debt</button>
         }
       />
 
       <div className="flex gap-2 mb-6">
         {(['debts', 'projector'] as const).map(t => (
           <button key={t} type="button" onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tab === t ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tab === t ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>
             {t === 'debts' ? '📋 My Debts' : '🔮 Payoff Projector'}
           </button>
         ))}
@@ -372,7 +372,7 @@ export default function DebtsPage() {
           <Link
             href="/dashboard/import"
             className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-              plaidSyncAccess ? 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
+              plaidSyncAccess ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
             }`}
           >
             {hasLinkedPlaidDebts ? 'Manage Linked Accounts' : 'Connect Accounts'}
@@ -380,7 +380,7 @@ export default function DebtsPage() {
           {!plaidSyncAccess && (
             <Link
               href="/dashboard/billing"
-              className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32]"
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
             >
               Upgrade to Keep Syncing
             </Link>
@@ -475,7 +475,7 @@ export default function DebtsPage() {
                       <div className="flex items-center gap-2">
                         {!d.readOnly ? (
                           <>
-                            <button type="button" onClick={() => { setPayModal(d); setPayAmount(String(d.monthlyPayment)); }} className="bg-[#1B5E20] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#2E7D32]">Pay</button>
+                            <button type="button" onClick={() => { setPayModal(d); setPayAmount(String(d.monthlyPayment)); }} className="bg-primary text-primary-foreground px-3 py-1 rounded-lg text-sm hover:bg-primary/90">Pay</button>
                             <button type="button" onClick={() => openEdit(d)} className="text-gray-500 hover:text-primary text-sm border border-gray-300 px-3 py-1 rounded-lg">Edit</button>
                             <button type="button" onClick={() => handleDelete(d.id)} disabled={deletingId === d.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === d.id ? 'Deleting...' : 'Del'}</button>
                           </>
@@ -489,7 +489,7 @@ export default function DebtsPage() {
                       <span className="text-gray-700 font-medium">{fmt(d.remainingAmount)} left • {pct.toFixed(0)}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-[#1B5E20] h-2 rounded-full" style={{ width: `${pct}%` }} />
+                      <div className="bg-primary h-2 rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                   </div>
@@ -728,7 +728,7 @@ export default function DebtsPage() {
             {saveError && <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{saveError}</div>}
             <div className="flex gap-3 mt-4">
               <button type="button" onClick={() => { setShowForm(false); setForm(emptyForm); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.totalAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : editDebt ? 'Update' : 'Add'}</button>
+              <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.totalAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : editDebt ? 'Update' : 'Add'}</button>
             </div>
           </div>
         </div>
@@ -745,7 +745,7 @@ export default function DebtsPage() {
             {payError && <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{payError}</div>}
             <div className="flex gap-3 mt-4">
               <button type="button" onClick={() => { setPayModal(null); setPayError(null); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handlePay} disabled={saving || !payAmount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Processing...' : 'Pay'}</button>
+              <button type="button" onClick={handlePay} disabled={saving || !payAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Processing...' : 'Pay'}</button>
             </div>
           </div>
         </div>

@@ -183,7 +183,7 @@ export default function HalalPage() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
           <p className="text-amber-800 font-semibold mb-2">Plus or Family plan required</p>
           <p className="text-amber-700 text-sm mb-4">Upgrade to screen stocks for Shariah compliance, view sector breakdowns, and more.</p>
-          <Link href="/dashboard/billing" className="inline-block bg-[#1B5E20] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition-colors">
+          <Link href="/dashboard/billing" className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-lg font-semibold hover:bg-primary/90 transition-colors">
             View Plans
           </Link>
         </div>
@@ -294,7 +294,7 @@ export default function HalalPage() {
               <button
                 onClick={handleQuickCheck}
                 disabled={checking}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#1B5E20] text-white px-3 py-1 rounded-md text-sm hover:bg-[#2E7D32] disabled:opacity-50"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-md text-sm hover:bg-primary/90 disabled:opacity-50"
               >
                 {checking ? '...' : 'Check'}
               </button>

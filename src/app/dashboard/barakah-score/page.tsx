@@ -205,7 +205,7 @@ export default function BarakahScorePage() {
           : 'We couldn\'t calculate your score right now. This usually means you need to add more financial data (assets, transactions, zakat payments) first.'}
       </p>
       <div className="flex gap-3 justify-center">
-        <a href="/dashboard" className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-medium hover:bg-[#2E7D32] transition">Go to Dashboard</a>
+        <a href="/dashboard" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition">Go to Dashboard</a>
         <button onClick={() => void loadScore()} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Try Again</button>
       </div>
     </div>

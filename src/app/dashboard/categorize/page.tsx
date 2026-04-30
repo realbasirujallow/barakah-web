@@ -396,7 +396,7 @@ export default function CategorizePage() {
             <button
               onClick={handleSaveRule}
               disabled={savingRule}
-              className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-[#2E7D32] disabled:opacity-50"
+              className="bg-primary text-primary-foreground px-5 py-2.5 rounded-xl font-semibold hover:bg-primary/90 disabled:opacity-50"
             >
               {savingRule ? 'Saving…' : editingRuleId ? 'Update Rule' : 'Save Rule'}
             </button>

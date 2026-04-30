@@ -309,7 +309,7 @@ export default function BillsPage() {
         title="Bills & Reminders"
         subtitle="Upcoming dues with overdue alerts and recurring schedules"
         actions={
-          <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Bill</button>
+          <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Bill</button>
         }
       />
 
@@ -458,7 +458,7 @@ export default function BillsPage() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving || !form.name || !form.amount}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
                 {saving ? 'Saving...' : (editBill ? 'Save Changes' : 'Add Bill')}
               </button>

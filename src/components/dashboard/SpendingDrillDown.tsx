@@ -9,7 +9,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { Separator } from '@/components/ui/separator';
+import { useIsDesktop } from '@/lib/useMediaQuery';
 import { cn } from '@/lib/utils';
 
 /**
@@ -79,15 +87,13 @@ export function SpendingDrillDown({
   const isMomUp = momDelta > 0;
   const isMomDown = momDelta < 0;
 
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Spending breakdown</SheetTitle>
-          <SheetDescription>{monthLabel}</SheetDescription>
-        </SheetHeader>
-
-        <div className="px-4 pb-6 space-y-6">
+  // Phase 6.3: render as a side Sheet on desktop, a bottom Drawer on
+  // mobile. iOS / Android users expect modals to come from the bottom
+  // (Apple HIG + Material 3 guidance both call this out). We detect via
+  // matchMedia(min-width: 768px) — Tailwind's md breakpoint.
+  const isDesktop = useIsDesktop();
+  const body = (
+    <div className="px-4 pb-6 space-y-6">
           {/* ── Top-line totals ─────────────────────────────────────────── */}
           <section>
             <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
@@ -208,8 +214,32 @@ export function SpendingDrillDown({
               Open full monthly summary
             </Link>
           </div>
-        </div>
-      </SheetContent>
-    </Sheet>
+    </div>
+  );
+
+  if (isDesktop) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Spending breakdown</SheetTitle>
+            <SheetDescription>{monthLabel}</SheetDescription>
+          </SheetHeader>
+          {body}
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[90vh]">
+        <DrawerHeader>
+          <DrawerTitle>Spending breakdown</DrawerTitle>
+          <DrawerDescription>{monthLabel}</DrawerDescription>
+        </DrawerHeader>
+        <div className="overflow-y-auto">{body}</div>
+      </DrawerContent>
+    </Drawer>
   );
 }

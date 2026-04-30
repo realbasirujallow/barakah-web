@@ -61,7 +61,7 @@ function TxRow({ tx, fmt, toggling, onToggle }: TxRowProps) {
           disabled={toggling === tx.id}
           title={tx.recurringActive ? 'Pause recurring' : 'Resume recurring'}
           className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors focus:outline-none ${
-            tx.recurringActive ? 'bg-[#1B5E20]' : 'bg-gray-300'
+            tx.recurringActive ? 'bg-primary' : 'bg-gray-300'
           } disabled:opacity-60`}
         >
           <span className={`inline-block w-4 h-4 bg-white rounded-full shadow transform transition-transform ${
@@ -145,7 +145,7 @@ export default function RecurringPage() {
           <button
             onClick={handleProcessNow}
             disabled={processing || active.length === 0}
-            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2E7D32] disabled:opacity-50 font-medium"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50 font-medium"
           >
             {processing ? 'Processing...' : '▶ Process Now'}
           </button>

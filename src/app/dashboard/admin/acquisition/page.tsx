@@ -162,7 +162,7 @@ export default function AcquisitionPage() {
                     onClick={() => { setDays(d); setSince(''); setUntil(''); }}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                       days === d && !since && !until
-                        ? 'bg-[#1B5E20] text-white'
+                        ? 'bg-primary text-primary-foreground'
                         : 'bg-white text-primary border border-primary hover:bg-green-50'
                     }`}
                   >
@@ -192,7 +192,7 @@ export default function AcquisitionPage() {
             <button
               type="button"
               onClick={() => void reload()}
-              className="px-4 py-1.5 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-[#2E7D32] font-medium"
+              className="px-4 py-1.5 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-medium"
             >
               Apply
             </button>
@@ -253,7 +253,7 @@ export default function AcquisitionPage() {
                             type="button"
                             onClick={() => void pullCohort(row.channel)}
                             disabled={cohortLoading === row.channel}
-                            className="px-3 py-1 text-xs bg-[#1B5E20] text-white rounded-lg font-medium hover:bg-[#2E7D32] disabled:opacity-50"
+                            className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50"
                           >
                             {cohortLoading === row.channel ? '…' : 'Pull cohort'}
                           </button>

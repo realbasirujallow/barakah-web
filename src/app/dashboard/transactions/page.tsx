@@ -405,7 +405,7 @@ export default function TransactionsPage() {
     <div className="text-center py-20">
       <p className="text-4xl mb-3">⚠️</p>
       <p className="text-red-600 font-medium mb-4">{error}</p>
-      <button onClick={load} className="bg-[#1B5E20] text-white px-5 py-2 rounded-lg hover:bg-[#2E7D32] text-sm font-medium">
+      <button onClick={load} className="bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:bg-primary/90 text-sm font-medium">
         Retry
       </button>
     </div>
@@ -446,7 +446,7 @@ export default function TransactionsPage() {
                 ? <button onClick={exitSelectMode} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">Cancel</button>
                 : <button onClick={() => setSelectMode(true)} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">Select</button>
             )}
-            <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add</button>
+            <button onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add</button>
           </>
         }
       />
@@ -476,7 +476,7 @@ export default function TransactionsPage() {
           <Link
             href="/dashboard/import"
             className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-              plaidSyncAccess ? 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
+              plaidSyncAccess ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
             }`}
           >
             {hasLinkedPlaidTransactions ? 'Manage Linked Accounts' : 'Connect Accounts'}
@@ -484,7 +484,7 @@ export default function TransactionsPage() {
           {!plaidSyncAccess && (
             <Link
               href="/dashboard/billing"
-              className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32]"
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
             >
               Upgrade to Keep Syncing
             </Link>
@@ -512,7 +512,7 @@ export default function TransactionsPage() {
       <div className="flex flex-wrap gap-2 mb-4 items-center">
         {['all', 'income', 'expense', 'transfer'].map(f => (
           <button key={f} onClick={() => { setFilter(f); setPage(0); exitSelectMode(); }}
-            className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${filter === f ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>{f}</button>
+            className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${filter === f ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>{f}</button>
         ))}
         <button onClick={() => { setFilter('needs_review'); setPage(0); exitSelectMode(); }}
           className={`px-3 py-1 rounded-lg text-sm font-medium flex items-center gap-1.5 ${filter === 'needs_review' ? 'bg-amber-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>
@@ -539,7 +539,7 @@ export default function TransactionsPage() {
           <span className="text-xs text-gray-500">Show:</span>
           {PAGE_SIZE_OPTIONS.map(n => (
             <button key={n} onClick={() => handlePageSizeChange(n)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition ${pageSize === n ? 'bg-[#1B5E20] text-white border-primary' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>{n}</button>
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition ${pageSize === n ? 'bg-primary text-primary-foreground border-primary' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>{n}</button>
           ))}
         </div>
       </div>
@@ -598,7 +598,12 @@ export default function TransactionsPage() {
               onClick={selectMode ? () => toggleSelect(tx.id) : () => openEdit(tx)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectMode ? toggleSelect(tx.id) : openEdit(tx); } }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  if (selectMode) toggleSelect(tx.id); else openEdit(tx);
+                }
+              }}
               aria-label={`${tx.description || tx.category} — click to ${selectMode ? 'select' : 'edit'}`}
               className={`group bg-card rounded-xl p-4 flex justify-between items-center cursor-pointer border border-transparent transition-all hover:border-primary/20 hover:bg-accent/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
               <div className="flex items-center gap-3">
@@ -823,7 +828,7 @@ export default function TransactionsPage() {
             <div className="flex gap-3 mt-6">
               <button aria-label="Close add transaction modal" onClick={() => { setShowForm(false); setEditTx(null); setFormError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.amount}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">
                 {saving ? 'Saving...' : (editTx ? 'Save Changes' : 'Add')}
               </button>
             </div>

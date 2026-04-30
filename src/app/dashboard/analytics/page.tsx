@@ -195,7 +195,7 @@ function AnalyticsPageContent() {
                 aria-label={`Select ${p.label}`}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                   period === p.value
-                    ? 'bg-[#1B5E20] text-white'
+                    ? 'bg-primary text-primary-foreground'
                     : 'bg-white text-primary border border-green-200 hover:bg-green-50'
                 }`}
               >
@@ -242,7 +242,7 @@ function AnalyticsPageContent() {
               role="tab"
               aria-selected={activeChart === 'mom'}
               aria-label="Bar chart view"
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'mom' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'mom' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               Bar
             </button>
@@ -251,7 +251,7 @@ function AnalyticsPageContent() {
               role="tab"
               aria-selected={activeChart === 'trend'}
               aria-label="Line chart view"
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'trend' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'trend' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               Line
             </button>
@@ -579,7 +579,7 @@ function AnalyticsPageContent() {
               <span>Halal</span><span>Needs Review</span>
             </div>
             <div className="w-full h-4 bg-amber-100 rounded-full overflow-hidden">
-              <div className="h-full bg-[#1B5E20] rounded-full transition-all" style={{ width: `${halalAnalysis.halalRatio}%` }} />
+              <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${halalAnalysis.halalRatio}%` }} />
             </div>
           </div>
 

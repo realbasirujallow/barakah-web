@@ -142,7 +142,7 @@ export default function EmailLocalesPage() {
                       disabled={!row.canDisable || saving === row.locale}
                       onClick={() => row.canDisable && toggle(row.locale, !row.enabled)}
                       className={`relative inline-flex h-7 w-12 items-center rounded-full transition ${
-                        row.enabled ? 'bg-[#1B5E20]' : 'bg-gray-300'
+                        row.enabled ? 'bg-primary' : 'bg-gray-300'
                       } ${!row.canDisable ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                       <span

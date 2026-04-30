@@ -180,7 +180,7 @@ export default function SummaryPage() {
         actions={
           <button
             onClick={handleCopy}
-            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#2E7D32] font-medium transition"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm hover:bg-primary/90 font-medium transition"
           >
             {copied ? '✓ Copied' : '📋 Copy Summary'}
           </button>
@@ -195,7 +195,7 @@ export default function SummaryPage() {
               key={p.value}
               onClick={() => setPeriod(p.value as 'month' | 'year')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                period === p.value ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+                period === p.value ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-100'
               }`}
             >
               {p.label}
@@ -208,7 +208,7 @@ export default function SummaryPage() {
               key={m}
               onClick={() => setMonths(m)}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-                months === m ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+                months === m ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-100'
               }`}
             >
               {m}m

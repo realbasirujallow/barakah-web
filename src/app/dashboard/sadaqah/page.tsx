@@ -146,7 +146,7 @@ function SadaqahContent() {
         title="Sadaqah Tracker"
         subtitle="Voluntary charity log with Ramadan and tax categories"
         actions={
-          <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Give Sadaqah</button>
+          <button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Give Sadaqah</button>
         }
       />
 
@@ -204,7 +204,7 @@ function SadaqahContent() {
                 onClick={() => { setDonateAmount(amt); setDonateCustom(''); }}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold border transition ${
                   donateAmount === amt
-                    ? 'bg-[#1B5E20] text-white border-primary'
+                    ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-primary'
                 }`}
               >
@@ -215,7 +215,7 @@ function SadaqahContent() {
               onClick={() => setDonateAmount(null)}
               className={`px-4 py-2 rounded-lg text-sm font-semibold border transition ${
                 donateAmount === null
-                  ? 'bg-[#1B5E20] text-white border-primary'
+                  ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-primary'
               }`}
             >
@@ -241,7 +241,7 @@ function SadaqahContent() {
         <button
           onClick={handleDonate}
           disabled={donating || effectiveAmount <= 0}
-          className="w-full bg-[#1B5E20] hover:bg-[#2E7D32] text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-50"
+          className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-50"
         >
           {donating ? 'Redirecting to payment…' : `Donate ${effectiveAmount > 0 ? `$${effectiveAmount}` : ''} via Barakah`}
         </button>
@@ -277,7 +277,7 @@ function SadaqahContent() {
               <button
                 type="button"
                 onClick={() => setDisplayCount(displayCount + 10)}
-                className="bg-[#1B5E20] text-white px-6 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
+                className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm"
               >
                 Show More
               </button>
@@ -311,7 +311,7 @@ function SadaqahContent() {
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowForm(false)} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Record'}</button>
+              <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Record'}</button>
             </div>
           </div>
         </div>

@@ -147,7 +147,7 @@ export default function FunnelPage() {
                 onClick={() => setDays(d)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                   days === d
-                    ? 'bg-[#1B5E20] text-white'
+                    ? 'bg-primary text-primary-foreground'
                     : 'bg-white text-primary border border-primary hover:bg-green-50'
                 }`}
               >

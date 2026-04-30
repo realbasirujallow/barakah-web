@@ -281,7 +281,7 @@ function WasiyyahPageContent() {
             <button
               type="button"
               onClick={() => tab === 'beneficiaries' ? setShowForm(true) : setShowObForm(true)}
-              className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm"
             >
               {tab === 'beneficiaries' ? '+ Add Beneficiary' : '+ Record Obligation'}
             </button>
@@ -298,7 +298,7 @@ function WasiyyahPageContent() {
             onClick={() => setTab(t)}
             role="tab"
             aria-selected={tab === t}
-            className={`px-5 py-2 rounded-full text-sm font-semibold transition ${tab === t ? 'bg-[#1B5E20] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`px-5 py-2 rounded-full text-sm font-semibold transition ${tab === t ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
           >
             {t === 'beneficiaries'
               ? `📜 Beneficiaries (${items.length})`
@@ -579,7 +579,7 @@ function WasiyyahPageContent() {
             <button
               type="button"
               onClick={() => setShowSharesInfo(false)}
-              className="w-full bg-[#1B5E20] text-white rounded-lg py-2.5 font-medium hover:bg-[#2E7D32]"
+              className="w-full bg-primary text-primary-foreground rounded-lg py-2.5 font-medium hover:bg-primary/90"
             >
               Close
             </button>
@@ -696,7 +696,7 @@ function WasiyyahPageContent() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving || !form.beneficiaryName || !form.sharePercentage}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Add Beneficiary'}
               </button>
@@ -720,7 +720,7 @@ function WasiyyahPageContent() {
                       key={t.value}
                       type="button"
                       onClick={() => setObForm({ ...obForm, type: t.value })}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium transition ${obForm.type === t.value ? 'bg-[#1B5E20] border-primary text-white' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium transition ${obForm.type === t.value ? 'bg-primary border-primary text-white' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
                     >
                       <span>{t.emoji}</span> {t.label}
                     </button>
@@ -792,7 +792,7 @@ function WasiyyahPageContent() {
                 type="button"
                 onClick={handleObSave}
                 disabled={saving || !obForm.description || !obForm.amount}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Record Obligation'}
               </button>

@@ -13,6 +13,8 @@ import { PRICING } from '../../lib/pricing';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { KpiCard, KpiChange } from '../../components/dashboard/KpiCard';
 import { SpendingDrillDown } from '../../components/dashboard/SpendingDrillDown';
+import { PeriodPicker, type Period } from '../../components/dashboard/PeriodPicker';
+import { GettingStartedChecklist, type GettingStartedItem } from '../../components/dashboard/GettingStartedChecklist';
 import { Badge } from '../../components/ui/badge';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
@@ -81,6 +83,12 @@ export default function DashboardPage() {
   // Phase 2.4 (2026-04-27): controls the spending breakdown <Sheet>.
   // Founder-reported gap — clicking the spending KPI used to be a no-op.
   const [spendingDrillOpen, setSpendingDrillOpen] = useState(false);
+  // Phase 6.2 (2026-04-27): KPI-row period selector. Drives the visual
+  // window of the sparkline; the underlying widget data is server-side
+  // computed (currently 30 days). When the backend exposes additional
+  // ranges this state becomes the request param. Defaults to "30D"
+  // because that's what every Monarch/Rocket-Money user sees first.
+  const [kpiPeriod, setKpiPeriod] = useState<Period>('30d');
   const [portfolioSummary, setPortfolioSummary] = useState<PortfolioSummary | null>(null);
   const [latestPortfolioSnapshot, setLatestPortfolioSnapshot] = useState<PortfolioHistorySnapshot | null>(null);
   const [widgets, setWidgets] = useState<DashboardWidgets | null>(null);
@@ -244,6 +252,57 @@ export default function DashboardPage() {
   const isTrialExpired = user?.plan === 'free' && user?.planExpiresAt && user.planExpiresAt < currentTimestamp;
   const hasNoData = !loading && netWorthValue === 0 && !widgets?.recentTransactions?.transactions?.length;
 
+  // Phase 6.4: activation checklist. Derived from data already loaded;
+  // no extra API calls. Auto-dismisses when every item is done. Hidden
+  // for users dismissing or with no data (they're seeing the empty
+  // state CTA which already has Connect Bank guidance).
+  const [gettingStartedDismissed, setGettingStartedDismissed] = useState(false);
+  useEffect(() => {
+    setGettingStartedDismissed(safeGetItem('barakah_getting_started_dismissed') === 'true');
+  }, []);
+  const dismissGettingStarted = () => {
+    safeSetItem('barakah_getting_started_dismissed', 'true');
+    setGettingStartedDismissed(true);
+  };
+  const gettingStartedItems: GettingStartedItem[] = [
+    {
+      id: 'bank',
+      label: 'Connect a bank account',
+      description: 'Auto-import transactions and balances',
+      href: '/dashboard/import',
+      done: ((widgets?.netWorthMini?.totalAssets ?? 0) > 0)
+        || ((widgets?.recentTransactions?.totalCount ?? 0) > 0),
+    },
+    {
+      id: 'tx',
+      label: 'Add or import a transaction',
+      description: 'Track income and expenses',
+      href: '/dashboard/transactions',
+      done: (widgets?.recentTransactions?.totalCount ?? 0) > 0,
+    },
+    {
+      id: 'asset',
+      label: 'Add an asset (cash, gold, stocks)',
+      description: 'Build your zakat-ready net worth',
+      href: '/dashboard/assets',
+      done: (totals?.totalWealth ?? 0) > 0,
+    },
+    {
+      id: 'budget',
+      label: 'Set up a budget',
+      description: 'Cap spending by category',
+      href: '/dashboard/budget',
+      done: !!(widgets?.budgetOverview && widgets.budgetOverview.totalBudgeted > 0),
+    },
+    {
+      id: 'goal',
+      label: 'Create a savings goal',
+      description: 'Hajj, emergency fund, or anything else',
+      href: '/dashboard/savings',
+      done: false, // No widget reports savings yet — defaults to "open"
+    },
+  ];
+
   return (
     <div>
       {/* Onboarding Wizard for first-time users */}
@@ -260,7 +319,7 @@ export default function DashboardPage() {
               <p className="text-sm text-amber-700">Upgrade to keep syncing your accounts and accessing premium features.</p>
             </div>
           </div>
-          <Link href="/dashboard/billing" className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#2E7D32] transition flex-shrink-0">
+          <Link href="/dashboard/billing" className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/90 transition flex-shrink-0">
             Upgrade Now
           </Link>
         </div>
@@ -331,7 +390,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Link href="/dashboard/referral" className="bg-[#1B5E20] text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-[#2E7D32] transition">
+            <Link href="/dashboard/referral" className="bg-primary text-primary-foreground px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-primary/90 transition">
               Share
             </Link>
             <button
@@ -392,7 +451,7 @@ export default function DashboardPage() {
             Link your accounts to automatically track spending, monitor your net worth, and calculate zakat with precision.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/dashboard/import" className="inline-block bg-[#1B5E20] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
+            <Link href="/dashboard/import" className="inline-block bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition">
               Connect Accounts
             </Link>
             <button
@@ -412,12 +471,29 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Phase 6.4: Getting-started checklist — only for users not yet
+          activated. Auto-hides when all items are done. */}
+      {!gettingStartedDismissed && !hasNoData && (
+        <GettingStartedChecklist
+          items={gettingStartedItems}
+          onDismiss={dismissGettingStarted}
+        />
+      )}
+
       {/* ── Summary KPI Cards (Phase 2 / 2026-04-27) ─────────────────────────
            Migrated from inline div+text-xl to the shared <KpiCard> primitive.
            Larger numbers (text-3xl), tabular-nums, semantic shadcn tokens
            (bg-card, text-muted-foreground, border-border) — matches the
-           Monarch / Linear "premium dashboard" pattern. */}
-      <div role="region" aria-label="Financial summary" className={`grid gap-4 mb-5 ${hasInvestmentPulse ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`}>
+           Monarch / Linear "premium dashboard" pattern.
+
+           Phase 6.2: Period picker rendered to the right of the section
+           heading, exactly like Monarch's "Last 30 days / 90 days / YTD /
+           1Y" toggle above the summary row. */}
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Overview</h2>
+        <PeriodPicker value={kpiPeriod} onChange={setKpiPeriod} />
+      </div>
+      <div role="region" aria-label="Financial summary" className={`stagger-fade grid gap-4 mb-5 ${hasInvestmentPulse ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`}>
         <KpiCard
           label="Net Worth"
           value={hideNetWorth ? '••••••' : (loading ? '…' : fmt(netWorthValue))}
@@ -438,11 +514,17 @@ export default function DashboardPage() {
           // Sparkline trend over the last N days from the existing
           // /api/dashboard/widgets payload. Hidden when the user has
           // toggled "Hide" so we don't leak shape information.
+          // Each point also carries its date label so the Recharts
+          // tooltip can show "Apr 27 — $12,345" on hover.
           sparkline={
             !hideNetWorth && widgets?.netWorthMini?.history
-              ? widgets.netWorthMini.history.map(p => ({ value: p.netWorth }))
+              ? widgets.netWorthMini.history.map(p => ({
+                  value: p.netWorth,
+                  label: new Date(p.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                }))
               : undefined
           }
+          sparklineFormat={fmt}
           tone={
             (widgets?.netWorthMini?.changeAmount ?? 0) >= 0 ? 'default' : 'negative'
           }
@@ -538,7 +620,7 @@ export default function DashboardPage() {
                     <span className="text-sm flex-shrink-0">{CATEGORY_ICONS[cat.category] || '📋'}</span>
                     <span className="text-xs text-gray-700 w-16 md:w-24 truncate capitalize flex-shrink-0">{cat.category.replace(/_/g, ' ')}</span>
                     <div className="flex-1 bg-gray-100 rounded-full h-2 min-w-0">
-                      <div className="bg-[#1B5E20] rounded-full h-2 transition-all" style={{ width: `${Math.min((cat.amount / max) * 100, 100)}%` }} />
+                      <div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${Math.min((cat.amount / max) * 100, 100)}%` }} />
                     </div>
                     <span className="text-xs font-medium text-gray-900 flex-shrink-0 text-right tabular-nums">{fmt(cat.amount)}</span>
                   </div>
@@ -583,7 +665,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="bg-gray-100 rounded-full h-2.5">
                     <div
-                      className={`rounded-full h-2.5 transition-all ${cat.percentage > 100 ? 'bg-red-500' : cat.percentage > 80 ? 'bg-amber-500' : 'bg-[#1B5E20]'}`}
+                      className={`rounded-full h-2.5 transition-all ${cat.percentage > 100 ? 'bg-red-500' : cat.percentage > 80 ? 'bg-amber-500' : 'bg-primary'}`}
                       style={{ width: `${Math.min(cat.percentage, 100)}%` }}
                     />
                   </div>

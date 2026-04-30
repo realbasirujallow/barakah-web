@@ -201,7 +201,7 @@ export function NotificationBell() {
                     {n.body && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>}
                     <p className="text-xs text-gray-400 mt-1">{fmtTime(n.createdAt)}</p>
                   </div>
-                  {!n.read && <div className="w-2 h-2 bg-[#1B5E20] rounded-full flex-shrink-0 mt-2" />}
+                  {!n.read && <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-2" />}
                 </>
               );
               // Round 22: same nested-interactive fix as notifications

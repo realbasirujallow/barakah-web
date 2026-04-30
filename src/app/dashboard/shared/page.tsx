@@ -492,7 +492,7 @@ export default function SharedPage() {
                     <h2 className="font-bold text-primary">Transactions</h2>
                     <button
                       onClick={() => { setShowAddTx(true); setTxForm(emptyTxForm); }}
-                      className="text-sm bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg hover:bg-[#2E7D32]"
+                      className="text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90"
                     >
                       + Add
                     </button>
@@ -533,7 +533,7 @@ export default function SharedPage() {
                     <h2 className="font-bold text-primary">Budgets</h2>
                     <button
                       onClick={() => { setShowAddBudget(true); setBudgetForm({ category: '', monthlyLimit: '' }); }}
-                      className="text-sm bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg hover:bg-[#2E7D32]"
+                      className="text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90"
                     >
                       + Add Budget
                     </button>
@@ -571,7 +571,7 @@ export default function SharedPage() {
                     <h2 className="font-bold text-primary">Goals</h2>
                     <button
                       onClick={() => { setShowAddGoal(true); setGoalForm({ name: '', targetAmount: '', targetDate: '', description: '' }); }}
-                      className="text-sm bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg hover:bg-[#2E7D32]"
+                      className="text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90"
                     >
                       + Add Goal
                     </button>
@@ -601,7 +601,7 @@ export default function SharedPage() {
                             <div className="mb-2">
                               <div className="w-full bg-gray-200 rounded-full h-2">
                                 <div
-                                  className="bg-[#1B5E20] h-2 rounded-full transition-all"
+                                  className="bg-primary h-2 rounded-full transition-all"
                                   style={{ width: `${Math.min(progress, 100)}%` }}
                                 />
                               </div>
@@ -611,7 +611,7 @@ export default function SharedPage() {
                             </div>
                             <button
                               onClick={() => setShowContributeGoal(goal.id)}
-                              className="text-sm bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg hover:bg-[#2E7D32] w-full"
+                              className="text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90 w-full"
                             >
                               Contribute
                             </button>
@@ -652,7 +652,7 @@ export default function SharedPage() {
                             }}
                             className="sr-only peer"
                           />
-                          <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[#1B5E20] transition-colors" />
+                          <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-primary transition-colors" />
                           <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
                         </div>
                       </label>
@@ -693,7 +693,7 @@ export default function SharedPage() {
                           {/* Member header */}
                           <div className={`px-4 py-3 flex items-center justify-between ${isSelf ? 'bg-emerald-50' : 'bg-gray-50'}`}>
                             <div className="flex items-center gap-2">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isSelf ? 'bg-[#1B5E20] text-white' : 'bg-gray-200 text-gray-600'}`}>
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isSelf ? 'bg-primary text-primary-foreground' : 'bg-gray-200 text-gray-600'}`}>
                                 {(member.displayName || 'M')[0].toUpperCase()}
                               </div>
                               <div>
@@ -848,7 +848,7 @@ export default function SharedPage() {
                 <button
                   onClick={handleAddTransaction}
                   disabled={savingTx || !txForm.description || !txForm.amount}
-                  className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                  className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
                 >
                   {savingTx ? 'Saving...' : 'Add'}
                 </button>
@@ -893,7 +893,7 @@ export default function SharedPage() {
                 <button
                   onClick={handleAddBudget}
                   disabled={savingBudget || !budgetForm.category || !budgetForm.monthlyLimit}
-                  className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                  className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
                 >
                   {savingBudget ? 'Saving...' : 'Add'}
                 </button>
@@ -957,7 +957,7 @@ export default function SharedPage() {
                 <button
                   onClick={handleAddGoal}
                   disabled={savingGoal || !goalForm.name || !goalForm.targetAmount}
-                  className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                  className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
                 >
                   {savingGoal ? 'Saving...' : 'Add'}
                 </button>
@@ -991,7 +991,7 @@ export default function SharedPage() {
                 <button
                   onClick={handleContributeGoal}
                   disabled={contributingGoal || !contributeAmount}
-                  className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                  className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
                 >
                   {contributingGoal ? 'Contributing...' : 'Contribute'}
                 </button>
@@ -1019,7 +1019,7 @@ export default function SharedPage() {
             </button>
             <button
               onClick={() => setShowCreateForm(true)}
-              className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm"
             >
               + Create Group
             </button>
@@ -1092,7 +1092,7 @@ export default function SharedPage() {
               <button
                 onClick={handleCreateGroup}
                 disabled={savingGroup || !groupForm.name}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
                 {savingGroup ? 'Creating...' : 'Create Group'}
               </button>
@@ -1126,7 +1126,7 @@ export default function SharedPage() {
               <button
                 onClick={handleJoinGroup}
                 disabled={joiningGroup || !joinCode.trim()}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
                 {joiningGroup ? 'Joining...' : 'Join Group'}
               </button>

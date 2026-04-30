@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Area, AreaChart, ResponsiveContainer } from 'recharts';
+import { Area, AreaChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -49,8 +49,14 @@ export interface KpiCardProps {
    * Money use this for instant trend context without burning a full
    * card on a chart. Each entry is a single data point; we render
    * just one series. Negative `tone` flips the sparkline to rose.
+   * Optional `label` field on each point is shown in the hover tooltip
+   * (e.g. an ISO date) so the user can answer "what date is this?"
+   * without leaving the card.
    */
-  sparkline?: Array<{ value: number }>;
+  sparkline?: Array<{ value: number; label?: string }>;
+  /** Optional formatter for the tooltip value (e.g. the parent's `fmt`).
+   *  When omitted, the raw number is rendered. */
+  sparklineFormat?: (n: number) => string;
 }
 
 const toneClass: Record<NonNullable<KpiCardProps['tone']>, string> = {
@@ -80,6 +86,7 @@ export function KpiCard({
   href,
   className,
   sparkline,
+  sparklineFormat,
 }: KpiCardProps) {
   const hasSparkline = Array.isArray(sparkline) && sparkline.length >= 2;
   const stroke = sparklineStroke[tone];
@@ -95,10 +102,12 @@ export function KpiCard({
     >
       {hasSparkline && (
         // Sparkline lives in the card's lower half, behind the text.
-        // 32px tall, full width, 60% opacity so the headline number
-        // wins the visual weight competition. pointer-events-none
-        // so it can't intercept clicks for the optional href.
-        <div className="absolute inset-x-0 bottom-0 h-12 opacity-60 pointer-events-none" aria-hidden="true">
+        // 12-tall, full width, 60% opacity so the headline number
+        // wins the visual weight competition. pointer-events on the
+        // chart so the Recharts <Tooltip> can fire, but the value
+        // text overlay above is z-10 so clicks still land on the
+        // card's outer href when present.
+        <div className="absolute inset-x-0 bottom-0 h-12 opacity-60">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={sparkline} margin={{ top: 6, right: 0, left: 0, bottom: 0 }}>
               <defs>
@@ -107,6 +116,22 @@ export function KpiCard({
                   <stop offset="100%" stopColor={stroke} stopOpacity={0} />
                 </linearGradient>
               </defs>
+              <Tooltip
+                cursor={{ stroke, strokeWidth: 1, strokeDasharray: '3 3' }}
+                wrapperStyle={{ outline: 'none' }}
+                content={({ active, payload }) => {
+                  if (!active || !payload?.[0]) return null;
+                  const p = payload[0].payload as { value: number; label?: string };
+                  return (
+                    <div className="bg-popover text-popover-foreground border border-border shadow-md rounded-md px-2 py-1 text-xs tabular-nums">
+                      {p.label && <div className="text-muted-foreground">{p.label}</div>}
+                      <div className="font-medium">
+                        {sparklineFormat ? sparklineFormat(p.value) : p.value.toLocaleString()}
+                      </div>
+                    </div>
+                  );
+                }}
+              />
               <Area
                 type="monotone"
                 dataKey="value"
