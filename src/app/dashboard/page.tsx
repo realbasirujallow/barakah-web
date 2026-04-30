@@ -17,6 +17,7 @@ import { PeriodPicker, type Period } from '../../components/dashboard/PeriodPick
 import { GettingStartedChecklist, type GettingStartedItem } from '../../components/dashboard/GettingStartedChecklist';
 import { DailyRitual, buildRitualItems } from '../../components/dashboard/DailyRitual';
 import { getLastVisit, labelForRoute, type LastVisit } from '../../lib/lastVisit';
+import { Coins, ArrowLeftRight, Upload, PieChart, type LucideIcon } from 'lucide-react';
 import { Badge } from '../../components/ui/badge';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
@@ -247,30 +248,16 @@ export default function DashboardPage() {
     safeSetItem('hideZakatDashboard', newValue ? 'true' : 'false');
   };
 
-  const quickActions = [
-    { href: '/dashboard/zakat', icon: '🕌', label: 'Calculate Zakat', desc: 'Calculate zakat due' },
-    { href: '/dashboard/transactions', icon: '📝', label: 'Add Transaction', desc: 'Income & expenses' },
-    { href: '/dashboard/import', icon: '🏦', label: 'Connect Accounts', desc: 'Link your bank' },
-    { href: '/dashboard/budget', icon: '📈', label: 'View Budget', desc: 'Monthly spending limits' },
-  ];
-
-  const cards = [
-    { href: '/dashboard/assets', icon: '💰', label: 'Assets', desc: 'View & manage wealth' },
-    { href: '/dashboard/categorize', icon: '🔄', label: 'Auto-Categorize', desc: 'Smart categories' },
-    { href: '/dashboard/barakah-score', icon: '⭐', label: 'Barakah Score', desc: 'Islamic finance health' },
-    { href: '/dashboard/bills', icon: '🔔', label: 'Bills', desc: 'Upcoming payments' },
-    { href: '/dashboard/budget', icon: '📈', label: 'Budget', desc: 'Monthly spending limits' },
-    { href: '/dashboard/debts', icon: '💳', label: 'Debts', desc: 'Track halal loans' },
-    { href: '/dashboard/hawl', icon: '⏰', label: 'Hawl', desc: 'Lunar year tracker' },
-    { href: '/dashboard/prayer-times', icon: '🕌', label: 'Prayer Times', desc: 'Daily salah schedule' },
-    { href: '/dashboard/notifications', icon: '🔔', label: 'Notifications', desc: 'Bills, Zakat & Hawl alerts' },
-    { href: '/dashboard/referral', icon: '🎁', label: 'Refer a Friend', desc: 'Share & earn rewards' },
-    { href: '/dashboard/riba', icon: '🛡️', label: 'Riba Detector', desc: 'Scan for interest' },
-    { href: '/dashboard/sadaqah', icon: '🤲', label: 'Sadaqah', desc: 'Charity tracker' },
-    { href: '/dashboard/transactions', icon: '📝', label: 'Transactions', desc: 'Income & expenses' },
-    { href: '/dashboard/waqf', icon: '🏛️', label: 'Waqf', desc: 'Endowment tracker' },
-    { href: '/dashboard/wasiyyah', icon: '📜', label: 'Wasiyyah', desc: 'Islamic will' },
-    { href: '/dashboard/zakat', icon: '🕌', label: 'Zakat', desc: 'Calculate zakat due' },
+  // Phase 15 (2026-04-30): Quick Actions migrated from emoji to Lucide
+  // for consistency with the sidebar (Phase 10) and the rest of the
+  // authenticated product. The dead `cards` array (used by the now-
+  // removed "Explore Features" grid in Phase 10) is gone — sidebar
+  // is the canonical feature index.
+  const quickActions: Array<{ href: string; icon: LucideIcon; label: string; desc: string }> = [
+    { href: '/dashboard/zakat',        icon: Coins,           label: 'Calculate Zakat',  desc: 'Lunar-year wealth review' },
+    { href: '/dashboard/transactions', icon: ArrowLeftRight,  label: 'Add Transaction',  desc: 'Income & expenses' },
+    { href: '/dashboard/import',       icon: Upload,          label: 'Connect Accounts', desc: 'Link a bank' },
+    { href: '/dashboard/budget',       icon: PieChart,        label: 'View Budget',      desc: 'Monthly spending limits' },
   ];
 
   const hasInvestmentPulse = (portfolioSummary?.totalValue || 0) > 0;
@@ -1014,17 +1001,22 @@ export default function DashboardPage() {
       <div className="mb-6">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Quick Actions</h2>
         <div className="stagger-fade grid grid-cols-2 md:grid-cols-4 gap-3">
-          {quickActions.map(c => (
-            <Link
-              key={c.href + c.label}
-              href={c.href}
-              className="bg-card rounded-xl p-4 hover:shadow-md hover:border-primary/20 transition-all group border border-border"
-            >
-              <div className="text-2xl mb-2" aria-hidden="true">{c.icon}</div>
-              <h3 className="font-semibold text-foreground group-hover:text-primary text-sm">{c.label}</h3>
-              {c.desc && <p className="text-muted-foreground text-xs mt-0.5">{c.desc}</p>}
-            </Link>
-          ))}
+          {quickActions.map(c => {
+            const Icon = c.icon;
+            return (
+              <Link
+                key={c.href + c.label}
+                href={c.href}
+                className="bg-card rounded-xl p-4 hover:shadow-md hover:border-primary/20 transition-all group border border-border"
+              >
+                <div className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary mb-2 group-hover:bg-primary/15 transition-colors">
+                  <Icon className="w-4 h-4" aria-hidden="true" />
+                </div>
+                <h3 className="font-semibold text-foreground group-hover:text-primary text-sm">{c.label}</h3>
+                {c.desc && <p className="text-muted-foreground text-xs mt-0.5">{c.desc}</p>}
+              </Link>
+            );
+          })}
         </div>
       </div>
 
