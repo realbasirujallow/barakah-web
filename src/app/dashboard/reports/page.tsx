@@ -99,7 +99,7 @@ function ReportsPageContent() {
               onClick={() => setPeriod(p.value)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition border ${
                 period === p.value
-                  ? 'bg-[#1B5E20] text-white border-primary'
+                  ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
               }`}
             >
@@ -142,7 +142,7 @@ function ReportsPageContent() {
                   type="button"
                   onClick={() => handleGenerate(r.id)}
                   disabled={isLoading}
-                  className="flex-shrink-0 flex items-center gap-1.5 bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium transition"
+                  className="flex-shrink-0 flex items-center gap-1.5 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium transition"
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-1.5">

@@ -307,7 +307,7 @@ export default function FaraidPage() {
           </p>
           <Link
             href="/dashboard/billing"
-            className="inline-block bg-[#1B5E20] text-white font-semibold px-8 py-3 rounded-xl hover:bg-[#2E7D32] transition"
+            className="inline-block bg-primary text-primary-foreground font-semibold px-8 py-3 rounded-xl hover:bg-primary/90 transition"
           >
             Upgrade to Plus
           </Link>
@@ -470,7 +470,7 @@ export default function FaraidPage() {
         type="button"
         onClick={calculate}
         disabled={loading}
-        className="w-full bg-[#1B5E20] text-white font-semibold py-3.5 rounded-xl hover:bg-[#2E7D32] transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-primary text-primary-foreground font-semibold py-3.5 rounded-xl hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? 'Calculating...' : 'Calculate Faraid Distribution'}
       </button>
@@ -742,7 +742,7 @@ function FlowCard({
     <div
       className={`flex flex-col items-center px-4 py-3 rounded-xl border text-center min-w-[120px] ${
         highlight
-          ? 'bg-[#1B5E20] text-white border-primary'
+          ? 'bg-primary text-primary-foreground border-primary'
           : 'bg-gray-50 border-gray-200 text-gray-800'
       }`}
     >

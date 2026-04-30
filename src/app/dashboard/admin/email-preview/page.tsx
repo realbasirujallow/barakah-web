@@ -209,7 +209,7 @@ export default function EmailPreviewPage() {
                           onClick={() => setSelectedTemplate(id)}
                           className={`w-full text-left px-2 py-1.5 rounded text-sm ${
                             selectedTemplate === id
-                              ? 'bg-[#1B5E20] text-white font-medium'
+                              ? 'bg-primary text-primary-foreground font-medium'
                               : 'text-gray-700 hover:bg-green-50'
                           }`}
                         >
@@ -235,7 +235,7 @@ export default function EmailPreviewPage() {
                   onClick={() => setZoomLocale('all')}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                     zoomLocale === 'all'
-                      ? 'bg-[#1B5E20] text-white'
+                      ? 'bg-primary text-primary-foreground'
                       : 'bg-white text-primary border border-primary hover:bg-green-50'
                   }`}
                 >
@@ -248,7 +248,7 @@ export default function EmailPreviewPage() {
                     onClick={() => setZoomLocale(l.code)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                       zoomLocale === l.code
-                        ? 'bg-[#1B5E20] text-white'
+                        ? 'bg-primary text-primary-foreground'
                         : 'bg-white text-primary border border-primary hover:bg-green-50'
                     }`}
                   >

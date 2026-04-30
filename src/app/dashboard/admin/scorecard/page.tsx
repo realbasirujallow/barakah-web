@@ -264,7 +264,7 @@ export default function ScorecardPage() {
                         </div>
                         <div className="w-full bg-gray-100 rounded h-2">
                           <div
-                            className="bg-[#1B5E20] rounded h-2 transition-all"
+                            className="bg-primary rounded h-2 transition-all"
                             style={{ width: `${Math.max(1, pct)}%` }}
                           />
                         </div>

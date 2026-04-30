@@ -364,7 +364,7 @@ function HawlPageContent() {
             <button type="button" onClick={handleImportAssets} disabled={importing} className="border border-primary text-primary px-4 py-2 rounded-lg hover:bg-green-50 font-medium disabled:opacity-50 text-sm">
               {importing ? 'Importing...' : 'Import Assets'}
             </button>
-            <button type="button" onClick={() => { setForm(prev => ({ ...prev, nisabThreshold: defaultNisabThreshold })); setShowForm(true); }} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Track Asset</button>
+            <button type="button" onClick={() => { setForm(prev => ({ ...prev, nisabThreshold: defaultNisabThreshold })); setShowForm(true); }} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Track Asset</button>
           </>
         }
       />
@@ -478,8 +478,8 @@ function HawlPageContent() {
                   <div className="mt-3 bg-white rounded-lg p-3 border border-gray-200">
                     <p className="text-sm font-medium text-gray-700 mb-2">Change Hawl Start Date</p>
                     <div className="flex gap-2 mb-2">
-                      <button type="button" onClick={() => setDateInputMode('gregorian')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'gregorian' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600'}`}>Gregorian</button>
-                      <button type="button" onClick={() => setDateInputMode('hijri')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'hijri' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600'}`}>Hijri</button>
+                      <button type="button" onClick={() => setDateInputMode('gregorian')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'gregorian' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600'}`}>Gregorian</button>
+                      <button type="button" onClick={() => setDateInputMode('hijri')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'hijri' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600'}`}>Hijri</button>
                     </div>
                     {dateInputMode === 'gregorian' ? (
                       <input type="date" value={newStartDate} min={minBackdateInput} max={maxStartInput} onChange={e => setNewStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm text-gray-900 w-full" />
@@ -491,7 +491,7 @@ function HawlPageContent() {
                       </div>
                     )}
                     <div className="flex gap-2 mt-2">
-                      <button type="button" onClick={() => handleUpdateStartDate(item.id)} className="bg-[#1B5E20] text-white px-3 py-1 rounded text-sm">Update</button>
+                      <button type="button" onClick={() => handleUpdateStartDate(item.id)} className="bg-primary text-primary-foreground px-3 py-1 rounded text-sm">Update</button>
                       <button type="button" onClick={resetDateEditor} className="text-gray-500 text-sm">Cancel</button>
                     </div>
                   </div>
@@ -560,8 +560,8 @@ function HawlPageContent() {
                     <div className="mb-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
                       <p className="text-sm font-medium text-gray-700 mb-2">Change Hawl Start Date</p>
                       <div className="flex gap-2 mb-2">
-                        <button type="button" onClick={() => setDateInputMode('gregorian')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'gregorian' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600'}`}>Gregorian</button>
-                        <button type="button" onClick={() => setDateInputMode('hijri')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'hijri' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-600'}`}>Hijri</button>
+                        <button type="button" onClick={() => setDateInputMode('gregorian')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'gregorian' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600'}`}>Gregorian</button>
+                        <button type="button" onClick={() => setDateInputMode('hijri')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'hijri' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600'}`}>Hijri</button>
                       </div>
                       {dateInputMode === 'gregorian' ? (
                         <input type="date" value={newStartDate} min={minBackdateInput} max={maxStartInput} onChange={e => setNewStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm text-gray-900 w-full" />
@@ -573,12 +573,12 @@ function HawlPageContent() {
                         </div>
                       )}
                       <div className="flex gap-2 mt-2">
-                        <button type="button" onClick={() => handleUpdateStartDate(item.id)} className="bg-[#1B5E20] text-white px-3 py-1 rounded text-sm">Update</button>
+                        <button type="button" onClick={() => handleUpdateStartDate(item.id)} className="bg-primary text-primary-foreground px-3 py-1 rounded text-sm">Update</button>
                         <button type="button" onClick={resetDateEditor} className="text-gray-500 text-sm">Cancel</button>
                       </div>
                     </div>
                   )}
-                  <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-[#1B5E20] h-2 rounded-full" style={{ width: `${pct}%` }} /></div>
+                  <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-primary h-2 rounded-full" style={{ width: `${pct}%` }} /></div>
                   {item.zakatLocked ? (
                     <div className="mt-2 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs">
                       <span className="text-green-700">&#128274; Zakat locked: {fmt(item.lockedZakatAmount)} ({item.assetType === 'silver' ? 'Silver' : 'Gold'}: ${(item.lockedGoldPrice ?? 0).toFixed(2)}/g on {new Date(item.zakatLockedDate).toLocaleDateString(undefined, DATE_FORMAT)})</span>
@@ -635,7 +635,7 @@ function HawlPageContent() {
         <div className="flex flex-col sm:flex-row gap-3">
           <input type="number" step="0.01" min="0" placeholder="Amount (e.g. 5000)" value={manualWealth} onChange={e => setManualWealth(e.target.value)} className="flex-1 border rounded-lg px-3 py-2 text-gray-900 text-sm" />
           <input type="text" placeholder="Note (optional)" value={manualWealthNote} onChange={e => setManualWealthNote(e.target.value)} className="flex-1 border rounded-lg px-3 py-2 text-gray-900 text-sm" maxLength={200} />
-          <button type="button" onClick={handleManualWealth} disabled={manualWealthSaving || !manualWealth} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50 whitespace-nowrap">{manualWealthSaving ? 'Saving...' : 'Update'}</button>
+          <button type="button" onClick={handleManualWealth} disabled={manualWealthSaving || !manualWealth} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 whitespace-nowrap">{manualWealthSaving ? 'Saving...' : 'Update'}</button>
         </div>
       </div>
 
@@ -757,7 +757,7 @@ function HawlPageContent() {
             {saveError && <div className="text-sm text-red-600 bg-red-50 p-2 rounded mb-3 mt-3">{saveError}</div>}
             <div className="flex gap-3 mt-6">
               <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handleSave} disabled={saving || !form.assetName || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Track'}</button>
+              <button type="button" onClick={handleSave} disabled={saving || !form.assetName || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Track'}</button>
             </div>
           </div>
         </div>

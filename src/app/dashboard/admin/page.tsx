@@ -369,7 +369,7 @@ export default function AdminPage() {
         <p className="text-5xl mb-4">⏱️</p>
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Session Expired</h1>
         <p className="text-gray-500 max-w-sm mb-6">Your session has expired. Please sign in again to access the admin dashboard.</p>
-        <a href="/login" className="bg-[#1B5E20] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition">Sign In Again</a>
+        <a href="/login" className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg font-semibold hover:bg-primary/90 transition">Sign In Again</a>
       </div>
     );
   }
@@ -442,7 +442,7 @@ export default function AdminPage() {
             <button
               type="button"
               onClick={() => loadData(page)}
-              className="px-4 py-2 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-[#2E7D32] transition font-medium"
+              className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-medium"
             >
               ↻ Refresh
             </button>

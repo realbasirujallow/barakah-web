@@ -453,7 +453,7 @@ export default function RibaPage() {
           >
             {tab.label}
             {activeTab === tab.key && (
-              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#1B5E20] rounded-t" />
+              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary rounded-t" />
             )}
           </button>
         ))}
@@ -631,7 +631,7 @@ export default function RibaPage() {
                         type="button"
                         onClick={() => handlePurifyTransaction(tx)}
                         disabled={purifyingTxnId !== null}
-                        className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#154a19] transition disabled:opacity-50 whitespace-nowrap"
+                        className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#154a19] transition disabled:opacity-50 whitespace-nowrap"
                         title={`Record ${fmt(tx.amount)} as donated to charity`}
                       >
                         {purifyingTxnId === tx.transactionId ? 'Recording…' : `🤲 Purify ${fmt(tx.amount)}`}
@@ -665,7 +665,7 @@ export default function RibaPage() {
               <p className="text-red-700 font-medium mb-2">{journeyError}</p>
               <button
                 onClick={loadJourney}
-                className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-semibold hover:bg-[#154a19] transition"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-[#154a19] transition"
               >
                 Retry
               </button>
@@ -836,7 +836,7 @@ export default function RibaPage() {
                   <button
                     onClick={handleCreateGoal}
                     disabled={submittingGoal || !goalForm.sourceName.trim() || !goalForm.currentAmount}
-                    className="px-5 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-semibold hover:bg-[#154a19] transition disabled:opacity-50"
+                    className="px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-[#154a19] transition disabled:opacity-50"
                   >
                     {submittingGoal ? 'Adding...' : 'Add Goal'}
                   </button>

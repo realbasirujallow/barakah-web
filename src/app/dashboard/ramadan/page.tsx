@@ -345,7 +345,7 @@ export default function RamadanPage() {
                 setCustomGoal({ label: customGoalDraft.label, amount: parseFloat(customGoalDraft.amount) || 0 });
                 setCustomGoalDraft({ label: '', amount: '' });
               }}
-              className="bg-[#1B5E20] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#2E7D32] font-medium whitespace-nowrap"
+              className="bg-primary text-primary-foreground px-3 py-1.5 rounded-lg text-sm hover:bg-primary/90 font-medium whitespace-nowrap"
             >
               Add
             </button>
@@ -371,7 +371,7 @@ export default function RamadanPage() {
           <button
             onClick={saveToServer}
             disabled={syncStatus === 'saving'}
-            className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50 font-medium text-sm"
+            className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50 font-medium text-sm"
           >
             {syncStatus === 'saving' ? 'Saving...' : 'Save & Sync'}
           </button>
@@ -423,7 +423,7 @@ export default function RamadanPage() {
                 disabled={isFuture}
                 className={`aspect-square rounded-md text-xs font-medium transition ${
                   isFuture ? 'bg-gray-100 text-gray-300 cursor-not-allowed' :
-                  dailyNafila[i] ? 'bg-[#1B5E20] text-white' :
+                  dailyNafila[i] ? 'bg-primary text-primary-foreground' :
                   isToday ? 'bg-green-100 text-primary border-2 border-primary' :
                   'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}

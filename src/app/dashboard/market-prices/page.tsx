@@ -228,7 +228,7 @@ export default function MarketPricesPage() {
             onClick={() => setTab(t)}
             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition ${
               tab === t
-                ? 'bg-[#1B5E20] text-white shadow'
+                ? 'bg-primary text-primary-foreground shadow'
                 : 'text-gray-600 hover:bg-green-50 hover:text-primary'
             }`}
           >
@@ -301,7 +301,7 @@ export default function MarketPricesPage() {
               type="button"
               onClick={handleStockSearch}
               disabled={searchingStock || !stockSymbol.trim()}
-              className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50"
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50"
             >
               {searchingStock ? '…' : 'Look Up'}
             </button>

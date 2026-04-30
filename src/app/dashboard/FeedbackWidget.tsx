@@ -53,7 +53,7 @@ export function FeedbackWidget() {
         <button
           onClick={open}
           title="Send feedback"
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-[#1B5E20] text-white text-sm font-semibold px-4 py-2.5 rounded-full shadow-lg hover:bg-[#2E7D32] transition"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground text-sm font-semibold px-4 py-2.5 rounded-full shadow-lg hover:bg-primary/90 transition"
         >
           <span>💬</span>
           <span>Feedback</span>
@@ -64,7 +64,7 @@ export function FeedbackWidget() {
       {status !== 'idle' && (
         <div className="fixed bottom-6 right-6 z-50 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
           {/* Header */}
-          <div className="bg-[#1B5E20] px-4 py-3 flex items-center justify-between">
+          <div className="bg-primary px-4 py-3 flex items-center justify-between">
             <span className="text-white font-semibold text-sm">Send Feedback</span>
             <button
               onClick={close}
@@ -128,7 +128,7 @@ export function FeedbackWidget() {
                 <button
                   type="submit"
                   disabled={status === 'sending'}
-                  className="w-full bg-[#1B5E20] text-white py-2 rounded-lg text-sm font-semibold hover:bg-[#2E7D32] transition disabled:opacity-60"
+                  className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-60"
                 >
                   {status === 'sending' ? 'Sending…' : 'Submit Feedback'}
                 </button>

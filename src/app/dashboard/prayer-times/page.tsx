@@ -452,7 +452,7 @@ export default function PrayerTimesPage() {
           <button
             onClick={handleSearch}
             disabled={loading || !city || !country}
-            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#2E7D32] disabled:opacity-50 transition"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition"
           >
             {loading ? '...' : 'Get Times'}
           </button>

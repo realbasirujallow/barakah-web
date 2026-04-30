@@ -549,7 +549,7 @@ function ImportPageInner() {
               <button
                 onClick={handlePlaidConnect}
                 disabled={plaidLoading}
-                className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm disabled:opacity-50"
+                className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-semibold hover:bg-primary/90 transition text-sm disabled:opacity-50"
               >
                 {plaidLoading ? 'Opening Plaid...' : '+ Link Bank Account'}
               </button>
@@ -587,7 +587,7 @@ function ImportPageInner() {
             <div className="flex gap-3">
               <Link
                 href="/dashboard/billing"
-                className="bg-[#1B5E20] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#2E7D32] transition"
+                className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-primary/90 transition"
               >
                 View Plans &amp; Upgrade
               </Link>
@@ -631,7 +631,7 @@ function ImportPageInner() {
                   <button
                     onClick={() => handlePlaidSync(acct.id)}
                     disabled={plaidSyncing === acct.id || plaidSyncingAll || !plaidAccess}
-                    className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#2E7D32] transition disabled:opacity-50"
+                    className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition disabled:opacity-50"
                   >
                     {plaidSyncing === acct.id ? 'Syncing...' : plaidAccess ? 'Sync' : 'Upgrade to Sync'}
                   </button>
@@ -806,7 +806,7 @@ function ImportPageInner() {
           <div className="flex gap-4 justify-end">
             <button onClick={resetAll} className="px-5 py-2.5 border rounded-lg text-gray-600 hover:bg-gray-50">Cancel</button>
             <button onClick={executeImport} disabled={importing || activeCount === 0}
-              className="px-5 py-2.5 bg-[#1B5E20] text-white rounded-lg hover:bg-green-800 disabled:opacity-50 flex items-center gap-2">
+              className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-green-800 disabled:opacity-50 flex items-center gap-2">
               {importing ? <span className="animate-pulse">Importing...</span> : <>Import {activeCount} Account{activeCount !== 1 ? 's' : ''}</>}
             </button>
           </div>
@@ -873,7 +873,7 @@ function ImportPageInner() {
           <div className="flex gap-4 justify-end">
             <button onClick={resetAll} className="px-5 py-2.5 border rounded-lg text-gray-600 hover:bg-gray-50">Cancel</button>
             <button onClick={executeImport} disabled={importing || activeTxnCount === 0}
-              className="px-5 py-2.5 bg-[#1B5E20] text-white rounded-lg hover:bg-green-800 disabled:opacity-50 flex items-center gap-2">
+              className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-green-800 disabled:opacity-50 flex items-center gap-2">
               {importing ? <span className="animate-pulse">Importing...</span> : <>Import {activeTxnCount} Transaction{activeTxnCount !== 1 ? 's' : ''}</>}
             </button>
           </div>
@@ -917,7 +917,7 @@ function ImportPageInner() {
           <div className="flex justify-center gap-4 pt-4 flex-wrap">
             {result.format === 'balances' && (
               <>
-                <Link href="/dashboard/assets" className="px-5 py-2.5 bg-[#1B5E20] text-white rounded-lg hover:bg-green-800">View Assets</Link>
+                <Link href="/dashboard/assets" className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-green-800">View Assets</Link>
                 <Link href="/dashboard/debts" className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-50">View Debts</Link>
                 {(result as BalancesResult).investmentAccountsCreated > 0 && (
                   <Link href="/dashboard/investments" className="px-5 py-2.5 border border-purple-300 rounded-lg text-purple-700 hover:bg-purple-50">View Investments</Link>
@@ -928,7 +928,7 @@ function ImportPageInner() {
               </>
             )}
             {result.format === 'transactions' && (
-              <Link href="/dashboard/transactions" className="px-5 py-2.5 bg-[#1B5E20] text-white rounded-lg hover:bg-green-800">View Transactions</Link>
+              <Link href="/dashboard/transactions" className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-green-800">View Transactions</Link>
             )}
             <button onClick={resetAll} className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-50">Import Another</button>
           </div>

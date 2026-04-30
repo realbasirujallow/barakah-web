@@ -217,8 +217,8 @@ export default function WaqfPage() {
         subtitle="Endowment tracking — properties, books, perpetual charity"
         actions={
           <>
-            {tab === 'contributions' && <button onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Contribution</button>}
-            {tab === 'distribution' && <button onClick={openAddBenef} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Beneficiary</button>}
+            {tab === 'contributions' && <button onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Contribution</button>}
+            {tab === 'distribution' && <button onClick={openAddBenef} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Beneficiary</button>}
           </>
         }
       />
@@ -329,7 +329,7 @@ export default function WaqfPage() {
               <span>Allocation progress</span><span>{allocatedPct.toFixed(1)} / 100%</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-              <div className={`h-3 rounded-full transition-all ${allocatedPct >= 100 ? 'bg-[#1B5E20]' : 'bg-teal-500'}`} style={{ width: `${Math.min(allocatedPct, 100)}%` }} />
+              <div className={`h-3 rounded-full transition-all ${allocatedPct >= 100 ? 'bg-primary' : 'bg-teal-500'}`} style={{ width: `${Math.min(allocatedPct, 100)}%` }} />
             </div>
             {unallocatedPct > 0 && <p className="text-xs text-amber-600 mt-2">⚠ {unallocatedPct.toFixed(1)}% unallocated — add a beneficiary or increase an existing share.</p>}
             {allocatedPct >= 100 && <p className="text-xs text-primary mt-2">✓ 100% of your Waqf is fully distributed.</p>}
@@ -407,7 +407,7 @@ export default function WaqfPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button aria-label="Close contribution modal" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : editItem ? 'Update' : 'Add'}</button>
+              <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : editItem ? 'Update' : 'Add'}</button>
             </div>
           </div>
         </div>
@@ -444,7 +444,7 @@ export default function WaqfPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button aria-label="Close beneficiary modal" onClick={() => setShowBenefForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSaveBenef} disabled={savingBenef || !benefForm.name || !benefForm.percentage} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{savingBenef ? 'Saving...' : editBenef ? 'Update' : 'Add'}</button>
+              <button onClick={handleSaveBenef} disabled={savingBenef || !benefForm.name || !benefForm.percentage} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{savingBenef ? 'Saving...' : editBenef ? 'Update' : 'Add'}</button>
             </div>
           </div>
         </div>

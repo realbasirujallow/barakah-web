@@ -773,7 +773,7 @@ export default function ZakatPage() {
             <div className="mt-6 bg-blue-50 border border-blue-100 rounded-xl p-5 text-center">
               <p className="text-blue-800 text-sm font-medium mb-1">No assets found</p>
               <p className="text-blue-600 text-xs">Add your assets in the Assets page so Barakah can automatically calculate your zakat obligation.</p>
-              <button onClick={() => router.push('/dashboard/assets')} className="mt-3 text-sm bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32]">
+              <button onClick={() => router.push('/dashboard/assets')} className="mt-3 text-sm bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90">
                 Go to Assets
               </button>
             </div>
@@ -996,7 +996,7 @@ export default function ZakatPage() {
           {/* Payment History */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-primary">Payment History</h2>
-            <button onClick={handleShowPaymentForm} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm">+ Record Payment</button>
+            <button onClick={handleShowPaymentForm} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm">+ Record Payment</button>
           </div>
 
           {payments.length === 0 ? (
@@ -1307,7 +1307,7 @@ export default function ZakatPage() {
                           className={`flex items-center justify-between px-4 py-3 ${idx < steps.length - 1 ? 'border-b border-gray-200' : ''} ${isHighlight ? 'bg-green-50' : ''}`}
                         >
                           <div className="flex items-center gap-3">
-                            <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${isHighlight ? 'bg-[#1B5E20] text-white' : 'bg-gray-200 text-gray-600'}`}>
+                            <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${isHighlight ? 'bg-primary text-primary-foreground' : 'bg-gray-200 text-gray-600'}`}>
                               {step.num}
                             </span>
                             <span className={`text-sm ${isHighlight ? 'font-semibold text-primary' : 'text-gray-700'}`}>{step.label}</span>
@@ -1384,7 +1384,7 @@ export default function ZakatPage() {
               </button>
               <button
                 onClick={() => window.print()}
-                className="px-6 py-2 bg-[#1B5E20] text-white rounded-lg hover:bg-[#2E7D32] font-medium text-sm"
+                className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-medium text-sm"
               >
                 Print Receipt
               </button>
@@ -1472,7 +1472,7 @@ export default function ZakatPage() {
                   setShowForm(true);
                 }}
                 disabled={!checklist.wealth || !checklist.hawl || !checklist.debts || !checklist.quranic}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50 font-medium text-sm"
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50 font-medium text-sm"
               >
                 Continue to Payment
               </button>
@@ -1502,7 +1502,7 @@ export default function ZakatPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50" disabled={saving}>Cancel</button>
-              <button onClick={handleSavePayment} disabled={saving || !form.amount} className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">{saving ? 'Saving...' : 'Record'}</button>
+              <button onClick={handleSavePayment} disabled={saving || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Record'}</button>
             </div>
           </div>
         </div>
@@ -1517,7 +1517,7 @@ export default function ZakatPage() {
             <p className="text-xl text-amber-600 font-bold mb-4">مبروك</p>
             <p className="text-gray-600 mb-2">You have fulfilled your Zakat obligation for {lunarYear} AH. May Allah accept it from you and bless your wealth.</p>
             <p className="text-gray-400 italic mb-6">تقبل الله منك</p>
-            <button onClick={() => setShowMabrook(false)} className="w-full bg-[#1B5E20] text-white rounded-lg py-3 hover:bg-[#2E7D32] font-medium">Jazakallah Khayran</button>
+            <button onClick={() => setShowMabrook(false)} className="w-full bg-primary text-primary-foreground rounded-lg py-3 hover:bg-primary/90 font-medium">Jazakallah Khayran</button>
           </div>
         </div>
       )}

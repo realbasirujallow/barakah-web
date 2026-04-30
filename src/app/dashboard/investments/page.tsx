@@ -251,7 +251,7 @@ export default function InvestmentsPage() {
         actions={
           <button
             onClick={() => setShowAccountForm(true)}
-            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium"
           >
             + Add Account
           </button>
@@ -289,7 +289,7 @@ export default function InvestmentsPage() {
                   onClick={() => setHistoryDays(days)}
                   className={`px-3 py-1 text-sm rounded-lg font-medium transition ${
                     historyDays === days
-                      ? 'bg-[#1B5E20] text-white'
+                      ? 'bg-primary text-primary-foreground'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -617,7 +617,7 @@ export default function InvestmentsPage() {
               <button
                 onClick={handleAddAccount}
                 disabled={savingAccount || !accountForm.name}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
                 {savingAccount ? 'Saving...' : 'Add Account'}
               </button>
@@ -702,7 +702,7 @@ export default function InvestmentsPage() {
               <button
                 onClick={handleAddHolding}
                 disabled={savingHolding || !holdingForm.symbol || !holdingForm.quantity || !holdingForm.averageCost}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50"
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
                 {savingHolding ? 'Saving...' : 'Add Holding'}
               </button>

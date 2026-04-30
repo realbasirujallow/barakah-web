@@ -150,7 +150,7 @@ export default function NetWorthPage() {
           <button
             onClick={takeSnapshot}
             disabled={snapping}
-            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium disabled:opacity-50"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium disabled:opacity-50"
           >
             {snapping ? 'Calculating...' : '📸 Take Snapshot'}
           </button>
@@ -198,7 +198,7 @@ export default function NetWorthPage() {
             disabled={loading}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed ${
               period === p.key
-                ? 'bg-[#1B5E20] text-white'
+                ? 'bg-primary text-primary-foreground'
                 : 'bg-white text-gray-600 hover:bg-gray-100'
             }`}
           >

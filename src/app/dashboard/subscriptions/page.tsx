@@ -96,7 +96,7 @@ export default function SubscriptionsPage() {
         actions={
           <button
             onClick={loadSubscriptions}
-            className="px-4 py-2 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-green-800 transition"
+            className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-green-800 transition"
           >
             Re-scan
           </button>

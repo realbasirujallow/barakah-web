@@ -181,7 +181,7 @@ export default function FamilyPage() {
               <button
                 type="button"
                 onClick={() => load()}
-                className="inline-block bg-[#1B5E20] text-white py-3 px-6 rounded-xl font-semibold hover:bg-[#2E7D32] transition"
+                className="inline-block bg-primary text-primary-foreground py-3 px-6 rounded-xl font-semibold hover:bg-primary/90 transition"
               >
                 Refresh household
               </button>
@@ -196,7 +196,7 @@ export default function FamilyPage() {
               </p>
               <Link
                 href="/dashboard/billing"
-                className="inline-block bg-[#1B5E20] text-white py-3 px-6 rounded-xl font-semibold hover:bg-[#2E7D32] transition"
+                className="inline-block bg-primary text-primary-foreground py-3 px-6 rounded-xl font-semibold hover:bg-primary/90 transition"
               >
                 Upgrade to Family — $14.99/mo
               </Link>
@@ -233,7 +233,7 @@ export default function FamilyPage() {
                   <p className="font-medium text-gray-900">{m.fullName ?? m.email}</p>
                   <p className="text-sm text-gray-500">{m.email}</p>
                 </div>
-                <span className={`text-xs uppercase font-semibold px-2 py-1 rounded ${m.role === 'owner' ? 'bg-[#1B5E20] text-white' : 'bg-gray-100 text-gray-700'}`}>
+                <span className={`text-xs uppercase font-semibold px-2 py-1 rounded ${m.role === 'owner' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-700'}`}>
                   {m.role}
                 </span>
               </li>
@@ -297,7 +297,7 @@ export default function FamilyPage() {
           <button
             type="submit"
             disabled={seatsUsed >= seatsTotal || sending || !inviteEmail.trim()}
-            className="bg-[#1B5E20] text-white rounded-xl px-6 py-3 text-sm font-semibold hover:bg-[#2E7D32] transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="bg-primary text-primary-foreground rounded-xl px-6 py-3 text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {sending ? 'Sending…' : 'Send invite'}
           </button>
@@ -319,7 +319,7 @@ export default function FamilyPage() {
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {m.role === 'owner' && (
-                  <span className="text-xs uppercase font-semibold bg-[#1B5E20] text-white px-2 py-1 rounded">Owner</span>
+                  <span className="text-xs uppercase font-semibold bg-primary text-primary-foreground px-2 py-1 rounded">Owner</span>
                 )}
                 {m.role === 'member' && (
                   <button

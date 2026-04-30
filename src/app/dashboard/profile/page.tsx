@@ -359,7 +359,7 @@ export default function ProfilePage() {
                     <button
                       type="button"
                       onClick={() => setBillingPeriod(b => b === 'monthly' ? 'yearly' : 'monthly')}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${billingPeriod === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${billingPeriod === 'yearly' ? 'bg-primary' : 'bg-gray-300'}`}
                     >
                       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${billingPeriod === 'yearly' ? 'translate-x-5' : ''}`} />
                     </button>
@@ -373,7 +373,7 @@ export default function ProfilePage() {
                     {/* Plus Plan */}
                     {planKey === 'free' && (
                       <div className="border-2 border-primary rounded-xl p-5 relative">
-                        <span className="absolute -top-3 left-4 bg-[#1B5E20] text-white text-xs font-bold px-2 py-0.5 rounded-full">Most Popular</span>
+                        <span className="absolute -top-3 left-4 bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">Most Popular</span>
                         <h3 className="text-lg font-bold text-primary">Barakah Plus</h3>
                         <p className="text-2xl font-extrabold text-gray-900 mt-1">
                           {billingPeriod === 'yearly' ? PRICING.plus.yearly : PRICING.plus.monthly}
@@ -398,7 +398,7 @@ export default function ProfilePage() {
                         <button
                           onClick={() => handleUpgrade('plus')}
                           disabled={upgradingPlan !== null}
-                          className="mt-4 w-full bg-[#1B5E20] text-white py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition disabled:opacity-60"
+                          className="mt-4 w-full bg-primary text-primary-foreground py-2 rounded-lg font-semibold hover:bg-primary/90 transition disabled:opacity-60"
                           type="button"
                         >
                           {upgradingPlan === 'plus' ? 'Redirecting...' : 'Upgrade to Plus'}
@@ -486,7 +486,7 @@ export default function ProfilePage() {
             type="button"
             onClick={handleSaveName}
             disabled={savingName || !nameForm.fullName || !nameForm.email}
-            className="bg-[#1B5E20] text-white px-5 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium"
+            className="bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
           >
             {savingName ? 'Saving...' : 'Save Changes'}
           </button>
@@ -607,7 +607,7 @@ export default function ProfilePage() {
             type="button"
             onClick={handleSaveLocation}
             disabled={savingLocation || !locationForm.country}
-            className="bg-[#1B5E20] text-white px-5 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium"
+            className="bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
           >
             {savingLocation ? 'Saving...' : 'Update Location'}
           </button>
@@ -697,7 +697,7 @@ export default function ProfilePage() {
             type="button"
             onClick={handleChangePassword}
             disabled={savingPw || !pwForm.currentPassword || !pwForm.newPassword || !pwForm.confirmPassword}
-            className="bg-[#1B5E20] text-white px-5 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium"
+            className="bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
           >
             {savingPw ? 'Updating...' : 'Update Password'}
           </button>
@@ -746,7 +746,7 @@ export default function ProfilePage() {
               setSavingCurrency(false);
             }}
             disabled={savingCurrency || selectedCurrency === (profile?.preferredCurrency || 'USD')}
-            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] disabled:opacity-50 text-sm font-medium"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
           >
             {savingCurrency ? 'Saving...' : 'Save'}
           </button>
@@ -779,7 +779,7 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={toggleDarkMode}
-            className={`relative w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-[#1B5E20]' : 'bg-gray-200'}`}
+            className={`relative w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-primary' : 'bg-gray-200'}`}
           >
             <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0'}`} />
           </button>
@@ -859,7 +859,7 @@ export default function ProfilePage() {
               type="button"
               onClick={handleSavePreferences}
               disabled={savingPreferences}
-              className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-60"
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
             >
               {savingPreferences ? 'Saving...' : 'Save Preferences'}
             </button>
@@ -951,7 +951,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => { setShowRetentionModal(false); setShowDeleteConfirm(false); setDeleteMsg(null); }}
-                    className="flex-1 bg-[#1B5E20] text-white py-2.5 rounded-lg font-semibold hover:bg-green-800 transition text-sm"
+                    className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-lg font-semibold hover:bg-green-800 transition text-sm"
                   >
                     I&apos;ll Stay
                   </button>

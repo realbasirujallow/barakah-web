@@ -241,6 +241,47 @@ nav a, nav button { min-height: 2.5rem; }
   }
 }
 
+/* Phase 6.7 (Apr 27 2026) — motion polish.
+   Subtle, GPU-friendly defaults that lift the perceived quality without
+   any per-component changes.
+
+   1. Smooth bg/border/colour transitions on every interactive element
+      (links, buttons, [role=button]) at 150ms — Linear / Vercel use
+      this as their global polish baseline. Honors prefers-reduced-
+      motion to keep accessibility commitments.
+
+   2. CSS containment on the main scroll area — paints the dashboard's
+      large card grid lazily on scroll instead of repainting the whole
+      tree, which keeps frame-rate tight on long pages.
+
+   3. Stagger the fade-up animation for cards-in-a-grid so a re-render
+      doesn't pop the whole row at once. Used by .stagger-fade > *. */
+@media (prefers-reduced-motion: no-preference) {
+  a, button, [role="button"], summary {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+main { contain: layout paint; }
+
+@keyframes stagger-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .stagger-fade > * {
+    animation: stagger-fade-up 280ms ease-out both;
+  }
+  .stagger-fade > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-fade > *:nth-child(2) { animation-delay: 30ms; }
+  .stagger-fade > *:nth-child(3) { animation-delay: 60ms; }
+  .stagger-fade > *:nth-child(4) { animation-delay: 90ms; }
+  .stagger-fade > *:nth-child(5) { animation-delay: 120ms; }
+  .stagger-fade > *:nth-child(6) { animation-delay: 150ms; }
+}
+
 /* ── Dark mode legacy overrides (kept for marketing/older dashboard code) ── */
 .dark .bg-white { background-color: var(--card-bg) !important; }
 .dark .bg-\[#FFF8E1\] { background-color: oklch(0.145 0 0) !important; }

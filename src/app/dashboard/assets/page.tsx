@@ -362,7 +362,7 @@ export default function AssetsPage() {
                 {selectMode ? 'Cancel' : 'Select'}
               </button>
             )}
-            <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium text-sm">+ Add Asset</button>
+            <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm">+ Add Asset</button>
           </>
         }
       />
@@ -390,7 +390,7 @@ export default function AssetsPage() {
           <Link
             href="/dashboard/import"
             className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-              plaidSyncAccess ? 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
+              plaidSyncAccess ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
             }`}
           >
             {hasLinkedPlaidAssets ? 'Manage Linked Accounts' : 'Connect Accounts'}
@@ -398,7 +398,7 @@ export default function AssetsPage() {
           {!plaidSyncAccess && (
             <Link
               href="/dashboard/billing"
-              className="rounded-xl bg-[#1B5E20] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2E7D32]"
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
             >
               Upgrade to Keep Syncing
             </Link>
@@ -716,7 +716,7 @@ export default function AssetsPage() {
             <div className="flex gap-3 mt-4">
               <button type="button" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.value}
-                className="flex-1 bg-[#1B5E20] text-white rounded-lg py-2 hover:bg-[#2E7D32] disabled:opacity-50">
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">
                 {saving ? 'Saving...' : editItem ? 'Update' : 'Add'}
               </button>
             </div>
