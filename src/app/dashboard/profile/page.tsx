@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusTrap } from '@/lib/useFocusTrap';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useAuth } from '../../../context/AuthContext';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { saveCurrencyPreference } from '../../../lib/useCurrency';
@@ -316,7 +317,10 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#1B5E20] mb-6">Profile & Settings</h1>
+      <PageHeader
+        title="Profile & Settings"
+        subtitle="Account info, locale, currency, and security"
+      />
 
       {/* Account summary card */}
       <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
