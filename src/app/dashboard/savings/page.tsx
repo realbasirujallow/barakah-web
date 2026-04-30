@@ -9,6 +9,7 @@ import { SkeletonPage } from '../SkeletonCard';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import EmptyState from '../../../components/EmptyState';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Goal { id: number; name: string; category: string; targetAmount: number; currentAmount: number; description: string; deadline: number | null; }
 const CATS = ['hajj', 'umrah', 'emergency', 'education', 'wedding', 'home', 'vehicle', 'business', 'retirement', 'other'];
@@ -216,11 +217,13 @@ export default function SavingsPage() {
 
   return (
     <div>
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Savings Goals</h1>
-        <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ New Goal</button>
-      </div>
+      <PageHeader
+        title="Savings Goals"
+        subtitle="Track progress toward Hajj, emergency fund, and other halal goals"
+        actions={
+          <button onClick={() => setShowForm(true)} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ New Goal</button>
+        }
+      />
 
       {/* ── Aggregate banner ───────────────────────────────────────────────── */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-500 rounded-2xl p-6 text-white mb-6">

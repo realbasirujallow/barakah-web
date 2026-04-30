@@ -8,6 +8,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface DebtItem {
   id: number;
@@ -330,11 +331,14 @@ export default function DebtsPage() {
 
   return (
     <div>
-      {/* Header + tabs */}
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Debt Tracker</h1>
-        <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Debt</button>
-      </div>
+      <PageHeader
+        title="Debt Tracker"
+        subtitle="Riba-aware payoff plan — distinguishes haram interest from halal financing"
+        className="mb-4"
+        actions={
+          <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Debt</button>
+        }
+      />
 
       <div className="flex gap-2 mb-6">
         {(['debts', 'projector'] as const).map(t => (

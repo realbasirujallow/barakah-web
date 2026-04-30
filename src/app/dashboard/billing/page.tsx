@@ -8,6 +8,7 @@ import { REFEREE_FIRST_MONTH_PRICE } from '../../../lib/referralCopy';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { PRICING } from '../../../lib/pricing';
 import { trackPaywallViewed, trackUpgradeStarted } from '../../../lib/analytics';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 // ── Plan tier ranking ────────────────────────────────────────────────────────
 const PLAN_TIER: Record<string, number> = { free: 0, plus: 1, family: 2 };
@@ -250,16 +251,16 @@ function BillingContent() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Billing & Plans</h1>
-        <p className="text-gray-500 mt-1">
-          {statusLoading ? (
+      <PageHeader
+        title="Billing & Plans"
+        className="mb-8"
+        subtitle={
+          statusLoading ? (
             <span className="inline-block w-32 h-4 bg-gray-200 rounded animate-pulse" />
           ) : (
             <>
               You&apos;re on the{' '}
-              <span className="font-semibold capitalize text-gray-700">{currentPlan}</span> plan
+              <span className="font-semibold capitalize text-foreground">{currentPlan}</span> plan
               {isPastDue && (
                 <span className="ml-2 text-red-600 font-medium text-sm">
                   ⚠️ Payment past due — please update your payment method
@@ -271,9 +272,9 @@ function BillingContent() {
                 </span>
               )}
             </>
-          )}
-        </p>
-      </div>
+          )
+        }
+      />
 
       {/* Success / Cancel banners */}
       {params.get('success') === 'true' && (

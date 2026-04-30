@@ -8,6 +8,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import EmptyState from '../../../components/EmptyState';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Account {
   id: number;
@@ -244,15 +245,18 @@ export default function InvestmentsPage() {
         <Link href="/dashboard/assets" className="ml-3 text-amber-700 font-semibold underline hover:no-underline whitespace-nowrap">View Assets →</Link>
       </div>
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Investments</h1>
-        <button
-          onClick={() => setShowAccountForm(true)}
-          className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium"
-        >
-          + Add Account
-        </button>
-      </div>
+      <PageHeader
+        title="Investments"
+        subtitle="Brokerages, halal screening, and zakat-eligible holdings"
+        actions={
+          <button
+            onClick={() => setShowAccountForm(true)}
+            className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium"
+          >
+            + Add Account
+          </button>
+        }
+      />
 
       {/* Portfolio summary banner — only show if there's meaningful data */}
       {combinedTotal > 0 && (

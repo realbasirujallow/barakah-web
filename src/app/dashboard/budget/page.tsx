@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { SkeletonPage } from '../SkeletonCard';
+import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface BudgetItem { id: number; category: string; monthlyLimit: number; spent: number; month: number; year: number; color: string; }
 const CATEGORIES = [
@@ -200,17 +201,19 @@ export default function BudgetPage() {
 
   return (
     <div>
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#1B5E20]">Budget Planning</h1>
-        <div className="flex gap-2">
-          <button type="button" onClick={handleCopyMonth} disabled={copyingMonth}
-            className="px-3 py-2 text-sm border border-[#1B5E20] text-[#1B5E20] rounded-lg hover:bg-green-50 transition disabled:opacity-50">
-            {copyingMonth ? 'Copying...' : '📋 Copy Last Month'}
-          </button>
-          <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Budget</button>
-        </div>
-      </div>
+      <PageHeader
+        title="Budget Planning"
+        subtitle={`${MONTHS[viewMonth - 1]} ${viewYear} · category-level limits with auto rollover`}
+        actions={
+          <>
+            <button type="button" onClick={handleCopyMonth} disabled={copyingMonth}
+              className="px-3 py-2 text-sm border border-[#1B5E20] text-[#1B5E20] rounded-lg hover:bg-green-50 transition disabled:opacity-50">
+              {copyingMonth ? 'Copying...' : '📋 Copy Last Month'}
+            </button>
+            <button type="button" onClick={openAdd} className="bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] font-medium">+ Add Budget</button>
+          </>
+        }
+      />
 
       {/* ── Month Navigation ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-center gap-4 mb-6">
