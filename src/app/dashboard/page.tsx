@@ -16,6 +16,7 @@ import { SpendingDrillDown } from '../../components/dashboard/SpendingDrillDown'
 import { PeriodPicker, type Period } from '../../components/dashboard/PeriodPicker';
 import { GettingStartedChecklist, type GettingStartedItem } from '../../components/dashboard/GettingStartedChecklist';
 import { DailyRitual, buildRitualItems } from '../../components/dashboard/DailyRitual';
+import { HouseholdPromoBanner, type HouseholdBannerVariant } from '../../components/dashboard/HouseholdPromoBanner';
 import { getLastVisit, labelForRoute, type LastVisit } from '../../lib/lastVisit';
 import { Coins, ArrowLeftRight, Upload, PieChart, type LucideIcon } from 'lucide-react';
 import { Badge } from '../../components/ui/badge';
@@ -104,6 +105,19 @@ export default function DashboardPage() {
   useEffect(() => {
     setLastVisit(getLastVisit());
   }, []);
+  // Phase 17: household promo banner state. The variant calc lives
+  // BELOW useAuth() (since it depends on `user.plan`) — kept here as a
+  // hook-section anchor, with the actual derivation farther down.
+  const [householdScopeChoice, setHouseholdScopeChoice] = useState<string | null>(null);
+  const [householdBannerDismissed, setHouseholdBannerDismissed] = useState(false);
+  useEffect(() => {
+    setHouseholdScopeChoice(safeGetItem('barakah_onboarding_household_scope'));
+    setHouseholdBannerDismissed(safeGetItem('barakah_household_banner_dismissed') === 'true');
+  }, []);
+  const dismissHouseholdBanner = () => {
+    safeSetItem('barakah_household_banner_dismissed', 'true');
+    setHouseholdBannerDismissed(true);
+  };
   // Phase 12.3 (2026-04-30): collapse the dense widget grid below
   // OVERVIEW behind a single disclosure. Default-closed for users
   // already past onboarding (the new top-of-page = Daily Ritual +
@@ -272,6 +286,17 @@ export default function DashboardPage() {
     return () => clearInterval(id);
   }, []);
   const isTrialExpired = user?.plan === 'free' && user?.planExpiresAt && user.planExpiresAt < currentTimestamp;
+  // Phase 17: derive household banner variant once `user` is in scope.
+  const householdBannerVariant: HouseholdBannerVariant = (() => {
+    if (householdBannerDismissed) return 'none';
+    // Family-plan users — banner nudges to invite if they haven't yet.
+    // (We don't know member count from here without a separate fetch;
+    //  the dest /dashboard/family page takes over once clicked.)
+    if (user?.plan === 'family') return 'invite-empty';
+    // Free / Plus users who picked "household" in onboarding — soft upsell.
+    if (householdScopeChoice === 'household') return 'invite-promo';
+    return 'none';
+  })();
   const hasNoData = !loading && netWorthValue === 0 && !widgets?.recentTransactions?.transactions?.length;
 
   // Phase 11 (2026-04-30): Daily Ritual — derived from data the dashboard
@@ -571,6 +596,17 @@ export default function DashboardPage() {
           already has data. */}
       {!hasNoData && ritualItems.length > 0 && (
         <DailyRitual items={ritualItems} />
+      )}
+
+      {/* Phase 17 (2026-04-30): household promo banner — soft upsell
+          for users who picked 'household' in onboarding but aren't on
+          Family plan, OR Family-plan users who haven't invited a member
+          yet. Hides for everyone else. */}
+      {!hasNoData && (
+        <HouseholdPromoBanner
+          variant={householdBannerVariant}
+          onDismiss={dismissHouseholdBanner}
+        />
       )}
 
       {/* Phase 6.4: Getting-started checklist — only for users not yet
