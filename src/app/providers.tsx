@@ -3,6 +3,7 @@ import { AuthProvider } from '../context/AuthContext';
 import { FeatureFlagsProvider } from '../context/FeatureFlagsContext';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { captureAcquisitionFromUrl } from '../lib/api';
+import { Toaster } from '../components/ui/sonner';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { useEffect } from 'react';
@@ -83,10 +84,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // bubbling to `global-error.tsx`. The boundary is a class component
   // — put it outside AuthProvider so auth state survives a render
   // error downstream.
+  //
+  // Phase 2.5 (2026-04-27): <Toaster /> is mounted at the very top so
+  // toasts triggered from auth flows or feature-flag errors still
+  // surface even if a deeper provider rejects. richColors gives the
+  // green/red/blue palette without authoring custom variants.
   return (
     <PostHogInit>
       <GoogleAnalytics />
       <AcquisitionCapture />
+      <Toaster richColors closeButton position="bottom-right" />
       <ErrorBoundary>
         <AuthProvider>
           <FeatureFlagsProvider>{children}</FeatureFlagsProvider>
