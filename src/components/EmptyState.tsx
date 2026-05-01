@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import { IllustrationScene, type IllustrationName } from './Illustrations';
 
 /**
  * Reusable empty-state component for dashboard pages.
@@ -37,7 +38,12 @@ export interface EmptyStateAction {
 }
 
 interface EmptyStateProps {
-  icon: string | ReactNode;
+  icon?: string | ReactNode;
+  /** R40 (2026-05-01): when supplied, renders a CustomPainter-style
+   * SVG illustration in place of the icon disc. Stripe-tier polish
+   * for hero empty states (asset list, no transactions, family page).
+   * The icon prop becomes optional when an illustration is given. */
+  illustration?: IllustrationName;
   title: string;
   description?: string;
   actions?: EmptyStateAction[];
@@ -49,6 +55,7 @@ interface EmptyStateProps {
 
 export default function EmptyState({
   icon,
+  illustration,
   title,
   description,
   actions = [],
@@ -75,9 +82,15 @@ export default function EmptyState({
 
   return (
     <div className={wrapperClass}>
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-3xl mb-3">
-        <span aria-hidden="true">{icon}</span>
-      </div>
+      {illustration ? (
+        <div className="mb-3 inline-block">
+          <IllustrationScene scene={illustration} size={120} />
+        </div>
+      ) : (
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-3xl mb-3">
+          <span aria-hidden="true">{icon}</span>
+        </div>
+      )}
       <h3 className="text-xl font-semibold text-foreground tracking-tight mb-1">{title}</h3>
       {description && (
         <p className="text-muted-foreground text-sm mb-5 max-w-md mx-auto leading-relaxed">{description}</p>

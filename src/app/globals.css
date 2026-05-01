@@ -233,6 +233,48 @@ nav a, nav button { min-height: 2.5rem; }
 .text-xs { font-size: 0.8rem !important; line-height: 1.35 !important; }
 .text-sm { font-size: 0.9rem !important; line-height: 1.4 !important; }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   R40 (2026-05-01) — Microinteraction polish utilities.
+
+   Three reusable patterns for the Stripe/Linear-tier feel:
+
+   1. `.hover-lift` — soft 1px raise on hover (transform + shadow). Wrap
+      a card or button to make it feel like a tactile object instead of
+      a flat rectangle. Respects prefers-reduced-motion.
+
+   2. `.btn-press` — primary CTA "press" microinteraction: 1px down
+      translate on :active so the user gets immediate physical feedback
+      that their click registered. Pairs with the existing transition
+      utilities so it's a 1-property change.
+
+   3. `.row-hover` — subtle row highlight for list items. Used by
+      transaction lists, settings rows, etc.
+
+   All gated behind `motion-safe:` semantics — users with
+   prefers-reduced-motion get no transforms.
+   ───────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .hover-lift {
+    transition: transform 160ms ease-out, box-shadow 160ms ease-out;
+  }
+  .hover-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -1px rgb(0 0 0 / 0.04);
+  }
+  .btn-press {
+    transition: transform 80ms ease-out;
+  }
+  .btn-press:active {
+    transform: translateY(1px);
+  }
+  .row-hover {
+    transition: background-color 120ms ease-out;
+  }
+}
+.row-hover:hover {
+  background-color: oklch(from var(--accent) l c h / 0.4);
+}
+
 /* shadcn primitives expect ring-offset for focus styles */
 @layer base {
   * {

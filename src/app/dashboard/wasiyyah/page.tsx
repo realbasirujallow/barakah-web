@@ -424,7 +424,7 @@ function WasiyyahPageContent() {
             </div>
           ) : (
             <EmptyState
-              icon="📜"
+              illustration="mosque"
               title="Write your wasiyyah today"
               description="The Prophet (ﷺ) said a Muslim should not sleep two nights without their will written. Add beneficiaries and your family will know exactly what was intended."
               actions={[

@@ -315,7 +315,7 @@ export default function SavingsPage() {
         </div>
       ) : (
         <EmptyState
-          icon="🎯"
+          illustration="calendar"
           title="Set your first savings goal"
           description="Track progress toward Hajj, Umrah, a wedding, an emergency fund, or anything that matters to your household."
           actions={[{ label: '+ Set your first goal', onClick: () => setShowForm(true), primary: true }]}

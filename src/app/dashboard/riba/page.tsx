@@ -466,7 +466,7 @@ export default function RibaPage() {
         <>
           {noTransactions && !hasRibaDebts ? (
             <EmptyState
-              icon="🔎"
+              illustration="insight"
               title="Nothing to scan yet"
               description="Connect a bank or import a CSV and we'll flag any interest income or interest-bearing charges in your records."
               actions={[

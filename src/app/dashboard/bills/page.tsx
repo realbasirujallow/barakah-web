@@ -479,7 +479,7 @@ export default function BillsPage() {
 
       {bills.length === 0 && (
         <EmptyState
-          icon="🧾"
+          illustration="receipt"
           title="No bills added yet"
           description="Track your recurring bills so you never miss a due date — Barakah sends a reminder 3 days before each one."
           actions={[
