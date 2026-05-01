@@ -248,7 +248,7 @@ const articles: ArticleCard[] = [
     slug: 'islamic-finance-app',
     category: 'Islamic Finance',
     title: 'Best Islamic Finance App 2026',
-    description: 'Zakat calculator, halal stock screener, riba detector, and shariah-compliant budgeting — all in one platform.',
+    description: 'Zakat calculator, halal stock screener, riba detector, and shariah-compliant budgeting.',
     readTime: 7,
   },
   // ── Halal Investing ────────────────────────────────────────────────────

@@ -69,9 +69,8 @@ export default function TryPage() {
           Try Barakah Free
         </h1>
         <p className="text-lg text-center text-gray-600 max-w-xl mb-8">
-          Start your {DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial. No credit card or debit card required. Get access to
-          zakat calculation, halal stock screening, budgeting tools, and more &mdash;
-          all in one Shariah-conscious platform.
+          Start your {DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial. No credit card or debit card required. Zakat calculation,
+          halal stock screening, and Shariah-conscious budgeting.
         </p>
         <Link
           href="/signup"

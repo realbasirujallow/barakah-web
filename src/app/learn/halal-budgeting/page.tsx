@@ -341,7 +341,7 @@ export default function HalalBudgetingPage() {
           {/* CTA */}
           <div className="bg-green-700 rounded-2xl p-8 text-center text-white mb-10">
             <h2 className="text-2xl font-bold mb-3">Start Your Halal Budget Today — Free</h2>
-            <p className="text-green-100 mb-6">Zakat automation, riba detection, sadaqah goals, and Islamic budget categories — all in one free app.</p>
+            <p className="text-green-100 mb-6">Zakat automation, riba detection, sadaqah goals, and Islamic budget categories. Free to start.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">
                 Create Free Account

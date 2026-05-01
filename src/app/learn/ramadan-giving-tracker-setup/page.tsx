@@ -219,7 +219,7 @@ export default function RamadanGivingTrackerSetupPage() {
           {/* Footer CTA */}
           <div className="bg-[#1B5E20] text-white rounded-2xl p-8 text-center mt-10">
             <h2 className="text-2xl font-bold mb-2">Build your tracker in 60 seconds</h2>
-            <p className="text-green-200 mb-6">Barakah sets up daily targets, fitra deadlines, last-10-nights bonuses, and family-shared goals — all in one place.</p>
+            <p className="text-green-200 mb-6">Barakah sets up daily targets, fitra deadlines, last-10-nights bonuses, and family-shared goals.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-white text-[#1B5E20] px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">
                 Start Free — Build My Tracker
