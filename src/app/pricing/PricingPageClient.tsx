@@ -19,15 +19,20 @@ export default function PricingPageClient() {
 
   return (
     <article className="min-h-screen bg-gray-50">
+      {/*
+        2026-05-01: visible "Home / Pricing" breadcrumb removed. The new
+        global top nav (MarketingNav, PR #74) already shows the user
+        where they are — duplicating that with a small grey breadcrumb
+        row underneath read as visual noise (founder feedback: "visually
+        it looks weird"). The page <h1>Pricing</h1> below provides
+        unambiguous wayfinding.
+
+        LanguageSwitcher kept here, right-aligned in a thin row so
+        non-English users still have a one-click locale toggle without
+        digging into Settings. (Eventually move into MarketingNav.)
+      */}
       <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center space-x-2 text-sm">
-            <Link href="/" className="text-green-700 hover:text-green-800 font-medium">
-              {t('pricingBreadcrumbHome')}
-            </Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-700">{t('pricingBreadcrumbPricing')}</span>
-          </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-end">
           <LanguageSwitcher compact />
         </div>
       </nav>
