@@ -94,7 +94,7 @@ export default async function MosqueReferralPage({
           <section className="mb-8 rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="mb-3 text-2xl font-bold text-[#1B5E20]">What you get</h2>
             <ul className="list-disc space-y-2 pl-6 text-base leading-7 text-gray-800">
-              <li><strong>Multi-asset zakat calculator</strong> — cash, gold, stocks, 401(k), crypto, business, rental, all in one</li>
+              <li><strong>Multi-asset zakat calculator</strong> — cash, gold, stocks, 401(k), crypto, business, rental</li>
               <li><strong>Hawl tracking</strong> — daily nisab check, scholar-aligned methodology (AMJA gold, Classical silver, Lower-of-Two)</li>
               <li><strong>Halal stock screening</strong> — 30,000+ tickers against AAOIFI standards</li>
               <li><strong>Riba detection</strong> — flags interest income on your linked bank accounts</li>

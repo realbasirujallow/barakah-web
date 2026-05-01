@@ -6,7 +6,7 @@ import RamadanCountdown from './RamadanCountdown';
 export const metadata: Metadata = {
   title: 'Ramadan 2027 Financial Planner: Zakat, Sadaqah, Fidyah, Kaffarah | Barakah',
   description:
-    "Plan your Ramadan 2027 finances: calculate zakat on every asset class, track sadaqah and sadaqah jariyah, handle fidyah and kaffarah, and automate Zakat al-Fitr — all in one app.",
+    "Plan your Ramadan 2027 finances: calculate zakat on every asset class, track sadaqah and sadaqah jariyah, handle fidyah and kaffarah, and automate Zakat al-Fitr.",
   keywords: [
     'ramadan 2027',
     'ramadan financial planning',

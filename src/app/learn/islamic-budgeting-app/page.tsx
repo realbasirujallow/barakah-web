@@ -5,7 +5,7 @@ import { DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL } from '../../../lib/trial';
 export const metadata: Metadata = {
   title: 'Best Islamic Budgeting App 2026 — Halal Budget Tracker for Muslim Families | Barakah',
   description:
-    'The best Islamic budgeting app for Muslim households. Track halal expenses, automate zakat, avoid riba, set sadaqah goals, and budget by Islamic finance principles — all in one free app.',
+    'The Islamic budgeting app for Muslim households. Track halal expenses, automate zakat, avoid riba, set sadaqah goals, and budget by Islamic finance principles. Free to start.',
   keywords: [
     'islamic budgeting app',
     'halal budget app',

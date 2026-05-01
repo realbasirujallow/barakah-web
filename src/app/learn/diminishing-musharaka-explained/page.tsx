@@ -296,7 +296,7 @@ export default function Page() {
             <h2 className="text-2xl font-bold mb-3">Manage Your Home Purchase Journey with Barakah</h2>
             <p className="text-green-200 mb-6 max-w-xl mx-auto">
               Track savings toward your down payment, manage your existing mortgage or halal financing,
-              and calculate zakat with full madhab support — all in one Islamic finance platform.
+              and calculate zakat with full madhab support.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">

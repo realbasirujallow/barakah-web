@@ -65,7 +65,7 @@ export default function RamadanEmailCapture({
           <p className="text-2xl mb-2">🌙</p>
           <p className="font-bold text-[#1B5E20] text-lg mb-1">JazakAllah Khair!</p>
           <p className="text-sm text-gray-600 mb-4">
-            Get your free Barakah account to track zakat, sadaqah, and Ramadan giving — all in one place.
+            Get your free Barakah account to track zakat, sadaqah, and Ramadan giving.
           </p>
           <a
             href={`/signup?email=${encodeURIComponent(email.trim())}&source=${source}`}

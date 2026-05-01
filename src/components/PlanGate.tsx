@@ -84,7 +84,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
 
   // Feature-specific descriptions for better conversion copy
   const featureDescriptions: Record<string, string> = {
-    'Financial Insights': 'See your Barakah Score, spending trends, halal ratio, and month-over-month analytics — all in one place.',
+    'Financial Insights': 'See your Barakah Score, spending trends, halal ratio, and month-over-month analytics.',
     'Halal Screener': 'Screen 30,000+ stocks for Sharia compliance. Know exactly where your money is going.',
     'Halal Finance Check': 'Screen 30,000+ stocks for Sharia compliance and detect interest-bearing transactions in your accounts.',
     'Investments': 'Track your full portfolio — accounts, holdings, P&L, and allocation breakdown.',
