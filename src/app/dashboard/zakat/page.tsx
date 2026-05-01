@@ -646,8 +646,14 @@ export default function ZakatPage() {
 
       {tab === 'calculator' ? (
         <>
-          {/* Zakat Status Hero */}
-          <div className={`rounded-2xl p-8 text-white mb-6 text-center ${fulfilled ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gradient-to-r from-amber-600 to-yellow-500'}`}>
+          {/* Zakat Status Hero.
+              R41 (2026-05-01): viewTransitionName matches the dashboard
+              KPI card so the View Transitions API morphs them between
+              the two pages. Older browsers fall through silently. */}
+          <div
+            className={`rounded-2xl p-8 text-white mb-6 text-center ${fulfilled ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gradient-to-r from-amber-600 to-yellow-500'}`}
+            style={{ viewTransitionName: 'zakat-hero' }}
+          >
             <p className="text-4xl mb-2">{fulfilled ? '🌟' : zakatEligible ? '✅' : 'ℹ️'}</p>
             <p className="text-amber-100 mb-2">{fulfilled ? 'Zakat Fulfilled!' : 'Zakat Due (2.5%)'}</p>
             <p className="text-5xl font-bold">
