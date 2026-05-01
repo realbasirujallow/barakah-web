@@ -67,6 +67,7 @@ const navItems: { href: string; icon: LucideIcon; label: string; gate?: 'plus' |
   { href: '/dashboard/retirement-zakat', icon: PiggyBank, label: 'Retirement Zakat' },
   { href: '/dashboard/sadaqah', icon: HandHeart, label: 'Sadaqah' },
   { href: '/dashboard/savings', icon: Target, label: 'Savings Goals' },
+  { href: '/dashboard/cash-flow', icon: BarChart3, label: 'Cash Flow' },
   { href: '/dashboard/transactions', icon: ArrowLeftRight, label: 'Transactions' },
   { href: '/dashboard/zakat', icon: Coins, label: 'Zakat' },
   // ── Premium features (alphabetized) ───────────────────────────────────────
