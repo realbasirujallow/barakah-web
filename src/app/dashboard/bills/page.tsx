@@ -424,8 +424,13 @@ export default function BillsPage() {
         }
       />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      {/* Stats.
+          R42 (2026-05-01): viewTransitionName matches the dashboard's
+          Upcoming Bills card so the morph completes on arrival. */}
+      <div
+        className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"
+        style={{ viewTransitionName: 'bills-hero' }}
+      >
         <div className="bg-white rounded-xl p-4">
           <p className="text-gray-500 text-xs">Total Bills</p>
           <p className="text-2xl font-bold text-primary">{bills.length}</p>

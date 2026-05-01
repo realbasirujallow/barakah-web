@@ -21,6 +21,7 @@ import { getLastVisit, labelForRoute, type LastVisit } from '../../lib/lastVisit
 import { Coins, ArrowLeftRight, Upload, PieChart, type LucideIcon } from 'lucide-react';
 import { CategoryIcon } from '../../lib/categoryIcon';
 import { Badge } from '../../components/ui/badge';
+import HeroLink from '../../components/HeroLink';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
 interface HijriData { hijriDate: string; hijriMonthName: string; isRamadan: boolean; upcomingEvents: IslamicEvent[]; }
@@ -872,8 +873,15 @@ export default function DashboardPage() {
           </span>
         </button>
 
-        {/* Budget Overview */}
-        <div className="bg-card rounded-2xl p-5 border border-border">
+        {/* Budget Overview.
+            R42 (2026-05-01): viewTransitionName makes this card the
+            source of a hero morph into /dashboard/budget when the user
+            clicks the inline HeroLinks below. Browsers without View
+            Transitions API support fall through to plain navigation. */}
+        <div
+          className="bg-card rounded-2xl p-5 border border-border"
+          style={{ viewTransitionName: 'budget-hero' }}
+        >
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">Budget — {new Date().toLocaleString(undefined, { month: 'long', year: 'numeric' })}</p>
@@ -911,15 +919,15 @@ export default function DashboardPage() {
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-400 text-sm">No budgets set up yet.</p>
-              <Link href="/dashboard/budget" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
+              <HeroLink href="/dashboard/budget" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
                 Create your first budget →
-              </Link>
+              </HeroLink>
             </div>
           )}
           {widgets?.budgetOverview?.categories && widgets.budgetOverview.categories.length > 0 && (
-            <Link href="/dashboard/budget" className="inline-block mt-3 text-sm font-medium text-primary hover:underline">
+            <HeroLink href="/dashboard/budget" className="inline-block mt-3 text-sm font-medium text-primary hover:underline">
               Manage budgets →
-            </Link>
+            </HeroLink>
           )}
         </div>
       </div>
@@ -999,11 +1007,19 @@ export default function DashboardPage() {
 
       {/* ── RIGHT COLUMN ────────────────────────────────────────────────────── */}
       <div className="space-y-4 min-w-0">
-        {/* Recent Transactions */}
-        <div className="bg-card rounded-2xl p-5 border border-border overflow-hidden">
+        {/* Recent Transactions.
+            R42 (2026-05-01): viewTransitionName makes this card the
+            source of a hero morph into /dashboard/transactions when the
+            user clicks the inline HeroLinks below. The destination
+            page's KPI hero ("transactions-hero") morphs from this
+            card's footprint into the detail page's masthead. */}
+        <div
+          className="bg-card rounded-2xl p-5 border border-border overflow-hidden"
+          style={{ viewTransitionName: 'transactions-hero' }}
+        >
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Recent Transactions</p>
-            <Link href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline">View all</Link>
+            <HeroLink href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline">View all</HeroLink>
           </div>
           {widgets?.recentTransactions?.transactions && widgets.recentTransactions.transactions.length > 0 ? (
             <div className="divide-y divide-gray-50">
@@ -1025,15 +1041,20 @@ export default function DashboardPage() {
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-400 text-sm">No transactions yet.</p>
-              <Link href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
+              <HeroLink href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
                 Add your first transaction →
-              </Link>
+              </HeroLink>
             </div>
           )}
         </div>
 
-        {/* Upcoming Bills / Recurring */}
-        <div className="bg-card rounded-2xl p-5 border border-border">
+        {/* Upcoming Bills / Recurring.
+            R42 (2026-05-01): viewTransitionName morphs this card into
+            the /dashboard/bills hero ("bills-hero") on click. */}
+        <div
+          className="bg-card rounded-2xl p-5 border border-border"
+          style={{ viewTransitionName: 'bills-hero' }}
+        >
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">Upcoming Bills</p>
@@ -1043,7 +1064,7 @@ export default function DashboardPage() {
                 </p>
               )}
             </div>
-            <Link href="/dashboard/bills" className="text-sm text-primary font-medium hover:underline">View all</Link>
+            <HeroLink href="/dashboard/bills" className="text-sm text-primary font-medium hover:underline">View all</HeroLink>
           </div>
           {widgets?.upcomingBills?.bills && widgets.upcomingBills.bills.length > 0 ? (
             <div className="space-y-2">
@@ -1065,9 +1086,9 @@ export default function DashboardPage() {
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-400 text-sm">No upcoming bills.</p>
-              <Link href="/dashboard/bills" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
+              <HeroLink href="/dashboard/bills" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
                 Add your first bill →
-              </Link>
+              </HeroLink>
             </div>
           )}
           {widgets?.upcomingBills && (widgets.upcomingBills.overdueCount || 0) > 0 && (

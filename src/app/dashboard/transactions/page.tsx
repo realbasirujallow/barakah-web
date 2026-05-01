@@ -499,8 +499,13 @@ export default function TransactionsPage() {
         pattern. Founder feedback: "transactions page still looks
         non polish to me." The visual language now reads as one
         product across the three reporting surfaces.
+        R42 (2026-05-01): viewTransitionName matches the dashboard's
+        Recent Transactions card so the morph completes on arrival.
       */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div
+        className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"
+        style={{ viewTransitionName: 'transactions-hero' }}
+      >
         <div className="bg-gradient-to-br from-[#1B5E20] to-green-500 rounded-xl p-4 text-white shadow-sm">
           <p className="text-green-200 text-[10px] uppercase tracking-wide font-semibold">Income</p>
           <p className="text-xl font-bold mt-1">{fmt(income)}</p>
