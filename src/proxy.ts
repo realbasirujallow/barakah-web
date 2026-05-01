@@ -1,5 +1,35 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import {
+  DEFAULT_LOCALE,
+  isLocaleExempt,
+  hasLocalePrefix,
+} from './lib/i18n-routing';
+
+/**
+ * Phase 22 (Apr 30 2026) — locale-routing flag (currently OFF).
+ *
+ * The full multilingual route migration (`app/{route}/page.tsx` →
+ * `app/[lang]/{route}/page.tsx`) is documented in
+ * `research/MULTILINGUAL-ROUTING-SCOPE-2026-04-30.md`. This flag gates
+ * the redirect block that lives further down in the proxy() function.
+ *
+ * Flipping this to true WITHOUT the route files in place will 404 every
+ * existing inbound link from blogs/Reddit/external sites. Activation
+ * procedure (when the route move PR is ready):
+ *   1. Verify all 30 marketing routes have moved to `app/[lang]/...`.
+ *   2. Verify the sitemap emits per-locale entries.
+ *   3. Flip `LOCALE_REDIRECT_ENABLED` to `true` in this file.
+ *   4. Deploy + smoke-test on staging.
+ *   5. Watch GSC + Vercel logs for 404 spikes for 24 hours.
+ *
+ * Note: this is a SECOND multilingual approach alongside the in-flight
+ * client-side LanguageSwitcher in `components/LanguageSwitcher.tsx`.
+ * Both can coexist — the client-side toggle gives instant in-page
+ * language switching today; the route-segment redirect adds SEO
+ * benefits when the full route migration ships.
+ */
+const LOCALE_REDIRECT_ENABLED = false;
 
 /**
  * Server-side route protection proxy (Next.js 16 convention).
@@ -167,6 +197,22 @@ export function proxy(request: NextRequest) {
     loginUrl.searchParams.set('reason', 'expired');
     loginUrl.searchParams.set('redirect', pathname);
     return applyCsp(NextResponse.redirect(loginUrl), csp);
+  }
+
+  // ── Locale routing (Phase 22, flag-off scaffold) ───────────────────
+  //
+  // When LOCALE_REDIRECT_ENABLED flips on, bare paths like `/foo` get
+  // 301'd to `/${DEFAULT_LOCALE}/foo` per locked decision D4. Paths
+  // already prefixed with a locale (e.g. `/ar/foo`) and locale-exempt
+  // paths (auth/api/dashboard/admin) pass through unchanged.
+  //
+  // Today the flag is off — this block is a no-op so existing URLs
+  // continue to work while the underlying route migration ships in a
+  // separate focused PR.
+  if (LOCALE_REDIRECT_ENABLED && !isLocaleExempt(pathname) && !hasLocalePrefix(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${DEFAULT_LOCALE}${pathname === '/' ? '' : pathname}`;
+    return applyCsp(NextResponse.redirect(url, 301), csp);
   }
 
   // Default path: apply nonce to request headers so layout.tsx can read it.
