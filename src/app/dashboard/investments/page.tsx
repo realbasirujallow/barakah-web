@@ -258,9 +258,14 @@ export default function InvestmentsPage() {
         }
       />
 
-      {/* Portfolio summary banner — only show if there's meaningful data */}
+      {/* Portfolio summary banner — only show if there's meaningful data.
+          R41 (2026-05-01): viewTransitionName matches the dashboard's
+          "Market Today" KPI so it morphs into this hero on click. */}
       {combinedTotal > 0 && (
-        <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
+        <div
+          className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6"
+          style={{ viewTransitionName: 'investments-hero' }}
+        >
           <p className="text-green-100 text-sm">Total Portfolio Value</p>
           <p className="text-4xl font-bold">{fmt(combinedTotal)}</p>
           {assetTotal > 0 && totalValue > 0 && (

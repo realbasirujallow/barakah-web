@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import HeroLink from '../HeroLink';
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -57,6 +58,14 @@ export interface KpiCardProps {
   /** Optional formatter for the tooltip value (e.g. the parent's `fmt`).
    *  When omitted, the raw number is rendered. */
   sparklineFormat?: (n: number) => string;
+  /**
+   * R41 (2026-05-01): when supplied alongside `href`, the card link
+   * uses HeroLink to wrap navigation in `document.startViewTransition`.
+   * The destination page should set the same `viewTransitionName` on
+   * its hero element to morph this card into the detail view. Older
+   * browsers fall through to a plain Link with no jank.
+   */
+  heroName?: string;
 }
 
 const toneClass: Record<NonNullable<KpiCardProps['tone']>, string> = {
@@ -87,6 +96,7 @@ export function KpiCard({
   className,
   sparkline,
   sparklineFormat,
+  heroName,
 }: KpiCardProps) {
   const hasSparkline = Array.isArray(sparkline) && sparkline.length >= 2;
   const stroke = sparklineStroke[tone];
@@ -160,6 +170,21 @@ export function KpiCard({
   );
 
   if (href) {
+    // R41 (2026-05-01): when a heroName is supplied, route through
+    // HeroLink which wraps the navigation in
+    // document.startViewTransition for a shared-element morph from
+    // the card to the detail-page hero.
+    if (heroName) {
+      return (
+        <HeroLink
+          href={href}
+          heroName={heroName}
+          className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+        >
+          {inner}
+        </HeroLink>
+      );
+    }
     return (
       <Link href={href} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
         {inner}

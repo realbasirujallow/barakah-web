@@ -396,3 +396,56 @@ main { contain: layout paint; }
 
 /* Placeholder text in dark mode */
 .dark ::placeholder { color: #4b5563 !important; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   R41 (2026-05-01) — View Transitions API tuning.
+
+   The browser auto-creates `::view-transition-old(<name>)` and
+   `::view-transition-new(<name>)` pseudo-elements for any pair of
+   elements that share a `view-transition-name`. Default browser
+   timing is 250ms with a generic ease curve, which feels rushed for
+   shared-element morphs across page navigation. Override to 320ms
+   ease-out to match the rest of the app's motion language.
+
+   Default pseudo-element pair (root) — the cross-fade between the
+   old + new pages. Keep this short so the surrounding content
+   doesn't feel laggy.
+
+   Named pairs — slightly longer because they're the visually-
+   important morph the user is tracking with their eye.
+
+   `prefers-reduced-motion` short-circuits to a 1ms duration so the
+   navigation effectively becomes instant.
+   ───────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 200ms;
+    animation-timing-function: ease-out;
+  }
+
+  /* Named hero morphs — bump to 320ms so the user can track the
+     element flying into place without it feeling like an instant cut. */
+  ::view-transition-old(net-worth-hero),
+  ::view-transition-new(net-worth-hero),
+  ::view-transition-old(spending-hero),
+  ::view-transition-new(spending-hero),
+  ::view-transition-old(zakat-hero),
+  ::view-transition-new(zakat-hero),
+  ::view-transition-old(bills-hero),
+  ::view-transition-new(bills-hero),
+  ::view-transition-old(budget-hero),
+  ::view-transition-new(budget-hero),
+  ::view-transition-old(transactions-hero),
+  ::view-transition-new(transactions-hero) {
+    animation-duration: 320ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 1ms !important;
+  }
+}

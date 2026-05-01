@@ -691,8 +691,13 @@ export default function DashboardPage() {
         <KpiCard
           label="Net Worth"
           value={hideNetWorth ? '••••••' : (loading ? '…' : fmt(netWorthValue))}
+          // R41 (2026-05-01): card is now a hero link. Clicking morphs
+          // the KPI into the /net-worth detail-page hero via the View
+          // Transitions API. Older browsers fall through to plain nav.
+          href="/dashboard/net-worth"
+          heroName="net-worth-hero"
           trailingLabel={
-            <button onClick={toggleHideNetWorth} className="text-[10px] text-muted-foreground hover:text-foreground">
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleHideNetWorth(); }} className="text-[10px] text-muted-foreground hover:text-foreground">
               {hideNetWorth ? 'Show' : 'Hide'}
             </button>
           }
@@ -735,12 +740,15 @@ export default function DashboardPage() {
           label="Zakat Due"
           tone={totals?.zakatFullyPaid ? 'positive' : 'warning'}
           value={hideZakat ? '••••••' : (loading ? '…' : fmt((totals?.zakatDue as number) ?? 0))}
+          // R41 (2026-05-01): hero link to /zakat detail page.
+          href="/dashboard/zakat"
+          heroName="zakat-hero"
           trailingLabel={
             <div className="flex items-center gap-1">
               {Boolean(totals?.zakatFullyPaid) && (
                 <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 text-[10px] font-bold uppercase">Paid</Badge>
               )}
-              <button onClick={toggleHideZakat} className="text-[10px] text-muted-foreground hover:text-foreground">
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleHideZakat(); }} className="text-[10px] text-muted-foreground hover:text-foreground">
                 {hideZakat ? 'Show' : 'Hide'}
               </button>
             </div>
@@ -763,6 +771,8 @@ export default function DashboardPage() {
             value={`${dayMove >= 0 ? '+' : ''}${fmt(dayMove)}`}
             footer={`${dayMovePct >= 0 ? '+' : ''}${dayMovePct.toFixed(2)}% · ${fmt(portfolioSummary?.totalValue || 0)}`}
             href="/dashboard/investments"
+            // R41 (2026-05-01): morph into investments-detail hero.
+            heroName="investments-hero"
           />
         )}
         </>
