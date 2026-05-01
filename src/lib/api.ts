@@ -1279,6 +1279,19 @@ export const api = {
       `/admin/users/${userId}/zakat-payments?limit=${limit}`,
       {}, API_TIMEOUT, true,
     ),
+
+  /** R39 (2026-05-01): admin diagnostic — view a user's email-retry-queue
+   *  state. Returns last 20 entries plus totalAbandoned/totalPending counts.
+   *  Used for support cases like "I'm not getting password reset emails" —
+   *  surfaces stuck queue entries that the dispatcher gave up on. */
+  adminGetUserEmailQueue: (userId: number) =>
+    apiFetch(`/admin/users/${userId}/email-queue`, {}, API_TIMEOUT, true),
+
+  /** R39 (2026-05-01): admin "unstick" — flip every abandoned email
+   *  for the user back to pending so the scheduler retries within ~2min.
+   *  Returns count of unstuck entries. */
+  adminUnstickUserEmailQueue: (userId: number) =>
+    apiFetch(`/admin/users/${userId}/email-queue/unstick`, { method: 'POST' }, API_TIMEOUT, true),
   adminGetUserHawlReport: (userId: number) =>
     apiFetch(`/admin/users/${userId}/hawl-report`, {}, API_TIMEOUT, true),
   adminGetDeletedUsers: (page = 0, size = 50) =>
