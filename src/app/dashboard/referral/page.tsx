@@ -5,6 +5,7 @@ import { logError } from '../../../lib/logError';
 import { trackReferralShare } from '../../../lib/analytics';
 import { REFEREE_FIRST_MONTH_PRICE, REFEREE_REGULAR_PRICE } from '../../../lib/referralCopy';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { SkeletonPage } from '../SkeletonCard';
 
 // Fire both the GA4 share event and the backend REFERRAL_SHARED lifecycle
 // event so the admin viral-loop funnel reflects this surface.
@@ -78,11 +79,8 @@ export default function ReferralPage() {
     }).then(() => fireShare('native', 'referral_page')).catch(() => {});
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent" />
-    </div>
-  );
+  // R38 (2026-04-30): SkeletonPage shimmer instead of bare spinner.
+  if (loading) return <SkeletonPage />;
 
   if (error) return (
     <div className="text-center py-20">

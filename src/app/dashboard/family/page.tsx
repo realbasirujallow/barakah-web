@@ -8,6 +8,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { SkeletonPage } from '../SkeletonCard';
 
 /**
  * Family-plan household management page.
@@ -159,9 +160,8 @@ export default function FamilyPage() {
     }
   };
 
-  if (loading) {
-    return <div className="flex items-center justify-center py-24 text-gray-500">Loading your family…</div>;
-  }
+  // R38 (2026-04-30): SkeletonPage shimmer instead of bare text loader.
+  if (loading) return <SkeletonPage />;
 
   // ── No family: prompt to upgrade ────────────────────────────────────────
   if (!hasFamily) {

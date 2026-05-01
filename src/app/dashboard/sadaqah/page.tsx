@@ -7,6 +7,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { SkeletonPage } from '../SkeletonCard';
 
 interface SadaqahItem { id: number; amount: number; recipientName: string; category: string; date: number; description: string; recurring: boolean; anonymous: boolean; }
 interface Stats { totalDonated: number; donationCount: number; thisMonthTotal: number; topCategory: string; }
@@ -136,7 +137,8 @@ function SadaqahContent() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+  // R38 (2026-04-30): SkeletonPage shimmer instead of bare spinner.
+  if (loading) return <SkeletonPage />;
 
   const effectiveAmount = donateAmount ?? (donateCustom ? parseFloat(donateCustom) : 0);
 
@@ -341,7 +343,7 @@ function SadaqahContent() {
 
 export default function SadaqahPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>}>
+    <Suspense fallback={<SkeletonPage />}>
       <SadaqahContent />
     </Suspense>
   );

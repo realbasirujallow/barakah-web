@@ -10,6 +10,8 @@ import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { SkeletonPage } from '../SkeletonCard';
+import EmptyState from '../../../components/EmptyState';
 
 interface Asset {
   id: number;
@@ -336,13 +338,10 @@ export default function AssetsPage() {
   const mapsLink = (address: string) =>
     `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
-  if (loading) return (
-    <div className="flex justify-center py-20">
-      <div role="status" aria-label="Loading assets..." className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full">
-        <span className="sr-only">Loading...</span>
-      </div>
-    </div>
-  );
+  // R38 (2026-04-30): swap the bare animate-spin for the shared
+  // SkeletonPage shimmer so loading feels Monarch-tier instead of
+  // "still wiring up the skeleton state."
+  if (loading) return <SkeletonPage />;
 
   return (
     <div>
@@ -508,10 +507,31 @@ export default function AssetsPage() {
       )}
 
       {assets.length === 0 && !loadError ? (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-4xl mb-3">💰</p>
-          <p>No assets yet. Add your first asset.</p>
-        </div>
+        // R38 (2026-04-30): polished EmptyState matching the rest of
+        // the dashboard pattern — soft halo + title + description +
+        // primary CTA + sample preview row.
+        <EmptyState
+          icon="💰"
+          title="No assets yet"
+          description="Track your wealth (savings, investments, real estate, gold, crypto) in one place. Barakah uses live prices for stocks and gold so your zakat calc stays accurate."
+          actions={[
+            { label: '+ Add your first asset', onClick: openAdd, primary: true },
+          ]}
+          preview={
+            <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm">
+              <div className="flex justify-between items-center mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🪙</span>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">Gold (24K)</p>
+                    <p className="text-[10px] text-gray-500">2.5 oz · live price</p>
+                  </div>
+                </div>
+                <p className="text-xs text-primary font-bold">$5,200</p>
+              </div>
+            </div>
+          }
+        />
       ) : (
         <div className="space-y-4">
           {assets.map(a => (
