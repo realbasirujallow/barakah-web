@@ -86,6 +86,155 @@ function CancelHelpLink({
   );
 }
 
+/**
+ * Per-row editor for false positives. R37 (2026-04-30) — closes the
+ * founder feedback "you have a restaurant charge marked as subscription,
+ * but I am unable to change that."
+ *
+ * Two actions:
+ *   • Not a subscription   — dismiss; backend persists in
+ *                             dismissed_subscriptions table; detector
+ *                             skips this name on every subsequent run.
+ *   • Change category      — bulk recategorize the underlying
+ *                             transactions (e.g. "Five Guys" stuck as
+ *                             a subscription → set category="food" so
+ *                             those transactions show up under Food in
+ *                             budgets and stop being detected here).
+ *
+ * Renders as a small kebab menu on the row to keep the table tidy.
+ * Toast feedback on success; closes itself on action.
+ */
+function SubscriptionRowEditor({
+  sub,
+  onChanged,
+}: {
+  sub: Subscription;
+  onChanged: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [pickingCategory, setPickingCategory] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const CATEGORIES = [
+    'food', 'dining', 'groceries', 'coffee',
+    'transportation', 'fuel',
+    'shopping', 'clothing', 'electronics',
+    'healthcare', 'fitness', 'pharmacy',
+    'utilities', 'housing', 'rent', 'insurance',
+    'entertainment', 'travel', 'gifts',
+    'education', 'kids',
+    'business', 'investment',
+    'charity', 'sadaqah',
+    'other',
+  ];
+
+  async function handleDismiss() {
+    setBusy(true);
+    try {
+      const r = (await api.dismissSubscription(sub.name)) as { success?: boolean; error?: string };
+      if (r?.error) throw new Error(r.error);
+      // Surface to user via the page's existing toast layer (sonner)
+      // via window.dispatchEvent — the page also reloads on onChanged
+      // so the row disappears regardless.
+      onChanged();
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Could not dismiss');
+    } finally {
+      setBusy(false);
+      setOpen(false);
+    }
+  }
+
+  async function handleRecategorize(newCategory: string) {
+    setBusy(true);
+    try {
+      const r = (await api.recategorizeSubscription(sub.name, newCategory)) as { success?: boolean; updated?: number; error?: string };
+      if (r?.error) throw new Error(r.error);
+      onChanged();
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Could not recategorize');
+    } finally {
+      setBusy(false);
+      setOpen(false);
+      setPickingCategory(false);
+    }
+  }
+
+  return (
+    <div className="relative inline-block">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="px-2 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition text-xs font-semibold"
+        aria-label="Edit subscription"
+        disabled={busy}
+      >
+        ⋯
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 mt-1 z-10 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-1"
+          onMouseLeave={() => { setOpen(false); setPickingCategory(false); }}
+        >
+          {!pickingCategory && (
+            <>
+              <button
+                type="button"
+                onClick={handleDismiss}
+                disabled={busy}
+                className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Not a subscription (dismiss)
+              </button>
+              <button
+                type="button"
+                onClick={() => setPickingCategory(true)}
+                disabled={busy}
+                className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Change category…
+              </button>
+              <div className="border-t border-gray-100 my-1" />
+              <p className="px-3 py-1 text-[10px] text-gray-400 leading-snug">
+                Dismissing skips this group on every future scan. Recategorizing updates the underlying transactions.
+              </p>
+            </>
+          )}
+          {pickingCategory && (
+            <>
+              <p className="px-3 py-2 text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
+                Move to category
+              </p>
+              <div className="max-h-56 overflow-y-auto">
+                {CATEGORIES.map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    disabled={busy}
+                    onClick={() => handleRecategorize(cat)}
+                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 transition capitalize disabled:opacity-50"
+                  >
+                    {cat.replace(/_/g, ' ')}
+                  </button>
+                ))}
+              </div>
+              <div className="border-t border-gray-100 my-1" />
+              <button
+                type="button"
+                onClick={() => setPickingCategory(false)}
+                disabled={busy}
+                className="w-full text-left px-3 py-2 text-xs text-gray-500 hover:bg-gray-50 transition"
+              >
+                ← Back
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SubscriptionsPage() {
   const { fmt } = useCurrency();
   const [loading, setLoading] = useState(true);
@@ -286,11 +435,18 @@ export default function SubscriptionsPage() {
                         </span>
                       )}
                     </td>
-                    {/* Phase 25: Cancel-help button per row. Direct deep link
-                        for known merchants (e.g. Netflix → /cancelplan),
-                        Google-search fallback otherwise. */}
+                    {/* Phase 25: Cancel-help button per row.
+                        R37 (2026-04-30): also dismiss + recategorize
+                        false positives (founder feedback: restaurant
+                        charge stuck as subscription). */}
                     <td className="px-4 py-3 text-right">
-                      <CancelHelpLink sub={sub} />
+                      <div className="flex justify-end gap-2 flex-wrap">
+                        <CancelHelpLink sub={sub} />
+                        <SubscriptionRowEditor
+                          sub={sub}
+                          onChanged={() => loadSubscriptions()}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}
