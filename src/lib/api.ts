@@ -1065,6 +1065,16 @@ export const api = {
   getMonthlyDetail: (month: string) =>
     apiFetch(`/api/transactions/monthly-detail?month=${encodeURIComponent(month)}`),
 
+  // ─── Cash Flow (PR 1 backend, PR 3 client wiring) ──────────────────
+  // Backed by /api/cashflow/* — see CashflowController.java. Two
+  // endpoints: months (rolling N-month window, four pillars per month)
+  // and breakdown (per-month income / expense / sadaqah-zakat by
+  // category or merchant).
+  getCashflowMonths: (range = 13) =>
+    apiFetch(`/api/cashflow/months?range=${range}`),
+  getCashflowBreakdown: (month: string, dimension: 'category' | 'merchant' = 'category') =>
+    apiFetch(`/api/cashflow/breakdown?month=${encodeURIComponent(month)}&dimension=${dimension}`),
+
   // Multi-currency
   getCurrencyRates: () => apiFetch('/api/currency/rates'),
   convertCurrency: (from: string, to: string, amount: number) => {
