@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from 'react';
+
 /**
  * Minimal i18n foundation for Barakah web.
  *
@@ -249,6 +251,24 @@ function readStoredLocale(): string {
 }
 
 let currentLocale = readStoredLocale();
+const listeners = new Set<() => void>();
+
+function emitLocaleChange() {
+  for (const listener of listeners) listener();
+}
+
+function subscribeLocale(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function localeSnapshot() {
+  return currentLocale;
+}
+
+function localeServerSnapshot() {
+  return 'en';
+}
 
 /** Set the active locale. Persists to localStorage and updates the
  *  <html dir> attribute so RTL scripts align correctly. */
@@ -267,6 +287,7 @@ export function setLocale(locale: string) {
       /* DOM not ready — pre-paint script has us covered */
     }
   }
+  emitLocaleChange();
 }
 
 /** Get the current locale. */
@@ -291,3 +312,14 @@ export const SUPPORTED_LOCALES = [
   { code: 'ur', label: 'اردو' },
   { code: 'fr', label: 'Français' },
 ] as const;
+
+export function useI18n() {
+  const locale = useSyncExternalStore(subscribeLocale, localeSnapshot, localeServerSnapshot);
+  return {
+    locale,
+    t: (key: string) => dictionaries[locale]?.[key] ?? dictionaries.en[key] ?? key,
+    setLocale,
+    isRtl: isRtl(locale),
+    locales: SUPPORTED_LOCALES,
+  };
+}
