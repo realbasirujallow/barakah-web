@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import LanguageSwitcher from '../../components/LanguageSwitcher';
 import { useI18n } from '../../lib/i18n';
 import { localizeCompetitorFeature } from '../../lib/publicContent';
 
@@ -48,28 +47,13 @@ export default function ComparePageClient({
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-          <Link href="/" className="text-lg font-bold text-[#1B5E20]">🌙 Barakah</Link>
-          <div className="flex items-center gap-3">
-            <LanguageSwitcher compact className="hidden sm:flex" />
-            <Link href="/signup" className="bg-[#1B5E20] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
-              {t('compareStartFreeNoCard')}
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* 2026-05-01: removed the page-local header (was a custom
+          🌙 Barakah wordmark + LanguageSwitcher + signup CTA bar) and
+          breadcrumb (Home / Compare Apps). MarketingNav now mounts
+          globally from root layout — same chrome as /, /pricing, etc.
+          The page <h1> below provides "you are here". */}
 
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <nav className="mb-6 flex flex-col gap-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-1.5">
-            <Link href="/" className="text-[#1B5E20] hover:underline">{t('compareBreadcrumbHome')}</Link>
-            <span>/</span>
-            <span>{t('compareBreadcrumbApps')}</span>
-          </div>
-          <LanguageSwitcher compact className="sm:hidden" />
-        </nav>
-
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-full px-3 py-1 text-xs font-semibold text-[#1B5E20] mb-4">
             {t('compareUpdatedLabel')}

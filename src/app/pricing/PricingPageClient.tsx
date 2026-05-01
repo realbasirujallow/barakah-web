@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { MarketingNav } from '../../components/MarketingNav';
 import { COMPETITOR_COMPARISON } from '../../lib/pricing';
 import { useI18n } from '../../lib/i18n';
+import { localizeCompetitorFeature } from '../../lib/publicContent';
 import PricingToggle from './PricingToggle';
 
 const faqTranslationKeys = [
@@ -15,20 +15,13 @@ const faqTranslationKeys = [
 ] as const;
 
 export default function PricingPageClient() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   return (
     <article className="min-h-screen bg-gray-50">
-      {/*
-        2026-05-01: full MarketingNav (logo + nav links + language
-        switcher + Sign in + Start free) replaces the prior thin
-        breadcrumb row. Founder feedback: "i dont have a way to go
-        back to home page, that should be available by default."
-        The 🌙 Barakah wordmark on the left is now the home link;
-        LanguageSwitcher moved into MarketingNav so it's globally
-        consistent across every public page.
-      */}
-      <MarketingNav />
+      {/* MarketingNav is mounted globally via root-layout
+          MaybeMarketingNav, so /pricing inherits the same chrome as
+          every other public page automatically. */}
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <header className="text-center mb-16">
@@ -84,7 +77,7 @@ export default function PricingPageClient() {
 
                   return (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                      <td className="py-3 px-6 text-gray-700 font-medium">{row.feature}</td>
+                      <td className="py-3 px-6 text-gray-700 font-medium">{localizeCompetitorFeature(row.feature, locale)}</td>
                       {cell(row.barakah, true)}
                       {cell(row.monarch)}
                       {cell(row.ynab)}
