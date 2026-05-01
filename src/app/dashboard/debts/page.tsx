@@ -9,6 +9,7 @@ import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { SkeletonPage } from '../SkeletonCard';
 
 interface DebtItem {
   id: number;
@@ -315,7 +316,8 @@ export default function DebtsPage() {
   const projAvalanche  = useMemo(() => simulatePayoff(debts, extra, 'avalanche'), [debts, extra]);
   const projSnowball   = useMemo(() => simulatePayoff(debts, extra, 'snowball'), [debts, extra]);
 
-  if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+  // R38 (2026-04-30): SkeletonPage instead of bare animate-spin.
+  if (loading) return <SkeletonPage />;
 
   const totalDebt  = debts.reduce((s, d) => s + d.remainingAmount, 0);
   const paidOffDebts = debts.filter(d => d.remainingAmount === 0);
@@ -499,7 +501,17 @@ export default function DebtsPage() {
           ) : paidOffDebts.length > 0 ? (
             <div className="text-center py-8 text-gray-400"><p className="text-3xl mb-2">🎉</p><p className="text-lg font-semibold text-green-700">No active debts!</p><p className="text-sm mt-1">See paid-off debts below</p></div>
           ) : (
-            <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-3">🎉</p><p>No debts — Alhamdulillah!</p></div>
+            // R38 (2026-04-30): replace plain text "No debts" with the
+            // shared EmptyState. Even though zero-debt is a celebratory
+            // state, an explicit description framing what tracking
+            // *does* gives the user a reason to come back if they ever
+            // take on a debt (mortgage, financed appliance, etc).
+            <EmptyState
+              icon="🎉"
+              title="No debts — Alhamdulillah!"
+              description="Track car loans, student loans, mortgages, and credit cards here. Barakah flags riba-bearing debts and helps you build a payoff plan that prioritises the haram-flagged ones."
+              variant="bare"
+            />
           )}
 
           {paidOffDebts.length > 0 && (
