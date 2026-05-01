@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import HeroLink from '../HeroLink';
 import {
   Sheet,
   SheetContent,
@@ -206,13 +207,18 @@ export function SpendingDrillDown({
             >
               View all transactions →
             </Link>
-            <Link
+            {/* R43 (2026-05-01): HeroLink (no heroName — the dashboard's
+                Spending card already owns 'spending-hero') closes the
+                sheet via onBeforeNavigate, then wraps router.push in
+                startViewTransition so the dashboard's spending card
+                cross-fades into /summary's KPI grid. */}
+            <HeroLink
               href="/dashboard/summary"
               className="text-sm text-muted-foreground hover:text-foreground hover:underline"
-              onClick={() => onOpenChange(false)}
+              onBeforeNavigate={() => onOpenChange(false)}
             >
               Open full monthly summary
-            </Link>
+            </HeroLink>
           </div>
     </div>
   );

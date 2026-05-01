@@ -2,6 +2,7 @@
 import { useAuth, hasAccess, isIntentionalLogout } from '../../context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import HeroLink from '../../components/HeroLink';
 import { useEffect, ReactNode, useState } from 'react';
 import { ToastProvider } from '../../lib/toast';
 import { useDarkMode, toggleDarkMode as toggleDarkModeShared } from '../../lib/useDarkMode';
@@ -308,11 +309,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // dark mode via the OKLCH variables in globals.css.
   const renderNavLink = (item: typeof navItems[0], locked: boolean) => {
     const Icon = item.icon;
+    // R43 (2026-05-01): HeroLink (no heroName) wraps router.push in
+    // document.startViewTransition so cross-fading between any two
+    // dashboard subpages feels smooth instead of snapping. We pass
+    // the existing setSidebarOpen(false) side-effect through
+    // onBeforeNavigate so mobile drawer-close still happens. Browsers
+    // without View Transitions API support fall through to plain
+    // navigation, so this is purely additive.
     return (
-      <Link
+      <HeroLink
         key={item.href}
         href={item.href}
-        onClick={() => setSidebarOpen(false)}
+        onBeforeNavigate={() => setSidebarOpen(false)}
         aria-label={item.label}
         aria-current={pathname === item.href ? 'page' : undefined}
         className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
@@ -330,7 +338,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             Plus
           </span>
         )}
-      </Link>
+      </HeroLink>
     );
   };
 
