@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import EmptyState from '../../../components/EmptyState';
 
 interface Group {
   id: number;
@@ -498,7 +499,15 @@ export default function SharedPage() {
                     </button>
                   </div>
                   {transactions.length === 0 ? (
-                    <div className="text-center py-10 text-gray-400 text-sm">No transactions yet.</div>
+                    <div className="px-5 py-2">
+                      <EmptyState
+                        variant="bare"
+                        icon="🧾"
+                        title="No shared transactions yet"
+                        description="Add a household expense (groceries, family iftar, kids' school fees) and any member can see it. Splits, paid-by, and category all show on the receipt."
+                        actions={[{ label: '+ Add Transaction', onClick: () => { setShowAddTx(true); setTxForm(emptyTxForm); }, primary: true }]}
+                      />
+                    </div>
                   ) : (
                     <div className="divide-y">
                       {transactions.map(tx => (
@@ -539,7 +548,15 @@ export default function SharedPage() {
                     </button>
                   </div>
                   {budgets.length === 0 ? (
-                    <div className="text-center py-10 text-gray-400 text-sm">No budgets yet.</div>
+                    <div className="px-5 py-2">
+                      <EmptyState
+                        variant="bare"
+                        icon="🎯"
+                        title="No household budgets yet"
+                        description="Set a monthly cap on a category (groceries, dining, kids) and Barakah will warn the whole household at 80% and 100%. No transactions are blocked."
+                        actions={[{ label: '+ Add Budget', onClick: () => { setShowAddBudget(true); setBudgetForm({ category: '', monthlyLimit: '' }); }, primary: true }]}
+                      />
+                    </div>
                   ) : (
                     <div className="divide-y">
                       {budgets.map(budget => (
@@ -577,7 +594,15 @@ export default function SharedPage() {
                     </button>
                   </div>
                   {goals.length === 0 ? (
-                    <div className="text-center py-10 text-gray-400 text-sm">No goals yet.</div>
+                    <div className="px-5 py-2">
+                      <EmptyState
+                        variant="bare"
+                        icon="🎒"
+                        title="No household goals yet"
+                        description="Set a target the whole family can chip in on — Hajj fund, kids' tuition, qurbani, emergency reserve. Each contribution updates the bar for everyone."
+                        actions={[{ label: '+ Add Goal', onClick: () => { setShowAddGoal(true); setGoalForm({ name: '', targetAmount: '', targetDate: '', description: '' }); }, primary: true }]}
+                      />
+                    </div>
                   ) : (
                     <div className="space-y-3 p-5">
                       {goals.map(goal => {

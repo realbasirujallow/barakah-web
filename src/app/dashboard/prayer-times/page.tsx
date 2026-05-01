@@ -48,16 +48,57 @@ function parseTime(timeStr: string): string {
 }
 
 function getCurrentMinutes(timeZone?: string | null): number {
+  // Round 36 (2026-04-30): explicitly set hourCycle: 'h23' to avoid the
+  // Chrome / older-Node quirk where `hour: '2-digit', hour12: false`
+  // returns "24" for midnight instead of "00", which silently broke the
+  // "next prayer" countdown between 00:00–00:59 in the prayer location's
+  // timezone. h23 is the canonical "00–23" cycle name and works
+  // consistently across V8 versions.
   const formatter = new Intl.DateTimeFormat('en-US', {
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false,
+    hourCycle: 'h23',
     timeZone: timeZone || undefined,
   });
   const parts = formatter.formatToParts(new Date());
-  const hour = Number(parts.find(part => part.type === 'hour')?.value ?? '0');
+  const rawHour = Number(parts.find(part => part.type === 'hour')?.value ?? '0');
+  const hour = rawHour === 24 ? 0 : rawHour; // belt-and-braces for ancient browsers
   const minute = Number(parts.find(part => part.type === 'minute')?.value ?? '0');
   return hour * 60 + minute;
+}
+
+/**
+ * Default Aladhan calculation method ID for a given ISO 3166 country
+ * code. Picked from the Aladhan-supported list:
+ *   1 = University of Islamic Sciences, Karachi   → Pakistan / Bangladesh / India / Afghanistan
+ *   2 = Islamic Society of North America (ISNA)   → North America (default global fallback)
+ *   3 = Muslim World League (MWL)                  → Europe / Levant / much of Africa
+ *   4 = Umm Al-Qura, Makkah                        → Saudi Arabia / Yemen / Oman
+ *   5 = Egyptian General Authority of Survey       → Egypt / Sudan
+ *   8 = Gulf Region                                → Dubai / Qatar / Bahrain
+ *  12 = Union of Islamic Organisations of France   → France
+ *  15 = Moonsighting Committee Worldwide           → general fallback
+ *
+ * Returns ISNA (2) for unknown country codes — that's the historical
+ * Barakah default and matches the marketing surface (Muslim households
+ * in North America are the largest segment).
+ */
+function defaultMethodForCountry(countryCode: string): number {
+  const code = countryCode.trim().toUpperCase();
+  if (code === 'PK' || code === 'BD' || code === 'IN' || code === 'AF') return 1;
+  if (code === 'SA' || code === 'YE' || code === 'OM') return 4;
+  if (code === 'EG' || code === 'SD') return 5;
+  if (code === 'AE' || code === 'QA' || code === 'BH' || code === 'KW') return 8;
+  if (code === 'FR') return 12;
+  if (
+    code === 'GB' || code === 'IE' || code === 'DE' || code === 'NL' ||
+    code === 'BE' || code === 'ES' || code === 'IT' || code === 'TR' ||
+    code === 'JO' || code === 'LB' || code === 'SY' || code === 'PS' ||
+    code === 'MA' || code === 'DZ' || code === 'TN' || code === 'LY' ||
+    code === 'NG' || code === 'SN' || code === 'GM' || code === 'ML' ||
+    code === 'ID' || code === 'MY' || code === 'BN'
+  ) return 3; // Muslim World League
+  return 2; // ISNA fallback
 }
 
 function getNextPrayer(timings: PrayerTimings, timeZone?: string | null): string {
@@ -199,7 +240,19 @@ export default function PrayerTimesPage() {
 
   const handleSelectSuggestion = (s: CitySuggestion) => {
     setCity(s.city);
-    setCountry(s.countryCode || s.country);
+    const cc = s.countryCode || s.country;
+    setCountry(cc);
+    // Round 36 (2026-04-30): when the user picks a city, default the
+    // calculation method to the regionally-appropriate one (Karachi for
+    // PK/BD/IN, Umm Al-Qura for SA, MWL for Europe + most of Africa,
+    // etc). Users who want a different method can still override the
+    // dropdown — this just stops the silent ISNA-everywhere default.
+    setMethod(prev => {
+      // Only override if the method is still at the global default (ISNA = 2).
+      // If the user already picked a non-default method, respect their choice.
+      if (prev === 2) return defaultMethodForCountry(cc);
+      return prev;
+    });
     setSuggestions([]);
     setShowSuggestions(false);
   };
