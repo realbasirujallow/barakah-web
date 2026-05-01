@@ -33,6 +33,8 @@ function getCsrfToken(): string | null {
 // original google landing — re-capture only happens if a NEW utm_source
 // arrives (external re-entry). This matches what GA4 / Mixpanel do.
 const UTM_STORAGE_KEY = 'barakah_acquisition';
+const VISITOR_STORAGE_KEY = 'barakah_visitor_id';
+const SESSION_STORAGE_KEY = 'barakah_session_id';
 type AcquisitionPayload = {
   utmSource?: string;
   utmMedium?: string;
@@ -62,6 +64,58 @@ function writeAcquisition(payload: AcquisitionPayload) {
   }
 }
 
+function randomId(prefix: string) {
+  const cryptoApi = typeof window !== 'undefined' ? window.crypto : undefined;
+  if (cryptoApi && typeof cryptoApi.randomUUID === 'function') {
+    return `${prefix}_${cryptoApi.randomUUID().replace(/-/g, '')}`;
+  }
+  return `${prefix}_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+}
+
+function readOrCreateStorageId(storage: Storage, key: string, prefix: string) {
+  try {
+    const existing = storage.getItem(key);
+    if (existing) return existing;
+    const created = randomId(prefix);
+    storage.setItem(key, created);
+    return created;
+  } catch {
+    return randomId(prefix);
+  }
+}
+
+export function getTrafficIdentifiers() {
+  if (typeof window === 'undefined') return { visitorId: '', sessionId: '' };
+  return {
+    visitorId: readOrCreateStorageId(window.localStorage, VISITOR_STORAGE_KEY, 'v'),
+    sessionId: readOrCreateStorageId(window.sessionStorage, SESSION_STORAGE_KEY, 's'),
+  };
+}
+
+export function buildTrafficCapturePayload() {
+  if (typeof window === 'undefined') return null;
+  captureAcquisitionFromUrl();
+  const acquisition = readAcquisition();
+  const { visitorId, sessionId } = getTrafficIdentifiers();
+  return {
+    sessionId,
+    visitorId,
+    path: window.location.pathname,
+    url: window.location.href,
+    title: typeof document !== 'undefined' ? document.title : '',
+    referer: acquisition.referer ?? (typeof document !== 'undefined' ? document.referrer || '' : ''),
+    utmSource: acquisition.utmSource ?? '',
+    utmMedium: acquisition.utmMedium ?? '',
+    utmCampaign: acquisition.utmCampaign ?? '',
+    utmContent: acquisition.utmContent ?? '',
+    utmTerm: acquisition.utmTerm ?? '',
+    locale: typeof navigator !== 'undefined' ? navigator.language || '' : '',
+    timeZone: typeof Intl !== 'undefined'
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+      : '',
+  };
+}
+
 export function captureAcquisitionFromUrl() {
   if (typeof window === 'undefined') return;
   try {
@@ -88,6 +142,7 @@ export function captureAcquisitionFromUrl() {
 
 function acquisitionHeaders(): Record<string, string> {
   const a = readAcquisition();
+  const { visitorId, sessionId } = getTrafficIdentifiers();
   const h: Record<string, string> = {};
   if (a.utmSource) h['X-App-UTM-Source'] = a.utmSource;
   if (a.utmMedium) h['X-App-UTM-Medium'] = a.utmMedium;
@@ -95,6 +150,8 @@ function acquisitionHeaders(): Record<string, string> {
   if (a.utmContent) h['X-App-UTM-Content'] = a.utmContent;
   if (a.utmTerm) h['X-App-UTM-Term'] = a.utmTerm;
   if (a.landingPath) h['X-App-Landing-Path'] = a.landingPath;
+  if (sessionId) h['X-App-Session-Id'] = sessionId;
+  if (visitorId) h['X-App-Visitor-Id'] = visitorId;
   // Preserve the *original* external referrer captured on the first page load.
   // The browser's live Referer on /auth/signup is usually just /signup, which
   // makes organic / social signups collapse into "internal" or "direct".
@@ -1279,6 +1336,14 @@ export const api = {
     if (since) qs.set('since', String(since));
     if (until) qs.set('until', String(until));
     return apiFetch(`/admin/acquisition/cohort?${qs.toString()}`, {}, API_TIMEOUT, true);
+  },
+  getAdminTraffic: (days = 30, since?: number, until?: number, journeyLimit = 10) => {
+    const qs = new URLSearchParams();
+    qs.set('days', String(days));
+    qs.set('journeyLimit', String(journeyLimit));
+    if (since) qs.set('since', String(since));
+    if (until) qs.set('until', String(until));
+    return apiFetch(`/admin/traffic?${qs.toString()}`, {}, API_TIMEOUT, true);
   },
   /** Drop-off analyzer (2026-04-22): signups-but-no-upgrade cohort +
    *  last-event histogram + up to 30 full per-user event timelines. */

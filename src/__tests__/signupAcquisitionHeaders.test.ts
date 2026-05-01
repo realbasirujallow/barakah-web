@@ -39,5 +39,7 @@ describe('signup acquisition attribution headers', () => {
     expect(headers['X-App-UTM-Campaign']).toBe('launch');
     expect(headers['X-App-Landing-Path']).toBe('/signup');
     expect(headers['X-App-Referer']).toBe('https://www.google.com/search?q=barakah+app');
+    expect(headers['X-App-Session-Id']).toMatch(/^s_/);
+    expect(headers['X-App-Visitor-Id']).toMatch(/^v_/);
   });
 });

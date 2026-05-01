@@ -26,6 +26,8 @@ describe('auth proxy attribution forwarding', () => {
         'x-app-utm-source': 'ramadan-ig',
         'x-app-utm-medium': 'paid',
         'x-app-landing-path': '/signup',
+        'x-app-session-id': 's_session123',
+        'x-app-visitor-id': 'v_visitor123',
         'x-app-referer': 'https://www.google.com/search?q=barakah',
         referer: 'https://trybarakah.com/signup',
       },
@@ -43,6 +45,8 @@ describe('auth proxy attribution forwarding', () => {
     expect(headers.get('X-App-UTM-Source')).toBe('ramadan-ig');
     expect(headers.get('X-App-UTM-Medium')).toBe('paid');
     expect(headers.get('X-App-Landing-Path')).toBe('/signup');
+    expect(headers.get('X-App-Session-Id')).toBe('s_session123');
+    expect(headers.get('X-App-Visitor-Id')).toBe('v_visitor123');
     expect(headers.get('X-App-Referer')).toBe('https://www.google.com/search?q=barakah');
     expect(headers.get('Referer')).toBe('https://trybarakah.com/signup');
   });

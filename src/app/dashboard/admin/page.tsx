@@ -410,6 +410,12 @@ export default function AdminPage() {
               📈 Growth
             </Link>
             <Link
+              href="/dashboard/admin/traffic"
+              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
+            >
+              🚦 Traffic
+            </Link>
+            <Link
               href="/dashboard/admin/acquisition"
               className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
             >

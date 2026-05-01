@@ -104,6 +104,8 @@ async function handler(
     ['x-app-utm-content', 'X-App-UTM-Content'],
     ['x-app-utm-term', 'X-App-UTM-Term'],
     ['x-app-landing-path', 'X-App-Landing-Path'],
+    ['x-app-session-id', 'X-App-Session-Id'],
+    ['x-app-visitor-id', 'X-App-Visitor-Id'],
     ['x-app-referer', 'X-App-Referer'],
     ['referer', 'Referer'],
   ];
