@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import LanguageSwitcher from '../../components/LanguageSwitcher';
 import { useI18n } from '../../lib/i18n';
 
 type ArticleCard = {
@@ -37,29 +36,13 @@ export default function LearnPageClient({ articles }: LearnPageClientProps) {
 
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
-      <header className="bg-white shadow-sm sticky top-0 z-10 dark:bg-gray-800">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</Link>
-          <div className="flex items-center gap-3">
-            <LanguageSwitcher compact className="hidden sm:flex" />
-            <Link href="/login" className="text-sm text-[#1B5E20] font-medium hover:underline">{t('navSignIn')}</Link>
-            <Link href="/signup" className="bg-[#1B5E20] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
-              {t('navGetStarted')}
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <nav className="bg-white border-b border-gray-100 px-6 py-3 dark:bg-gray-800 dark:border-gray-700">
-        <div className="max-w-6xl mx-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <Link href="/" className="hover:text-[#1B5E20] transition">{t('learnBreadcrumbHome')}</Link>
-            <span className="text-gray-300">/</span>
-            <span className="text-[#1B5E20] font-medium">{t('learnBreadcrumbLearn')}</span>
-          </div>
-          <LanguageSwitcher compact className="sm:hidden" />
-        </div>
-      </nav>
+      {/* 2026-05-01: page-local <header> + breadcrumb <nav> removed.
+          Global MarketingNav (mounted via root-layout MaybeMarketingNav,
+          PR #77) provides the home-link, nav items, language switcher,
+          sign in, and Start free button. The <h1> in the hero below
+          provides "you are here" wayfinding. PR #77 stripped this
+          pattern from the 19 individual learn/* subpages but missed
+          the /learn index page — this PR closes that gap. */}
 
       <section className="bg-gradient-to-b from-[#1B5E20] to-[#2E7D32] text-white py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">

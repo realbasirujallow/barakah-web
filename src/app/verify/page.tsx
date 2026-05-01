@@ -35,13 +35,6 @@ export default function VerifyIndexPage() {
           </div>
         </div>
       </header>
-      <nav className="bg-white border-b border-gray-100 px-6 py-3">
-        <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
-          <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
-          <span className="text-gray-300">/</span>
-          <span className="text-gray-900">Verify</span>
-        </div>
-      </nav>
       <main className="flex-1">
         <div className="max-w-3xl mx-auto px-6 py-10">
           <h1 className="mb-3 text-4xl md:text-5xl font-extrabold text-[#1B5E20]">Verify a zakat snapshot</h1>
