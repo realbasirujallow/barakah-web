@@ -17,6 +17,9 @@ import { PeriodPicker, type Period } from '../../components/dashboard/PeriodPick
 import { GettingStartedChecklist, type GettingStartedItem } from '../../components/dashboard/GettingStartedChecklist';
 import { DailyRitual, buildRitualItems } from '../../components/dashboard/DailyRitual';
 import { HouseholdPromoBanner, type HouseholdBannerVariant } from '../../components/dashboard/HouseholdPromoBanner';
+import { WeeklyRecap } from '../../components/dashboard/WeeklyRecap';
+import { TopPriorities } from '../../components/dashboard/TopPriorities';
+import { AdviceQueue } from '../../components/dashboard/AdviceQueue';
 import { getLastVisit, labelForRoute, type LastVisit } from '../../lib/lastVisit';
 import { Coins, ArrowLeftRight, Upload, PieChart, type LucideIcon } from 'lucide-react';
 import { CategoryIcon } from '../../lib/categoryIcon';
@@ -450,18 +453,26 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* ── Weekly Insight Banner (like Monarch's Weekly Recap) ────────────── */}
-      {insights.length > 0 && (
-        <div className="mb-4 bg-green-50 border border-green-100 rounded-xl px-4 py-3 flex items-center gap-3">
-          <span className="text-lg">{insights[0].severity === 'good' ? '📈' : insights[0].severity === 'warning' ? '⚠️' : '💡'}</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm text-green-900 font-medium truncate">{insights[0].body}</p>
-            {insights.length > 1 && (
-              <p className="text-xs text-green-600 mt-0.5">{insights.length - 1} more insight{insights.length > 2 ? 's' : ''}</p>
-            )}
-          </div>
-          <Link href="/dashboard/analytics" className="text-xs text-primary font-semibold hover:underline flex-shrink-0">View all →</Link>
-        </div>
+      {/* ── Weekly Recap (R45 — Monarch-style upgrade) ──────────────────────
+          Replaces the previous one-line green "Weekly Insight Banner"
+          with a multi-stat card: greeting, last-week date range, net
+          worth Δ, spending Δ, and the top 3 insights as a list. All
+          data is already fetched by the dashboard's main load — no
+          new API calls. The card hides itself when there's nothing
+          worth showing (no insights AND no usable deltas). */}
+      {(insights.length > 0 || widgets?.netWorthMini || widgets?.spending) && (
+        <WeeklyRecap
+          greeting={greeting.text}
+          greetingEmoji={greeting.emoji}
+          userName={user?.name?.split(' ')[0] ?? null}
+          netWorthChangeAmount={widgets?.netWorthMini?.changeAmount ?? null}
+          netWorthChangePercent={widgets?.netWorthMini?.changePercent ?? null}
+          spendingThisMonth={widgets?.spending?.thisMonth ?? null}
+          spendingLastMonth={widgets?.spending?.lastMonth ?? null}
+          spendingChangePercent={widgets?.spending?.changePercent ?? null}
+          fmt={fmt}
+          insights={insights}
+        />
       )}
 
       {/* ── Referral Banner (dismissible, shows until first successful referral) ──
@@ -496,6 +507,31 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── Advice queue (R45 — Monarch-style "Prioritized by you") ──────────
+          Surfaces 4 contextual actions derived entirely from the data
+          the dashboard already loads. Hides itself when the user is
+          on top of things (zero cards). All cards link to the
+          dedicated surface for that action. */}
+      <AdviceQueue
+        reviewQueueCount={reviewCount}
+        overdueBillsCount={widgets?.upcomingBills?.overdueCount ?? 0}
+        upcomingBillsCount={widgets?.upcomingBills?.upcomingCount ?? 0}
+        hawlDueNowCount={hawlDue?.dueCount ?? 0}
+        hasLinkedAccount={Boolean(widgets?.recentTransactions?.transactions?.some(t => t.merchantName))}
+        budgetCount={widgets?.budgetOverview?.categories?.length ?? 0}
+        transactionCount={widgets?.recentTransactions?.totalCount ?? 0}
+        spendingChangePercent={widgets?.spending?.changePercent ?? null}
+        spendingLastMonth={widgets?.spending?.lastMonth ?? null}
+      />
+
+      {/* ── Top priorities (R45 — Monarch-style savings-goal recap) ──────────
+          Pulls /api/savings-goals/list directly (independent of the
+          dashboard's main load — it's a small, cacheable list and
+          adding it to Promise.allSettled would slow page-first-paint
+          for users who haven't created any goals). The component
+          self-hides on empty. */}
+      <TopPriorities fmt={fmt} />
 
       {/* ── Islamic Calendar + Zakat Reminders (compact row above grid) ──────
           R44 (2026-05-01): the Hijri date itself moved to the shared
