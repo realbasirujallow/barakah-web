@@ -145,9 +145,28 @@ export default function CashFlowPage() {
       />
 
       {loading && (
-        <div className="bg-card rounded-2xl p-12 border border-border text-center">
-          <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-sm text-muted-foreground">Loading your cash flow…</p>
+        // PR 5 (2026-05-01): shaped skeletons sized to the real layout.
+        // No layout shift when data lands — same heights and column
+        // structure as the populated state so the page doesn't jump.
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+          <div className="lg:col-span-2 bg-card rounded-2xl p-5 border border-border animate-pulse">
+            <div className="h-3 w-32 bg-muted rounded mb-3" />
+            <div className="h-[260px] bg-muted/40 rounded" />
+            <div className="h-3 w-48 bg-muted rounded mt-3 mx-auto" />
+          </div>
+          <div className="bg-card rounded-2xl p-5 border border-border animate-pulse">
+            <div className="h-3 w-24 bg-muted rounded mb-2" />
+            <div className="h-5 w-40 bg-muted rounded mb-4" />
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between py-3 border-b border-border last:border-b-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-muted" />
+                  <div className="h-3 w-24 bg-muted rounded" />
+                </div>
+                <div className="h-4 w-16 bg-muted rounded" />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
