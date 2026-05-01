@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import {
-  AlertTriangle, Clock, Receipt, Tags, Banknote, PieChart, ShieldCheck, Sparkles,
+  AlertTriangle, Clock, Receipt, Tags, Banknote, PieChart, Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 
