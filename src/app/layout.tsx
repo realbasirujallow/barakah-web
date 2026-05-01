@@ -153,7 +153,7 @@ export default async function RootLayout({
       '@type': 'ContactPoint',
       email: 'support@trybarakah.com',
       contactType: 'customer support',
-      availableLanguage: 'English',
+      availableLanguage: ['English', 'Arabic', 'Urdu', 'French'],
     },
   };
 

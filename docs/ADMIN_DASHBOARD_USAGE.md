@@ -3,6 +3,8 @@
 **Audience:** Basiru + anyone else granted admin access (currently 1 person via `AdminService.isAdmin`).
 **Surface:** `https://trybarakah.com/dashboard/admin` (requires admin-role JWT — non-admins get a 403 + redirect to `/dashboard`).
 **Last verified from a live walkthrough:** 2026-04-22 — 86 total users, 82 paying, MRR $839, ARR $10,073.
+**Code-state follow-up refreshed:** 2026-04-28 — this guide now separates historical walkthrough findings from items that have since been fixed or hardened in code but still deserve fresh live re-validation.
+**Session re-validation (non-admin runtime):** 2026-04-29 — the Apple-review account (`userId=25`, `isAdmin=false`) completed a live 21-page production Playwright walkthrough on `https://trybarakah.com` with successful reload persistence and clean logout. Admin scorecard/adoption counts remain blocked until a real admin account is used for the next walkthrough.
 
 ---
 
@@ -86,11 +88,11 @@ Shows cumulative counts per feature. Your current numbers (2026-04-22) and what 
 | Assets | 41 | ~half of paying users tracking assets — healthy |
 | Linked Bank Accounts | 16 | **20% Plaid adoption — activation bottleneck** |
 | Zakat Payments | 13 | Small but real zakat usage |
-| **Zakat Snapshots** | **0** | **🚨 Bug or UX issue — 13 payments but 0 saved calcs** |
-| **Wasiyyah** | **0** | **🚨 Islamic will feature has 0 adoption** |
+| **Zakat Snapshots** | **0** | **Observed in the 2026-04-22 walkthrough. Re-validate current counts; the product now has snapshot APIs and historical-paid flows, so treat this as a UX/adoption question unless live data still shows zero.** |
+| **Wasiyyah** | **0** | **Observed in the 2026-04-22 walkthrough. Re-measure current adoption before assuming discovery is broken — the feature is now surfaced in nav, dashboard, onboarding, and Ibadah.** |
 | **Budgets** | **8** | Low for 82 paying users — budgets should be core |
 
-🚨 = investigate this week. Zero adoption on Wasiyyah means either the feature is buried in nav OR your users don't know the app does it.
+🚨 = investigate this week. Treat these as live measurement problems first, not automatic proof that the implementation is broken.
 
 ### Recent Signups
 
@@ -116,7 +118,7 @@ Recent-signup cards pinned above the table for "quick troubleshooting" — you c
 - **Export CSV** — full user list export
 - **View →** on any row → user-detail modal
 
-⚠️ **Known issue (2026-04-22 walkthrough)**: several early users (IDs 9, 13, 16, 24, 25) show "Signed Up: Jan 21, 1970" — that's Unix epoch zero. Their `createdAt` field wasn't set properly during an earlier migration. This skews the "Signups over time" chart on the Overview tab because it stacks those users in the earliest month bucket. Fix: backfill `users.created_at` from the earliest `lifecycle_events.created_at` per user in a Flyway migration.
+⚠️ **Historical issue (fixed in code after the 2026-04-22 walkthrough)**: several early users (IDs 9, 13, 16, 24, 25) showed "Signed Up: Jan 21, 1970" because `created_at` was stuck near epoch zero. This originally skewed the "Signups over time" chart. The backfill now exists in `V75__backfill_user_created_at_from_lifecycle_events.sql`; if any epoch rows still appear in prod, treat it as a deployment/data-validation problem rather than a missing fix.
 
 ### User-detail modal
 
@@ -321,17 +323,17 @@ These data sources aren't pulled server-side (would need more plumbing) but are 
 
 ## 14. Known issues / follow-ups from the 2026-04-22 walkthrough
 
-These surfaced during the live walkthrough and are worth fixing separately:
+These surfaced during the 2026-04-22 live walkthrough. The list below has been refreshed against the current codebase so you can separate true remaining work from issues that were already fixed or hardened.
 
-1. **Short-lived session bug (still reproducing)** — session expired twice during a 15-minute walkthrough despite the grace-window fix that shipped. This is a different expiry path — likely related to fast navigation between admin pages. **Open a follow-up to trace a full session timeline + add stricter instrumentation on the `/auth/refresh` path.**
+1. **Session stability has fresh non-admin runtime evidence, but still needs one true admin pass** — background 401 paths have been hardened substantially since this note was written. `apiFetch` now defaults `suppressUnauthorized=true` for several non-critical surfaces (notifications, referral code, transaction usage, dashboard widgets, Fiqh config, and more), and `src/__tests__/backgroundPollsDoNotLogout.test.ts` covers the old "background poll logs the user out" bug class. On 2026-04-29 the Apple-review account completed a live 21-page production walkthrough with successful reload persistence and clean logout. **Next step:** re-run the same walkthrough with an actual admin account and only reopen this as unresolved if logout reproduces there too. If it does, capture the exact endpoint/path that still forces `/login?reason=expired`.**
 
-2. **Jan 21 1970 epoch timestamps** — users 9, 13, 16, 24, 25 have `createdAt = 0`. The `Signups over time` chart is skewed. **Fix: Flyway migration to backfill `users.created_at` from the earliest `lifecycle_events.created_at` per user.**
+2. **Epoch signup timestamps were fixed in code** — the Flyway backfill now lives in `V75__backfill_user_created_at_from_lifecycle_events.sql`, using the earliest lifecycle event as the source of truth. **Next step:** spot-check production data and confirm the dashboard query is now reading post-migration values correctly.**
 
-3. **`FIRST_BUDGET_CREATED` event not firing** — 24 of 24 users who `setup_completed` also show 0 on the funnel `created_first_budget` stage. Either the event isn't instrumented in the budget-creation flow OR the funnel stage label is wrong. **Audit `BudgetController.create` + `LifecycleService.trackEvent` calls.**
+3. **`FIRST_BUDGET_CREATED` is instrumented in the backend now** — `BudgetController` fires the lifecycle event in both the direct create path and the copy-month path, guarded so it only fires once per user. **Next step:** if the funnel still shows 0 for `created_first_budget`, audit the admin dashboard aggregation/stage mapping rather than the controller first.**
 
-4. **`ZakatSnapshot` adoption is zero** — 13 zakat payments but 0 saved snapshots. Likely a UX issue where the "save this calculation" button is buried. **Spike a quick fix: auto-save a snapshot at the moment zakat is calculated, no extra click.**
+4. **`ZakatSnapshot` adoption still deserves product validation** — snapshot endpoints and related flows exist, including historical-paid-zakat handling. The current question is not "is the capability present?" but "does a real user naturally create or save a snapshot when they reach the zakat result?" **Next step:** run a fresh UI walkthrough, watch the exact zakat result/snapshot flow, and decide whether to auto-save at calculate time or surface the save action more prominently.**
 
-5. **`Wasiyyah` adoption is zero** — Islamic will feature has 0 users. **Audit where Wasiyyah is surfaced in navigation; likely needs a prominent dashboard card for paying-Plus users who haven't created one.**
+5. **`Wasiyyah` adoption is still worth measuring, but "buried in nav" is no longer the right default explanation** — the feature is now surfaced in dashboard nav, the main dashboard card set, the Ibadah page card, onboarding suggestions, and gated plan messaging. **Next step:** inspect current first-view and first-create data, then decide whether the problem is still discovery or whether it is now a trust/copy/onboarding issue instead.**
 
 ---
 

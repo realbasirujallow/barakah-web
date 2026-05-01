@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
 /**
  * Phase 6.3 (Apr 27 2026) — typed media-query hook.
@@ -19,21 +19,26 @@ import { useEffect, useState } from 'react';
  *   "(min-width: 1024px)" — Tailwind lg
  */
 export function useMediaQuery(query: string, defaultValue = false): boolean {
-  const [matches, setMatches] = useState(defaultValue);
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === 'undefined' || !window.matchMedia) {
+        return () => {};
+      }
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mql = window.matchMedia(query);
-    setMatches(mql.matches);
-    const handler = (e: MediaQueryListEvent) => setMatches(e.matches);
-    // addEventListener is supported in all evergreen browsers; older
-    // Safari only supports addListener but Tailwind v4 already requires
-    // a modern target so we skip the polyfill.
-    mql.addEventListener('change', handler);
-    return () => mql.removeEventListener('change', handler);
-  }, [query]);
-
-  return matches;
+      const mql = window.matchMedia(query);
+      const handler = () => onStoreChange();
+      // addEventListener is supported in all evergreen browsers; older
+      // Safari only supports addListener but Tailwind v4 already requires
+      // a modern target so we skip the polyfill.
+      mql.addEventListener('change', handler);
+      return () => mql.removeEventListener('change', handler);
+    },
+    () =>
+      typeof window !== 'undefined' && window.matchMedia
+        ? window.matchMedia(query).matches
+        : defaultValue,
+    () => defaultValue,
+  );
 }
 
 /** Convenience: returns true on screens ≥ 768px. SSR returns false. */
