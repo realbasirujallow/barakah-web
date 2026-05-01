@@ -137,42 +137,9 @@ export default function ReferPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(FaqSchema) }}
       />
 
-      {/* ── Nav ── */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-[#1B5E20]">
-            🌙 Barakah
-          </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
-            <Link href="/#features" className="hover:text-[#1B5E20] transition">
-              Features
-            </Link>
-            <Link href="/#pricing" className="hover:text-[#1B5E20] transition">
-              Pricing
-            </Link>
-            <Link href="/learn" className="hover:text-[#1B5E20] transition">
-              Learn
-            </Link>
-            <Link href="/contact" className="hover:text-[#1B5E20] transition">
-              Contact
-            </Link>
-          </nav>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm text-[#1B5E20] font-medium hover:underline"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-[#1B5E20] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition"
-            >
-              Get Started Free
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* Page-local nav stripped 2026-05-01 — global MarketingNav now
+          provides home-link, nav items, sign-in, and Start free across
+          all public pages. */}
 
       {/* ── Hero ── */}
       <section className="py-20 px-6 text-center">

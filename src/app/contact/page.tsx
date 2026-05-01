@@ -69,17 +69,6 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] dark:bg-gray-900 flex flex-col">
       {/* Nav */}
-      <header className="bg-white dark:bg-gray-800 dark:border-b dark:border-gray-700 shadow-sm sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-[#1B5E20] dark:text-green-300">🌙 Barakah</Link>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-[#1B5E20] dark:text-green-300 font-medium hover:underline">Sign In</Link>
-            <Link href="/signup" className="bg-[#1B5E20] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
-              Get Started Free
-            </Link>
-          </div>
-        </div>
-      </header>
 
       {/* Hero */}
       <div className="bg-[#1B5E20] py-14 px-6 text-center">
