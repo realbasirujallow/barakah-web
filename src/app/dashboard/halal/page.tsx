@@ -179,7 +179,13 @@ export default function HalalPage() {
   if (user && !hasPaidAccess) {
     return (
       <div className="p-6">
-        <h1 className="text-2xl font-bold text-primary mb-4">Halal Stock Screener</h1>
+        {/* Phase 24f (2026-04-30): use the shared PageHeader so the
+            paywall surface visually matches every other dashboard
+            page (consistent typography + subtitle slot for context). */}
+        <PageHeader
+          title="Halal Stock Screener"
+          subtitle="AAOIFI Standard 21 screening for 30,000+ tickers"
+        />
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
           <p className="text-amber-800 font-semibold mb-2">Plus or Family plan required</p>
           <p className="text-amber-700 text-sm mb-4">Upgrade to screen stocks for Shariah compliance, view sector breakdowns, and more.</p>
