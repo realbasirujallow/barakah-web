@@ -390,7 +390,7 @@ const COMPETITOR_FEATURE_LABELS: Record<string, LocalizedString> = {
   'Household/family plan': { en: 'Household/family plan', ar: 'الخطة العائلية', ur: 'گھرانہ / فیملی پلان', fr: 'Formule famille/foyer' },
   'Prayer times': { en: 'Prayer times', ar: 'أوقات الصلاة', ur: 'نماز کے اوقات', fr: 'Heures de prière' },
   'Ramadan Mode': { en: 'Ramadan Mode', ar: 'وضع رمضان', ur: 'رمضان موڈ', fr: 'Mode Ramadan' },
-  'Urdu & Arabic support': { en: 'Urdu & Arabic support', ar: 'دعم العربية والأردية', ur: 'اردو اور عربی سپورٹ', fr: 'Prise en charge de l’arabe et de l’ourdou' },
+  'Arabic, Urdu & French support': { en: 'Arabic, Urdu & French support', ar: 'دعم العربية والأردية والفرنسية', ur: 'عربی، اردو اور فرانسیسی سپورٹ', fr: 'Prise en charge de l’arabe, de l’ourdou et du français' },
 };
 
 export function localizeCompetitorFeature(feature: string, locale: string): string {
