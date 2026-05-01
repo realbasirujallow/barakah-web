@@ -15,6 +15,7 @@ const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.Res
 const Legend = dynamic(() => import('recharts').then(mod => mod.Legend), { ssr: false });
 
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { CategoryIcon } from '../../../lib/categoryIcon';
 
 interface MonthlyPoint {
   month: string;    // "2025-12"
@@ -60,12 +61,9 @@ const PERIOD_OPTIONS = [
   { value: 'year',  label: 'This Year' },
 ];
 
-const CAT_ICONS: Record<string, string> = {
-  food: '🍽️', transportation: '🚗', shopping: '🛒', utilities: '💡',
-  housing: '🏠', healthcare: '🏥', education: '📚', entertainment: '🎬',
-  subscription: '📱', charity: '🤲', income: '💰', investment: '📈',
-  transfer: '💸', interest: '⚠️', other: '📋',
-};
+// Phase 24f (2026-04-30): the per-page CAT_ICONS emoji map is now
+// served by the centralized <CategoryIcon /> Lucide component in
+// lib/categoryIcon.tsx. Cross-platform consistent and brand-coloured.
 
 function fmtMonth(m: string) {
   const [y, mo] = m.split('-');
@@ -213,7 +211,7 @@ function MonthDetailSheet({
                     <li key={`${src.category}|${src.account}|${idx}`} className="flex justify-between items-start gap-3 p-3 rounded-lg bg-gradient-to-br from-green-50 to-white border border-green-100">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-base">{CAT_ICONS[src.category] ?? '💰'}</span>
+                          <CategoryIcon category={src.category} className="w-4 h-4" />
                           <span className="text-sm font-semibold text-gray-900 capitalize">{src.category.replace(/_/g, ' ')}</span>
                           <span className="text-xs text-gray-400">&middot; {src.count} txn{src.count === 1 ? '' : 's'}</span>
                         </div>
@@ -253,7 +251,7 @@ function MonthDetailSheet({
                     <li key={`${src.category}|${src.account}|${idx}`} className="flex justify-between items-start gap-3 p-3 rounded-lg bg-gradient-to-br from-red-50 to-white border border-red-100">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-base">{CAT_ICONS[src.category] ?? '📋'}</span>
+                          <CategoryIcon category={src.category} className="w-4 h-4" />
                           <span className="text-sm font-semibold text-gray-900 capitalize">{src.category.replace(/_/g, ' ')}</span>
                           <span className="text-xs text-gray-400">&middot; {src.count} txn{src.count === 1 ? '' : 's'}</span>
                         </div>
@@ -530,7 +528,7 @@ export default function SummaryPage() {
                 <div key={cat}>
                   <div className="flex justify-between items-center mb-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{CAT_ICONS[cat] ?? '📋'}</span>
+                      <CategoryIcon category={cat} className="w-5 h-5" />
                       <span className="text-sm font-medium text-gray-700 capitalize">{cat.replace(/_/g, ' ')}</span>
                     </div>
                     <div className="text-right">

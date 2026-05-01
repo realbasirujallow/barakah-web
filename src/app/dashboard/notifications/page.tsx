@@ -1,6 +1,16 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import {
+  Bell,
+  Clock,
+  ScrollText,
+  ChartBar,
+  Target,
+  Building2,
+  Info,
+  type LucideIcon,
+} from 'lucide-react';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { isSafeInternalPath } from '../../../lib/safePath';
@@ -16,15 +26,33 @@ interface Notification {
   createdAt: number;
 }
 
-const TYPE_ICONS: Record<string, string> = {
-  bill_due:           '🔔',
-  hawl_complete:      '⏰',
-  wasiyyah_reminder:  '📜',
-  budget_alert:       '📊',
-  savings_milestone:  '🎯',
-  zakat_due:          '🕌',
-  system:             'ℹ️',
-  general:            '🔔',
+// Phase 24f (2026-04-30): notification-type icons migrated emoji →
+// Lucide for cross-platform consistency. Ramadan / mosque / Islamic
+// notifications use Building2 (mosque-shaped), bill alerts use Bell,
+// budget alerts use ChartBar, etc. Each is rendered on a soft tinted
+// disc that matches the notification's semantic colour.
+const TYPE_ICONS: Record<string, LucideIcon> = {
+  bill_due:           Bell,
+  hawl_complete:      Clock,
+  wasiyyah_reminder:  ScrollText,
+  budget_alert:       ChartBar,
+  savings_milestone:  Target,
+  zakat_due:          Building2,
+  system:             Info,
+  general:            Bell,
+};
+
+/** Soft background tint per notification type — matches the icon colour
+ *  family without overwhelming the row. */
+const TYPE_TINTS: Record<string, string> = {
+  bill_due:           'bg-amber-100 text-amber-700',
+  hawl_complete:      'bg-emerald-100 text-emerald-700',
+  wasiyyah_reminder:  'bg-violet-100 text-violet-700',
+  budget_alert:       'bg-rose-100 text-rose-700',
+  savings_milestone:  'bg-teal-100 text-teal-700',
+  zakat_due:          'bg-primary/10 text-primary',
+  system:             'bg-slate-100 text-slate-700',
+  general:            'bg-blue-100 text-blue-700',
 };
 
 export default function NotificationsPage() {
@@ -155,7 +183,8 @@ export default function NotificationsPage() {
       ) : (
         <div className="space-y-2">
           {notifications.map(n => {
-            const icon = TYPE_ICONS[n.type] || '🔔';
+            const Icon = TYPE_ICONS[n.type] || Bell;
+            const tint = TYPE_TINTS[n.type] || 'bg-gray-100 text-gray-700';
             // Round 22: row is now a `<div>` containing the activation
             // element (Link or button) + a sibling delete button. Prior
             // code nested a <button> inside <a> / <button>, which is
@@ -164,7 +193,9 @@ export default function NotificationsPage() {
             const rowClass = `bg-white rounded-xl flex gap-4 hover:shadow-md transition group relative ${!n.read ? 'border-l-4 border-primary' : ''}`;
             const activationInner = (
               <>
-                <span className="text-2xl flex-shrink-0">{icon}</span>
+                <span className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${tint}`} aria-hidden="true">
+                  <Icon className="w-5 h-5" />
+                </span>
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>{n.title}</p>
                   {n.body && <p className="text-sm text-gray-500 mt-0.5">{n.body}</p>}
