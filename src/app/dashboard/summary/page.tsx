@@ -431,8 +431,14 @@ export default function SummaryPage() {
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      {/* KPI Cards.
+          R43 (2026-05-01): viewTransitionName matches the dashboard's
+          Spending card so the morph completes when arriving from the
+          SpendingDrillDown sheet's "Open full monthly summary" link. */}
+      <div
+        className="grid grid-cols-2 gap-3 mb-6"
+        style={{ viewTransitionName: 'spending-hero' }}
+      >
         <div className="bg-gradient-to-br from-[#1B5E20] to-green-500 rounded-xl p-5 text-white">
           <p className="text-green-200 text-xs uppercase tracking-wide">Total Income</p>
           <p className="text-2xl font-bold mt-1">{fmt(summary.totalIncome)}</p>

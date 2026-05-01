@@ -829,6 +829,13 @@ export default function DashboardPage() {
           onClick={() => setSpendingDrillOpen(true)}
           className="bg-card rounded-2xl p-5 border border-border overflow-hidden text-left w-full hover:shadow-md hover:border-primary/20 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label="Open spending breakdown for this month"
+          // R43 (2026-05-01): viewTransitionName makes this card the
+          // source of a hero morph into /dashboard/summary's KPI grid
+          // when the user clicks "Open full monthly summary" inside
+          // the drilldown sheet. The morph only fires when the
+          // SpendingDrillDown's HeroLink is clicked — opening the
+          // sheet itself is a sheet animation, not a navigation.
+          style={{ viewTransitionName: 'spending-hero' }}
         >
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="min-w-0">
