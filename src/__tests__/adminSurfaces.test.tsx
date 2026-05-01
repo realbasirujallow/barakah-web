@@ -145,8 +145,16 @@ describe('admin-specific surface behavior', () => {
       expect(adminGetChurnAnalysisMock).toHaveBeenCalledTimes(1);
     });
 
-    expect(screen.getByText('User #42')).toBeInTheDocument();
-    expect(screen.getByText(/identity redacted by privacy-default deletion flow/i)).toBeInTheDocument();
-    expect(screen.getByText(/deleted today/i)).toBeInTheDocument();
+    // R41 stability fix: the API mocks resolve, but the component's
+    // re-render after setState happens on the next tick — using
+    // synchronous `getByText` here was racing the render and producing
+    // intermittent flakes ("Unable to find element with text User #42")
+    // that we hit ~30% of CI runs across PR #58, #63, #65, etc.
+    // `findByText` retries until the assertion passes or its 1-second
+    // default timeout expires; that timeout is plenty for a synchronous
+    // setState→render that's already happening "any moment now".
+    expect(await screen.findByText('User #42')).toBeInTheDocument();
+    expect(await screen.findByText(/identity redacted by privacy-default deletion flow/i)).toBeInTheDocument();
+    expect(await screen.findByText(/deleted today/i)).toBeInTheDocument();
   });
 });
