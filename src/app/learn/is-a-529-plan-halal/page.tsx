@@ -64,15 +64,6 @@ export default function Is529PlanHalalPage() {
 
       <article className="min-h-screen bg-white dark:bg-gray-800">
 
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-10 dark:bg-gray-800 dark:border-gray-700">
-          <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="text-lg font-bold text-[#1B5E20]">🌙 Barakah</Link>
-            <Link href="/signup" className="bg-[#1B5E20] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
-              Plan Halal Savings →
-            </Link>
-          </div>
-        </header>
-
         <div className="max-w-3xl mx-auto px-6 py-10">
 
           <nav className="mb-6 text-sm text-gray-500 flex items-center gap-1.5 dark:text-gray-400">

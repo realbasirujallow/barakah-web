@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
 import { Providers } from "./providers";
+import { MaybeMarketingNav } from "../components/MaybeMarketingNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -280,7 +281,16 @@ export default async function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          {/* 2026-05-01: global MarketingNav. Renders on every public
+              marketing page automatically (denylist in the component
+              skips /dashboard, /signup, /login, OAuth callbacks, etc.)
+              so adding a new SEO page Just Works without remembering to
+              mount the nav. Also lets us strip the duplicate per-page
+              <nav> blocks that drifted out of sync. */}
+          <MaybeMarketingNav />
+          {children}
+        </Providers>
       </body>
     </html>
   );
