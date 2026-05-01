@@ -6,6 +6,7 @@ import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { Coins, Shield, ScrollText, Check, AlertCircle } from 'lucide-react';
 import { PRICING } from '../lib/pricing';
+import { MarketingNav } from '../components/MarketingNav';
 
 /**
  * Phase 20 (2026-04-30) — Homepage v2, founder-approved.
@@ -184,6 +185,9 @@ export default function HomeV2() {
 
   return (
     <main className="min-h-screen bg-[#FFF8E1]">
+      {/* ── 0. Marketing nav (2026-05-01) ──────────────────────────────── */}
+      <MarketingNav />
+
       {/* ── 1. Hero ────────────────────────────────────────────────────── */}
       <section className="px-6 py-20 md:py-24 text-center">
         <div className="max-w-3xl mx-auto">
