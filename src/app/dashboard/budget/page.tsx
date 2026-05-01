@@ -6,6 +6,7 @@ import { useToast } from '../../../lib/toast';
 import { SkeletonPage } from '../SkeletonCard';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { FormHelp } from '../../../components/dashboard/FormHelp';
+import EmptyState from '../../../components/EmptyState';
 
 interface BudgetItem { id: number; category: string; monthlyLimit: number; spent: number; month: number; year: number; color: string; }
 const CATEGORIES = [
@@ -271,14 +272,44 @@ export default function BudgetPage() {
           })}
         </div>
       ) : (
-        <div className="text-center py-20 bg-gradient-to-b from-white to-gray-50 rounded-2xl border border-gray-100">
-          <p className="text-6xl mb-4">📋</p>
-          <p className="text-gray-700 font-semibold text-lg mb-2">No budgets set up yet</p>
-          <p className="text-gray-500 text-sm mb-6">{viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear() ? 'No budgets set up yet. Create your first budget to start managing your spending.' : 'No budgets were set for this month. Use "Copy Last Month" or create a new one.'}</p>
-          <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl hover:bg-primary/90 font-medium text-sm">
-            + Create Your First Budget
-          </button>
-        </div>
+        // Phase 24e (2026-04-30): swap the inline empty state for the
+        // shared <EmptyState /> with a sample-preview row so users see
+        // what a populated budget looks like before they create one —
+        // matches Monarch / Linear's "show, don't tell" empty UX.
+        <EmptyState
+          icon="📋"
+          title={viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear() ? 'No budgets set up yet' : 'No budgets for this month'}
+          description={
+            viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear()
+              ? 'Set a monthly cap on a category and Barakah will warn you at 80% and 100%. No transactions are blocked — you stay in control.'
+              : 'You can copy last month\'s budgets in one click, or create a fresh one for this month.'
+          }
+          actions={
+            viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear()
+              ? [{ label: 'Create Your First Budget', onClick: openAdd, primary: true }]
+              : [
+                  { label: 'Create Budget', onClick: openAdd, primary: true },
+                  { label: 'Copy Last Month', onClick: handleCopyMonth },
+                ]
+          }
+          preview={
+            <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm">
+              <div className="flex justify-between items-center mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🍽️</span>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">Food</p>
+                    <p className="text-[10px] text-gray-500">{MONTHS[viewMonth - 1]} {viewYear}</p>
+                  </div>
+                </div>
+                <p className="text-xs"><span className="text-gray-700">$320</span> / $500</p>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div className="h-1.5 rounded-full bg-primary" style={{ width: '64%' }} />
+              </div>
+            </div>
+          }
+        />
       )}
 
       {/* ── Add / Edit modal ────────────────────────────────────────────────── */}
@@ -311,7 +342,26 @@ export default function BudgetPage() {
                     warns.
                   </FormHelp>
                 </label>
-                <input type="number" step="0.01" value={form.monthlyLimit} onChange={e => setForm({ ...form, monthlyLimit: e.target.value })}
+                {/*
+                  Round 36 (2026-04-30): switch from type="number" to
+                  type="text" + inputMode="decimal". type="number" with
+                  step="0.01" has well-known controlled-input bugs:
+                    • iOS Safari sometimes drops the second character
+                      because valueAsNumber isn't kept in sync with the
+                      string value during rapid typing.
+                    • Android Chrome strips trailing dots ("1." → "1")
+                      mid-typing when the user is heading toward "1.5",
+                      visually losing the intermediate keystroke.
+                    • Browsers that don't recognize the user's locale
+                      decimal separator silently reject keystrokes.
+                  type="text" + inputMode="decimal" gives the same
+                  numeric keyboard on mobile but lets us own the value
+                  state. The pattern attribute keeps mobile keyboard
+                  validation hints. Validation still runs on save.
+                */}
+                <input type="text" inputMode="decimal" pattern="[0-9]*\.?[0-9]*"
+                  value={form.monthlyLimit}
+                  onChange={e => setForm({ ...form, monthlyLimit: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="500.00" />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -323,7 +373,9 @@ export default function BudgetPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                  <input type="number" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" />
+                  <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4}
+                    value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900" />
                 </div>
               </div>
             </div>
