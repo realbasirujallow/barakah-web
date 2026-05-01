@@ -1,0 +1,105 @@
+/**
+ * Hero-style link — a Next.js `<Link>` that wraps navigation in the
+ * browser's CSS View Transitions API + sets a matching
+ * `view-transition-name` so a destination element with the same name
+ * morphs from this source.
+ *
+ * R41 (2026-05-01): replaces the bare-Link → instant-navigation
+ * pattern on dashboard cards that point to detail pages. The user
+ * sees the card visually fly into place as the detail page hero
+ * (when the browser supports it; older browsers just navigate
+ * instantly with no jank).
+ *
+ * Usage on the dashboard:
+ *
+ *   <HeroLink href="/dashboard/net-worth" heroName="net-worth-hero">
+ *     <KpiCard ... />
+ *   </HeroLink>
+ *
+ * On the destination page (`/dashboard/net-worth/page.tsx`):
+ *
+ *   <div style={{ viewTransitionName: 'net-worth-hero' }}>
+ *     <h1>Your net worth</h1>
+ *     ...
+ *   </div>
+ *
+ * The browser will animate matching `viewTransitionName` elements
+ * between the two DOM trees. Each name must be unique on a page —
+ * don't reuse the same `heroName` for two different elements.
+ *
+ * Why this over a custom <a>?
+ *   • Preserves Next.js prefetching (warm route segments)
+ *   • Keyboard + screen-reader semantics from <Link>
+ *   • One prop opt-in instead of every consumer wiring useViewTransition
+ */
+
+'use client';
+
+import Link from 'next/link';
+import type { ComponentProps, ReactNode, MouseEvent, KeyboardEvent } from 'react';
+import { useViewTransition } from '../lib/useViewTransition';
+
+interface HeroLinkProps extends Omit<ComponentProps<typeof Link>, 'onClick' | 'onKeyDown'> {
+  /**
+   * Shared `view-transition-name`. Must match the destination page's
+   * hero element. Pick a unique slug per pairing (e.g.
+   * "net-worth-hero", "spending-hero", "zakat-card-hero").
+   */
+  heroName: string;
+
+  children: ReactNode;
+}
+
+export default function HeroLink({
+  heroName,
+  href,
+  children,
+  className,
+  ...rest
+}: HeroLinkProps) {
+  const { navigate } = useViewTransition();
+
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    // Respect modifier keys (cmd-click → new tab, etc.) and middle/right
+    // mouse buttons. Only intercept plain left clicks.
+    if (
+      e.defaultPrevented ||
+      e.button !== 0 ||
+      e.metaKey ||
+      e.ctrlKey ||
+      e.shiftKey ||
+      e.altKey ||
+      rest.target === '_blank'
+    ) {
+      return;
+    }
+    e.preventDefault();
+    navigate(href.toString());
+  };
+
+  // Keyboard activation (Enter on a focused link) should also use the
+  // view-transition path so screen-reader users get the same UX.
+  const handleKeyDown = (e: KeyboardEvent<HTMLAnchorElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault();
+      navigate(href.toString());
+    }
+  };
+
+  return (
+    <Link
+      {...rest}
+      href={href}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      className={className}
+      // Inline style so the consumer doesn't have to wire Tailwind's
+      // arbitrary-value syntax for view-transition-name. The browser
+      // ignores unknown properties so this is safe in unsupported
+      // browsers.
+      style={{ ...((rest as { style?: React.CSSProperties }).style ?? {}), viewTransitionName: heroName }}
+    >
+      {children}
+    </Link>
+  );
+}

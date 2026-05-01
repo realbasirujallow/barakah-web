@@ -163,8 +163,14 @@ export default function NetWorthPage() {
         </div>
       )}
 
-      {/* Net Worth hero banner — always shows live value */}
-      <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
+      {/* Net Worth hero banner — always shows live value.
+          R41 (2026-05-01): viewTransitionName matches the dashboard
+          KPI card so the View Transitions API morphs them between
+          the two pages. Older browsers fall through silently. */}
+      <div
+        className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6"
+        style={{ viewTransitionName: 'net-worth-hero' }}
+      >
         <p className="text-green-100 text-sm">Current Net Worth</p>
         <p className="text-4xl font-bold mb-1">{fmt(currentNetWorth)}</p>
         {history.length > 0 && (
