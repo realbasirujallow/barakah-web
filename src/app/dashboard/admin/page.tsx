@@ -520,6 +520,39 @@ export default function AdminPage() {
         ))}
       </div>
 
+      {/*
+        R37 (2026-04-30): secondary "Tools" row links to admin sub-pages
+        that previously existed as orphaned routes (no nav linking).
+        Founder feedback: "I see bunch of failures or disconnections."
+        These are full pages outside the tab system because they have
+        their own complex state (campaign center, email preview,
+        funnel charts) — listing them here makes them discoverable.
+      */}
+      <div className="flex flex-wrap gap-2 mb-6 text-xs">
+        <p className="text-gray-400 self-center mr-1 font-semibold uppercase tracking-wide">Tools:</p>
+        <Link href="/dashboard/admin/acquisition" className="px-3 py-1.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition text-gray-700">
+          📈 Acquisition
+        </Link>
+        <Link href="/dashboard/admin/funnel" className="px-3 py-1.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition text-gray-700">
+          🪜 Signup Funnel
+        </Link>
+        <Link href="/dashboard/admin/growth" className="px-3 py-1.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition text-gray-700">
+          📊 Growth
+        </Link>
+        <Link href="/dashboard/admin/scorecard" className="px-3 py-1.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition text-gray-700">
+          🎯 Scorecard
+        </Link>
+        <Link href="/dashboard/admin/email-locales" className="px-3 py-1.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition text-gray-700">
+          🌐 Email locales
+        </Link>
+        <Link href="/dashboard/admin/email-preview" className="px-3 py-1.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition text-gray-700">
+          ✉️ Email preview
+        </Link>
+        <Link href="/dashboard/admin/halal-screening" className="px-3 py-1.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition text-gray-700">
+          🕌 Halal screening
+        </Link>
+      </div>
+
       {/* Tab contents */}
       {activeTab === 'overview' && (
         <AdminOverviewTab

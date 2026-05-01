@@ -16,10 +16,12 @@
  * updates still roll in without prop drilling the whole response shape.
  */
 
+import { useState } from 'react';
 import { api } from '../../lib/api';
 import { PRICING } from '../../lib/pricing';
 import type { AdminUser, ActivityCountKey, UserActivity, UsersResponse } from './adminTypes';
 import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDate, fmtDateTimeMs, fmtFullTs, daysUntil } from './adminFormatting';
+import AdminUserDrilldownSheet, { type DrilldownKind } from './AdminUserDrilldownSheet';
 
 export interface AdminUserDetailModalProps {
   selected: AdminUser;
@@ -77,6 +79,10 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
     onGrantTrialOpen,
     toast,
   } = props;
+
+  // R37 (2026-04-30): per-user drilldown sheet (transactions, zakat).
+  // Opens on click of the matching activity-count card.
+  const [drilldown, setDrilldown] = useState<DrilldownKind | null>(null);
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -147,12 +153,49 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Account Activity</p>
               <div className="grid grid-cols-3 gap-2 text-center">
-                {ACTIVITY_COUNT_KEYS.map((key) => (
-                  <div key={String(key)} className="bg-white rounded-lg p-2">
-                    <p className="text-lg font-bold text-[#1B5E20]">{typeof userActivity[key] === 'number' ? userActivity[key] : null}</p>
-                    <p className="text-[10px] text-gray-400 capitalize">{String(key).replace(/([A-Z])/g, ' $1').trim()}</p>
-                  </div>
-                ))}
+                {ACTIVITY_COUNT_KEYS.map((key) => {
+                  // R37 (2026-04-30): transactions + zakatPayments are
+                  // clickable — opens AdminUserDrilldownSheet with the
+                  // actual rows. Other counts are not clickable yet
+                  // (would need their own backend list endpoints).
+                  const drilldownKind: DrilldownKind | null =
+                    key === 'transactions' ? 'transactions' :
+                    key === 'zakatPayments' ? 'zakatPayments' : null;
+                  const value = typeof userActivity[key] === 'number' ? userActivity[key] : null;
+                  const isInteractive = drilldownKind !== null && (value ?? 0) > 0;
+                  const cellClasses = `bg-white rounded-lg p-2 ${
+                    isInteractive ? 'cursor-pointer hover:bg-emerald-50 hover:ring-1 hover:ring-emerald-200 transition' : ''
+                  }`;
+                  const inner = (
+                    <>
+                      <p className="text-lg font-bold text-[#1B5E20]">
+                        {value}
+                        {isInteractive && (
+                          <span className="ml-1 text-[10px] text-emerald-500" aria-hidden="true">↗</span>
+                        )}
+                      </p>
+                      <p className="text-[10px] text-gray-400 capitalize">{String(key).replace(/([A-Z])/g, ' $1').trim()}</p>
+                    </>
+                  );
+                  if (isInteractive) {
+                    return (
+                      <button
+                        key={String(key)}
+                        type="button"
+                        onClick={() => setDrilldown(drilldownKind)}
+                        className={cellClasses}
+                        aria-label={`View ${String(key)} for ${selected.email}`}
+                      >
+                        {inner}
+                      </button>
+                    );
+                  }
+                  return (
+                    <div key={String(key)} className={cellClasses}>
+                      {inner}
+                    </div>
+                  );
+                })}
               </div>
               <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
                 <div className="bg-white rounded-lg p-3 border border-gray-100">
@@ -324,8 +367,12 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
                 if (!selected) return;
                 try {
                   const data = await api.adminVerifyEmail(selected.id);
+                  // R37 (2026-04-30): backend may return either a fresh
+                  // verification or "already verified". Toast accordingly so
+                  // the admin doesn't see "verified directly" on a no-op.
+                  const alreadyVerified = data?.message === 'Email already verified';
                   const nextPlan = typeof data?.plan === 'string' ? data.plan : selected.plan;
-                  toast('Email verified directly', 'success');
+                  toast(alreadyVerified ? 'User was already verified' : 'Email force-verified (no email sent)', 'success');
                   setDraftPlan(nextPlan);
                   setSelected({
                     ...selected,
@@ -358,7 +405,7 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
               }}
               className="w-full py-2.5 mt-2 border-2 border-green-500 text-green-600 rounded-lg text-sm font-semibold hover:bg-green-50 transition"
             >
-              Verify Email Directly (Skip Email)
+              Force-Verify (Skip Email Send)
             </button>
           </div>
           )}
@@ -420,6 +467,16 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
           </div>
         </div>
       </div>
+      {/* R37 (2026-04-30): per-user drilldown sheet — opens when an
+          admin clicks a clickable activity-count card. */}
+      {drilldown && (
+        <AdminUserDrilldownSheet
+          userId={selected.id}
+          userEmail={selected.email}
+          kind={drilldown}
+          onClose={() => setDrilldown(null)}
+        />
+      )}
     </div>
   );
 }
