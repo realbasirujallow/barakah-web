@@ -31,7 +31,7 @@ const steps = [
     icon: '🕌',
     title: 'Welcome to Barakah',
     subtitle: 'Money management built on Islamic principles',
-    body: 'Track your wealth, plan zakat, screen halal investments, and prepare your Islamic estate — all in one place. Free to start.',
+    body: 'Track your wealth, plan zakat, screen halal investments, and prepare your Islamic estate. Free to start.',
   },
   // Phase 16 (Apr 30 2026): household-scope question. Renders a two-card
   // picker instead of plain body copy. The chosen scope is persisted to

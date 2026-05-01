@@ -87,7 +87,7 @@ const apps = [
   {
     name: 'Barakah',
     emoji: '🌙',
-    tagline: 'All-in-one Islamic household finance',
+    tagline: 'Islamic household finance — zakat, halal investing, family budgets',
     price: 'Free / $9.99 mo',
     highlight: true,
     features: {

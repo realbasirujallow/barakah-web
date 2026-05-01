@@ -25,7 +25,7 @@ import { MarketingNav } from '../components/MarketingNav';
 // Phase 20 (Apr 30 2026): hero locked. Picked the most concrete of the
 // three drafts — names what the product actually does, in the order
 // users typically reach for it. Other drafts kept in git history.
-const HERO_LINE = 'Calculate zakat, screen halal, plan your Islamic estate — all in one place.';
+const HERO_LINE = 'Calculate zakat. Screen halal. Plan your Islamic estate.';
 
 // Phase 20 (Apr 30 2026): three crafted product mockups. Each mockup is
 // a tiny React component that renders Tailwind cards mimicking the real
