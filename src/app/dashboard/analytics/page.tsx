@@ -6,6 +6,7 @@ import { logError } from '../../../lib/logError';
 import { useCurrency } from '../../../lib/useCurrency';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { MonthDetailSheet, useMonthDrilldown } from '../../../components/dashboard/MonthDetailSheet';
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -106,6 +107,11 @@ function AnalyticsPageContent() {
     return fmt(n);
   };
 
+  // R39 (2026-05-01): hooks MUST come before early returns to satisfy
+  // Rules of Hooks. useMonthDrilldown owns the click-drilldown state +
+  // handleChartClick; same hook pattern as /summary.
+  const { detailMonth, setDetailMonth, handleChartClick } = useMonthDrilldown();
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -164,7 +170,15 @@ function AnalyticsPageContent() {
   const momDisplayData = monthlyData.map(d => ({
     ...d,
     label: fmtMonth(d.month),
+    // R39 (2026-05-01): expose YYYY-MM as `monthKey` so the Recharts
+    // onClick handler can pull the same key the /monthly-detail
+    // backend expects. Founder feedback: "Analytics still doesnt show
+    // break down of items and it looks like you're not able to click
+    // by month to drill down."
+    monthKey: d.month,
   }));
+
+  // useMonthDrilldown is hoisted above the early-loading return — see fmtShort.
   // Year-over-Year: group monthly data by calendar year
   const yoyData = (() => {
     const byYear: Record<string, { income: number; expenses: number; net: number; months: number }> = {};
@@ -273,7 +287,12 @@ function AnalyticsPageContent() {
           <p className="text-gray-400 text-center py-12">Insufficient data for trend analysis — need at least 2 months of data</p>
         ) : activeChart === 'mom' ? (
           <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={momDisplayData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+            <BarChart
+              data={momDisplayData}
+              margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
+              onClick={handleChartClick}
+              style={{ cursor: 'pointer' }}
+            >
               {/* Phase 24d (2026-04-30): gradients + larger radius for the
                   Monarch-tier polish pass. Same visual language as the
                   summary chart so the dashboard reads as one product. */}
@@ -302,7 +321,12 @@ function AnalyticsPageContent() {
           </ResponsiveContainer>
         ) : (
           <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={momDisplayData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+            <LineChart
+              data={momDisplayData}
+              margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
+              onClick={handleChartClick}
+              style={{ cursor: 'pointer' }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="label" tick={{ fill: '#374151', fontSize: 11 }} />
               <YAxis tickFormatter={fmtShort} tick={{ fill: '#374151', fontSize: 11 }} />
@@ -711,6 +735,18 @@ function AnalyticsPageContent() {
           </div>
         )}
       </div>
+
+      {/* R39 (2026-05-01): per-month drilldown — opens when the user
+          clicks a bar/dot on the MoM chart. Same sheet used by /summary
+          so the visual is consistent across both reporting surfaces. */}
+      {detailMonth && (
+        <MonthDetailSheet
+          month={detailMonth.key}
+          monthLabel={detailMonth.label}
+          onClose={() => setDetailMonth(null)}
+          fmt={fmt}
+        />
+      )}
     </div>
   );
 }
