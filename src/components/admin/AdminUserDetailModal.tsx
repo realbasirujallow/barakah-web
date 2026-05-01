@@ -43,6 +43,162 @@ export interface AdminUserDetailModalProps {
   toast: (msg: string, kind?: 'success' | 'error' | 'info') => void;
 }
 
+/**
+ * Per-user email-retry-queue diagnostic + unstick widget.
+ * R39 (2026-05-01): closes the founder-reported support gap "user X
+ * isn't getting password reset emails." The dispatcher's silent-fail-
+ * on-exhaustion path means a poisoned email-queue entry can prevent
+ * any retries from succeeding. Admin clicks "View queue" to see
+ * what's stuck, "Unstick" to flip abandoned entries back to pending.
+ */
+interface EmailQueueRow {
+  id: number;
+  emailType: string;
+  subject: string;
+  attempts: number;
+  status: string;
+  nextAttemptAt: number;
+  lastError: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+interface EmailQueueResponse {
+  userId: number;
+  email: string;
+  totalEntries: number;
+  totalAbandoned: number;
+  totalPending: number;
+  entries: EmailQueueRow[];
+  error?: string;
+}
+function EmailQueueSection({
+  userId,
+  email,
+  toast,
+}: {
+  userId: number;
+  email: string;
+  toast: (msg: string, kind?: 'success' | 'error' | 'info') => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [data, setData] = useState<EmailQueueResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [unsticking, setUnsticking] = useState(false);
+
+  async function load() {
+    setLoading(true);
+    try {
+      const r = (await api.adminGetUserEmailQueue(userId)) as EmailQueueResponse;
+      if (r?.error) throw new Error(r.error);
+      setData(r);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to load email queue', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }
+  async function unstick() {
+    setUnsticking(true);
+    try {
+      const r = (await api.adminUnstickUserEmailQueue(userId)) as { success?: boolean; unstuck?: number; message?: string; error?: string };
+      if (r?.error) throw new Error(r.error);
+      toast(r?.message || `Unstuck ${r?.unstuck ?? 0} email(s)`, 'success');
+      await load();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to unstick', 'error');
+    } finally {
+      setUnsticking(false);
+    }
+  }
+
+  return (
+    <div className="border-t pt-5">
+      <p className="text-sm font-medium text-gray-700 mb-1">Email queue diagnostic</p>
+      <p className="text-xs text-gray-500 mb-3">
+        Check + unstick the email retry queue for <strong>{email}</strong>. Use when a user reports they&apos;re not getting password-reset or verification emails.
+      </p>
+      {!open ? (
+        <button
+          onClick={() => { setOpen(true); void load(); }}
+          className="w-full py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition"
+        >
+          📬 View email queue
+        </button>
+      ) : (
+        <div className="bg-gray-50 rounded-lg p-3 space-y-3">
+          {loading && <p className="text-xs text-gray-500">Loading…</p>}
+          {data && (
+            <>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-white rounded p-2">
+                  <p className="text-[10px] uppercase tracking-wide text-gray-400">Total</p>
+                  <p className="text-sm font-bold text-gray-800">{data.totalEntries}</p>
+                </div>
+                <div className="bg-white rounded p-2">
+                  <p className="text-[10px] uppercase tracking-wide text-gray-400">Pending</p>
+                  <p className="text-sm font-bold text-amber-700">{data.totalPending}</p>
+                </div>
+                <div className="bg-white rounded p-2">
+                  <p className="text-[10px] uppercase tracking-wide text-gray-400">Abandoned</p>
+                  <p className={`text-sm font-bold ${data.totalAbandoned > 0 ? 'text-red-700' : 'text-gray-400'}`}>
+                    {data.totalAbandoned}
+                  </p>
+                </div>
+              </div>
+              {data.totalAbandoned > 0 && (
+                <button
+                  onClick={unstick}
+                  disabled={unsticking}
+                  className="w-full py-2 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition disabled:opacity-40"
+                >
+                  {unsticking ? 'Unsticking…' : `🔄 Unstick ${data.totalAbandoned} abandoned email(s) → retry within 2 min`}
+                </button>
+              )}
+              {data.entries.length === 0 && (
+                <p className="text-xs text-gray-500 text-center py-2">No queue entries — emails delivered successfully.</p>
+              )}
+              {data.entries.length > 0 && (
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {data.entries.map((e) => (
+                    <div key={e.id} className="bg-white rounded p-2 text-xs">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-800 truncate">{e.subject || e.emailType}</p>
+                          <p className="text-[10px] text-gray-500">
+                            {e.emailType} · {e.attempts}/6 attempts · {new Date(e.createdAt).toLocaleString()}
+                          </p>
+                          {e.lastError && (
+                            <p className="text-[10px] text-red-600 mt-0.5 truncate" title={e.lastError}>
+                              {e.lastError}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                          e.status === 'abandoned' ? 'bg-red-100 text-red-700' :
+                          e.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {e.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+          <button
+            onClick={() => setOpen(false)}
+            className="w-full text-xs text-gray-500 hover:text-gray-700"
+          >
+            Hide
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const ACTIVITY_COUNT_KEYS: ActivityCountKey[] = [
   'assets',
   'debts',
@@ -346,6 +502,14 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
               {resetting ? 'Sending…' : 'Send Password Reset Email'}
             </button>
           </div>
+
+          {/* R39 (2026-05-01): Email queue diagnostic + unstick.
+              Use case: user reports they're not getting password-reset
+              or verification emails. The dispatcher may have given up
+              after MAX_ATTEMPTS and marked entries `abandoned`. View
+              the queue to see what's stuck, click "Unstick" to flip
+              them back to pending. The scheduler retries within ~2min. */}
+          <EmailQueueSection userId={selected.id} email={selected.email} toast={toast} />
 
           {/* Resend Verification Email */}
           {!selected.emailVerified && (

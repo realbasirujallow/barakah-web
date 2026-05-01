@@ -492,12 +492,31 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      {/* ── Summary cards ──────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Income</p><p className="text-xl font-bold text-green-600">{fmt(income)}</p></div>
-        <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Expenses</p><p className="text-xl font-bold text-red-600">{fmt(expense)}</p></div>
-        <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Transfers</p><p className="text-xl font-bold text-cyan-700">{fmt(transfers)}</p></div>
-        <div className="bg-white rounded-xl p-4"><p className="text-gray-500 text-xs">Net</p><p className={`text-xl font-bold ${income - expense >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(income - expense)}</p></div>
+      {/*
+        Summary cards.
+        R39 (2026-05-01): upgraded from bare `bg-white rounded-xl` to
+        gradient KPI cards matching the /summary and /analytics
+        pattern. Founder feedback: "transactions page still looks
+        non polish to me." The visual language now reads as one
+        product across the three reporting surfaces.
+      */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="bg-gradient-to-br from-[#1B5E20] to-green-500 rounded-xl p-4 text-white shadow-sm">
+          <p className="text-green-200 text-[10px] uppercase tracking-wide font-semibold">Income</p>
+          <p className="text-xl font-bold mt-1">{fmt(income)}</p>
+        </div>
+        <div className="bg-gradient-to-br from-red-600 to-red-400 rounded-xl p-4 text-white shadow-sm">
+          <p className="text-red-200 text-[10px] uppercase tracking-wide font-semibold">Expenses</p>
+          <p className="text-xl font-bold mt-1">{fmt(expense)}</p>
+        </div>
+        <div className="bg-gradient-to-br from-cyan-600 to-cyan-500 rounded-xl p-4 text-white shadow-sm">
+          <p className="text-cyan-100 text-[10px] uppercase tracking-wide font-semibold">Transfers</p>
+          <p className="text-xl font-bold mt-1">{fmt(transfers)}</p>
+        </div>
+        <div className={`rounded-xl p-4 text-white shadow-sm bg-gradient-to-br ${income - expense >= 0 ? 'from-teal-600 to-cyan-500' : 'from-orange-600 to-amber-500'}`}>
+          <p className="opacity-80 text-[10px] uppercase tracking-wide font-semibold">Net</p>
+          <p className="text-xl font-bold mt-1">{fmt(income - expense)}</p>
+        </div>
       </div>
       {mixedCurrencyCount > 0 && (
         <p className="text-xs text-gray-500 mb-4 -mt-2">
