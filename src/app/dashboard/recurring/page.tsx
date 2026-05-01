@@ -199,7 +199,7 @@ export default function RecurringPage() {
 
       {transactions.length === 0 && (
         <EmptyState
-          icon="🔁"
+          illustration="receipt"
           title="No recurring transactions yet"
           description="Mark a transaction as recurring on the Transactions page and Barakah will detect future instances automatically."
           actions={[

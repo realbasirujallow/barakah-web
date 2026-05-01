@@ -598,7 +598,7 @@ function HawlPageContent() {
 
       {items.length === 0 && (
         <EmptyState
-          icon="⏰"
+          illustration="calendar"
           title="Track your hawl for zakat"
           description="Hawl is the 354-day Islamic lunar year your wealth must stay above nisab to be zakat-eligible. Import your assets and Barakah tracks the cycle daily."
           actions={[

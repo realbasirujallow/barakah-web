@@ -532,7 +532,7 @@ export default function InvestmentsPage() {
       {/* Empty state — shown only when both sections are empty */}
       {accounts.length === 0 && assetAccounts.length === 0 && (
         <EmptyState
-          icon="📈"
+          illustration="savings"
           title="Track your halal investments"
           description="Add a brokerage account or import from Plaid. Every holding is auto-screened against AAOIFI Standard 21 — you'll see a halal/haram tag next to each ticker."
           actions={[
