@@ -711,7 +711,7 @@ export default function TransactionsPage() {
         </div>
       ) : (
         <EmptyState
-          icon="📊"
+          illustration="receipt"
           title="No transactions yet"
           description="Add your first income, expense, or transfer manually — or connect your bank to import the last 90 days automatically."
           actions={[

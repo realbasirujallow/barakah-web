@@ -511,7 +511,7 @@ export default function AssetsPage() {
         // the dashboard pattern — soft halo + title + description +
         // primary CTA + sample preview row.
         <EmptyState
-          icon="💰"
+          illustration="savings"
           title="No assets yet"
           description="Track your wealth (savings, investments, real estate, gold, crypto) in one place. Barakah uses live prices for stocks and gold so your zakat calc stays accurate."
           actions={[

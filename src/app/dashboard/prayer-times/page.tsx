@@ -605,7 +605,7 @@ export default function PrayerTimesPage() {
 
       {!searched && !loading && (
         <EmptyState
-          icon="🕌"
+          illustration="mosque"
           title="Set your location for prayer times"
           description="We use Aladhan with your chosen calculation method (ISNA, MWL, Umm al-Qura, and others). Use My Location is the fastest way to start."
           actions={[

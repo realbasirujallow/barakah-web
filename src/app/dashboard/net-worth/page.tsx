@@ -258,7 +258,7 @@ export default function NetWorthPage() {
       {/* History table */}
       {history.length === 0 && !loading && (
         <EmptyState
-          icon="📈"
+          illustration="savings"
           title="Take your first snapshot"
           description="A snapshot saves your assets, savings, and debts as a single number. Come back weekly and you'll see your trajectory clearly."
           actions={[

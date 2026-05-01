@@ -280,7 +280,7 @@ export default function WaqfPage() {
                   </div>
                 ))}</div>
               : <EmptyState
-                  icon="🕌"
+                  illustration="mosque"
                   title="Begin your waqf legacy"
                   description="Waqf is a perpetual endowment — sadaqah jariyah that continues to benefit you and others long after a single act of giving."
                   actions={[{ label: '+ New contribution', onClick: openAdd, primary: true }]}
