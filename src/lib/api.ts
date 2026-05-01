@@ -906,6 +906,30 @@ export const api = {
   // Subscription Detection
   detectSubscriptions: () => apiFetch('/api/subscriptions/detect'),
 
+  /** R37 (2026-04-30): mark a detected subscription as a false positive. */
+  dismissSubscription: (name: string, reason?: string) =>
+    apiFetch('/api/subscriptions/dismiss', {
+      method: 'POST',
+      body: JSON.stringify({ name, reason }),
+    }),
+
+  /** R37 (2026-04-30): undo a dismissal. */
+  undismissSubscription: (name: string) =>
+    apiFetch('/api/subscriptions/undismiss', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+
+  /** R37 (2026-04-30): bulk-recategorize the underlying transactions for
+   *  a detected-subscription group. e.g. "Five Guys" stuck as a
+   *  subscription → set category="food" to relabel all matching
+   *  transactions and have it stop being flagged. */
+  recategorizeSubscription: (name: string, category: string) =>
+    apiFetch('/api/subscriptions/recategorize', {
+      method: 'POST',
+      body: JSON.stringify({ name, category }),
+    }),
+
   // Riba
   scanRiba: () => apiFetch('/api/riba/scan'),
   getRibaPurificationStatus: () => apiFetch('/api/zakat/purification-status'),
@@ -1239,6 +1263,22 @@ export const api = {
     apiFetch(`/admin/users/${userId}/verify-email`, { method: 'POST' }, API_TIMEOUT, true),
   adminGetUserActivity: (userId: number) =>
     apiFetch(`/admin/users/${userId}/activity`, {}, API_TIMEOUT, true),
+
+  /** R37 (2026-04-30): admin drilldown — list one user's transactions.
+   *  Used by the AdminUserTransactionsModal opened from the activity
+   *  card's transaction count. */
+  adminGetUserTransactions: (userId: number, limit = 100, offset = 0) =>
+    apiFetch(
+      `/admin/users/${userId}/transactions?limit=${limit}&offset=${offset}`,
+      {}, API_TIMEOUT, true,
+    ),
+
+  /** R37 (2026-04-30): admin drilldown — list one user's zakat payments. */
+  adminGetUserZakatPayments: (userId: number, limit = 100) =>
+    apiFetch(
+      `/admin/users/${userId}/zakat-payments?limit=${limit}`,
+      {}, API_TIMEOUT, true,
+    ),
   adminGetUserHawlReport: (userId: number) =>
     apiFetch(`/admin/users/${userId}/hawl-report`, {}, API_TIMEOUT, true),
   adminGetDeletedUsers: (page = 0, size = 50) =>

@@ -19,6 +19,7 @@ import { DailyRitual, buildRitualItems } from '../../components/dashboard/DailyR
 import { HouseholdPromoBanner, type HouseholdBannerVariant } from '../../components/dashboard/HouseholdPromoBanner';
 import { getLastVisit, labelForRoute, type LastVisit } from '../../lib/lastVisit';
 import { Coins, ArrowLeftRight, Upload, PieChart, type LucideIcon } from 'lucide-react';
+import { CategoryIcon } from '../../lib/categoryIcon';
 import { Badge } from '../../components/ui/badge';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
@@ -48,12 +49,10 @@ const safeSetItem = (key: string, value: string): void => {
   try { localStorage.setItem(key, value); } catch { /* private browsing or quota exceeded */ }
 };
 
-const CATEGORY_ICONS: Record<string, string> = {
-  food: '🍕', dining: '🍽️', groceries: '🛒', transportation: '🚗', housing: '🏠',
-  utilities: '💡', shopping: '🛍️', entertainment: '🎬', subscriptions: '📱',
-  healthcare: '🏥', education: '📚', zakat: '🕌', sadaqah: '🤲', income: '💰',
-  transfer: '🔄', debt_payment: '💳', personal: '👤', uncategorized: '📋',
-};
+// R37 (2026-04-30): emoji map removed in favour of the centralised
+// <CategoryIcon /> Lucide component shipped in Phase 24f. Cross-platform
+// consistent rendering, brand-coloured per category, no per-page
+// duplication. The two usage sites below import { CategoryIcon }.
 
 function timeAgo(timestamp: number): string {
   const diff = Date.now() - timestamp;
@@ -426,9 +425,26 @@ export default function DashboardPage() {
               {user?.name ? user.name : null}
             </span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
-            {hijri?.hijriDate ? <> · {hijri.hijriDate}</> : null}
+          {/*
+            R37 (2026-04-30): Founder feedback "on dashboard page,
+            gregorian date of above, islamic date should be up there
+            too." Make the Islamic date a first-class label alongside
+            the Gregorian instead of an em-dash afterthought, with a
+            distinct styling so it reads as two equally important
+            references.
+          */}
+          <p className="text-sm text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>
+              {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+            </span>
+            {hijri?.hijriDate && (
+              <>
+                <span aria-hidden="true" className="text-gray-300">·</span>
+                <span className="text-primary font-medium">
+                  🕌 {hijri.hijriDate}
+                </span>
+              </>
+            )}
           </p>
         </div>
       </header>
@@ -482,11 +498,39 @@ export default function DashboardPage() {
               </div>
               {hijri.upcomingEvents.length > 0 && (
                 <div className="text-right">
-                  {hijri.upcomingEvents.slice(0, 2).map((e, i) => (
-                    <p key={i} className="text-xs text-gray-500">
-                      <span className="font-medium text-gray-700">{e.name}</span> · {e.daysAway}d
-                    </p>
-                  ))}
+                  {/*
+                    R37 (2026-04-30): show the Gregorian date the
+                    countdown lands on, not just "8d". Founder
+                    feedback: "count down only shows days left, but
+                    would be nice to know what day that would fall on
+                    in the gregorian calendar to avoid users having to
+                    pull calendar and manually count." We use the
+                    `approximateGregorianDate` already in the API
+                    payload — falling back to client-side day arithmetic
+                    when not provided.
+                  */}
+                  {hijri.upcomingEvents.slice(0, 2).map((e, i) => {
+                    // Compute fallback Gregorian date if the backend didn't supply one.
+                    let gregLabel = e.approximateGregorianDate;
+                    if (!gregLabel && typeof e.daysAway === 'number') {
+                      const d = new Date();
+                      d.setDate(d.getDate() + e.daysAway);
+                      gregLabel = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                    }
+                    return (
+                      <p key={i} className="text-xs text-gray-500 leading-tight">
+                        <span className="font-medium text-gray-700">{e.name}</span>
+                        {' · '}
+                        <span className="text-gray-500">{e.daysAway}d</span>
+                        {gregLabel && (
+                          <>
+                            {' · '}
+                            <span className="text-gray-400">~ {gregLabel}</span>
+                          </>
+                        )}
+                      </p>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -799,7 +843,7 @@ export default function DashboardPage() {
                 const max = widgets.spending!.topCategories[0]?.amount || 1;
                 return (
                   <div key={cat.category} className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm flex-shrink-0">{CATEGORY_ICONS[cat.category] || '📋'}</span>
+                    <CategoryIcon category={cat.category} className="w-4 h-4 flex-shrink-0" />
                     <span className="text-xs text-gray-700 w-16 md:w-24 truncate capitalize flex-shrink-0">{cat.category.replace(/_/g, ' ')}</span>
                     <div className="flex-1 bg-gray-100 rounded-full h-2 min-w-0">
                       <div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${Math.min((cat.amount / max) * 100, 100)}%` }} />
@@ -956,7 +1000,7 @@ export default function DashboardPage() {
               {widgets.recentTransactions.transactions.map((txn) => (
                 <div key={txn.id} className="flex items-center justify-between py-2.5">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-lg flex-shrink-0">{CATEGORY_ICONS[txn.category] || '📋'}</span>
+                    <CategoryIcon category={txn.category} className="w-5 h-5 flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{txn.merchantName || txn.description}</p>
                       <p className="text-xs text-gray-400 capitalize">{txn.category?.replace(/_/g, ' ')} &middot; {timeAgo(txn.timestamp)}</p>

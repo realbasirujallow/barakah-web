@@ -140,6 +140,85 @@ function Section({ title, items, color, now, deletingId, onPaid, onEdit, onDelet
   );
 }
 
+/**
+ * R37 (2026-04-30): per-frequency breakdown card for the bills page.
+ *
+ * Founder feedback: "When I click on monthly or quarterly, I am still
+ * not see the breakdown of the amounts, so there is a gap there."
+ *
+ * Renders one row per frequency (Monthly / Quarterly / Yearly / etc)
+ * with:
+ *   • count of bills
+ *   • absolute total (e.g. quarterly total = sum of quarterly amounts)
+ *   • monthly-equivalent so users can compare across frequencies
+ *
+ * Each row expands on click to show the actual bills, sorted by amount.
+ */
+type FreqEntry = {
+  count: number;
+  total: number;
+  monthlyEquivalent: number;
+  items: BillItem[];
+};
+function FrequencyBreakdownCard({
+  entries,
+  freqLabels,
+  fmt,
+}: {
+  entries: [string, FreqEntry][];
+  freqLabels: Record<string, string>;
+  fmt: (n: number) => string;
+}) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+  return (
+    <div className="bg-white rounded-2xl shadow-sm mb-5 overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100">
+        <h2 className="font-semibold text-gray-900">Breakdown by frequency</h2>
+        <p className="text-xs text-gray-500 mt-0.5">Click a row to see the bills that make up that frequency.</p>
+      </div>
+      <ul className="divide-y divide-gray-100">
+        {entries.map(([freq, entry]) => {
+          const isOpen = expanded === freq;
+          return (
+            <li key={freq}>
+              <button
+                type="button"
+                onClick={() => setExpanded(isOpen ? null : freq)}
+                className="w-full px-5 py-3 flex justify-between items-center hover:bg-gray-50 transition text-left"
+                aria-expanded={isOpen}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs font-bold uppercase tracking-wide ${isOpen ? 'text-primary' : 'text-gray-500'}`}>
+                    {isOpen ? '▾' : '▸'}
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{freqLabels[freq] ?? freq}</p>
+                    <p className="text-xs text-gray-500">{entry.count} bill{entry.count === 1 ? '' : 's'} · ~{fmt(entry.monthlyEquivalent)}/mo</p>
+                  </div>
+                </div>
+                <p className="text-sm font-bold text-gray-900 whitespace-nowrap">{fmt(entry.total)}</p>
+              </button>
+              {isOpen && (
+                <ul className="bg-gray-50 px-5 py-2">
+                  {entry.items
+                    .slice()
+                    .sort((a, b) => (b.amount ?? 0) - (a.amount ?? 0))
+                    .map((b) => (
+                      <li key={b.id} className="flex justify-between items-center py-1.5">
+                        <span className="text-sm text-gray-700">{b.name || '(unnamed bill)'}</span>
+                        <span className="text-sm font-medium text-gray-900">{fmt(b.amount)}</span>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 export default function BillsPage() {
   const { fmt } = useCurrency();
   const [bills, setBills]           = useState<BillItem[]>([]);
@@ -303,6 +382,38 @@ export default function BillsPage() {
     return s + b.amount;
   }, 0);
 
+  // R37 (2026-04-30): per-frequency totals so the founder can see WHAT
+  // makes up the "Est. Monthly" number. Founder feedback: "When I click
+  // on monthly or quarterly, I am still not see the breakdown of the
+  // amounts." Group bills by frequency, sort by monthly equivalent
+  // descending. The card below the stats row exposes this.
+  const FREQ_LABELS: Record<string, string> = {
+    weekly:     'Weekly',
+    monthly:    'Monthly',
+    quarterly:  'Quarterly',
+    yearly:     'Yearly',
+    one_time:   'One-time',
+    'one-time': 'One-time',
+  };
+  function freqMonthlyEquivalent(amount: number, frequency: string): number {
+    if (frequency === 'monthly')    return amount;
+    if (frequency === 'quarterly')  return amount / 3;
+    if (frequency === 'yearly')     return amount / 12;
+    if (frequency === 'weekly')     return amount * 4.33;
+    return 0;
+  }
+  const byFrequency: Record<string, { count: number; total: number; monthlyEquivalent: number; items: typeof bills }> = {};
+  for (const b of bills) {
+    const key = b.frequency || 'monthly';
+    if (!byFrequency[key]) byFrequency[key] = { count: 0, total: 0, monthlyEquivalent: 0, items: [] };
+    byFrequency[key].count += 1;
+    byFrequency[key].total += b.amount;
+    byFrequency[key].monthlyEquivalent += freqMonthlyEquivalent(b.amount, key);
+    byFrequency[key].items.push(b);
+  }
+  const frequencyEntries = Object.entries(byFrequency)
+    .sort((a, b) => b[1].monthlyEquivalent - a[1].monthlyEquivalent);
+
   return (
     <div>
       <PageHeader
@@ -332,6 +443,21 @@ export default function BillsPage() {
           <p className="text-2xl font-bold text-gray-700">{fmt(monthlyTotal)}</p>
         </div>
       </div>
+
+      {/*
+        R37 (2026-04-30): per-frequency breakdown card. Closes the gap
+        flagged in the founder's review: "When I click on monthly or
+        quarterly, I am still not see the breakdown of the amounts."
+        Each row is expandable so the user can see the actual bills
+        making up the per-frequency total.
+      */}
+      {frequencyEntries.length > 0 && (
+        <FrequencyBreakdownCard
+          entries={frequencyEntries}
+          freqLabels={FREQ_LABELS}
+          fmt={fmt}
+        />
+      )}
 
       {/* Overdue alert banner */}
       {overdue.length > 0 && (
