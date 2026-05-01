@@ -274,16 +274,30 @@ function AnalyticsPageContent() {
         ) : activeChart === 'mom' ? (
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={momDisplayData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+              {/* Phase 24d (2026-04-30): gradients + larger radius for the
+                  Monarch-tier polish pass. Same visual language as the
+                  summary chart so the dashboard reads as one product. */}
+              <defs>
+                <linearGradient id="ana-incomeFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"  stopColor="#22C55E" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="#1B5E20" stopOpacity={0.95} />
+                </linearGradient>
+                <linearGradient id="ana-expenseFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"  stopColor="#F87171" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="#B91C1C" stopOpacity={0.95} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="label" tick={{ fill: '#374151', fontSize: 11 }} />
               <YAxis tickFormatter={fmtShort} tick={{ fill: '#374151', fontSize: 11 }} />
               <Tooltip
                 formatter={(value: number | undefined) => fmt(value ?? 0)}
                 contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
+                cursor={{ fill: 'rgba(0,0,0,0.04)' }}
               />
               <Legend />
-              <Bar dataKey="income"   name="Income"   fill="#1B5E20" radius={[4,4,0,0]} />
-              <Bar dataKey="expenses" name="Expenses" fill="#EF4444" radius={[4,4,0,0]} />
+              <Bar dataKey="income"   name="Income"   fill="url(#ana-incomeFill)"  radius={[6,6,0,0]} />
+              <Bar dataKey="expenses" name="Expenses" fill="url(#ana-expenseFill)" radius={[6,6,0,0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
@@ -297,8 +311,9 @@ function AnalyticsPageContent() {
                 contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
               />
               <Legend />
-              <Line type="monotone" dataKey="income"   name="Income"   stroke="#1B5E20" strokeWidth={3} dot={{ r: 4 }} />
-              <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#EF4444" strokeWidth={3} dot={{ r: 4 }} />
+              {/* Phase 24d: thicker strokes + animated draw-in for line charts */}
+              <Line type="monotone" dataKey="income"   name="Income"   stroke="#1B5E20" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#B91C1C" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6 }} />
               <Line type="monotone" dataKey="net"      name="Net"      stroke="#0D9488" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
