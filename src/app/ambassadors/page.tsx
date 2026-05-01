@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Become a Barakah Ambassador (2026) | Barakah',
@@ -60,24 +59,6 @@ const idealCandidates = [
 export default function AmbassadorsPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-[#1B5E20]">🌙 Barakah</Link>
-          <div className="flex items-center gap-3">
-            <Link href="/learn" className="text-sm text-[#1B5E20] font-medium hover:underline">Learn</Link>
-            <Link href="/login" className="text-sm text-[#1B5E20] font-medium hover:underline">Sign In</Link>
-            <Link href="/signup" className="bg-[#1B5E20] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition">Get Started</Link>
-          </div>
-        </div>
-      </header>
-
-      <nav className="bg-white border-b border-gray-100 px-6 py-3">
-        <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
-          <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
-          <span className="text-gray-300">/</span>
-          <span className="text-gray-900">Ambassadors</span>
-        </div>
-      </nav>
 
       <main className="flex-1">
         <div className="max-w-4xl mx-auto px-6 py-10">

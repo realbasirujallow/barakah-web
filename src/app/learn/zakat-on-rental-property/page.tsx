@@ -19,13 +19,6 @@ export default function Page() {
       <script id="faq-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
-          <nav className="mb-6 text-sm">
-            <Link href="/" className="text-green-700 hover:underline">Home</Link>
-            <span className="mx-2 text-gray-400">/</span>
-            <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
-            <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600 dark:text-gray-400">Zakat on Rental Property</span>
-          </nav>
           <h1 className="text-4xl font-bold text-gray-900 mb-6 dark:text-gray-100">Zakat on Rental Property</h1>
           <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
           <p className="text-lg text-gray-700 leading-relaxed mb-8 dark:text-gray-300">Rental property is one of the most debated topics in Islamic zakat law. The property itself (your primary home or rental buildings) is generally NOT zakatable, but the rental income you receive IS zakatable once it enters your savings.</p>

@@ -140,14 +140,6 @@ export default function WhatIsZakatPage() {
 
         <div className="max-w-3xl mx-auto px-6 py-10">
 
-          <nav className="mb-6 text-sm text-gray-500 flex items-center gap-1.5 dark:text-gray-400">
-            <Link href="/" className="text-[#1B5E20] hover:underline">Home</Link>
-            <span>/</span>
-            <Link href="/learn" className="text-[#1B5E20] hover:underline">Learn</Link>
-            <span>/</span>
-            <span>What is Zakat?</span>
-          </nav>
-
           <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-3 py-1 text-xs font-semibold text-amber-700 mb-4">
             Updated April 2026 · 10 min read
           </div>

@@ -75,13 +75,6 @@ export default function Page() {
       <article className="min-h-screen bg-white px-4 sm:px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           {/* Breadcrumb */}
-          <nav className="mb-6 text-sm">
-            <Link href="/" className="text-green-700 hover:underline">Home</Link>
-            <span className="mx-2 text-gray-400">/</span>
-            <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
-            <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600 dark:text-gray-400">Is My Mortgage Halal?</span>
-          </nav>
 
           <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
             Is My Mortgage Halal?

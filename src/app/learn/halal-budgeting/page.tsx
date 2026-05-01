@@ -164,13 +164,6 @@ export default function HalalBudgetingPage() {
       <article className="min-h-screen bg-white px-6 py-16 dark:bg-gray-800">
         <div className="mx-auto max-w-3xl">
           {/* Breadcrumb */}
-          <nav className="mb-6 text-sm" aria-label="Breadcrumb">
-            <Link href="/" className="text-green-700 hover:underline">Home</Link>
-            <span className="mx-2 text-gray-400">/</span>
-            <Link href="/learn" className="text-green-700 hover:underline">Learn</Link>
-            <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-600 dark:text-gray-400">Halal Budgeting</span>
-          </nav>
 
           {/* Hero */}
           <header className="mb-10">
