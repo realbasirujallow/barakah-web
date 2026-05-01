@@ -2,11 +2,12 @@
 import { AuthProvider } from '../context/AuthContext';
 import { FeatureFlagsProvider } from '../context/FeatureFlagsContext';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { captureAcquisitionFromUrl } from '../lib/api';
+import { buildTrafficCapturePayload, captureAcquisitionFromUrl } from '../lib/api';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { useEffect } from 'react';
 import Script from 'next/script';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 /**
  * Pulls UTM params + document.referrer + landing pathname off window on
@@ -19,10 +20,33 @@ import Script from 'next/script';
  * `trybarakah.com/?utm_source=ramadan-ig` still attribute correctly even
  * when the user browses around before signing up.
  */
+function shouldTrackPublicPath(pathname: string | null) {
+  if (!pathname) return false;
+  return !(
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/t/collect')
+  );
+}
+
 function AcquisitionCapture() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   useEffect(() => {
     captureAcquisitionFromUrl();
-  }, []);
+    if (!shouldTrackPublicPath(pathname)) return;
+    const payload = buildTrafficCapturePayload();
+    if (!payload) return;
+    void fetch('/t/collect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      keepalive: true,
+      cache: 'no-store',
+    }).catch(() => {});
+  }, [pathname, searchParams]);
   return null;
 }
 
