@@ -226,8 +226,14 @@ export default function BudgetPage() {
           className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed">Next →</button>
       </div>
 
-      {/* ── Summary cards ──────────────────────────────────────────────────── */}
-      <div className="grid md:grid-cols-3 gap-4 mb-6">
+      {/* ── Summary cards.
+          R42 (2026-05-01): viewTransitionName matches the dashboard's
+          Budget Overview card so the morph completes when arriving
+          from /dashboard. */}
+      <div
+        className="grid md:grid-cols-3 gap-4 mb-6"
+        style={{ viewTransitionName: 'budget-hero' }}
+      >
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Budget</p><p className="text-2xl font-bold text-primary">{fmt(totalBudget)}</p></div>
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Spent</p><p className="text-2xl font-bold text-orange-600">{fmt(totalSpent)}</p></div>
         <div className="bg-white rounded-xl p-5">

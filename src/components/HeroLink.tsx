@@ -44,8 +44,19 @@ interface HeroLinkProps extends Omit<ComponentProps<typeof Link>, 'onClick' | 'o
    * Shared `view-transition-name`. Must match the destination page's
    * hero element. Pick a unique slug per pairing (e.g.
    * "net-worth-hero", "spending-hero", "zakat-card-hero").
+   *
+   * R42 (2026-05-01): now OPTIONAL. When the link sits INSIDE a parent
+   * element that already carries the source-side `viewTransitionName`
+   * (e.g. a card wrapper with `style={{viewTransitionName: 'budget-hero'}}`
+   * containing both the headline and a "Manage budgets →" link),
+   * setting the same name on the inner link too creates a duplicate
+   * and the browser silently aborts the transition. In that case omit
+   * `heroName` — you still get the view-transition wrapper around
+   * `router.push`, the parent provides the morph target. When omitted,
+   * HeroLink behaves exactly like a plain `<Link>` plus a wrapped
+   * navigation.
    */
-  heroName: string;
+  heroName?: string;
 
   children: ReactNode;
 }
@@ -96,8 +107,12 @@ export default function HeroLink({
       // Inline style so the consumer doesn't have to wire Tailwind's
       // arbitrary-value syntax for view-transition-name. The browser
       // ignores unknown properties so this is safe in unsupported
-      // browsers.
-      style={{ ...((rest as { style?: React.CSSProperties }).style ?? {}), viewTransitionName: heroName }}
+      // browsers. When `heroName` is omitted (R42), we don't set the
+      // attribute at all — the parent wrapper owns the morph target.
+      style={{
+        ...((rest as { style?: React.CSSProperties }).style ?? {}),
+        ...(heroName ? { viewTransitionName: heroName } : {}),
+      }}
     >
       {children}
     </Link>
