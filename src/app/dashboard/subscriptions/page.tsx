@@ -15,6 +15,13 @@ interface Subscription {
   category: string;
   haramFlagged: boolean;
   haramReason?: string;
+  /** Phase 25 (2026-04-30): backend-provided cancellation deep link
+   *  for known merchants (Netflix, Spotify, NYT, etc). null when we
+   *  don't recognise the merchant — UI falls back to a Google search. */
+  cancelUrl?: string;
+  /** Phase 25 (2026-04-30): suggested halal alternative for haram-flagged
+   *  services. e.g. Spotify → Muslim Central + Quran.com. */
+  halalAlternative?: string;
 }
 
 interface HaramFlag {
@@ -23,6 +30,60 @@ interface HaramFlag {
   frequency: string;
   reason: string;
   severity: 'high' | 'critical';
+}
+
+/**
+ * Cancel-help affordance — Phase 25 (2026-04-30).
+ *
+ * Renders one of two buttons depending on whether the backend recognised the
+ * merchant:
+ *   • Known merchant → direct deep link to the provider's cancellation page
+ *     (e.g. Netflix → /cancelplan, Spotify → /account/subscription).
+ *   • Unknown merchant → fallback Google search "how to cancel <name>" so
+ *     the user still has a one-click path forward.
+ *
+ * `target="_blank" rel="noopener noreferrer"` is mandatory: cancellation
+ * pages are third-party origins, we don't want them to be able to
+ * `window.opener` back into Barakah, and they shouldn't share referrer.
+ *
+ * No analytics intentionally — cancel-help URLs are sensitive (the user
+ * is taking financial action) and we don't want to fingerprint which
+ * services a household is leaving via PostHog/GA. If aggregate data is
+ * needed later, log it server-side via the existing audit-event channel.
+ */
+function CancelHelpLink({
+  sub,
+  flag,
+}: {
+  sub?: Subscription;
+  flag?: HaramFlag;
+}) {
+  const name = sub?.name ?? flag?.subscription ?? 'subscription';
+  if (sub?.cancelUrl) {
+    return (
+      <a
+        href={sub.cancelUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition shrink-0"
+        aria-label={`Open ${name} cancellation page`}
+      >
+        Cancel ↗
+      </a>
+    );
+  }
+  const fallback = `https://www.google.com/search?q=${encodeURIComponent(`how to cancel ${name}`)}`;
+  return (
+    <a
+      href={fallback}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-xs font-semibold hover:bg-gray-50 transition shrink-0"
+      aria-label={`Search how to cancel ${name}`}
+    >
+      How to cancel ↗
+    </a>
+  );
 }
 
 export default function SubscriptionsPage() {
@@ -133,7 +194,7 @@ export default function SubscriptionsPage() {
         </div>
       </div>
 
-      {/* Haram alerts */}
+      {/* Haram alerts — now with cancel + halal-alt CTAs (Phase 25) */}
       {haramFlags.length > 0 && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-5">
           <h2 className="text-lg font-semibold text-red-700 dark:text-red-400 mb-3">
@@ -141,25 +202,37 @@ export default function SubscriptionsPage() {
           </h2>
           <p className="text-sm text-red-600 dark:text-red-300 mb-4">
             The following recurring charges have been flagged as potentially non-halal.
-            Please review and consider cancelling or finding halal alternatives.
+            Tap <strong>Cancel</strong> to go straight to the provider&apos;s cancellation page, or check the <strong>halal alternative</strong> suggestion.
           </p>
           <div className="space-y-3">
-            {haramFlags.map((flag, i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-4 flex items-start gap-3">
-                <span className={`px-2 py-1 rounded text-xs font-bold ${
-                  flag.severity === 'critical' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
-                }`}>
-                  {flag.severity === 'critical' ? 'HARAM' : 'RIBA'}
-                </span>
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900 dark:text-white">{flag.subscription}</p>
-                  <p className="text-sm text-red-600">{flag.reason}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {fmt(flag.amount)} / {flag.frequency}
-                  </p>
+            {haramFlags.map((flag, i) => {
+              // Pull the matching subscription so we can render its
+              // backend-provided cancelUrl + halalAlternative on the alert
+              // card. Match on the normalised name string we already have.
+              const sub = subscriptions.find(s => s.name === flag.subscription);
+              return (
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-4 flex items-start gap-3 flex-wrap">
+                  <span className={`px-2 py-1 rounded text-xs font-bold ${
+                    flag.severity === 'critical' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                  }`}>
+                    {flag.severity === 'critical' ? 'HARAM' : 'RIBA'}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 dark:text-white">{flag.subscription}</p>
+                    <p className="text-sm text-red-600">{flag.reason}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {fmt(flag.amount)} / {flag.frequency}
+                    </p>
+                    {sub?.halalAlternative && (
+                      <p className="text-xs text-green-700 mt-2 bg-green-50 dark:bg-green-900/20 rounded px-2 py-1.5">
+                        <strong>Halal alternative:</strong> {sub.halalAlternative}
+                      </p>
+                    )}
+                  </div>
+                  <CancelHelpLink sub={sub} flag={flag} />
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -180,6 +253,7 @@ export default function SubscriptionsPage() {
                   <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Last Charged</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Next Expected</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Status</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -211,6 +285,12 @@ export default function SubscriptionsPage() {
                           Halal
                         </span>
                       )}
+                    </td>
+                    {/* Phase 25: Cancel-help button per row. Direct deep link
+                        for known merchants (e.g. Netflix → /cancelplan),
+                        Google-search fallback otherwise. */}
+                    <td className="px-4 py-3 text-right">
+                      <CancelHelpLink sub={sub} />
                     </td>
                   </tr>
                 ))}
