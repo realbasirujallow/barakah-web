@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { PRICING, FREE_FEATURES, PLUS_FEATURES, FAMILY_FEATURES } from '../../lib/pricing';
-import { DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL } from '../../lib/trial';
+import { useI18n } from '../../lib/i18n';
 
 // Strip currency symbol / commas so we can do arithmetic on the numeric value.
 // Keeps the single source of truth in lib/pricing.ts rather than duplicating
@@ -17,6 +17,7 @@ function fmtUSD(value: number): string {
 }
 
 export default function PricingToggle() {
+  const { t } = useI18n();
   // Default to annual billing — the 17% (Plus) / 34% (Family) savings are
   // the frame every visitor should see first. Monthly is still one tap away
   // for users who prefer not to commit annually up front. This also
@@ -39,7 +40,7 @@ export default function PricingToggle() {
       {/* Billing Toggle */}
       <div className="flex justify-center items-center gap-3 mb-12">
         <span className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-gray-900' : 'text-gray-400'}`}>
-          Monthly
+          {t('monthly')}
         </span>
         <button
           onClick={() => setIsAnnual(prev => !prev)}
@@ -55,12 +56,12 @@ export default function PricingToggle() {
           />
         </button>
         <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-gray-900' : 'text-gray-400'}`}>
-          Yearly
+          {t('annual')}
         </span>
         <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full transition-all ${
           isAnnual ? 'bg-green-700 text-white scale-105' : 'bg-green-100 text-green-800'
         }`}>
-          Save up to 34%
+          {t('saveRange')}
         </span>
       </div>
 
@@ -70,7 +71,7 @@ export default function PricingToggle() {
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 flex flex-col">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-1">Free</h2>
-            <p className="text-sm text-gray-500">For getting started</p>
+            <p className="text-sm text-gray-500">{t('pricingPlanFreeSubtitle')}</p>
           </div>
           <div className="mb-6">
             <span className="text-4xl font-bold text-gray-900">$0</span>
@@ -88,7 +89,7 @@ export default function PricingToggle() {
             href="/signup"
             className="block w-full text-center bg-white border-2 border-green-700 text-green-700 hover:bg-green-50 font-semibold py-3 px-6 rounded-lg transition-colors"
           >
-            Get Started Free
+            {t('pricingGetStartedFree')}
           </Link>
         </div>
 
@@ -96,12 +97,12 @@ export default function PricingToggle() {
         <div className="bg-white rounded-2xl border-2 border-green-700 shadow-lg p-8 flex flex-col relative">
           <div className="absolute -top-4 left-1/2 -translate-x-1/2">
             <span className="bg-green-700 text-white text-sm font-semibold px-4 py-1 rounded-full">
-              Most Popular
+              {t('pricingMostPopular')}
             </span>
           </div>
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-1">Plus</h2>
-            <p className="text-sm text-gray-500">Full personal finance + Islamic tools</p>
+            <p className="text-sm text-gray-500">{t('pricingPlanPlusSubtitle')}</p>
           </div>
           <div className="mb-2 flex items-end gap-2">
             <span className="text-4xl font-bold text-gray-900 transition-all">
@@ -136,7 +137,7 @@ export default function PricingToggle() {
             href="/signup"
             className="block w-full text-center bg-green-700 hover:bg-green-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
-            {`Start ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Free Trial`}
+            {t('homePrimaryCta')}
           </Link>
         </div>
 
@@ -144,12 +145,12 @@ export default function PricingToggle() {
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 flex flex-col relative">
           <div className="absolute -top-4 left-1/2 -translate-x-1/2">
             <span className="bg-amber-600 text-white text-sm font-semibold px-4 py-1 rounded-full">
-              For Households
+              {t('pricingForHouseholds')}
             </span>
           </div>
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-1">Family</h2>
-            <p className="text-sm text-gray-500">Shared finances for the whole household</p>
+            <p className="text-sm text-gray-500">{t('pricingPlanFamilySubtitle')}</p>
           </div>
           <div className="mb-2 flex items-end gap-2">
             <span className="text-4xl font-bold text-gray-900 transition-all">
@@ -184,7 +185,7 @@ export default function PricingToggle() {
             href="/signup"
             className="block w-full text-center bg-white border-2 border-green-700 text-green-700 hover:bg-green-50 font-semibold py-3 px-6 rounded-lg transition-colors"
           >
-            {`Start ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Plus Trial`}
+            {t('pricingStartFamily')}
           </Link>
         </div>
       </section>
