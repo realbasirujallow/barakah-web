@@ -58,6 +58,18 @@ interface HeroLinkProps extends Omit<ComponentProps<typeof Link>, 'onClick' | 'o
    */
   heroName?: string;
 
+  /**
+   * R43 (2026-05-01): synchronous side-effect to run BEFORE the
+   * wrapped `router.push` fires. Useful for callsites like the
+   * dashboard sidebar where the consumer needs to close a mobile
+   * drawer or fire an analytics event before the navigation kicks
+   * off. Runs only on the intercepted-left-click path (i.e. when
+   * navigate() is actually about to be called) — modifier-key clicks
+   * that fall through to default browser behaviour bypass it. Keep
+   * the callback fast; it runs on the click handler's hot path.
+   */
+  onBeforeNavigate?: () => void;
+
   children: ReactNode;
 }
 
@@ -66,6 +78,7 @@ export default function HeroLink({
   href,
   children,
   className,
+  onBeforeNavigate,
   ...rest
 }: HeroLinkProps) {
   const { navigate } = useViewTransition();
@@ -85,6 +98,7 @@ export default function HeroLink({
       return;
     }
     e.preventDefault();
+    onBeforeNavigate?.();
     navigate(href.toString());
   };
 
@@ -93,6 +107,7 @@ export default function HeroLink({
   const handleKeyDown = (e: KeyboardEvent<HTMLAnchorElement>) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
       e.preventDefault();
+      onBeforeNavigate?.();
       navigate(href.toString());
     }
   };
