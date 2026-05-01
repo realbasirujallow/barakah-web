@@ -135,14 +135,8 @@ export default function WhatIsZakatPage() {
 
       <article className="min-h-screen bg-white dark:bg-gray-800">
 
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-10 dark:bg-gray-800 dark:border-gray-700">
-          <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="text-lg font-bold text-[#1B5E20]">🌙 Barakah</Link>
-            <Link href="/zakat-calculator" className="bg-[#1B5E20] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#2E7D32] transition">
-              Calculate My Zakat Free →
-            </Link>
-          </div>
-        </header>
+        {/* Page-local header removed 2026-05-01 — global MarketingNav handles
+            home-link + signup CTA from root layout. */}
 
         <div className="max-w-3xl mx-auto px-6 py-10">
 

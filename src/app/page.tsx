@@ -6,7 +6,6 @@ import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { Coins, Shield, ScrollText, Check, AlertCircle } from 'lucide-react';
 import { PRICING } from '../lib/pricing';
-import { MarketingNav } from '../components/MarketingNav';
 
 /**
  * Phase 20 (2026-04-30) — Homepage v2, founder-approved.
@@ -185,8 +184,9 @@ export default function HomeV2() {
 
   return (
     <main className="min-h-screen bg-[#FFF8E1]">
-      {/* ── 0. Marketing nav (2026-05-01) ──────────────────────────────── */}
-      <MarketingNav />
+      {/* MarketingNav is now global (mounted in root layout via
+          MaybeMarketingNav) — every public page gets it automatically.
+          Adding it here too would render twice. */}
 
       {/* ── 1. Hero ────────────────────────────────────────────────────── */}
       <section className="px-6 py-20 md:py-24 text-center">
