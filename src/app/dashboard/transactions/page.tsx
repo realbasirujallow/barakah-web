@@ -10,7 +10,7 @@ import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw, Search } from 'lucide-react';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
@@ -65,6 +65,10 @@ interface Tx {
   tags?: string | null;
   notes?: string | null;
   reviewStatus?: string | null;
+  /** R44 (2026-05-01): backend already exposes this via the transactions
+   *  endpoint; the UI just hadn't surfaced it. Toggled via
+   *  api.toggleRecurring(id). */
+  isRecurring?: boolean | null;
 }
 
 interface SubscriptionStatus {
@@ -304,6 +308,27 @@ export default function TransactionsPage() {
     setDeleteConfirmation({ type: 'single', id });
   };
 
+  /*
+    R44 (2026-05-01): expose the existing api.toggleRecurring(id)
+    endpoint via a row-level "Mark as recurring" action. Founder
+    feedback: "I dont see an option to mark transaction as
+    recurring, fix that." Optimistically flips the local row state
+    so the badge appears instantly, with a toast for confirmation.
+    On API failure, the optimistic update is reverted.
+  */
+  const handleToggleRecurring = async (tx: Tx) => {
+    const next = !tx.isRecurring;
+    setTxs(prev => prev.map(t => t.id === tx.id ? { ...t, isRecurring: next } : t));
+    try {
+      await api.toggleRecurring(tx.id);
+      toast(next ? 'Marked as recurring' : 'Recurring removed', 'success');
+    } catch {
+      // Revert optimistic update.
+      setTxs(prev => prev.map(t => t.id === tx.id ? { ...t, isRecurring: !next } : t));
+      toast('Failed to update recurring status', 'error');
+    }
+  };
+
   const confirmDelete = async () => {
     if (!deleteConfirmation || deleteConfirmation.type !== 'single' || deleteConfirmation.id === undefined) return;
     const id = deleteConfirmation.id;
@@ -532,6 +557,44 @@ export default function TransactionsPage() {
       {/* ── Free plan transaction usage meter ──────────────────────────────── */}
       <TransactionUsageMeter />
 
+      {/* ── Search row (Monarch-style: prominent, top of list) ──────────────
+          R44 (2026-05-01): the search input used to live on the same
+          row as filter pills, where it was visually cramped and easy
+          to miss. Founder feedback: "Nothing is searchable also."
+          Promoting to its own row with a leading icon, full-width
+          flex layout, and a ⌘K shortcut hint mirrors how Monarch /
+          Linear / Stripe handle dashboard search. The Cmd+K key
+          binding was already in place (dashboard layout listener
+          jumps focus to #tx-search). */}
+      <div className="mb-3 flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" aria-hidden="true" />
+          <input
+            id="tx-search"
+            type="text"
+            placeholder="Search by merchant, description, category, tag, or notes…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full pl-10 pr-20 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-shadow shadow-sm"
+            aria-label="Search transactions"
+          />
+          {search ? (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 text-sm"
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          ) : (
+            <kbd className="hidden sm:inline-block absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-gray-400 border border-gray-200 rounded px-1.5 py-0.5 bg-gray-50">
+              ⌘K
+            </kbd>
+          )}
+        </div>
+      </div>
+
       {/* ── Filter + page-size row ──────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-2 mb-4 items-center">
         {['all', 'income', 'expense', 'transfer'].map(f => (
@@ -548,17 +611,6 @@ export default function TransactionsPage() {
           )}
         </button>
         {totalElements > 0 && <span className="text-sm text-gray-500">{totalElements} total</span>}
-        <input
-          id="tx-search"
-          type="text"
-          placeholder="Search transactions..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="ml-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none w-40 sm:w-56"
-        />
-        {search && (
-          <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600 text-sm">✕</button>
-        )}
         <div className="ml-auto flex items-center gap-1.5">
           <span className="text-xs text-gray-500">Show:</span>
           {PAGE_SIZE_OPTIONS.map(n => (
@@ -614,10 +666,61 @@ export default function TransactionsPage() {
           Loading your transactions…
         </div>
       ) : txs.length > 0 ? (
-        <div className="space-y-2">
-          {txs.map(tx => {
-            const presentation = txPresentation(tx);
-            return (
+        // R44 (2026-05-01): group rows by date with a daily-total
+        // header — closes the gap with Monarch's transactions page.
+        // Rows already arrive sorted by timestamp desc from the API,
+        // so a streaming reduce preserves order while bucketing into
+        // [{ key, label, total, rows[] }, ...].
+        (() => {
+          // Build groups in render order. We can't use Map directly
+          // because we need both an insertion-ordered iteration AND
+          // the running daily total — a small array+lookup gives both.
+          type Group = { key: string; label: string; rows: Tx[]; net: number };
+          const groups: Group[] = [];
+          const byKey: Record<string, Group> = {};
+          for (const t of txs) {
+            const d = new Date(t.timestamp);
+            // Use ISO date as the stable bucketing key (independent of
+            // user locale) but render a friendlier label below.
+            const key = d.toISOString().slice(0, 10);
+            let g = byKey[key];
+            if (!g) {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const dCmp = new Date(d);
+              dCmp.setHours(0, 0, 0, 0);
+              const diffDays = Math.round((today.getTime() - dCmp.getTime()) / 86400000);
+              const label = diffDays === 0
+                ? `Today, ${d.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}`
+                : diffDays === 1
+                  ? `Yesterday, ${d.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}`
+                  : d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: today.getFullYear() === d.getFullYear() ? undefined : 'numeric' });
+              g = { key, label, rows: [], net: 0 };
+              groups.push(g);
+              byKey[key] = g;
+            }
+            g.rows.push(t);
+            // Running daily net: income +, expense −, transfer skipped.
+            // Mirrors how Monarch's date-section totals net out for the
+            // user — no double-counting transfer in/out within the day.
+            if (t.type === 'income') g.net += t.amount;
+            else if (t.type === 'expense') g.net -= t.amount;
+          }
+
+          return (
+            <div className="space-y-3">
+              {groups.map((group) => (
+                <div key={group.key}>
+                  <div className="flex items-center justify-between px-2 py-1.5 mb-1">
+                    <h3 className="text-xs uppercase tracking-wide text-gray-500 font-semibold">{group.label}</h3>
+                    <span className={`text-xs tabular-nums font-medium ${group.net > 0 ? 'text-emerald-600' : group.net < 0 ? 'text-rose-600' : 'text-gray-400'}`}>
+                      {group.net === 0 ? '—' : `${group.net > 0 ? '+' : '−'}${fmt(Math.abs(group.net))}`}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {group.rows.map((tx) => {
+                      const presentation = txPresentation(tx);
+                      return (
             <div key={tx.id}
               onClick={selectMode ? () => toggleSelect(tx.id) : () => openEdit(tx)}
               role="button"
@@ -656,6 +759,15 @@ export default function TransactionsPage() {
                         Linked via Plaid
                       </span>
                     )}
+                    {tx.isRecurring && (
+                      // R44 (2026-05-01): "Recurring" pill — visible
+                      // confirmation that this row is in the recurring
+                      // set, mirrors the bills/recurring page styling.
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 inline-flex items-center gap-1">
+                        <RefreshCw className="w-3 h-3" />
+                        Recurring
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-500 capitalize">
                     {tx.category?.replace(/_/g, ' ')} • {new Date(tx.timestamp).toLocaleDateString()}
@@ -688,7 +800,20 @@ export default function TransactionsPage() {
                   // gating), but de-emphasized via opacity until the row is
                   // hovered/focused on desktop. Click stops propagation so
                   // hitting these doesn't ALSO fire the row-level edit.
+                  // (Note: the `group` Tailwind class on the row still
+                  // points at the row itself, not the date-section
+                  // wrapper, because group-hover styles target the
+                  // closest ancestor with `class="group"`.)
                   <div className="flex items-center gap-1 sm:opacity-60 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleToggleRecurring(tx); }}
+                      aria-label={tx.isRecurring ? `Remove recurring on ${tx.description || tx.category}` : `Mark ${tx.description || tx.category} as recurring`}
+                      title={tx.isRecurring ? 'Remove recurring' : 'Mark as recurring'}
+                      className={`p-1.5 rounded-md transition-colors ${tx.isRecurring ? 'text-violet-700 bg-violet-50 hover:bg-violet-100' : 'text-muted-foreground hover:text-violet-700 hover:bg-violet-50'}`}
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </button>
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); openEdit(tx); }}
@@ -711,9 +836,14 @@ export default function TransactionsPage() {
                 )}
               </div>
             </div>
-            );
-          })}
-        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()
       ) : (
         <EmptyState
           illustration="receipt"

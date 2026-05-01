@@ -25,6 +25,7 @@ import TrialBanner from '../../components/TrialBanner';
 import AnnualUpgradeBanner from '../../components/AnnualUpgradeBanner';
 import AnnualUpgradeModal from '../../components/AnnualUpgradeModal';
 import { isSetupComplete } from '../../lib/setup';
+import { useHijriToday } from '../../lib/useHijriToday';
 
 // 'plus' = Plus or Family plan required | 'family' = Family plan only
 // `adminOnly` items render in a separate Admin section that's hidden from
@@ -212,6 +213,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // header and the client fills it in after hydration. We defer the setState
   // with setTimeout(0) to satisfy react-hooks/set-state-in-effect — the codebase
   // uses this same pattern in context/AuthContext.tsx.
+  // R44 (2026-05-01): Hijri date now lives in the shared topbar alongside
+  // the Gregorian date. Founder fix request: "I need '14 Dhul Qadah 1447'
+  // to be up where gregorian date is located." Hooks into the module-
+  // cached useHijriToday so we don't double-fetch alongside dashboard/page.
+  const hijriToday = useHijriToday();
+
   const [headerDate, setHeaderDate] = useState('');
   useEffect(() => {
     let cancelled = false;
@@ -469,7 +476,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </svg>
             </button>
             <div className="flex items-center gap-4">
-              {headerDate && <span className="text-xs text-gray-500 hidden md:block">📅 {headerDate}</span>}
+              {headerDate && (
+                <span className="text-xs text-gray-500 hidden md:flex items-center gap-2">
+                  <span>📅 {headerDate}</span>
+                  {hijriToday?.hijriDate && (
+                    <>
+                      <span aria-hidden="true" className="text-gray-300">·</span>
+                      <span className="text-primary font-medium">🕌 {hijriToday.hijriDate}</span>
+                    </>
+                  )}
+                </span>
+              )}
               {user.isAdmin && (
                 <Link
                   href="/dashboard/admin"

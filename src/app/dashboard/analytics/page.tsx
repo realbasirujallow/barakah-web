@@ -501,40 +501,70 @@ function AnalyticsPageContent() {
             <p className="text-gray-400 text-center py-12">No expenses in this period</p>
           ) : (
             <div className="flex flex-col items-center">
-              <ResponsiveContainer width="100%" height={280}>
+              {/*
+                R44 (2026-05-01): donut labels removed.
+                Founder feedback: "The expense breakdown also has the
+                E under education hidden." Recharts inline pie labels
+                overlap each other on small slices and clip the start
+                of long category names against neighbouring slices.
+                Fix: render the pie WITHOUT inline labels; the legend
+                grid below (which already lists every category with
+                its colour swatch + dollar amount) and the hover
+                tooltip cover the same need without overlap. Matches
+                Monarch / Linear pattern (hover-revealed labels, big
+                legend). Centre of donut now shows the total — gives
+                the at-a-glance number that inline labels were trying
+                to communicate, just without the overlap risk.
+              */}
+              <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
                   <Pie
                     data={expenseData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
+                    innerRadius={70}
                     outerRadius={110}
                     paddingAngle={3}
                     dataKey="value"
-                    label={({ name, percent }) =>
-                      `${formatCategoryLabel(name)} ${((percent ?? 0) * 100).toFixed(0)}%`
-                    }
+                    isAnimationActive={false}
                   >
                     {expenseData.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => fmt(Number(value))} />
+                  <Tooltip
+                    formatter={(value, name) => [fmt(Number(value)), formatCategoryLabel(String(name))]}
+                  />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex flex-wrap gap-2 mt-2 justify-center">
-                {expenseData.map((d, i) => (
-                  <span
-                    key={d.name}
-                    className="flex items-center gap-1.5 text-xs text-gray-600"
-                  >
-                    <span
-                      className="w-3 h-3 rounded-full inline-block"
-                      style={{ backgroundColor: COLORS[i % COLORS.length] }}
-                    />
-                    {formatCategoryLabel(d.name)}: {fmt(d.value)}
-                  </span>
-                ))}
+              <div className="-mt-[150px] mb-[110px] text-center pointer-events-none">
+                <p className="text-xs uppercase tracking-wide text-gray-400">Total</p>
+                <p className="text-xl font-bold text-gray-900 tabular-nums">
+                  {fmt(expenseData.reduce((s, d) => s + d.value, 0))}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2 w-full">
+                {expenseData.map((d, i) => {
+                  const total = expenseData.reduce((s, x) => s + x.value, 0);
+                  const pct = total > 0 ? (d.value / total) * 100 : 0;
+                  return (
+                    <div
+                      key={d.name}
+                      className="flex items-center justify-between gap-2 text-xs text-gray-700 min-w-0"
+                    >
+                      <span className="flex items-center gap-1.5 min-w-0 flex-1">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
+                          style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                        />
+                        <span className="truncate">{formatCategoryLabel(d.name)}</span>
+                      </span>
+                      <span className="text-gray-500 tabular-nums flex-shrink-0">
+                        {pct.toFixed(0)}% · {fmt(d.value)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -547,40 +577,55 @@ function AnalyticsPageContent() {
             <p className="text-gray-400 text-center py-12">No income in this period</p>
           ) : (
             <div className="flex flex-col items-center">
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
                   <Pie
                     data={incomeData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
+                    innerRadius={70}
                     outerRadius={110}
                     paddingAngle={3}
                     dataKey="value"
-                    label={({ name, percent }) =>
-                      `${formatCategoryLabel(name)} ${((percent ?? 0) * 100).toFixed(0)}%`
-                    }
+                    isAnimationActive={false}
                   >
                     {incomeData.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => fmt(Number(value))} />
+                  <Tooltip
+                    formatter={(value, name) => [fmt(Number(value)), formatCategoryLabel(String(name))]}
+                  />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex flex-wrap gap-2 mt-2 justify-center">
-                {incomeData.map((d, i) => (
-                  <span
-                    key={d.name}
-                    className="flex items-center gap-1.5 text-xs text-gray-600"
-                  >
-                    <span
-                      className="w-3 h-3 rounded-full inline-block"
-                      style={{ backgroundColor: COLORS[i % COLORS.length] }}
-                    />
-                    {formatCategoryLabel(d.name)}: {fmt(d.value)}
-                  </span>
-                ))}
+              <div className="-mt-[150px] mb-[110px] text-center pointer-events-none">
+                <p className="text-xs uppercase tracking-wide text-gray-400">Total</p>
+                <p className="text-xl font-bold text-gray-900 tabular-nums">
+                  {fmt(incomeData.reduce((s, d) => s + d.value, 0))}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2 w-full">
+                {incomeData.map((d, i) => {
+                  const total = incomeData.reduce((s, x) => s + x.value, 0);
+                  const pct = total > 0 ? (d.value / total) * 100 : 0;
+                  return (
+                    <div
+                      key={d.name}
+                      className="flex items-center justify-between gap-2 text-xs text-gray-700 min-w-0"
+                    >
+                      <span className="flex items-center gap-1.5 min-w-0 flex-1">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
+                          style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                        />
+                        <span className="truncate">{formatCategoryLabel(d.name)}</span>
+                      </span>
+                      <span className="text-gray-500 tabular-nums flex-shrink-0">
+                        {pct.toFixed(0)}% · {fmt(d.value)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

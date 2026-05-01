@@ -430,20 +430,20 @@ export default function DashboardPage() {
             R37 (2026-04-30): Founder feedback "on dashboard page,
             gregorian date of above, islamic date should be up there
             too." Make the Islamic date a first-class label alongside
-            the Gregorian instead of an em-dash afterthought, with a
-            distinct styling so it reads as two equally important
-            references.
+            the Gregorian instead of an em-dash afterthought.
+            R44 (2026-05-01): both dates lifted to the shared topbar
+            (visible on every dashboard subpage, not just /dashboard
+            home). The greeting subtitle is now purely the Gregorian
+            day label so it doesn't duplicate the topbar. Mobile
+            users (where the topbar dates are hidden via md:flex)
+            still see the date here on /dashboard root.
           */}
-          <p className="text-sm text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span>
-              {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
-            </span>
+          <p className="text-sm text-muted-foreground mt-1 md:hidden">
+            {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
             {hijri?.hijriDate && (
               <>
-                <span aria-hidden="true" className="text-gray-300">·</span>
-                <span className="text-primary font-medium">
-                  🕌 {hijri.hijriDate}
-                </span>
+                <span aria-hidden="true" className="text-gray-300 mx-2">·</span>
+                <span className="text-primary font-medium">🕌 {hijri.hijriDate}</span>
               </>
             )}
           </p>
@@ -464,13 +464,22 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Referral Banner (dismissible, shows until first successful referral) ── */}
+      {/* ── Referral Banner (dismissible, shows until first successful referral) ──
+          R44 (2026-05-01): rewritten to lead with the referrer's actual,
+          verifiable benefit ("free extra month") instead of the
+          referee's "$4.99 first month" framing. The old copy was
+          misleading because every new account already gets a free
+          trial month — claiming the friend "gets first month for
+          $4.99" sounded like upfront payment, when in fact $4.99 is
+          a 50% discount on their FIRST PAID month after the trial.
+          Founder feedback: "this is fake since everyone gets 1 month
+          free of family plan." Closing the dishonesty gap. */}
       {!referralBannerDismissed && !showReferralPrompt && (
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-lg">🤝</span>
             <p className="text-sm text-green-800 font-medium">
-              Invite family to Barakah — they get <strong>first month for $4.99</strong>, you get a free month
+              Earn a <strong>free extra month</strong> for every friend who joins Barakah.
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -488,52 +497,36 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Islamic Calendar + Zakat Reminders (compact row above grid) ────── */}
+      {/* ── Islamic Calendar + Zakat Reminders (compact row above grid) ──────
+          R44 (2026-05-01): the Hijri date itself moved to the shared
+          topbar (see dashboard/layout.tsx + useHijriToday). The card
+          here now leads with UPCOMING Islamic events (Eid, Ramadan,
+          Ashura, Mawlid…) since that's the actually-actionable info
+          — knowing today's Hijri date is "what is it now" but
+          upcoming events are "what should I plan for." If no events
+          are upcoming, the card hides entirely (Hawl card may still
+          render as the second slot). */}
       <div className="grid md:grid-cols-2 gap-4 mb-4">
-        {hijri && (
+        {hijri && hijri.upcomingEvents.length > 0 && (
           <div className="bg-card rounded-xl p-4 border border-border">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide">Islamic Date</p>
-                <p className="text-base font-bold text-primary">{hijri.hijriDate}</p>
-              </div>
-              {hijri.upcomingEvents.length > 0 && (
-                <div className="text-right">
-                  {/*
-                    R37 (2026-04-30): show the Gregorian date the
-                    countdown lands on, not just "8d". Founder
-                    feedback: "count down only shows days left, but
-                    would be nice to know what day that would fall on
-                    in the gregorian calendar to avoid users having to
-                    pull calendar and manually count." We use the
-                    `approximateGregorianDate` already in the API
-                    payload — falling back to client-side day arithmetic
-                    when not provided.
-                  */}
-                  {hijri.upcomingEvents.slice(0, 2).map((e, i) => {
-                    // Compute fallback Gregorian date if the backend didn't supply one.
-                    let gregLabel = e.approximateGregorianDate;
-                    if (!gregLabel && typeof e.daysAway === 'number') {
-                      const d = new Date();
-                      d.setDate(d.getDate() + e.daysAway);
-                      gregLabel = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-                    }
-                    return (
-                      <p key={i} className="text-xs text-gray-500 leading-tight">
-                        <span className="font-medium text-gray-700">{e.name}</span>
-                        {' · '}
-                        <span className="text-gray-500">{e.daysAway}d</span>
-                        {gregLabel && (
-                          <>
-                            {' · '}
-                            <span className="text-gray-400">~ {gregLabel}</span>
-                          </>
-                        )}
-                      </p>
-                    );
-                  })}
-                </div>
-              )}
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Upcoming Islamic Events</p>
+            <div className="space-y-1.5">
+              {hijri.upcomingEvents.slice(0, 3).map((e, i) => {
+                let gregLabel = e.approximateGregorianDate;
+                if (!gregLabel && typeof e.daysAway === 'number') {
+                  const d = new Date();
+                  d.setDate(d.getDate() + e.daysAway);
+                  gregLabel = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                }
+                return (
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-800">{e.name}</span>
+                    <span className="text-gray-500 tabular-nums">
+                      {e.daysAway}d{gregLabel ? <span className="text-gray-400"> · {gregLabel}</span> : null}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
