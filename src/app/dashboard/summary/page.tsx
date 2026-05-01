@@ -23,6 +23,27 @@ interface MonthlyPoint {
   net: number;
 }
 
+interface MonthlyDetailSource {
+  category: string;
+  account: string;
+  sample: string;
+  institution: string;
+  amount: number;
+  count: number;
+}
+
+interface MonthlyDetailBucket {
+  total: number;
+  byCategory: Record<string, number>;
+  bySource: MonthlyDetailSource[];
+}
+
+interface MonthlyDetail {
+  month: string;
+  income: MonthlyDetailBucket;
+  expenses: MonthlyDetailBucket;
+}
+
 interface PeriodSummary {
   period: string;
   totalIncome: number;
@@ -97,6 +118,172 @@ function generateText(summary: PeriodSummary, months: MonthlyPoint[], period: st
   return text;
 }
 
+/**
+ * Drill-down sheet shown when the user clicks a bar in the income/expenses
+ * chart. Calls /api/transactions/monthly-detail and renders income broken
+ * down by source account + category (paycheck vs rental vs business etc),
+ * plus the matching expense breakdown.
+ *
+ * Phase 24c (2026-04-30): addresses the founder's feedback "when we click
+ * on a month, it doesnt break it down as this was income from paycheck
+ * from this account, this was business or rental income etc."
+ */
+function MonthDetailSheet({
+  month,
+  monthLabel,
+  onClose,
+  fmt,
+}: {
+  month: string;
+  monthLabel: string;
+  onClose: () => void;
+  fmt: (n: number) => string;
+}) {
+  const [detail, setDetail] = useState<MonthlyDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await api.getMonthlyDetail(month);
+        if (!cancelled) {
+          if ((result as { error?: string })?.error) {
+            setError((result as { error: string }).error);
+          } else {
+            setDetail(result as MonthlyDetail);
+          }
+        }
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load month detail');
+      }
+      if (!cancelled) setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [month]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="month-detail-title"
+    >
+      <div
+        className="w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl animate-in slide-in-from-bottom-4 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex justify-between items-start">
+          <div>
+            <h3 id="month-detail-title" className="font-semibold text-gray-900 text-lg">{monthLabel}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Income broken down by source account &middot; click any bar to dig in</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition rounded-full p-1 hover:bg-gray-100"
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        {loading && (
+          <div className="p-8 text-center text-gray-500 text-sm">Loading {monthLabel} detail…</div>
+        )}
+        {error && (
+          <div className="p-8 text-center text-red-600 text-sm">{error}</div>
+        )}
+        {!loading && !error && detail && (
+          <div className="p-5 space-y-6">
+            {/* Income section */}
+            <section>
+              <div className="flex justify-between items-baseline mb-3">
+                <h4 className="font-semibold text-green-700 text-base">Income</h4>
+                <span className="font-bold text-green-700 text-lg">{fmt(detail.income.total)}</span>
+              </div>
+              {detail.income.bySource.length === 0 ? (
+                <p className="text-gray-400 text-sm py-3 text-center bg-gray-50 rounded-lg">No income recorded for this month.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {detail.income.bySource.map((src, idx) => (
+                    <li key={`${src.category}|${src.account}|${idx}`} className="flex justify-between items-start gap-3 p-3 rounded-lg bg-gradient-to-br from-green-50 to-white border border-green-100">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-base">{CAT_ICONS[src.category] ?? '💰'}</span>
+                          <span className="text-sm font-semibold text-gray-900 capitalize">{src.category.replace(/_/g, ' ')}</span>
+                          <span className="text-xs text-gray-400">&middot; {src.count} txn{src.count === 1 ? '' : 's'}</span>
+                        </div>
+                        <p className="text-xs text-gray-600 truncate">
+                          From <span className="font-medium text-gray-800">{src.account}</span>
+                          {src.institution && <span className="text-gray-400"> &middot; {src.institution}</span>}
+                        </p>
+                        {src.sample && src.sample !== src.category && (
+                          <p className="text-xs text-gray-500 truncate mt-0.5">e.g. {src.sample}</p>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-bold text-green-700 whitespace-nowrap">{fmt(src.amount)}</p>
+                        <p className="text-xs text-gray-400">
+                          {detail.income.total > 0
+                            ? ((src.amount / detail.income.total) * 100).toFixed(0)
+                            : '0'}% of income
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            {/* Expenses section */}
+            <section>
+              <div className="flex justify-between items-baseline mb-3">
+                <h4 className="font-semibold text-red-700 text-base">Expenses</h4>
+                <span className="font-bold text-red-700 text-lg">{fmt(detail.expenses.total)}</span>
+              </div>
+              {detail.expenses.bySource.length === 0 ? (
+                <p className="text-gray-400 text-sm py-3 text-center bg-gray-50 rounded-lg">No expenses recorded for this month.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {detail.expenses.bySource.slice(0, 12).map((src, idx) => (
+                    <li key={`${src.category}|${src.account}|${idx}`} className="flex justify-between items-start gap-3 p-3 rounded-lg bg-gradient-to-br from-red-50 to-white border border-red-100">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-base">{CAT_ICONS[src.category] ?? '📋'}</span>
+                          <span className="text-sm font-semibold text-gray-900 capitalize">{src.category.replace(/_/g, ' ')}</span>
+                          <span className="text-xs text-gray-400">&middot; {src.count} txn{src.count === 1 ? '' : 's'}</span>
+                        </div>
+                        <p className="text-xs text-gray-600 truncate">
+                          From <span className="font-medium text-gray-800">{src.account}</span>
+                        </p>
+                      </div>
+                      <p className="text-sm font-bold text-red-700 whitespace-nowrap">{fmt(src.amount)}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            {/* Net summary */}
+            <div className={`rounded-xl p-4 text-center ${
+              detail.income.total - detail.expenses.total >= 0
+                ? 'bg-gradient-to-br from-green-100 to-emerald-50 text-green-900'
+                : 'bg-gradient-to-br from-orange-100 to-amber-50 text-orange-900'
+            }`}>
+              <p className="text-xs uppercase tracking-wide opacity-80">Net for {monthLabel}</p>
+              <p className="text-2xl font-bold mt-1">{fmt(detail.income.total - detail.expenses.total)}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function SummaryPage() {
   const { fmt, symbol } = useCurrency();
   const [period, setPeriod]         = useState<'month' | 'year'>('month');
@@ -106,6 +293,11 @@ export default function SummaryPage() {
   const [loading, setLoading]       = useState(true);
   const [copied, setCopied]         = useState(false);
   const { toast } = useToast();
+
+  // Phase 24c (2026-04-30): clicking a chart bar opens a per-month
+  // drill-down sheet. Hook must come BEFORE the loading/!summary
+  // early returns to satisfy Rules of Hooks (always-same-order).
+  const [detailMonth, setDetailMonth] = useState<{ key: string; label: string } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -169,7 +361,31 @@ export default function SummaryPage() {
     : '0.0';
   const momPct = capPctValue(momPctRaw);
 
-  const chartData = monthly.map(d => ({ label: fmtMonth(d.month), income: d.income, expenses: d.expenses, net: d.net }));
+  const chartData = monthly.map(d => ({
+    label: fmtMonth(d.month),
+    income: d.income,
+    expenses: d.expenses,
+    net: d.net,
+    monthKey: d.month, // YYYY-MM passed through to the click handler
+  }));
+
+  // Phase 24c (2026-04-30): when the user clicks a chart bar, open
+  // the per-month drill-down sheet showing income broken down by
+  // source account + category. The founder's explicit request:
+  // "when we click on a month, it doesnt break it down as this was
+  // income from paycheck from this account, this was business or
+  // rental income etc." setDetailMonth is hoisted to the top of the
+  // component so Rules of Hooks is satisfied across loading branches.
+  // Recharts' MouseHandlerDataParam type is loose by design (payload shape
+  // varies per chart); we type-narrow the part we own. activePayload is
+  // populated when the click lands on a bar, not the chart background.
+  const handleChartClick = (state: unknown) => {
+    const data = state as { activePayload?: Array<{ payload?: { monthKey?: string; label?: string } }> } | null;
+    const point = data?.activePayload?.[0]?.payload;
+    if (point?.monthKey) {
+      setDetailMonth({ key: point.monthKey, label: point.label || point.monthKey });
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -252,19 +468,53 @@ export default function SummaryPage() {
       {/* Trend chart */}
       {chartData.length > 0 && (
         <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
-          <h2 className="font-semibold text-primary mb-4">Income vs Expenses — Last {months} Months</h2>
+          <div className="flex justify-between items-baseline mb-4">
+            <h2 className="font-semibold text-primary">Income vs Expenses — Last {months} Months</h2>
+            <span className="text-xs text-gray-400 hidden sm:inline">Click a month for source breakdown</span>
+          </div>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={chartData} margin={{ top: 0, right: 0, left: -10, bottom: 0 }}>
+            <BarChart
+              data={chartData}
+              margin={{ top: 0, right: 0, left: -10, bottom: 0 }}
+              onClick={handleChartClick}
+              style={{ cursor: 'pointer' }}
+            >
+              <defs>
+                {/* Phase 24d (2026-04-30): gradient fills + rounded tops on the
+                    Recharts bars give a Monarch-tier look without bringing in
+                    a custom chart library. Gradient stops on the same hue keep
+                    the visual identity (deep green income / red expenses)
+                    while adding depth so the dashboard reads as a product not
+                    a spreadsheet. */}
+                <linearGradient id="incomeFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"  stopColor="#22C55E" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="#1B5E20" stopOpacity={0.95} />
+                </linearGradient>
+                <linearGradient id="expenseFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"  stopColor="#F87171" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="#B91C1C" stopOpacity={0.95} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="label" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} tickFormatter={v => symbol + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v)} />
-              <Tooltip formatter={(value) => fmt(Number(value))} />
+              <Tooltip formatter={(value) => fmt(Number(value))} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="income"   name="Income"   fill="#1B5E20" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="expenses" name="Expenses" fill="#EF4444" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="income"   name="Income"   fill="url(#incomeFill)"  radius={[6, 6, 0, 0]} />
+              <Bar dataKey="expenses" name="Expenses" fill="url(#expenseFill)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+          <p className="text-xs text-gray-400 mt-2 sm:hidden">Tap a month for source breakdown</p>
         </div>
+      )}
+
+      {detailMonth && (
+        <MonthDetailSheet
+          month={detailMonth.key}
+          monthLabel={detailMonth.label}
+          onClose={() => setDetailMonth(null)}
+          fmt={fmt}
+        />
       )}
 
       {/* Top spending categories */}

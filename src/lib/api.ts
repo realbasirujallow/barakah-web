@@ -1031,6 +1031,16 @@ export const api = {
   getMonthlySummary: (months: number = 13) =>
     apiFetch(`/api/transactions/monthly-summary?months=${months}`),
 
+  /**
+   * Per-month breakdown of income and expenses, grouped by category AND
+   * by source account. Used by the summary-chart drill-down sheet
+   * (Phase 24c, 2026-04-30).
+   *
+   * @param month YYYY-MM, e.g. "2026-04" — backend rejects other formats.
+   */
+  getMonthlyDetail: (month: string) =>
+    apiFetch(`/api/transactions/monthly-detail?month=${encodeURIComponent(month)}`),
+
   // Multi-currency
   getCurrencyRates: () => apiFetch('/api/currency/rates'),
   convertCurrency: (from: string, to: string, amount: number) => {
