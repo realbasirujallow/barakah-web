@@ -5,6 +5,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { CategoryIcon } from '../../../lib/categoryIcon';
 
 interface RecurringTx {
   id: number;
@@ -18,12 +19,10 @@ interface RecurringTx {
   frequency?: string;
 }
 
-const CAT_ICONS: Record<string, string> = {
-  food: '🍽️', transportation: '🚗', shopping: '🛒', utilities: '💡',
-  housing: '🏠', healthcare: '🏥', education: '📚', entertainment: '🎬',
-  subscription: '📱', charity: '🤲', income: '💰', investment: '📈',
-  transfer: '💸', interest: '⚠️', other: '📋',
-};
+// Phase 24f (2026-04-30): emoji map removed in favour of the
+// centralized <CategoryIcon /> Lucide component (lib/categoryIcon.tsx).
+// Cross-platform consistent rendering, brand-coloured icons per category,
+// no duplication across the recurring/notifications/summary/etc pages.
 
 function formatDate(epoch: number) {
   const ms = epoch < 1e12 ? epoch * 1000 : epoch;
@@ -39,11 +38,12 @@ interface TxRowProps {
   onToggle: (id: number) => void;
 }
 function TxRow({ tx, fmt, toggling, onToggle }: TxRowProps) {
-  const catIcon = CAT_ICONS[tx.category] ?? '📋';
   return (
     <div className={`flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 ${!tx.recurringActive ? 'opacity-50' : ''}`}>
       <div className="flex items-center gap-3">
-        <span className="text-2xl">{catIcon}</span>
+        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+          <CategoryIcon category={tx.category} className="w-5 h-5" />
+        </div>
         <div>
           <p className="font-medium text-gray-900 text-sm">{tx.description || 'No description'}</p>
           <p className="text-xs text-gray-500 capitalize">
