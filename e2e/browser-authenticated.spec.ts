@@ -193,9 +193,12 @@ test.describe('Browser Authenticated Flows', () => {
 
   test('hawl tracker loads', async () => {
     await page.goto(`${BASE}/dashboard/hawl`);
-    // "Hawl Tracker" also matches the sidebar nav link — pick the first
-    // (the page heading renders before the sidebar in DOM order).
-    await expect(page.locator('text=/Hawl Tracker/i').first()).toBeVisible({ timeout: 10000 });
+    // Phase 14 (2026-04-29) renamed the page heading from "Hawl Tracker"
+    // to the plain-language "Zakat Anniversary" to match the Phase 10
+    // sidebar label rename. The technical term "Hawl" still appears
+    // further down in the explanatory text, so we assert against the
+    // visible Phase-14 heading + the educational subhead.
+    await expect(page.locator('text=/Zakat Anniversary/i').first()).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=/Islamic Guidance on Hawl/i').first()).toBeVisible({ timeout: 10000 });
   });
 
