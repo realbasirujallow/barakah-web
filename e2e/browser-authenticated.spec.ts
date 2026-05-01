@@ -92,10 +92,16 @@ test.describe('Browser Authenticated Flows', () => {
 
   test('dashboard shows Islamic date', async () => {
     await page.goto(`${BASE}/dashboard`);
-    // Anchor on the static "Islamic Date" label instead of a regex against the
-    // formatted date — the date string format can vary by locale and Playwright's
-    // text=/regex/ matching is finicky with mixed whitespace text nodes.
-    await expect(page.getByText('Islamic Date', { exact: true })).toBeVisible({ timeout: 10000 });
+    // R44 (2026-05-01): the standalone "Islamic Date" card was removed
+    // and the Hijri date was lifted into the shared dashboard topbar
+    // alongside the Gregorian date (visible on EVERY dashboard subpage,
+    // not just /dashboard root). The matching subtitle copy on
+    // /dashboard ("🕌 NN <month> 1447") is hidden at md+ viewports
+    // because the topbar already shows it. Anchor the test on the
+    // mosque emoji + a Hijri month name token, which is robust against
+    // both the topbar form and the mobile-only subtitle form.
+    const hijriCue = page.locator('text=/(Muharram|Safar|Rabi|Jumada|Rajab|Shaban|Ramadan|Shawwal|Dhul Qadah|Dhul Hijjah|Dhul-Qadah|Dhul-Hijjah)/i').first();
+    await expect(hijriCue).toBeVisible({ timeout: 10000 });
   });
 
   test('session persists after page reload', async () => {
