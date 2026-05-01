@@ -24,9 +24,11 @@
  */
 
 import * as React from 'react';
+import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { CategoryIcon } from '../../../lib/categoryIcon';
 import {
   BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid,
 } from 'recharts';
@@ -38,6 +40,24 @@ interface MonthRow {
   sadaqahZakat: number;
   savings: number;
 }
+
+interface BreakdownRow {
+  key: string;
+  label: string;
+  amount: number;
+  pct: number;
+}
+
+interface BreakdownResponse {
+  month: string;
+  dimension: 'category' | 'merchant';
+  totals: { income: number; expenses: number; sadaqahZakat: number; savings: number };
+  income: BreakdownRow[];
+  expenses: BreakdownRow[];
+  sadaqahZakat: BreakdownRow[];
+}
+
+type Dimension = 'category' | 'merchant';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -64,6 +84,12 @@ export default function CashFlowPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
+  // PR 4 (2026-05-01): per-month breakdown + dimension toggle
+  // (Category / Merchant). Re-fetches when month or dimension changes.
+  const [dimension, setDimension] = React.useState<Dimension>('category');
+  const [breakdown, setBreakdown] = React.useState<BreakdownResponse | null>(null);
+  const [breakdownLoading, setBreakdownLoading] = React.useState(false);
+
   React.useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -84,6 +110,29 @@ export default function CashFlowPage() {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // Re-fetch breakdown whenever month or dimension changes.
+  React.useEffect(() => {
+    if (!selectedMonth) {
+      setBreakdown(null);
+      return;
+    }
+    let cancelled = false;
+    setBreakdownLoading(true);
+    (async () => {
+      try {
+        const result = await api.getCashflowBreakdown(selectedMonth, dimension);
+        if (!cancelled) setBreakdown(result as BreakdownResponse);
+      } catch {
+        // Don't error the whole page on a breakdown failure — chart + strip
+        // already rendered from the months call. Just blank the lists.
+        if (!cancelled) setBreakdown(null);
+      } finally {
+        if (!cancelled) setBreakdownLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selectedMonth, dimension]);
 
   const selected = months.find(m => m.month === selectedMonth);
 
@@ -251,19 +300,179 @@ export default function CashFlowPage() {
         </div>
       )}
 
-      {/* Breakdown placeholder (PR 4) */}
+      {/* Breakdown (PR 4 — Income / Expenses / Sadaqah-Zakat) */}
       {!loading && !error && months.length > 0 && (
-        <div className="bg-card rounded-2xl p-8 border border-dashed border-border text-center">
-          <p className="text-3xl mb-2">📊</p>
-          <p className="text-sm font-semibold text-foreground mb-1">
-            Category &amp; merchant breakdown coming next release
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Tap a month bar above for now to update the stat strip. PR 4 adds Income / Expenses /
-            Sadaqah-Zakat lists with Category &amp; Merchant lenses below this.
-          </p>
+        <div className="bg-card rounded-2xl p-5 border border-border">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+              Breakdown · {selected ? monthLong(selected.month) : ''}
+            </p>
+            {/* Dimension toggle (Category / Merchant). v1 skips Group
+                per spec — Category + Merchant covers the 90% case
+                without forcing a category-grouping decision. */}
+            <div className="inline-flex rounded-lg border border-border overflow-hidden text-sm">
+              <button
+                type="button"
+                onClick={() => setDimension('category')}
+                className={`px-3 py-1.5 transition-colors ${dimension === 'category' ? 'bg-primary text-primary-foreground font-semibold' : 'bg-card text-muted-foreground hover:bg-muted/40'}`}
+              >
+                Category
+              </button>
+              <button
+                type="button"
+                onClick={() => setDimension('merchant')}
+                className={`px-3 py-1.5 transition-colors ${dimension === 'merchant' ? 'bg-primary text-primary-foreground font-semibold' : 'bg-card text-muted-foreground hover:bg-muted/40'}`}
+              >
+                Merchant
+              </button>
+            </div>
+          </div>
+
+          {breakdownLoading && !breakdown && (
+            <div className="text-center py-8 text-sm text-muted-foreground">
+              Loading breakdown…
+            </div>
+          )}
+
+          {breakdown && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              <BreakdownSection
+                title="Income"
+                tone="income"
+                rows={breakdown.income}
+                total={breakdown.totals.income}
+                fmt={fmt}
+                month={selectedMonth}
+                dimension={dimension}
+              />
+              <BreakdownSection
+                title="Expenses"
+                tone="expense"
+                rows={breakdown.expenses}
+                total={breakdown.totals.expenses}
+                fmt={fmt}
+                month={selectedMonth}
+                dimension={dimension}
+              />
+              <BreakdownSection
+                title="Sadaqah / Zakat given"
+                tone="sadaqah"
+                rows={breakdown.sadaqahZakat}
+                total={breakdown.totals.sadaqahZakat}
+                fmt={fmt}
+                month={selectedMonth}
+                dimension={dimension}
+              />
+            </div>
+          )}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * One of the three breakdown sections (Income / Expenses / Sadaqah-Zakat).
+ * Renders rows with a colored bar segment on the left sized proportional
+ * to the row's amount vs. the section's total — matches Monarch's
+ * visual heatmap pattern.
+ *
+ * Each row links to /dashboard/transactions pre-filtered by the row's
+ * key (category name or merchant name) — uses the existing ?category=
+ * URL-param hook on the transactions page (R30 wiring).
+ */
+function BreakdownSection({
+  title,
+  tone,
+  rows,
+  total,
+  fmt,
+  month,
+  dimension,
+}: {
+  title: string;
+  tone: 'income' | 'expense' | 'sadaqah';
+  rows: BreakdownRow[];
+  total: number;
+  fmt: (n: number) => string;
+  month: string;
+  dimension: Dimension;
+}) {
+  const barColor =
+    tone === 'income' ? 'bg-emerald-100 dark:bg-emerald-900/30' :
+    tone === 'expense' ? 'bg-rose-100 dark:bg-rose-900/30' :
+    'bg-amber-100 dark:bg-amber-900/30';
+  const amountColor =
+    tone === 'income' ? 'text-emerald-700 dark:text-emerald-400' :
+    tone === 'expense' ? 'text-rose-700 dark:text-rose-400' :
+    'text-amber-700 dark:text-amber-400';
+
+  if (rows.length === 0) {
+    return (
+      <div>
+        <p className="text-sm font-semibold text-foreground mb-2">{title}</p>
+        <p className="text-xs text-muted-foreground italic py-3">
+          No {tone === 'sadaqah' ? 'charity given' : tone} this month.
+        </p>
+      </div>
+    );
+  }
+
+  // For row bar widths — relative to the LARGEST row in this section, not
+  // to the section total. This makes the largest row bar = 100% width,
+  // every other row bar < 100%. Matches Monarch's visual style.
+  const maxAmount = Math.max(...rows.map(r => r.amount));
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className={`text-sm font-bold tabular-nums ${amountColor}`}>{fmt(total)}</p>
+      </div>
+      <ul className="space-y-1.5">
+        {rows.map((row) => {
+          const widthPct = maxAmount > 0 ? (row.amount / maxAmount) * 100 : 0;
+          // Drill-down: pre-filter the transactions page by category or
+          // merchant. The ?category=X URL param is honoured by the
+          // transactions page (R30) — pre-fills the search box for
+          // text-match. Same param works for merchant since it's a
+          // free-form text match. Adding ?month=YYYY-MM is a follow-up
+          // (transactions page doesn't yet honour it but the param is
+          // a no-op when ignored).
+          const href = `/dashboard/transactions?category=${encodeURIComponent(row.key)}&month=${encodeURIComponent(month)}`;
+          return (
+            <li key={row.key}>
+              <Link
+                href={href}
+                className="relative block rounded-md hover:bg-muted/40 transition-colors px-2 py-1.5 group"
+                title={`View ${dimension === 'merchant' ? 'transactions for' : 'category'} "${row.label}" in ${month}`}
+              >
+                {/* Background bar — size proportional to amount */}
+                <span
+                  className={`absolute inset-y-1 left-0 rounded ${barColor} pointer-events-none transition-all`}
+                  style={{ width: `${widthPct}%` }}
+                  aria-hidden="true"
+                />
+                <span className="relative flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2 min-w-0">
+                    {dimension === 'category' ? (
+                      <CategoryIcon category={row.key} className="w-4 h-4 flex-shrink-0" />
+                    ) : (
+                      <span className="text-base flex-shrink-0" aria-hidden="true">🏷️</span>
+                    )}
+                    <span className="text-sm text-foreground truncate capitalize">
+                      {row.label.replace(/_/g, ' ')}
+                    </span>
+                  </span>
+                  <span className="text-xs tabular-nums text-muted-foreground flex-shrink-0">
+                    {fmt(row.amount)} · {row.pct.toFixed(1)}%
+                  </span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
