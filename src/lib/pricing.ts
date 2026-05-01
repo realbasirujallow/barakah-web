@@ -138,5 +138,5 @@ export const COMPETITOR_COMPARISON = [
   { feature: 'Household/family plan',  barakah: true,  monarch: true,  ynab: false, zoya: false, copilot: false },
   { feature: 'Prayer times',           barakah: true,  monarch: false, ynab: false, zoya: false, copilot: false },
   { feature: 'Ramadan Mode',           barakah: true,  monarch: false, ynab: false, zoya: false, copilot: false },
-  { feature: 'Urdu & Arabic support',  barakah: true,  monarch: false, ynab: false, zoya: false, copilot: false },
+  { feature: 'Arabic, Urdu & French support', barakah: true, monarch: false, ynab: false, zoya: false, copilot: false },
 ] as const;

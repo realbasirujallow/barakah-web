@@ -3,6 +3,8 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
+import { useI18n } from '../lib/i18n';
+import LanguageSwitcher from './LanguageSwitcher';
 
 /**
  * Marketing-page top navigation.
@@ -22,14 +24,15 @@ import { Menu, X } from 'lucide-react';
  * — keeps the marketing pages from feeling app-like).
  */
 
-const NAV_ITEMS: Array<{ label: string; href: string }> = [
-  { label: 'Pricing', href: '/pricing' },
-  { label: 'Compare', href: '/compare' },
-  { label: 'Learn', href: '/learn' },
-  { label: 'Methodology', href: '/methodology' },
+const NAV_ITEMS: Array<{ key: 'navPricing' | 'navCompare' | 'navLearn' | 'navMethodology'; href: string }> = [
+  { key: 'navPricing', href: '/pricing' },
+  { key: 'navCompare', href: '/compare' },
+  { key: 'navLearn', href: '/learn' },
+  { key: 'navMethodology', href: '/methodology' },
 ];
 
 export function MarketingNav() {
+  const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -54,24 +57,25 @@ export function MarketingNav() {
               href={item.href}
               className="hover:text-[#1B5E20] transition"
             >
-              {item.label}
+              {t(item.key)}
             </Link>
           ))}
         </nav>
 
-        {/* Sign-in + Start free — desktop right side */}
+        {/* Language + Sign-in + Start free — desktop right side */}
         <div className="hidden md:flex items-center gap-3">
+          <LanguageSwitcher compact />
           <Link
             href="/login"
             className="text-sm font-medium text-gray-700 hover:text-[#1B5E20] transition"
           >
-            Sign in
+            {t('navSignIn')}
           </Link>
           <Link
             href="/signup"
             className="text-sm font-semibold bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] transition"
           >
-            Start free
+            {t('navGetStarted')}
           </Link>
         </div>
 
@@ -98,23 +102,26 @@ export function MarketingNav() {
                 className="px-3 py-2.5 rounded-lg text-gray-800 hover:bg-gray-50 transition"
                 onClick={() => setOpen(false)}
               >
-                {item.label}
+                {t(item.key)}
               </Link>
             ))}
             <div className="border-t border-gray-100 mt-2 pt-3 flex flex-col gap-2">
+              <div className="px-3 py-1.5">
+                <LanguageSwitcher compact />
+              </div>
               <Link
                 href="/login"
                 className="px-3 py-2.5 rounded-lg text-gray-800 hover:bg-gray-50 transition"
                 onClick={() => setOpen(false)}
               >
-                Sign in
+                {t('navSignIn')}
               </Link>
               <Link
                 href="/signup"
                 className="px-3 py-2.5 rounded-lg bg-[#1B5E20] text-white text-center font-semibold hover:bg-[#2E7D32] transition"
                 onClick={() => setOpen(false)}
               >
-                Start free
+                {t('navGetStarted')}
               </Link>
             </div>
           </nav>

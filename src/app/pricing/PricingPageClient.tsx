@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import LanguageSwitcher from '../../components/LanguageSwitcher';
+import { MarketingNav } from '../../components/MarketingNav';
 import { COMPETITOR_COMPARISON } from '../../lib/pricing';
 import { useI18n } from '../../lib/i18n';
 import PricingToggle from './PricingToggle';
@@ -20,22 +20,15 @@ export default function PricingPageClient() {
   return (
     <article className="min-h-screen bg-gray-50">
       {/*
-        2026-05-01: visible "Home / Pricing" breadcrumb removed. The new
-        global top nav (MarketingNav, PR #74) already shows the user
-        where they are — duplicating that with a small grey breadcrumb
-        row underneath read as visual noise (founder feedback: "visually
-        it looks weird"). The page <h1>Pricing</h1> below provides
-        unambiguous wayfinding.
-
-        LanguageSwitcher kept here, right-aligned in a thin row so
-        non-English users still have a one-click locale toggle without
-        digging into Settings. (Eventually move into MarketingNav.)
+        2026-05-01: full MarketingNav (logo + nav links + language
+        switcher + Sign in + Start free) replaces the prior thin
+        breadcrumb row. Founder feedback: "i dont have a way to go
+        back to home page, that should be available by default."
+        The 🌙 Barakah wordmark on the left is now the home link;
+        LanguageSwitcher moved into MarketingNav so it's globally
+        consistent across every public page.
       */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-end">
-          <LanguageSwitcher compact />
-        </div>
-      </nav>
+      <MarketingNav />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <header className="text-center mb-16">
