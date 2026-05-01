@@ -320,15 +320,66 @@ export default function HomeV2() {
         </div>
       </section>
 
-      {/* Footer comparison link (replaces the dense compare table on /) */}
-      <footer className="bg-white py-8 px-6 border-t border-gray-100 text-center">
-        <p className="text-sm text-gray-500">
-          Compare against{' '}
-          <Link href="/compare/barakah-vs-monarch" className="text-[#1B5E20] underline">Monarch</Link>,{' '}
-          <Link href="/compare/barakah-vs-ynab" className="text-[#1B5E20] underline">YNAB</Link>,{' '}
-          <Link href="/compare/barakah-vs-zoya" className="text-[#1B5E20] underline">Zoya</Link>,{' '}
-          and 16 more.
-        </p>
+      {/*
+        Homepage footer.
+        2026-05-01: rewritten from a single compare-link line to a
+        proper site footer with three groups (Compare / Legal /
+        Trust) plus a copyright line.
+
+        Why: TikTok rejected our developer-portal app submission
+        (#7634185700270819329) because Terms of Service and Privacy
+        Policy were not "easily accessible from the homepage." Both
+        pages already exist at /terms and /privacy — they just
+        weren't linked from /. App-store reviewers (Apple, Google)
+        and most third-party platform reviewers expect the same
+        thing, so this fixes the class of problem, not just the
+        TikTok instance.
+
+        Structure mirrors the standard SaaS footer (Stripe, Linear,
+        Notion): three column groups on desktop, stacked on mobile.
+        Kept compact — the homepage is selling the product, not the
+        legal pages, but they need to be one click away.
+      */}
+      <footer className="bg-white py-12 px-6 border-t border-gray-100">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8 text-sm">
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3">Compare</h3>
+              <ul className="space-y-2 text-gray-600">
+                <li><Link href="/compare/barakah-vs-monarch" className="hover:text-[#1B5E20] hover:underline">vs Monarch</Link></li>
+                <li><Link href="/compare/barakah-vs-ynab" className="hover:text-[#1B5E20] hover:underline">vs YNAB</Link></li>
+                <li><Link href="/compare/barakah-vs-zoya" className="hover:text-[#1B5E20] hover:underline">vs Zoya</Link></li>
+                <li><Link href="/compare" className="hover:text-[#1B5E20] hover:underline">All comparisons →</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3">Legal</h3>
+              <ul className="space-y-2 text-gray-600">
+                <li><Link href="/terms" className="hover:text-[#1B5E20] hover:underline">Terms of Service</Link></li>
+                <li><Link href="/privacy" className="hover:text-[#1B5E20] hover:underline">Privacy Policy</Link></li>
+                <li><Link href="/disclaimer" className="hover:text-[#1B5E20] hover:underline">Disclaimer</Link></li>
+                <li><Link href="/security" className="hover:text-[#1B5E20] hover:underline">Security</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3">Company</h3>
+              <ul className="space-y-2 text-gray-600">
+                <li><Link href="/methodology" className="hover:text-[#1B5E20] hover:underline">Methodology</Link></li>
+                <li><Link href="/scholars" className="hover:text-[#1B5E20] hover:underline">Scholars &amp; review</Link></li>
+                <li><Link href="/transparency" className="hover:text-[#1B5E20] hover:underline">Transparency</Link></li>
+                <li><Link href="/contact" className="hover:text-[#1B5E20] hover:underline">Contact</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-gray-500">
+            <p>&copy; {new Date().getFullYear()} Barakah. Built with care for the Muslim household.</p>
+            <p>
+              <Link href="/terms" className="hover:text-gray-700">Terms</Link>
+              {' · '}
+              <Link href="/privacy" className="hover:text-gray-700">Privacy</Link>
+            </p>
+          </div>
+        </div>
       </footer>
     </main>
   );
