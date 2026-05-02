@@ -101,7 +101,9 @@ function buildCspHeaders(): { nonce?: string; csp?: string } {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com",
     "font-src 'self'",
-    `connect-src 'self' ${backendUrl} https://production.plaid.com https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com https://nominatim.openstreetmap.org https://www.google-analytics.com https://analytics.google.com`,
+    // 2026-05-02: api.aladhan.com + nominatim.openstreetmap.org removed
+    // alongside the prayer-times surface deletion (PR #86).
+    `connect-src 'self' ${backendUrl} https://production.plaid.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google-analytics.com https://analytics.google.com`,
     "frame-src 'self' https://cdn.plaid.com https://*.google.com https://*.googleapis.com https://*.gstatic.com",
     "object-src 'none'",
     "base-uri 'self'",
