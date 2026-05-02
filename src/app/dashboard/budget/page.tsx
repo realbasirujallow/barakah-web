@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { SkeletonPage } from '../SkeletonCard';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { FormHelp } from '../../../components/dashboard/FormHelp';
@@ -69,6 +70,10 @@ export default function BudgetPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<BudgetItem | null>(null);
+  // 2026-05-02: lock body scroll while the add/edit form is open so
+  // the budget list doesn't scroll behind the modal. Same fix the
+  // admin panel just received.
+  useBodyScrollLock(showForm);
   const [form, setForm] = useState<{
     category: string;
     monthlyLimit: string;
@@ -399,9 +404,13 @@ export default function BudgetPage() {
       )}
 
       {/* ── Add / Edit modal ────────────────────────────────────────────────── */}
+      {/* 2026-05-02: outer-scroll wrapper pattern so tall content
+          (kind/strategy selectors below) anchors to viewport top
+          instead of overflowing below. */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md my-8">
             <h2 className="text-xl font-bold text-primary mb-4">{editItem ? 'Edit Budget' : 'Add Budget'}</h2>
             <div className="space-y-4">
               <div>
@@ -537,6 +546,7 @@ export default function BudgetPage() {
                 {saving ? 'Saving...' : editItem ? 'Update' : 'Add'}
               </button>
             </div>
+          </div>
           </div>
         </div>
       )}

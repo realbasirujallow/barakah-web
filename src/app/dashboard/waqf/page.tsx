@@ -6,6 +6,7 @@ import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
 interface WaqfItem { id: number; organizationName: string; type: string; purpose: string; amount: number; date: number; recurring: boolean; status: string; description?: string; }
 interface Beneficiary { id: number; name: string; category: string; percentage: number; contact?: string; notes?: string; calculatedAmount: number; }
@@ -44,6 +45,8 @@ export default function WaqfPage() {
 
   const { toast } = useToast();
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
+  // 2026-05-02: lock body scroll while any modal is open.
+  useBodyScrollLock(showForm || showBenefForm || confirmAction !== null);
 
   // ── Modal accessibility: focus trap + Escape close ──────────────────────
   const formModalRef = useRef<HTMLDivElement>(null);
