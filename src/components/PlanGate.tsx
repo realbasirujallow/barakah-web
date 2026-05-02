@@ -106,7 +106,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
       'Zakat Calculator + Hawl Tracker',
       'Budgets & bills tracking',
       'Sadaqah tracking',
-      'Prayer times & Ramadan Mode',
+      'Ramadan Mode',
       'Recurring transactions',
     ],
     plus: [
