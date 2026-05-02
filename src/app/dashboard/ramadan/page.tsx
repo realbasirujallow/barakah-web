@@ -479,11 +479,11 @@ export default function RamadanPage() {
             <p className="text-xs text-gray-500">Track your charity</p>
           </div>
         </Link>
-        <Link href="/dashboard/prayer-times" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
+        <Link href="/dashboard/zakat" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
           <span className="text-2xl">🕌</span>
           <div>
-            <p className="font-semibold text-gray-800 text-sm">Prayer Times</p>
-            <p className="text-xs text-gray-500">Suhoor &amp; Iftar times</p>
+            <p className="font-semibold text-gray-800 text-sm">Zakat</p>
+            <p className="text-xs text-gray-500">Calculate &amp; track</p>
           </div>
         </Link>
         <Link href="/dashboard/budget" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">

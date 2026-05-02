@@ -103,7 +103,6 @@ const ROUTE_TO_LABEL: Record<string, string> = {
   '/dashboard/analytics': 'Analytics',
   '/dashboard/categorize': 'Auto-Categorize',
   '/dashboard/subscriptions': 'Subscription Detector',
-  '/dashboard/prayer-times': 'Prayer Times',
   '/dashboard/ramadan': 'Ramadan Mode',
   '/dashboard/fiqh': 'Fiqh Settings',
   '/dashboard/ibadah': 'Ibadah Finance',
