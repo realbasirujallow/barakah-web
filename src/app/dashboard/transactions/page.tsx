@@ -319,12 +319,17 @@ export default function TransactionsPage() {
   const handleToggleRecurring = async (tx: Tx) => {
     const next = !tx.isRecurring;
     setTxs(prev => prev.map(t => t.id === tx.id ? { ...t, isRecurring: next } : t));
+    // 2026-05-01: also update editTx so the modal's checkbox flips
+    // immediately when toggled from inside the modal. Without this,
+    // editTx is a snapshot from openEdit() and stays stale after toggle.
+    setEditTx(prev => prev && prev.id === tx.id ? { ...prev, isRecurring: next } : prev);
     try {
       await api.toggleRecurring(tx.id);
       toast(next ? 'Marked as recurring' : 'Recurring removed', 'success');
     } catch {
-      // Revert optimistic update.
+      // Revert optimistic update on both states.
       setTxs(prev => prev.map(t => t.id === tx.id ? { ...t, isRecurring: !next } : t));
+      setEditTx(prev => prev && prev.id === tx.id ? { ...prev, isRecurring: !next } : prev);
       toast('Failed to update recurring status', 'error');
     }
   };
@@ -978,6 +983,37 @@ export default function TransactionsPage() {
                   rows={2}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none" placeholder="Notes (optional)" />
               </div>
+              {/* Mark as recurring (edit mode only — doesn't make sense for
+                  a transaction that doesn't exist yet). 2026-05-01: founder
+                  asked "where do I mark this as recurring?" — the row-level
+                  RefreshCw icon shipped in R44 was non-discoverable. This
+                  brings the same toggle into the edit modal where users
+                  naturally look for it. */}
+              {editTx && (
+                <div className="border-t border-gray-200 pt-3">
+                  <label className="flex items-start gap-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(editTx.isRecurring)}
+                      onChange={() => handleToggleRecurring(editTx)}
+                      className="mt-0.5 w-4 h-4 accent-primary rounded flex-shrink-0"
+                    />
+                    <span className="flex-1">
+                      <span className="block text-sm font-medium text-gray-900">
+                        Mark as recurring
+                      </span>
+                      <span className="block text-xs text-gray-500 mt-0.5">
+                        Adds this to your Recurring view (Bills + subscriptions). Toggle off any time.
+                      </span>
+                    </span>
+                    {Boolean(editTx.isRecurring) && (
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 flex-shrink-0">
+                        Recurring
+                      </span>
+                    )}
+                  </label>
+                </div>
+              )}
             </div>
             <div className="flex gap-3 mt-6">
               <button aria-label="Close add transaction modal" onClick={() => { setShowForm(false); setEditTx(null); setFormError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
