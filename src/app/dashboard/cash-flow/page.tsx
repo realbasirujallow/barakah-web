@@ -276,6 +276,11 @@ export default function CashFlowPage() {
   // Built from the same breakdown payload that powers the category
   // lists below, so flipping bars↔sankey is free (no extra API call).
   // Recharts expects { nodes: [{name}], links: [{source, target, value}] }.
+  //
+  // Polish round (Monarch parity gap #5): nodes carry the matching
+  // breakdown key so SankeyNode can navigate to the filtered
+  // transactions list when clicked. Also stash totalIn / totalOut on
+  // each node so the tooltip can show "% of income" / "% of expenses".
   const sankeyData = React.useMemo(() => {
     if (!breakdown) return null;
     // Take top 6 incomes + top 8 expenses to keep the Sankey readable.
@@ -292,19 +297,58 @@ export default function CashFlowPage() {
       : topExpenses;
     if (incomeRows.length === 0 && expenseRows.length === 0) return null;
 
+    const totalIncome = incomeRows.reduce((s, r) => s + r.amount, 0);
+    const totalOutflow =
+        expenseRows.reduce((s, r) => s + r.amount, 0)
+      + (breakdown.totals.sadaqahZakat > 0 ? breakdown.totals.sadaqahZakat : 0)
+      + (breakdown.totals.savings > 0 ? breakdown.totals.savings : 0);
+
     // Node order: income sources, then "Income", then outflow buckets.
-    const nodes: Array<{ name: string; kind: 'income' | 'hub' | 'outflow' }> = [];
-    incomeRows.forEach(r => nodes.push({ name: r.label, kind: 'income' }));
+    type SkNode = {
+      name: string;
+      kind: 'income' | 'hub' | 'outflow';
+      // Drill-down key — empty for the hub and aggregated rows since we
+      // can't filter the transactions page by "everything". Click-through
+      // is suppressed when this is empty.
+      categoryKey?: string;
+      // For tooltip percentage. Income nodes get % of total inflow;
+      // outflow nodes get % of total outflow. Hub is omitted.
+      percentOfSide?: number;
+    };
+    const nodes: SkNode[] = [];
+    incomeRows.forEach(r => nodes.push({
+      name: r.label,
+      kind: 'income',
+      categoryKey: r.key.startsWith('__other_') ? undefined : r.key,
+      percentOfSide: totalIncome > 0 ? (r.amount / totalIncome) * 100 : 0,
+    }));
     const hubIdx = nodes.length;
     nodes.push({ name: 'Income', kind: 'hub' });
-    expenseRows.forEach(r => nodes.push({ name: r.label, kind: 'outflow' }));
+    expenseRows.forEach(r => nodes.push({
+      name: r.label,
+      kind: 'outflow',
+      categoryKey: r.key.startsWith('__other_') ? undefined : r.key,
+      percentOfSide: totalOutflow > 0 ? (r.amount / totalOutflow) * 100 : 0,
+    }));
     const sadaqahIdx = nodes.length;
     if (breakdown.totals.sadaqahZakat > 0) {
-      nodes.push({ name: 'Sadaqah / Zakat', kind: 'outflow' });
+      nodes.push({
+        name: 'Sadaqah / Zakat',
+        kind: 'outflow',
+        // Sadaqah / Zakat is a synthetic bucket aggregated server-side —
+        // the transactions page doesn't filter on it directly today, so
+        // leave categoryKey unset to keep the row non-clickable.
+        percentOfSide: totalOutflow > 0 ? (breakdown.totals.sadaqahZakat / totalOutflow) * 100 : 0,
+      });
     }
     const savingsIdx = nodes.length;
     if (breakdown.totals.savings > 0) {
-      nodes.push({ name: 'Savings', kind: 'outflow' });
+      nodes.push({
+        name: 'Savings',
+        kind: 'outflow',
+        // Savings is income minus all outflow, also synthetic.
+        percentOfSide: totalOutflow > 0 ? (breakdown.totals.savings / totalOutflow) * 100 : 0,
+      });
     }
 
     const links: Array<{ source: number; target: number; value: number }> = [];
@@ -545,7 +589,7 @@ export default function CashFlowPage() {
                       nodeWidth={12}
                       linkCurvature={0.5}
                       iterations={64}
-                      node={(props: unknown) => <SankeyNode {...(props as SankeyNodeProps)} fmt={fmt} />}
+                      node={(props: unknown) => <SankeyNode {...(props as SankeyNodeProps)} fmt={fmt} month={selectedMonth} />}
                       link={{ stroke: '#94a3b8', strokeOpacity: 0.25 }}
                     >
                       <Tooltip
@@ -803,6 +847,15 @@ function BreakdownSection({
  * Replaces the default flat rectangle so the diagram reads at-a-glance:
  * income green, hub navy, outflow rose. Monarch-parity for the labels
  * sitting beside their nodes.
+ *
+ * 2026-05-02 polish (gap #5):
+ *  - Click-through to /dashboard/transactions filtered by category +
+ *    month when the node carries a categoryKey. Hub and aggregated
+ *    "Other" rows stay non-clickable.
+ *  - Tooltip text % shows share of the matching side (income or
+ *    outflow) so the diagram is readable without squinting.
+ *  - Hover affordance: cursor turns into a pointer on clickable nodes
+ *    and the rectangle brightens slightly.
  */
 interface SankeyNodeProps {
   x: number;
@@ -810,9 +863,17 @@ interface SankeyNodeProps {
   width: number;
   height: number;
   index: number;
-  payload: { name: string; value: number; kind?: 'income' | 'hub' | 'outflow' };
+  payload: {
+    name: string;
+    value: number;
+    kind?: 'income' | 'hub' | 'outflow';
+    categoryKey?: string;
+    percentOfSide?: number;
+  };
 }
-function SankeyNode({ x, y, width, height, index, payload, fmt }: SankeyNodeProps & { fmt: (n: number) => string }) {
+function SankeyNode({
+  x, y, width, height, index, payload, fmt, month,
+}: SankeyNodeProps & { fmt: (n: number) => string; month: string }) {
   const isOutOnRight = x > 100;
   const fill =
     payload.kind === 'income' ? '#2E7D32' :
@@ -820,9 +881,47 @@ function SankeyNode({ x, y, width, height, index, payload, fmt }: SankeyNodeProp
     payload.name === 'Sadaqah / Zakat' ? '#F59E0B' :
     payload.name === 'Savings' ? '#64748B' :
     '#C62828';
+
+  const clickable = !!payload.categoryKey;
+  const handleClick = () => {
+    if (!clickable || !payload.categoryKey) return;
+    // Mirrors the BreakdownSection link so the two views drill the
+    // same way. month is forwarded so the transactions page can
+    // narrow to the period when it learns to honor that param.
+    const url = `/dashboard/transactions?category=${encodeURIComponent(payload.categoryKey)}&month=${encodeURIComponent(month)}`;
+    window.location.href = url;
+  };
+  const pctLabel = payload.percentOfSide && payload.percentOfSide > 0
+      ? ` · ${payload.percentOfSide.toFixed(0)}%`
+      : '';
+
   return (
     <Layer key={`SankeyNode${index}`}>
-      <Rectangle x={x} y={y} width={width} height={height} fill={fill} fillOpacity={0.85} />
+      <Rectangle
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill={fill}
+        fillOpacity={clickable ? 0.95 : 0.85}
+        onClick={handleClick}
+        style={clickable ? { cursor: 'pointer' } : undefined}
+      />
+      {clickable && (
+        // Invisible hit target — the actual rectangle is only 12px wide,
+        // which is hard to click cleanly on a touch device. Widening the
+        // hit area to the surrounding label text + 8px buffer makes the
+        // affordance match Monarch.
+        <Rectangle
+          x={isOutOnRight ? x - 80 : x}
+          y={y - 4}
+          width={80 + width}
+          height={height + 8}
+          fill="transparent"
+          onClick={handleClick}
+          style={{ cursor: 'pointer' }}
+        />
+      )}
       <text
         textAnchor={isOutOnRight ? 'end' : 'start'}
         x={isOutOnRight ? x - 6 : x + width + 6}
@@ -831,6 +930,8 @@ function SankeyNode({ x, y, width, height, index, payload, fmt }: SankeyNodeProp
         fontWeight={600}
         fill="var(--foreground)"
         dominantBaseline="middle"
+        style={clickable ? { cursor: 'pointer' } : undefined}
+        onClick={handleClick}
       >
         {payload.name}
       </text>
@@ -841,8 +942,10 @@ function SankeyNode({ x, y, width, height, index, payload, fmt }: SankeyNodeProp
         fontSize={10}
         fill="var(--muted-foreground)"
         dominantBaseline="middle"
+        style={clickable ? { cursor: 'pointer' } : undefined}
+        onClick={handleClick}
       >
-        {fmt(payload.value)}
+        {fmt(payload.value)}{pctLabel}
       </text>
     </Layer>
   );

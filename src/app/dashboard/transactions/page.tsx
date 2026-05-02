@@ -117,6 +117,13 @@ export default function TransactionsPage() {
   const searchParams = useSearchParams();
   const urlCategory = searchParams?.get('category') ?? '';
   const urlFilter = searchParams?.get('filter') ?? '';
+  // 2026-05-02 polish (Monarch parity gap #5): the cash-flow Sankey +
+  // breakdown drilldowns send `?month=YYYY-MM`. Honor it as a
+  // client-side filter on the loaded transactions so users land on the
+  // right slice instead of the whole feed. Validated to YYYY-MM
+  // shape so a malformed query string can't poison the filter.
+  const urlMonthRaw = searchParams?.get('month') ?? '';
+  const urlMonth = /^\d{4}-(0[1-9]|1[0-2])$/.test(urlMonthRaw) ? urlMonthRaw : '';
 
   const [txs, setTxs] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
@@ -600,6 +607,28 @@ export default function TransactionsPage() {
         </div>
       </div>
 
+      {/* 2026-05-02: drill-down breadcrumb. When the user lands here from
+          a cash-flow Sankey or breakdown click, show the active month
+          filter with a one-click clear. Mirrors Monarch's behaviour
+          where the active filter is always visible above the list. */}
+      {urlMonth && (
+        <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-900">
+          <span className="font-medium">Showing transactions in</span>
+          <span className="font-bold tabular-nums">
+            {(() => {
+              const [y, m] = urlMonth.split('-').map(Number);
+              return new Date(y, (m || 1) - 1, 1).toLocaleString(undefined, { month: 'long', year: 'numeric' });
+            })()}
+          </span>
+          <a
+            href="/dashboard/transactions"
+            className="ml-auto text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline"
+          >
+            Clear month filter
+          </a>
+        </div>
+      )}
+
       {/* ── Filter + page-size row ──────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-2 mb-4 items-center">
         {['all', 'income', 'expense', 'transfer'].map(f => (
@@ -676,14 +705,23 @@ export default function TransactionsPage() {
         // Rows already arrive sorted by timestamp desc from the API,
         // so a streaming reduce preserves order while bucketing into
         // [{ key, label, total, rows[] }, ...].
+        //
+        // 2026-05-02: when ?month=YYYY-MM is present (drill-down from
+        // cash-flow Sankey or breakdown), narrow the displayed rows to
+        // that month before grouping. The pagination loaded everything
+        // in the page; we filter client-side so the day-grouping math
+        // is correct for the selected window.
         (() => {
-          // Build groups in render order. We can't use Map directly
-          // because we need both an insertion-ordered iteration AND
-          // the running daily total — a small array+lookup gives both.
           type Group = { key: string; label: string; rows: Tx[]; net: number };
           const groups: Group[] = [];
           const byKey: Record<string, Group> = {};
-          for (const t of txs) {
+          const monthFilteredTxs = urlMonth
+              ? txs.filter(t => {
+                  const iso = new Date(t.timestamp).toISOString();
+                  return iso.startsWith(urlMonth);
+                })
+              : txs;
+          for (const t of monthFilteredTxs) {
             const d = new Date(t.timestamp);
             // Use ISO date as the stable bucketing key (independent of
             // user locale) but render a friendlier label below.
