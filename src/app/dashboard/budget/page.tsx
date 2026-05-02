@@ -8,7 +8,27 @@ import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { FormHelp } from '../../../components/dashboard/FormHelp';
 import EmptyState from '../../../components/EmptyState';
 
-interface BudgetItem { id: number; category: string; monthlyLimit: number; spent: number; month: number; year: number; color: string; }
+// 2026-05-02 (Monarch parity gap #4): the backend now exposes
+// rolloverStrategy (NONE / REFILL / ACCUMULATE) and categoryKind
+// (FIXED / FLEX) on every budget. Mirror them here so the UI can
+// group sticky-vs-flex budgets and let users toggle rollover from
+// the edit modal.
+type RolloverStrategy = 'NONE' | 'REFILL' | 'ACCUMULATE';
+type CategoryKind = 'FIXED' | 'FLEX';
+interface BudgetItem {
+  id: number;
+  category: string;
+  monthlyLimit: number;
+  spent: number;
+  month: number;
+  year: number;
+  color: string;
+  rolledOverAmount?: number;
+  effectiveLimit?: number;
+  allowRollover?: boolean;
+  rolloverStrategy?: RolloverStrategy;
+  categoryKind?: CategoryKind;
+}
 const CATEGORIES = [
   'food', 'dining', 'groceries', 'coffee',
   'transportation', 'fuel', 'parking',
@@ -49,7 +69,21 @@ export default function BudgetPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<BudgetItem | null>(null);
-  const [form, setForm] = useState({ category: 'food', monthlyLimit: '', month: String(now.getMonth() + 1), year: String(now.getFullYear()) });
+  const [form, setForm] = useState<{
+    category: string;
+    monthlyLimit: string;
+    month: string;
+    year: string;
+    rolloverStrategy: RolloverStrategy;
+    categoryKind: CategoryKind;
+  }>({
+    category: 'food',
+    monthlyLimit: '',
+    month: String(now.getMonth() + 1),
+    year: String(now.getFullYear()),
+    rolloverStrategy: 'REFILL',
+    categoryKind: 'FLEX',
+  });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [copyingMonth, setCopyingMonth] = useState(false);
@@ -119,12 +153,26 @@ export default function BudgetPage() {
 
   const openAdd = () => {
     setEditItem(null);
-    setForm({ category: 'food', monthlyLimit: '', month: String(viewMonth), year: String(viewYear) });
+    setForm({
+      category: 'food',
+      monthlyLimit: '',
+      month: String(viewMonth),
+      year: String(viewYear),
+      rolloverStrategy: 'REFILL',
+      categoryKind: 'FLEX',
+    });
     setSaveError(null); setShowForm(true);
   };
   const openEdit = (b: BudgetItem) => {
     setEditItem(b);
-    setForm({ category: b.category, monthlyLimit: String(b.monthlyLimit), month: String(b.month), year: String(b.year) });
+    setForm({
+      category: b.category,
+      monthlyLimit: String(b.monthlyLimit),
+      month: String(b.month),
+      year: String(b.year),
+      rolloverStrategy: b.rolloverStrategy ?? (b.allowRollover ? 'ACCUMULATE' : 'NONE'),
+      categoryKind: b.categoryKind ?? 'FLEX',
+    });
     setSaveError(null); setShowForm(true);
   };
 
@@ -149,7 +197,14 @@ export default function BudgetPage() {
         setSaving(false);
         return;
       }
-      const data = { category: form.category, monthlyLimit: limit, month: parseInt(form.month, 10), year: parseInt(form.year, 10) };
+      const data = {
+        category: form.category,
+        monthlyLimit: limit,
+        month: parseInt(form.month, 10),
+        year: parseInt(form.year, 10),
+        rolloverStrategy: form.rolloverStrategy,
+        categoryKind: form.categoryKind,
+      };
       let result;
       if (editItem) result = await api.updateBudget(editItem.id, data);
       else result = await api.addBudget(data);
@@ -246,11 +301,20 @@ export default function BudgetPage() {
       {filteredBudgets.length > 0 ? (
         <div className="space-y-3">
           {filteredBudgets.map(b => {
-            const pct = b.monthlyLimit > 0 ? Math.min((b.spent / b.monthlyLimit) * 100, 100) : 0;
-            const over = b.spent > b.monthlyLimit;
+            // 2026-05-02 (gap #4): include rolled-over amount in the
+            // visible "ceiling" so the user sees their true spending
+            // limit. effectiveLimit comes from the backend; falls back
+            // to monthlyLimit for legacy responses.
+            const effectiveLimit = b.effectiveLimit ?? b.monthlyLimit;
+            const rolled = b.rolledOverAmount ?? 0;
+            const pct = effectiveLimit > 0 ? Math.min((b.spent / effectiveLimit) * 100, 100) : 0;
+            const over = b.spent > effectiveLimit;
             const criticalWarn = pct >= 90;
             const warn = !over && !criticalWarn && pct >= 75;
-            const overage = Math.max(0, b.spent - b.monthlyLimit);
+            const overage = Math.max(0, b.spent - effectiveLimit);
+            const kindLabel = b.categoryKind === 'FIXED' ? 'Fixed' : 'Flex';
+            const strategyLabel = b.rolloverStrategy === 'ACCUMULATE'
+              ? 'Accumulating' : b.rolloverStrategy === 'NONE' ? 'No rollover' : 'Refills monthly';
             return (
               <div key={b.id} className={`bg-white rounded-xl p-4 ${over ? 'border-l-4 border-red-500' : criticalWarn ? 'border-l-4 border-red-400' : warn ? 'border-l-4 border-amber-400' : ''}`}>
                 <div className="flex justify-between items-center mb-2">
@@ -258,14 +322,22 @@ export default function BudgetPage() {
                     <span className="text-lg">{getCategoryIcon(b.category)}</span>
                     <div>
                       <p className="font-semibold text-gray-900 capitalize">{catLabel(b.category)}</p>
-                      <p className="text-xs text-gray-500">{MONTHS[b.month - 1]} {b.year}</p>
+                      <p className="text-xs text-gray-500">
+                        {MONTHS[b.month - 1]} {b.year}
+                        <span className="ml-1.5 inline-flex items-center gap-1">
+                          <span className={`text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded ${b.categoryKind === 'FIXED' ? 'bg-slate-100 text-slate-600' : 'bg-emerald-50 text-emerald-700'}`}>
+                            {kindLabel}
+                          </span>
+                          <span className="text-[10px] text-gray-400" title={strategyLabel}>· {strategyLabel}</span>
+                        </span>
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     {over && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Over {fmt(overage)}</span>}
                     {criticalWarn && !over && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">{Math.round(pct)}% - Critical</span>}
                     {warn && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{Math.round(pct)}% - Warning</span>}
-                    <p className="text-sm"><span className={over ? 'text-red-600 font-bold' : criticalWarn ? 'text-red-600' : 'text-gray-700'}>{fmt(b.spent)}</span> / {fmt(b.monthlyLimit)}</p>
+                    <p className="text-sm"><span className={over ? 'text-red-600 font-bold' : criticalWarn ? 'text-red-600' : 'text-gray-700'}>{fmt(b.spent)}</span> / {fmt(effectiveLimit)}</p>
                     <button type="button" onClick={() => openEdit(b)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
                     <button type="button" onClick={() => handleDelete(b.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
                   </div>
@@ -273,6 +345,14 @@ export default function BudgetPage() {
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div className={`h-2 rounded-full transition-all ${over ? 'bg-red-600' : pct >= 90 ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
                 </div>
+                {rolled > 0 && (
+                  // Show the carry-over breakdown so users understand
+                  // why their effective limit isn't a round number.
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Includes <span className="font-medium text-emerald-700">{fmt(rolled)}</span> rolled over from last month
+                    <span className="text-gray-400"> ({fmt(b.monthlyLimit)} base + {fmt(rolled)})</span>
+                  </p>
+                )}
               </div>
             );
           })}
@@ -382,6 +462,70 @@ export default function BudgetPage() {
                   <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4}
                     value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900" />
+                </div>
+              </div>
+
+              {/* 2026-05-02 (Monarch parity gap #4): sticky/flex + rollover
+                  controls. Sticky for fixed obligations (rent, subs) where
+                  any leftover should expire each month; flex for variable
+                  spend where rolling unspent forward is useful. The
+                  rollover strategy is independent — power users can
+                  pick FIXED + ACCUMULATE for an "annual rebate fund"
+                  pattern. */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                    Category type
+                    <FormHelp ariaLabel="About category type">
+                      <strong>Fixed</strong> categories are predictable
+                      bills like rent or subscriptions — they don&apos;t
+                      need rollover. <strong>Flex</strong> categories
+                      are variable spending like groceries or dining
+                      where a frugal month can build a buffer for a
+                      heavier month.
+                    </FormHelp>
+                  </label>
+                  <select
+                    value={form.categoryKind}
+                    onChange={e => {
+                      const next = e.target.value as CategoryKind;
+                      // Sensible default: FIXED → REFILL, FLEX → REFILL.
+                      // Don't auto-flip ACCUMULATE because the user may
+                      // have intentionally chosen it.
+                      setForm(f => ({
+                        ...f,
+                        categoryKind: next,
+                        rolloverStrategy: next === 'FIXED' && f.rolloverStrategy === 'ACCUMULATE'
+                          ? 'REFILL' : f.rolloverStrategy,
+                      }));
+                    }}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                  >
+                    <option value="FLEX">Flex (variable)</option>
+                    <option value="FIXED">Fixed (sticky)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                    Rollover
+                    <FormHelp ariaLabel="About rollover">
+                      <strong>Refill</strong> resets the budget every
+                      month to its limit — anything unspent is forfeit.
+                      <strong>Accumulate</strong> rolls leftover forward
+                      so you build a multi-month buffer.
+                      <strong>None</strong> behaves like Refill but
+                      hides the rollover row entirely.
+                    </FormHelp>
+                  </label>
+                  <select
+                    value={form.rolloverStrategy}
+                    onChange={e => setForm({ ...form, rolloverStrategy: e.target.value as RolloverStrategy })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                  >
+                    <option value="REFILL">Refill each month</option>
+                    <option value="ACCUMULATE">Accumulate</option>
+                    <option value="NONE">None</option>
+                  </select>
                 </div>
               </div>
             </div>
