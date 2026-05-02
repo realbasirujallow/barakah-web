@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusTrap } from '@/lib/useFocusTrap';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
@@ -115,6 +116,8 @@ export default function ProfilePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  // 2026-05-02: lock body scroll while any deletion modal is open.
+  useBodyScrollLock(showRetentionModal || showDeleteConfirm);
 
   // Round 26: Escape-key closes the destructive retention modal (keyboard-only
   // users previously had no way to dismiss). Matches the sitewide modal pattern.

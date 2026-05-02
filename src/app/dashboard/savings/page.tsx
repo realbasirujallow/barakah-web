@@ -9,6 +9,7 @@ import { SkeletonPage } from '../SkeletonCard';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import EmptyState from '../../../components/EmptyState';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { FormHelp } from '../../../components/dashboard/FormHelp';
 
@@ -38,6 +39,8 @@ export default function SavingsPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [contError, setContError] = useState<string | null>(null);
+  // 2026-05-02: lock body scroll while modal/confirm is open.
+  useBodyScrollLock(showForm || contModal !== null || confirmAction !== null);
   const { toast } = useToast();
 
   // ── Modal accessibility: focus trap + Escape close ──────────────────────

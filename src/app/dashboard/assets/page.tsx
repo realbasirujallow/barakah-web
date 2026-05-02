@@ -12,6 +12,7 @@ import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { SkeletonPage } from '../SkeletonCard';
 import EmptyState from '../../../components/EmptyState';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
 interface Asset {
   id: number;
@@ -103,11 +104,16 @@ export default function AssetsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Asset | null>(null);
+  // 2026-05-02: lock body scroll while the add/edit form or breakdown
+  // modal is open. See src/lib/useBodyScrollLock.
+  // showBreakdown is declared below; we union them after both exist.
   const [form, setForm] = useState<AssetFormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
+  // 2026-05-02: scroll lock — see comment near showForm declaration.
+  useBodyScrollLock(showForm || showBreakdown);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);

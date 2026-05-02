@@ -16,6 +16,7 @@ import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
 import { trackFeatureUse } from '../../../lib/analytics';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
 // ── Supported currencies ──────────────────────────────────────────────────────
 const CURRENCIES = [
@@ -175,6 +176,10 @@ export default function TransactionsPage() {
   useFocusTrap(formModalRef, showForm);
   const deleteModalRef = useRef<HTMLDivElement>(null);
   useFocusTrap(deleteModalRef, deleteConfirmation !== null);
+  // 2026-05-02: lock body scroll while either the add/edit form
+  // or the delete-confirm modal is open. Same fix the admin panel
+  // received in PR #95 — keeps the underlying tx list anchored.
+  useBodyScrollLock(showForm || deleteConfirmation !== null);
   useEffect(() => {
     if (!showForm) return;
     const handler = (e: KeyboardEvent) => {
@@ -927,15 +932,19 @@ export default function TransactionsPage() {
         </div>
       )}
 
-      {/* ── Add Transaction modal ───────────────────────────────────────────── */}
+      {/* ── Add Transaction modal ─────────────────────────────────────────────
+           2026-05-02: outer-scroll wrapper pattern (see useBodyScrollLock /
+           PR #95) — modal anchors at viewport center even when content
+           grows past 90vh on tall fields (tags, notes, recurring options). */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
           <div
             ref={formModalRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
-            className="bg-white rounded-2xl p-6 w-full max-w-md"
+            className="bg-white rounded-2xl p-6 w-full max-w-md my-8"
           >
             <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editTx ? 'Edit Transaction' : 'Add Transaction'}</h2>
             <div className="space-y-4">
@@ -1060,6 +1069,7 @@ export default function TransactionsPage() {
                 {saving ? 'Saving...' : (editTx ? 'Save Changes' : 'Add')}
               </button>
             </div>
+          </div>
           </div>
         </div>
       )}
