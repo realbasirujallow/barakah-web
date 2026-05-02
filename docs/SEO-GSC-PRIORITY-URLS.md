@@ -1,5 +1,8 @@
 # Barakah SEO — URLs pending Google indexing
-# Generated 2026-04-22. Use these as input to Google Search Console → URL Inspection → Request Indexing.
+# Generated 2026-04-22, refreshed 2026-05-02 to cover the 31 new URLs added since
+# (extra `/compare` competitors, deeper `/learn` halal-finance content, /press,
+# /signup is now indexable).
+# Use these as input to Google Search Console → URL Inspection → Request Indexing.
 # GSC allows 10-20 URL Inspection requests per day. Work through tiers top-to-bottom.
 #
 # PRE-STEP: confirm the sitemap has been submitted at
@@ -122,3 +125,44 @@ https://trybarakah.com/login
 https://trybarakah.com/privacy
 https://trybarakah.com/terms
 https://trybarakah.com/disclaimer
+
+## Tier 10 — NEW competitor-compare pages added since 2026-04-22. Submit day 9 (high intent).
+# These are head-to-head comparisons against the broader personal-finance space —
+# Acorns, Quicken, Rocket Money, Robinhood, etc. High-intent acquisition queries.
+https://trybarakah.com/compare/barakah-vs-acorns
+https://trybarakah.com/compare/barakah-vs-quicken
+https://trybarakah.com/compare/barakah-vs-rocketmoney
+https://trybarakah.com/compare/barakah-vs-pocketguard
+https://trybarakah.com/compare/barakah-vs-robinhood
+https://trybarakah.com/compare/barakah-vs-saturna
+https://trybarakah.com/compare/barakah-vs-stash
+https://trybarakah.com/compare/barakah-vs-spendee
+https://trybarakah.com/compare/barakah-vs-fudget
+https://trybarakah.com/compare/barakah-vs-mvelopes
+https://trybarakah.com/compare/barakah-vs-yaqeen-money
+https://trybarakah.com/compare/barakah-vs-zeta
+
+## Tier 11 — NEW halal-finance deep content added since 2026-04-22. Submit day 10.
+# Founder-priority: every Muslim moving from Monarch / Mint / Quicken should
+# find these on a Google search for their existing pain point.
+https://trybarakah.com/learn/halal-mortgage-vs-rent-2026
+https://trybarakah.com/learn/halal-credit-card-alternatives-2026
+https://trybarakah.com/learn/halal-real-estate-investing-2026
+https://trybarakah.com/learn/halal-robo-advisor-comparison
+https://trybarakah.com/learn/halal-life-insurance-vs-takaful
+https://trybarakah.com/learn/halal-emergency-fund-methodology
+https://trybarakah.com/learn/ijara-vs-murabaha-vs-musharaka-explained
+https://trybarakah.com/learn/is-a-529-plan-halal
+https://trybarakah.com/learn/is-my-401k-halal
+https://trybarakah.com/learn/is-bitcoin-halal-2026
+https://trybarakah.com/learn/is-amazon-stock-halal-2026
+https://trybarakah.com/learn/zakat-on-cryptocurrency
+https://trybarakah.com/learn/zakat-on-nfts-and-digital-assets
+https://trybarakah.com/learn/zakat-on-receivables-and-business-debts
+https://trybarakah.com/learn/zakat-on-stock-options-rsus
+https://trybarakah.com/learn/ramadan-giving-tracker-setup
+https://trybarakah.com/press
+# /signup added — the noindex was removed in a recent SEO pass so the page is
+# now eligible for indexing. Submit once to seed Google's awareness; from
+# there organic queries like "barakah signup" should pick it up.
+https://trybarakah.com/signup
