@@ -25,6 +25,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
@@ -79,6 +80,13 @@ function monthLong(yyyyMM: string): string {
 
 export default function CashFlowPage() {
   const { fmt } = useCurrency();
+  // 2026-05-01: ?month=YYYY-MM URL param for deep-link from /dashboard/analytics
+  // chart drills. When present, that month is selected on first paint instead
+  // of defaulting to "most recent." Validated against the loaded months list
+  // — invalid/stale month falls back to most-recent.
+  const searchParams = useSearchParams();
+  const urlMonth = searchParams?.get('month') ?? '';
+
   const [months, setMonths] = React.useState<MonthRow[]>([]);
   const [selectedMonth, setSelectedMonth] = React.useState<string>('');
   const [loading, setLoading] = React.useState(true);
@@ -100,8 +108,14 @@ export default function CashFlowPage() {
         if (cancelled) return;
         const list = result?.months ?? [];
         setMonths(list);
-        // Default-select the most recent month.
-        setSelectedMonth(list.length > 0 ? list[list.length - 1].month : '');
+        // Pre-select the URL-param month if it's in the loaded set;
+        // otherwise default to the most recent month.
+        const urlInList = urlMonth && list.some(m => m.month === urlMonth);
+        setSelectedMonth(
+          urlInList ? urlMonth :
+          list.length > 0 ? list[list.length - 1].month :
+          ''
+        );
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load cash flow');
       } finally {
@@ -109,7 +123,7 @@ export default function CashFlowPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [urlMonth]);
 
   // Re-fetch breakdown whenever month or dimension changes.
   React.useEffect(() => {
