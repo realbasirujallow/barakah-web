@@ -454,6 +454,42 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* 2026-05-02: Islamic Calendar card — direct parity with Flutter
+          (lib/screens/dashboard_screen.dart line 855+). Founder's R37 ask
+          ("on dashboard page, gregorian date of above, islamic date should
+          be up there too") was previously addressed only via a tiny topbar
+          chip on desktop + a faint subtitle on mobile — neither matched
+          Flutter's prominent green hero card. This brings web up to
+          parity: same green tone, big bold Hijri date, Gregorian beneath,
+          and the next 3 upcoming Islamic events. Suppressed during
+          Ramadan because the Ramadan banner above already calls out the
+          calendar context. */}
+      {hijri?.hijriDate && !hijri.isRamadan && (
+        <div className="bg-gradient-to-br from-[#1B5E20] to-emerald-700 rounded-2xl p-5 text-white mb-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <span aria-hidden="true" className="text-lg">📅</span>
+            <p className="text-sm font-semibold uppercase tracking-wide opacity-90">Islamic Calendar</p>
+          </div>
+          <p className="text-2xl md:text-3xl font-bold leading-tight">{hijri.hijriDate}</p>
+          <p className="text-sm text-emerald-100 mt-1">
+            {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          </p>
+          {hijri.upcomingEvents && hijri.upcomingEvents.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-white/15">
+              <p className="text-xs font-semibold uppercase tracking-wide opacity-80 mb-2">Upcoming events</p>
+              <ul className="space-y-1.5">
+                {hijri.upcomingEvents.slice(0, 3).map((e, i) => (
+                  <li key={`${e.name}-${i}`} className="flex items-center justify-between text-sm">
+                    <span>{e.name}</span>
+                    <span className="text-emerald-100">in {e.daysAway} day{e.daysAway === 1 ? '' : 's'}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Page header (Phase 2.1 / 2026-04-27) ──────────────────────────────
            Promoted from a one-line greeting to a proper page-header with
            hierarchy: text-2xl semibold title + smaller muted subtitle. The
@@ -476,21 +512,13 @@ export default function DashboardPage() {
             too." Make the Islamic date a first-class label alongside
             the Gregorian instead of an em-dash afterthought.
             R44 (2026-05-01): both dates lifted to the shared topbar
-            (visible on every dashboard subpage, not just /dashboard
-            home). The greeting subtitle is now purely the Gregorian
-            day label so it doesn't duplicate the topbar. Mobile
-            users (where the topbar dates are hidden via md:flex)
-            still see the date here on /dashboard root.
+            (desktop) and to a prominent green Islamic Calendar card
+            (added 2026-05-02 for Flutter parity).
+            2026-05-02: subtitle date removed. The Hijri date now lives
+            ONLY in the green hero card above + the topbar — single
+            source of truth, matches Flutter's body-card placement, and
+            no longer whispers in a small gray subtitle.
           */}
-          <p className="text-sm text-muted-foreground mt-1 md:hidden">
-            {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
-            {hijri?.hijriDate && (
-              <>
-                <span aria-hidden="true" className="text-gray-300 mx-2">·</span>
-                <span className="text-primary font-medium">🕌 {hijri.hijriDate}</span>
-              </>
-            )}
-          </p>
         </div>
       </header>
 
@@ -574,39 +602,12 @@ export default function DashboardPage() {
           self-hides on empty. */}
       <TopPriorities fmt={fmt} />
 
-      {/* ── Islamic Calendar + Zakat Reminders (compact row above grid) ──────
-          R44 (2026-05-01): the Hijri date itself moved to the shared
-          topbar (see dashboard/layout.tsx + useHijriToday). The card
-          here now leads with UPCOMING Islamic events (Eid, Ramadan,
-          Ashura, Mawlid…) since that's the actually-actionable info
-          — knowing today's Hijri date is "what is it now" but
-          upcoming events are "what should I plan for." If no events
-          are upcoming, the card hides entirely (Hawl card may still
-          render as the second slot). */}
+      {/* ── Hawl / Zakat reminders ──────
+          2026-05-02: Upcoming Islamic Events tile removed from this row
+          — that content is now in the prominent green Islamic Calendar
+          hero card at the top of the dashboard (Flutter parity). This
+          row keeps only the Hawl tile. */}
       <div className="grid md:grid-cols-2 gap-4 mb-4">
-        {hijri && hijri.upcomingEvents.length > 0 && (
-          <div className="bg-card rounded-xl p-4 border border-border">
-            <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Upcoming Islamic Events</p>
-            <div className="space-y-1.5">
-              {hijri.upcomingEvents.slice(0, 3).map((e, i) => {
-                let gregLabel = e.approximateGregorianDate;
-                if (!gregLabel && typeof e.daysAway === 'number') {
-                  const d = new Date();
-                  d.setDate(d.getDate() + e.daysAway);
-                  gregLabel = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-                }
-                return (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-800">{e.name}</span>
-                    <span className="text-gray-500 tabular-nums">
-                      {e.daysAway}d{gregLabel ? <span className="text-gray-400"> · {gregLabel}</span> : null}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
         {hawlDue && (hawlDue.dueCount > 0 || hawlDue.upcomingCount > 0) && (
           <div className={`rounded-xl p-4 border ${hawlDue.dueCount > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center justify-between">
