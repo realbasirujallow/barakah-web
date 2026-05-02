@@ -32,7 +32,7 @@ import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { CategoryIcon } from '../../../lib/categoryIcon';
 import {
   Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid,
-  ReferenceLine, ComposedChart, Line,
+  ReferenceLine, ComposedChart, Line, Sankey, Layer, Rectangle,
 } from 'recharts';
 
 interface MonthRow {
@@ -61,6 +61,7 @@ interface BreakdownResponse {
 
 type Dimension = 'category' | 'merchant';
 type TimeView = 'monthly' | 'quarterly' | 'yearly';
+type ChartView = 'bars' | 'sankey';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -104,6 +105,12 @@ export default function CashFlowPage() {
   // monthly buckets; quarterly/yearly are client-side roll-ups so the
   // chart can show the same data three different ways without a new API.
   const [timeView, setTimeView] = React.useState<TimeView>('monthly');
+
+  // 2026-05-02: Bars vs Sankey. Sankey shows the selected month's
+  // breakdown as flow from income sources → income total → expense
+  // categories + Sadaqah/Zakat + Savings. Same surface Monarch ships
+  // at /reports/cash-flow → "Breakdown" sub-view.
+  const [chartView, setChartView] = React.useState<ChartView>('bars');
 
   React.useEffect(() => {
     let cancelled = false;
@@ -265,6 +272,59 @@ export default function CashFlowPage() {
     ? Math.max(0, Math.round((selected.savings / selected.income) * 100))
     : 0;
 
+  // 2026-05-02: Sankey data — income sources → "Income" → outflows.
+  // Built from the same breakdown payload that powers the category
+  // lists below, so flipping bars↔sankey is free (no extra API call).
+  // Recharts expects { nodes: [{name}], links: [{source, target, value}] }.
+  const sankeyData = React.useMemo(() => {
+    if (!breakdown) return null;
+    // Take top 6 incomes + top 8 expenses to keep the Sankey readable.
+    const topIncomes = [...breakdown.income].sort((a, b) => b.amount - a.amount).slice(0, 6);
+    const topExpenses = [...breakdown.expenses].sort((a, b) => b.amount - a.amount).slice(0, 8);
+    // Aggregate the rest into "Other".
+    const otherIncome = breakdown.income.slice(6).reduce((s, r) => s + r.amount, 0);
+    const otherExpense = breakdown.expenses.slice(8).reduce((s, r) => s + r.amount, 0);
+    const incomeRows = otherIncome > 0
+      ? [...topIncomes, { key: '__other_income', label: 'Other income', amount: otherIncome, pct: 0 }]
+      : topIncomes;
+    const expenseRows = otherExpense > 0
+      ? [...topExpenses, { key: '__other_expense', label: 'Other expenses', amount: otherExpense, pct: 0 }]
+      : topExpenses;
+    if (incomeRows.length === 0 && expenseRows.length === 0) return null;
+
+    // Node order: income sources, then "Income", then outflow buckets.
+    const nodes: Array<{ name: string; kind: 'income' | 'hub' | 'outflow' }> = [];
+    incomeRows.forEach(r => nodes.push({ name: r.label, kind: 'income' }));
+    const hubIdx = nodes.length;
+    nodes.push({ name: 'Income', kind: 'hub' });
+    expenseRows.forEach(r => nodes.push({ name: r.label, kind: 'outflow' }));
+    const sadaqahIdx = nodes.length;
+    if (breakdown.totals.sadaqahZakat > 0) {
+      nodes.push({ name: 'Sadaqah / Zakat', kind: 'outflow' });
+    }
+    const savingsIdx = nodes.length;
+    if (breakdown.totals.savings > 0) {
+      nodes.push({ name: 'Savings', kind: 'outflow' });
+    }
+
+    const links: Array<{ source: number; target: number; value: number }> = [];
+    incomeRows.forEach((row, i) => {
+      if (row.amount > 0) links.push({ source: i, target: hubIdx, value: row.amount });
+    });
+    expenseRows.forEach((row, i) => {
+      if (row.amount > 0) links.push({ source: hubIdx, target: hubIdx + 1 + i, value: row.amount });
+    });
+    if (breakdown.totals.sadaqahZakat > 0) {
+      links.push({ source: hubIdx, target: sadaqahIdx, value: breakdown.totals.sadaqahZakat });
+    }
+    if (breakdown.totals.savings > 0) {
+      links.push({ source: hubIdx, target: savingsIdx, value: breakdown.totals.savings });
+    }
+
+    if (links.length === 0) return null;
+    return { nodes, links };
+  }, [breakdown]);
+
   return (
     <div className="max-w-6xl mx-auto">
       <PageHeader
@@ -328,35 +388,56 @@ export default function CashFlowPage() {
               Stat strip moves underneath as a 4-card horizontal row. */}
           <section className="bg-card rounded-2xl p-5 border border-border mb-4">
             <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-                {timeView === 'monthly' ? '13-month overview' : timeView === 'quarterly' ? 'By quarter' : 'By year'}
-              </p>
-              {/* Monthly · Quarterly · Yearly tabs (Monarch parity).
-                  Backend is month-granular; quarterly/yearly are
-                  client-side roll-ups so the chart is consistent. */}
-              <div
-                role="tablist"
-                aria-label="Time view"
-                className="inline-flex rounded-full bg-muted/40 p-0.5 text-[12px] font-medium"
-              >
-                {(['monthly', 'quarterly', 'yearly'] as TimeView[]).map((v) => (
-                  <button
-                    key={v}
-                    role="tab"
-                    aria-selected={timeView === v}
-                    type="button"
-                    onClick={() => setTimeView(v)}
-                    className={`px-3 py-1 rounded-full transition-colors capitalize ${
-                      timeView === v
-                        ? 'bg-card text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {v}
-                  </button>
-                ))}
+              <div className="flex items-center gap-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  {chartView === 'sankey'
+                    ? `Cash flow · ${selected ? monthLong(selected.month) : ''}`
+                    : timeView === 'monthly' ? '13-month overview' : timeView === 'quarterly' ? 'By quarter' : 'By year'}
+                </p>
+                {/* Bars / Sankey toggle (Monarch parity). */}
+                <div className="inline-flex rounded-full bg-muted/40 p-0.5 text-[12px] font-medium">
+                  {(['bars', 'sankey'] as ChartView[]).map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setChartView(v)}
+                      className={`px-3 py-1 rounded-full transition-colors capitalize ${
+                        chartView === v ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
               </div>
+              {/* Monthly · Quarterly · Yearly tabs (Monarch parity).
+                  Hidden in Sankey view since it's a single-month chart. */}
+              {chartView === 'bars' && (
+                <div
+                  role="tablist"
+                  aria-label="Time view"
+                  className="inline-flex rounded-full bg-muted/40 p-0.5 text-[12px] font-medium"
+                >
+                  {(['monthly', 'quarterly', 'yearly'] as TimeView[]).map((v) => (
+                    <button
+                      key={v}
+                      role="tab"
+                      aria-selected={timeView === v}
+                      type="button"
+                      onClick={() => setTimeView(v)}
+                      className={`px-3 py-1 rounded-full transition-colors capitalize ${
+                        timeView === v
+                          ? 'bg-card text-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+            {chartView === 'bars' ? (
             <ResponsiveContainer width="100%" height={260}>
               <ComposedChart
                 data={chartBuckets}
@@ -454,8 +535,36 @@ export default function CashFlowPage() {
                 />
               </ComposedChart>
             </ResponsiveContainer>
+            ) : (
+              <div>
+                {sankeyData ? (
+                  <ResponsiveContainer width="100%" height={360}>
+                    <Sankey
+                      data={sankeyData}
+                      nodePadding={20}
+                      nodeWidth={12}
+                      linkCurvature={0.5}
+                      iterations={64}
+                      node={(props: unknown) => <SankeyNode {...(props as SankeyNodeProps)} fmt={fmt} />}
+                      link={{ stroke: '#94a3b8', strokeOpacity: 0.25 }}
+                    >
+                      <Tooltip
+                        formatter={(value, name) => [fmt(Number(value ?? 0)), String(name)] as [string, string]}
+                        contentStyle={{ backgroundColor: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
+                      />
+                    </Sankey>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center py-12 text-sm text-muted-foreground">
+                    {breakdownLoading ? 'Loading flow…' : 'No data for this period yet.'}
+                  </div>
+                )}
+              </div>
+            )}
             <p className="text-[11px] text-muted-foreground text-center mt-2">
-              Click any bar to see the breakdown for that period
+              {chartView === 'bars'
+                ? 'Click any bar to see the breakdown for that period'
+                : 'Income sources flow into the central Income node, then split into expense categories, sadaqah/zakat, and savings'}
             </p>
           </section>
 
@@ -686,6 +795,56 @@ function BreakdownSection({
         })}
       </ul>
     </div>
+  );
+}
+
+/**
+ * Custom Sankey node renderer with category-tone color + amount label.
+ * Replaces the default flat rectangle so the diagram reads at-a-glance:
+ * income green, hub navy, outflow rose. Monarch-parity for the labels
+ * sitting beside their nodes.
+ */
+interface SankeyNodeProps {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  index: number;
+  payload: { name: string; value: number; kind?: 'income' | 'hub' | 'outflow' };
+}
+function SankeyNode({ x, y, width, height, index, payload, fmt }: SankeyNodeProps & { fmt: (n: number) => string }) {
+  const isOutOnRight = x > 100;
+  const fill =
+    payload.kind === 'income' ? '#2E7D32' :
+    payload.kind === 'hub' ? '#1B5E20' :
+    payload.name === 'Sadaqah / Zakat' ? '#F59E0B' :
+    payload.name === 'Savings' ? '#64748B' :
+    '#C62828';
+  return (
+    <Layer key={`SankeyNode${index}`}>
+      <Rectangle x={x} y={y} width={width} height={height} fill={fill} fillOpacity={0.85} />
+      <text
+        textAnchor={isOutOnRight ? 'end' : 'start'}
+        x={isOutOnRight ? x - 6 : x + width + 6}
+        y={y + height / 2}
+        fontSize={11}
+        fontWeight={600}
+        fill="var(--foreground)"
+        dominantBaseline="middle"
+      >
+        {payload.name}
+      </text>
+      <text
+        textAnchor={isOutOnRight ? 'end' : 'start'}
+        x={isOutOnRight ? x - 6 : x + width + 6}
+        y={y + height / 2 + 12}
+        fontSize={10}
+        fill="var(--muted-foreground)"
+        dominantBaseline="middle"
+      >
+        {fmt(payload.value)}
+      </text>
+    </Layer>
   );
 }
 
