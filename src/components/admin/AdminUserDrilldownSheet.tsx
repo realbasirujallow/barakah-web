@@ -19,6 +19,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useBodyScrollLock } from '../../lib/useBodyScrollLock';
 import { api } from '../../lib/api';
 
 export type DrilldownKind = 'transactions' | 'zakatPayments';
@@ -81,6 +82,10 @@ export default function AdminUserDrilldownSheet({
   kind,
   onClose,
 }: AdminUserDrilldownSheetProps) {
+  // 2026-05-02: lock body scroll while the drilldown sheet is open
+  // so the parent admin page (and the underlying user-detail modal)
+  // don't scroll while reading. Same fix applied to every modal.
+  useBodyScrollLock(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
