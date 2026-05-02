@@ -295,15 +295,17 @@ function AnalyticsPageContent() {
             <BarChart
               data={momDisplayData}
               margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
+              // 2026-05-02 fix: founder reported (multiple times) that
+              // clicking a bar didn't drill into anything. Recharts'
+              // BarChart-level onClick only fires when the user clicks
+              // on the chart BACKGROUND — clicks on the bars themselves
+              // don't always populate activePayload reliably across
+              // browsers, especially on touch devices. We now wire
+              // onClick at the BAR level so a tap on either the green
+              // (income) or red (expense) bar always navigates. The
+              // chart-level handler stays as a fallback for clicks in
+              // the gap between bars.
               onClick={(e) => {
-                // 2026-05-01: drill straight into the dedicated Cash Flow
-                // surface (with category/merchant breakdown + four-pillar
-                // strip) instead of the inline MonthDetailSheet. Founder
-                // feedback: "looks like I am still unable to dig deeper
-                // into this... can this be better looking also like
-                // UX/UI of Monarch?" The Cash Flow page IS the Monarch-
-                // style drill-down — this just routes there with the
-                // clicked month pre-selected via ?month= URL param.
                 const ev = e as unknown as { activePayload?: Array<{ payload?: { monthKey?: string } }> };
                 const monthKey = ev?.activePayload?.[0]?.payload?.monthKey;
                 if (monthKey) {
@@ -334,8 +336,37 @@ function AnalyticsPageContent() {
                 cursor={{ fill: 'rgba(0,0,0,0.04)' }}
               />
               <Legend />
-              <Bar dataKey="income"   name="Income"   fill="url(#ana-incomeFill)"  radius={[6,6,0,0]} />
-              <Bar dataKey="expenses" name="Expenses" fill="url(#ana-expenseFill)" radius={[6,6,0,0]} />
+              <Bar
+                dataKey="income"
+                name="Income"
+                fill="url(#ana-incomeFill)"
+                radius={[6,6,0,0]}
+                cursor="pointer"
+                onClick={(barData: unknown) => {
+                  // Bar-level onClick gets the row payload directly,
+                  // sidestepping Recharts' flaky BarChart-level
+                  // activePayload propagation.
+                  const d = barData as { payload?: { monthKey?: string }; monthKey?: string };
+                  const monthKey = d?.payload?.monthKey ?? d?.monthKey;
+                  if (monthKey) {
+                    router.push(`/dashboard/cash-flow?month=${encodeURIComponent(monthKey)}`);
+                  }
+                }}
+              />
+              <Bar
+                dataKey="expenses"
+                name="Expenses"
+                fill="url(#ana-expenseFill)"
+                radius={[6,6,0,0]}
+                cursor="pointer"
+                onClick={(barData: unknown) => {
+                  const d = barData as { payload?: { monthKey?: string }; monthKey?: string };
+                  const monthKey = d?.payload?.monthKey ?? d?.monthKey;
+                  if (monthKey) {
+                    router.push(`/dashboard/cash-flow?month=${encodeURIComponent(monthKey)}`);
+                  }
+                }}
+              />
             </BarChart>
           </ResponsiveContainer>
         ) : (
@@ -362,7 +393,17 @@ function AnalyticsPageContent() {
           </ResponsiveContainer>
         )}
 
-        {/* Monthly breakdown table (last 6 months) */}
+        {/* Monthly breakdown table (last 6 months).
+            2026-05-02 fix: founder reported (multiple times) that there
+            was no way to drill from the analytics page into a specific
+            month's breakdown. The bar chart had a click handler but
+            Recharts' bar-level click was unreliable; the table rows
+            had none. Now each row navigates to /dashboard/cash-flow
+            with ?month=YYYY-MM, which loads the full category +
+            merchant breakdown for that month. The arrow on hover is
+            the Monarch-style affordance — same pattern used on the
+            cash-flow Sankey nodes in PR #91. Keyboard-accessible:
+            tab to a row, Enter to drill. */}
         {monthlyData.length > 0 && (
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-xs">
@@ -373,6 +414,7 @@ function AnalyticsPageContent() {
                   <th className="text-right py-2 px-2 text-gray-500">Expenses</th>
                   <th className="text-right py-2 px-2 text-gray-500">Net</th>
                   <th className="text-right py-2 px-2 text-gray-500">vs Prior</th>
+                  <th className="w-6 py-2 px-2" />
                 </tr>
               </thead>
               <tbody>
@@ -381,8 +423,24 @@ function AnalyticsPageContent() {
                   const expChange = prior && prior.expenses > 0
                     ? ((row.expenses - prior.expenses) / prior.expenses * 100).toFixed(0)
                     : null;
+                  const drillTo = () => {
+                    router.push(`/dashboard/cash-flow?month=${encodeURIComponent(row.month)}`);
+                  };
                   return (
-                    <tr key={row.month} className="border-b border-gray-50 hover:bg-gray-50">
+                    <tr
+                      key={row.month}
+                      className="border-b border-gray-50 hover:bg-emerald-50/50 cursor-pointer transition-colors group"
+                      onClick={drillTo}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          drillTo();
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`View ${fmtMonth(row.month)} income and expense breakdown`}
+                    >
                       <td className="py-2 px-2 font-medium text-gray-700">{fmtMonth(row.month)}</td>
                       <td className="py-2 px-2 text-right text-green-700">{fmtShort(row.income)}</td>
                       <td className="py-2 px-2 text-right text-red-600">{fmtShort(row.expenses)}</td>
@@ -394,11 +452,17 @@ function AnalyticsPageContent() {
                           </span>
                         )}
                       </td>
+                      <td className="py-2 px-2 text-right text-gray-300 group-hover:text-emerald-600 transition-colors" aria-hidden="true">
+                        →
+                      </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+            <p className="mt-2 text-[11px] text-gray-400 text-center">
+              Click any row (or bar) to see income & expense breakdown by category and merchant.
+            </p>
           </div>
         )}
       </div>
