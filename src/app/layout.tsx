@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import "./globals.css";
 import { Providers } from "./providers";
 import { MaybeMarketingNav } from "../components/MaybeMarketingNav";
+import { JsonLdScript } from "../components/JsonLdScript";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -263,22 +264,18 @@ export default async function RootLayout({
         {/* JSON-LD below is `type="application/ld+json"` — browsers do NOT
             execute it as JavaScript, so script-src CSP doesn't apply.
             Leaving nonce off intentionally to avoid confusing SEO tools
-            that look for a bare <script type="application/ld+json">. */}
+            that look for a bare <script type="application/ld+json">.
+
+            2026-05-02 audit M-5: emit via JsonLdScript helper so the
+            `</` → `<\/` escaping is centralized — no per-call mistake
+            can let attacker-controlled schema data break out of the
+            <script> tag. */}
         {/* Organization Schema */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema).replace(/<\//g, '<\\/') }}
-        />
+        <JsonLdScript schema={organizationSchema} />
         {/* Software Application Schema */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema).replace(/<\//g, '<\\/') }}
-        />
+        <JsonLdScript schema={softwareSchema} />
         {/* WebSite Schema (enables Google Sitelinks Search Box) */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema).replace(/<\//g, '<\\/') }}
-        />
+        <JsonLdScript schema={websiteSchema} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
