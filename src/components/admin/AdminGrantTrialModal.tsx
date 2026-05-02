@@ -13,6 +13,7 @@
 import { useEffect, useRef } from 'react';
 import { PRICING } from '../../lib/pricing';
 import { useFocusTrap } from '../../lib/useFocusTrap';
+import { useBodyScrollLock } from '../../lib/useBodyScrollLock';
 import type { AdminUser } from './adminTypes';
 
 export interface AdminGrantTrialModalProps {
@@ -56,17 +57,26 @@ export function AdminGrantTrialModal(props: AdminGrantTrialModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   useFocusTrap(modalRef, true);
 
+  // 2026-05-02: lock body scroll while open so the parent modal /
+  // user list don't move underneath while granting a trial.
+  useBodyScrollLock(true);
+
   return (
-    // Round 26: role="dialog" + aria-modal + aria-labelledby for SR users.
+    // 2026-05-02 fix: same wrapper pattern as AdminUserDetailModal —
+    // outer fixed wrapper handles scroll, inner flex parent uses
+    // min-h-full so the modal anchors to the visible viewport
+    // regardless of where the admin was scrolled when they clicked
+    // "Grant Trial".
     <div
       ref={modalRef}
-      className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/50 z-[60] overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="grant-trial-title"
       onClick={onClose}
     >
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="bg-white rounded-2xl w-full max-w-md shadow-xl my-8" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b flex items-start justify-between">
           <h2 id="grant-trial-title" className="text-lg font-bold text-gray-900">Grant Trial</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">✕</button>
@@ -106,6 +116,7 @@ export function AdminGrantTrialModal(props: AdminGrantTrialModalProps) {
             </button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
