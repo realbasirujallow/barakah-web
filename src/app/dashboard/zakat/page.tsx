@@ -12,6 +12,7 @@ import HistoricalZakatModal from '../../../components/HistoricalZakatModal';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { KpiCard } from '../../../components/dashboard/KpiCard';
 import { trackFirstZakatCalc, trackFeatureUse, trackOnce } from '../../../lib/analytics';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
 interface ZakatCalculation {
   zakatDue?: number;
@@ -87,6 +88,8 @@ export default function ZakatPage() {
   const [saving, setSaving] = useState(false);
   const [showMabrook, setShowMabrook] = useState(false);
   const shownMabrookRef = useRef(false);
+  // 2026-05-02: lock body scroll while any modal is open.
+  useBodyScrollLock(showForm || showChecklist || showMabrook);
   const [form, setForm] = useState({ amount: '', recipient: '', notes: '' });
   const [hideZakat, setHideZakat] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);

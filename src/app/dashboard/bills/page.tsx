@@ -6,6 +6,7 @@ import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
 interface BillItem {
   id: number; name: string; category: string; amount: number;
@@ -229,6 +230,8 @@ export default function BillsPage() {
   const [saving, setSaving]         = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  // 2026-05-02: lock body scroll while any modal is open.
+  useBodyScrollLock(showForm || deleteConfirmation !== null);
   const { toast } = useToast();
 
   // ── Modal accessibility: focus trap + Escape close ──────────────────────

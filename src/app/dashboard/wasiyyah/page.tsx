@@ -7,6 +7,7 @@ import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { safeParse, validateWasiyyahBeneficiary } from '../../../lib/schemas';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
 interface Beneficiary {
   id: number;
@@ -68,6 +69,8 @@ function WasiyyahPageContent() {
   const [showForm, setShowForm]     = useState(false);
   const [showObForm, setShowObForm] = useState(false);
   const [showSharesInfo, setShowSharesInfo] = useState(false);
+  // 2026-05-02: lock body scroll while any modal is open.
+  useBodyScrollLock(showForm || showObForm || showSharesInfo);
   const [form, setForm]             = useState({
     beneficiaryName: '',
     relationship: 'spouse',

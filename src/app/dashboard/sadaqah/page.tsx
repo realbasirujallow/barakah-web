@@ -8,6 +8,7 @@ import { useToast } from '../../../lib/toast';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { SkeletonPage } from '../SkeletonCard';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
 interface SadaqahItem { id: number; amount: number; recipientName: string; category: string; date: number; description: string; recurring: boolean; anonymous: boolean; }
 interface Stats { totalDonated: number; donationCount: number; thisMonthTotal: number; topCategory: string; }
@@ -44,6 +45,8 @@ function SadaqahContent() {
   const [form, setForm] = useState({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false });
   const [saving, setSaving] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  // 2026-05-02: lock body scroll while modal/confirm is open.
+  useBodyScrollLock(showForm || deleteConfirmId !== null);
   const [displayCount, setDisplayCount] = useState(10);
   const { toast } = useToast();
 

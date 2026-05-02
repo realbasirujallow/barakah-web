@@ -7,6 +7,7 @@ import { toHijri } from '../../../lib/format';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
 interface HawlItem {
   id: number;
@@ -83,6 +84,8 @@ function HawlPageContent() {
   const [historyItems, setHistoryItems] = useState<HawlItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
+  // 2026-05-02: lock body scroll while any modal is open.
+  useBodyScrollLock(showForm || showHistory);
   const { toast } = useToast();
   const maxStartInput = new Date().toISOString().slice(0, 10);
   const minBackdateInput = new Date(Date.now() - 3650 * 86400000).toISOString().slice(0, 10);
