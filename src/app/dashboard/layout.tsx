@@ -58,7 +58,6 @@ const navItems: { href: string; icon: LucideIcon; label: string; gate?: 'plus' |
   { href: '/dashboard/import', icon: Upload, label: 'Import Data' },
   { href: '/dashboard/market-prices', icon: LineChart, label: 'Market Prices' },
   { href: '/dashboard/notifications', icon: Bell, label: 'Notifications' },
-  { href: '/dashboard/prayer-times', icon: Moon, label: 'Prayer Times' },
   { href: '/dashboard/profile', icon: User, label: 'Profile & Settings' },
   { href: '/dashboard/ramadan', icon: Moon, label: 'Ramadan Mode' },
   { href: '/dashboard/recurring', icon: RefreshCw, label: 'Recurring' },
@@ -143,7 +142,7 @@ const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> 
   },
   islamic: {
     label: 'Islamic',
-    items: ['Zakat', 'Zakat Anniversary', 'Sadaqah', 'Prayer Times', 'Ramadan Mode', 'Fiqh Settings', 'Ibadah Finance', 'Inheritance Calculator', 'Islamic Will', 'Endowment'],
+    items: ['Zakat', 'Zakat Anniversary', 'Sadaqah', 'Ramadan Mode', 'Fiqh Settings', 'Ibadah Finance', 'Inheritance Calculator', 'Islamic Will', 'Endowment'],
   },
   family: {
     label: 'Family',

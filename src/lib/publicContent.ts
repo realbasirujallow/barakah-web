@@ -155,21 +155,6 @@ export const PUBLIC_FEATURE_CARDS: readonly LocalizedFeatureCard[] = [
     },
   },
   {
-    icon: '🕌',
-    title: {
-      en: 'Prayer Times',
-      ar: 'أوقات الصلاة',
-      ur: 'نماز کے اوقات',
-      fr: 'Heures de prière',
-    },
-    desc: {
-      en: "Daily salah schedule for any city worldwide, with next prayer countdown and Jumu'ah times.",
-      ar: 'مواقيت الصلوات اليومية لأي مدينة في العالم مع عدّاد للصلاة القادمة وأوقات الجمعة.',
-      ur: 'دنیا کے کسی بھی شہر کے لیے روزانہ نماز کا شیڈول، اگلی نماز کا کاؤنٹ ڈاؤن، اور جمعہ کے اوقات۔',
-      fr: 'Horaires quotidiens de la salah pour n’importe quelle ville dans le monde, avec compte à rebours pour la prochaine prière et horaires du Jumu’ah.',
-    },
-  },
-  {
     icon: '🔄',
     title: {
       en: 'Subscription Detector',
