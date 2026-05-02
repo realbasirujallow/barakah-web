@@ -20,6 +20,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { CategoryIcon } from '../../lib/categoryIcon';
+import { useBodyScrollLock } from '../../lib/useBodyScrollLock';
 
 export interface MonthlyDetailSource {
   category: string;
@@ -46,13 +47,30 @@ export function MonthDetailSheet({
   month,
   monthLabel,
   onClose,
+  onNavigate,
+  hasPrev,
+  hasNext,
   fmt,
 }: {
   month: string;
   monthLabel: string;
   onClose: () => void;
+  /**
+   * 2026-05-02: Monarch parity — let the user flick between months
+   * inline without closing the sheet. When the parent passes
+   * onNavigate, the sheet shows prev/next arrows in the header.
+   * Direction = -1 (older) or +1 (newer). hasPrev/hasNext disable
+   * the buttons at the edges of the available range.
+   */
+  onNavigate?: (direction: -1 | 1) => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
   fmt: (n: number) => string;
 }) {
+  // 2026-05-02: lock body scroll while the sheet is open. Same fix
+  // pattern PR #95 applied to the admin modal — prevents the parent
+  // analytics page from scrolling underneath while drilling.
+  useBodyScrollLock(true);
   const [detail, setDetail] = useState<MonthlyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +97,26 @@ export function MonthDetailSheet({
     return () => { cancelled = true; };
   }, [month]);
 
+  // 2026-05-02: keyboard navigation — Esc closes, ← / → flicks
+  // through adjacent months when onNavigate is wired. Mirrors how
+  // Monarch handles month-detail sheets: the user never has to
+  // touch the mouse to compare consecutive months.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      } else if (e.key === 'ArrowLeft' && onNavigate && hasPrev) {
+        e.preventDefault();
+        onNavigate(-1);
+      } else if (e.key === 'ArrowRight' && onNavigate && hasNext) {
+        e.preventDefault();
+        onNavigate(1);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose, onNavigate, hasPrev, hasNext]);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
@@ -91,14 +129,51 @@ export function MonthDetailSheet({
         className="w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl animate-in slide-in-from-bottom-4 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex justify-between items-start">
-          <div>
-            <h3 id="month-detail-title" className="font-semibold text-gray-900 text-lg">{monthLabel}</h3>
-            <p className="text-xs text-gray-500 mt-0.5">Income broken down by source account · drill into any month</p>
+        <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex justify-between items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* 2026-05-02: Monarch-style prev/next month arrows. Lets
+                the user flick between adjacent months without
+                closing+reopening the sheet. Hidden when no
+                onNavigate is provided (preserves the 1-month-only
+                surfaces that don't have a series to navigate). */}
+            {onNavigate && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onNavigate(-1)}
+                  disabled={!hasPrev}
+                  className="text-gray-500 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed transition rounded-full p-1 hover:bg-gray-100"
+                  aria-label="Previous month"
+                  title="Previous month"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigate(1)}
+                  disabled={!hasNext}
+                  className="text-gray-500 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed transition rounded-full p-1 hover:bg-gray-100"
+                  aria-label="Next month"
+                  title="Next month"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </>
+            )}
+            <div>
+              <h3 id="month-detail-title" className="font-semibold text-gray-900 text-lg">{monthLabel}</h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {onNavigate ? 'Use ← → to flick between months' : 'Income broken down by source account'}
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition rounded-full p-1 hover:bg-gray-100"
+            className="text-gray-400 hover:text-gray-600 transition rounded-full p-1 hover:bg-gray-100 shrink-0"
             aria-label="Close"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>

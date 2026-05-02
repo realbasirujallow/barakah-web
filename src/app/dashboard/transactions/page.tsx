@@ -197,6 +197,33 @@ export default function TransactionsPage() {
     return () => document.removeEventListener('keydown', handler);
   }, [deleteConfirmation]);
 
+  // 2026-05-02 (Monarch parity): when the page is filtered to a
+  // specific month via ?month=YYYY-MM, ← and → flick to the previous /
+  // next month inline. Skipped while typing in inputs so we don't
+  // hijack the search box. Skipped while a modal is open so the
+  // arrow keys still belong to the modal's focus trap.
+  useEffect(() => {
+    if (!urlMonth) return;
+    const handler = (e: KeyboardEvent) => {
+      if (showForm || deleteConfirmation !== null) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toUpperCase();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      const [y, m] = urlMonth.split('-').map(Number);
+      const next = new Date(y, (m || 1) - 1 + (e.key === 'ArrowLeft' ? -1 : 1), 1);
+      const ym = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
+      const params = new URLSearchParams();
+      if (urlCategory) params.set('category', urlCategory);
+      params.set('month', ym);
+      const filterParam = searchParams?.get('filter');
+      if (filterParam) params.set('filter', filterParam);
+      window.location.href = `/dashboard/transactions?${params.toString()}`;
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [urlMonth, urlCategory, searchParams, showForm, deleteConfirmation]);
+
   // Debounce search input (300ms)
   useEffect(() => {
     const timer = setTimeout(() => { setSearchDebounce(search); setPage(0); }, 300);
@@ -612,25 +639,86 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      {/* 2026-05-02: drill-down breadcrumb. When the user lands here from
-          a cash-flow Sankey or breakdown click, show the active month
-          filter with a one-click clear. Mirrors Monarch's behaviour
-          where the active filter is always visible above the list. */}
-      {urlMonth && (
-        <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-900">
-          <span className="font-medium">Showing transactions in</span>
-          <span className="font-bold tabular-nums">
-            {(() => {
-              const [y, m] = urlMonth.split('-').map(Number);
-              return new Date(y, (m || 1) - 1, 1).toLocaleString(undefined, { month: 'long', year: 'numeric' });
-            })()}
-          </span>
-          <a
-            href="/dashboard/transactions"
-            className="ml-auto text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline"
-          >
-            Clear month filter
-          </a>
+      {/* 2026-05-02 (Monarch parity): active-filter breadcrumb with
+          inline navigation. When the user lands here from a cash-flow
+          Sankey, breakdown click, or month-detail sheet, they can:
+            • See exactly what's filtered (category + month)
+            • Flick to prev/next month without going back
+            • Clear individual filters or all of them
+          Founder feedback: "user can navigate to another month or
+          expense without remaining on 1 page is annoying — Monarch
+          has this in a nice way."  This is the Monarch-style nav. */}
+      {(urlMonth || urlCategory) && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-900">
+          {urlMonth && (() => {
+            const [y, m] = urlMonth.split('-').map(Number);
+            const monthLabel = new Date(y, (m || 1) - 1, 1).toLocaleString(undefined, { month: 'long', year: 'numeric' });
+            const shiftMonth = (delta: -1 | 1) => {
+              const next = new Date(y, (m || 1) - 1 + delta, 1);
+              const ym = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
+              const params = new URLSearchParams();
+              if (urlCategory) params.set('category', urlCategory);
+              params.set('month', ym);
+              const filterParam = searchParams?.get('filter');
+              if (filterParam) params.set('filter', filterParam);
+              window.location.href = `/dashboard/transactions?${params.toString()}`;
+            };
+            return (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => shiftMonth(-1)}
+                  className="p-1 rounded-full hover:bg-emerald-100 text-emerald-800"
+                  aria-label="Previous month"
+                  title="Previous month (←)"
+                >
+                  ←
+                </button>
+                <span className="font-bold tabular-nums">{monthLabel}</span>
+                <button
+                  type="button"
+                  onClick={() => shiftMonth(1)}
+                  className="p-1 rounded-full hover:bg-emerald-100 text-emerald-800"
+                  aria-label="Next month"
+                  title="Next month (→)"
+                >
+                  →
+                </button>
+              </div>
+            );
+          })()}
+          {urlCategory && urlMonth && <span className="text-emerald-400">·</span>}
+          {urlCategory && (
+            <span className="font-medium">
+              Category: <span className="font-bold capitalize">{urlCategory.replace(/_/g, ' ')}</span>
+            </span>
+          )}
+          <div className="ml-auto flex items-center gap-3">
+            {urlCategory && (
+              <a
+                href={`/dashboard/transactions${urlMonth ? `?month=${urlMonth}` : ''}`}
+                className="text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline text-xs"
+              >
+                Clear category
+              </a>
+            )}
+            {urlMonth && (
+              <a
+                href={`/dashboard/transactions${urlCategory ? `?category=${urlCategory}` : ''}`}
+                className="text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline text-xs"
+              >
+                Clear month
+              </a>
+            )}
+            {(urlCategory || urlMonth) && (
+              <a
+                href="/dashboard/transactions"
+                className="text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline text-xs font-medium"
+              >
+                Clear all
+              </a>
+            )}
+          </div>
         </div>
       )}
 
