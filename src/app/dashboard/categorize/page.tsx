@@ -132,10 +132,24 @@ export default function CategorizePage() {
     setApplying(true);
     try {
       const result = await api.applyCategories(minConfidence);
+      // 2026-05-02 fix: the previous version swallowed `result.error`
+      // entirely — an apiFetch that returned `{ error: "..." }` was
+      // treated as success and silently no-op'd the user's click.
+      // Now we surface the server error so the user knows why apply
+      // failed (plan gate, optimistic-lock conflict, etc.).
+      if (result?.error) {
+        toast(String(result.error), 'error');
+        return;
+      }
       await loadAll();
       toast(result?.message || 'Changes applied', 'success');
-    } catch {
-      toast('Failed to apply transaction rules', 'error');
+    } catch (err) {
+      // 2026-05-02 fix: surface the actual error message (e.g. "Plus
+      // plan required", "Server unavailable, please try again later")
+      // instead of the generic "Failed to apply transaction rules"
+      // that masked every backend signal.
+      const msg = err instanceof Error ? err.message : 'Failed to apply transaction rules';
+      toast(msg, 'error');
     } finally {
       setApplying(false);
     }

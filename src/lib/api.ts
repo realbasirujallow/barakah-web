@@ -950,11 +950,23 @@ export const api = {
 
   // Auto-Categorize
   reviewCategories: () => apiFetch('/api/categorize/review'),
+  // 2026-05-02 fix: send an explicit empty JSON body. Without it, fetch
+  // sends a POST with `Content-Type: application/json` (set by apiFetch
+  // for every request) and no payload, which the Idempotency filter +
+  // Spring's HTTP message converters can interpret as malformed and
+  // surface as a 4xx. Empty `{}` is a valid JSON object and round-trips
+  // through both filters cleanly. Same fix below for /transactions/recategorize.
   applyCategories: (minConfidence = 60) =>
-    apiFetch(`/api/categorize/apply?minConfidence=${minConfidence}`, { method: 'POST' }),
+    apiFetch(`/api/categorize/apply?minConfidence=${minConfidence}`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }),
   /** Round 32: re-apply R30 keyword overrides to existing transactions. */
   recategorizeMyTransactions: () =>
-    apiFetch('/api/transactions/recategorize', { method: 'POST' }),
+    apiFetch('/api/transactions/recategorize', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }),
   getTransactionRules: () => apiFetch('/api/categorize/rules'),
   createTransactionRule: (data: Record<string, unknown>) =>
     apiFetch('/api/categorize/rules', { method: 'POST', body: JSON.stringify(data) }),
