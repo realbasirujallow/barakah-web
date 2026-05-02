@@ -44,8 +44,11 @@ const en: Translations = {
   exploreFeatures: 'Explore Features',
 
   // Islamic
+  // 2026-05-02: prayerTimes key removed from all 4 locales — the
+  // /dashboard/prayer-times surface was deleted in PR #86 and no
+  // shipping code references this key. If a future feature needs it,
+  // re-add to all 4 locale dictionaries together.
   islamicDate: 'Islamic Date',
-  prayerTimes: 'Prayer Times',
   zakatReminders: 'Zakat Reminders',
   hawlTracker: 'Hawl Tracker',
   ibadahFinance: 'Ibadah Finance',
@@ -234,7 +237,6 @@ const ar: Translations = {
 
   // Islamic
   islamicDate: 'التاريخ الهجري',
-  prayerTimes: 'أوقات الصلاة',
   zakatReminders: 'تذكيرات الزكاة',
   hawlTracker: 'متتبع الحول',
   ibadahFinance: 'مالية العبادات',
@@ -420,7 +422,6 @@ const ur: Translations = {
 
   // Islamic
   islamicDate: 'اسلامی تاریخ',
-  prayerTimes: 'نماز کے اوقات',
   zakatReminders: 'زکوٰۃ کی یاددہانی',
   hawlTracker: 'حول ٹریکر',
   ibadahFinance: 'عبادات کے مالیات',
@@ -606,7 +607,6 @@ const fr: Translations = {
 
   // Islamic
   islamicDate: 'Date hégirienne',
-  prayerTimes: 'Heures de prière',
   zakatReminders: 'Rappels de Zakat',
   hawlTracker: 'Suivi du Hawl',
   ibadahFinance: 'Finance des actes d\'adoration',
