@@ -1,11 +1,13 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useCurrency } from '../../../lib/useCurrency';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { ChevronRight } from 'lucide-react';
 
 interface Snapshot {
   id?: number;
@@ -14,6 +16,51 @@ interface Snapshot {
   totalDebts: number;
   totalSavings: number;
   netWorth: number;
+}
+
+interface AssetItem {
+  id: number;
+  name: string;
+  type: string;
+  value: number;
+  institutionName?: string | null;
+  accountMask?: string | null;
+  accountSubtype?: string | null;
+}
+
+interface DebtRow {
+  id: number;
+  name: string;
+  type: string;
+  remainingAmount: number;
+  totalAmount: number;
+  ribaFree: boolean;
+  status: string;
+  lender?: string;
+  institutionName?: string | null;
+  accountMask?: string | null;
+}
+
+// 2026-05-02 (Monarch parity): asset/debt type → account-group bucket.
+// Mirrors Monarch's Accounts page groups (Cash, Credit Cards, Investments,
+// Loans, Vehicles, Real Estate). Anything unmapped falls into "Other".
+function groupForAsset(t: string): string {
+  const x = (t || '').toLowerCase();
+  if (/cash|checking|saving|money[\s-]?market/.test(x)) return 'Cash';
+  if (/invest|stock|etf|brokerage|retire|401|ira|pension/.test(x)) return 'Investments';
+  if (/real[\s-]?estate|home|property|land|rental/.test(x)) return 'Real Estate';
+  if (/vehicle|car|auto|truck|bike/.test(x)) return 'Vehicles';
+  if (/gold|silver|crypto|commodit|bitcoin|ether/.test(x)) return 'Other Assets';
+  if (/business|equity/.test(x)) return 'Business';
+  return 'Other Assets';
+}
+function groupForDebt(t: string): string {
+  const x = (t || '').toLowerCase();
+  if (/credit[\s-]?card|amex|visa|master/.test(x)) return 'Credit Cards';
+  if (/mortgage|home[\s-]?loan/.test(x)) return 'Mortgages';
+  if (/student/.test(x)) return 'Student Loans';
+  if (/auto|car[\s-]?loan|vehicle/.test(x)) return 'Auto Loans';
+  return 'Loans';
 }
 
 const PERIODS = [
@@ -44,6 +91,11 @@ export default function NetWorthPage() {
   const [changeAmount, setChangeAmount] = useState(0);
   const [changePercent, setChangePercent] = useState(0);
 
+  // 2026-05-02 (Monarch parity): Accounts list + group expand state.
+  const [assets, setAssets] = useState<AssetItem[]>([]);
+  const [debts, setDebts] = useState<DebtRow[]>([]);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
   const mountedRef = useRef(true);
   useEffect(() => () => { mountedRef.current = false; }, []);
 
@@ -66,7 +118,11 @@ export default function NetWorthPage() {
         } catch { /* ignore */ }
       }
 
-      const d = await api.getNetWorthHistory(selectedPeriod || period);
+      const [d, assetList, debtList] = await Promise.all([
+        api.getNetWorthHistory(selectedPeriod || period),
+        api.getAssets().catch(() => ({ assets: [] })),
+        api.getDebts().catch(() => ({ debts: [] })),
+      ]);
       if (!mountedRef.current) return;
       setCurrentNetWorth(d.currentNetWorth ?? 0);
       setTotalAssets(d.totalAssets ?? 0);
@@ -74,6 +130,40 @@ export default function NetWorthPage() {
       setTotalSavings(d.totalSavings ?? 0);
       setChangeAmount(d.changeAmount ?? 0);
       setChangePercent(d.changePercent ?? 0);
+
+      const assetRecs = (assetList as { assets?: unknown[] })?.assets ?? [];
+      setAssets(
+        assetRecs.map((a) => {
+          const r = a as Record<string, unknown>;
+          return {
+            id: Number(r.id ?? 0),
+            name: String(r.name ?? ''),
+            type: String(r.type ?? ''),
+            value: Number(r.value ?? 0),
+            institutionName: (r.institutionName as string | null) ?? null,
+            accountMask: (r.accountMask as string | null) ?? null,
+            accountSubtype: (r.accountSubtype as string | null) ?? null,
+          };
+        }) as AssetItem[]
+      );
+      const debtRecs = (debtList as { debts?: unknown[] })?.debts ?? [];
+      setDebts(
+        debtRecs.map((dItem) => {
+          const r = dItem as Record<string, unknown>;
+          return {
+            id: Number(r.id ?? 0),
+            name: String(r.name ?? ''),
+            type: String(r.type ?? ''),
+            remainingAmount: Number(r.remainingAmount ?? 0),
+            totalAmount: Number(r.totalAmount ?? 0),
+            ribaFree: Boolean(r.ribaFree),
+            status: String(r.status ?? ''),
+            lender: (r.lender as string) ?? '',
+            institutionName: (r.institutionName as string | null) ?? null,
+            accountMask: (r.accountMask as string | null) ?? null,
+          };
+        }) as DebtRow[]
+      );
 
       const snapshots: Snapshot[] = (d.history ?? []).map((s: Record<string, unknown>) => ({
         id: s.id as number,
@@ -126,6 +216,63 @@ export default function NetWorthPage() {
 
   const changePositive = changeAmount >= 0;
   const periodLabel = PERIODS.find(p => p.key === period)?.label ?? period;
+
+  // 2026-05-02 (Monarch parity): build expandable account groups.
+  // Group assets by groupForAsset() and debts by groupForDebt(),
+  // then sort groups by total value (largest at top — same as Monarch).
+  const accountGroups = useMemo(() => {
+    type GroupRow = {
+      key: string;
+      kind: 'asset' | 'liability';
+      total: number;
+      items: Array<{ id: number; name: string; subtitle: string; value: number; href: string; ribaFree?: boolean }>;
+    };
+    const groups: Record<string, GroupRow> = {};
+    assets.forEach((a) => {
+      const k = groupForAsset(a.type);
+      if (!groups[k]) groups[k] = { key: k, kind: 'asset', total: 0, items: [] };
+      groups[k].total += a.value;
+      const subtitleParts = [
+        a.institutionName,
+        a.accountMask ? `••${a.accountMask}` : null,
+        !a.institutionName ? a.type.replace(/_/g, ' ') : null,
+      ].filter(Boolean);
+      groups[k].items.push({
+        id: a.id,
+        name: a.name || a.type,
+        subtitle: subtitleParts.join(' · '),
+        value: a.value,
+        href: `/dashboard/assets#asset-${a.id}`,
+      });
+    });
+    debts.forEach((d) => {
+      const k = groupForDebt(d.type);
+      if (!groups[k]) groups[k] = { key: k, kind: 'liability', total: 0, items: [] };
+      groups[k].total += d.remainingAmount;
+      const subtitleParts = [
+        d.institutionName ?? d.lender,
+        d.accountMask ? `••${d.accountMask}` : null,
+        !d.institutionName && !d.lender ? d.type.replace(/_/g, ' ') : null,
+      ].filter(Boolean);
+      groups[k].items.push({
+        id: d.id,
+        name: d.name || d.type,
+        subtitle: subtitleParts.join(' · '),
+        value: d.remainingAmount,
+        href: `/dashboard/debts#debt-${d.id}`,
+        ribaFree: d.ribaFree,
+      });
+    });
+    // Sort items in each group by value desc.
+    Object.values(groups).forEach(g => g.items.sort((a, b) => b.value - a.value));
+    // Asset groups first (largest first), then liability groups (largest first).
+    const allAssetGroups = Object.values(groups).filter(g => g.kind === 'asset').sort((a, b) => b.total - a.total);
+    const allLiabilityGroups = Object.values(groups).filter(g => g.kind === 'liability').sort((a, b) => b.total - a.total);
+    return [...allAssetGroups, ...allLiabilityGroups];
+  }, [assets, debts]);
+
+  const totalLiabilities = debts.reduce((s, d) => s + d.remainingAmount, 0);
+  const totalAssetsVal = assets.reduce((s, a) => s + a.value, 0);
 
   if (isLoading || (user && !hasPaidAccess)) {
     return (
@@ -219,6 +366,134 @@ export default function NetWorthPage() {
         <p>Net Worth = <span className="font-medium">Assets</span> + <span className="font-medium">Savings Goals</span> − <span className="font-medium">Active Debts</span></p>
         <p className="mt-1 text-blue-700">Importing <em>transactions</em> does not update this figure. To reflect your account balances, go to <a href="/dashboard/import" className="underline font-medium">Import</a> and upload a <em>Balances CSV</em> from your bank or budgeting app (Monarch Money, YNAB, Mint, etc.) — positive accounts map to Assets, negative (credit cards / loans) map to Debts automatically.</p>
       </div>
+
+      {/* Monarch-parity Accounts grid: 2-col on lg+ — left expandable
+          account groups, right Assets/Liabilities summary panel.
+          Visual reference: Monarch's `/accounts` page. */}
+      {(assets.length > 0 || debts.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className="lg:col-span-2 space-y-2">
+            {accountGroups.map((g) => {
+              const isOpen = expanded[g.key] ?? true;
+              return (
+                <div key={g.key} className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setExpanded({ ...expanded, [g.key]: !isOpen })}
+                    className="w-full px-5 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                    aria-expanded={isOpen}
+                  >
+                    <div className="flex items-center gap-2">
+                      <ChevronRight
+                        className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                        aria-hidden="true"
+                      />
+                      <span className="font-semibold text-foreground">{g.key}</span>
+                      <span className="text-xs text-gray-400">({g.items.length})</span>
+                    </div>
+                    <span className={`font-bold tabular-nums ${g.kind === 'asset' ? 'text-foreground' : 'text-rose-700'}`}>
+                      {g.kind === 'liability' ? '−' : ''}{fmt(g.total)}
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <ul className="border-t border-gray-100 divide-y divide-gray-100">
+                      {g.items.map((item) => (
+                        <li key={`${g.key}-${item.id}`}>
+                          <Link
+                            href={item.href}
+                            className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
+                              {item.subtitle && (
+                                <p className="text-xs text-gray-500 truncate capitalize">{item.subtitle}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              {item.ribaFree === false && (
+                                <span
+                                  className="text-[10px] uppercase tracking-wide font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded"
+                                  title="Riba-bearing — see /dashboard/riba"
+                                >
+                                  Riba
+                                </span>
+                              )}
+                              <span className={`text-sm font-semibold tabular-nums ${g.kind === 'asset' ? 'text-foreground' : 'text-rose-700'}`}>
+                                {g.kind === 'liability' ? '−' : ''}{fmt(item.value)}
+                              </span>
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Side panel: Assets vs Liabilities (Monarch parity) */}
+          <aside className="bg-white rounded-2xl shadow-sm p-5 h-fit">
+            <h3 className="font-semibold text-foreground mb-4">Summary</h3>
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-gray-600">Assets</span>
+                <span className="text-sm font-bold tabular-nums">{fmt(totalAssetsVal)}</span>
+              </div>
+              <div className="h-2 bg-emerald-100 rounded-full overflow-hidden flex">
+                {accountGroups.filter(g => g.kind === 'asset').map((g, i) => {
+                  const palette = ['bg-emerald-600', 'bg-emerald-500', 'bg-emerald-400', 'bg-emerald-300', 'bg-teal-500', 'bg-teal-400'];
+                  const w = totalAssetsVal > 0 ? (g.total / totalAssetsVal) * 100 : 0;
+                  return <div key={g.key} className={palette[i % palette.length]} style={{ width: `${w}%` }} />;
+                })}
+              </div>
+              <ul className="mt-2 space-y-1 text-xs">
+                {accountGroups.filter(g => g.kind === 'asset').map((g, i) => {
+                  const palette = ['bg-emerald-600', 'bg-emerald-500', 'bg-emerald-400', 'bg-emerald-300', 'bg-teal-500', 'bg-teal-400'];
+                  return (
+                    <li key={g.key} className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${palette[i % palette.length]}`} aria-hidden="true" />
+                        <span className="text-gray-600">{g.key}</span>
+                      </span>
+                      <span className="tabular-nums text-gray-700">{fmt(g.total)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+            {totalLiabilities > 0 && (
+              <div className="mt-5 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm text-gray-600">Liabilities</span>
+                  <span className="text-sm font-bold tabular-nums text-rose-700">{fmt(totalLiabilities)}</span>
+                </div>
+                <div className="h-2 bg-rose-100 rounded-full overflow-hidden flex">
+                  {accountGroups.filter(g => g.kind === 'liability').map((g, i) => {
+                    const palette = ['bg-rose-600', 'bg-rose-500', 'bg-amber-500', 'bg-orange-500'];
+                    const w = totalLiabilities > 0 ? (g.total / totalLiabilities) * 100 : 0;
+                    return <div key={g.key} className={palette[i % palette.length]} style={{ width: `${w}%` }} />;
+                  })}
+                </div>
+                <ul className="mt-2 space-y-1 text-xs">
+                  {accountGroups.filter(g => g.kind === 'liability').map((g, i) => {
+                    const palette = ['bg-rose-600', 'bg-rose-500', 'bg-amber-500', 'bg-orange-500'];
+                    return (
+                      <li key={g.key} className="flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <span className={`w-2 h-2 rounded-full ${palette[i % palette.length]}`} aria-hidden="true" />
+                          <span className="text-gray-600">{g.key}</span>
+                        </span>
+                        <span className="tabular-nums text-gray-700">{fmt(g.total)}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </aside>
+        </div>
+      )}
 
       {/* Breakdown card */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">

@@ -31,7 +31,8 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { CategoryIcon } from '../../../lib/categoryIcon';
 import {
-  BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid,
+  Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid,
+  ReferenceLine, ComposedChart, Line,
 } from 'recharts';
 
 interface MonthRow {
@@ -59,6 +60,7 @@ interface BreakdownResponse {
 }
 
 type Dimension = 'category' | 'merchant';
+type TimeView = 'monthly' | 'quarterly' | 'yearly';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -97,6 +99,11 @@ export default function CashFlowPage() {
   const [dimension, setDimension] = React.useState<Dimension>('category');
   const [breakdown, setBreakdown] = React.useState<BreakdownResponse | null>(null);
   const [breakdownLoading, setBreakdownLoading] = React.useState(false);
+
+  // 2026-05-02: Monarch-parity time-view selector. Backend only returns
+  // monthly buckets; quarterly/yearly are client-side roll-ups so the
+  // chart can show the same data three different ways without a new API.
+  const [timeView, setTimeView] = React.useState<TimeView>('monthly');
 
   React.useEffect(() => {
     let cancelled = false;
@@ -149,6 +156,114 @@ export default function CashFlowPage() {
   }, [selectedMonth, dimension]);
 
   const selected = months.find(m => m.month === selectedMonth);
+
+  // 2026-05-02: client-side roll-up of months → quarters/years.
+  // Keeps the bar-chart UI identical regardless of view; only the
+  // bucket label and span change. Backend stays month-granular.
+  const chartBuckets = React.useMemo(() => {
+    if (timeView === 'monthly') {
+      return months.map((m) => ({
+        bucket: m.month,
+        label: monthShort(m.month),
+        income: m.income,
+        expenses: m.expenses,
+        sadaqahZakat: m.sadaqahZakat,
+        savings: m.savings,
+        net: m.income - m.expenses - m.sadaqahZakat,
+        sourceMonth: m.month,
+      }));
+    }
+    if (timeView === 'quarterly') {
+      const map = new Map<string, MonthRow & { bucket: string }>();
+      months.forEach((m) => {
+        const y = m.month.slice(0, 4);
+        const monthNum = parseInt(m.month.slice(5, 7), 10);
+        const q = Math.ceil(monthNum / 3);
+        const bucket = `${y}-Q${q}`;
+        const existing = map.get(bucket);
+        if (existing) {
+          existing.income += m.income;
+          existing.expenses += m.expenses;
+          existing.sadaqahZakat += m.sadaqahZakat;
+          existing.savings += m.savings;
+        } else {
+          map.set(bucket, {
+            bucket,
+            month: m.month,
+            income: m.income,
+            expenses: m.expenses,
+            sadaqahZakat: m.sadaqahZakat,
+            savings: m.savings,
+          });
+        }
+      });
+      return Array.from(map.values()).map((b) => ({
+        bucket: b.bucket,
+        label: b.bucket.slice(5),
+        income: b.income,
+        expenses: b.expenses,
+        sadaqahZakat: b.sadaqahZakat,
+        savings: b.savings,
+        net: b.income - b.expenses - b.sadaqahZakat,
+        sourceMonth: b.month,
+      }));
+    }
+    // yearly
+    const map = new Map<string, MonthRow & { bucket: string }>();
+    months.forEach((m) => {
+      const y = m.month.slice(0, 4);
+      const existing = map.get(y);
+      if (existing) {
+        existing.income += m.income;
+        existing.expenses += m.expenses;
+        existing.sadaqahZakat += m.sadaqahZakat;
+        existing.savings += m.savings;
+      } else {
+        map.set(y, {
+          bucket: y,
+          month: m.month,
+          income: m.income,
+          expenses: m.expenses,
+          sadaqahZakat: m.sadaqahZakat,
+          savings: m.savings,
+        });
+      }
+    });
+    return Array.from(map.values()).map((b) => ({
+      bucket: b.bucket,
+      label: b.bucket,
+      income: b.income,
+      expenses: b.expenses,
+      sadaqahZakat: b.sadaqahZakat,
+      savings: b.savings,
+      net: b.income - b.expenses - b.sadaqahZakat,
+      sourceMonth: b.month,
+    }));
+  }, [months, timeView]);
+
+  // Year-divider markers for the bar chart (Monarch shows
+  // "← 2024 | 2025 → | 2025 | 2026 →" on month boundaries).
+  const yearMarkers = React.useMemo(() => {
+    if (timeView !== 'monthly') return [] as Array<{ index: number; year: string }>;
+    const result: Array<{ index: number; year: string }> = [];
+    let prevYear = '';
+    chartBuckets.forEach((b, i) => {
+      const y = b.bucket.slice(0, 4);
+      if (y !== prevYear) {
+        result.push({ index: i, year: y });
+        prevYear = y;
+      }
+    });
+    return result;
+  }, [chartBuckets, timeView]);
+
+  // Savings rate % — Monarch's 4th stat. Floor at 0 to avoid the
+  // confusing "negative savings rate" that a single overspending
+  // month produces; we already show negative savings as the dollar
+  // figure in the third card.
+  const savingsRatePct = selected && selected.income > 0
+    ? Math.max(0, Math.round((selected.savings / selected.income) * 100))
+    : 0;
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -208,30 +323,53 @@ export default function CashFlowPage() {
       )}
 
       {!loading && !error && months.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-          {/* Chart — 2/3 width on lg+, full on mobile */}
-          <section className="lg:col-span-2 bg-card rounded-2xl p-5 border border-border">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium mb-2">
-              13-month overview
-            </p>
+        <>
+          {/* Chart card — full-width like Monarch's Cash Flow page.
+              Stat strip moves underneath as a 4-card horizontal row. */}
+          <section className="bg-card rounded-2xl p-5 border border-border mb-4">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                {timeView === 'monthly' ? '13-month overview' : timeView === 'quarterly' ? 'By quarter' : 'By year'}
+              </p>
+              {/* Monthly · Quarterly · Yearly tabs (Monarch parity).
+                  Backend is month-granular; quarterly/yearly are
+                  client-side roll-ups so the chart is consistent. */}
+              <div
+                role="tablist"
+                aria-label="Time view"
+                className="inline-flex rounded-full bg-muted/40 p-0.5 text-[12px] font-medium"
+              >
+                {(['monthly', 'quarterly', 'yearly'] as TimeView[]).map((v) => (
+                  <button
+                    key={v}
+                    role="tab"
+                    aria-selected={timeView === v}
+                    type="button"
+                    onClick={() => setTimeView(v)}
+                    className={`px-3 py-1 rounded-full transition-colors capitalize ${
+                      timeView === v
+                        ? 'bg-card text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+            </div>
             <ResponsiveContainer width="100%" height={260}>
-              <BarChart
-                data={months.map(m => ({
-                  ...m,
-                  shortLabel: monthShort(m.month),
-                  isSelected: m.month === selectedMonth,
-                }))}
+              <ComposedChart
+                data={chartBuckets}
                 onClick={(e) => {
-                  // Recharts' onClick payload is loosely typed; cast through unknown.
-                  const ev = e as unknown as { activePayload?: Array<{ payload?: MonthRow }> };
+                  const ev = e as unknown as { activePayload?: Array<{ payload?: { sourceMonth?: string } }> };
                   const payload = ev?.activePayload?.[0]?.payload;
-                  if (payload?.month) setSelectedMonth(payload.month);
+                  if (payload?.sourceMonth) setSelectedMonth(payload.sourceMonth);
                 }}
-                margin={{ top: 8, right: 4, left: 4, bottom: 4 }}
+                margin={{ top: 8, right: 8, left: 4, bottom: 4 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis
-                  dataKey="shortLabel"
+                  dataKey="label"
                   tick={(props) => {
                     const { x, y, payload, index } = props as {
                       x: number;
@@ -239,7 +377,8 @@ export default function CashFlowPage() {
                       payload: { value: string };
                       index: number;
                     };
-                    const isSelected = months[index]?.month === selectedMonth;
+                    const bucketRow = chartBuckets[index];
+                    const isSelected = bucketRow?.sourceMonth === selectedMonth;
                     return (
                       <text
                         x={x}
@@ -259,8 +398,10 @@ export default function CashFlowPage() {
                   cursor={{ fill: 'var(--muted)', opacity: 0.3 }}
                   formatter={(value, name) => [fmt(Number(value)), String(name)] as [string, string]}
                   labelFormatter={(label, payload) => {
-                    const m = payload?.[0]?.payload as MonthRow | undefined;
-                    return m ? monthLong(m.month) : String(label);
+                    const row = payload?.[0]?.payload as { sourceMonth?: string; bucket?: string } | undefined;
+                    if (!row) return String(label);
+                    if (timeView === 'monthly' && row.sourceMonth) return monthLong(row.sourceMonth);
+                    return row.bucket ?? String(label);
                   }}
                   contentStyle={{
                     backgroundColor: 'var(--popover)',
@@ -269,12 +410,29 @@ export default function CashFlowPage() {
                     fontSize: 12,
                   }}
                 />
+                {/* Year-divider lines on month-view (Monarch parity). */}
+                {yearMarkers.slice(1).map((m) => (
+                  <ReferenceLine
+                    key={m.year}
+                    x={chartBuckets[m.index]?.label}
+                    stroke="var(--muted-foreground)"
+                    strokeDasharray="2 4"
+                    strokeOpacity={0.3}
+                    label={{
+                      value: m.year,
+                      position: 'top',
+                      fill: 'var(--muted-foreground)',
+                      fontSize: 10,
+                    }}
+                  />
+                ))}
                 <Bar
                   dataKey="income"
                   name="Income"
                   fill="var(--chart-income, #2E7D32)"
                   radius={[3, 3, 0, 0]}
                   cursor="pointer"
+                  fillOpacity={0.85}
                 />
                 <Bar
                   dataKey="expenses"
@@ -282,55 +440,76 @@ export default function CashFlowPage() {
                   fill="var(--chart-expenses, #C62828)"
                   radius={[3, 3, 0, 0]}
                   cursor="pointer"
+                  fillOpacity={0.85}
                 />
-              </BarChart>
+                {/* Net trend line over bars (Monarch parity) */}
+                <Line
+                  type="monotone"
+                  dataKey="net"
+                  name="Net"
+                  stroke="#0f172a"
+                  strokeWidth={1.5}
+                  dot={{ r: 2 }}
+                  activeDot={{ r: 4 }}
+                />
+              </ComposedChart>
             </ResponsiveContainer>
             <p className="text-[11px] text-muted-foreground text-center mt-2">
-              Click any month bar to see the breakdown for that month
+              Click any bar to see the breakdown for that period
             </p>
           </section>
 
-          {/* Stat strip — 1/3 width on lg+, full below chart on mobile */}
+          {/* Stat strip — 4-card horizontal row (Monarch parity).
+              Income / Expenses / Savings / Savings Rate. The Sadaqah row
+              moves into the breakdown header where it lives alongside
+              its category list. This keeps the headline strip 4-up and
+              readable while preserving the four-pillar story. */}
           {selected && (
-            <section className="bg-card rounded-2xl p-5 border border-border">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium mb-1">
-                Selected month
-              </p>
-              <p className="text-base font-bold text-foreground mb-4">
-                {monthLong(selected.month)}
-              </p>
-              <StatRow
-                label="Income"
-                amount={selected.income}
-                color="bg-emerald-600"
-                amountClass="text-emerald-700 dark:text-emerald-400"
-                fmt={fmt}
-              />
-              <StatRow
-                label="Expenses"
-                amount={selected.expenses}
-                color="bg-rose-600"
-                amountClass="text-rose-700 dark:text-rose-400"
-                fmt={fmt}
-              />
-              <StatRow
-                label="Sadaqah / Zakat given"
-                amount={selected.sadaqahZakat}
-                color="bg-amber-500"
-                amountClass="text-amber-700 dark:text-amber-400"
-                fmt={fmt}
-              />
-              <StatRow
-                label="Savings"
-                amount={selected.savings}
-                color="bg-gray-700 dark:bg-gray-300"
-                amountClass="text-foreground"
-                tooltip="Income − Expenses − Sadaqah/Zakat = Savings (the cash residue after household outflows and given charity)."
-                fmt={fmt}
-              />
+            <section className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-base font-bold text-foreground">
+                  {monthLong(selected.month)}
+                </p>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+                  Selected period
+                </p>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <StatCard
+                  label="Income"
+                  value={fmt(selected.income)}
+                  valueClass="text-emerald-700 dark:text-emerald-400"
+                  dotClass="bg-emerald-600"
+                />
+                <StatCard
+                  label="Expenses"
+                  value={fmt(selected.expenses)}
+                  valueClass="text-rose-700 dark:text-rose-400"
+                  dotClass="bg-rose-600"
+                />
+                <StatCard
+                  label="Total savings"
+                  value={fmt(selected.savings)}
+                  valueClass="text-foreground"
+                  dotClass="bg-slate-700 dark:bg-slate-300"
+                  tooltip="Income − Expenses − Sadaqah/Zakat = Savings (the cash residue after household outflows and given charity)."
+                />
+                <StatCard
+                  label="Savings rate"
+                  value={`${savingsRatePct}%`}
+                  valueClass={savingsRatePct >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-foreground'}
+                  dotClass="bg-amber-500"
+                  tooltip="Savings ÷ Income — Monarch's 4th Cash Flow stat. 20%+ is generally considered healthy."
+                />
+              </div>
+              {selected.sadaqahZakat > 0 && (
+                <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+                  Includes <span className="font-semibold">{fmt(selected.sadaqahZakat)}</span> in Sadaqah / Zakat given this period — see breakdown below.
+                </p>
+              )}
             </section>
           )}
-        </div>
+        </>
       )}
 
       {/* Breakdown (PR 4 — Income / Expenses / Sadaqah-Zakat) */}
@@ -510,31 +689,33 @@ function BreakdownSection({
   );
 }
 
-function StatRow({
-  label, amount, color, amountClass, tooltip, fmt,
+/**
+ * Monarch-parity 4-up stat card. Used by the Cash Flow page's
+ * top strip — same horizontal layout (Income · Expenses · Total
+ * Savings · Savings Rate) Monarch ships on its Cash Flow page.
+ */
+function StatCard({
+  label, value, valueClass, dotClass, tooltip,
 }: {
   label: string;
-  amount: number;
-  color: string;
-  amountClass: string;
+  value: string;
+  valueClass: string;
+  dotClass: string;
   tooltip?: string;
-  fmt: (n: number) => string;
 }) {
-  const row = (
-    <div className="flex items-center justify-between py-3 border-b border-border last:border-b-0">
-      <div className="flex items-center gap-2.5 min-w-0">
-        <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${color}`} aria-hidden="true" />
-        <span className="text-sm text-muted-foreground">{label}</span>
+  const card = (
+    <div className="bg-card rounded-2xl border border-border p-4">
+      <div className="flex items-center gap-2 mb-1">
+        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotClass}`} aria-hidden="true" />
+        <span className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">{label}</span>
       </div>
-      <span
-        className={`text-base font-semibold tabular-nums ${amountClass} ${tooltip ? 'border-b border-dashed border-current cursor-help' : ''}`}
+      <p
+        className={`text-2xl font-bold tabular-nums ${valueClass} ${tooltip ? 'border-b border-dashed border-current cursor-help inline-block' : ''}`}
       >
-        {fmt(amount)}
-      </span>
+        {value}
+      </p>
     </div>
   );
-  if (tooltip) {
-    return <div title={tooltip}>{row}</div>;
-  }
-  return row;
+  if (tooltip) return <div title={tooltip}>{card}</div>;
+  return card;
 }
