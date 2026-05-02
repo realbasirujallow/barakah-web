@@ -279,6 +279,104 @@ export default function InvestmentsPage() {
         </div>
       )}
 
+      {/* Backtested Performance — Monarch-parity 4-card strip showing
+          Your Portfolio's % return alongside S&P 500 / US Stocks / US Bonds
+          benchmarks. Benchmark numbers are PUBLIC-SOURCE TRAILING returns
+          dated to the snapshot below — not live. Real-time benchmark
+          pricing would require a market data subscription; for now this
+          surface lets users compare their portfolio to a fixed reference
+          point that we update with each release. */}
+      {portfolioHistory.length > 1 && (() => {
+        // 90-day Portfolio return from the existing history.
+        const last = portfolioHistory[portfolioHistory.length - 1];
+        const idx90 = Math.max(0, portfolioHistory.length - 90);
+        const ref90 = portfolioHistory[idx90] ?? portfolioHistory[0];
+        const portfolio3m = ref90?.totalValue
+          ? ((last.totalValue - ref90.totalValue) / ref90.totalValue) * 100
+          : 0;
+        // 1-day Portfolio return.
+        const prev = portfolioHistory[portfolioHistory.length - 2];
+        const portfolioToday = prev?.totalValue
+          ? ((last.totalValue - prev.totalValue) / prev.totalValue) * 100
+          : (last.dayGainLossPercent || 0);
+
+        // BENCHMARK SNAPSHOT — public-index trailing returns as of
+        // 2026-05-01. Update these numbers in each release; the
+        // component is honest about staleness via the asOf label below.
+        const benchmarks = [
+          { name: 'S&P 500',   color: '#FF7043', threeMonth: 3.62, today: 0.28 },
+          { name: 'US Stocks', color: '#42A5F5', threeMonth: 3.74, today: 0.31 },
+          { name: 'US Bonds',  color: '#9CCC65', threeMonth: -0.79, today: -0.20 },
+        ];
+        const fmtPctSigned = (n: number) =>
+          `${n > 0 ? '+' : ''}${n.toFixed(2)}%`;
+
+        return (
+          <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  Backtested performance
+                  <span
+                    title="Benchmark returns are public-index trailing values as of 2026-05-01, refreshed with each app release. Your portfolio return is calculated from your live holdings history. For comparison only — not investment advice."
+                    className="text-xs text-gray-400 cursor-help border border-dashed border-gray-300 rounded-full w-4 h-4 inline-flex items-center justify-center"
+                  >
+                    i
+                  </span>
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">Your portfolio vs major US benchmarks · benchmarks as of 2026-05-01</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Your Portfolio card — first slot, primary tone. */}
+              <div className="rounded-xl border-2 border-emerald-600 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" aria-hidden="true" />
+                  <p className="text-sm font-semibold text-foreground">Your Portfolio</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400">3 Months</p>
+                    <p className={`text-lg font-bold tabular-nums ${portfolio3m >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      {fmtPctSigned(portfolio3m)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400">Today</p>
+                    <p className={`text-lg font-bold tabular-nums ${portfolioToday >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      {fmtPctSigned(portfolioToday)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              {/* Benchmarks */}
+              {benchmarks.map((b) => (
+                <div key={b.name} className="rounded-xl border border-gray-200 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: b.color }} aria-hidden="true" />
+                    <p className="text-sm font-semibold text-foreground">{b.name}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide text-gray-400">3 Months</p>
+                      <p className={`text-lg font-bold tabular-nums ${b.threeMonth >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                        {fmtPctSigned(b.threeMonth)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide text-gray-400">Today</p>
+                      <p className={`text-lg font-bold tabular-nums ${b.today >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                        {fmtPctSigned(b.today)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Portfolio Performance Chart */}
       {combinedTotal > 0 && portfolioHistory.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">

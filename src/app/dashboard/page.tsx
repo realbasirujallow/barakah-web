@@ -103,6 +103,12 @@ export default function DashboardPage() {
   const [insights, setInsights] = useState<{type: string; severity: string; title: string; body: string}[]>([]);
   // Phase 12.1: count of transactions awaiting review — feeds DailyRitual.
   const [reviewCount, setReviewCount] = useState(0);
+  // 2026-05-02 (Monarch parity): recurring summary + top movers list for
+  // the dashboard preview cards. Loaded on mount alongside the existing
+  // 9-call Promise.allSettled. Both are non-critical → silently skipped
+  // on failure.
+  const [recurringSummary, setRecurringSummary] = useState<{ income: number; expense: number; count: number } | null>(null);
+  const [topMovers, setTopMovers] = useState<Array<{ symbol: string; name: string; gainLossPct: number }>>([]);
   // Phase 14: last meaningful dashboard visit, hydrated client-side.
   const [lastVisit, setLastVisit] = useState<LastVisit | null>(null);
   useEffect(() => {
@@ -184,7 +190,11 @@ export default function DashboardPage() {
     let cancelled = false;
 
     const loadDashboard = async () => {
-      const [assetResult, hijriResult, hawlResult, portfolioResult, portfolioHistoryResult, widgetResult, safeToSpendResult, insightsResult, reviewQueueResult] = await Promise.allSettled([
+      const [
+        assetResult, hijriResult, hawlResult, portfolioResult, portfolioHistoryResult,
+        widgetResult, safeToSpendResult, insightsResult, reviewQueueResult,
+        recurringResult,
+      ] = await Promise.allSettled([
         api.getAssetTotal(),
         api.getIslamicCalendarToday(),
         api.getHawlDue(30),
@@ -198,6 +208,8 @@ export default function DashboardPage() {
         // review" rung in <DailyRitual>. Same pattern the transactions
         // page already uses for its tab badge.
         api.getReviewQueue(0, 1),
+        // 2026-05-02: recurring summary for the new dashboard preview card.
+        api.getRecurringTransactions().catch(() => null),
       ]);
 
       if (cancelled) return;
@@ -243,6 +255,35 @@ export default function DashboardPage() {
       if (reviewQueueResult.status === 'fulfilled') {
         const totalElements = (reviewQueueResult.value as { totalElements?: number })?.totalElements ?? 0;
         setReviewCount(totalElements);
+      }
+      // 2026-05-02: recurring summary — collapse the txs into a single
+      // {income, expense, count} record for the dashboard preview card.
+      if (recurringResult.status === 'fulfilled' && recurringResult.value) {
+        type RecTx = { amount: number; type: string; recurringActive?: boolean };
+        const data = recurringResult.value as { transactions?: RecTx[] } | RecTx[] | null;
+        const list: RecTx[] = Array.isArray(data) ? data : (data?.transactions ?? []);
+        const active = list.filter(t => t.recurringActive !== false);
+        const income = active.filter(t => t.type === 'income').reduce((s, t) => s + Math.abs(Number(t.amount) || 0), 0);
+        const expense = active.filter(t => t.type !== 'income').reduce((s, t) => s + Math.abs(Number(t.amount) || 0), 0);
+        setRecurringSummary({ income, expense, count: active.length });
+      }
+      // 2026-05-02: top movers from the latest portfolio history entry's
+      // holdings if exposed, else from /api/investments/portfolio's accounts.
+      if (portfolioResult.status === 'fulfilled') {
+        const data = portfolioResult.value as { accounts?: Array<{ holdings?: Array<{ symbol: string; name: string; gainLossPct?: number }> }> };
+        const allHoldings: Array<{ symbol: string; name: string; gainLossPct: number }> = [];
+        (data?.accounts ?? []).forEach((acc) => {
+          (acc.holdings ?? []).forEach((h) => {
+            allHoldings.push({
+              symbol: h.symbol,
+              name: h.name,
+              gainLossPct: Number(h.gainLossPct) || 0,
+            });
+          });
+        });
+        // Sort by absolute % move so both top gainers AND big losers surface.
+        allHoldings.sort((a, b) => Math.abs(b.gainLossPct) - Math.abs(a.gainLossPct));
+        setTopMovers(allHoldings.slice(0, 4));
       }
       setLoading(false);
     };
@@ -1136,6 +1177,84 @@ export default function DashboardPage() {
 
       </div>{/* END RIGHT COLUMN */}
       </div>{/* END TWO-COLUMN GRID */}
+
+      {/* 2026-05-02 (Monarch parity): two more dashboard panels —
+          Recurring summary + Investments preview.
+          Mirrors Monarch's dashboard layout (screenshots 10.33.18) where
+          these surfaces sit between the headline cards and Quick Actions. */}
+      {(recurringSummary || topMovers.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          {/* Recurring panel */}
+          {recurringSummary && (recurringSummary.count > 0) && (
+            <div className="bg-card rounded-2xl p-5 border border-border">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">Recurring</p>
+                  <p className="text-base font-bold text-foreground mt-0.5">
+                    {fmt(recurringSummary.income + recurringSummary.expense)} <span className="text-xs text-gray-500 font-normal">/month</span>
+                  </p>
+                </div>
+                <Link href="/dashboard/recurring" className="text-sm text-primary font-medium hover:underline">View all</Link>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600" aria-hidden="true" />
+                    <p className="text-[11px] uppercase tracking-wide text-emerald-700 font-semibold">Income</p>
+                  </div>
+                  <p className="text-base font-bold text-emerald-700 tabular-nums">{fmt(recurringSummary.income)}</p>
+                </div>
+                <div className="rounded-xl bg-rose-50 border border-rose-100 p-3">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="w-2 h-2 rounded-full bg-rose-600" aria-hidden="true" />
+                    <p className="text-[11px] uppercase tracking-wide text-rose-700 font-semibold">Expenses</p>
+                  </div>
+                  <p className="text-base font-bold text-rose-700 tabular-nums">{fmt(recurringSummary.expense)}</p>
+                </div>
+              </div>
+              <p className="text-[11px] text-gray-400 mt-2">
+                {recurringSummary.count} active recurring transaction{recurringSummary.count === 1 ? '' : 's'}
+              </p>
+            </div>
+          )}
+
+          {/* Investments preview */}
+          {portfolioSummary && portfolioSummary.totalValue > 0 && (
+            <div className="bg-card rounded-2xl p-5 border border-border">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">Investments</p>
+                  <p className="text-lg font-bold text-foreground mt-0.5 tabular-nums">{fmt(portfolioSummary.totalValue)}</p>
+                  <p className={`text-xs font-medium ${portfolioSummary.totalGainLoss >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {portfolioSummary.totalGainLoss >= 0 ? '▲' : '▼'} {fmt(Math.abs(portfolioSummary.totalGainLoss))} ({portfolioSummary.totalGainLossPct.toFixed(2)}%) all time
+                  </p>
+                </div>
+                <Link href="/dashboard/investments" className="text-sm text-primary font-medium hover:underline">View all</Link>
+              </div>
+              {topMovers.length > 0 ? (
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">Top movers today</p>
+                  <ul className="divide-y divide-gray-100">
+                    {topMovers.map((h) => (
+                      <li key={h.symbol} className="flex items-center justify-between py-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-foreground">{h.symbol}</p>
+                          <p className="text-xs text-gray-500 truncate">{h.name}</p>
+                        </div>
+                        <p className={`text-sm font-bold tabular-nums ${h.gainLossPct >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                          {h.gainLossPct >= 0 ? '+' : ''}{h.gainLossPct.toFixed(2)}%
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400 text-center py-4">No holdings tracked yet.</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Quick Actions
           Phase 10 (2026-04-30): Reduced from a feature-catalog grid to
