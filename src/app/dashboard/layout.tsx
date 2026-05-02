@@ -117,9 +117,9 @@ const navItems: { href: string; icon: LucideIcon; label: string; gate?: 'plus' |
 //                 stock screener, assets, barakah score, financial
 //                 summary, reports, market prices, import data)
 //   • Islamic   — fiqh-bound tools (zakat, zakat anniversary, sadaqah,
-//                 prayer times, ramadan mode, fiqh settings, ibadah
-//                 finance, inheritance calculator, islamic will,
-//                 endowment)
+//                 ramadan mode, fiqh settings, ibadah finance,
+//                 inheritance calculator, islamic will, endowment)
+//                 (prayer-times surface removed PR #86 / 2026-05-02)
 //   • Family    — household scope (family, shared finances)
 //   • Profile   — personal account chrome (billing & plans, profile &
 //                 settings, notifications, refer a friend)

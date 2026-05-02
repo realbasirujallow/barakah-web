@@ -62,7 +62,11 @@ const DEEP_LINK_ROUTES: Array<{ value: string; label: string }> = [
   { value: '/investments', label: '/investments — Investments' },
   { value: '/subscriptions', label: '/subscriptions — Subscription detector' },
   { value: '/ramadan', label: '/ramadan — Ramadan mode' },
-  { value: '/prayers', label: '/prayers — Prayer times' },
+  // 2026-05-02: removed '/prayers' option. The prayer-times surface was
+  // deleted in PR #86 and now silently rewrites to /zakat via the deep-link
+  // service. Leaving the option in the admin dropdown misled campaigns
+  // — admin would draft a "go to your prayer times" CTA and the user
+  // would land on /zakat instead.
   { value: '/barakah-score', label: '/barakah-score' },
   { value: '/billing', label: '/billing — Plan & billing' },
   { value: '/family', label: '/family — Family plan' },
