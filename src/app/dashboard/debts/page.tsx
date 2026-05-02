@@ -10,6 +10,7 @@ import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { SkeletonPage } from '../SkeletonCard';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
 interface DebtItem {
   id: number;
@@ -142,6 +143,9 @@ export default function DebtsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editDebt, setEditDebt] = useState<DebtItem | null>(null);
+  // 2026-05-02: lock body scroll while the add/edit form is open.
+  // See src/lib/useBodyScrollLock for full rationale.
+  useBodyScrollLock(showForm);
   const [payModal, setPayModal] = useState<DebtItem | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [payAmount, setPayAmount] = useState('');

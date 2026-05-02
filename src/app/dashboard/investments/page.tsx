@@ -8,6 +8,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import EmptyState from '../../../components/EmptyState';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
+import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 
 interface Account {
@@ -108,6 +109,8 @@ export default function InvestmentsPage() {
   const [addHoldingFor, setAddHoldingFor] = useState<number | null>(null);
   const [holdingForm, setHoldingForm] = useState(emptyHoldingForm);
   const [savingHolding, setSavingHolding] = useState(false);
+  // 2026-05-02: lock body scroll while any modal is open.
+  useBodyScrollLock(showAccountForm || addHoldingFor !== null);
 
   // ── Modal accessibility: focus trap + Escape close ──────────────────────
   const accountModalRef = useRef<HTMLDivElement>(null);
