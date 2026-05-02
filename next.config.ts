@@ -88,7 +88,11 @@ const csp = [
   // pointing at a non-prod API doesn't have its connect-src silently blocked
   // by a hardcoded `https://api.trybarakah.com`. Falls back to the prod host
   // in local dev for the exact same reason the proxy does.
-  `connect-src 'self' ${BACKEND_URL} ${plaidHosts} https://us.i.posthog.com https://us-assets.i.posthog.com https://api.aladhan.com https://nominatim.openstreetmap.org https://www.google-analytics.com https://analytics.google.com`,
+  // 2026-05-02: api.aladhan.com + nominatim.openstreetmap.org removed.
+  // Both were used by /dashboard/prayer-times (city autocomplete +
+  // prayer-time fetch); that surface was deleted in PR #86 because
+  // accuracy was a recurring trust issue. CSP tightened accordingly.
+  `connect-src 'self' ${BACKEND_URL} ${plaidHosts} https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google-analytics.com https://analytics.google.com`,
   // Allow Google Maps iframe embeds for property asset address visualization
   "frame-src 'self' https://cdn.plaid.com https://*.google.com https://*.googleapis.com https://*.gstatic.com",
   // No plugins (Flash, Silverlight, etc.)
