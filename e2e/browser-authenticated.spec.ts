@@ -208,19 +208,14 @@ test.describe('Browser Authenticated Flows', () => {
     await expect(page.locator('text=/Islamic Guidance on Hawl/i').first()).toBeVisible({ timeout: 10000 });
   });
 
-  // ── Prayer Times ───────────────────────────────────────────────────────────
-
-  test('prayer times loads', async () => {
-    await page.goto(`${BASE}/dashboard/prayer-times`);
-    // Sidebar nav also contains "Prayer Times".
-    await expect(page.locator('text=/Prayer Times/i').first()).toBeVisible({ timeout: 10000 });
-    // "Your Location" is the always-visible location-picker section heading
-    // — Fajr/Maghrib only render after a city is selected, and the
-    // applereview account has no saved location after the wipe. Anchor on
-    // the location section instead so the test stays meaningful for fresh
-    // accounts.
-    await expect(page.locator('text=/Your Location/i').first()).toBeVisible({ timeout: 10000 });
-  });
+  // ── Prayer Times — REMOVED 2026-04-30 (PR #89) ─────────────────────────────
+  // The /dashboard/prayer-times surface was removed in
+  // chore/audit-cleanup-2026-05-02 ("drop stale prayer-times residue
+  // + delete env backups") because the prayer-times feature was outside
+  // our halal-finance category and the Aladhan API often returned
+  // wrong times for users near timezone boundaries. The corresponding
+  // test was overlooked at the time and has failed every PR since
+  // (PRs #93-#96). Removing it here.
 
   // ── Fiqh Settings ──────────────────────────────────────────────────────────
 
