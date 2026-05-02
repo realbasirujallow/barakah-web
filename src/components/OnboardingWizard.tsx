@@ -76,7 +76,7 @@ const steps = [
     icon: '🤲',
     title: "You're all set",
     subtitle: 'May your wealth be blessed with barakah',
-    body: 'Halal stock screener, riba detector, prayer times, sadaqah log, budget — all available from the sidebar. Start with one and grow from there.',
+    body: 'Halal stock screener, riba detector, hawl tracker, sadaqah log, budget — all available from the sidebar. Start with one and grow from there.',
   },
 ];
 

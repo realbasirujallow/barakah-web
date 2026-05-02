@@ -37,7 +37,7 @@ const rows = [
   { feature: 'Islamic will / wasiyyah', barakah: 'Wasiyyah builder + faraid calculator', zoya: 'None', winner: 'Barakah' as const },
   { feature: 'Riba detection', barakah: 'Transaction-level riba flagging + purification journey', zoya: 'None', winner: 'Barakah' as const },
   { feature: 'Sadaqah / waqf tracking', barakah: 'Full tracker', zoya: 'None', winner: 'Barakah' as const },
-  { feature: 'Prayer times / Ramadan mode', barakah: 'Integrated', zoya: 'None', winner: 'Barakah' as const },
+  { feature: 'Ramadan Mode (giving + zakat al-fitr)', barakah: 'Built-in', zoya: 'None', winner: 'Barakah' as const },
   { feature: 'Portfolio sync with multiple brokerages', barakah: 'Via Plaid (read-only)', zoya: 'Direct brokerage integrations', winner: 'Zoya' as const, note: 'Zoya connects natively to many brokers.' },
   { feature: 'Ticker-level "is X halal" pages', barakah: '5 live (AAPL/MSFT/AMZN/TSLA/NVDA); more planned', zoya: 'Thousands of pre-indexed ticker pages', winner: 'Zoya' as const },
   { feature: 'Audit transparency', barakah: 'SHA-256 integrity hash per zakat snapshot, /methodology/changelog, public review-brief trail', zoya: 'Methodology transparency on investing, but no per-calculation hash', winner: 'Barakah' as const },
@@ -193,7 +193,7 @@ export default function BarakahVsZoyaPage() {
               <div>
                 <h3 className="text-lg font-bold text-[#1B5E20]">Barakah</h3>
                 <ul className="mt-2 space-y-1 text-sm text-gray-800">
-                  <li>Free — unlimited zakat/hawl/fiqh/prayer</li>
+                  <li>Free — unlimited zakat/hawl/fiqh/sadaqah</li>
                   <li>Plus — $9.99/mo or $99/yr</li>
                   <li>Family — $14.99/mo or $119/yr (6 seats)</li>
                   <li>{DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free Plus trial</li>

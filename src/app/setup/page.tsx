@@ -379,7 +379,7 @@ function SetupPageInner() {
       features: [
         'Budgets & bills tracking',
         'Zakat calculator and Hawl tracker',
-        'Prayer times and Ramadan tools',
+        'Sadaqah log and Ramadan tools',
       ],
       cta: 'Continue with Free',
       ctaStyle: 'border border-green-200 text-[#1B5E20] bg-white hover:bg-green-50',
