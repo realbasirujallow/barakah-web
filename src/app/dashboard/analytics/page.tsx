@@ -272,14 +272,19 @@ function AnalyticsPageContent() {
           </div>
         </div>
 
-        {/* MoM change badge */}
-        {monthlyData.length >= 2 && (
-          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium mb-4 ${
-            momChange <= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-          }`}>
-            {momChange <= 0 ? '↓' : '↑'} Expenses {momChange <= 0 ? 'down' : 'up'} {momPct.replace(/^[<>-]/, '')}% vs last month
-          </div>
-        )}
+        {/* MoM change badge + drill-down hint */}
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          {monthlyData.length >= 2 && (
+            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
+              momChange <= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+            }`}>
+              {momChange <= 0 ? '↓' : '↑'} Expenses {momChange <= 0 ? 'down' : 'up'} {momPct.replace(/^[<>-]/, '')}% vs last month
+            </div>
+          )}
+          <span className="text-xs text-gray-500">
+            Tap any bar to drill into the full breakdown by category &amp; merchant →
+          </span>
+        </div>
 
         {momDisplayData.length === 0 ? (
           <p className="text-gray-400 text-center py-12">No monthly data available yet</p>
@@ -290,7 +295,21 @@ function AnalyticsPageContent() {
             <BarChart
               data={momDisplayData}
               margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
-              onClick={handleChartClick}
+              onClick={(e) => {
+                // 2026-05-01: drill straight into the dedicated Cash Flow
+                // surface (with category/merchant breakdown + four-pillar
+                // strip) instead of the inline MonthDetailSheet. Founder
+                // feedback: "looks like I am still unable to dig deeper
+                // into this... can this be better looking also like
+                // UX/UI of Monarch?" The Cash Flow page IS the Monarch-
+                // style drill-down — this just routes there with the
+                // clicked month pre-selected via ?month= URL param.
+                const ev = e as unknown as { activePayload?: Array<{ payload?: { monthKey?: string } }> };
+                const monthKey = ev?.activePayload?.[0]?.payload?.monthKey;
+                if (monthKey) {
+                  router.push(`/dashboard/cash-flow?month=${encodeURIComponent(monthKey)}`);
+                }
+              }}
               style={{ cursor: 'pointer' }}
             >
               {/* Phase 24d (2026-04-30): gradients + larger radius for the
