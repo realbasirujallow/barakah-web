@@ -480,7 +480,10 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
                   a.click();
                   URL.revokeObjectURL(url);
                   toast(`Hawl report downloaded (${report?.totalTrackers ?? 0} trackers, ${report?.snapshotCount ?? 0} snapshots, ${report?.daysBelowNisab ?? 0} days below nisab)`, 'success');
-                } catch { toast('Failed to fetch hawl report', 'error'); }
+                } catch (err) {
+                  const msg = err instanceof Error ? err.message : 'Failed to fetch hawl report';
+                  toast(msg, 'error');
+                }
               }}
               className="w-full py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition"
             >

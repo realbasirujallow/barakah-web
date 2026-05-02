@@ -144,7 +144,13 @@ export default function WaqfPage() {
       setShowForm(false); setEditItem(null);
       setForm({ organizationName: '', type: 'cash', purpose: 'education', amount: '', description: '', recurring: false });
       loadItems(); toast('Waqf contribution saved', 'success');
-    } catch { toast('Failed to save contribution', 'error'); }
+    } catch (err) {
+      // 2026-05-02 fix: surface backend error message — same pattern as
+      // the auto-category fix. Generic toast hid genuine errors like
+      // validation failures or plan gates from the user.
+      const msg = err instanceof Error ? err.message : 'Failed to save contribution';
+      toast(msg, 'error');
+    }
     setSaving(false);
   };
   const handleDelete = (id: number) => {
@@ -155,8 +161,9 @@ export default function WaqfPage() {
           await api.deleteWaqf(id);
           toast('Waqf contribution deleted', 'success');
           loadItems();
-        } catch {
-          toast('Failed to delete contribution', 'error');
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Failed to delete contribution';
+          toast(msg, 'error');
         }
       }
     });
@@ -188,7 +195,10 @@ export default function WaqfPage() {
       else await api.addWaqfBeneficiary(payload);
       setShowBenefForm(false); setEditBenef(null);
       loadDistribution(); toast('Beneficiary saved', 'success');
-    } catch { toast('Failed to save beneficiary', 'error'); }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to save beneficiary';
+      toast(msg, 'error');
+    }
     setSavingBenef(false);
   };
   const handleDeleteBenef = (id: number) => {

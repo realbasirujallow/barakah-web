@@ -207,8 +207,9 @@ export default function CategorizePage() {
       toast('Rule deleted', 'success');
       if (editingRuleId === id) resetRuleForm();
       await loadAll();
-    } catch {
-      toast('Failed to delete rule', 'error');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete rule';
+      toast(msg, 'error');
     }
   };
 
@@ -221,8 +222,9 @@ export default function CategorizePage() {
       });
       await loadAll();
       toast('Transaction updated', 'success');
-    } catch {
-      toast('Failed to update transaction', 'error');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to update transaction';
+      toast(msg, 'error');
     } finally {
       setConfirming(null);
     }
