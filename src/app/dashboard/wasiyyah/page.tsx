@@ -186,7 +186,14 @@ function WasiyyahPageContent() {
       setShowForm(false);
       setForm({ beneficiaryName: '', relationship: 'spouse', sharePercentage: '', shareType: 'voluntary', assetDescription: '', notes: '' });
       load();
-    } catch { toast('Failed to add beneficiary', 'error'); }
+    } catch (err) {
+      // 2026-05-02 fix: surface the real backend error message instead
+      // of the generic "Failed to add beneficiary". Same pattern as the
+      // auto-category fix — a swallowed error masks the actual reason
+      // (validation, plan gate, etc.) and frustrates support triage.
+      const msg = err instanceof Error ? err.message : 'Failed to add beneficiary';
+      toast(msg, 'error');
+    }
     setSaving(false);
   };
 
@@ -203,7 +210,10 @@ function WasiyyahPageContent() {
         toast('Obligation removed', 'success');
       }
       load();
-    } catch { toast(`Failed to remove ${type}`, 'error'); }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : `Failed to remove ${type}`;
+      toast(msg, 'error');
+    }
   };
 
   const handleObSave = async () => {
@@ -216,7 +226,10 @@ function WasiyyahPageContent() {
       setShowObForm(false);
       setObForm({ type: 'ZAKAT', amount: '', currency: currencyCode, description: '', recipient: '', notes: '' });
       load();
-    } catch { toast('Failed to record obligation', 'error'); }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to record obligation';
+      toast(msg, 'error');
+    }
     setSaving(false);
   };
 

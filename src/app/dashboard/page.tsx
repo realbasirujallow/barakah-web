@@ -673,7 +673,10 @@ export default function DashboardPage() {
                   await api.seedDemoData();
                   trackDemoDataLoaded();
                   window.location.reload();
-                } catch { toast('Could not load sample data.', 'error'); }
+                } catch (err) {
+                  const msg = err instanceof Error ? err.message : 'Could not load sample data.';
+                  toast(msg, 'error');
+                }
               }}
               className="inline-flex items-center justify-center border border-border bg-card text-foreground px-6 py-3 rounded-md font-semibold hover:bg-accent transition-colors"
             >

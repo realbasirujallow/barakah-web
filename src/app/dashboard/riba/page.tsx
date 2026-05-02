@@ -322,8 +322,9 @@ export default function RibaPage() {
       } else {
         setJourney(data);
       }
-    } catch {
-      setJourneyError('Failed to load your riba elimination journey');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to load your riba elimination journey';
+      setJourneyError(msg);
     } finally {
       setJourneyLoading(false);
     }
@@ -351,8 +352,9 @@ export default function RibaPage() {
       setGoalForm({ sourceType: 'MORTGAGE', sourceName: '', currentAmount: '', notes: '' });
       setSuggestions([]);
       loadJourney();
-    } catch {
-      toast('Failed to create goal', 'error');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to create goal';
+      toast(msg, 'error');
     } finally {
       setSubmittingGoal(false);
     }
@@ -371,8 +373,9 @@ export default function RibaPage() {
         toast('Goal marked as in progress', 'success');
       }
       loadJourney();
-    } catch {
-      toast('Failed to update goal', 'error');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to update goal';
+      toast(msg, 'error');
     } finally {
       setUpdatingGoalId(null);
     }
@@ -384,8 +387,9 @@ export default function RibaPage() {
       const res = await api.getRibaGoalSuggestions();
       if (res?.error) { toast(res.error, 'error'); return; }
       setSuggestions(Array.isArray(res) ? res : res?.suggestions ?? []);
-    } catch {
-      toast('Failed to load suggestions', 'error');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to load suggestions';
+      toast(msg, 'error');
     } finally {
       setLoadingSuggestions(false);
     }
@@ -1024,8 +1028,9 @@ export default function RibaPage() {
                           remainingToPurify: Math.max(0, prev.remainingToPurify - amt),
                         } : prev);
                         setPurifyAmount('');
-                      } catch {
-                        toast('Failed to record purification', 'error');
+                      } catch (err) {
+                        const msg = err instanceof Error ? err.message : 'Failed to record purification';
+                        toast(msg, 'error');
                       } finally { setPurifying(false); }
                     }}
                     disabled={purifying}

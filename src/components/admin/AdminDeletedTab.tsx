@@ -35,8 +35,13 @@ export function AdminDeletedTab({ toast }: AdminDeletedTabProps) {
       setDeletedUsers(usersRes?.users ?? []);
       setChurnData(churnRes ?? null);
       setLastLoadedAt(Date.now());
-    } catch {
-      toast('Failed to load deleted users', 'error');
+    } catch (err) {
+      // 2026-05-02 fix: surface real backend error in admin panel —
+      // same pattern as the auto-category fix. Previously every admin
+      // failure rendered as the same opaque toast, masking session
+      // expiry / rate-limit / DB error from operator triage.
+      const msg = err instanceof Error ? err.message : 'Failed to load deleted users';
+      toast(msg, 'error');
     } finally {
       setDeletedUsersLoading(false);
     }

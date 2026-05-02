@@ -693,8 +693,15 @@ export const api = {
   signup: (name: string, email: string, password: string, state: string, country: string, referralCode?: string, phoneNumber?: string) =>
     apiFetch('/auth/signup', { method: 'POST', body: JSON.stringify({ fullName: name, email, password, state, country, referralCode, phoneNumber }) }),
   // Clears the auth_token httpOnly cookie on the server side.
+  // 2026-05-02 fix: empty `{}` body — apiFetch sends Content-Type:
+  // application/json on every request, and a POST with that header
+  // but no body trips Spring's HTTP message converters / Idempotency
+  // filter as malformed and surfaces as a 4xx (this is the same root
+  // cause as the auto-category "Apply N suggestions" bug). Same one-
+  // liner applied to every empty-body action below — see commit
+  // history for the full enumeration.
   logout: () =>
-    apiFetch('/auth/logout', { method: 'POST' }),
+    apiFetch('/auth/logout', { method: 'POST', body: JSON.stringify({}) }),
   // Silently renews the access token using the refresh_token cookie.
   // Returns 'ok' | 'expired' | 'network_error' to let callers distinguish
   // genuine session expiry from transient connectivity issues.
@@ -808,7 +815,7 @@ export const api = {
   addBill: (data: Record<string, unknown>) =>
     apiFetch('/api/bills/add', { method: 'POST', body: JSON.stringify(data) }),
   markBillPaid: (id: number) =>
-    apiFetch(`/api/bills/${id}/mark-paid`, { method: 'POST' }),
+    apiFetch(`/api/bills/${id}/mark-paid`, { method: 'POST', body: JSON.stringify({}) }),
   updateBill: (id: number, data: Record<string, unknown>) =>
     apiFetch(`/api/bills/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteBill: (id: number) =>
@@ -817,16 +824,16 @@ export const api = {
   // Recurring transactions
   getRecurringTransactions: () => apiFetch('/api/transactions/recurring'),
   toggleRecurring: (id: number) =>
-    apiFetch(`/api/transactions/${id}/toggle-recurring`, { method: 'PUT' }),
+    apiFetch(`/api/transactions/${id}/toggle-recurring`, { method: 'PUT', body: JSON.stringify({}) }),
   processRecurring: () =>
-    apiFetch('/api/transactions/process-recurring', { method: 'POST' }),
+    apiFetch('/api/transactions/process-recurring', { method: 'POST', body: JSON.stringify({}) }),
 
   // Hawl
   getHawl: () => apiFetch('/api/hawl/list'),
   addHawl: (data: Record<string, unknown>) =>
     apiFetch('/api/hawl/add', { method: 'POST', body: JSON.stringify(data) }),
   markHawlPaid: (id: number) =>
-    apiFetch(`/api/hawl/${id}/mark-paid`, { method: 'POST' }),
+    apiFetch(`/api/hawl/${id}/mark-paid`, { method: 'POST', body: JSON.stringify({}) }),
   deleteHawl: (id: number) =>
     apiFetch(`/api/hawl/${id}`, { method: 'DELETE' }),
   resetHawl: (id: number, reason?: string, note?: string) =>
@@ -835,11 +842,11 @@ export const api = {
       body: JSON.stringify({ reason, note }),
     }),
   lockHawlZakat: (id: number) =>
-    apiFetch(`/api/hawl/${id}/lock-zakat`, { method: 'POST' }),
+    apiFetch(`/api/hawl/${id}/lock-zakat`, { method: 'POST', body: JSON.stringify({}) }),
   unlockHawlZakat: (id: number) =>
-    apiFetch(`/api/hawl/${id}/unlock-zakat`, { method: 'POST' }),
+    apiFetch(`/api/hawl/${id}/unlock-zakat`, { method: 'POST', body: JSON.stringify({}) }),
   importAssetsToHawl: () =>
-    apiFetch('/api/hawl/import-assets', { method: 'POST' }),
+    apiFetch('/api/hawl/import-assets', { method: 'POST', body: JSON.stringify({}) }),
   updateHawlStartDate: (id: number, data: Record<string, unknown>) =>
     apiFetch(`/api/hawl/${id}/start-date`, { method: 'PUT', body: JSON.stringify(data) }),
   setHawlManualWealth: (amount: number, note?: string) =>
@@ -944,7 +951,7 @@ export const api = {
   updateRibaGoal: (id: number, data: Record<string, unknown>) =>
     apiFetch(`/api/riba/journey/goals/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   eliminateRibaGoal: (id: number) =>
-    apiFetch(`/api/riba/journey/goals/${id}/eliminate`, { method: 'POST' }),
+    apiFetch(`/api/riba/journey/goals/${id}/eliminate`, { method: 'POST', body: JSON.stringify({}) }),
   getRibaMilestones: () => apiFetch('/api/riba/journey/milestones'),
   getRibaGoalSuggestions: () => apiFetch('/api/riba/journey/suggestions'),
 
@@ -1140,7 +1147,7 @@ export const api = {
     apiFetch(`/api/investments/portfolio/history?days=${days}`, {}, API_TIMEOUT, suppressUnauthorized),
 
   // Net Worth
-  takeNetWorthSnapshot: () => apiFetch('/api/net-worth/snapshot', { method: 'POST' }),
+  takeNetWorthSnapshot: () => apiFetch('/api/net-worth/snapshot', { method: 'POST', body: JSON.stringify({}) }),
   getNetWorthHistory: (period: string = '6m') => apiFetch(`/api/net-worth/history?period=${period}`),
 
   // Shared Finances
@@ -1153,7 +1160,7 @@ export const api = {
   updateSharedGroup: (groupId: number, data: Record<string, unknown>) =>
     apiFetch(`/api/shared/groups/${groupId}`, { method: 'PUT', body: JSON.stringify(data) }),
   leaveSharedGroup: (groupId: number) =>
-    apiFetch(`/api/shared/groups/${groupId}/leave`, { method: 'POST' }),
+    apiFetch(`/api/shared/groups/${groupId}/leave`, { method: 'POST', body: JSON.stringify({}) }),
   deleteSharedGroup: (groupId: number) =>
     apiFetch(`/api/shared/groups/${groupId}`, { method: 'DELETE' }),
   getGroupTransactions: (groupId: number) =>
@@ -1236,9 +1243,9 @@ export const api = {
   getUnreadNotifications: (suppressUnauthorized = true) =>
     apiFetch('/api/notifications/unread', {}, API_TIMEOUT, suppressUnauthorized),
   markNotificationRead: (id: number) =>
-    apiFetch(`/api/notifications/${id}/read`, { method: 'PUT' }, API_TIMEOUT, true),
+    apiFetch(`/api/notifications/${id}/read`, { method: 'PUT', body: JSON.stringify({}) }, API_TIMEOUT, true),
   markAllNotificationsRead: () =>
-    apiFetch('/api/notifications/read-all', { method: 'PUT' }, API_TIMEOUT, true),
+    apiFetch('/api/notifications/read-all', { method: 'PUT', body: JSON.stringify({}) }, API_TIMEOUT, true),
   deleteNotification: (id: number) =>
     apiFetch(`/api/notifications/${id}`, { method: 'DELETE' }, API_TIMEOUT, true),
 
@@ -1263,7 +1270,7 @@ export const api = {
   lifecycleCancelIntent: (context = 'billing') =>
     apiFetch('/api/lifecycle/cancel-intent', { method: 'POST', body: JSON.stringify({ context }) }),
   acceptSaveOffer: () =>
-    apiFetch('/api/lifecycle/save-offer/accept', { method: 'POST' }),
+    apiFetch('/api/lifecycle/save-offer/accept', { method: 'POST', body: JSON.stringify({}) }),
 
   // Admin — all admin calls suppress the global logout so that a 401
   // (e.g. expired token) shows a "session expired" prompt on the admin page
@@ -1272,9 +1279,9 @@ export const api = {
   getAdminUsers: (page = 0, size = 50) =>
     apiFetch(`/admin/active-users?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
   adminResetPassword: (userId: number) =>
-    apiFetch(`/admin/users/${userId}/reset-password`, { method: 'POST' }, API_TIMEOUT, true),
+    apiFetch(`/admin/users/${userId}/reset-password`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   adminResendVerification: (userId: number) =>
-    apiFetch(`/admin/users/${userId}/resend-verification`, { method: 'POST' }, API_TIMEOUT, true),
+    apiFetch(`/admin/users/${userId}/resend-verification`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   adminUpdatePlan: (userId: number, plan: string) =>
     apiFetch(`/admin/users/${userId}/plan`, { method: 'PUT', body: JSON.stringify({ plan }) }, API_TIMEOUT, true),
   adminGrantTrial: (userId: number, plan: string, durationDays: number, sendEmail: boolean) =>
@@ -1282,7 +1289,7 @@ export const api = {
   adminDeleteUser: (userId: number) =>
     apiFetch(`/admin/users/${userId}`, { method: 'DELETE' }, API_TIMEOUT, true),
   adminVerifyEmail: (userId: number) =>
-    apiFetch(`/admin/users/${userId}/verify-email`, { method: 'POST' }, API_TIMEOUT, true),
+    apiFetch(`/admin/users/${userId}/verify-email`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   adminGetUserActivity: (userId: number) =>
     apiFetch(`/admin/users/${userId}/activity`, {}, API_TIMEOUT, true),
 
@@ -1313,7 +1320,7 @@ export const api = {
    *  for the user back to pending so the scheduler retries within ~2min.
    *  Returns count of unstuck entries. */
   adminUnstickUserEmailQueue: (userId: number) =>
-    apiFetch(`/admin/users/${userId}/email-queue/unstick`, { method: 'POST' }, API_TIMEOUT, true),
+    apiFetch(`/admin/users/${userId}/email-queue/unstick`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   adminGetUserHawlReport: (userId: number) =>
     apiFetch(`/admin/users/${userId}/hawl-report`, {}, API_TIMEOUT, true),
   adminGetDeletedUsers: (page = 0, size = 50) =>
@@ -1460,7 +1467,7 @@ export const api = {
   getAdminLifecycleDeliveriesBreakdown: (campaignId: number) =>
     apiFetch(`/admin/lifecycle/campaigns/${campaignId}/deliveries/breakdown`, {}, API_TIMEOUT, true),
   sendAdminLifecycleCampaign: (campaignId: number) =>
-    apiFetch(`/admin/lifecycle/campaigns/${campaignId}/send`, { method: 'POST' }, API_TIMEOUT, true),
+    apiFetch(`/admin/lifecycle/campaigns/${campaignId}/send`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   testAdminLifecycleCampaign: (campaignId: number, payload: Record<string, unknown>) =>
     apiFetch(`/admin/lifecycle/campaigns/${campaignId}/test`, {
       method: 'POST',
@@ -1504,13 +1511,13 @@ export const api = {
 
   // Plaid Bank Linking
   plaidCreateLinkToken: () =>
-    apiFetch('/api/plaid/create-link-token', { method: 'POST' }),
+    apiFetch('/api/plaid/create-link-token', { method: 'POST', body: JSON.stringify({}) }),
   plaidExchangeToken: (publicToken: string, institutionName?: string) =>
     apiFetch('/api/plaid/exchange-token', { method: 'POST', body: JSON.stringify({ publicToken, institutionName }) }),
   plaidSync: (linkedAccountId: number) =>
-    apiFetch(`/api/plaid/sync/${linkedAccountId}`, { method: 'POST' }),
+    apiFetch(`/api/plaid/sync/${linkedAccountId}`, { method: 'POST', body: JSON.stringify({}) }),
   plaidSyncAll: () =>
-    apiFetch('/api/plaid/sync-all', { method: 'POST' }),
+    apiFetch('/api/plaid/sync-all', { method: 'POST', body: JSON.stringify({}) }),
   // R12 hotfix (2026-04-23): suppressUnauthorized=true.
   //
   // plaidGetAccounts fires on mount from SyncBanksButton on
@@ -1646,7 +1653,7 @@ export const api = {
 
   /** Open Stripe Customer Portal (manage/cancel/update card). Returns { url }. */
   openPortal: () =>
-    apiFetch('/api/stripe/portal', { method: 'POST' }),
+    apiFetch('/api/stripe/portal', { method: 'POST', body: JSON.stringify({}) }),
 
   /** Aggregated dashboard widget data (spending, budget, transactions, bills, net worth). */
   // R14: mount-fired on /dashboard — suppress 401 default.
@@ -1660,7 +1667,7 @@ export const api = {
 
   /** Start churn save flow — returns personalized save offers. */
   startChurnSaveFlow: () =>
-    apiFetch('/api/churn/start', { method: 'POST' }),
+    apiFetch('/api/churn/start', { method: 'POST', body: JSON.stringify({}) }),
 
   /** Pause subscription for N months. */
   pauseSubscription: (months: number, reason?: string) =>
@@ -1672,7 +1679,7 @@ export const api = {
 
   /** Seed sample demo data for new users (one-time). */
   seedDemoData: () =>
-    apiFetch('/api/onboarding/seed-demo', { method: 'POST' }),
+    apiFetch('/api/onboarding/seed-demo', { method: 'POST', body: JSON.stringify({}) }),
 
   /** Current subscription status for the logged-in user.
    *
@@ -1716,7 +1723,7 @@ export const api = {
   // Regression test: backgroundPollsDoNotLogout.test.ts.
   getReferralCode: (suppressUnauthorized = true) =>
     apiFetch('/api/referral/code', {}, API_TIMEOUT, suppressUnauthorized),
-  trackReferralClick: (code: string) => apiFetch(`/api/referrals/click/${encodeURIComponent(code)}`, { method: 'POST' }),
+  trackReferralClick: (code: string) => apiFetch(`/api/referrals/click/${encodeURIComponent(code)}`, { method: 'POST', body: JSON.stringify({}) }),
 
   // ── Household profile (gender/DOB/marital + dependents/spouse) ─────────────
   // Drives Faraid prefill, Wasiyyah beneficiary suggestions, and the gender-
@@ -1743,7 +1750,7 @@ export const api = {
   listFamilyMembers: () => apiFetch('/api/family/members'),
   removeFamilyMember: (userId: number) =>
     apiFetch(`/api/family/members/${userId}`, { method: 'DELETE' }),
-  leaveFamily: () => apiFetch('/api/family/leave', { method: 'POST' }),
+  leaveFamily: () => apiFetch('/api/family/leave', { method: 'POST', body: JSON.stringify({}) }),
   acceptFamilyInvite: (token: string) =>
     apiFetch('/api/family/accept', { method: 'POST', body: JSON.stringify({ token }) }),
   previewFamilyInvite: (token: string) =>

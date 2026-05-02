@@ -130,7 +130,10 @@ export default function SavingsPage() {
       await api.addSavingsGoal({ ...form, name: form.name.trim(), targetAmount: target });
       setShowForm(false); setForm({ name: '', category: 'emergency', targetAmount: '', description: '' }); load();
       toast('Savings goal created', 'success');
-    } catch { toast('Failed to create savings goal', 'error'); }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to create savings goal';
+      toast(msg, 'error');
+    }
     setSaving(false);
   };
 
@@ -156,7 +159,10 @@ export default function SavingsPage() {
       setContModal(null); setContAmount('');
       load(); // re-check milestones after contribution
       toast('Contribution added', 'success');
-    } catch { toast('Failed to add contribution', 'error'); }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to add contribution';
+      toast(msg, 'error');
+    }
     setSaving(false);
   };
 
@@ -168,8 +174,9 @@ export default function SavingsPage() {
         try {
           await api.deleteSavingsGoal(id);
           toast('Savings goal deleted', 'success');
-        } catch {
-          toast('Failed to delete savings goal', 'error');
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Failed to delete savings goal';
+          toast(msg, 'error');
         } finally {
           setDeletingId(null);
           load();
