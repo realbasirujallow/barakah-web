@@ -295,21 +295,17 @@ function AnalyticsPageContent() {
             <BarChart
               data={momDisplayData}
               margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
-              // 2026-05-02 fix: founder reported (multiple times) that
-              // clicking a bar didn't drill into anything. Recharts'
-              // BarChart-level onClick only fires when the user clicks
-              // on the chart BACKGROUND — clicks on the bars themselves
-              // don't always populate activePayload reliably across
-              // browsers, especially on touch devices. We now wire
-              // onClick at the BAR level so a tap on either the green
-              // (income) or red (expense) bar always navigates. The
-              // chart-level handler stays as a fallback for clicks in
-              // the gap between bars.
+              // 2026-05-02: clicking a bar opens the inline MonthDetailSheet
+              // (Monarch parity) instead of navigating away to /cash-flow.
+              // Founder feedback: "i dont want the drilling to go to
+              // another page... user can flick from one month to another
+              // like Monarch does." Routing reverted; sheet handles
+              // prev/next navigation in-place.
               onClick={(e) => {
-                const ev = e as unknown as { activePayload?: Array<{ payload?: { monthKey?: string } }> };
-                const monthKey = ev?.activePayload?.[0]?.payload?.monthKey;
-                if (monthKey) {
-                  router.push(`/dashboard/cash-flow?month=${encodeURIComponent(monthKey)}`);
+                const ev = e as unknown as { activePayload?: Array<{ payload?: { monthKey?: string; label?: string } }> };
+                const point = ev?.activePayload?.[0]?.payload;
+                if (point?.monthKey) {
+                  setDetailMonth({ key: point.monthKey, label: point.label || point.monthKey });
                 }
               }}
               style={{ cursor: 'pointer' }}
@@ -345,11 +341,13 @@ function AnalyticsPageContent() {
                 onClick={(barData: unknown) => {
                   // Bar-level onClick gets the row payload directly,
                   // sidestepping Recharts' flaky BarChart-level
-                  // activePayload propagation.
-                  const d = barData as { payload?: { monthKey?: string }; monthKey?: string };
+                  // activePayload propagation. Opens MonthDetailSheet
+                  // inline (no navigation away from /analytics).
+                  const d = barData as { payload?: { monthKey?: string; label?: string }; monthKey?: string; label?: string };
                   const monthKey = d?.payload?.monthKey ?? d?.monthKey;
+                  const label = d?.payload?.label ?? d?.label ?? monthKey;
                   if (monthKey) {
-                    router.push(`/dashboard/cash-flow?month=${encodeURIComponent(monthKey)}`);
+                    setDetailMonth({ key: monthKey, label: label || monthKey });
                   }
                 }}
               />
@@ -360,10 +358,11 @@ function AnalyticsPageContent() {
                 radius={[6,6,0,0]}
                 cursor="pointer"
                 onClick={(barData: unknown) => {
-                  const d = barData as { payload?: { monthKey?: string }; monthKey?: string };
+                  const d = barData as { payload?: { monthKey?: string; label?: string }; monthKey?: string; label?: string };
                   const monthKey = d?.payload?.monthKey ?? d?.monthKey;
+                  const label = d?.payload?.label ?? d?.label ?? monthKey;
                   if (monthKey) {
-                    router.push(`/dashboard/cash-flow?month=${encodeURIComponent(monthKey)}`);
+                    setDetailMonth({ key: monthKey, label: label || monthKey });
                   }
                 }}
               />
@@ -423,8 +422,11 @@ function AnalyticsPageContent() {
                   const expChange = prior && prior.expenses > 0
                     ? ((row.expenses - prior.expenses) / prior.expenses * 100).toFixed(0)
                     : null;
+                  // 2026-05-02: open inline MonthDetailSheet instead
+                  // of navigating away. Founder feedback: "user can
+                  // flick from one month to another like Monarch."
                   const drillTo = () => {
-                    router.push(`/dashboard/cash-flow?month=${encodeURIComponent(row.month)}`);
+                    setDetailMonth({ key: row.month, label: fmtMonth(row.month) });
                   };
                   return (
                     <tr
@@ -866,15 +868,32 @@ function AnalyticsPageContent() {
 
       {/* R39 (2026-05-01): per-month drilldown — opens when the user
           clicks a bar/dot on the MoM chart. Same sheet used by /summary
-          so the visual is consistent across both reporting surfaces. */}
-      {detailMonth && (
-        <MonthDetailSheet
-          month={detailMonth.key}
-          monthLabel={detailMonth.label}
-          onClose={() => setDetailMonth(null)}
-          fmt={fmt}
-        />
-      )}
+          so the visual is consistent across both reporting surfaces.
+
+          2026-05-02 (Monarch parity): wired prev/next so the user can
+          flick between months without closing the sheet. The available
+          range is the same monthlyData series the chart renders. */}
+      {detailMonth && (() => {
+        const sortedKeys = monthlyData.map(m => m.month).sort();
+        const idx = sortedKeys.indexOf(detailMonth.key);
+        const navigate = (direction: -1 | 1) => {
+          const nextIdx = idx + direction;
+          if (nextIdx < 0 || nextIdx >= sortedKeys.length) return;
+          const nextKey = sortedKeys[nextIdx];
+          setDetailMonth({ key: nextKey, label: fmtMonth(nextKey) });
+        };
+        return (
+          <MonthDetailSheet
+            month={detailMonth.key}
+            monthLabel={detailMonth.label}
+            onClose={() => setDetailMonth(null)}
+            onNavigate={navigate}
+            hasPrev={idx > 0}
+            hasNext={idx >= 0 && idx < sortedKeys.length - 1}
+            fmt={fmt}
+          />
+        );
+      })()}
     </div>
   );
 }
