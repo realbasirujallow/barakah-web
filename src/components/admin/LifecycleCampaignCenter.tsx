@@ -457,8 +457,15 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
       if (failedSections >= 4) {
         toast('Lifecycle admin data is temporarily unavailable. Please try again shortly.', 'error');
       }
-    } catch {
-      toast('Lifecycle admin data is temporarily unavailable. Please try again shortly.', 'error');
+    } catch (err) {
+      // 2026-05-02 fix: surface backend message instead of the static
+      // "temporarily unavailable" string, which made admin support
+      // pages indistinguishable from genuine prod outages during local
+      // dev session-expiry events.
+      const msg = err instanceof Error
+        ? err.message
+        : 'Lifecycle admin data is temporarily unavailable. Please try again shortly.';
+      toast(msg, 'error');
     } finally {
       setLoading(false);
     }

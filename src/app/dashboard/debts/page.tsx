@@ -288,7 +288,10 @@ export default function DebtsPage() {
           setSelectedIds(new Set());
           load();
           toast(`${count} debt${count !== 1 ? 's' : ''} deleted`, 'success');
-        } catch { toast('Failed to delete debts', 'error'); }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Failed to delete debts';
+          toast(msg, 'error');
+        }
         setBulkDeleting(false);
       }
     });
@@ -304,7 +307,10 @@ export default function DebtsPage() {
           setSelectedIds(new Set());
           load();
           toast('All debts deleted', 'success');
-        } catch { toast('Failed to delete all debts', 'error'); }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Failed to delete all debts';
+          toast(msg, 'error');
+        }
         setBulkDeleting(false);
       }
     });
