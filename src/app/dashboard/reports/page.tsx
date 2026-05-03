@@ -243,7 +243,11 @@ function ReportsPageContent() {
     if (!m || m.length < 7) return m;
     const y = parseInt(m.slice(0, 4), 10);
     const mo = parseInt(m.slice(5, 7), 10);
-    return new Date(Date.UTC(y, mo - 1, 1)).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    // 2026-05-03: timeZone:'UTC' avoids the off-by-one render where
+    // Date.UTC anchors midnight UTC and toLocaleDateString defaults
+    // to local TZ — west-of-UTC users saw "March 2026" for the YYYY-MM
+    // key "2026-04". See cash-flow/page.tsx for the canonical fix.
+    return new Date(Date.UTC(y, mo - 1, 1)).toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' });
   }
 
   return (
