@@ -844,7 +844,7 @@ export default function DashboardPage() {
             label="Market Today"
             tone={dayMove >= 0 ? 'positive' : 'negative'}
             value={`${dayMove >= 0 ? '+' : ''}${fmt(dayMove)}`}
-            footer={`${dayMovePct >= 0 ? '+' : ''}${dayMovePct.toFixed(2)}% · ${fmt(portfolioSummary?.totalValue || 0)}`}
+            footer={`${(Number(dayMovePct) || 0) >= 0 ? '+' : ''}${(Number(dayMovePct) || 0).toFixed(2)}% · ${fmt(portfolioSummary?.totalValue || 0)}`}
             href="/dashboard/investments"
             // R41 (2026-05-01): morph into investments-detail hero.
             heroName="investments-hero"
@@ -1051,11 +1051,18 @@ export default function DashboardPage() {
                 <p className="text-xl font-bold text-gray-900">
                   {hideNetWorth ? '••••••' : fmt(widgets.netWorthMini.currentNetWorth)}
                 </p>
-                {!hideNetWorth && (
-                  <span className={`text-xs font-semibold ${(widgets.netWorthMini.changeAmount || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {(widgets.netWorthMini.changeAmount || 0) >= 0 ? '▲' : '▼'} {fmt(Math.abs(widgets.netWorthMini.changeAmount || 0))} ({(widgets.netWorthMini.changePercent || 0).toFixed(1)}%)
-                  </span>
-                )}
+                {!hideNetWorth && (() => {
+                  // 2026-05-03: bulletproof against widgets.netWorthMini fields
+                  // arriving as strings from a cached API response. Number()
+                  // coerces; || 0 falls back when NaN.
+                  const ca = Number(widgets.netWorthMini.changeAmount) || 0;
+                  const cp = Number(widgets.netWorthMini.changePercent) || 0;
+                  return (
+                    <span className={`text-xs font-semibold ${ca >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {ca >= 0 ? '▲' : '▼'} {fmt(Math.abs(ca))} ({cp.toFixed(1)}%)
+                    </span>
+                  );
+                })()}
               </div>
             </div>
             <Link href="/dashboard/net-worth" className="text-xs text-primary font-medium hover:underline">Details →</Link>
