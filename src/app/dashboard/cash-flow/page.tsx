@@ -489,7 +489,24 @@ export default function CashFlowPage() {
                 </div>
               )}
             </div>
-            {chartView === 'bars' ? (
+            {/* 2026-05-03 (Section B·3): when every bucket has zero
+                income AND zero expenses, the bar chart renders as a blank
+                grid which reads as broken. Show an explicit empty state
+                instead so brand-new users see "this is normal, here's
+                what to do" rather than a confused-looking chart. The
+                Sankey view has its own empty hint at line 651, so we
+                only need this branch for `bars`. */}
+            {chartView === 'bars' && chartBuckets.length > 0 && chartBuckets.every(b => (b.income ?? 0) === 0 && (b.expenses ?? 0) === 0) ? (
+              <div className="h-[260px] flex flex-col items-center justify-center text-center px-6">
+                <p className="text-3xl mb-2" aria-hidden="true">📊</p>
+                <p className="text-sm font-semibold text-foreground mb-1">No transactions in this window yet</p>
+                <p className="text-xs text-muted-foreground max-w-md">
+                  Bars and trend line will fill in as you add or import transactions.
+                  Try linking a bank from the <Link href="/dashboard/transactions" className="underline underline-offset-2">Transactions page</Link> or
+                  importing a CSV to seed the chart.
+                </p>
+              </div>
+            ) : chartView === 'bars' ? (
             <ResponsiveContainer width="100%" height={260}>
               <ComposedChart
                 data={chartBuckets}
