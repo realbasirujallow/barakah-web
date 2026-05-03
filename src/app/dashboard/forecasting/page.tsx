@@ -106,40 +106,105 @@ function computeProjection(opts: {
 function ForecastingPageContent() {
   const { fmt, symbol } = useCurrency();
 
-  // Scenario knobs — local React state, no persistence.
+  // Scenario knobs. 2026-05-03: now persisted via
+  // /api/forecasting/scenarios/active. The defaults below are used as
+  // the initial state until the saved scenario (if any) lands; once
+  // loaded, the user's saved values overwrite. Each tweak gets
+  // debounce-saved back to the server so the next visit (and any
+  // future device sync) start from where they left off.
   const [currentAge, setCurrentAge] = useState(DEFAULTS.currentAge);
   const [retirementAge, setRetirementAge] = useState(DEFAULTS.retirementAge);
   const [hajjYearsFromNow, setHajjYearsFromNow] = useState(DEFAULTS.hajjYearsFromNow);
   const [monthlyContribution, setMonthlyContribution] = useState(DEFAULTS.monthlyContribution);
   const [annualReturnPct, setAnnualReturnPct] = useState(DEFAULTS.annualReturnPct);
+  const [scenarioId, setScenarioId] = useState<number | undefined>(undefined);
+  const [scenarioLoaded, setScenarioLoaded] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // Starting principal pulled from /api/networth/summary so the curve
   // begins at the user's actual current net worth.
   const [startingValue, setStartingValue] = useState<number | null>(null);
   const [loadError, setLoadError] = useState(false);
 
+  // Initial load — net worth + saved scenario in parallel.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        // /api/net-worth/history?period=6m returns currentNetWorth as
-        // part of the headline payload (same call /dashboard/net-worth
-        // uses for the hero card). No bespoke endpoint needed.
-        const d = await api.getNetWorthHistory('6m');
+        const [nwResult, scenarioResult] = await Promise.allSettled([
+          api.getNetWorthHistory('6m'),
+          api.getActiveForecastScenario(),
+        ]);
         if (cancelled) return;
-        const nw = (d as { currentNetWorth?: number })?.currentNetWorth;
-        setStartingValue(typeof nw === 'number' ? nw : 0);
+
+        if (nwResult.status === 'fulfilled') {
+          const nw = (nwResult.value as { currentNetWorth?: number })?.currentNetWorth;
+          setStartingValue(typeof nw === 'number' ? nw : 0);
+        } else {
+          // Demo-friendly fallback so the page still tells a story even
+          // if the API hiccups during the investor demo.
+          setStartingValue(100_000);
+          setLoadError(true);
+        }
+
+        if (scenarioResult.status === 'fulfilled') {
+          const s = (scenarioResult.value as { scenario?: {
+            id: number; currentAge: number; retirementAge: number;
+            hajjYearsFromNow: number; monthlyContribution: number;
+            annualReturnPct: number;
+          } | null })?.scenario;
+          if (s) {
+            // Apply saved values atomically so the projection only
+            // recomputes once.
+            setScenarioId(s.id);
+            setCurrentAge(s.currentAge);
+            setRetirementAge(s.retirementAge);
+            setHajjYearsFromNow(s.hajjYearsFromNow);
+            setMonthlyContribution(s.monthlyContribution);
+            setAnnualReturnPct(s.annualReturnPct);
+          }
+        }
+        setScenarioLoaded(true);
       } catch {
-        // Demo-friendly fallback so the page still tells a story even if
-        // the API hiccups during the investor demo.
         if (!cancelled) {
           setStartingValue(100_000);
           setLoadError(true);
+          setScenarioLoaded(true);
         }
       }
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // Debounced save — fires 800ms after the user stops adjusting. We
+  // wait for `scenarioLoaded` to flip true so the initial-load values
+  // don't immediately overwrite the user's saved scenario with the
+  // defaults during the brief render window before the GET resolves.
+  useEffect(() => {
+    if (!scenarioLoaded) return;
+    setSaveStatus('saving');
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const result = await api.saveForecastScenario({
+          id: scenarioId,
+          currentAge,
+          retirementAge,
+          hajjYearsFromNow,
+          monthlyContribution,
+          annualReturnPct,
+        });
+        const saved = (result as { scenario?: { id: number } })?.scenario;
+        if (saved?.id && !scenarioId) setScenarioId(saved.id);
+        setSaveStatus('saved');
+        // Reset the chip back to idle so it doesn't permanently say "Saved".
+        window.setTimeout(() => setSaveStatus('idle'), 1500);
+      } catch {
+        setSaveStatus('error');
+      }
+    }, 800);
+    return () => window.clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenarioLoaded, currentAge, retirementAge, hajjYearsFromNow, monthlyContribution, annualReturnPct]);
 
   const projection = useMemo(() => {
     if (startingValue == null) return [];
@@ -168,6 +233,26 @@ function ForecastingPageContent() {
       <PageHeader
         title="Forecasting"
         subtitle="Project your wealth across decades, keyed to the Islamic milestones that matter to you."
+        actions={
+          // Tiny save-status chip — same idea as Linear's "saving…/saved"
+          // affordance. Tells the user the scenario syncs without making
+          // them save manually.
+          <span
+            className={
+              'text-xs px-2.5 py-1 rounded-full font-medium tabular-nums transition-colors ' +
+              (saveStatus === 'saving' ? 'bg-amber-50 text-amber-700' :
+               saveStatus === 'saved' ? 'bg-emerald-50 text-emerald-700' :
+               saveStatus === 'error' ? 'bg-rose-50 text-rose-700' :
+               'bg-gray-50 text-gray-500')
+            }
+            aria-live="polite"
+          >
+            {saveStatus === 'saving' ? 'Saving…' :
+             saveStatus === 'saved' ? 'Saved' :
+             saveStatus === 'error' ? 'Save failed — try again' :
+             'Synced'}
+          </span>
+        }
       />
 
       {/* Hero summary — the answer in numbers, before the chart. */}

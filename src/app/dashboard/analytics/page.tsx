@@ -326,10 +326,68 @@ function AnalyticsPageContent() {
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="label" tick={{ fill: '#374151', fontSize: 11 }} />
               <YAxis tickFormatter={fmtShort} tick={{ fill: '#374151', fontSize: 11 }} />
+              {/* 2026-05-03 (Monarch parity): "Explain this change"-
+                  style tooltip. Hovering a month shows the income +
+                  expense values, the delta vs the prior month for
+                  expenses (the most-watched line), and a one-liner
+                  hint that opens the drilldown on click. Replaces the
+                  plain Recharts default tooltip. */}
               <Tooltip
-                formatter={(value: number | undefined) => fmt(value ?? 0)}
-                contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
                 cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                content={({ active, payload, label }) => {
+                  if (!active || !payload || payload.length === 0) return null;
+                  // Recharts payload entries each have name/value/color/payload.
+                  const incomeEntry = payload.find(p => p.dataKey === 'income');
+                  const expenseEntry = payload.find(p => p.dataKey === 'expenses');
+                  const income = (incomeEntry?.value as number) ?? 0;
+                  const expenses = (expenseEntry?.value as number) ?? 0;
+                  const net = income - expenses;
+                  const point = payload[0].payload as { monthKey?: string };
+                  // Find the prior month in the source series for the delta.
+                  const idx = monthlyData.findIndex(m => m.month === point?.monthKey);
+                  const prior = idx > 0 ? monthlyData[idx - 1] : null;
+                  const expDelta = prior ? expenses - prior.expenses : null;
+                  const expDeltaPct = prior && prior.expenses > 0
+                    ? ((expenses - prior.expenses) / prior.expenses) * 100
+                    : null;
+                  return (
+                    <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-3 min-w-[200px] text-sm">
+                      <p className="font-bold text-gray-900 mb-1">{label}</p>
+                      <div className="flex justify-between gap-4 mb-0.5">
+                        <span className="text-emerald-700">Income</span>
+                        <span className="font-semibold tabular-nums">{fmt(income)}</span>
+                      </div>
+                      <div className="flex justify-between gap-4 mb-0.5">
+                        <span className="text-rose-700">Expenses</span>
+                        <span className="font-semibold tabular-nums">{fmt(expenses)}</span>
+                      </div>
+                      <div className="flex justify-between gap-4 pt-1 mt-1 border-t border-gray-100">
+                        <span className="text-gray-500 text-xs">Net</span>
+                        <span className={`font-semibold tabular-nums text-xs ${net >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                          {fmt(net)}
+                        </span>
+                      </div>
+                      {expDelta != null && (
+                        <div className="mt-2 pt-2 border-t border-gray-100">
+                          <p className="text-[11px] text-gray-500 uppercase tracking-wide font-medium">
+                            Spending change vs prior month
+                          </p>
+                          <p className={`text-xs font-medium mt-0.5 ${expDelta <= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                            {expDelta <= 0 ? '▼' : '▲'} {fmt(Math.abs(expDelta))}
+                            {expDeltaPct != null && (
+                              <span className="text-gray-500 font-normal">
+                                {' '}({Math.abs(expDeltaPct) > 999 ? '>999' : Math.abs(expDeltaPct).toFixed(1)}%)
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      )}
+                      <p className="text-[11px] text-[#FF6B35] mt-2 font-medium">
+                        Click to see the full breakdown →
+                      </p>
+                    </div>
+                  );
+                }}
               />
               <Legend />
               <Bar
@@ -379,9 +437,61 @@ function AnalyticsPageContent() {
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="label" tick={{ fill: '#374151', fontSize: 11 }} />
               <YAxis tickFormatter={fmtShort} tick={{ fill: '#374151', fontSize: 11 }} />
+              {/* 2026-05-03: same "Explain this change"-style tooltip
+                  as the BarChart variant above so the user gets the
+                  same delta-vs-prior-month breakdown when they toggle
+                  to the Line view. */}
               <Tooltip
-                formatter={(value: number | undefined) => fmt(value ?? 0)}
-                contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
+                content={({ active, payload, label }) => {
+                  if (!active || !payload || payload.length === 0) return null;
+                  const incomeEntry = payload.find(p => p.dataKey === 'income');
+                  const expenseEntry = payload.find(p => p.dataKey === 'expenses');
+                  const netEntry = payload.find(p => p.dataKey === 'net');
+                  const income = (incomeEntry?.value as number) ?? 0;
+                  const expenses = (expenseEntry?.value as number) ?? 0;
+                  const net = (netEntry?.value as number) ?? (income - expenses);
+                  const point = payload[0].payload as { monthKey?: string };
+                  const idx = monthlyData.findIndex(m => m.month === point?.monthKey);
+                  const prior = idx > 0 ? monthlyData[idx - 1] : null;
+                  const expDelta = prior ? expenses - prior.expenses : null;
+                  const expDeltaPct = prior && prior.expenses > 0
+                    ? ((expenses - prior.expenses) / prior.expenses) * 100
+                    : null;
+                  return (
+                    <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-3 min-w-[200px] text-sm">
+                      <p className="font-bold text-gray-900 mb-1">{label}</p>
+                      <div className="flex justify-between gap-4 mb-0.5">
+                        <span className="text-emerald-700">Income</span>
+                        <span className="font-semibold tabular-nums">{fmt(income)}</span>
+                      </div>
+                      <div className="flex justify-between gap-4 mb-0.5">
+                        <span className="text-rose-700">Expenses</span>
+                        <span className="font-semibold tabular-nums">{fmt(expenses)}</span>
+                      </div>
+                      <div className="flex justify-between gap-4 pt-1 mt-1 border-t border-gray-100">
+                        <span className="text-gray-500 text-xs">Net</span>
+                        <span className={`font-semibold tabular-nums text-xs ${net >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                          {fmt(net)}
+                        </span>
+                      </div>
+                      {expDelta != null && (
+                        <div className="mt-2 pt-2 border-t border-gray-100">
+                          <p className="text-[11px] text-gray-500 uppercase tracking-wide font-medium">
+                            Spending change vs prior month
+                          </p>
+                          <p className={`text-xs font-medium mt-0.5 ${expDelta <= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                            {expDelta <= 0 ? '▼' : '▲'} {fmt(Math.abs(expDelta))}
+                            {expDeltaPct != null && (
+                              <span className="text-gray-500 font-normal">
+                                {' '}({Math.abs(expDeltaPct) > 999 ? '>999' : Math.abs(expDeltaPct).toFixed(1)}%)
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }}
               />
               <Legend />
               {/* Phase 24d: thicker strokes + animated draw-in for line charts */}

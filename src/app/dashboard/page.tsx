@@ -21,7 +21,7 @@ import { WeeklyRecap } from '../../components/dashboard/WeeklyRecap';
 import { TopPriorities } from '../../components/dashboard/TopPriorities';
 import { AdviceQueue } from '../../components/dashboard/AdviceQueue';
 import { getLastVisit, labelForRoute, type LastVisit } from '../../lib/lastVisit';
-import { Coins, ArrowLeftRight, Upload, PieChart, type LucideIcon } from 'lucide-react';
+import { Coins, ArrowLeftRight, Upload, PieChart, Telescope, type LucideIcon } from 'lucide-react';
 import { CategoryIcon } from '../../lib/categoryIcon';
 import { Badge } from '../../components/ui/badge';
 import HeroLink from '../../components/HeroLink';
@@ -311,11 +311,16 @@ export default function DashboardPage() {
   // authenticated product. The dead `cards` array (used by the now-
   // removed "Explore Features" grid in Phase 10) is gone — sidebar
   // is the canonical feature index.
+  // 2026-05-03 (Monarch parity): Forecasting now in the Quick Actions
+  // row. The card opens /dashboard/forecasting where the user can drag
+  // the Hajj/retirement sliders and watch the curve update with auto-
+  // save. Replaces the second of three secondary actions (View Budget
+  // got moved further down — Budget page also accessible from sidebar).
   const quickActions: Array<{ href: string; icon: LucideIcon; label: string; desc: string }> = [
     { href: '/dashboard/zakat',        icon: Coins,           label: 'Calculate Zakat',  desc: 'Lunar-year wealth review' },
     { href: '/dashboard/transactions', icon: ArrowLeftRight,  label: 'Add Transaction',  desc: 'Income & expenses' },
+    { href: '/dashboard/forecasting',  icon: Telescope,       label: 'Forecast Future',  desc: 'Project net worth · Hajj timing' },
     { href: '/dashboard/import',       icon: Upload,          label: 'Connect Accounts', desc: 'Link a bank' },
-    { href: '/dashboard/budget',       icon: PieChart,        label: 'View Budget',      desc: 'Monthly spending limits' },
   ];
 
   const hasInvestmentPulse = (portfolioSummary?.totalValue || 0) > 0;
