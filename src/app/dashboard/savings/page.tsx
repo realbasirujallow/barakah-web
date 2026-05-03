@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { Target, Landmark, X, CheckCircle2, Check } from 'lucide-react';
 import { api } from '../../../lib/api';
 import { DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL } from '../../../lib/trial';
 import { useCurrency } from '../../../lib/useCurrency';
@@ -197,17 +198,17 @@ export default function SavingsPage() {
   if (isFreePlan) {
     return (
       <div className="max-w-xl mx-auto mt-12 text-center px-4">
-        <div className="text-5xl mb-4">🎯</div>
+        <Target className="w-12 h-12 mx-auto mb-4 text-primary" aria-hidden="true" />
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Savings Goals</h1>
         <p className="text-gray-600 mb-6">
           Set goals for Hajj, emergency fund, education, and more — and track your progress toward each one.
           Available on Barakah Plus.
         </p>
         <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6 text-left space-y-2">
-          <p className="font-semibold text-green-800 text-sm">✓ Set unlimited savings goals</p>
-          <p className="font-semibold text-green-800 text-sm">✓ Track progress with milestone alerts</p>
-          <p className="font-semibold text-green-800 text-sm">✓ Categories: Hajj, Umrah, Education, Home, and more</p>
-          <p className="font-semibold text-green-800 text-sm">✓ Contribute and see remaining balance at a glance</p>
+          <p className="font-semibold text-green-800 text-sm inline-flex items-center gap-1.5"><Check className="w-4 h-4" aria-hidden="true" /> Set unlimited savings goals</p>
+          <p className="font-semibold text-green-800 text-sm inline-flex items-center gap-1.5"><Check className="w-4 h-4" aria-hidden="true" /> Track progress with milestone alerts</p>
+          <p className="font-semibold text-green-800 text-sm inline-flex items-center gap-1.5"><Check className="w-4 h-4" aria-hidden="true" /> Categories: Hajj, Umrah, Education, Home, and more</p>
+          <p className="font-semibold text-green-800 text-sm inline-flex items-center gap-1.5"><Check className="w-4 h-4" aria-hidden="true" /> Contribute and see remaining balance at a glance</p>
         </div>
         <Link
           href="/dashboard/billing"
@@ -251,9 +252,9 @@ export default function SavingsPage() {
       {/* ── Hajj prompt ────────────────────────────────────────────────────── */}
       {showHajjPrompt && !goals.some(g => g.category === 'hajj') && (
         <div className="bg-gradient-to-r from-amber-600 to-yellow-500 rounded-2xl p-5 text-white mb-6 relative">
-          <button type="button" onClick={() => setShowHajjPrompt(false)} className="absolute top-3 right-3 text-white/70 hover:text-white text-lg leading-none">✕</button>
+          <button type="button" onClick={() => setShowHajjPrompt(false)} className="absolute top-3 right-3 text-white/70 hover:text-white leading-none" aria-label="Dismiss"><X className="w-5 h-5" aria-hidden="true" /></button>
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-3xl">🕋</span>
+            <Landmark className="w-8 h-8" aria-hidden="true" />
             <div>
               <p className="font-bold text-lg">Save for Hajj</p>
               <p className="text-amber-100 text-sm">Hajj is obligatory once in a lifetime for those who are able. Start saving today.</p>
@@ -262,8 +263,9 @@ export default function SavingsPage() {
           <button onClick={() => {
             setForm({ name: 'Hajj Savings', category: 'hajj', targetAmount: '10000', description: 'Saving for the obligatory pilgrimage to Makkah — may Allah accept it.' });
             setShowForm(true);
-          }} className="bg-white text-amber-700 font-bold px-4 py-2 rounded-lg text-sm hover:bg-amber-50 transition">
-            🕋 Start Hajj Savings Goal
+          }} className="bg-white text-amber-700 font-bold px-4 py-2 rounded-lg text-sm hover:bg-amber-50 transition inline-flex items-center gap-1.5">
+            <Landmark className="w-4 h-4" aria-hidden="true" />
+            Start Hajj Savings Goal
           </button>
         </div>
       )}
@@ -271,9 +273,9 @@ export default function SavingsPage() {
       {/* ── Umrah prompt ───────────────────────────────────────────────────── */}
       {showUmrahPrompt && !goals.some(g => g.category === 'umrah') && (
         <div className="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-2xl p-5 text-white mb-6 relative">
-          <button type="button" onClick={() => setShowUmrahPrompt(false)} className="absolute top-3 right-3 text-white/70 hover:text-white text-lg leading-none">✕</button>
+          <button type="button" onClick={() => setShowUmrahPrompt(false)} className="absolute top-3 right-3 text-white/70 hover:text-white leading-none" aria-label="Dismiss"><X className="w-5 h-5" aria-hidden="true" /></button>
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-3xl">🕌</span>
+            <Landmark className="w-8 h-8" aria-hidden="true" />
             <div>
               <p className="font-bold text-lg">Save for Umrah</p>
               <p className="text-teal-100 text-sm">Umrah is a blessed Sunnah you can perform any time of year. Start saving today.</p>
@@ -282,8 +284,9 @@ export default function SavingsPage() {
           <button onClick={() => {
             setForm({ name: 'Umrah Savings', category: 'umrah', targetAmount: '3000', description: 'Saving for the blessed journey to Makkah and Madinah — may Allah grant acceptance.' });
             setShowForm(true);
-          }} className="bg-white text-teal-700 font-bold px-4 py-2 rounded-lg text-sm hover:bg-teal-50 transition">
-            🕌 Start Umrah Savings Goal
+          }} className="bg-white text-teal-700 font-bold px-4 py-2 rounded-lg text-sm hover:bg-teal-50 transition inline-flex items-center gap-1.5">
+            <Landmark className="w-4 h-4" aria-hidden="true" />
+            Start Umrah Savings Goal
           </button>
         </div>
       )}
@@ -321,7 +324,7 @@ export default function SavingsPage() {
                   <div>
                     <p className="font-semibold text-primary flex items-center gap-1.5">
                       {g.name}
-                      {done && <span className="text-green-600 text-sm inline-block animate-checkmark-pop">✅</span>}
+                      {done && <CheckCircle2 className="w-4 h-4 text-green-600 inline-block animate-checkmark-pop" aria-hidden="true" />}
                     </p>
                     <p className="text-sm text-gray-500 capitalize">{g.category}{g.description ? ` • ${g.description}` : ''}</p>
                   </div>

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { TrendingUp, AlertTriangle, Lightbulb, type LucideIcon } from 'lucide-react';
 
 /**
  * R45 (2026-05-01) — Monarch-style Weekly Recap card.
@@ -25,7 +26,7 @@ import Link from 'next/link';
 
 export interface WeeklyRecapProps {
   greeting: string;        // "Good morning" / "Good afternoon"
-  greetingEmoji: string;   // "🌅" / "🌇"
+  greetingIcon: LucideIcon; // Sunrise / Sun / Sunset / Moon
   userName?: string | null;
   netWorthChangeAmount?: number | null;
   netWorthChangePercent?: number | null;
@@ -70,15 +71,21 @@ function lastWeekRange(now = new Date()): string {
   return `${lastMonday.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – ${lastSunday.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
 }
 
-function severityToEmoji(s: string | undefined): string {
-  if (s === 'good') return '📈';
-  if (s === 'warning') return '⚠️';
-  return '💡';
+function severityToIcon(s: string | undefined): LucideIcon {
+  if (s === 'good') return TrendingUp;
+  if (s === 'warning') return AlertTriangle;
+  return Lightbulb;
+}
+
+function severityToColorClass(s: string | undefined): string {
+  if (s === 'good') return 'text-emerald-600 dark:text-emerald-400';
+  if (s === 'warning') return 'text-amber-600 dark:text-amber-400';
+  return 'text-sky-600 dark:text-sky-400';
 }
 
 export function WeeklyRecap({
   greeting,
-  greetingEmoji,
+  greetingIcon: GreetingIcon,
   userName,
   netWorthChangeAmount,
   netWorthChangePercent,
@@ -113,8 +120,9 @@ export function WeeklyRecap({
             <p className="text-xs uppercase tracking-wide font-semibold text-emerald-700 dark:text-emerald-300 mb-0.5">
               Your weekly recap
             </p>
-            <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
-              {greeting}{userName ? `, ${userName}` : ''} <span aria-hidden="true">{greetingEmoji}</span>
+            <h2 className="text-lg sm:text-xl font-bold text-foreground truncate inline-flex items-center gap-1.5">
+              <span>{greeting}{userName ? `, ${userName}` : ''}</span>
+              <GreetingIcon className="w-5 h-5 text-amber-500" aria-hidden="true" />
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               Recap for {range}
@@ -166,14 +174,15 @@ export function WeeklyRecap({
       {/* Insights feed (up to 3) */}
       {top3.length > 0 && (
         <ul className="border-t border-border divide-y divide-border">
-          {top3.map((i, idx) => (
-            <li key={idx} className="px-5 py-2.5 flex items-start gap-3 text-sm">
-              <span className="text-base flex-shrink-0 leading-tight" aria-hidden="true">
-                {severityToEmoji(i.severity)}
-              </span>
-              <p className="text-foreground leading-snug min-w-0">{i.body}</p>
-            </li>
-          ))}
+          {top3.map((i, idx) => {
+            const Icon = severityToIcon(i.severity);
+            return (
+              <li key={idx} className="px-5 py-2.5 flex items-start gap-3 text-sm">
+                <Icon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${severityToColorClass(i.severity)}`} aria-hidden="true" />
+                <p className="text-foreground leading-snug min-w-0">{i.body}</p>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

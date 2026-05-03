@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Landmark, HandHeart, Building, ScrollText, Clock, Shield } from 'lucide-react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
@@ -182,7 +183,7 @@ export default function IbadahFinancePage() {
       {/* ── Empty State ─────────────────────────────────────────────────────── */}
       {!loading && !error && isEmpty && (
         <div className="bg-gray-50 border border-gray-200 rounded-2xl p-10 text-center">
-          <p className="text-4xl mb-3">🕌</p>
+          <Landmark className="w-10 h-10 mx-auto mb-3 text-primary" aria-hidden="true" />
           <p className="text-gray-700 font-medium text-lg mb-2">No Ibadah data yet</p>
           <p className="text-gray-500 text-sm mb-6">
             Start tracking your zakat, sadaqah, waqf and other Islamic financial obligations.
@@ -210,7 +211,7 @@ export default function IbadahFinancePage() {
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl" role="img" aria-label="Zakat">🕌</span>
+                      <Landmark className="w-7 h-7" aria-hidden="true" />
                       <h2 className="text-lg font-semibold">Zakat</h2>
                     </div>
                     {data.zakat.belowNisab ? (
@@ -248,7 +249,7 @@ export default function IbadahFinancePage() {
               <Link href="/dashboard/sadaqah" className="block group">
                 <div className="rounded-2xl p-6 bg-white border-2 h-full flex flex-col transition-shadow hover:shadow-lg" style={{ borderColor: '#1B5E20' }}>
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="text-2xl" role="img" aria-label="Sadaqah">🤲</span>
+                    <HandHeart className="w-7 h-7 text-primary" aria-hidden="true" />
                     <h2 className="text-lg font-semibold text-gray-900">Sadaqah</h2>
                   </div>
                   <p className="text-3xl font-bold mb-1" style={{ color: '#1B5E20' }}>
@@ -271,7 +272,7 @@ export default function IbadahFinancePage() {
               <Link href="/dashboard/waqf" className="block group">
                 <div className="rounded-2xl p-6 bg-white border-2 h-full flex flex-col transition-shadow hover:shadow-lg" style={{ borderColor: '#1B5E20' }}>
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="text-2xl" role="img" aria-label="Waqf">🏛️</span>
+                    <Building className="w-7 h-7 text-primary" aria-hidden="true" />
                     <h2 className="text-lg font-semibold text-gray-900">Waqf</h2>
                   </div>
                   <p className="text-3xl font-bold mb-1" style={{ color: '#1B5E20' }}>
@@ -293,7 +294,7 @@ export default function IbadahFinancePage() {
                 <div className="rounded-2xl p-6 bg-white border-2 h-full flex flex-col transition-shadow hover:shadow-lg" style={{ borderColor: '#1B5E20' }}>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl" role="img" aria-label="Wasiyyah">📜</span>
+                      <ScrollText className="w-7 h-7 text-primary" aria-hidden="true" />
                       <h2 className="text-lg font-semibold text-gray-900">Wasiyyah</h2>
                     </div>
                     {data.wasiyyah.pendingObligations > 0 && (
@@ -321,7 +322,7 @@ export default function IbadahFinancePage() {
                 <div className="rounded-2xl p-6 bg-white border-2 h-full flex flex-col transition-shadow hover:shadow-lg" style={{ borderColor: '#1B5E20' }}>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl" role="img" aria-label="Hawl Tracker">⏰</span>
+                      <Clock className="w-7 h-7 text-primary" aria-hidden="true" />
                       <h2 className="text-lg font-semibold text-gray-900">Hawl Tracker</h2>
                     </div>
                     {data.hawl.upcomingIn30Days > 0 && (
@@ -349,7 +350,7 @@ export default function IbadahFinancePage() {
                 <div className="rounded-2xl p-6 bg-white border-2 h-full flex flex-col transition-shadow hover:shadow-lg" style={{ borderColor: '#1B5E20' }}>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl" role="img" aria-label="Purification">🛡️</span>
+                      <Shield className="w-7 h-7 text-primary" aria-hidden="true" />
                       <h2 className="text-lg font-semibold text-gray-900">Purification</h2>
                     </div>
                     {data.purification.complete ? (

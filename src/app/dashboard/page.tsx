@@ -21,7 +21,25 @@ import { WeeklyRecap } from '../../components/dashboard/WeeklyRecap';
 import { TopPriorities } from '../../components/dashboard/TopPriorities';
 import { AdviceQueue } from '../../components/dashboard/AdviceQueue';
 import { getLastVisit, labelForRoute, type LastVisit } from '../../lib/lastVisit';
-import { Coins, ArrowLeftRight, Upload, PieChart, type LucideIcon } from 'lucide-react';
+import {
+  Coins,
+  ArrowLeftRight,
+  Upload,
+  PieChart,
+  Moon,
+  Sun,
+  Sunrise,
+  Sunset,
+  Calendar,
+  Handshake,
+  Building2,
+  BarChart3,
+  Search,
+  TrendingUp,
+  Landmark,
+  Shield,
+  type LucideIcon,
+} from 'lucide-react';
 import { CategoryIcon } from '../../lib/categoryIcon';
 import { Badge } from '../../components/ui/badge';
 import HeroLink from '../../components/HeroLink';
@@ -173,15 +191,15 @@ export default function DashboardPage() {
   // strings, which triggers a hydration mismatch. Start with a neutral
   // greeting and replace it after mount, deferred via setTimeout(0) to keep
   // react-hooks/set-state-in-effect happy (same pattern as layout headerDate).
-  const [greeting, setGreeting] = useState<{ text: string; emoji: string }>({ text: 'Welcome back', emoji: '🌙' });
+  const [greeting, setGreeting] = useState<{ text: string; Icon: LucideIcon }>({ text: 'Welcome back', Icon: Moon });
   useEffect(() => {
     let cancelled = false;
     const id = window.setTimeout(() => {
       if (cancelled) return;
       const h = new Date().getHours();
-      if (h < 12) setGreeting({ text: 'Good morning', emoji: '🌅' });
-      else if (h < 18) setGreeting({ text: 'Good afternoon', emoji: '☀️' });
-      else setGreeting({ text: 'Good evening', emoji: '🌙' });
+      if (h < 12) setGreeting({ text: 'Good morning', Icon: Sunrise });
+      else if (h < 18) setGreeting({ text: 'Good afternoon', Icon: Sun });
+      else setGreeting({ text: 'Good evening', Icon: Sunset });
     }, 0);
     return () => { cancelled = true; window.clearTimeout(id); };
   }, []);
@@ -440,16 +458,25 @@ export default function DashboardPage() {
       {hijri?.isRamadan && (
         <div className="bg-gradient-to-r from-purple-700 to-indigo-600 rounded-2xl p-5 text-white mb-6">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">🌙</span>
+            <Moon className="w-8 h-8" aria-hidden="true" />
             <div>
               <p className="font-bold text-lg">Ramadan Mubarak!</p>
               <p className="text-purple-200 text-sm">May this blessed month bring you barakah and acceptance.</p>
             </div>
           </div>
           <div className="flex gap-3 flex-wrap mt-3">
-            <Link href="/dashboard/sadaqah" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition">🤲 Track Sadaqah</Link>
-            <Link href="/dashboard/zakat" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition">🕌 Pay Zakat</Link>
-            <Link href="/dashboard/hawl" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition">📅 Hawl Tracker</Link>
+            <Link href="/dashboard/sadaqah" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition inline-flex items-center gap-1.5">
+              <Handshake className="w-4 h-4" aria-hidden="true" />
+              Track Sadaqah
+            </Link>
+            <Link href="/dashboard/zakat" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition inline-flex items-center gap-1.5">
+              <Landmark className="w-4 h-4" aria-hidden="true" />
+              Pay Zakat
+            </Link>
+            <Link href="/dashboard/hawl" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition inline-flex items-center gap-1.5">
+              <Calendar className="w-4 h-4" aria-hidden="true" />
+              Hawl Tracker
+            </Link>
           </div>
         </div>
       )}
@@ -467,7 +494,7 @@ export default function DashboardPage() {
       {hijri?.hijriDate && !hijri.isRamadan && (
         <div className="bg-gradient-to-br from-[#1B5E20] to-emerald-700 rounded-2xl p-5 text-white mb-6 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <span aria-hidden="true" className="text-lg">📅</span>
+            <Calendar className="w-5 h-5" aria-hidden="true" />
             <p className="text-sm font-semibold uppercase tracking-wide opacity-90">Islamic Calendar</p>
           </div>
           <p className="text-2xl md:text-3xl font-bold leading-tight">{hijri.hijriDate}</p>
@@ -499,7 +526,7 @@ export default function DashboardPage() {
       <header className="mb-6 flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground flex items-center gap-2">
-            <span aria-hidden="true">{greeting.emoji}</span>
+            <greeting.Icon className="w-7 h-7 text-amber-500" aria-hidden="true" />
             <span>
               {greeting.text}
               {user?.name ? <span className="text-muted-foreground font-normal">, </span> : null}
@@ -532,7 +559,7 @@ export default function DashboardPage() {
       {(insights.length > 0 || widgets?.netWorthMini || widgets?.spending) && (
         <WeeklyRecap
           greeting={greeting.text}
-          greetingEmoji={greeting.emoji}
+          greetingIcon={greeting.Icon}
           userName={user?.name?.split(' ')[0] ?? null}
           netWorthChangeAmount={widgets?.netWorthMini?.changeAmount ?? null}
           netWorthChangePercent={widgets?.netWorthMini?.changePercent ?? null}
@@ -557,7 +584,7 @@ export default function DashboardPage() {
       {!referralBannerDismissed && !showReferralPrompt && (
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🤝</span>
+            <Handshake className="w-5 h-5 text-green-700" aria-hidden="true" />
             <p className="text-sm text-green-800 font-medium">
               Earn a <strong>free extra month</strong> for every friend who joins Barakah.
             </p>
@@ -633,8 +660,8 @@ export default function DashboardPage() {
           - Dotted-border card uses semantic tokens so dark mode auto-flips */}
       {hasNoData && (
         <div className="bg-card border-2 border-dashed border-primary/30 rounded-2xl p-8 mb-6 text-center motion-safe:animate-fade-up-200">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-3xl mb-3">
-            <span aria-hidden="true">🏦</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-3">
+            <Building2 className="w-8 h-8 text-primary" aria-hidden="true" />
           </div>
           <h3 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
             Set up Barakah in 60 seconds
@@ -649,13 +676,13 @@ export default function DashboardPage() {
               users what they actually get, not what the action does. */}
           <div className="flex flex-wrap gap-2 justify-center mb-5">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
-              <span aria-hidden="true">📊</span> Auto-categorise spending
+              <BarChart3 className="w-3.5 h-3.5" aria-hidden="true" /> Auto-categorise spending
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
-              <span aria-hidden="true">🕌</span> Zakat calculated automatically
+              <Landmark className="w-3.5 h-3.5" aria-hidden="true" /> Zakat calculated automatically
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
-              <span aria-hidden="true">🛡️</span> Riba flagged on every charge
+              <Shield className="w-3.5 h-3.5" aria-hidden="true" /> Riba flagged on every charge
             </span>
           </div>
 
@@ -1301,7 +1328,10 @@ export default function DashboardPage() {
       {user?.plan === 'free' && (
         <div className="bg-gradient-to-r from-[#1B5E20] to-green-600 rounded-xl p-4 flex items-center justify-between gap-4">
           <div className="text-white min-w-0">
-            <p className="font-bold text-sm sm:text-base">🌙 Unlock Barakah Plus — from {PRICING.plus.monthly}/mo</p>
+            <p className="font-bold text-sm sm:text-base inline-flex items-center gap-1.5">
+              <Moon className="w-4 h-4" aria-hidden="true" />
+              Unlock Barakah Plus — from {PRICING.plus.monthly}/mo
+            </p>
             <p className="text-green-200 text-xs mt-0.5">Unlimited transactions · Bank sync · Halal screener · Zakat autopilot</p>
           </div>
           <Link
@@ -1332,21 +1362,21 @@ export default function DashboardPage() {
           <div className="grid md:grid-cols-3 gap-4">
             <Link href="/dashboard/barakah-score" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
               <div className="absolute top-3 right-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
-              <div className="text-2xl mb-2">📊</div>
+              <BarChart3 className="w-7 h-7 mb-2 text-primary" aria-hidden="true" />
               <h4 className="font-semibold text-gray-900 group-hover:text-primary">Financial Insights</h4>
               <p className="text-xs text-gray-500 mt-1">Barakah Score, spending trends, and halal ratio — see your full picture.</p>
             </Link>
 
             <Link href="/dashboard/halal" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
               <div className="absolute top-3 right-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
-              <div className="text-2xl mb-2">🔍</div>
+              <Search className="w-7 h-7 mb-2 text-primary" aria-hidden="true" />
               <h4 className="font-semibold text-gray-900 group-hover:text-primary">Halal Finance Check</h4>
               <p className="text-xs text-gray-500 mt-1">Screen 30,000+ stocks and detect interest in your accounts.</p>
             </Link>
 
             <Link href="/dashboard/net-worth" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
               <div className="absolute top-3 right-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
-              <div className="text-2xl mb-2">📈</div>
+              <TrendingUp className="w-7 h-7 mb-2 text-primary" aria-hidden="true" />
               <h4 className="font-semibold text-gray-900 group-hover:text-primary">Net Worth Tracking</h4>
               <p className="text-xs text-gray-500 mt-1">Assets minus debts, tracked over time with trend analysis.</p>
             </Link>

@@ -23,6 +23,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { TrendingUp, BarChart3, RefreshCw, FlaskConical, Mailbox, Users, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../../lib/api';
@@ -142,7 +143,10 @@ export default function ScorecardPage() {
 
         <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between mt-3 mb-6 gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-primary">📈 Weekly Scorecard</h1>
+            <h1 className="text-3xl font-bold text-primary inline-flex items-center gap-2">
+              <TrendingUp className="w-7 h-7" aria-hidden="true" />
+              Weekly Scorecard
+            </h1>
             <p className="text-sm text-gray-600 mt-1">
               Monday-morning 10-minute view. The numbers here are the source-of-truth
               signals for the $1M ARR glide path.
@@ -332,12 +336,12 @@ export default function ScorecardPage() {
 
             {/* ── Quick links to the other admin views ─────────────── */}
             <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-              <AdminLink href="/dashboard/admin" label="📊 Admin overview" />
-              <AdminLink href="/dashboard/admin/funnel" label="🔄 Funnel detail" />
-              <AdminLink href="/dashboard/admin/growth" label="📈 Growth detail" />
-              <AdminLink href="/dashboard/admin?tab=experiments" label="🧪 Experiments" />
-              <AdminLink href="/dashboard/admin?tab=lifecycle" label="📬 Lifecycle campaigns" />
-              <AdminLink href="/dashboard/admin?tab=users" label="👥 Users" />
+              <AdminLink href="/dashboard/admin" label="Admin overview" Icon={BarChart3} />
+              <AdminLink href="/dashboard/admin/funnel" label="Funnel detail" Icon={RefreshCw} />
+              <AdminLink href="/dashboard/admin/growth" label="Growth detail" Icon={TrendingUp} />
+              <AdminLink href="/dashboard/admin?tab=experiments" label="Experiments" Icon={FlaskConical} />
+              <AdminLink href="/dashboard/admin?tab=lifecycle" label="Lifecycle campaigns" Icon={Mailbox} />
+              <AdminLink href="/dashboard/admin?tab=users" label="Users" Icon={Users} />
             </section>
 
             {/* ── Drop-off analyzer ────────────────────────────────── */}
@@ -508,12 +512,13 @@ function ExternalLink({
   );
 }
 
-function AdminLink({ href, label }: { href: string; label: string }) {
+function AdminLink({ href, label, Icon }: { href: string; label: string; Icon: LucideIcon }) {
   return (
     <Link
       href={href}
-      className="bg-white border border-gray-200 rounded-xl p-4 text-center hover:border-primary transition text-sm font-medium text-gray-700"
+      className="bg-white border border-gray-200 rounded-xl p-4 text-center hover:border-primary transition text-sm font-medium text-gray-700 inline-flex items-center justify-center gap-2"
     >
+      <Icon className="w-4 h-4" aria-hidden="true" />
       {label}
     </Link>
   );

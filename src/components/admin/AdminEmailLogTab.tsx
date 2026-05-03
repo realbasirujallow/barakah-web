@@ -13,6 +13,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { Check, X, Mail, Trash2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import type { EmailLogEntry, EmailLogEntryDetail, EmailLogStats } from './adminTypes';
 import { fmtDateTimeMs } from './adminFormatting';
@@ -109,7 +110,13 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast }: Adm
                     : 'bg-white text-gray-600 border border-gray-200 hover:border-[#1B5E20]'
                 }`}
               >
-                {f === 'all' ? 'All' : f === 'sent' ? '✓ Sent' : '✗ Failed'}
+                {f === 'all' ? (
+                  'All'
+                ) : f === 'sent' ? (
+                  <span className="inline-flex items-center gap-1"><Check className="w-3 h-3" aria-hidden="true" /> Sent</span>
+                ) : (
+                  <span className="inline-flex items-center gap-1"><X className="w-3 h-3" aria-hidden="true" /> Failed</span>
+                )}
                 {f === 'failed' && (emailLogStats?.totalFailed ?? 0) > 0 && (
                   <span className="ml-1 bg-red-100 text-red-700 px-1 rounded">{emailLogStats!.totalFailed}</span>
                 )}
@@ -130,10 +137,11 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast }: Adm
                     toast(err instanceof Error ? err.message : 'Cleanup failed', 'error');
                   }
                 }}
-                className="px-3 py-1.5 bg-white border border-red-300 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-50 disabled:opacity-50"
+                className="px-3 py-1.5 bg-white border border-red-300 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-50 disabled:opacity-50 inline-flex items-center gap-1.5"
                 title="Bulk-delete failed entries older than 7 days"
               >
-                🧹 Clean stale failures
+                <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                Clean stale failures
               </button>
             )}
             <button
@@ -166,7 +174,7 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast }: Adm
 
         {!emailLog ? (
           <div className="text-center py-12 text-gray-400">
-            <p className="text-4xl mb-3">✉️</p>
+            <Mail className="w-10 h-10 mx-auto mb-3" aria-hidden="true" />
             <p className="font-medium">Click &quot;Load Email Log&quot; to see email delivery history</p>
             <p className="text-sm mt-1">Shows all outbound emails: verification, lifecycle, dunning, etc. Newest entries first.</p>
           </div>
@@ -208,9 +216,9 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast }: Adm
                       <td className="px-3 py-2 text-xs text-gray-600 max-w-xs truncate">{entry.subject || '—'}</td>
                       <td className="px-3 py-2">
                         {entry.status === 'sent' ? (
-                          <span className="text-green-600 font-semibold text-xs">✓ Sent</span>
+                          <span className="text-green-600 font-semibold text-xs inline-flex items-center gap-1"><Check className="w-3 h-3" aria-hidden="true" /> Sent</span>
                         ) : (
-                          <span className="text-red-600 font-semibold text-xs">✗ Failed</span>
+                          <span className="text-red-600 font-semibold text-xs inline-flex items-center gap-1"><X className="w-3 h-3" aria-hidden="true" /> Failed</span>
                         )}
                       </td>
                       <td className="px-3 py-2 text-xs text-gray-500">{fmtDateTimeMs(entry.createdAt)}</td>
@@ -295,10 +303,10 @@ function EmailLogDetailDrawer({ entry, loading, onClose }: EmailLogDetailDrawerP
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+            className="text-gray-400 hover:text-gray-600 leading-none"
             aria-label="Close"
           >
-            ✕
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -306,9 +314,9 @@ function EmailLogDetailDrawer({ entry, loading, onClose }: EmailLogDetailDrawerP
           {/* Status + timestamp */}
           <div className="flex items-center gap-3">
             {entry.status === 'sent' ? (
-              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">✓ Sent</span>
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 inline-flex items-center gap-1"><Check className="w-3 h-3" aria-hidden="true" /> Sent</span>
             ) : (
-              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">✗ Failed</span>
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 inline-flex items-center gap-1"><X className="w-3 h-3" aria-hidden="true" /> Failed</span>
             )}
             <span className="text-xs text-gray-500">{fmtDateTimeMs(entry.createdAt)}</span>
           </div>

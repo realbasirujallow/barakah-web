@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { MessageCircle, Clipboard, Share2, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { trackReferralShare } from '../lib/analytics';
 import { logError } from '../lib/logError';
@@ -143,7 +144,14 @@ export default function ShareReceiptButton({ source, title, pitch, label, classN
         className={className ?? defaultBtnCls}
         aria-label={label ?? 'Share'}
       >
-        {loading ? 'Loading…' : `📤 ${label ?? 'Share'}`}
+        {loading ? (
+          'Loading…'
+        ) : (
+          <span className="inline-flex items-center gap-2">
+            <Share2 className="w-4 h-4" aria-hidden="true" />
+            {label ?? 'Share'}
+          </span>
+        )}
       </button>
 
       {open && referral && (
@@ -158,7 +166,7 @@ export default function ShareReceiptButton({ source, title, pitch, label, classN
             onClick={() => { fireLifecycle('whatsapp'); setOpen(false); }}
             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-green-50 text-sm text-gray-800"
           >
-            <span className="text-lg">💬</span>
+            <MessageCircle className="w-5 h-5 text-green-600" aria-hidden="true" />
             WhatsApp
           </a>
           <button
@@ -166,7 +174,7 @@ export default function ShareReceiptButton({ source, title, pitch, label, classN
             onClick={copy}
             className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-green-50 text-sm text-gray-800"
           >
-            <span className="text-lg">📋</span>
+            <Clipboard className="w-5 h-5" aria-hidden="true" />
             {copied ? 'Copied!' : 'Copy share text'}
           </button>
           <button
@@ -174,7 +182,7 @@ export default function ShareReceiptButton({ source, title, pitch, label, classN
             onClick={() => setOpen(false)}
             className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-500"
           >
-            <span className="text-lg">✕</span>
+            <X className="w-5 h-5" aria-hidden="true" />
             Close
           </button>
         </div>

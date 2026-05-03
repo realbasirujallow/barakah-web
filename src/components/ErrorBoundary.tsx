@@ -1,5 +1,6 @@
 'use client';
 import React, { ReactNode, ErrorInfo } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import { logError } from '../lib/logError';
 import { t } from '../lib/i18n';
 
@@ -53,7 +54,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
         <div className="flex items-center justify-center py-12 px-4">
           <div className="bg-white rounded-2xl p-6 shadow-sm max-w-md w-full border border-red-100">
             <div className="text-center">
-              <p className="text-4xl mb-3">⚠️</p>
+              <AlertTriangle className="w-10 h-10 mx-auto mb-3 text-red-500" aria-hidden="true" />
               <h2 className="text-lg font-bold text-gray-900 mb-2">{t('errSomethingWentWrong')}</h2>
               <p className="text-sm text-gray-600 mb-4">
                 {exhausted ? t('errReloadMessage') : t('errTryAgainMessage')}

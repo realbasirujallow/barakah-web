@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Check, AlertTriangle } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Hawl Meaning: Your Zakat Anniversary Year, Explained | Barakah',
@@ -202,35 +203,35 @@ export default function HawlPage() {
                     <tr className="border-b border-gray-100">
                       <td className="py-2 pr-4">1 Ramadan 1446</td>
                       <td className="py-2 pr-4">$18,000</td>
-                      <td className="py-2 pr-4 text-green-700">✓</td>
+                      <td className="py-2 pr-4 text-green-700"><Check className="w-4 h-4 inline" aria-hidden="true" /></td>
                       <td className="py-2 pr-4">Hawl begins</td>
                       <td className="py-2">Hawl begins</td>
                     </tr>
                     <tr className="border-b border-gray-100">
                       <td className="py-2 pr-4">1 Shawwal 1446</td>
                       <td className="py-2 pr-4">$22,500</td>
-                      <td className="py-2 pr-4 text-green-700">✓</td>
+                      <td className="py-2 pr-4 text-green-700"><Check className="w-4 h-4 inline" aria-hidden="true" /></td>
                       <td className="py-2 pr-4">Hawl continues</td>
                       <td className="py-2">Hawl continues</td>
                     </tr>
                     <tr className="border-b border-gray-100 bg-amber-50">
                       <td className="py-2 pr-4">15 Dhul Qadah 1446</td>
                       <td className="py-2 pr-4">$12,000 (below gold nisab)</td>
-                      <td className="py-2 pr-4 text-amber-700">⚠</td>
+                      <td className="py-2 pr-4 text-amber-700"><AlertTriangle className="w-4 h-4 inline" aria-hidden="true" /></td>
                       <td className="py-2 pr-4 font-semibold text-amber-900">Hawl RESETS</td>
                       <td className="py-2 text-gray-600">Hawl continues (if above at end)</td>
                     </tr>
                     <tr className="border-b border-gray-100">
                       <td className="py-2 pr-4">20 Rabi al-Thani 1447</td>
                       <td className="py-2 pr-4">$19,500</td>
-                      <td className="py-2 pr-4 text-green-700">✓</td>
+                      <td className="py-2 pr-4 text-green-700"><Check className="w-4 h-4 inline" aria-hidden="true" /></td>
                       <td className="py-2 pr-4">New hawl begins</td>
                       <td className="py-2">Still within original hawl</td>
                     </tr>
                     <tr>
                       <td className="py-2 pr-4 font-semibold">1 Ramadan 1447</td>
                       <td className="py-2 pr-4">$21,000</td>
-                      <td className="py-2 pr-4 text-green-700">✓</td>
+                      <td className="py-2 pr-4 text-green-700"><Check className="w-4 h-4 inline" aria-hidden="true" /></td>
                       <td className="py-2 pr-4 text-gray-600">Not yet due — new hawl</td>
                       <td className="py-2 font-semibold text-green-700">Zakat due at 2.5% = $525</td>
                     </tr>

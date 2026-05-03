@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Banknote, Coins, TrendingUp, Package, Handshake, Home, Briefcase, CreditCard, ClipboardList } from 'lucide-react';
 import { api } from '../../../lib/api';
 import { toHijri } from '../../../lib/format';
 import { useCurrency } from '../../../lib/useCurrency';
@@ -888,9 +889,9 @@ export default function ZakatPage() {
             const setAsset = (key: string, val: number) =>
               setManualAssets(prev => ({ ...prev, [key]: Math.max(0, val) }));
 
-            const AssetRow = ({ label, icon, fieldKey, hint }: { label: string; icon: string; fieldKey: string; hint?: string }) => (
+            const AssetRow = ({ label, icon, fieldKey, hint }: { label: string; icon: React.ReactNode; fieldKey: string; hint?: string }) => (
               <div className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-b-0">
-                <span className="text-xl w-7 text-center shrink-0">{icon}</span>
+                <span className="w-7 text-center shrink-0 inline-flex justify-center text-gray-600">{icon}</span>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-800">{label}</p>
                   {hint && <p className="text-xs text-gray-400">{hint}</p>}
@@ -912,20 +913,20 @@ export default function ZakatPage() {
               <>
                 <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
                   <h3 className="font-semibold text-primary mb-3">Assets (Zakatable)</h3>
-                  <AssetRow label="Cash & Bank Accounts" icon="💵" fieldKey="cash" hint="Checking, savings, and cash on hand" />
-                  <AssetRow label="Gold" icon="🥇" fieldKey="gold" hint="Market value of gold owned" />
-                  <AssetRow label="Silver" icon="🥈" fieldKey="silver" hint="Market value of silver owned" />
-                  <AssetRow label="Stocks & Investments" icon="📈" fieldKey="stocks" hint="Halal stocks, ETFs, mutual funds (market value)" />
-                  <AssetRow label="Business Inventory" icon="📦" fieldKey="businessGoods" hint="Stock / goods held for trade" />
-                  <AssetRow label="Money Owed to You" icon="🤝" fieldKey="receivables" hint="Loans given that are likely to be returned" />
-                  <AssetRow label="Rental Income Saved" icon="🏠" fieldKey="rentalIncome" hint="Net rental income received this hawl" />
-                  <AssetRow label="Other Assets" icon="💼" fieldKey="otherAssets" hint="Any other zakatable wealth" />
+                  <AssetRow label="Cash & Bank Accounts" icon={<Banknote className="w-5 h-5" aria-hidden="true" />} fieldKey="cash" hint="Checking, savings, and cash on hand" />
+                  <AssetRow label="Gold" icon={<Coins className="w-5 h-5 text-amber-500" aria-hidden="true" />} fieldKey="gold" hint="Market value of gold owned" />
+                  <AssetRow label="Silver" icon={<Coins className="w-5 h-5 text-gray-400" aria-hidden="true" />} fieldKey="silver" hint="Market value of silver owned" />
+                  <AssetRow label="Stocks & Investments" icon={<TrendingUp className="w-5 h-5" aria-hidden="true" />} fieldKey="stocks" hint="Halal stocks, ETFs, mutual funds (market value)" />
+                  <AssetRow label="Business Inventory" icon={<Package className="w-5 h-5" aria-hidden="true" />} fieldKey="businessGoods" hint="Stock / goods held for trade" />
+                  <AssetRow label="Money Owed to You" icon={<Handshake className="w-5 h-5" aria-hidden="true" />} fieldKey="receivables" hint="Loans given that are likely to be returned" />
+                  <AssetRow label="Rental Income Saved" icon={<Home className="w-5 h-5" aria-hidden="true" />} fieldKey="rentalIncome" hint="Net rental income received this hawl" />
+                  <AssetRow label="Other Assets" icon={<Briefcase className="w-5 h-5" aria-hidden="true" />} fieldKey="otherAssets" hint="Any other zakatable wealth" />
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
                   <h3 className="font-semibold text-red-600 mb-3">Deductions</h3>
-                  <AssetRow label="Outstanding Debts Due" icon="💳" fieldKey="debts" hint="Debts that are immediately due" />
-                  <AssetRow label="Essential Expenses" icon="📋" fieldKey="expenses" hint="Unavoidable expenses due within this month" />
+                  <AssetRow label="Outstanding Debts Due" icon={<CreditCard className="w-5 h-5" aria-hidden="true" />} fieldKey="debts" hint="Debts that are immediately due" />
+                  <AssetRow label="Essential Expenses" icon={<ClipboardList className="w-5 h-5" aria-hidden="true" />} fieldKey="expenses" hint="Unavoidable expenses due within this month" />
                 </div>
 
                 {/* Result */}

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Compass } from 'lucide-react';
 
 // Round 17: was a single "Back to Dashboard" CTA that redirected logged-out
 // users back to /login → /dashboard → /login... a loop. Now shows two CTAs:
@@ -10,7 +11,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center px-4">
       <div className="text-center max-w-md">
-        <p className="text-6xl mb-4">🕌</p>
+        <Compass className="w-16 h-16 mx-auto mb-4 text-[#1B5E20]" aria-hidden="true" />
         <h1 className="text-4xl font-bold text-[#1B5E20] mb-2">404</h1>
         <h2 className="text-xl font-semibold text-[#2E7D32] mb-4">Page Not Found</h2>
         <p className="text-gray-600 mb-8">

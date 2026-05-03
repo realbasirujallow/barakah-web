@@ -1,5 +1,28 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Lightbulb,
+  Home,
+  Wifi,
+  Shield,
+  Smartphone,
+  Hospital,
+  BookOpen,
+  Car,
+  CreditCard,
+  HandHeart,
+  ClipboardList,
+  Check,
+  Pencil,
+  Trash2,
+  Hourglass,
+  AlertCircle,
+  Clock,
+  Calendar,
+  CheckCircle,
+  AlertTriangle,
+  type LucideIcon,
+} from 'lucide-react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
@@ -17,24 +40,31 @@ interface BillItem {
 
 const FREQS = ['weekly', 'monthly', 'quarterly', 'yearly', 'one_time'];
 
-const CATEGORIES: { value: string; label: string; icon: string }[] = [
-  { value: 'utilities',      label: 'Utilities',       icon: '💡' },
-  { value: 'housing',        label: 'Housing / Rent',  icon: '🏠' },
-  { value: 'internet',       label: 'Internet / Phone',icon: '📡' },
-  { value: 'insurance',      label: 'Insurance',       icon: '🛡️' },
-  { value: 'subscriptions',  label: 'Subscriptions',   icon: '📱' },
-  { value: 'healthcare',     label: 'Healthcare',      icon: '🏥' },
-  { value: 'education',      label: 'Education',       icon: '📚' },
-  { value: 'transport',      label: 'Transport',       icon: '🚗' },
-  { value: 'debt',           label: 'Debt Payment',    icon: '💳' },
-  { value: 'charity',        label: 'Charity / Zakat', icon: '🤲' },
-  { value: 'other',          label: 'Other',           icon: '📋' },
+const CATEGORIES: { value: string; label: string; icon: LucideIcon }[] = [
+  { value: 'utilities',      label: 'Utilities',       icon: Lightbulb },
+  { value: 'housing',        label: 'Housing / Rent',  icon: Home },
+  { value: 'internet',       label: 'Internet / Phone',icon: Wifi },
+  { value: 'insurance',      label: 'Insurance',       icon: Shield },
+  { value: 'subscriptions',  label: 'Subscriptions',   icon: Smartphone },
+  { value: 'healthcare',     label: 'Healthcare',      icon: Hospital },
+  { value: 'education',      label: 'Education',       icon: BookOpen },
+  { value: 'transport',      label: 'Transport',       icon: Car },
+  { value: 'debt',           label: 'Debt Payment',    icon: CreditCard },
+  { value: 'charity',        label: 'Charity / Zakat', icon: HandHeart },
+  { value: 'other',          label: 'Other',           icon: ClipboardList },
 ];
 
-const CAT_MAP = Object.fromEntries(CATEGORIES.map(c => [c.value, c]));
+const CAT_MAP: Record<string, { value: string; label: string; icon: LucideIcon }> = Object.fromEntries(CATEGORIES.map(c => [c.value, c]));
 
-function getCatIcon(cat: string) {
-  return CAT_MAP[cat]?.icon ?? '📋';
+function getCatIcon(cat: string): LucideIcon {
+  return CAT_MAP[cat]?.icon ?? ClipboardList;
+}
+
+function CategoryIcon({ category, className }: { category: string; className?: string }) {
+  // Lucide icons are stateless function refs — looking one up by category here is a
+  // dispatch, not a fresh component definition, so the react-hooks/static-components
+  // rule's underlying concern (state reset on re-render) doesn't apply.
+  return React.createElement(getCatIcon(category), { className, 'aria-hidden': 'true' });
 }
 
 function getDaysUntilDue(bill: BillItem): number | null {
@@ -82,7 +112,7 @@ function BillRow({ b, now, deletingId, onPaid, onEdit, onDelete }: BillRowProps)
       'border-gray-200'
     }`}>
       <div className="flex items-center gap-3">
-        <span className="text-2xl">{getCatIcon(b.category)}</span>
+        <CategoryIcon category={b.category} className="w-7 h-7 text-gray-600 flex-shrink-0" />
         <div>
           <p className="font-semibold text-gray-900">{b.name}</p>
           <p className="text-sm text-gray-500 capitalize">
@@ -92,7 +122,7 @@ function BillRow({ b, now, deletingId, onPaid, onEdit, onDelete }: BillRowProps)
                 • {isOverdue ? `Overdue (${formatDueDate(b)})` : days === 0 ? `Due today (${formatDueDate(b)})` : `Due ${formatDueDate(b)}${days !== null && days <= 7 ? ` (${days}d)` : ''}`}
               </span>
             )}
-            {b.paid && <span className="ml-2 text-green-600 font-medium">✓ Paid</span>}
+            {b.paid && <span className="ml-2 text-green-600 font-medium inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" aria-hidden="true" /> Paid</span>}
           </p>
           {b.readOnly && (
             <p className="text-xs text-gray-400 mt-1">
@@ -106,12 +136,12 @@ function BillRow({ b, now, deletingId, onPaid, onEdit, onDelete }: BillRowProps)
           {fmt(b.amount)}
         </p>
         {!b.paid && !b.readOnly && (
-          <button type="button" onClick={() => onPaid(b.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 whitespace-nowrap">
-            ✓ Paid
+          <button type="button" onClick={() => onPaid(b.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 whitespace-nowrap inline-flex items-center gap-1">
+            <Check className="w-3.5 h-3.5" aria-hidden="true" /> Paid
           </button>
         )}
-        {!b.readOnly && <button type="button" onClick={() => onEdit(b)} className="text-gray-400 hover:text-primary text-sm px-1">✏️</button>}
-        {!b.readOnly && <button type="button" onClick={() => onDelete(b.id)} disabled={deletingId === b.id} className="text-gray-400 hover:text-red-600 text-sm px-1 disabled:opacity-50" title={deletingId === b.id ? 'Deleting...' : 'Delete'}>{deletingId === b.id ? '⏳' : '🗑️'}</button>}
+        {!b.readOnly && <button type="button" onClick={() => onEdit(b)} className="text-gray-400 hover:text-primary text-sm px-1" aria-label="Edit"><Pencil className="w-4 h-4" aria-hidden="true" /></button>}
+        {!b.readOnly && <button type="button" onClick={() => onDelete(b.id)} disabled={deletingId === b.id} className="text-gray-400 hover:text-red-600 text-sm px-1 disabled:opacity-50" title={deletingId === b.id ? 'Deleting...' : 'Delete'} aria-label="Delete">{deletingId === b.id ? <Hourglass className="w-4 h-4" aria-hidden="true" /> : <Trash2 className="w-4 h-4" aria-hidden="true" />}</button>}
       </div>
     </div>
   );
@@ -120,6 +150,7 @@ function BillRow({ b, now, deletingId, onPaid, onEdit, onDelete }: BillRowProps)
 // ─── Section ── hoisted alongside BillRow for the same reason.
 interface SectionProps {
   title: string;
+  Icon?: LucideIcon;
   items: BillItem[];
   color: string;
   now: number;
@@ -129,11 +160,14 @@ interface SectionProps {
   onDelete: (id: number) => void;
 }
 
-function Section({ title, items, color, now, deletingId, onPaid, onEdit, onDelete }: SectionProps) {
+function Section({ title, Icon, items, color, now, deletingId, onPaid, onEdit, onDelete }: SectionProps) {
   if (items.length === 0) return null;
   return (
     <div className="mb-6">
-      <h2 className={`text-base font-semibold mb-3 ${color}`}>{title} <span className="text-gray-400 font-normal">({items.length})</span></h2>
+      <h2 className={`text-base font-semibold mb-3 ${color} inline-flex items-center gap-2`}>
+        {Icon && <Icon className="w-5 h-5" aria-hidden="true" />}
+        {title} <span className="text-gray-400 font-normal">({items.length})</span>
+      </h2>
       <div className="space-y-2">
         {items.map(b => <BillRow key={b.id} b={b} now={now} deletingId={deletingId} onPaid={onPaid} onEdit={onEdit} onDelete={onDelete} />)}
       </div>
@@ -470,7 +504,7 @@ export default function BillsPage() {
       {/* Overdue alert banner */}
       {overdue.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-5 flex items-start gap-3">
-          <span className="text-2xl">⚠️</span>
+          <AlertTriangle className="w-7 h-7 text-red-600 flex-shrink-0" aria-hidden="true" />
           <div>
             <p className="font-semibold text-red-800">You have {overdue.length} overdue bill{overdue.length > 1 ? 's' : ''}</p>
             <p className="text-sm text-red-700 mt-0.5">Mark them as paid once you&apos;ve settled them.</p>
@@ -479,11 +513,11 @@ export default function BillsPage() {
       )}
 
       {/* Sections */}
-      <Section title="🔴 Overdue"      items={overdue}   color="text-red-700"    now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
-      <Section title="🟠 Due This Week" items={upcoming}  color="text-orange-600" now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
-      <Section title="🗓️ Upcoming"     items={future}    color="text-gray-700"   now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
-      <Section title="📋 Scheduled"    items={noDueDate} color="text-gray-500"   now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
-      <Section title="✅ Paid"          items={paid}      color="text-green-700"  now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
+      <Section title="Overdue"       Icon={AlertCircle}   items={overdue}   color="text-red-700"    now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
+      <Section title="Due This Week" Icon={Clock}         items={upcoming}  color="text-orange-600" now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
+      <Section title="Upcoming"      Icon={Calendar}      items={future}    color="text-gray-700"   now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
+      <Section title="Scheduled"     Icon={ClipboardList} items={noDueDate} color="text-gray-500"   now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
+      <Section title="Paid"          Icon={CheckCircle}   items={paid}      color="text-green-700"  now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
 
       {bills.length === 0 && (
         <EmptyState
@@ -543,7 +577,7 @@ export default function BillsPage() {
                   className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
                 >
                   {CATEGORIES.map(c => (
-                    <option key={c.value} value={c.value}>{c.icon} {c.label}</option>
+                    <option key={c.value} value={c.value}>{c.label}</option>
                   ))}
                 </select>
               </div>
@@ -612,7 +646,7 @@ export default function BillsPage() {
             className="bg-white rounded-2xl p-6 w-full max-w-sm"
           >
             <div className="flex items-start gap-3 mb-4">
-              <span className="text-2xl">🗑️</span>
+              <Trash2 className="w-7 h-7 text-red-600 flex-shrink-0" aria-hidden="true" />
               <div className="flex-1">
                 <h3 id="modal-title" className="font-bold text-gray-900">Delete bill?</h3>
                 <p className="text-sm text-gray-600 mt-1">This bill will be permanently deleted and cannot be undone.</p>

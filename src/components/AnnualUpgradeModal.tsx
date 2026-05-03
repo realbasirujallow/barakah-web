@@ -16,6 +16,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { Wallet } from 'lucide-react';
 import { useFocusTrap } from '../lib/useFocusTrap';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
@@ -130,7 +131,7 @@ export default function AnnualUpgradeModal() {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header gradient */}
         <div className="bg-gradient-to-r from-amber-500 to-yellow-500 px-6 py-6 text-white text-center">
-          <p className="text-4xl mb-2">💰</p>
+          <Wallet className="w-10 h-10 mx-auto mb-2" aria-hidden="true" />
           <h2 id="annual-upgrade-modal-title" className="text-xl font-bold">
             {monthlySavingPct} with an Annual Plan
           </h2>

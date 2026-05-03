@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Check, BarChart3, Calendar, Gift } from 'lucide-react';
 import Calculator from './Calculator';
 import NisabLivePrices, { GoldPricePerGram, SilverPricePerGram, GoldNisabUSD, SilverNisabUSD } from '../../components/NisabLivePrices';
 import { REFEREE_FIRST_MONTH_PRICE } from '../../lib/referralCopy';
@@ -207,15 +208,15 @@ export default function ZakatCalculatorPage() {
             {/* Trust Badges */}
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
-                <span className="text-green-700 font-bold">✓</span>
+                <Check className="w-4 h-4 text-green-700" aria-hidden="true" />
                 <span className="text-sm font-medium text-gray-700">Gold-standard nisab default</span>
               </div>
               <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
-                <span className="text-green-700 font-bold">✓</span>
+                <Check className="w-4 h-4 text-green-700" aria-hidden="true" />
                 <span className="text-sm font-medium text-gray-700">Live Gold Prices</span>
               </div>
               <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
-                <span className="text-green-700 font-bold">✓</span>
+                <Check className="w-4 h-4 text-green-700" aria-hidden="true" />
                 <span className="text-sm font-medium text-gray-700">All 4 Madhabs</span>
               </div>
             </div>
@@ -371,7 +372,7 @@ export default function ZakatCalculatorPage() {
                     'Precious metals held for investment purposes',
                   ].map((asset, idx) => (
                     <li key={idx} className="flex gap-3 text-gray-700">
-                      <span className="text-green-700 font-bold flex-shrink-0">✓</span>
+                      <Check className="w-4 h-4 text-green-700 flex-shrink-0 mt-1" aria-hidden="true" />
                       <span>{asset}</span>
                     </li>
                   ))}
@@ -563,22 +564,26 @@ export default function ZakatCalculatorPage() {
 
             <div className="grid sm:grid-cols-3 gap-4 max-w-2xl mx-auto text-left">
               {[
-                { icon: '📊', title: 'Auto-Calculate', desc: 'From linked assets' },
-                { icon: '📅', title: 'Hawl Tracking', desc: 'Know your anniversary' },
-                { icon: '✓', title: 'Payment Records', desc: 'Track what you gave' },
-              ].map((feature, idx) => (
-                <div key={idx} className="text-white">
-                  <div className="text-3xl mb-2">{feature.icon}</div>
-                  <p className="font-semibold">{feature.title}</p>
-                  <p className="text-sm text-green-100">{feature.desc}</p>
-                </div>
-              ))}
+                { Icon: BarChart3, title: 'Auto-Calculate', desc: 'From linked assets' },
+                { Icon: Calendar, title: 'Hawl Tracking', desc: 'Know your anniversary' },
+                { Icon: Check, title: 'Payment Records', desc: 'Track what you gave' },
+              ].map((feature, idx) => {
+                const Icon = feature.Icon;
+                return (
+                  <div key={idx} className="text-white">
+                    <Icon className="w-8 h-8 mb-2" aria-hidden="true" />
+                    <p className="font-semibold">{feature.title}</p>
+                    <p className="text-sm text-green-100">{feature.desc}</p>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
           {/* Referral CTA */}
           <section className="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-8 text-center">
-            <p className="text-3xl mb-3">🎁</p>
+            <Gift className="w-8 h-8 mx-auto mb-3 text-amber-600" aria-hidden="true" />
+
             <h2 className="text-xl font-bold text-gray-900 mb-2">Know Someone Who Needs This?</h2>
             <p className="text-gray-600 mb-4 max-w-lg mx-auto">
               Share Barakah with a friend or family member. When they sign up

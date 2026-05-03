@@ -1,6 +1,21 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import {
+  BookOpen,
+  Utensils,
+  Landmark,
+  HandHeart,
+  Shirt,
+  Gift,
+  Moon,
+  Sparkles,
+  X,
+  Check,
+  BarChart3,
+  AlertTriangle,
+  type LucideIcon,
+} from 'lucide-react';
 import { toHijri } from '../../../lib/format';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
@@ -59,16 +74,16 @@ function getRamadanStatus(now: Date): {
 /* ── Zakat al-Fitr 2025 approximate rate ──────────────────────────── */
 const ZAKAT_FITR_DEFAULT = 10; // default; user can edit per their mosque
 
-const OPTIONAL_CATEGORIES = [
-  { key: 'quran',       label: 'Quran / Islamic Books',   icon: '📖', suggested: 50 },
-  { key: 'iftarguest',  label: "Iftar for Guests",         icon: '🍽️', suggested: 200 },
-  { key: 'itikaaf',     label: "I'tikaaf Expenses",        icon: '🕌', suggested: 100 },
-  { key: 'charity',     label: 'Extra Sadaqah',            icon: '🤲', suggested: 300 },
-  { key: 'clothing',    label: 'Eid Clothing',             icon: '👗', suggested: 150 },
-  { key: 'gifts',       label: 'Eid Gifts',                icon: '🎁', suggested: 100 },
+const OPTIONAL_CATEGORIES: Array<{ key: string; label: string; icon: LucideIcon; suggested: number }> = [
+  { key: 'quran',       label: 'Quran / Islamic Books',   icon: BookOpen,  suggested: 50 },
+  { key: 'iftarguest',  label: "Iftar for Guests",         icon: Utensils,  suggested: 200 },
+  { key: 'itikaaf',     label: "I'tikaaf Expenses",        icon: Landmark,  suggested: 100 },
+  { key: 'charity',     label: 'Extra Sadaqah',            icon: HandHeart, suggested: 300 },
+  { key: 'clothing',    label: 'Eid Clothing',             icon: Shirt,     suggested: 150 },
+  { key: 'gifts',       label: 'Eid Gifts',                icon: Gift,      suggested: 100 },
 ];
 
-interface BudgetItem { key: string; label: string; icon: string; suggested: number; allocated: number; }
+interface BudgetItem { key: string; label: string; icon: LucideIcon; suggested: number; allocated: number; }
 
 const DUAS = [
   { arabic: 'اللَّهُمَّ بَلِّغْنَا رَمَضَانَ', transliteration: 'Allahumma ballighna Ramadan', meaning: 'O Allah, let us reach Ramadan' },
@@ -242,7 +257,7 @@ export default function RamadanPage() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6 text-center">
-          <p className="text-4xl mb-2">🌙</p>
+          <Moon className="w-10 h-10 mx-auto mb-2 text-primary" aria-hidden="true" />
           <p className="text-lg font-semibold text-primary">
             {ramadan.daysUntil !== null
               ? ramadan.daysUntil === 0
@@ -305,9 +320,11 @@ export default function RamadanPage() {
         <h2 className="font-bold text-primary mb-1">Ramadan Budget Planner</h2>
         <p className="text-xs text-gray-500 mb-4">Plan extra Ramadan spending. Adjust amounts for your situation.</p>
         <div className="space-y-3">
-          {budget.map(b => (
+          {budget.map(b => {
+            const Icon = b.icon;
+            return (
             <div key={b.key} className="flex items-center gap-3">
-              <span className="text-xl w-8 text-center">{b.icon}</span>
+              <Icon className="w-5 h-5 text-primary flex-shrink-0" aria-hidden="true" />
               <span className="flex-1 text-sm text-gray-700">{b.label}</span>
               <div className="flex items-center gap-1">
                 <span className="text-gray-400 text-sm">{symbol}</span>
@@ -318,7 +335,8 @@ export default function RamadanPage() {
                 />
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
         {/* Custom goal */}
         <div className="mt-4 pt-4 border-t border-gray-100">
@@ -353,12 +371,12 @@ export default function RamadanPage() {
           {customGoal.label && (
             <div className="flex items-center justify-between mt-2 bg-green-50 rounded-lg px-3 py-2">
               <div className="flex items-center gap-2">
-                <span className="text-lg">✨</span>
+                <Sparkles className="w-4 h-4 text-amber-500" aria-hidden="true" />
                 <span className="text-sm font-medium text-gray-700">{customGoal.label}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-primary">{fmt(customGoal.amount)}</span>
-                <button onClick={() => setCustomGoal({ label: '', amount: 0 })} className="text-gray-300 hover:text-red-500 text-xs">✕</button>
+                <button onClick={() => setCustomGoal({ label: '', amount: 0 })} className="text-gray-300 hover:text-red-500" aria-label="Remove custom goal"><X className="w-4 h-4" aria-hidden="true" /></button>
               </div>
             </div>
           )}
@@ -376,25 +394,25 @@ export default function RamadanPage() {
             {syncStatus === 'saving' ? 'Saving...' : 'Save & Sync'}
           </button>
           {syncStatus === 'synced' && (
-            <div className="flex-1 bg-green-50 text-green-700 rounded-lg py-2 text-center text-sm font-medium">
-              ✓ Synced
+            <div className="flex-1 bg-green-50 text-green-700 rounded-lg py-2 text-center text-sm font-medium inline-flex items-center justify-center gap-1.5">
+              <Check className="w-4 h-4" aria-hidden="true" /> Synced
             </div>
           )}
           {syncStatus === 'error' && (
-            <div className="flex-1 bg-red-50 text-red-700 rounded-lg py-2 text-center text-sm font-medium">
-              ✕ Sync failed
+            <div className="flex-1 bg-red-50 text-red-700 rounded-lg py-2 text-center text-sm font-medium inline-flex items-center justify-center gap-1.5">
+              <X className="w-4 h-4" aria-hidden="true" /> Sync failed
             </div>
           )}
         </div>
         {customGoal.label && (
           <div className="flex justify-between items-center mt-1 text-sm text-gray-600">
-            <span>✨ {customGoal.label}</span>
+            <span className="inline-flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-amber-500" aria-hidden="true" /> {customGoal.label}</span>
             <span className="font-semibold">{fmt(customGoal.amount)}</span>
           </div>
         )}
         {!fitrahPaid && (
           <div className="flex justify-between items-center mt-1 text-sm text-primary">
-            <span>🕌 Zakat al-Fitr ({members} × {symbol}{fitrahPerPerson})</span>
+            <span className="inline-flex items-center gap-1.5"><Landmark className="w-3.5 h-3.5" aria-hidden="true" /> Zakat al-Fitr ({members} × {symbol}{fitrahPerPerson})</span>
             <span className="font-semibold">{fmt(fitrahTotal)}</span>
           </div>
         )}
@@ -466,28 +484,28 @@ export default function RamadanPage() {
       {/* Quick links */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <Link href="/dashboard/zakat" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
-          <span className="text-2xl">🕌</span>
+          <Landmark className="w-7 h-7 text-primary" aria-hidden="true" />
           <div>
             <p className="font-semibold text-gray-800 text-sm">Zakat Calculator</p>
             <p className="text-xs text-gray-500">Compute your full Zakat</p>
           </div>
         </Link>
         <Link href="/dashboard/sadaqah" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
-          <span className="text-2xl">🤲</span>
+          <HandHeart className="w-7 h-7 text-primary" aria-hidden="true" />
           <div>
             <p className="font-semibold text-gray-800 text-sm">Sadaqah Log</p>
             <p className="text-xs text-gray-500">Track your charity</p>
           </div>
         </Link>
         <Link href="/dashboard/zakat" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
-          <span className="text-2xl">🕌</span>
+          <Landmark className="w-7 h-7 text-primary" aria-hidden="true" />
           <div>
             <p className="font-semibold text-gray-800 text-sm">Zakat</p>
             <p className="text-xs text-gray-500">Calculate &amp; track</p>
           </div>
         </Link>
         <Link href="/dashboard/budget" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
-          <span className="text-2xl">📊</span>
+          <BarChart3 className="w-7 h-7 text-primary" aria-hidden="true" />
           <div>
             <p className="font-semibold text-gray-800 text-sm">Budget</p>
             <p className="text-xs text-gray-500">Manage Ramadan spending</p>
@@ -495,8 +513,9 @@ export default function RamadanPage() {
         </Link>
       </div>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800">
-        ⚠️ Ramadan dates are approximations based on astronomical calculation. Actual start date may differ by 1 day depending on moon sighting in your region. Always confirm with your local mosque or Islamic authority.
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 flex items-start gap-2">
+        <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
+        <span>Ramadan dates are approximations based on astronomical calculation. Actual start date may differ by 1 day depending on moon sighting in your region. Always confirm with your local mosque or Islamic authority.</span>
       </div>
     </div>
   );
