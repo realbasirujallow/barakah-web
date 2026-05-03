@@ -1,0 +1,71 @@
+name: API Parity Check
+
+# 2026-05-02: founder asked to automate the manual web↔mobile drift
+# audit. This workflow checks out both repos and runs
+# scripts/check-api-parity.mjs to surface any new endpoint divergence
+# in the PR's job summary.
+#
+# Default mode is REPORT-ONLY — drift items are listed in the summary
+# but the workflow exits 0. To make this gating, change the script
+# invocation to `--strict`. Right now the goal is visibility, not
+# blocking, since we already have substantial known drift that
+# legitimately exists (admin-only endpoints, FCM-only endpoints).
+
+on:
+  pull_request:
+    paths:
+      - 'src/lib/api.ts'
+      - 'scripts/check-api-parity.mjs'
+      - '.github/workflows/api-parity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parity:
+    name: Web ↔ Mobile API parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout barakah-web
+        uses: actions/checkout@v4
+        with:
+          path: barakah-web
+
+      - name: Checkout barakah_app (mobile)
+        uses: actions/checkout@v4
+        with:
+          repository: realbasirujallow/barakah_app
+          # Token-less public-repo checkout works for our setup; if the
+          # mobile repo becomes private, switch to a fine-grained token
+          # in repository secrets and pass `token: ${{ secrets.MOBILE_REPO_PAT }}`.
+          ref: main
+          path: barakah_app
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run parity check
+        id: check
+        run: |
+          set +e
+          cd barakah-web
+          # MOBILE_REPO points the script at the sibling checkout above.
+          MOBILE_REPO=$GITHUB_WORKSPACE/barakah_app \
+            node scripts/check-api-parity.mjs > /tmp/parity.out 2>&1
+          status=$?
+          cat /tmp/parity.out
+          {
+            echo '## Web ↔ Mobile API parity'
+            echo
+            echo '```'
+            cat /tmp/parity.out
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Report-only — exit 0 regardless of drift. Drift is surfaced
+          # in the summary above for human triage. Promote to
+          # `exit $status` (with --strict in the script call) when we
+          # want to block PRs on new drift.
+          exit 0
