@@ -463,3 +463,44 @@ nav a, nav button { min-height: 2.5rem; }
     animation-duration: 1ms !important;
   }
 }
+
+/* ─── 2026-05-03 (Section B Goals polish) ────────────────────────────────
+   Celebration sparkles fired on the savings goal card when a goal is
+   fully funded. CSS-only so we don't pull a confetti dep for a one-off
+   flourish. Three staggered emojis float up + fade with a slight
+   horizontal drift so they don't all rise in a straight line (which
+   reads more "loading spinner" than "yay"). The card's overflow-hidden
+   wrapper clips the trail at the rounded corners. */
+@keyframes sparkle-rise-1 {
+  0%   { transform: translateY(0)    translateX(0)   scale(0.8); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateY(-32px) translateX(-6px) scale(1.1); opacity: 0; }
+}
+@keyframes sparkle-rise-2 {
+  0%   { transform: translateY(0)    translateX(0)   scale(0.7); opacity: 0; }
+  25%  { opacity: 1; }
+  100% { transform: translateY(-40px) translateX(8px) scale(1.2); opacity: 0; }
+}
+@keyframes sparkle-rise-3 {
+  0%   { transform: translateY(0)    translateX(0)   scale(0.9); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: translateY(-30px) translateX(-10px) scale(1.05); opacity: 0; }
+}
+@keyframes checkmark-pop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(1.0); opacity: 1; }
+}
+.animate-sparkle-1 { animation: sparkle-rise-1 1.6s ease-out 0s 1 both; }
+.animate-sparkle-2 { animation: sparkle-rise-2 1.6s ease-out 0.2s 1 both; }
+.animate-sparkle-3 { animation: sparkle-rise-3 1.6s ease-out 0.4s 1 both; }
+.animate-checkmark-pop { animation: checkmark-pop 0.45s ease-out 1 both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sparkle-1,
+  .animate-sparkle-2,
+  .animate-sparkle-3,
+  .animate-checkmark-pop {
+    animation: none !important;
+  }
+}

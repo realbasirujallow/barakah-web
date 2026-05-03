@@ -294,12 +294,34 @@ export default function SavingsPage() {
           {goals.map(g => {
             const pct = g.targetAmount > 0 ? Math.min((g.currentAmount / g.targetAmount) * 100, 100) : 0;
             const done = pct >= 100;
+            // 2026-05-03 (Monarch parity, Section B): richer milestone
+            // visualization. We render a 4-step ladder (25/50/75/100)
+            // beneath the bar so the user can see how close the next
+            // milestone is, plus a CSS-only celebration sparkle layer
+            // when the goal is fully funded.
+            const nextMilestone = pct >= 75 ? 100 : pct >= 50 ? 75 : pct >= 25 ? 50 : 25;
+            const remainingToNext = Math.max(0, (g.targetAmount * nextMilestone) / 100 - g.currentAmount);
             return (
-              <div key={g.id} className={`bg-white rounded-xl p-4 ${done ? 'border-l-4 border-green-500' : ''}`}>
+              <div
+                key={g.id}
+                className={`bg-white rounded-xl p-4 relative overflow-hidden ${done ? 'border-l-4 border-green-500' : ''}`}
+              >
+                {/* Sparkle celebration overlay — only renders when goal is met.
+                    Pure CSS animation, no deps. Three emojis float up + fade
+                    on different delays so it reads as a tiny burst, not
+                    confetti spam. aria-hidden so it doesn't bother SR users. */}
+                {done && (
+                  <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <span className="absolute top-2 left-[20%] text-xl animate-sparkle-1">✨</span>
+                    <span className="absolute top-3 left-[55%] text-xl animate-sparkle-2">🎉</span>
+                    <span className="absolute top-2 right-[20%] text-xl animate-sparkle-3">🕌</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <p className="font-semibold text-primary flex items-center gap-1.5">
-                      {g.name}{done && <span className="text-green-600 text-sm">✅</span>}
+                      {g.name}
+                      {done && <span className="text-green-600 text-sm inline-block animate-checkmark-pop">✅</span>}
                     </p>
                     <p className="text-sm text-gray-500 capitalize">{g.category}{g.description ? ` • ${g.description}` : ''}</p>
                   </div>
@@ -312,12 +334,35 @@ export default function SavingsPage() {
                   <span className="text-gray-500">{fmt(g.currentAmount)}</span>
                   <span className="text-gray-700 font-medium">{fmt(g.targetAmount)}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className={`h-2 rounded-full transition-all ${done ? 'bg-green-500' : 'bg-blue-600'}`} style={{ width: `${pct}%` }} />
+                {/* Progress track + milestone tick marks. The ticks live on
+                    a relatively-positioned wrapper; the fill is the only
+                    element that grows. Ticks at 25/50/75 are absolute and
+                    never move. 100% is at the right edge so we don't draw
+                    a tick there (it'd clip). */}
+                <div className="relative w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all ${done ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-blue-600 to-blue-500'}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                  {/* Tick markers — sit on top of both fill and track. */}
+                  {[25, 50, 75].map(tick => (
+                    <span
+                      key={tick}
+                      aria-hidden="true"
+                      className={`absolute top-0 bottom-0 w-px ${pct >= tick ? 'bg-white/80' : 'bg-gray-300'}`}
+                      style={{ left: `${tick}%` }}
+                    />
+                  ))}
                 </div>
-                <div className="mt-2 flex items-center justify-between">
-                  <p className="text-xs text-gray-400">{pct.toFixed(0)}% complete</p>
-                  {done && <p className="text-xs font-bold text-green-600">Goal Completed!</p>}
+                <div className="mt-2 flex items-center justify-between text-xs">
+                  <p className="text-gray-400">{pct.toFixed(0)}% complete</p>
+                  {done ? (
+                    <p className="font-bold text-green-600">Goal Completed!</p>
+                  ) : (
+                    <p className="text-gray-500">
+                      {fmt(remainingToNext)} to {nextMilestone}%
+                    </p>
+                  )}
                 </div>
               </div>
             );
