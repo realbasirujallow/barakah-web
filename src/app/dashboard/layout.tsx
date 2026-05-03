@@ -13,7 +13,7 @@ import {
   Moon, User, RefreshCw, Gift, FileBarChart, PiggyBank, HandHeart, Target,
   ArrowLeftRight, Coins, BarChart3, Tags, Star, FileText, ShieldCheck,
   TrendingUp, Gem, Shield, ShoppingCart, Building2, ScrollText, Wrench,
-  Globe, Eye, Crosshair, Filter, Award,
+  Globe, Eye, Crosshair, Filter, Award, Telescope,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -77,6 +77,10 @@ const navItems: { href: string; icon: LucideIcon; label: string; gate?: 'plus' |
   { href: '/dashboard/halal', icon: ShieldCheck, label: 'Stock Screener', gate: 'plus' },
   { href: '/dashboard/investments', icon: TrendingUp, label: 'Investments', gate: 'plus' },
   { href: '/dashboard/net-worth', icon: Gem, label: 'Net Worth', gate: 'plus' },
+  // 2026-05-03 (Monarch parity, investor-pitch): client-side projection
+  // surface keyed to Islamic milestones (Hajj, retirement). New page,
+  // no new backend, no persistence.
+  { href: '/dashboard/forecasting', icon: Telescope, label: 'Forecasting', gate: 'plus' },
   { href: '/dashboard/riba', icon: Shield, label: 'Riba Detector', gate: 'plus' },
   { href: '/dashboard/subscriptions', icon: ShoppingCart, label: 'Subscription Detector', gate: 'plus' },
   { href: '/dashboard/shared', icon: Users, label: 'Shared Finances', gate: 'family' },
@@ -138,7 +142,7 @@ const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> 
   },
   plan: {
     label: 'Plan',
-    items: ['Savings Goals', 'Debts', 'Bills', 'Retirement Zakat', 'Assets', 'Net Worth', 'Investments', 'Stock Screener', 'Market Prices', 'Barakah Score', 'Financial Summary', 'Reports', 'Import Data'],
+    items: ['Savings Goals', 'Debts', 'Bills', 'Retirement Zakat', 'Assets', 'Net Worth', 'Forecasting', 'Investments', 'Stock Screener', 'Market Prices', 'Barakah Score', 'Financial Summary', 'Reports', 'Import Data'],
   },
   islamic: {
     label: 'Islamic',

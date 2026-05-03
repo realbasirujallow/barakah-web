@@ -529,7 +529,7 @@ export default function NetWorthPage() {
               <span className="w-3 h-3 rounded-full bg-green-500 inline-block" />
               <span className="text-gray-600">Assets</span>
             </div>
-            <span className="font-semibold text-green-700">+ {fmt(totalAssets)}</span>
+            <span className="font-semibold text-green-700">+ {fmt(displayTotalAssets)}</span>
           </div>
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
@@ -543,20 +543,20 @@ export default function NetWorthPage() {
               <span className="w-3 h-3 rounded-full bg-red-500 inline-block" />
               <span className="text-gray-600">Active Debts</span>
             </div>
-            <span className="font-semibold text-red-600">− {fmt(totalDebts)}</span>
+            <span className="font-semibold text-red-600">− {fmt(displayTotalDebts)}</span>
           </div>
           <hr />
           <div className="flex justify-between items-center">
             <span className="font-bold">Net Worth</span>
-            <span className={`font-bold text-lg ${currentNetWorth >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(currentNetWorth)}</span>
+            <span className={`font-bold text-lg ${displayNetWorth >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(displayNetWorth)}</span>
           </div>
         </div>
         {/* Composition bar */}
-        {(totalAssets + totalSavings + totalDebts) > 0 && (
+        {(displayTotalAssets + totalSavings + displayTotalDebts) > 0 && (
           <div className="h-2 rounded-full overflow-hidden flex mt-4">
-            {totalAssets > 0 && <div className="bg-green-500" style={{ width: `${(totalAssets / (totalAssets + totalSavings + totalDebts)) * 100}%` }} />}
-            {totalSavings > 0 && <div className="bg-blue-500" style={{ width: `${(totalSavings / (totalAssets + totalSavings + totalDebts)) * 100}%` }} />}
-            {totalDebts > 0 && <div className="bg-red-500" style={{ width: `${(totalDebts / (totalAssets + totalSavings + totalDebts)) * 100}%` }} />}
+            {displayTotalAssets > 0 && <div className="bg-green-500" style={{ width: `${(displayTotalAssets / (displayTotalAssets + totalSavings + displayTotalDebts)) * 100}%` }} />}
+            {totalSavings > 0 && <div className="bg-blue-500" style={{ width: `${(totalSavings / (displayTotalAssets + totalSavings + displayTotalDebts)) * 100}%` }} />}
+            {displayTotalDebts > 0 && <div className="bg-red-500" style={{ width: `${(displayTotalDebts / (displayTotalAssets + totalSavings + displayTotalDebts)) * 100}%` }} />}
           </div>
         )}
       </div>
