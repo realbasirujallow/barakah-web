@@ -1021,18 +1021,17 @@ export default function TransactionsPage() {
       )}
 
       {/* ── Add Transaction modal ─────────────────────────────────────────────
-           2026-05-02: outer-scroll wrapper pattern (see useBodyScrollLock /
-           PR #95) — modal anchors at viewport center even when content
-           grows past 90vh on tall fields (tags, notes, recurring options). */}
+           2026-05-02 (revert): centered pattern; useBodyScrollLock
+           handles the page-scroll-behind-modal complaint without any
+           structural change. */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div
             ref={formModalRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
-            className="bg-white rounded-2xl p-6 w-full max-w-md my-8"
+            className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
           >
             <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editTx ? 'Edit Transaction' : 'Add Transaction'}</h2>
             <div className="space-y-4">
@@ -1157,7 +1156,6 @@ export default function TransactionsPage() {
                 {saving ? 'Saving...' : (editTx ? 'Save Changes' : 'Add')}
               </button>
             </div>
-          </div>
           </div>
         </div>
       )}
