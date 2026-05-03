@@ -75,9 +75,17 @@ function monthLong(yyyyMM: string): string {
   if (!yyyyMM || yyyyMM.length < 7) return yyyyMM;
   const y = parseInt(yyyyMM.slice(0, 4), 10);
   const m = parseInt(yyyyMM.slice(5, 7), 10);
+  // 2026-05-03: format in UTC. Constructing the Date with `Date.UTC`
+  // anchors midnight at the start of the target month UTC, which in
+  // any timezone west of UTC (e.g. America/New_York) renders as the
+  // PREVIOUS day in local time — and toLocaleDateString picks up the
+  // local TZ by default, so April 2026 was rendering as "March 2026"
+  // for any user east of GMT-?. Pinning the formatter to UTC keeps
+  // the month string consistent with the YYYY-MM key the API returns.
   return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString(undefined, {
     month: 'long',
     year: 'numeric',
+    timeZone: 'UTC',
   });
 }
 
