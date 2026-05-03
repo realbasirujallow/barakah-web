@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
@@ -122,11 +122,126 @@ function TxRow({ tx, fmt, toggling, onToggle }: TxRowProps) {
   );
 }
 
+/**
+ * 2026-05-03 (Section B·5): month-grid view of recurring transactions.
+ *
+ * The backend stores `tx.date` as the LAST-seen epoch for each
+ * recurring row, so we use day-of-month from that as a proxy for
+ * "this is the day each cycle the user gets charged." Good enough
+ * for the visualization — the user can still edit the row from the
+ * list view if the day shifts. We render the current calendar month
+ * with each day showing a dot per recurring row hitting that day,
+ * coloured emerald (income) or rose (expense), plus a count badge
+ * if more than one row lands on the same day. Hover tooltip lists
+ * the rows + amounts.
+ */
+function RecurringCalendar({
+  transactions,
+  fmt,
+}: {
+  transactions: RecurringTx[];
+  fmt: (n: number) => string;
+}) {
+  // Group rows by day-of-month (1..31).
+  const byDay = useMemo(() => {
+    const map = new Map<number, RecurringTx[]>();
+    transactions.forEach(tx => {
+      const ms = tx.date < 1e12 ? tx.date * 1000 : tx.date;
+      const day = new Date(ms).getDate();
+      const arr = map.get(day) ?? [];
+      arr.push(tx);
+      map.set(day, arr);
+    });
+    return map;
+  }, [transactions]);
+
+  // Build the current month's grid: 7 cols × N rows, with leading
+  // blanks so day 1 lands on the correct weekday column.
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth(); // 0-indexed
+  const firstWeekday = new Date(year, month, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: Array<{ day: number; rows: RecurringTx[] } | null> = [];
+  for (let i = 0; i < firstWeekday; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push({ day: d, rows: byDay.get(d) ?? [] });
+  }
+  // Pad to a multiple of 7 so the last row aligns.
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const monthLabel = today.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+  return (
+    <div className="p-5">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium mb-3">
+        {monthLabel} · day each row recurs
+      </p>
+      <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-wide text-gray-400 mb-1">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+          <div key={d}>{d}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map((cell, i) => {
+          if (!cell) return <div key={i} className="aspect-square" />;
+          const isToday = cell.day === today.getDate();
+          const incomeRows = cell.rows.filter(r => r.type === 'income');
+          const expenseRows = cell.rows.filter(r => r.type !== 'income');
+          const total = cell.rows.reduce((s, r) => s + (r.type === 'income' ? r.amount : -r.amount), 0);
+          const tooltipText = cell.rows.length > 0
+            ? cell.rows.map(r => `${r.type === 'income' ? '+' : '-'}${fmt(Math.abs(r.amount))} · ${r.description || r.category}`).join('\n')
+            : '';
+          return (
+            <div
+              key={i}
+              title={tooltipText}
+              className={`aspect-square rounded-md border text-[11px] flex flex-col p-1 ${
+                isToday
+                  ? 'border-primary bg-primary/5'
+                  : cell.rows.length > 0
+                  ? 'border-gray-200 bg-white hover:border-gray-300'
+                  : 'border-transparent bg-gray-50/40'
+              }`}
+            >
+              <span className={`font-medium ${isToday ? 'text-primary' : 'text-gray-700'}`}>{cell.day}</span>
+              {cell.rows.length > 0 && (
+                <div className="mt-auto space-y-0.5">
+                  <div className="flex items-center gap-0.5 flex-wrap">
+                    {incomeRows.slice(0, 3).map((_r, idx) => (
+                      <span key={`i${idx}`} className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                    ))}
+                    {expenseRows.slice(0, 3).map((_r, idx) => (
+                      <span key={`e${idx}`} className="w-1.5 h-1.5 rounded-full bg-rose-500" aria-hidden="true" />
+                    ))}
+                    {cell.rows.length > 6 && (
+                      <span className="text-[9px] text-gray-500 ml-0.5">+{cell.rows.length - 6}</span>
+                    )}
+                  </div>
+                  <p className={`text-[9px] tabular-nums truncate ${total >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {total >= 0 ? '+' : ''}{fmt(total)}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-3 flex items-center gap-3 text-[11px] text-gray-500">
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Income</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500" /> Expense</span>
+      </div>
+    </div>
+  );
+}
+
 export default function RecurringPage() {
   const [transactions, setTransactions] = useState<RecurringTx[]>([]);
   const [loading, setLoading]           = useState(true);
   const [processing, setProcessing]     = useState(false);
   const [toggling, setToggling]         = useState<number | null>(null);
+  // 2026-05-03 (Section B·5): list ↔ calendar toggle on Active rows.
+  const [activeView, setActiveView]     = useState<'list' | 'calendar'>('list');
   const { toast } = useToast();
   const { fmt } = useCurrency();
 
@@ -305,14 +420,38 @@ export default function RecurringPage() {
         <p>Transactions marked as recurring are replicated automatically each period. Toggle the switch to pause or resume any recurring entry. Use <strong>Process Now</strong> to manually trigger all active recurring entries.</p>
       </div>
 
-      {/* Active */}
+      {/* Active — list ↔ calendar view toggle (Section B·5).
+          Calendar view groups recurring rows by day-of-month based on
+          the last-seen date and surfaces them as dots on a 7-column
+          month grid. Same data, different shape — list is best for
+          editing, calendar is best for "when does my money move."
+          Visual reference: monarch-walkthrough.mov frame f_038. */}
       {active.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center">
             <h2 className="font-semibold text-primary">Active ({active.length})</h2>
-            <span className="text-xs text-gray-400">Toggle to pause</span>
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+              <button
+                type="button"
+                onClick={() => setActiveView('list')}
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition ${activeView === 'list' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                List
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveView('calendar')}
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition ${activeView === 'calendar' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Calendar
+              </button>
+            </div>
           </div>
-          {active.map(tx => <TxRow key={tx.id} tx={tx} fmt={fmt} toggling={toggling} onToggle={handleToggle} />)}
+          {activeView === 'list' ? (
+            active.map(tx => <TxRow key={tx.id} tx={tx} fmt={fmt} toggling={toggling} onToggle={handleToggle} />)
+          ) : (
+            <RecurringCalendar transactions={active} fmt={fmt} />
+          )}
         </div>
       )}
 
