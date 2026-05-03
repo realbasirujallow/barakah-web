@@ -6,7 +6,9 @@ import { logError } from '../../../lib/logError';
 import { useCurrency } from '../../../lib/useCurrency';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
-import { MonthDetailSheet, useMonthDrilldown } from '../../../components/dashboard/MonthDetailSheet';
+// 2026-05-03: removed MonthDetailSheet import — analytics drilldowns
+// now navigate to /dashboard/cash-flow rather than opening a modal.
+// MonthDetailSheet still exists for /dashboard/summary which uses it.
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -107,10 +109,10 @@ function AnalyticsPageContent() {
     return fmt(n);
   };
 
-  // R39 (2026-05-01): hooks MUST come before early returns to satisfy
-  // Rules of Hooks. useMonthDrilldown owns the click-drilldown state +
-  // handleChartClick; same hook pattern as /summary.
-  const { detailMonth, setDetailMonth, handleChartClick } = useMonthDrilldown();
+  // 2026-05-03: cowork removed MonthDetailSheet drilldown from
+  // analytics in favor of routing to /cash-flow. The hook
+  // destructure was left behind — gone now to keep the analyzer
+  // happy.
 
   if (loading) {
     return (
@@ -295,17 +297,18 @@ function AnalyticsPageContent() {
             <BarChart
               data={momDisplayData}
               margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
-              // 2026-05-02: clicking a bar opens the inline MonthDetailSheet
-              // (Monarch parity) instead of navigating away to /cash-flow.
-              // Founder feedback: "i dont want the drilling to go to
-              // another page... user can flick from one month to another
-              // like Monarch does." Routing reverted; sheet handles
-              // prev/next navigation in-place.
+              // 2026-05-03 fix: route bar clicks to /dashboard/cash-flow
+              // ?month=YYYY-MM for the proper inline drilldown — KPI
+              // cards + Income/Expenses by Category/Merchant + Sadaqah
+              // section, matching the Monarch UX from the walkthrough
+              // video (frame f_022). The earlier MonthDetailSheet
+              // modal pop-up was the wrong pattern; the founder wants
+              // the cash-flow inline breakdown experience.
               onClick={(e) => {
-                const ev = e as unknown as { activePayload?: Array<{ payload?: { monthKey?: string; label?: string } }> };
+                const ev = e as unknown as { activePayload?: Array<{ payload?: { monthKey?: string } }> };
                 const point = ev?.activePayload?.[0]?.payload;
                 if (point?.monthKey) {
-                  setDetailMonth({ key: point.monthKey, label: point.label || point.monthKey });
+                  router.push(`/dashboard/cash-flow?month=${point.monthKey}`);
                 }
               }}
               style={{ cursor: 'pointer' }}
@@ -399,13 +402,14 @@ function AnalyticsPageContent() {
                 onClick={(barData: unknown) => {
                   // Bar-level onClick gets the row payload directly,
                   // sidestepping Recharts' flaky BarChart-level
-                  // activePayload propagation. Opens MonthDetailSheet
-                  // inline (no navigation away from /analytics).
-                  const d = barData as { payload?: { monthKey?: string; label?: string }; monthKey?: string; label?: string };
+                  // activePayload propagation. 2026-05-03: navigate
+                  // to /dashboard/cash-flow?month=YYYY-MM for the
+                  // proper inline drilldown UI (Monarch parity, frame
+                  // f_022).
+                  const d = barData as { payload?: { monthKey?: string }; monthKey?: string };
                   const monthKey = d?.payload?.monthKey ?? d?.monthKey;
-                  const label = d?.payload?.label ?? d?.label ?? monthKey;
                   if (monthKey) {
-                    setDetailMonth({ key: monthKey, label: label || monthKey });
+                    router.push(`/dashboard/cash-flow?month=${monthKey}`);
                   }
                 }}
               />
@@ -416,11 +420,10 @@ function AnalyticsPageContent() {
                 radius={[6,6,0,0]}
                 cursor="pointer"
                 onClick={(barData: unknown) => {
-                  const d = barData as { payload?: { monthKey?: string; label?: string }; monthKey?: string; label?: string };
+                  const d = barData as { payload?: { monthKey?: string }; monthKey?: string };
                   const monthKey = d?.payload?.monthKey ?? d?.monthKey;
-                  const label = d?.payload?.label ?? d?.label ?? monthKey;
                   if (monthKey) {
-                    setDetailMonth({ key: monthKey, label: label || monthKey });
+                    router.push(`/dashboard/cash-flow?month=${monthKey}`);
                   }
                 }}
               />
@@ -431,7 +434,16 @@ function AnalyticsPageContent() {
             <LineChart
               data={momDisplayData}
               margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
-              onClick={handleChartClick}
+              // 2026-05-03 fix: same as BarChart — navigate to
+              // /dashboard/cash-flow?month=YYYY-MM for the inline
+              // drilldown rather than opening a modal sheet.
+              onClick={(e) => {
+                const ev = e as unknown as { activePayload?: Array<{ payload?: { monthKey?: string } }> };
+                const monthKey = ev?.activePayload?.[0]?.payload?.monthKey;
+                if (monthKey) {
+                  router.push(`/dashboard/cash-flow?month=${monthKey}`);
+                }
+              }}
               style={{ cursor: 'pointer' }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -532,11 +544,13 @@ function AnalyticsPageContent() {
                   const expChange = prior && prior.expenses > 0
                     ? ((row.expenses - prior.expenses) / prior.expenses * 100).toFixed(0)
                     : null;
-                  // 2026-05-02: open inline MonthDetailSheet instead
-                  // of navigating away. Founder feedback: "user can
-                  // flick from one month to another like Monarch."
+                  // 2026-05-03: navigate to /dashboard/cash-flow with
+                  // ?month=YYYY-MM so the user lands on the proper
+                  // inline drilldown UI (KPI cards + Income/Expenses
+                  // by Category/Merchant + Sadaqah). Same pattern
+                  // Monarch uses on its Cash Flow page.
                   const drillTo = () => {
-                    setDetailMonth({ key: row.month, label: fmtMonth(row.month) });
+                    router.push(`/dashboard/cash-flow?month=${row.month}`);
                   };
                   return (
                     <tr
@@ -976,34 +990,13 @@ function AnalyticsPageContent() {
         )}
       </div>
 
-      {/* R39 (2026-05-01): per-month drilldown — opens when the user
-          clicks a bar/dot on the MoM chart. Same sheet used by /summary
-          so the visual is consistent across both reporting surfaces.
-
-          2026-05-02 (Monarch parity): wired prev/next so the user can
-          flick between months without closing the sheet. The available
-          range is the same monthlyData series the chart renders. */}
-      {detailMonth && (() => {
-        const sortedKeys = monthlyData.map(m => m.month).sort();
-        const idx = sortedKeys.indexOf(detailMonth.key);
-        const navigate = (direction: -1 | 1) => {
-          const nextIdx = idx + direction;
-          if (nextIdx < 0 || nextIdx >= sortedKeys.length) return;
-          const nextKey = sortedKeys[nextIdx];
-          setDetailMonth({ key: nextKey, label: fmtMonth(nextKey) });
-        };
-        return (
-          <MonthDetailSheet
-            month={detailMonth.key}
-            monthLabel={detailMonth.label}
-            onClose={() => setDetailMonth(null)}
-            onNavigate={navigate}
-            hasPrev={idx > 0}
-            hasNext={idx >= 0 && idx < sortedKeys.length - 1}
-            fmt={fmt}
-          />
-        );
-      })()}
+      {/* 2026-05-03: removed inline MonthDetailSheet from /analytics.
+          The drilldown UX now consistently routes to /dashboard/cash-flow
+          ?month=YYYY-MM where the inline period-detail breakdown
+          (KPI cards + Income/Expenses by Category/Merchant + Sadaqah)
+          provides the proper Monarch-style "click a bar, see the
+          period detail in place" experience. The sheet is still used
+          by /dashboard/summary for that page's drilldown affordance. */}
     </div>
   );
 }
