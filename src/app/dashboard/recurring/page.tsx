@@ -221,6 +221,37 @@ export default function RecurringPage() {
         }
       />
 
+      {/* 2026-05-03 (Monarch parity, second pass): orange "review now"
+          banner surfacing paused recurring patterns. Monarch's recurring
+          page lights up an orange strip whenever there are merchants
+          the user hasn't actioned ("There are 13 new recurring merchants
+          and accounts for you to review."). We don't have a separate
+          "detected but unconfirmed" inbox yet, so the banner pulls
+          double duty for inactive (paused) recurring rows — same
+          behaviour shape: count + CTA that scrolls to the relevant
+          section. Hidden when there's nothing to review.
+          Visual reference: monarch-walkthrough.mov frame f_035. */}
+      {inactive.length > 0 && (
+        <a
+          href="#paused-recurring"
+          className="flex items-center justify-between gap-3 bg-[#FF6B35] hover:bg-[#E85A2A] text-white rounded-xl px-4 py-3 mb-4 transition shadow-sm"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="shrink-0 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-sm" aria-hidden="true">
+              {inactive.length}
+            </span>
+            <span className="text-sm font-medium truncate">
+              {inactive.length === 1
+                ? 'You have 1 paused recurring transaction to review'
+                : `You have ${inactive.length} paused recurring transactions to review`}
+            </span>
+          </div>
+          <span className="text-sm font-semibold underline-offset-2 hover:underline whitespace-nowrap">
+            Review now →
+          </span>
+        </a>
+      )}
+
       {/* Monarch-parity 3-pillar header card.
           Income · Expenses · Credit cards. Each pillar shows the count
           of recurring rows ("X / Y statements"-style label), the
@@ -287,7 +318,7 @@ export default function RecurringPage() {
 
       {/* Paused */}
       {inactive.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
+        <div id="paused-recurring" className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden scroll-mt-6">
           <div className="px-5 py-3 border-b border-gray-100">
             <h2 className="font-semibold text-gray-500">Paused ({inactive.length})</h2>
           </div>

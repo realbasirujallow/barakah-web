@@ -151,6 +151,14 @@ export default function TransactionsPage() {
   const [selectAllPages, setSelectAllPages] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ type: 'single' | 'bulk'; id?: number; count?: number } | null>(null);
+  // 2026-05-03 (Monarch parity): bulk recategorize. The backend has had
+  // /api/transactions/bulk-categorize for a while and api.bulkCategorize
+  // wraps it, but the transactions page never wired up the UI. Monarch's
+  // "Edit multiple" toolbar (frame f_020 of the walkthrough) lets the
+  // user recategorize a multi-selection in one shot — same primitive
+  // we're surfacing here. Local state for the dropdown menu + spinner.
+  const [bulkCategorizing, setBulkCategorizing] = useState(false);
+  const [bulkCategoryMenuOpen, setBulkCategoryMenuOpen] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
 
@@ -445,6 +453,31 @@ export default function TransactionsPage() {
       toast('Failed to delete transactions', 'error');
     } finally {
       setBulkDeleting(false);
+    }
+  };
+
+  // 2026-05-03 (Monarch parity): bulk-categorize handler. Tied to the
+  // dropdown rendered inside the bulk-action bar. selectAllPages mode
+  // is intentionally not supported here — the bulk-categorize endpoint
+  // takes an explicit ids[] payload (max 500) and there's no
+  // server-side "all matching this filter" variant yet. UI hides the
+  // button when selectAllPages is on so users don't get stuck.
+  const handleBulkCategorize = async (category: string) => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setBulkCategoryMenuOpen(false);
+    setBulkCategorizing(true);
+    try {
+      const result = await api.bulkCategorize(ids, category);
+      const updated = (result as { updated?: number })?.updated ?? ids.length;
+      const noun = updated === 1 ? 'transaction' : 'transactions';
+      toast(`${updated} ${noun} recategorized as ${category.replace(/_/g, ' ')}`, 'success');
+      exitSelectMode();
+      load();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to recategorize transactions', 'error');
+    } finally {
+      setBulkCategorizing(false);
     }
   };
 
@@ -756,9 +789,56 @@ export default function TransactionsPage() {
               {allPageSelected ? 'Deselect page' : 'Select page'}
             </label>
             <span className="text-sm text-gray-500">{selectAllPages ? `All ${totalElements} selected` : `${selectedIds.size} selected`}</span>
+            {/* 2026-05-03 (Monarch parity): bulk recategorize. The
+                walkthrough showed Monarch's "Edit multiple" toolbar
+                surfaces a category picker in this position. Hidden when
+                "Select all pages" is on because the underlying endpoint
+                only accepts an explicit ids[] payload (max 500). */}
+            {selectedIds.size > 0 && !selectAllPages && (
+              <div className="relative ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setBulkCategoryMenuOpen(o => !o)}
+                  disabled={bulkCategorizing}
+                  className="bg-[#1B5E20] text-white px-3.5 py-1.5 rounded-lg text-sm font-medium hover:bg-[#164a18] disabled:opacity-40 flex items-center gap-1.5"
+                  aria-haspopup="menu"
+                  aria-expanded={bulkCategoryMenuOpen}
+                >
+                  {bulkCategorizing ? <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" /> : '🏷️'}
+                  Recategorize ({selectedIds.size})
+                </button>
+                {bulkCategoryMenuOpen && (
+                  <>
+                    <button
+                      type="button"
+                      aria-hidden="true"
+                      tabIndex={-1}
+                      className="fixed inset-0 z-30 cursor-default"
+                      onClick={() => setBulkCategoryMenuOpen(false)}
+                    />
+                    <div
+                      role="menu"
+                      className="absolute right-0 top-full mt-1 z-40 w-56 max-h-72 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg py-1"
+                    >
+                      {CATEGORIES.map(cat => (
+                        <button
+                          key={cat}
+                          type="button"
+                          role="menuitem"
+                          onClick={() => handleBulkCategorize(cat)}
+                          className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 capitalize"
+                        >
+                          {cat.replace(/_/g, ' ')}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
             <button onClick={handleBulkDelete}
               disabled={(selectAllPages ? totalElements : selectedIds.size) === 0 || bulkDeleting}
-              className="ml-auto bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
+              className={`${selectedIds.size > 0 && !selectAllPages ? '' : 'ml-auto'} bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5`}>
               {bulkDeleting ? <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" /> : '🗑️'}
               Delete {selectAllPages ? `all ${totalElements}` : selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
             </button>

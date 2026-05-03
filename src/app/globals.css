@@ -306,7 +306,21 @@ nav a, nav button { min-height: 2.5rem; }
   }
 }
 
-main { contain: layout paint; }
+/* 2026-05-03 fix: removed `contain: layout paint` from <main>.
+   CSS layout/paint containment turns the contained element into a
+   *containing block for fixed-positioned descendants*. That meant
+   every modal rendered inside <main> (MonthDetailSheet on /analytics
+   and /summary, AdminUserDetailModal on /admin, the GrantTrialModal,
+   the user-drilldown sheet, etc.) was positioning relative to
+   <main>'s scroll height — typically 2–3k pixels tall — instead of
+   the viewport. The user saw a darkened backdrop with the modal
+   itself rendered far below the fold (effectively invisible),
+   exactly matching the reports "click month under analytics shows
+   nothing" and "click a user on admin → blank screen". The
+   containment was a perf micro-opt for long card grids; the modal
+   correctness regression is not worth the few-frames-per-scroll
+   savings. If we want this back, we'll need to portal modals to
+   <body> via a stacking context outside <main>. */
 
 @keyframes stagger-fade-up {
   from { opacity: 0; transform: translateY(6px); }
