@@ -19,6 +19,7 @@ import {
 
 import { NotificationBell } from './NotificationBell';
 import { FeedbackWidget } from './FeedbackWidget';
+import { AskBarakah } from './AskBarakah';
 import { SessionTimeoutModal } from '../../components/SessionTimeoutModal';
 // OnboardingTour removed Round 17 — see comment near bottom of file.
 import TrialBanner from '../../components/TrialBanner';
@@ -530,6 +531,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* Floating feedback widget — visible on all dashboard pages */}
         <FeedbackWidget />
+
+        {/* 2026-05-03 (Section B·2): Ask Barakah floating assistant.
+            Demo-grade pattern-match assistant over the user's own data —
+            no LLM call required, runs entirely in-browser using endpoints
+            we already authenticate against. Sits above FeedbackWidget. */}
+        <AskBarakah />
 
         {/*
           Onboarding tour removed Round 17 — dashboard/page.tsx now renders
