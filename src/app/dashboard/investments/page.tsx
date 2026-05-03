@@ -100,6 +100,17 @@ export default function InvestmentsPage() {
   const [error, setError] = useState('');
   const [expandedAccount, setExpandedAccount] = useState<number | null>(null);
   const [portfolioHistory, setPortfolioHistory] = useState<PortfolioHistorySnapshot[]>([]);
+
+  // 2026-05-03 (Monarch parity): benchmark comparison series. Pulled
+  // from /api/investments/benchmarks. Each series is { date, percentChange }
+  // points; we overlay them on the portfolio chart converted to a
+  // percent-from-baseline series so all four lines share a single
+  // y-axis. Toggle below the chart lets the user hide individual
+  // benchmarks for clarity.
+  type BenchmarkPoint = { date: string; percentChange: number };
+  type BenchmarkSeries = { sp500: BenchmarkPoint[]; usStocks: BenchmarkPoint[]; usBonds: BenchmarkPoint[] };
+  const [benchmarks, setBenchmarks] = useState<BenchmarkSeries | null>(null);
+  const [showBenchmarks, setShowBenchmarks] = useState({ sp500: true, usStocks: false, usBonds: false });
   const [historyDays, setHistoryDays] = useState(30);
 
   const [showAccountForm, setShowAccountForm] = useState(false);
@@ -160,6 +171,14 @@ export default function InvestmentsPage() {
         const history: PortfolioHistorySnapshot[] = res?.history || [];
         setPortfolioHistory(history);
       }).catch(() => { /* graceful — don't block if history unavailable */ }),
+      // 2026-05-03: load benchmark series for the comparison overlay.
+      // Uses the period that matches the chart's day window. Failure
+      // here just hides the overlay — non-blocking.
+      api.getInvestmentBenchmarks(
+        historyDays === 7 ? '1m' : historyDays === 30 ? '1m' : historyDays === 90 ? '3m' : historyDays === 365 ? '1y' : '6m'
+      ).then((res: { series?: BenchmarkSeries }) => {
+        if (res?.series) setBenchmarks(res.series);
+      }).catch(() => { setBenchmarks(null); }),
     ]).finally(() => setLoading(false));
   }, [historyDays]);
 
@@ -406,52 +425,123 @@ export default function InvestmentsPage() {
           </div>
 
           {portfolioHistory.length > 0 ? (
-            <div className="w-full h-80 -mx-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={portfolioHistory} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fontSize: 12, fill: '#6b7280' }}
-                    stroke="#d1d5db"
-                    tickFormatter={(date: string) => {
-                      const d = new Date(date);
-                      return `${d.getMonth() + 1}/${d.getDate()}`;
-                    }}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 12, fill: '#6b7280' }}
-                    stroke="#d1d5db"
-                    tickFormatter={(value: number) => `${symbol}${(value / 1000).toFixed(0)}k`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      padding: '10px',
-                    }}
-                    formatter={(value?: number | string, name?: string) => {
-                      if (name === 'totalValue') return [fmt(Number(value) || 0), 'Portfolio Value'];
-                      return [String(value ?? ''), String(name ?? '')];
-                    }}
-                    labelFormatter={(label) => {
-                      const d = new Date(String(label ?? ''));
-                      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="totalValue"
-                    stroke="#1B5E20"
-                    strokeWidth={2}
-                    dot={false}
-                    fill="#d1fae5"
-                    isAnimationActive={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <>
+              {/* 2026-05-03 (Monarch parity, frame f_038): comparison
+                  chart overlays portfolio % return against benchmark
+                  series so the user can see "did my halal portfolio
+                  beat the S&P 500?" at a glance. We convert the
+                  portfolio's $ history to % from baseline so it
+                  shares the y-axis with the benchmark series (which
+                  arrive as % from start). */}
+              {(() => {
+                const round2 = (n: number) => Math.round(n * 100) / 100;
+                const baseline = portfolioHistory[0]?.totalValue || 1;
+                const portfolioPctSeries = portfolioHistory.map(p => ({
+                  date: p.date,
+                  portfolio: baseline > 0 ? ((p.totalValue - baseline) / baseline) * 100 : 0,
+                  totalValue: p.totalValue,
+                }));
+                // Index benchmark points by date so we can join into the same data array.
+                const idxSp500 = new Map((benchmarks?.sp500 ?? []).map(p => [p.date, p.percentChange]));
+                const idxStocks = new Map((benchmarks?.usStocks ?? []).map(p => [p.date, p.percentChange]));
+                const idxBonds = new Map((benchmarks?.usBonds ?? []).map(p => [p.date, p.percentChange]));
+                const merged = portfolioPctSeries.map(p => ({
+                  date: p.date,
+                  portfolio: round2(p.portfolio),
+                  totalValue: p.totalValue,
+                  sp500: idxSp500.has(p.date) ? round2(idxSp500.get(p.date) ?? 0) : null,
+                  usStocks: idxStocks.has(p.date) ? round2(idxStocks.get(p.date) ?? 0) : null,
+                  usBonds: idxBonds.has(p.date) ? round2(idxBonds.get(p.date) ?? 0) : null,
+                }));
+                return (
+                  <>
+                    <div className="w-full h-80 -mx-6">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={merged} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis
+                            dataKey="date"
+                            tick={{ fontSize: 12, fill: '#6b7280' }}
+                            stroke="#d1d5db"
+                            tickFormatter={(date: string) => {
+                              const d = new Date(date);
+                              return `${d.getMonth() + 1}/${d.getDate()}`;
+                            }}
+                          />
+                          <YAxis
+                            tick={{ fontSize: 12, fill: '#6b7280' }}
+                            stroke="#d1d5db"
+                            tickFormatter={(value: number) => `${value > 0 ? '+' : ''}${value.toFixed(0)}%`}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#fff',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '8px',
+                              padding: '10px',
+                            }}
+                            formatter={(value: number | string | undefined, name: string | undefined) => {
+                              const safeName = name ?? '';
+                              if (value === undefined || value === null) return ['--', safeName];
+                              const n = Number(value);
+                              if (Number.isNaN(n)) return ['--', safeName];
+                              if (safeName === 'portfolio') return [`${n >= 0 ? '+' : ''}${n.toFixed(2)}%`, 'Your Portfolio'];
+                              if (safeName === 'sp500') return [`${n >= 0 ? '+' : ''}${n.toFixed(2)}%`, 'S&P 500'];
+                              if (safeName === 'usStocks') return [`${n >= 0 ? '+' : ''}${n.toFixed(2)}%`, 'US Stocks'];
+                              if (safeName === 'usBonds') return [`${n >= 0 ? '+' : ''}${n.toFixed(2)}%`, 'US Bonds'];
+                              return [String(value), safeName];
+                            }}
+                            labelFormatter={(label) => {
+                              const d = new Date(String(label ?? ''));
+                              return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+                            }}
+                          />
+                          <Line type="monotone" dataKey="portfolio" stroke="#1B5E20" strokeWidth={2.5} dot={false} isAnimationActive={false} />
+                          {benchmarks && showBenchmarks.sp500 && (
+                            <Line type="monotone" dataKey="sp500" stroke="#FF7043" strokeWidth={1.5} strokeDasharray="0" dot={false} isAnimationActive={false} />
+                          )}
+                          {benchmarks && showBenchmarks.usStocks && (
+                            <Line type="monotone" dataKey="usStocks" stroke="#42A5F5" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+                          )}
+                          {benchmarks && showBenchmarks.usBonds && (
+                            <Line type="monotone" dataKey="usBonds" stroke="#9CCC65" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+                          )}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    {/* Benchmark visibility toggles. Portfolio is always
+                        visible; users opt in to overlays for clarity. */}
+                    {benchmarks && (
+                      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                        <span className="text-gray-500 font-medium uppercase tracking-wide">Compare:</span>
+                        {(
+                          [
+                            { key: 'sp500', label: 'S&P 500', color: '#FF7043' },
+                            { key: 'usStocks', label: 'US Stocks', color: '#42A5F5' },
+                            { key: 'usBonds', label: 'US Bonds', color: '#9CCC65' },
+                          ] as const
+                        ).map(b => {
+                          const active = showBenchmarks[b.key];
+                          return (
+                            <button
+                              key={b.key}
+                              type="button"
+                              onClick={() => setShowBenchmarks(s => ({ ...s, [b.key]: !s[b.key] }))}
+                              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition ${active ? 'bg-gray-50 border-gray-300' : 'bg-white border-gray-200 opacity-60 hover:opacity-100'}`}
+                              aria-pressed={active}
+                            >
+                              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: b.color }} aria-hidden="true" />
+                              <span className="text-gray-700 font-medium">{b.label}</span>
+                            </button>
+                          );
+                        })}
+                        <span className="text-gray-400 italic ml-2">Reference data — not live quotes</span>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </>
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-400">No historical data available yet. Check back soon.</p>

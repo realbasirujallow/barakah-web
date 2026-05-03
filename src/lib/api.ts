@@ -1150,6 +1150,28 @@ export const api = {
   takeNetWorthSnapshot: () => apiFetch('/api/net-worth/snapshot', { method: 'POST', body: JSON.stringify({}) }),
   getNetWorthHistory: (period: string = '6m') => apiFetch(`/api/net-worth/history?period=${period}`),
 
+  // Investments benchmark comparison (2026-05-03). Returns time-series
+  // for S&P 500 / US Stocks / US Bonds plus period totals so the
+  // /dashboard/investments page can render Monarch's Backtested
+  // Performance comparison card.
+  getInvestmentBenchmarks: (period: string = '6m') =>
+    apiFetch(`/api/investments/benchmarks?period=${encodeURIComponent(period)}`),
+
+  // Forecasting (2026-05-03 — backs /dashboard/forecasting). Single
+  // scenario per user today; schema supports multi-scenario for future
+  // "compare" UI.
+  getActiveForecastScenario: () => apiFetch('/api/forecasting/scenarios/active'),
+  saveForecastScenario: (data: {
+    id?: number;
+    name?: string;
+    currentAge: number;
+    retirementAge: number;
+    hajjYearsFromNow: number;
+    monthlyContribution: number;
+    annualReturnPct: number;
+  }) =>
+    apiFetch('/api/forecasting/scenarios', { method: 'POST', body: JSON.stringify(data) }),
+
   // Shared Finances
   getSharedGroups: () => apiFetch('/api/shared/groups/list'),
   getGroupDetails: (groupId: number) => apiFetch(`/api/shared/groups/${groupId}`),

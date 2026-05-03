@@ -519,20 +519,60 @@ export default function CashFlowPage() {
                   tickLine={false}
                 />
                 <YAxis hide />
+                {/* 2026-05-03 (Monarch parity, frame f_030): rich
+                    hover tooltip with Income / Expenses / Savings /
+                    Savings Rate. Replaces the default Recharts tooltip. */}
                 <Tooltip
                   cursor={{ fill: 'var(--muted)', opacity: 0.3 }}
-                  formatter={(value, name) => [fmt(Number(value)), String(name)] as [string, string]}
-                  labelFormatter={(label, payload) => {
-                    const row = payload?.[0]?.payload as { sourceMonth?: string; bucket?: string } | undefined;
-                    if (!row) return String(label);
-                    if (timeView === 'monthly' && row.sourceMonth) return monthLong(row.sourceMonth);
-                    return row.bucket ?? String(label);
-                  }}
-                  contentStyle={{
-                    backgroundColor: 'var(--popover)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 8,
-                    fontSize: 12,
+                  content={({ active, payload }) => {
+                    if (!active || !payload || payload.length === 0) return null;
+                    const row = payload[0].payload as {
+                      sourceMonth?: string;
+                      bucket?: string;
+                      income?: number;
+                      expenses?: number;
+                      sadaqahZakat?: number;
+                      savings?: number;
+                      net?: number;
+                    };
+                    const labelOut = timeView === 'monthly' && row.sourceMonth
+                      ? monthLong(row.sourceMonth)
+                      : (row.bucket ?? '');
+                    const income = row.income ?? 0;
+                    const expenses = row.expenses ?? 0;
+                    const savings = (row.savings ?? row.net ?? 0);
+                    const savingsRate = income > 0 ? (savings / income) * 100 : 0;
+                    return (
+                      <div className="bg-popover border border-border rounded-lg shadow-lg px-3 py-2 text-xs min-w-[180px]">
+                        <p className="font-semibold mb-1.5 text-foreground">{labelOut}</p>
+                        <div className="space-y-1 tabular-nums">
+                          <div className="flex justify-between gap-4">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-emerald-600" aria-hidden="true" />
+                              <span className="text-muted-foreground">Income</span>
+                            </span>
+                            <span className="font-semibold text-emerald-700">{fmt(income)}</span>
+                          </div>
+                          <div className="flex justify-between gap-4">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-rose-600" aria-hidden="true" />
+                              <span className="text-muted-foreground">Expenses</span>
+                            </span>
+                            <span className="font-semibold text-rose-700">{fmt(expenses)}</span>
+                          </div>
+                          <div className="flex justify-between gap-4 pt-1 mt-1 border-t border-border">
+                            <span className="text-muted-foreground">Savings</span>
+                            <span className={`font-semibold ${savings >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{fmt(savings)}</span>
+                          </div>
+                          <div className="flex justify-between gap-4">
+                            <span className="text-muted-foreground">Savings Rate</span>
+                            <span className={`font-semibold ${savingsRate >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                              {savingsRate.toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
                   }}
                 />
                 {/* Year-divider lines on month-view (Monarch parity). */}
