@@ -622,7 +622,28 @@ export default function InvestmentsPage() {
                 {isExpanded && (
                   <div className="border-t">
                     {holdings.length === 0 ? (
-                      <p className="text-gray-400 text-sm text-center py-6">No holdings yet.</p>
+                      // 2026-05-03 (Section B·4): empty-state for an
+                      // account with no holdings used to be a lifeless
+                      // "No holdings yet." line. Replace with an
+                      // inviting card that explains why holdings matter
+                      // (zakat eligibility, halal screening, S&P
+                      // benchmark) and a primary CTA so the user can
+                      // act in one click instead of scrolling for the
+                      // small "+ Add Holding" link below.
+                      <div className="px-4 py-6 text-center">
+                        <p className="text-2xl mb-2" aria-hidden="true">📈</p>
+                        <p className="text-sm font-semibold text-foreground mb-1">No holdings tracked yet</p>
+                        <p className="text-xs text-gray-500 max-w-sm mx-auto mb-3">
+                          Add a stock or ETF to unlock halal screening, zakat-eligible breakdown, and S&amp;P 500 / US Stocks / US Bonds comparison.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => { setAddHoldingFor(account.id); setHoldingForm(emptyHoldingForm); }}
+                          className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition"
+                        >
+                          + Add your first holding
+                        </button>
+                      </div>
                     ) : (
                       <div className="divide-y">
                         {holdings.map(h => {
