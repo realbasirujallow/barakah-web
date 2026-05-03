@@ -1,15 +1,26 @@
 name: API Parity Check
 
 # 2026-05-02: founder asked to automate the manual web↔mobile drift
-# audit. This workflow checks out both repos and runs
-# scripts/check-api-parity.mjs to surface any new endpoint divergence
-# in the PR's job summary.
+# audit. This workflow runs scripts/check-api-parity.mjs against a
+# checked-out copy of the mobile repo (`barakah_app`) and surfaces
+# any new endpoint divergence in the PR's job summary.
 #
 # Default mode is REPORT-ONLY — drift items are listed in the summary
 # but the workflow exits 0. To make this gating, change the script
-# invocation to `--strict`. Right now the goal is visibility, not
-# blocking, since we already have substantial known drift that
-# legitimately exists (admin-only endpoints, FCM-only endpoints).
+# invocation to `--strict`.
+#
+# Mobile repo access:
+#   The mobile repo is PRIVATE. The default GITHUB_TOKEN scoped to
+#   the web repo cannot read it, so the checkout step needs an
+#   explicit token. Set a PAT named MOBILE_REPO_PAT in the web
+#   repo's secrets (Settings → Secrets and variables → Actions)
+#   with read access to realbasirujallow/barakah_app.
+#
+#   When the secret is absent the workflow gracefully SKIPS the
+#   parity check rather than failing — a missing token is an env
+#   issue, not a code issue, and shouldn't gate every PR until
+#   the secret is added. The summary records that it was skipped
+#   so it's visible to reviewers.
 
 on:
   pull_request:
@@ -32,27 +43,59 @@ jobs:
         with:
           path: barakah-web
 
+      - name: Check for mobile-repo PAT
+        id: pat
+        env:
+          MOBILE_PAT: ${{ secrets.MOBILE_REPO_PAT }}
+        run: |
+          if [ -n "${MOBILE_PAT}" ]; then
+            echo "have_pat=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "have_pat=false" >> "$GITHUB_OUTPUT"
+            {
+              echo '## Web ↔ Mobile API parity — SKIPPED'
+              echo
+              echo 'No `MOBILE_REPO_PAT` secret configured for this repo.'
+              echo 'The mobile repo (`realbasirujallow/barakah_app`) is'
+              echo 'private, so the default `GITHUB_TOKEN` cannot check it'
+              echo 'out for the parity diff.'
+              echo
+              echo 'To enable this check:'
+              echo '1. Generate a fine-grained PAT with read access to'
+              echo '   `realbasirujallow/barakah_app` at'
+              echo '   https://github.com/settings/personal-access-tokens.'
+              echo '2. Add it as `MOBILE_REPO_PAT` under the web repo'\''s'
+              echo '   Settings → Secrets and variables → Actions.'
+              echo
+              echo 'Until then, contributors can run the parity check'
+              echo 'locally with both repos checked out side-by-side:'
+              echo
+              echo '```bash'
+              echo 'cd barakah-web && node scripts/check-api-parity.mjs'
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Checkout barakah_app (mobile)
+        if: steps.pat.outputs.have_pat == 'true'
         uses: actions/checkout@v4
         with:
           repository: realbasirujallow/barakah_app
-          # Token-less public-repo checkout works for our setup; if the
-          # mobile repo becomes private, switch to a fine-grained token
-          # in repository secrets and pass `token: ${{ secrets.MOBILE_REPO_PAT }}`.
+          token: ${{ secrets.MOBILE_REPO_PAT }}
           ref: main
           path: barakah_app
 
       - name: Setup Node
+        if: steps.pat.outputs.have_pat == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Run parity check
-        id: check
+        if: steps.pat.outputs.have_pat == 'true'
         run: |
           set +e
           cd barakah-web
-          # MOBILE_REPO points the script at the sibling checkout above.
           MOBILE_REPO=$GITHUB_WORKSPACE/barakah_app \
             node scripts/check-api-parity.mjs > /tmp/parity.out 2>&1
           status=$?
