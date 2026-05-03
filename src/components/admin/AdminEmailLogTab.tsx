@@ -273,17 +273,16 @@ interface EmailLogDetailDrawerProps {
 
 function EmailLogDetailDrawer({ entry, loading, onClose }: EmailLogDetailDrawerProps) {
   return (
-    // 2026-05-02 fix: outer-scroll wrapper pattern (see useBodyScrollLock).
+    // 2026-05-02 (revert): centered pattern restored, see useBodyScrollLock.
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="email-log-detail-title"
       onClick={onClose}
     >
-      <div className="flex min-h-full items-center justify-center p-4">
       <div
-        className="w-full max-w-2xl rounded-xl bg-white shadow-xl my-8"
+        className="w-full max-w-2xl rounded-xl bg-white shadow-xl max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-start justify-between p-5 border-b">
@@ -385,7 +384,6 @@ function EmailLogDetailDrawer({ entry, loading, onClose }: EmailLogDetailDrawerP
             Close
           </button>
         </div>
-      </div>
       </div>
     </div>
   );

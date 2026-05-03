@@ -62,21 +62,17 @@ export function AdminGrantTrialModal(props: AdminGrantTrialModalProps) {
   useBodyScrollLock(true);
 
   return (
-    // 2026-05-02 fix: same wrapper pattern as AdminUserDetailModal —
-    // outer fixed wrapper handles scroll, inner flex parent uses
-    // min-h-full so the modal anchors to the visible viewport
-    // regardless of where the admin was scrolled when they clicked
-    // "Grant Trial".
+    // 2026-05-02 (revert): see AdminUserDetailModal — the outer-scroll
+    // pattern caused freeze reports. Reverted to centered pattern.
     <div
       ref={modalRef}
-      className="fixed inset-0 bg-black/50 z-[60] overflow-y-auto"
+      className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="grant-trial-title"
       onClick={onClose}
     >
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="bg-white rounded-2xl w-full max-w-md shadow-xl my-8" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b flex items-start justify-between">
           <h2 id="grant-trial-title" className="text-lg font-bold text-gray-900">Grant Trial</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">✕</button>
@@ -116,7 +112,6 @@ export function AdminGrantTrialModal(props: AdminGrantTrialModalProps) {
             </button>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );

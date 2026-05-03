@@ -248,30 +248,20 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
   const [drilldown, setDrilldown] = useState<DrilldownKind | null>(null);
 
   return (
-    // 2026-05-02 fix: switched from `flex items-center` (which trapped
-    // overflow on the inner box and could push tall modals below the
-    // visible viewport) to the shadcn/Headless-UI pattern: scroll on
-    // the OUTER fixed wrapper, `min-h-full` on the inner flex parent.
-    //
-    // This guarantees:
-    //   • Short modals center vertically in the viewport.
-    //   • Tall modals scroll WITHIN the dim backdrop area, so the
-    //     header is always visible the moment the user opens the
-    //     modal — no more "scroll down to find the popup" reports.
-    //   • The user lands on the modal at whatever scroll position
-    //     they were at in the user list, paired with body-scroll-lock
-    //     above so the list itself can't move while reading.
-    //
-    // `my-8` on the box keeps a comfortable gap from the viewport
-    // edges when scrolled.
+    // 2026-05-02 (revert): the earlier `flex min-h-full` outer-scroll
+    // pattern broke modal mounting on some browser/window combos —
+    // founder reported the modal "freezes and nothing is shown."
+    // Reverted to the original centered pattern + `max-h-[90vh]
+    // overflow-y-auto` on the inner box for internal scroll.
+    // useBodyScrollLock handles the "page scrolls behind modal"
+    // complaint without any structural change.
     <div
-      className="fixed inset-0 bg-black/50 z-50 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="bg-white rounded-2xl w-full max-w-md shadow-xl my-8" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="p-6 border-b flex items-start justify-between sticky top-0 bg-white rounded-t-2xl">
           <div>
@@ -661,7 +651,6 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
               </button>
             )}
           </div>
-        </div>
         </div>
       </div>
       {/* R37 (2026-04-30): per-user drilldown sheet — opens when an
