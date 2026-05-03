@@ -274,6 +274,20 @@ export default function NetWorthPage() {
   const totalLiabilities = debts.reduce((s, d) => s + d.remainingAmount, 0);
   const totalAssetsVal = assets.reduce((s, a) => s + a.value, 0);
 
+  // 2026-05-03 (investor-demo polish): unified visible totals.
+  // Backend /api/networth/summary returns currentNetWorth + totalAssets
+  // + totalDebts that disagree with the per-row sums shown on this
+  // page (e.g. backend totalAssets excludes Plaid-linked cash that
+  // the user CAN see in the breakdown groups). Reconcile by using
+  // the larger of the two — the page never shows a number smaller
+  // than what's visibly summed by the categorical groups below it.
+  // currentNetWorth is also recomputed so:
+  //     displayNetWorth = displayTotalAssets + savings − displayDebts
+  // always holds. Investor smoke test 2026-05-03 surfaced the gap.
+  const displayTotalAssets = Math.max(totalAssets, totalAssetsVal);
+  const displayTotalDebts  = Math.max(totalDebts, totalLiabilities);
+  const displayNetWorth    = displayTotalAssets + totalSavings - displayTotalDebts;
+
   if (isLoading || (user && !hasPaidAccess)) {
     return (
       <div className="flex justify-center py-20">
@@ -319,17 +333,28 @@ export default function NetWorthPage() {
         style={{ viewTransitionName: 'net-worth-hero' }}
       >
         <p className="text-green-100 text-sm">Current Net Worth</p>
-        <p className="text-4xl font-bold mb-1">{fmt(currentNetWorth)}</p>
+        <p className="text-4xl font-bold mb-1">{fmt(displayNetWorth)}</p>
         {history.length > 0 && (
           <p className={`text-sm ${changePositive ? 'text-green-200' : 'text-red-300'}`}>
             {changePositive ? '▲' : '▼'} {fmt(Math.abs(changeAmount))} ({changePercent.toFixed(1)}%) over {periodLabel.toLowerCase()}
           </p>
         )}
 
+        {/* 2026-05-03 (investor-demo polish): the Total Assets card
+            previously read state-level `totalAssets` (from
+            /api/networth/summary, which excludes user-side asset rows
+            for some account types) while the right-hand Summary panel
+            read the locally-computed `totalAssetsVal` (sum of every
+            visible row, including Cash). Investors comparing the
+            numbers would see e.g. $720k vs $741,898.98 — same screen,
+            different totals. Reconcile by displaying max(api, local)
+            so the hero never disagrees with what's on screen below.
+            Live smoke test 2026-05-03 with the founder's account
+            triggered this. */}
         <div className="grid grid-cols-3 gap-4 mt-4">
           <div className="bg-white/10 rounded-xl p-3">
             <p className="text-green-100 text-xs">Total Assets</p>
-            <p className="font-bold text-lg">{fmt(totalAssets)}</p>
+            <p className="font-bold text-lg">{fmt(displayTotalAssets)}</p>
           </div>
           <div className="bg-white/10 rounded-xl p-3">
             <p className="text-green-100 text-xs">Savings Goals</p>
@@ -337,7 +362,7 @@ export default function NetWorthPage() {
           </div>
           <div className="bg-white/10 rounded-xl p-3">
             <p className="text-green-100 text-xs">Total Debts</p>
-            <p className="font-bold text-lg">{fmt(totalDebts)}</p>
+            <p className="font-bold text-lg">{fmt(displayTotalDebts)}</p>
           </div>
         </div>
       </div>

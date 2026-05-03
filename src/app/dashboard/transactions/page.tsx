@@ -17,6 +17,7 @@ import { SkeletonPage } from '../SkeletonCard';
 import { trackFeatureUse } from '../../../lib/analytics';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
+import { prettifyDescription } from '../../../lib/prettifyDescription';
 
 // ── Supported currencies ──────────────────────────────────────────────────────
 const CURRENCIES = [
@@ -958,8 +959,24 @@ export default function TransactionsPage() {
                 )}
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-gray-900">
-                      {tx.merchantName ? <><span className="font-bold">{tx.merchantName}</span>{tx.description && tx.description !== tx.merchantName ? <span className="font-normal text-gray-500 text-sm ml-1">— {tx.description}</span> : ''}</> : (tx.description || tx.category)}
+                    {/* 2026-05-03: prettifyDescription compresses raw
+                        ACH/POS/Zelle blobs ("ORIG CO NAME:IN 529 Dir
+                        ACH CO ENTRY DESCR:CONTRIB SEC:WEB IND ID:...")
+                        down to readable merchant names ("IN 529").
+                        Live transaction-list smoke test before the
+                        investor demo surfaced these as the worst-
+                        looking rows. The original description is kept
+                        as a tooltip so the underlying bank text is
+                        still recoverable. */}
+                    <p className="font-semibold text-gray-900" title={tx.description || ''}>
+                      {tx.merchantName
+                        ? <>
+                            <span className="font-bold">{tx.merchantName}</span>
+                            {tx.description && tx.description !== tx.merchantName
+                              ? <span className="font-normal text-gray-500 text-sm ml-1">— {prettifyDescription(tx.description)}</span>
+                              : ''}
+                          </>
+                        : (prettifyDescription(tx.description) || tx.category)}
                       {tx.notes && <span className="ml-1 text-sm" title={tx.notes}>📝</span>}
                     </p>
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${presentation.badgeClass}`}>
