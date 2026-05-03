@@ -427,19 +427,15 @@ function CreateModal({
   };
 
   return (
-    // 2026-05-02 fix: outer-scroll modal wrapper pattern (see
-    // useBodyScrollLock + AdminUserDetailModal for the full
-    // rationale). Replaces the prior `flex items-center` +
-    // `max-h-[90vh] overflow-y-auto` combo that could push tall
-    // modals below the visible viewport.
+    // 2026-05-02 (revert): centered pattern restored, see
+    // AdminUserDetailModal for context.
     <div
       onClick={onClose}
-      className="fixed inset-0 bg-black/40 z-50 overflow-y-auto"
+      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
     >
-      <div className="flex min-h-full items-center justify-center p-4">
       <div
         onClick={e => e.stopPropagation()}
-        className="bg-white rounded-xl p-6 max-w-lg w-full my-8"
+        className="bg-white rounded-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto"
       >
         <h3 className="text-xl font-bold text-[#1B5E20] mb-4">New experiment</h3>
 
@@ -573,7 +569,6 @@ function CreateModal({
             {saving ? 'Creating…' : 'Create as draft'}
           </button>
         </div>
-      </div>
       </div>
     </div>
   );
