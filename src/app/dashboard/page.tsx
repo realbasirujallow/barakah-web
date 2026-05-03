@@ -924,8 +924,8 @@ export default function DashboardPage() {
               // (used to render "▲ 999+%" every time a new account started).
               // Above the threshold we still cap at 500% so a genuine spike
               // doesn't explode the pill.
-              <div className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${widgets.spending.changePercent <= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                {widgets.spending.changePercent <= 0 ? '▼' : '▲'} {Math.abs(widgets.spending.changePercent) > 500 ? '500+' : Math.abs(widgets.spending.changePercent).toFixed(1)}%
+              <div className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${(widgets.spending.changePercent ?? 0) <= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {(widgets.spending.changePercent ?? 0) <= 0 ? '▼' : '▲'} {Math.abs(widgets.spending.changePercent ?? 0) > 500 ? '500+' : Math.abs(widgets.spending.changePercent ?? 0).toFixed(1)}%
               </div>
             )}
           </div>
@@ -1229,8 +1229,8 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide">Investments</p>
                   <p className="text-lg font-bold text-foreground mt-0.5 tabular-nums">{fmt(portfolioSummary.totalValue)}</p>
-                  <p className={`text-xs font-medium ${portfolioSummary.totalGainLoss >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                    {portfolioSummary.totalGainLoss >= 0 ? '▲' : '▼'} {fmt(Math.abs(portfolioSummary.totalGainLoss))} ({portfolioSummary.totalGainLossPct.toFixed(2)}%) all time
+                  <p className={`text-xs font-medium ${(portfolioSummary.totalGainLoss ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {(portfolioSummary.totalGainLoss ?? 0) >= 0 ? '▲' : '▼'} {fmt(Math.abs(portfolioSummary.totalGainLoss ?? 0))} ({(portfolioSummary.totalGainLossPct ?? 0).toFixed(2)}%) all time
                   </p>
                 </div>
                 <Link href="/dashboard/investments" className="text-sm text-primary font-medium hover:underline">View all</Link>
@@ -1245,8 +1245,8 @@ export default function DashboardPage() {
                           <p className="text-sm font-semibold text-foreground">{h.symbol}</p>
                           <p className="text-xs text-gray-500 truncate">{h.name}</p>
                         </div>
-                        <p className={`text-sm font-bold tabular-nums ${h.gainLossPct >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                          {h.gainLossPct >= 0 ? '+' : ''}{h.gainLossPct.toFixed(2)}%
+                        <p className={`text-sm font-bold tabular-nums ${(h.gainLossPct ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                          {(h.gainLossPct ?? 0) >= 0 ? '+' : ''}{(h.gainLossPct ?? 0).toFixed(2)}%
                         </p>
                       </li>
                     ))}
