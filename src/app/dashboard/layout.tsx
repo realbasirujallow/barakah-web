@@ -10,7 +10,7 @@ import { recordVisit } from '../../lib/lastVisit';
 import {
   LayoutDashboard, Wallet, BookOpen, CreditCard, Receipt, PieChart, Landmark,
   Users, Scale, BookMarked, CalendarClock, Heart, Upload, LineChart, Bell,
-  Moon, User, RefreshCw, Gift, FileBarChart, PiggyBank, HandHeart, Target,
+  Moon, User, RefreshCw, Gift, FileBarChart, HandHeart, Target,
   ArrowLeftRight, Coins, BarChart3, Tags, Star, FileText, ShieldCheck,
   TrendingUp, Gem, Shield, ShoppingCart, Building2, ScrollText, Wrench,
   Globe, Eye, Crosshair, Filter, Award,
@@ -64,7 +64,8 @@ const navItems: { href: string; icon: LucideIcon; label: string; gate?: 'plus' |
   { href: '/dashboard/recurring', icon: RefreshCw, label: 'Recurring' },
   { href: '/dashboard/referral', icon: Gift, label: 'Refer a Friend' },
   { href: '/dashboard/reports', icon: FileBarChart, label: 'Reports' },
-  { href: '/dashboard/retirement-zakat', icon: PiggyBank, label: 'Retirement Zakat' },
+  // 2026-05-03: PiggyBank → Coins for Islamic-finance positioning.
+  { href: '/dashboard/retirement-zakat', icon: Coins, label: 'Retirement Zakat' },
   { href: '/dashboard/sadaqah', icon: HandHeart, label: 'Sadaqah' },
   { href: '/dashboard/savings', icon: Target, label: 'Savings Goals' },
   { href: '/dashboard/cash-flow', icon: BarChart3, label: 'Cash Flow' },
