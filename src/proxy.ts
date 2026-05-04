@@ -99,11 +99,12 @@ function buildCspHeaders(): { nonce?: string; csp?: string } {
     // fallback — modern browsers ignore it when a nonce is present.
     `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' https: http:`,
     "style-src 'self' 'unsafe-inline'",
-    // 2026-05-04: + www.google.com (favicon API) for the BankLogo
-    // component on /dashboard/transactions. We tried logo.clearbit.com
-    // first but their free tier returns 503 under any meaningful
-    // traffic. Google's S2 favicon service is rock-solid + free.
-    "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://www.google.com",
+    // 2026-05-04: + t0.gstatic.com (Google's faviconV2 endpoint) for
+    // the BankLogo component on /dashboard/transactions. Returns
+    // 64x64 PNG brand favicons. Clearbit (503 under load) and
+    // google.com/s2/favicons (HTML interstitial redirect) didn't
+    // work; gstatic returns a real PNG every time.
+    "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://t0.gstatic.com",
     "font-src 'self'",
     // 2026-05-02: api.aladhan.com + nominatim.openstreetmap.org removed
     // alongside the prayer-times surface deletion (PR #86).
