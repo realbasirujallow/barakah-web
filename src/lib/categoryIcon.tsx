@@ -49,7 +49,7 @@ import {
   Dog,
   Shirt,
   Laptop,
-  PiggyBank,
+  Target, // 2026-05-03: replaces PiggyBank for the savings category — Islamic-finance positioning.
   CreditCard,
   Receipt,
   HandCoins,
@@ -107,7 +107,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   clothing: Shirt,
   electronics: Laptop,
   // Finance
-  savings: PiggyBank,
+  savings: Target,
   debt_payment: CreditCard,
   taxes: Receipt,
   transfer: ArrowLeftRight,
