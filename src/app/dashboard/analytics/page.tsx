@@ -6,9 +6,13 @@ import { logError } from '../../../lib/logError';
 import { useCurrency } from '../../../lib/useCurrency';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
-// 2026-05-03: removed MonthDetailSheet import — analytics drilldowns
-// now navigate to /dashboard/cash-flow rather than opening a modal.
-// MonthDetailSheet still exists for /dashboard/summary which uses it.
+// 2026-05-03 (Step 5): in-page drilldown — clicking a month/quarter/year
+// now expands an inline breakdown right below the chart instead of
+// routing to /dashboard/cash-flow. Mirrors Monarch — "you stay where
+// you are, the detail panel just appears." The full Cash Flow page
+// is still reachable via the "View full Cash Flow →" link inside the
+// panel for power users.
+import { InlineMonthBreakdown } from '../../../components/dashboard/InlineMonthBreakdown';
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -109,9 +113,11 @@ function AnalyticsPageContent() {
     return fmt(n);
   };
 
-  // 2026-05-03: cowork removed MonthDetailSheet drilldown from
-  // analytics in favor of routing to /cash-flow (handoff doc §A.2).
-  // Hook destructure removed since it's unreferenced.
+  // 2026-05-03 (Step 5): selectedMonth drives the inline breakdown
+  // panel that appears below the chart on click. Empty string = no
+  // panel rendered. The InlineMonthBreakdown component handles its
+  // own loading + error state.
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
 
   if (loading) {
     return (
@@ -307,7 +313,7 @@ function AnalyticsPageContent() {
                 const ev = e as unknown as { activePayload?: Array<{ payload?: { monthKey?: string } }> };
                 const point = ev?.activePayload?.[0]?.payload;
                 if (point?.monthKey) {
-                  router.push(`/dashboard/cash-flow?month=${point.monthKey}`);
+                  setSelectedMonth(point.monthKey);
                 }
               }}
               style={{ cursor: 'pointer' }}
@@ -408,7 +414,7 @@ function AnalyticsPageContent() {
                   const d = barData as { payload?: { monthKey?: string }; monthKey?: string };
                   const monthKey = d?.payload?.monthKey ?? d?.monthKey;
                   if (monthKey) {
-                    router.push(`/dashboard/cash-flow?month=${monthKey}`);
+                    setSelectedMonth(monthKey);
                   }
                 }}
               />
@@ -422,7 +428,7 @@ function AnalyticsPageContent() {
                   const d = barData as { payload?: { monthKey?: string }; monthKey?: string };
                   const monthKey = d?.payload?.monthKey ?? d?.monthKey;
                   if (monthKey) {
-                    router.push(`/dashboard/cash-flow?month=${monthKey}`);
+                    setSelectedMonth(monthKey);
                   }
                 }}
               />
@@ -440,7 +446,7 @@ function AnalyticsPageContent() {
                 const ev = e as unknown as { activePayload?: Array<{ payload?: { monthKey?: string } }> };
                 const monthKey = ev?.activePayload?.[0]?.payload?.monthKey;
                 if (monthKey) {
-                  router.push(`/dashboard/cash-flow?month=${monthKey}`);
+                  setSelectedMonth(monthKey);
                 }
               }}
               style={{ cursor: 'pointer' }}
@@ -548,8 +554,17 @@ function AnalyticsPageContent() {
                   // inline drilldown UI (KPI cards + Income/Expenses
                   // by Category/Merchant + Sadaqah). Same pattern
                   // Monarch uses on its Cash Flow page.
+                  // 2026-05-03 (Step 5): in-page drilldown — set
+                  // selectedMonth and let the InlineMonthBreakdown
+                  // panel below the chart load the per-month detail.
+                  // Scroll the panel into view so the user sees the
+                  // detail without having to hunt for it.
                   const drillTo = () => {
-                    router.push(`/dashboard/cash-flow?month=${row.month}`);
+                    setSelectedMonth(row.month);
+                    setTimeout(() => {
+                      document.getElementById('analytics-month-breakdown')
+                        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 50);
                   };
                   return (
                     <tr
@@ -989,13 +1004,24 @@ function AnalyticsPageContent() {
         )}
       </div>
 
-      {/* 2026-05-03: removed inline MonthDetailSheet from /analytics.
-          The drilldown UX now consistently routes to /dashboard/cash-flow
-          ?month=YYYY-MM where the inline period-detail breakdown
-          (KPI cards + Income/Expenses by Category/Merchant + Sadaqah)
-          provides the proper Monarch-style "click a bar, see the
-          period detail in place" experience. The sheet is still used
-          by /dashboard/summary for that page's drilldown affordance. */}
+      {/* 2026-05-03 (Step 5): in-page drilldown panel. Renders only
+          when the user has clicked a month/quarter/year on the chart
+          or table above. The InlineMonthBreakdown component fetches
+          /api/cashflow/breakdown for the selected month and lays out
+          a 4-stat KPI strip + Income/Expenses/Sadaqah three-column
+          breakdown — exact same shape as the Cash Flow page's per-
+          month panel, just embedded here so the user keeps their
+          context. The "View full Cash Flow →" link inside the panel
+          takes power-users to /dashboard/cash-flow if they want the
+          broader 13-month view. */}
+      {selectedMonth && (
+        <div id="analytics-month-breakdown">
+          <InlineMonthBreakdown
+            month={selectedMonth}
+            onClose={() => setSelectedMonth('')}
+          />
+        </div>
+      )}
     </div>
   );
 }
