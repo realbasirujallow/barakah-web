@@ -104,8 +104,10 @@ export function BankLogo({
   const px = Math.min(64, Math.round(size * 2));
   const upstream = encodeURIComponent(`https://${domain}`);
   const url = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${upstream}&size=${px}`;
-  // eslint-disable-next-line @next/next/no-img-element — external CDN, sized fixed
+  // External CDN logo at fixed 32-64px — next/image's loader pipeline
+  // would add overhead for no benefit, so plain <img> is correct here.
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={url}
       alt={`${institutionName} logo`}
