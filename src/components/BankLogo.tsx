@@ -94,11 +94,16 @@ export function BankLogo({
     );
   }
 
-  // 2026-05-04: switched from logo.clearbit.com to Google's favicon
-  // service. Clearbit's free tier returns 503 under any meaningful
-  // traffic; Google's S2 service is rock-solid + free + no API key.
-  // Resolution caps at 64px but that's plenty for a 32px row avatar.
-  const url = `https://www.google.com/s2/favicons?sz=${Math.min(64, Math.round(size * 2))}&domain=${domain}`;
+  // 2026-05-04 (3rd-iteration): use Google's faviconV2 endpoint on
+  // gstatic.com — returns clean 64x64 PNGs.
+  //   • Clearbit's free tier 503's under load
+  //   • google.com/s2/favicons 301-redirects to a HTML interstitial
+  //   • t0.gstatic.com/faviconV2 returns a real PNG, every time
+  // No API key, no rate limits in practice. URL-encoding the upstream
+  // domain because the param value has its own scheme.
+  const px = Math.min(64, Math.round(size * 2));
+  const upstream = encodeURIComponent(`https://${domain}`);
+  const url = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${upstream}&size=${px}`;
   // eslint-disable-next-line @next/next/no-img-element — external CDN, sized fixed
   return (
     <img
