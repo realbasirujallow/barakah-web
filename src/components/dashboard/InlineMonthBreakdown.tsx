@@ -88,7 +88,11 @@ export function InlineMonthBreakdown({ month, onClose }: InlineMonthBreakdownPro
   const totals = data?.totals ?? {};
   const income = totals.income ?? 0;
   const expenses = totals.expenses ?? 0;
-  const savings = totals.savings ?? (income - expenses - (totals.sadaqahZakat ?? 0));
+  // Backend returns expenses INCLUSIVE of sadaqah/zakat as of 2026-05-04
+  // (founder feedback: "charity/sadaqah/zakat taken out should be an
+  // expense"). Savings is therefore just income − expenses; no extra
+  // sadaqah subtraction.
+  const savings = totals.savings ?? (income - expenses);
   const savingsRate = income > 0 ? Math.round((savings / income) * 100) : 0;
 
   const sections = useMemo(() => ([

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import {
-  AlertTriangle, Clock, Receipt, Tags, Banknote, PieChart, Sparkles,
+  AlertTriangle, Clock, Receipt, Tags, Banknote, PieChart, Target,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -164,7 +164,7 @@ function buildAdvice(p: AdviceQueueProps): Advice[] {
     advice.push({
       id: 'set-budget',
       severity: 'suggestion',
-      icon: Sparkles,
+      icon: Target,
       title: 'Set your first budget',
       body: 'Cap spending in your top categories so the numbers tell you when you’re drifting.',
       href: '/dashboard/budget',
