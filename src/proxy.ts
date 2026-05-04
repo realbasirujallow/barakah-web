@@ -99,12 +99,11 @@ function buildCspHeaders(): { nonce?: string; csp?: string } {
     // fallback — modern browsers ignore it when a nonce is present.
     `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' https: http:`,
     "style-src 'self' 'unsafe-inline'",
-    // 2026-05-04: + logo.clearbit.com for the BankLogo component on
-    // /dashboard/transactions. Mirror of the same line in
-    // next.config.ts — the proxy.ts middleware overrides
-    // next.config.ts's static CSP at runtime to inject a per-request
-    // nonce, so the allowlist has to be duplicated here.
-    "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://logo.clearbit.com",
+    // 2026-05-04: + www.google.com (favicon API) for the BankLogo
+    // component on /dashboard/transactions. We tried logo.clearbit.com
+    // first but their free tier returns 503 under any meaningful
+    // traffic. Google's S2 favicon service is rock-solid + free.
+    "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://www.google.com",
     "font-src 'self'",
     // 2026-05-02: api.aladhan.com + nominatim.openstreetmap.org removed
     // alongside the prayer-times surface deletion (PR #86).

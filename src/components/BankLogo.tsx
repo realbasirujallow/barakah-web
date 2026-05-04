@@ -94,7 +94,11 @@ export function BankLogo({
     );
   }
 
-  const url = `https://logo.clearbit.com/${domain}?size=${Math.round(size * 2)}`;
+  // 2026-05-04: switched from logo.clearbit.com to Google's favicon
+  // service. Clearbit's free tier returns 503 under any meaningful
+  // traffic; Google's S2 service is rock-solid + free + no API key.
+  // Resolution caps at 64px but that's plenty for a 32px row avatar.
+  const url = `https://www.google.com/s2/favicons?sz=${Math.min(64, Math.round(size * 2))}&domain=${domain}`;
   // eslint-disable-next-line @next/next/no-img-element — external CDN, sized fixed
   return (
     <img
