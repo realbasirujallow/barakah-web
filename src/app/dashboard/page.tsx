@@ -13,6 +13,7 @@ import { PRICING } from '../../lib/pricing';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { KpiCard, KpiChange, KpiSkeleton } from '../../components/dashboard/KpiCard';
 import { SpendingDrillDown } from '../../components/dashboard/SpendingDrillDown';
+import { NetWorthDrilldown } from '../../components/dashboard/NetWorthDrilldown';
 import { PeriodPicker, type Period } from '../../components/dashboard/PeriodPicker';
 import { GettingStartedChecklist, type GettingStartedItem } from '../../components/dashboard/GettingStartedChecklist';
 import { DailyRitual, buildRitualItems } from '../../components/dashboard/DailyRitual';
@@ -83,6 +84,11 @@ export default function DashboardPage() {
   // onboarding" before the correct value was hydrated. Pattern: start
   // false (SSR-safe), hydrate in a useEffect.
   const [hideNetWorth, setHideNetWorth] = useState(false);
+  // 2026-05-03 (Step 6): inline net-worth drilldown — when the user
+  // clicks "What changed?" on the Net Worth KPI footer, expand the
+  // NetWorthDrilldown panel below the KPI grid showing assets/debts
+  // by category + 1-month deltas on the totals.
+  const [netWorthDrilldownOpen, setNetWorthDrilldownOpen] = useState(false);
   const [hideZakat, setHideZakat] = useState(false);
   const [hijri, setHijri] = useState<HijriData | null>(null);
   const [hawlDue, setHawlDue] = useState<HawlDue | null>(null);
@@ -778,11 +784,26 @@ export default function DashboardPage() {
           }
           footer={
             !hideNetWorth ? (
-              <KpiChange
-                amount={widgets?.netWorthMini?.changeAmount}
-                percent={widgets?.netWorthMini?.changePercent}
-                format={fmt}
-              />
+              <div className="flex items-center justify-between gap-2">
+                <KpiChange
+                  amount={widgets?.netWorthMini?.changeAmount}
+                  percent={widgets?.netWorthMini?.changePercent}
+                  format={fmt}
+                />
+                {/* 2026-05-03 (Step 6): "What changed?" toggle expands an
+                    inline NetWorthDrilldown panel below the KPI grid. */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setNetWorthDrilldownOpen(v => !v);
+                  }}
+                  className="text-[10px] text-primary hover:underline whitespace-nowrap font-medium"
+                >
+                  {netWorthDrilldownOpen ? 'Hide details' : "What changed?"}
+                </button>
+              </div>
             ) : null
           }
           // Sparkline trend over the last N days from the existing
@@ -853,6 +874,17 @@ export default function DashboardPage() {
         </>
         )}
       </div>
+
+      {/* 2026-05-03 (Step 6): in-page net-worth drilldown panel. Renders
+          only when the user has clicked "What changed?" in the Net
+          Worth KPI footer above. Shows assets/debts by category +
+          1-month deltas on the totals so the user can answer
+          "what moved my net worth this month" without leaving the
+          dashboard. */}
+      <NetWorthDrilldown
+        expanded={netWorthDrilldownOpen}
+        onClose={() => setNetWorthDrilldownOpen(false)}
+      />
 
       {/* Phase 12.3 — More-details disclosure.
           Above-fold (Daily Ritual + OVERVIEW + KPI summary + Quick
