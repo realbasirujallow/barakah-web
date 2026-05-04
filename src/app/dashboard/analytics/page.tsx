@@ -607,6 +607,19 @@ function AnalyticsPageContent() {
         )}
       </div>
 
+      {/* 2026-05-04: drilldown panel sits IMMEDIATELY below the chart that
+          fires it (Monarch parity — frame f_022). Was rendered at the very
+          bottom of the page before, which forced the user to scroll past
+          the secondary charts to see the result of their click. */}
+      {selectedMonth && (
+        <div id="analytics-month-breakdown" className="mb-6">
+          <InlineMonthBreakdown
+            month={selectedMonth}
+            onClose={() => setSelectedMonth('')}
+          />
+        </div>
+      )}
+
       {/* Charts Row 1: Overview Bar + Period Comparison */}
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         {/* Income vs Expense Bar */}
@@ -1004,24 +1017,6 @@ function AnalyticsPageContent() {
         )}
       </div>
 
-      {/* 2026-05-03 (Step 5): in-page drilldown panel. Renders only
-          when the user has clicked a month/quarter/year on the chart
-          or table above. The InlineMonthBreakdown component fetches
-          /api/cashflow/breakdown for the selected month and lays out
-          a 4-stat KPI strip + Income/Expenses/Sadaqah three-column
-          breakdown — exact same shape as the Cash Flow page's per-
-          month panel, just embedded here so the user keeps their
-          context. The "View full Cash Flow →" link inside the panel
-          takes power-users to /dashboard/cash-flow if they want the
-          broader 13-month view. */}
-      {selectedMonth && (
-        <div id="analytics-month-breakdown">
-          <InlineMonthBreakdown
-            month={selectedMonth}
-            onClose={() => setSelectedMonth('')}
-          />
-        </div>
-      )}
     </div>
   );
 }

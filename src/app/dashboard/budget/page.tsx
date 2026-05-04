@@ -353,9 +353,11 @@ export default function BudgetPage() {
                 {rolled > 0 && (
                   // Show the carry-over breakdown so users understand
                   // why their effective limit isn't a round number.
-                  <p className="text-[11px] text-gray-500 mt-1">
-                    Includes <span className="font-medium text-emerald-700">{fmt(rolled)}</span> rolled over from last month
-                    <span className="text-gray-400"> ({fmt(b.monthlyLimit)} base + {fmt(rolled)})</span>
+                  // gray-700/600 auto-map to lighter shades in dark via globals.css.
+                  // Emerald has no auto-map, so dark:text-emerald-400 is set explicitly.
+                  <p className="text-xs text-gray-700 mt-1.5">
+                    Includes <span className="font-semibold text-emerald-700 dark:text-emerald-400">{fmt(rolled)}</span> rolled over from last month
+                    <span className="text-gray-600"> ({fmt(b.monthlyLimit)} base + {fmt(rolled)})</span>
                   </p>
                 )}
               </div>
