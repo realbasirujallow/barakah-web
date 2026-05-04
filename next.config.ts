@@ -80,11 +80,11 @@ const csp = [
   // Styles: inline allowed (Tailwind + Recharts inject styles at runtime)
   "style-src 'self' 'unsafe-inline'",
   // Images: self + data URIs (chart gradients/icons) + blobs (PDF previews) + GA4
-  // 2026-05-04: + logo.clearbit.com for the BankLogo component on
-  // /dashboard/transactions (Chase / Wells Fargo / etc. brand logos
-  // on transaction rows). Clearbit serves PNG logos by domain at no
-  // cost, no API key.
-  "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://logo.clearbit.com",
+  // 2026-05-04: + www.google.com (favicon API) for the BankLogo
+  // component on /dashboard/transactions (Chase / Wells Fargo / etc.
+  // brand logos via Google's S2 favicon service). Tried Clearbit
+  // first — their free tier 503's under load.
+  "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://www.google.com",
   // Fonts: self only (no external font CDN used)
   "font-src 'self'",
   // Connections: backend proxy + PostHog analytics (proxied through /ingest) + GA4.
