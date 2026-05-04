@@ -18,6 +18,7 @@ import { trackFeatureUse } from '../../../lib/analytics';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { prettifyDescription } from '../../../lib/prettifyDescription';
+import { BankLogo } from '../../../components/BankLogo';
 
 // ── Supported currencies ──────────────────────────────────────────────────────
 const CURRENCIES = [
@@ -956,6 +957,15 @@ export default function TransactionsPage() {
                     onChange={() => toggleSelect(tx.id)} onClick={e => e.stopPropagation()}
                     aria-label={`Select ${tx.description || tx.category}`}
                     className="w-4 h-4 accent-[#1B5E20] rounded flex-shrink-0" />
+                )}
+                {/* 2026-05-03 (Step 4): bank logo for the institution
+                    that originated this transaction. Falls back to an
+                    initial bubble when there's no domain match. */}
+                {!selectMode && (
+                  <BankLogo
+                    institutionName={tx.sourceInstitutionName}
+                    size={32}
+                  />
                 )}
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
