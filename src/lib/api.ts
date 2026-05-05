@@ -1324,6 +1324,40 @@ export const api = {
       {}, API_TIMEOUT, true,
     ),
 
+  // 2026-05-05: admin user-edits-on-behalf-of-user. Founder ask:
+  // "Admin has to be very robust — most users will need help and
+  // can't do these items themselves." Endpoints below let support
+  // staff fix mis-categorized transactions, correct asset values,
+  // and scroll the full lifecycle journey for one user. Matching
+  // PUT /admin/users/{id}/transactions/{txnId} +
+  // PUT /admin/users/{id}/assets/{assetId} +
+  // GET /admin/users/{id}/journey on the backend.
+  adminGetUserJourney: (userId: number, limit = 100, offset = 0) =>
+    apiFetch(
+      `/admin/users/${userId}/journey?limit=${limit}&offset=${offset}`,
+      {}, API_TIMEOUT, true,
+    ),
+  adminGetUserAssets: (userId: number) =>
+    apiFetch(`/admin/users/${userId}/assets`, {}, API_TIMEOUT, true),
+  adminUpdateUserAsset: (userId: number, assetId: number, patch: Record<string, unknown>) =>
+    apiFetch(
+      `/admin/users/${userId}/assets/${assetId}`,
+      { method: 'PUT', body: JSON.stringify(patch) },
+      API_TIMEOUT, true,
+    ),
+  adminUpdateUserTransaction: (userId: number, txnId: number, patch: Record<string, unknown>) =>
+    apiFetch(
+      `/admin/users/${userId}/transactions/${txnId}`,
+      { method: 'PUT', body: JSON.stringify(patch) },
+      API_TIMEOUT, true,
+    ),
+  adminDeleteUserTransaction: (userId: number, txnId: number) =>
+    apiFetch(
+      `/admin/users/${userId}/transactions/${txnId}`,
+      { method: 'DELETE' },
+      API_TIMEOUT, true,
+    ),
+
   /** R37 (2026-04-30): admin drilldown — list one user's zakat payments. */
   adminGetUserZakatPayments: (userId: number, limit = 100) =>
     apiFetch(

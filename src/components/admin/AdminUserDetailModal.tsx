@@ -326,16 +326,35 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
           {/* User Activity Summary */}
           {userActivity && (
             <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Account Activity</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Account Activity</p>
+                {/* 2026-05-05: prominent shortcut into the full lifecycle
+                    timeline. The activity counts above are a snapshot —
+                    Journey is the chronological story (signup, plan
+                    changes, payment events, milestones). */}
+                <button
+                  type="button"
+                  onClick={() => setDrilldown('journey')}
+                  className="px-2.5 py-1 text-[11px] font-semibold border border-emerald-300 text-emerald-700 rounded-full hover:bg-emerald-100 transition"
+                  aria-label={`View lifecycle journey for ${selected.email}`}
+                >
+                  View Journey →
+                </button>
+              </div>
               <div className="grid grid-cols-3 gap-2 text-center">
                 {ACTIVITY_COUNT_KEYS.map((key) => {
                   // R37 (2026-04-30): transactions + zakatPayments are
                   // clickable — opens AdminUserDrilldownSheet with the
                   // actual rows. Other counts are not clickable yet
                   // (would need their own backend list endpoints).
+                  // 2026-05-05: assets is now clickable (drilldown lists
+                  // user assets with inline edit so admin can correct
+                  // typo'd values / wrong type without the user having
+                  // to delete and re-add).
                   const drilldownKind: DrilldownKind | null =
                     key === 'transactions' ? 'transactions' :
-                    key === 'zakatPayments' ? 'zakatPayments' : null;
+                    key === 'zakatPayments' ? 'zakatPayments' :
+                    key === 'assets' ? 'assets' : null;
                   const value = typeof userActivity[key] === 'number' ? userActivity[key] : null;
                   const isInteractive = drilldownKind !== null && (value ?? 0) > 0;
                   const cellClasses = `bg-white rounded-lg p-2 ${
