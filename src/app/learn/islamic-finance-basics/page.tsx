@@ -381,7 +381,7 @@ export default function IslamicFinanceBasicsPage() {
             <div className="bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] rounded-xl p-8 text-white mt-12 space-y-4">
               <h2 className="text-2xl font-bold">Start Your Islamic Finance Journey</h2>
               <p className="text-green-100">
-                Use Barakah to calculate your zakat, screen halal investments, and manage your wealth according to Islamic principles.
+                Use Barakah to calculate your zakat, screen halal stocks, and manage your wealth according to Islamic principles.
               </p>
               <Link
                 href="/signup"

@@ -25,7 +25,12 @@ import { PRICING } from '../lib/pricing';
 // Phase 20 (Apr 30 2026): hero locked. Picked the most concrete of the
 // three drafts — names what the product actually does, in the order
 // users typically reach for it. Other drafts kept in git history.
-const HERO_LINE = 'Calculate zakat. Screen halal. Plan your Islamic estate.';
+// 2026-05-06: was "Screen halal." — the bare adjective made readers ask
+// "screen what for halal?" Founder report: people kept asking. Fixed to
+// "Screen halal stocks." which (a) names the object, (b) matches the
+// "halal stock screener" search keyword the /halal-stocks page targets,
+// (c) keeps the same 3-3-3 verb-phrase rhythm of the hero.
+const HERO_LINE = 'Calculate zakat. Screen halal stocks. Plan your Islamic estate.';
 
 // Phase 20 (Apr 30 2026): three crafted product mockups. Each mockup is
 // a tiny React component that renders Tailwind cards mimicking the real
