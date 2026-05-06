@@ -247,6 +247,42 @@ function BillingContent() {
   const currentPlan = status?.plan || 'free';
   const isPastDue   = status?.status === 'past_due';
   const isCanceled  = status?.status === 'canceled';
+  const isTrialing  = status?.status === 'trialing' || status?.status === 'trial';
+
+  // 2026-05-05 (P2 audit): "skip trial and pay now". Two paths handled by
+  // the backend — Stripe-trial users get billed immediately via
+  // subscription.update(trial_end=now); onboarding-trial users (no Stripe
+  // sub) get a checkout URL with skipTrial=true.
+  const handlePayNow = async () => {
+    if (loading) return;
+    setLoading('pay-now');
+    try {
+      const result = (await api.endTrialNow()) as
+        | { success?: boolean; path?: string; status?: string; url?: string; error?: string };
+      if (result?.error) {
+        toast(result.error, 'error');
+        setLoading(null);
+        return;
+      }
+      if (result?.path === 'checkout_required' && typeof result.url === 'string') {
+        if (validateStripeUrl(result.url)) {
+          window.location.href = result.url;
+          return;
+        }
+        toast('Invalid Stripe URL. Please contact support.', 'error');
+        setLoading(null);
+        return;
+      }
+      // Stripe-trial path: subscription.update succeeded, status flipped.
+      setStatus(prev => prev ? { ...prev, status: result?.status || 'active' } : prev);
+      await refreshPlan();
+      toast('Trial ended. Your plan is now active.', 'success');
+      setLoading(null);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to start billing. Please try again.', 'error');
+      setLoading(null);
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -290,6 +326,35 @@ function BillingContent() {
         <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-4 mb-6 flex items-center gap-3">
           <span className="text-2xl">ℹ️</span>
           <p className="text-sm">Checkout was canceled — no charge was made.</p>
+        </div>
+      )}
+
+      {/* 2026-05-05 (P2 audit): trial users can skip the trial and start
+          billing right now. Useful for users who decide they're sure about
+          the plan and want to lock in continuous access without watching
+          the countdown. */}
+      {isTrialing && !statusLoading && (
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl" aria-hidden="true">🎯</span>
+            <div>
+              <p className="font-semibold text-blue-900 text-sm sm:text-base">
+                You&apos;re on a {currentPlan === 'family' ? 'Family' : 'Plus'} trial
+              </p>
+              <p className="text-xs text-blue-800/80 mt-0.5">
+                Want to skip the rest of the trial and lock in your plan now? You&apos;ll be billed immediately and there&apos;s no extra fee.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handlePayNow}
+            disabled={loading === 'pay-now'}
+            className="rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold px-4 py-2.5 disabled:opacity-60 whitespace-nowrap"
+            data-testid="billing-pay-now"
+          >
+            {loading === 'pay-now' ? 'Starting…' : 'Skip trial · Pay now'}
+          </button>
         </div>
       )}
 

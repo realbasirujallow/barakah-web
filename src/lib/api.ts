@@ -1711,6 +1711,35 @@ export const api = {
   openPortal: () =>
     apiFetch('/api/stripe/portal', { method: 'POST', body: JSON.stringify({}) }),
 
+  /**
+   * Cancel an active trial without going through the Stripe Customer Portal
+   * (which is awkward for users who never entered a payment method). Backend
+   * returns 409 if the user isn't actually in a trial state. On success the
+   * caller should refresh /api/stripe/status — the user's plan is now 'free'.
+   */
+  cancelTrial: () =>
+    apiFetch('/api/stripe/cancel-trial', { method: 'POST', body: JSON.stringify({}) }),
+
+  /**
+   * Skip the remaining trial and start billing immediately. Backend handles
+   * two paths internally:
+   *   • Stripe-trial user: subscription.update with trial_end=now → returns
+   *     { success, path: 'stripe_update', status }.
+   *   • Onboarding-trial user (no Stripe sub yet): backend creates a
+   *     skipTrial=true checkout session → returns { success, path:
+   *     'checkout_required', url }. Caller redirects to that url.
+   * Optional plan/billing args let a Family-trial user pay early on the Plus
+   * tier (or vice versa) — default is the user's current plan + monthly.
+   */
+  endTrialNow: (options?: { plan?: 'plus' | 'family'; billing?: 'monthly' | 'yearly' }) =>
+    apiFetch('/api/stripe/end-trial-now', {
+      method: 'POST',
+      body: JSON.stringify({
+        plan: options?.plan,
+        billing: options?.billing,
+      }),
+    }),
+
   /** Aggregated dashboard widget data (spending, budget, transactions, bills, net worth). */
   // R14: mount-fired on /dashboard — suppress 401 default.
   getDashboardWidgets: (suppressUnauthorized = true) =>
