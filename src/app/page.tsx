@@ -150,7 +150,7 @@ const OUTCOME_BLOCKS: Array<{
   {
     eyebrow: 'For zakat',
     headline: 'Calculate zakat in 60 seconds',
-    body: 'Add cash, gold, stocks, crypto. Barakah applies the live nisab threshold (gold or silver, your choice), tracks the lunar year, and tells you exactly when zakat is due. Four madhabs supported. No spreadsheets. No guessing.',
+    body: 'Add cash, gold, stocks, crypto. Barakah applies the live nisab threshold (gold or silver, your choice), tracks the lunar year, and shows your estimated zakat obligation with the date it’s likely due — verify with your scholar before paying. Four madhabs supported. No spreadsheets. No guessing.',
     cta: { label: 'Try the free calculator →', href: '/zakat-calculator' },
     mockup: <ZakatMockup />,
     icon: Coins,
