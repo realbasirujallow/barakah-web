@@ -205,26 +205,6 @@ function AnalyticsPageContent() {
       <PageHeader
         title="Analytics"
         subtitle="Income vs spending trends across periods, with halal/haram breakdowns"
-        actions={
-          <div className="flex gap-2" role="tablist" aria-label="Period selection">
-            {periods.map((p) => (
-              <button
-                key={p.value}
-                onClick={() => setPeriod(p.value)}
-                role="tab"
-                aria-selected={period === p.value}
-                aria-label={`Select ${p.label}`}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  period === p.value
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-white text-primary border border-green-200 hover:bg-green-50'
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-        }
       />
 
       {/* KPI Cards */}
@@ -252,7 +232,7 @@ function AnalyticsPageContent() {
 
       {/* Month-over-Month section */}
       <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <div>
             <h2 className="text-lg font-semibold text-primary">Month-over-Month</h2>
             <p className="text-xs text-gray-500 mt-0.5">Last 13 months — income vs spending trends</p>
@@ -279,15 +259,60 @@ function AnalyticsPageContent() {
           </div>
         </div>
 
+        {/* Period selector — sits directly under the M-o-M header per
+            founder feedback: KPI cards on top reflect the picked period,
+            so the picker belongs visually adjacent to the trend chart
+            it steers, not floating in the page header. */}
+        <div className="flex flex-wrap gap-2 mb-4" role="tablist" aria-label="Period selection">
+          {periods.map((p) => (
+            <button
+              key={p.value}
+              onClick={() => setPeriod(p.value)}
+              role="tab"
+              aria-selected={period === p.value}
+              aria-label={`Select ${p.label}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                period === p.value
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-white text-primary border border-green-200 hover:bg-green-50'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
         {/* MoM change badge + drill-down hint */}
         <div className="flex flex-wrap items-center gap-3 mb-4">
-          {monthlyData.length >= 2 && (
-            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
-              momChange <= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-            }`}>
-              {momChange <= 0 ? '↓' : '↑'} Expenses {momChange <= 0 ? 'down' : 'up'} {momPct.replace(/^[<>-]/, '')}% vs last month
-            </div>
-          )}
+          {monthlyData.length >= 2 && (() => {
+            // 2026-05-06 (PC-1): when the current month has $0 in expenses,
+            // we used to show "↓ Expenses down 100% vs last month" which
+            // reads to a brand-new user as a confusing brag. Render a
+            // friendlier empty-state instead.
+            const currExp = monthlyData[monthlyData.length - 1].expenses;
+            const prevExp = monthlyData[monthlyData.length - 2].expenses;
+            if (currExp === 0 && prevExp > 0) {
+              return (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-gray-50 text-gray-700">
+                  No spending yet this month — add a transaction to start the trend
+                </div>
+              );
+            }
+            if (currExp === 0 && prevExp === 0) {
+              return (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-gray-50 text-gray-700">
+                  → No spending recorded yet
+                </div>
+              );
+            }
+            return (
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
+                momChange <= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+              }`}>
+                {momChange <= 0 ? '↓' : '↑'} Expenses {momChange <= 0 ? 'down' : 'up'} {momPct.replace(/^[<>-]/, '')}% vs last month
+              </div>
+            );
+          })()}
           <span className="text-xs text-gray-500">
             Tap any bar to drill into the full breakdown by category &amp; merchant →
           </span>

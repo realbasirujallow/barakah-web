@@ -1379,6 +1379,31 @@ export const api = {
     apiFetch(`/admin/users/${userId}/email-queue/unstick`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   adminGetUserHawlReport: (userId: number) =>
     apiFetch(`/admin/users/${userId}/hawl-report`, {}, API_TIMEOUT, true),
+
+  // ── Founder-CRM admin notes (2026-05-06) ───────────────────────────────
+  // Per-user notes (timeline view inside AdminUserDetailModal) +
+  // cross-user search by tag (/dashboard/admin/notes page) +
+  // tag-frequency aggregate (scorecard widget).
+  adminGetUserNotes: (userId: number, page = 0, size = 50) =>
+    apiFetch(`/admin/users/${userId}/notes?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
+  adminCreateUserNote: (userId: number, text: string, tags: string[]) =>
+    apiFetch(
+      `/admin/users/${userId}/notes`,
+      { method: 'POST', body: JSON.stringify({ text, tags }) },
+      API_TIMEOUT,
+      true,
+    ),
+  adminDeleteNote: (noteId: number) =>
+    apiFetch(`/admin/notes/${noteId}`, { method: 'DELETE' }, API_TIMEOUT, true),
+  adminListNotesByTag: (tag?: string, days = 365, limit = 200) => {
+    const qs = new URLSearchParams();
+    if (tag) qs.set('tag', tag);
+    qs.set('days', String(days));
+    qs.set('limit', String(limit));
+    return apiFetch(`/admin/notes?${qs.toString()}`, {}, API_TIMEOUT, true);
+  },
+  adminGetNoteTagFrequency: (days = 30) =>
+    apiFetch(`/admin/notes/tag-frequency?days=${days}`, {}, API_TIMEOUT, true),
   adminGetDeletedUsers: (page = 0, size = 50) =>
     apiFetch(`/admin/deleted-users?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
   adminGetChurnAnalysis: () =>

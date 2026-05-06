@@ -227,13 +227,36 @@ export default function HomeV2() {
       {/* ── 2. Trust strip (logos + ratings) ──────────────────────────── */}
       <section className="bg-white py-6 px-6 border-y border-gray-100">
         <div className="max-w-5xl mx-auto flex items-center justify-center gap-6 flex-wrap text-xs text-gray-500">
-          <span className="flex items-center gap-1.5"><span className="text-amber-400">★★★★★</span> 4.9 on App Store</span>
+          <span>No credit card trial</span>
           <span>·</span>
           <span>iOS &amp; Android</span>
           <span>·</span>
           <span>4 madhabs supported</span>
           <span>·</span>
-          <span>Built by a halal-finance founder</span>
+          <span>Secure bank sync via Plaid</span>
+        </div>
+      </section>
+
+      <section className="bg-[#FFF8E1] px-6 py-10 border-b border-amber-100">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-center text-xs uppercase tracking-wider text-[#1B5E20] font-semibold mb-5">
+            First-session wins
+          </p>
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              ['1', 'Estimate zakat', 'Use the free calculator before connecting a bank.'],
+              ['2', 'Add one money habit', 'Create a budget, savings goal, or recurring bill.'],
+              ['3', 'Upgrade only if it helps', 'Your Plus trial starts with no card required.'],
+            ].map(([num, title, body]) => (
+              <div key={title} className="bg-white border border-amber-100 rounded-xl p-4 text-left">
+                <div className="w-7 h-7 rounded-full bg-[#1B5E20] text-white text-sm font-bold flex items-center justify-center mb-3">
+                  {num}
+                </div>
+                <h3 className="font-bold text-gray-900 mb-1">{title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -277,7 +300,7 @@ export default function HomeV2() {
       <section id="pricing" className="bg-[#FFF8E1] py-16 px-6">
         <div className="max-w-5xl mx-auto text-center mb-10">
           <h2 className="text-3xl font-bold text-[#1B5E20] mb-2">Simple pricing, halal-first</h2>
-          <p className="text-gray-700">Start free. Upgrade when you&apos;re ready. Cancel anytime.</p>
+          <p className="text-gray-700">Start free. Try Plus without a card. Upgrade when Barakah becomes part of your household routine.</p>
         </div>
         <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5">
           <div className="bg-white rounded-2xl p-6 border border-gray-200">

@@ -23,6 +23,7 @@ import { PRICING } from '../../lib/pricing';
 import type { AdminUser, ActivityCountKey, UserActivity, UsersResponse } from './adminTypes';
 import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDate, fmtDateTimeMs, fmtFullTs, daysUntil } from './adminFormatting';
 import AdminUserDrilldownSheet, { type DrilldownKind } from './AdminUserDrilldownSheet';
+import AdminUserNotesPanel from './AdminUserNotesPanel';
 
 export interface AdminUserDetailModalProps {
   selected: AdminUser;
@@ -669,6 +670,14 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
                 Delete User
               </button>
             )}
+          </div>
+
+          {/* 2026-05-06 — Founder-CRM notes panel. Captures conversation
+              colour the lifecycle event stream can't: "what made them
+              hesitate?" Tagged so the cross-user /dashboard/admin/notes
+              view can pull every note matching a tag. */}
+          <div className="mt-4">
+            <AdminUserNotesPanel userId={selected.id} toast={toast} />
           </div>
         </div>
       </div>

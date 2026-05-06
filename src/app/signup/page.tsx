@@ -431,14 +431,19 @@ function SignupContent() {
       return;
     }
 
-    if (!phoneNumber.trim()) {
-      setError('Phone number is required');
-      return;
-    }
     // Round 18: minimum digit count guards against obvious typos like
     // "555" or "123" while staying tolerant of international formats
     // (country code, spaces, dashes, parens). 7 digits = shortest
     // national number in any country (Vanuatu, Solomon Islands).
+    // Phone is required (founder rule: founder needs ability to reach
+    // users by phone for account issues — see feedback_phone_required_signup.md
+    // memory). Backend `@NotBlank` enforces the same. Min 7 digits guards
+    // against typos like "555" or "123" while staying tolerant of
+    // international formats.
+    if (!phoneNumber.trim()) {
+      setError('Please enter a phone number so we can reach you about your account');
+      return;
+    }
     if (phoneNumber.replace(/\D/g, '').length < 7) {
       setError('Please enter a valid phone number');
       return;
@@ -446,7 +451,7 @@ function SignupContent() {
 
     setLoading(true);
     try {
-      const result = await api.signup(name, email, password, state, country, referralCode.trim().toUpperCase() || undefined, phoneNumber.trim() || undefined);
+      const result = await api.signup(name, email, password, state, country, referralCode.trim().toUpperCase() || undefined, phoneNumber.trim());
       setEmailSent(result?.emailSent !== false);
       setSignupSuccess(true);
       // Track signup conversion in GA4
@@ -546,6 +551,15 @@ function SignupContent() {
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{error}</div>
           )}
+
+          <div className="mb-6 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+            <p className="text-sm font-semibold text-[#1B5E20] mb-2">Your first win takes about 2 minutes.</p>
+            <ol className="space-y-1 text-xs text-emerald-900 list-decimal list-inside">
+              <li>Create your account. No credit card or debit card.</li>
+              <li>Run a zakat estimate or add your first budget.</li>
+              <li>Upgrade only when Barakah is clearly useful.</li>
+            </ol>
+          </div>
 
           {/* Round 20: every label has a matching htmlFor → input id so
               screen readers associate them properly and clicking the
@@ -673,7 +687,7 @@ function SignupContent() {
 
           <div className="mb-4">
             <label htmlFor="signup-phone" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone number <span className="text-red-400">*</span>
+              Phone number <span className="text-red-500">*</span>
             </label>
             <input
               id="signup-phone"
@@ -685,7 +699,7 @@ function SignupContent() {
               maxLength={20}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
             />
-            <p className="text-xs text-gray-400 mt-1">So our team can reach you by phone if there&apos;s an issue with your account. We never share your number and never use it for marketing.</p>
+            <p className="text-xs text-gray-400 mt-1">So our team can reach you by phone if there&rsquo;s an issue with your account. We never share your number and never use it for marketing.</p>
           </div>
 
           <div>

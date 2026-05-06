@@ -6,20 +6,27 @@
  * setup flow, PlanGate component, and Flutter billing_screen.dart.
  * Keep ALL of these in sync when adding features.
  */
+// 2026-05-06 (conversion audit): yearlySaving copy now leads with absolute
+// dollars, with the percent in parentheses. Concrete dollars convert better
+// than percentages — "Save $20/yr" lands harder than "Save 17%" because the
+// reader doesn't have to do math on the yearly price to feel the value.
+// Math:
+//   Plus: $9.99 × 12 = $119.88 monthly cost; $99 yearly = $20.88 saved → ~$20.
+//   Family: $14.99 × 12 = $179.88 monthly cost; $119 yearly = $60.88 saved → ~$60.
 export const PRICING = {
   plus: {
     monthly: '$9.99',
     yearly: '$99',
     monthlyPeriod: '/mo',
     yearlyPeriod: '/year',
-    yearlySaving: 'Save 17%',
+    yearlySaving: 'Save $20/yr (17%)',
   },
   family: {
     monthly: '$14.99',
     yearly: '$119',
     monthlyPeriod: '/mo',
     yearlyPeriod: '/year',
-    yearlySaving: 'Save 34%',
+    yearlySaving: 'Save $60/yr (34%)',
   },
 } as const;
 

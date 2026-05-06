@@ -389,8 +389,9 @@ export default function TransactionsPage() {
     setDeleteConfirmation(null);
     try {
       await api.deleteTransaction(id);
+      setTxs(prev => prev.filter(t => t.id !== id));
       toast('Transaction deleted', 'success');
-      setPage(0);
+      load();
     } catch {
       toast('Failed to delete transaction', 'error');
     }

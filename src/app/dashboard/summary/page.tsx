@@ -459,15 +459,36 @@ export default function SummaryPage() {
       </div>
 
       {/* MoM badge */}
-      {monthly.length >= 2 && (
-        <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium mb-5 ${
-          momChange === 0 ? 'bg-gray-50 text-gray-700' : momChange < 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-        }`}>
-          {momChange === 0
-            ? <>→ Spending unchanged vs last month</>
-            : <>{momChange < 0 ? '↓ Spending down' : '↑ Spending up'} {momPct.replace(/^[<>-]/, '')}% vs last month</>}
-        </div>
-      )}
+      {monthly.length >= 2 && (() => {
+        // 2026-05-06 (PC-1): friendlier empty-state when the current month
+        // has $0 in expenses. The unconditional "↓ Spending down 100%"
+        // banner read as a confusing brag to new users.
+        const currExp = monthly[monthly.length - 1].expenses;
+        const prevExp = monthly[monthly.length - 2].expenses;
+        if (currExp === 0 && prevExp > 0) {
+          return (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium mb-5 bg-gray-50 text-gray-700">
+              No spending yet this month — add a transaction to start the trend
+            </div>
+          );
+        }
+        if (currExp === 0 && prevExp === 0) {
+          return (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium mb-5 bg-gray-50 text-gray-700">
+              → No spending recorded yet
+            </div>
+          );
+        }
+        return (
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium mb-5 ${
+            momChange === 0 ? 'bg-gray-50 text-gray-700' : momChange < 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+          }`}>
+            {momChange === 0
+              ? <>→ Spending unchanged vs last month</>
+              : <>{momChange < 0 ? '↓ Spending down' : '↑ Spending up'} {momPct.replace(/^[<>-]/, '')}% vs last month</>}
+          </div>
+        );
+      })()}
 
       {/* Trend chart */}
       {chartData.length > 0 && (

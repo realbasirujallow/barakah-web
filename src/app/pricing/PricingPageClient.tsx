@@ -35,6 +35,19 @@ export default function PricingPageClient() {
 
         <PricingToggle />
 
+        <section className="grid gap-4 md:grid-cols-3 mb-12">
+          {[
+            ['Free is real', 'Run a zakat estimate and start tracking money without a card.'],
+            ['Plus is the first upgrade', 'Bank sync, unlimited transactions, cash-flow, riba review, and halal screening live here.'],
+            ['Family is for households', 'Use it when shared budgets, family visibility, and estate continuity matter.'],
+          ].map(([title, body]) => (
+            <div key={title} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+              <h2 className="text-base font-bold text-gray-900 mb-2">{title}</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">{body}</p>
+            </div>
+          ))}
+        </section>
+
         <section className="mb-20">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-gray-900 mb-3">
