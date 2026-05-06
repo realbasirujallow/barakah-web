@@ -18,7 +18,7 @@ import { trackFeatureUse } from '../../../lib/analytics';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { prettifyDescription } from '../../../lib/prettifyDescription';
-import { BankLogo } from '../../../components/BankLogo';
+import { MerchantLogo } from '../../../components/MerchantLogo';
 
 // ── Supported currencies ──────────────────────────────────────────────────────
 const CURRENCIES = [
@@ -958,12 +958,18 @@ export default function TransactionsPage() {
                     aria-label={`Select ${tx.description || tx.category}`}
                     className="w-4 h-4 accent-[#1B5E20] rounded flex-shrink-0" />
                 )}
-                {/* 2026-05-03 (Step 4): bank logo for the institution
-                    that originated this transaction. Falls back to an
-                    initial bubble when there's no domain match. */}
+                {/* 2026-05-06 (founder report): row avatar shows the MERCHANT
+                    logo (Amazon, Costco, Starbucks…), NOT the issuing bank
+                    (Chase, Wells Fargo). Old keying on sourceInstitutionName
+                    made every Chase-card purchase look like a bank
+                    transaction. MerchantLogo tries merchant first
+                    (tx.merchantName, falling back to a prettified description),
+                    then institution as a last resort for bank-to-bank moves
+                    (Zelle, internal transfer), then the initial bubble. */}
                 {!selectMode && (
-                  <BankLogo
-                    institutionName={tx.sourceInstitutionName}
+                  <MerchantLogo
+                    merchantName={tx.merchantName ?? (tx.description ? prettifyDescription(tx.description) : null)}
+                    institutionFallback={tx.sourceInstitutionName}
                     size={32}
                   />
                 )}

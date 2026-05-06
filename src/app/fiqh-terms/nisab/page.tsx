@@ -53,7 +53,10 @@ export default function NisabTermPage() {
             <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20]">Nisab</h1>
             <span className="text-3xl text-gray-500" dir="rtl">نصاب</span>
           </div>
-          <p className="text-base text-gray-600 mb-6">Last reviewed: 2026-04-18</p>
+          <p className="text-base text-gray-600 mb-2">Last reviewed: 2026-04-18</p>
+          <p className="text-sm text-gray-600 mb-6">
+            See <Link href="/methodology" className="underline text-[#1B5E20] hover:text-[#0d3a14] font-medium">our methodology</Link> for how Barakah picks gold vs silver nisab and resolves madhab differences.
+          </p>
 
           <section className="mb-6 rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="text-lg font-bold text-[#1B5E20] mb-2">At a glance</h2>
