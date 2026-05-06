@@ -237,6 +237,13 @@ export default function ZakatCalculatorPage() {
           {/* Interactive Calculator Component */}
           <section className="mb-12">
             <Calculator />
+            <p className="text-center text-sm text-gray-600 mt-4">
+              This calculator is a Barakah estimate, not a fatwa. See our{' '}
+              <Link href="/methodology" className="underline text-[#1B5E20] hover:text-[#0d3a14] font-medium">
+                methodology
+              </Link>
+              {' '}for the rules, references, and madhab assumptions behind the numbers.
+            </p>
           </section>
 
           {/* How to Calculate Zakat - Step by Step */}

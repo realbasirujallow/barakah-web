@@ -1,0 +1,168 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+
+/**
+ * /about/founder
+ *
+ * Named-human trust signal. The overnight readiness audit flagged that
+ * Barakah cites scholarly references (AMJA, AAOIFI, etc.) honestly and
+ * keeps an honest empty Scholar Board, but the founder's own bio is
+ * absent. Readers extend trust to a named human more than to an
+ * abstract company; this page closes that gap.
+ *
+ * NOTE TO FOUNDER (Basiru): the placeholders below need real values.
+ * Don't ship the page until the bio, photo, and any Islamic-studies
+ * engagements are accurate. If a section is uncertain, leave the TODO
+ * and ship later — better to have an incomplete honest page than an
+ * embellished one.
+ */
+
+export const metadata: Metadata = {
+  title: 'Meet the Founder of Barakah | Basiru Jallow',
+  description:
+    'Barakah is built by a halal-finance founder. Read about Basiru Jallow — background, motivation, and accountability for the methodology behind every calculation.',
+  alternates: {
+    canonical: 'https://trybarakah.com/about/founder',
+  },
+  openGraph: {
+    title: 'Meet the Founder of Barakah | Basiru Jallow',
+    description: 'Why Barakah exists and who you are trusting with your fiqh-aware finances.',
+    url: 'https://trybarakah.com/about/founder',
+    siteName: 'Barakah',
+    type: 'profile',
+  },
+};
+
+export default function FounderPage() {
+  return (
+    <main className="flex-1">
+      <div className="max-w-3xl mx-auto px-6 py-10">
+        <nav className="text-sm text-gray-500 mb-6">
+          <Link href="/" className="hover:text-[#1B5E20]">Home</Link>
+          {' / '}
+          <Link href="/trust" className="hover:text-[#1B5E20]">Trust</Link>
+          {' / '}
+          <span className="text-gray-700">Founder</span>
+        </nav>
+
+        <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] mb-3">
+          Meet the founder
+        </h1>
+        <p className="text-base text-gray-600 mb-8">
+          Barakah is built by Basiru Jallow. Below is a public statement of who I
+          am and why this exists, so you know who you&apos;re trusting with the
+          methodology behind every zakat number.
+        </p>
+
+        <section className="bg-white rounded-2xl shadow-sm p-8 mb-8">
+          <div className="flex flex-col md:flex-row gap-6 items-start">
+            <div className="w-32 h-32 rounded-full bg-[#1B5E20]/10 flex items-center justify-center flex-shrink-0">
+              {/* TODO: replace with real founder photo. Use next/image with public/about/founder.jpg */}
+              <span className="text-4xl font-bold text-[#1B5E20]">BJ</span>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Basiru Jallow</h2>
+              <p className="text-sm text-gray-500 mt-1">Founder & engineer · Barakah</p>
+              <p className="text-base text-gray-700 mt-4">
+                {/* TODO: replace with real one-paragraph bio: background,
+                    education, professional history, why you started Barakah */}
+                A short personal bio goes here — background, education, professional
+                history, and the moment that made you decide a Muslim household
+                needed an honest financial OS.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white rounded-2xl shadow-sm p-8 mb-8">
+          <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">
+            Why Barakah exists
+          </h2>
+          <p className="text-base text-gray-700 mb-3">
+            {/* TODO: replace with the real "why now" story */}
+            Most personal-finance apps assume an interest-bearing world. Most
+            zakat tools are spreadsheets that don&apos;t track the lunar year.
+            Most Islamic-finance apps focus on one thing — investing, or
+            zakat, or budgeting — and leave the household to stitch them
+            together.
+          </p>
+          <p className="text-base text-gray-700">
+            Barakah exists to be the single trusted system where a Muslim
+            family budgets, tracks, purifies, gives, invests, and plans —
+            under the same fiqh assumptions, with explicit methodology.
+          </p>
+        </section>
+
+        <section className="bg-white rounded-2xl shadow-sm p-8 mb-8">
+          <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">
+            Islamic studies engagement
+          </h2>
+          <p className="text-base text-gray-700 mb-3">
+            {/* TODO: replace with real engagements — local imam reviews,
+                AMJA correspondence, courses taken, etc. Be honest:
+                "I am an engineer, not a scholar" is fine and trust-positive */}
+            I am an engineer, not a scholar. The methodology behind Barakah is
+            sourced from published references (AMJA, AAOIFI, classical texts) and
+            reviewed by qualified scholars on a per-feature basis as our{' '}
+            <Link href="/scholars" className="underline text-[#1B5E20]">
+              Scholar Board
+            </Link>
+            {' '}fills out (target: Q3 2026).
+          </p>
+          <p className="text-base text-gray-700">
+            Where there is scholarly disagreement, Barakah surfaces the
+            assumptions instead of hiding them — see our{' '}
+            <Link href="/methodology" className="underline text-[#1B5E20]">
+              methodology page
+            </Link>
+            .
+          </p>
+        </section>
+
+        <section className="bg-white rounded-2xl shadow-sm p-8 mb-8">
+          <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">
+            Accountability
+          </h2>
+          <p className="text-base text-gray-700 mb-3">
+            My name is on the site, the App Store listing, the Play Store listing,
+            and the company. If a calculation looks wrong, an Islamic finance claim
+            is overconfident, or a feature feels off, the buck stops with me.
+          </p>
+          <p className="text-base text-gray-700">
+            Reach me at{' '}
+            <a href="mailto:basiru@trybarakah.com" className="text-[#1B5E20] underline">
+              basiru@trybarakah.com
+            </a>
+            {' '}or via the in-app feedback form. I read every message.
+          </p>
+        </section>
+
+        <section className="bg-white rounded-2xl shadow-sm p-8 mb-8">
+          <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">
+            Where you can verify me
+          </h2>
+          <ul className="space-y-2 text-base text-gray-700">
+            {/* TODO: add LinkedIn, GitHub, X/Twitter, etc. — only links you
+                actually maintain. Don't link a dead profile. */}
+            <li>
+              <span className="text-gray-500">LinkedIn:</span>{' '}
+              <span className="text-gray-400 italic">{/* TODO: linkedin url */}coming soon</span>
+            </li>
+            <li>
+              <span className="text-gray-500">GitHub:</span>{' '}
+              <a href="https://github.com/realbasirujallow" className="text-[#1B5E20] underline">
+                github.com/realbasirujallow
+              </a>
+            </li>
+            <li>
+              <span className="text-gray-500">Email:</span>{' '}
+              <a href="mailto:basiru@trybarakah.com" className="text-[#1B5E20] underline">
+                basiru@trybarakah.com
+              </a>
+            </li>
+          </ul>
+        </section>
+      </div>
+    </main>
+  );
+}
