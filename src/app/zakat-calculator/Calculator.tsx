@@ -482,12 +482,12 @@ export default function Calculator() {
             >
               {calculations.meetsNisab ? (
                 <>
-                  <p className="text-sm text-gray-700 mb-2">Your Zakat Due (2.5%):</p>
+                  <p className="text-sm text-gray-700 mb-2">Your Estimated Zakat (2.5%):</p>
                   <p className="text-4xl font-bold text-green-700 mb-2">
                     ${calculations.zakatDue.toFixed(2)}
                   </p>
                   <p className="text-sm text-gray-600">
-                    You meet the nisab threshold and are obligated to pay zakat.
+                    You meet the nisab threshold based on your inputs. This is a Barakah estimate using {selectedMadhab.charAt(0).toUpperCase() + selectedMadhab.slice(1)} guidance — verify with a qualified scholar before paying. <Link href="/methodology" className="underline text-green-700 hover:text-green-800">See our methodology</Link>.
                   </p>
                 </>
               ) : (
