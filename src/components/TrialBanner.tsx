@@ -167,6 +167,29 @@ function TrialBannerInner({
     try { trackPaywallViewed('trial_banner'); } catch { /* GA4 unavailable */ }
   }, []);
 
+  // 2026-05-05 (P1 audit): give trial users a one-click "cancel trial" path.
+  // Previously the only way out was the Stripe Customer Portal, which is
+  // confusing for onboarding-trial users who never entered a payment method.
+  const [cancelling, setCancelling] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  async function handleCancelTrial() {
+    setCancelling(true);
+    try {
+      const result = (await api.cancelTrial()) as { success?: boolean; error?: string };
+      if (result?.error) {
+        alert(result.error);
+        setCancelling(false);
+        return;
+      }
+      // Reload so AuthContext refreshes user.plan / status everywhere.
+      window.location.reload();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to cancel trial. Please try again.');
+      setCancelling(false);
+    }
+  }
+
   const urgent = daysLeft <= 2;
   const containerCls = urgent
     ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-300'
@@ -200,6 +223,33 @@ function TrialBannerInner({
         >
           Keep {planLabel}
         </Link>
+        {!showConfirm ? (
+          <button
+            onClick={() => setShowConfirm(true)}
+            className="text-gray-600 hover:text-gray-800 text-xs underline whitespace-nowrap px-2"
+            data-testid="trial-banner-cancel"
+          >
+            Cancel trial
+          </button>
+        ) : (
+          <span className="flex items-center gap-1">
+            <button
+              onClick={handleCancelTrial}
+              disabled={cancelling}
+              className="bg-red-600 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-red-700 transition whitespace-nowrap disabled:opacity-50"
+              data-testid="trial-banner-cancel-confirm"
+            >
+              {cancelling ? 'Cancelling…' : 'Yes, cancel'}
+            </button>
+            <button
+              onClick={() => setShowConfirm(false)}
+              disabled={cancelling}
+              className="text-gray-500 hover:text-gray-700 text-xs px-2"
+            >
+              keep
+            </button>
+          </span>
+        )}
         <button
           onClick={onDismiss}
           aria-label="Dismiss trial banner for today"
