@@ -212,6 +212,14 @@ export default function FaraidCalculatorPage() {
             </div>
           </header>
 
+          <p className="text-center text-sm text-gray-600 mb-12 max-w-3xl mx-auto">
+            Faraid distributions on Barakah follow classical Sunni jurisprudence (Hanafi, Shafi&apos;i, Maliki, Hanbali) with AMJA-aligned guidance for contemporary cases. This is a planning aid — for a binding ruling on a specific estate, consult a qualified Islamic scholar or estate attorney. See our{' '}
+            <Link href="/methodology" className="underline text-[#1B5E20] hover:text-[#0d3a14] font-medium">
+              methodology
+            </Link>
+            {' '}for the rules and references behind every share calculation.
+          </p>
+
           {/* How Faraid Works */}
           <section className="bg-white rounded-xl shadow-md p-8 mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-8 pb-4 border-b border-gray-200">

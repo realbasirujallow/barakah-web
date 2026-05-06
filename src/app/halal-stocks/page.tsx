@@ -57,7 +57,14 @@ export default function HalalStocksHub() {
       <main className="flex-1">
         <div className="max-w-5xl mx-auto px-6 py-10">
           <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-[#1B5E20]">Halal Stocks — Live Screening</h1>
-          <p className="text-base text-gray-600 mb-6">Last reviewed: 2026-04-18 · AAOIFI methodology</p>
+          <p className="text-base text-gray-600 mb-2">Last reviewed: 2026-04-18 · AAOIFI methodology</p>
+          <p className="text-sm text-gray-600 mb-6">
+            Screening uses AAOIFI Standard 21 thresholds (debt &lt; 33%, interest income &lt; 5%, non-permissible income &lt; 5%). Some scholars apply stricter filters. Always verify before investing — see our{' '}
+            <Link href="/methodology" className="underline text-[#1B5E20] hover:text-[#0d3a14] font-medium">
+              full methodology
+            </Link>
+            .
+          </p>
 
           <section className="mb-8 rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="mb-3 text-2xl font-bold text-[#1B5E20]">The two-stage halal screen</h2>
