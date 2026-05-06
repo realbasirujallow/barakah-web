@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '../context/AuthContext';
 import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
@@ -299,14 +300,45 @@ export default function HomeV2() {
         </p>
       </section>
 
-      {/* ── 5. Founder note (kept verbatim from current homepage spirit) ── */}
+      {/* ── 5. Founder section — restored 2026-05-06.
+              Phase-20 v2 (Apr 30) stripped the photo + bio block in favour of
+              just a pull quote. Founder asked to put it back: the named-human
+              trust signal matters more than visual minimalism on a fintech
+              site asking for plan switches and bank linking. Bio text is
+              verbatim from the pre-phase-20 homepage. ───────────────── */}
       <section className="bg-white py-16 px-6">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-xs uppercase tracking-wider text-[#1B5E20] font-semibold mb-3">A note from the founder</p>
-          <p className="text-gray-700 italic leading-relaxed mb-4">
-            &ldquo;Barakah exists because every other money app forgot the Muslim household. Zakat is not a side feature; halal is not a filter. We&apos;re building the financial home our families actually need.&rdquo;
+        <div className="max-w-3xl mx-auto">
+          <p className="text-xs uppercase tracking-wider text-[#1B5E20] font-semibold mb-6 text-center">
+            Built by a halal-finance founder
           </p>
-          <p className="text-sm text-gray-500">— Basiru Jallow, founder</p>
+          <div className="flex flex-col sm:flex-row gap-6 items-start bg-gray-50 rounded-2xl p-8 border border-gray-200">
+            <div className="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-[#1B5E20]/20">
+              <Image
+                src="/basiru-jallow.png"
+                alt="Basiru Jallow"
+                width={96}
+                height={96}
+                className="w-full h-full object-cover"
+                priority
+              />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-gray-900 mb-1">Basiru Jallow</h3>
+              <p className="text-sm text-[#1B5E20] font-semibold mb-3">Founder &amp; Senior Security Engineer</p>
+              <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                10+ years in enterprise cybersecurity and identity governance. Former Senior SailPoint Developer at Deloitte GPS supporting the Social Security Administration, and cybersecurity lead at CBRE Group (Fortune 200). Full-stack engineer across Java, Python, TypeScript, and Flutter. Built Barakah to give Muslim households the same caliber of secure, well-engineered financial tools that Fortune 500 companies rely on — with security practices from the identity and access management industry.
+              </p>
+              <p className="text-gray-700 italic leading-relaxed text-sm mb-3 border-l-2 border-[#1B5E20]/30 pl-4">
+                &ldquo;Barakah exists because every other money app forgot the Muslim household. Zakat is not a side feature; halal is not a filter. We&apos;re building the financial home our families actually need.&rdquo;
+              </p>
+              <Link
+                href="/about/founder"
+                className="text-sm text-[#1B5E20] hover:text-[#0d3a14] font-medium underline"
+              >
+                Read the full founder story →
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 

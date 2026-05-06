@@ -1,20 +1,19 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 
 /**
  * /about/founder
  *
  * Named-human trust signal. The overnight readiness audit flagged that
  * Barakah cites scholarly references (AMJA, AAOIFI, etc.) honestly and
- * keeps an honest empty Scholar Board, but the founder's own bio is
- * absent. Readers extend trust to a named human more than to an
- * abstract company; this page closes that gap.
+ * keeps an honest empty Scholar Board, but the founder's own bio was
+ * stripped from the home page in phase-20 (Apr 30, homepage-v2). This
+ * page is the deeper version — the home page now has the photo + summary,
+ * this page has the longer story.
  *
- * NOTE TO FOUNDER (Basiru): the placeholders below need real values.
- * Don't ship the page until the bio, photo, and any Islamic-studies
- * engagements are accurate. If a section is uncertain, leave the TODO
- * and ship later — better to have an incomplete honest page than an
- * embellished one.
+ * Bio facts sourced from the pre-phase-20 home page (commit df66854,
+ * Apr 13). LinkedIn link still pending.
  */
 
 export const metadata: Metadata = {
@@ -56,19 +55,27 @@ export default function FounderPage() {
 
         <section className="bg-white rounded-2xl shadow-sm p-8 mb-8">
           <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-32 h-32 rounded-full bg-[#1B5E20]/10 flex items-center justify-center flex-shrink-0">
-              {/* TODO: replace with real founder photo. Use next/image with public/about/founder.jpg */}
-              <span className="text-4xl font-bold text-[#1B5E20]">BJ</span>
+            <div className="w-32 h-32 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-[#1B5E20]/20">
+              <Image
+                src="/basiru-jallow.png"
+                alt="Basiru Jallow"
+                width={128}
+                height={128}
+                className="w-full h-full object-cover"
+                priority
+              />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Basiru Jallow</h2>
-              <p className="text-sm text-gray-500 mt-1">Founder & engineer · Barakah</p>
+              <p className="text-sm text-[#1B5E20] font-semibold mt-1">Founder &amp; Senior Security Engineer · Barakah</p>
               <p className="text-base text-gray-700 mt-4">
-                {/* TODO: replace with real one-paragraph bio: background,
-                    education, professional history, why you started Barakah */}
-                A short personal bio goes here — background, education, professional
-                history, and the moment that made you decide a Muslim household
-                needed an honest financial OS.
+                10+ years in enterprise cybersecurity and identity governance. Former
+                Senior SailPoint Developer at Deloitte GPS supporting the Social
+                Security Administration, and cybersecurity lead at CBRE Group (Fortune 200).
+                Full-stack engineer across Java, Python, TypeScript, and Flutter.
+                Built Barakah to give Muslim households the same caliber of secure,
+                well-engineered financial tools that Fortune 500 companies rely on —
+                with security practices from the identity and access management industry.
               </p>
             </div>
           </div>
@@ -79,17 +86,21 @@ export default function FounderPage() {
             Why Barakah exists
           </h2>
           <p className="text-base text-gray-700 mb-3">
-            {/* TODO: replace with the real "why now" story */}
             Most personal-finance apps assume an interest-bearing world. Most
             zakat tools are spreadsheets that don&apos;t track the lunar year.
             Most Islamic-finance apps focus on one thing — investing, or
             zakat, or budgeting — and leave the household to stitch them
             together.
           </p>
+          <p className="text-base text-gray-700 italic border-l-2 border-[#1B5E20]/30 pl-4 my-4">
+            &ldquo;Barakah exists because every other money app forgot the Muslim
+            household. Zakat is not a side feature; halal is not a filter.
+            We&apos;re building the financial home our families actually need.&rdquo;
+          </p>
           <p className="text-base text-gray-700">
-            Barakah exists to be the single trusted system where a Muslim
-            family budgets, tracks, purifies, gives, invests, and plans —
-            under the same fiqh assumptions, with explicit methodology.
+            Barakah is the single trusted system where a Muslim family budgets,
+            tracks, purifies, gives, invests, and plans — under the same fiqh
+            assumptions, with explicit methodology.
           </p>
         </section>
 
@@ -98,11 +109,9 @@ export default function FounderPage() {
             Islamic studies engagement
           </h2>
           <p className="text-base text-gray-700 mb-3">
-            {/* TODO: replace with real engagements — local imam reviews,
-                AMJA correspondence, courses taken, etc. Be honest:
-                "I am an engineer, not a scholar" is fine and trust-positive */}
             I am an engineer, not a scholar. The methodology behind Barakah is
-            sourced from published references (AMJA, AAOIFI, classical texts) and
+            sourced from published references — AMJA resolutions, AAOIFI Standard
+            21, the Quran, classical hadith, and the four Sunni madhabs — and
             reviewed by qualified scholars on a per-feature basis as our{' '}
             <Link href="/scholars" className="underline text-[#1B5E20]">
               Scholar Board
@@ -115,7 +124,8 @@ export default function FounderPage() {
             <Link href="/methodology" className="underline text-[#1B5E20]">
               methodology page
             </Link>
-            .
+            {' '}for every position the product takes and the source it&apos;s
+            grounded in.
           </p>
         </section>
 
@@ -142,15 +152,9 @@ export default function FounderPage() {
             Where you can verify me
           </h2>
           <ul className="space-y-2 text-base text-gray-700">
-            {/* TODO: add LinkedIn, GitHub, X/Twitter, etc. — only links you
-                actually maintain. Don't link a dead profile. */}
-            <li>
-              <span className="text-gray-500">LinkedIn:</span>{' '}
-              <span className="text-gray-400 italic">{/* TODO: linkedin url */}coming soon</span>
-            </li>
             <li>
               <span className="text-gray-500">GitHub:</span>{' '}
-              <a href="https://github.com/realbasirujallow" className="text-[#1B5E20] underline">
+              <a href="https://github.com/realbasirujallow" className="text-[#1B5E20] underline" rel="me">
                 github.com/realbasirujallow
               </a>
             </li>
@@ -160,6 +164,8 @@ export default function FounderPage() {
                 basiru@trybarakah.com
               </a>
             </li>
+            {/* Founder TODO: add LinkedIn (and X/Twitter if active) here once those profiles
+                are public. Leaving them out of v1 rather than linking a dead profile. */}
           </ul>
         </section>
       </div>
