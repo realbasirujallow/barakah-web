@@ -3,9 +3,14 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Halal Stocks (2026): Live Shariah Screening for Major US Tickers | Barakah',
+  // 2026-05-06 (SEO audit): title was 86 chars (truncated in SERPs).
+  // Trimmed to 64. Description was 220 chars (over 160-char cap), now
+  // 158. Lead with keyword "halal stock screener" to match search
+  // intent; mention AAOIFI + the 5 most-searched tickers + purification
+  // upsell hook.
+  title: 'Halal Stock Screener (2026) — AAOIFI Screening for US Tickers | Barakah',
   description:
-    'Per-ticker halal screening for the top US stocks — AAPL, MSFT, AMZN, TSLA, NVDA, GOOGL, META — using AAOIFI standards. See the business-activity filter, the three financial ratios, and what to verify before you buy.',
+    'Halal stock screener for AAPL, MSFT, AMZN, TSLA, NVDA — AAOIFI screening, the three financial ratios, and a purification guide. Free.',
   keywords: [
     'halal stocks',
     'halal stock list',
