@@ -79,7 +79,7 @@ export default function ZakatOnStockOptionsRsusPage() {
           </h1>
 
           <p className="text-lg text-gray-600 leading-relaxed mb-8 dark:text-gray-400">
-            For Muslim employees of public tech companies — Meta, Google, Microsoft, Nvidia and beyond — restricted stock units and stock options are often the largest single line on the household balance sheet. They also raise the trickiest zakat questions. Here is the contemporary fiqh consensus, with the practical edge cases that come up every year.
+            For Muslim employees of public tech companies — Meta, Google, Microsoft, Nvidia and beyond — restricted stock units and stock options are often the largest single line on the household balance sheet. They also raise tricky zakat questions. Here are common contemporary fiqh positions, with the practical edge cases that come up every year.
           </p>
 
           <div className="bg-[#1B5E20] text-white rounded-2xl p-6 mb-10">
@@ -110,7 +110,7 @@ export default function ZakatOnStockOptionsRsusPage() {
 
           <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">Unvested RSUs — not zakatable yet</h2>
           <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
-            Unvested RSUs are a contractual <em>future right</em>, not present ownership. You cannot sell them, transfer them, or encumber them — and if you leave the company before vesting they evaporate. The contemporary consensus, including statements from the Assembly of Muslim Jurists of America (AMJA) and Mufti Faraz Adam, is that unvested RSUs carry no zakat obligation. They become zakatable only when vesting occurs.
+            Unvested RSUs are a contractual <em>future right</em>, not present ownership. You cannot sell them, transfer them, or encumber them — and if you leave the company before vesting they evaporate. A common contemporary position, including guidance associated with AMJA-style ownership/access analysis and scholars such as Mufti Faraz Adam, is that unvested RSUs carry no zakat obligation. They become zakatable only when vesting occurs.
           </p>
 
           <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">Stock options (ISOs and NSOs)</h2>

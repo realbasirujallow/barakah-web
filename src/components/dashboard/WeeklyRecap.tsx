@@ -94,7 +94,13 @@ export function WeeklyRecap({
   const hasSpending =
     typeof spendingThisMonth === 'number' &&
     typeof spendingLastMonth === 'number' &&
-    spendingLastMonth >= 50; // mirror the dashboard's $50 floor — under that, % deltas are misleading.
+    spendingLastMonth >= 50 && // mirror the dashboard's $50 floor — under that, % deltas are misleading.
+    // 2026-05-07 (live audit): when the current month has no spending yet
+    // (e.g. on May 7th with no May transactions), the prior guard would
+    // still render "▼ $3,831.72 (100.0%)" — reads as a misleading
+    // "you cut spending 100%" celebration on what's actually no-data-yet.
+    // Require at least $50 in the current month too before showing the delta.
+    (spendingThisMonth as number) >= 50;
 
   const nwPositive = (netWorthChangeAmount ?? 0) >= 0;
   // Spending: a DECREASE is "good" (green), increase is "bad" (rose).

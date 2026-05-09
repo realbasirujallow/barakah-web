@@ -195,8 +195,8 @@ export default function BarakahVsZoyaPage() {
                 <ul className="mt-2 space-y-1 text-sm text-gray-800">
                   <li>Free — unlimited zakat/hawl/fiqh/sadaqah</li>
                   <li>Plus — $9.99/mo or $99/yr</li>
-                  <li>Family — $14.99/mo or $119/yr (6 seats)</li>
-                  <li>{DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free Plus trial</li>
+                  <li>Family — $14.99/mo or $149/yr (6 seats)</li>
+                  <li>{DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free Family trial</li>
                 </ul>
               </div>
               <div>

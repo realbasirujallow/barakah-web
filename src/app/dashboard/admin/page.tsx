@@ -416,6 +416,12 @@ export default function AdminPage() {
               🎯 Acquisition
             </Link>
             <Link
+              href="/dashboard/admin/notes"
+              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
+            >
+              📝 Notes
+            </Link>
+            <Link
               href="/dashboard/admin/email-locales"
               className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
             >
@@ -598,7 +604,6 @@ export default function AdminPage() {
 
       {activeTab === 'unverified' && (
         <AdminUnverifiedTab
-          usersData={usersData}
           page={page}
           toast={toast}
           loadData={loadData}

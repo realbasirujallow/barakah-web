@@ -294,6 +294,16 @@ const nextConfig: NextConfig = {
         destination: "/dashboard/halal",
         permanent: true,
       },
+      // PC-2 (2026-05-06 release-triage): the sidebar label is
+      // "Auto-Categorize" — the obvious slug to type/share — but the
+      // route lives at the shorter /dashboard/categorize. Hand-typed
+      // and shared URLs were 404'ing. Permanent redirect consolidates
+      // SEO and stops the 404s.
+      {
+        source: "/dashboard/auto-categorize",
+        destination: "/dashboard/categorize",
+        permanent: true,
+      },
     ];
   },
 

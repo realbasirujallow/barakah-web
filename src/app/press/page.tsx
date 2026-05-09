@@ -73,7 +73,7 @@ export default function PressPage() {
               <li><strong>Trust + religious obligation:</strong> Zakat is one of the five pillars of Islam. Getting the calculation wrong has spiritual weight. Barakah&apos;s zakat figure is the same number across web, iOS, Android, and email.</li>
               <li><strong>Daily auto-rescreen:</strong> Stock halal status changes when financial ratios cross AAOIFI thresholds. Barakah re-checks every holding daily and notifies users if a stock flips.</li>
               <li><strong>Multi-madhab:</strong> Hanafi nisab uses silver; Shafi&apos;i/Maliki/Hanbali use gold. Barakah honors the user&apos;s chosen school in every calculation.</li>
-              <li><strong>Family-first:</strong> Family plan ($14.99/mo or $119/yr) covers up to 6 household members with shared budgets, shared zakat tracking, and shared estate-plan visibility — built for the multigenerational Muslim home.</li>
+              <li><strong>Family-first:</strong> Family plan ($14.99/mo or $149/yr) covers up to 6 household members with shared budgets, shared zakat tracking, and shared estate-plan visibility — built for the multigenerational Muslim home.</li>
             </ul>
           </section>
 

@@ -285,7 +285,7 @@ export default function RetirementZakatPage() {
 
                 {/* Three Scholarly Positions */}
                 <div className="space-y-4">
-                  {/* Full Accessible (AMJA) */}
+                  {/* Accessible Balance (AMJA/FCNA) */}
                   <div className={`rounded-lg shadow-lg p-6 border-l-4 ${
                     getMethodRecommendation('full_accessible')
                       ? 'border-l-green-700 bg-green-50'
@@ -293,7 +293,7 @@ export default function RetirementZakatPage() {
                   }`}>
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h4 className="text-lg font-bold text-primary">Full Accessible Balance (AMJA)</h4>
+                        <h4 className="text-lg font-bold text-primary">Accessible Balance Method (AMJA/FCNA)</h4>
                         {getMethodRecommendation('full_accessible') && (
                           <p className="text-xs text-green-700 font-semibold">YOUR PREFERRED METHOD</p>
                         )}

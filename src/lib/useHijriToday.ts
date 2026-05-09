@@ -22,8 +22,15 @@ import { useEffect, useState } from 'react';
 import { api } from './api';
 
 export interface HijriToday {
-  hijriDate: string;       // e.g. "14 Dhul Qadah 1447"
+  hijriDate: string;       // e.g. "14 Dhul Qadah 1447" — English-canonical
   hijriMonthName: string;
+  /** 1-indexed day of the Hijri month. Optional for backward compat with
+   *  pre-2026-05-08 backends that hadn't shipped the raw fields yet. */
+  hijriDay?: number;
+  /** 1-indexed Hijri month number (1 = Muharram, 12 = Dhul Hijjah). */
+  hijriMonth?: number;
+  /** Hijri year (e.g. 1447). */
+  hijriYear?: number;
   isRamadan: boolean;
 }
 
@@ -44,6 +51,9 @@ function fetchHijriOnce(): Promise<HijriToday | null> {
       return {
         hijriDate: data.hijriDate,
         hijriMonthName: data.hijriMonthName ?? '',
+        hijriDay: data.hijriDay,
+        hijriMonth: data.hijriMonth,
+        hijriYear: data.hijriYear,
         isRamadan: Boolean(data.isRamadan),
       };
     } catch {

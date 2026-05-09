@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { trackDemoDataLoaded } from '../../lib/analytics';
 import { useCurrency } from '../../lib/useCurrency';
+import { formatHijriLocalized } from '../../lib/format';
 import { useToast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
@@ -28,7 +29,7 @@ import { Badge } from '../../components/ui/badge';
 import HeroLink from '../../components/HeroLink';
 
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
-interface HijriData { hijriDate: string; hijriMonthName: string; isRamadan: boolean; upcomingEvents: IslamicEvent[]; }
+interface HijriData { hijriDate: string; hijriMonthName: string; hijriDay?: number; hijriMonth?: number; hijriYear?: number; isRamadan: boolean; upcomingEvents: IslamicEvent[]; }
 interface HawlDue { dueCount: number; upcomingCount: number; due: Array<{ assetName: string; zakatAmount: number }>; }
 interface AssetTotal { netWorth?: number; totalWealth?: number; zakatDue?: number; zakatRemaining?: number; zakatPaid?: number; zakatFullyPaid?: boolean; zakatEligible?: boolean; currentLunarYear?: number; }
 interface PortfolioSummary { totalValue: number; totalGainLoss: number; totalGainLossPct: number; }
@@ -73,7 +74,7 @@ function timeAgo(timestamp: number): string {
 }
 
 export default function DashboardPage() {
-  const { fmt } = useCurrency();
+  const { fmt, locale: dateLocale } = useCurrency();
   const [totals, setTotals] = useState<AssetTotal | null>(null);
   const [loading, setLoading] = useState(true);
   // Round 18: these four flags used to read localStorage inside the
@@ -476,9 +477,17 @@ export default function DashboardPage() {
             <span aria-hidden="true" className="text-lg">📅</span>
             <p className="text-sm font-semibold uppercase tracking-wide opacity-90">Islamic Calendar</p>
           </div>
-          <p className="text-2xl md:text-3xl font-bold leading-tight">{hijri.hijriDate}</p>
+          {/* 2026-05-08 (Bug D): wrap Hijri date in <bdi> so RTL document
+              direction (ar/ur) keeps the day-month-year token order
+              correct. Without this, "21 Dhul Qadah 1447" reorders to
+              "Dhul Qadah 1447 21" under dir="rtl".
+              (Bug E): Gregorian date below — toLocaleDateString uses the
+              undefined locale = browser default. Once user.country syncs
+              to NUMBER_LOCALE_KEY in AuthContext, this picks the right
+              en-GB / fr-FR / ar-SA / ur-PK layout per user. */}
+          <bdi className="block text-2xl md:text-3xl font-bold leading-tight">{formatHijriLocalized(hijri.hijriDate, hijri.hijriDay, hijri.hijriMonth, hijri.hijriYear, dateLocale)}</bdi>
           <p className="text-sm text-emerald-100 mt-1">
-            {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+            <bdi>{new Date().toLocaleDateString(dateLocale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</bdi>
           </p>
           {hijri.upcomingEvents && hijri.upcomingEvents.length > 0 && (
             <div className="mt-4 pt-4 border-t border-white/15">
@@ -655,7 +664,7 @@ export default function DashboardPage() {
               users what they actually get, not what the action does. */}
           <div className="flex flex-wrap gap-2 justify-center mb-5">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
-              <span aria-hidden="true">📊</span> Auto-categorise spending
+              <span aria-hidden="true">📊</span> Spending sorted automatically
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
               <span aria-hidden="true">🕌</span> Zakat calculated automatically

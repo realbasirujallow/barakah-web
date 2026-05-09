@@ -5,6 +5,8 @@ import Link from 'next/link';
 import HeroLink from '../../components/HeroLink';
 import { useEffect, ReactNode, useState } from 'react';
 import { ToastProvider } from '../../lib/toast';
+import { useCurrency } from '../../lib/useCurrency';
+import { formatHijriLocalized } from '../../lib/format';
 import { useDarkMode, toggleDarkMode as toggleDarkModeShared } from '../../lib/useDarkMode';
 import { recordVisit } from '../../lib/lastVisit';
 import {
@@ -24,6 +26,7 @@ import { SessionTimeoutModal } from '../../components/SessionTimeoutModal';
 // OnboardingTour removed Round 17 — see comment near bottom of file.
 import TrialBanner from '../../components/TrialBanner';
 import AnnualUpgradeBanner from '../../components/AnnualUpgradeBanner';
+import SupportModeBanner from '../../components/SupportModeBanner';
 import AnnualUpgradeModal from '../../components/AnnualUpgradeModal';
 import { isSetupComplete } from '../../lib/setup';
 import { useHijriToday } from '../../lib/useHijriToday';
@@ -73,7 +76,7 @@ const navItems: { href: string; icon: LucideIcon; label: string; gate?: 'plus' |
   { href: '/dashboard/zakat', icon: Coins, label: 'Zakat' },
   // ── Premium features (alphabetized) ───────────────────────────────────────
   { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics', gate: 'plus' },
-  { href: '/dashboard/categorize', icon: Tags, label: 'Auto-Categorize', gate: 'plus' },
+  { href: '/dashboard/categorize', icon: Tags, label: 'Transaction sorting', gate: 'plus' },
   { href: '/dashboard/barakah-score', icon: Star, label: 'Barakah Score', gate: 'plus' },
   { href: '/dashboard/summary', icon: FileText, label: 'Financial Summary', gate: 'plus' },
   { href: '/dashboard/halal', icon: ShieldCheck, label: 'Stock Screener', gate: 'plus' },
@@ -136,7 +139,7 @@ type SidebarSection = 'spending' | 'plan' | 'islamic' | 'family' | 'profile' | '
 const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> = {
   spending: {
     label: 'Spending',
-    items: ['Transactions', 'Budget', 'Recurring', 'Audit Ledger', 'Auto-Categorize', 'Analytics', 'Riba Detector', 'Subscription Detector'],
+    items: ['Transactions', 'Budget', 'Recurring', 'Audit Ledger', 'Transaction sorting', 'Analytics', 'Riba Detector', 'Subscription Detector'],
   },
   plan: {
     label: 'Plan',
@@ -221,21 +224,24 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // cached useHijriToday so we don't double-fetch alongside dashboard/page.
   const hijriToday = useHijriToday();
 
+  // 2026-05-08 (Bug E): pull the user's BCP-47 locale from useCurrency so
+  // the header date renders day-first ("Friday, 8 May 2026") for UK / EU
+  // / SA / PK users instead of the US-style "Friday, May 8, 2026". The
+  // locale is set in AuthContext from user.country at login time.
+  const { locale: dateLocale } = useCurrency();
   const [headerDate, setHeaderDate] = useState('');
   useEffect(() => {
     let cancelled = false;
     const id = window.setTimeout(() => {
       if (cancelled) return;
       try {
-        // Round 24: undefined locale → browser default. Matches R23
-        // useCurrency + NotificationBell / notifications date pattern.
-        setHeaderDate(new Date().toLocaleDateString(undefined, {
+        setHeaderDate(new Date().toLocaleDateString(dateLocale, {
           weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
         }));
       } catch { /* Intl unavailable */ }
     }, 0);
     return () => { cancelled = true; window.clearTimeout(id); };
-  }, []);
+  }, [dateLocale]);
 
   useEffect(() => {
     // Only redirect with ?reason=expired if this wasn't an intentional
@@ -480,11 +486,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-4">
               {headerDate && (
                 <span className="text-xs text-gray-500 hidden md:flex items-center gap-2">
-                  <span>📅 {headerDate}</span>
+                  {/* 2026-05-08 (Bug D): wrap dates in <bdi> so RTL document
+                      direction (ar/ur) doesn't reorder the day/month/year
+                      tokens. Without bdi, "21 Dhul Qadah 1447" renders as
+                      "Dhul Qadah 1447 21" because the bidi algorithm
+                      reverses the visual order under dir="rtl". */}
+                  <bdi>📅 {headerDate}</bdi>
                   {hijriToday?.hijriDate && (
                     <>
                       <span aria-hidden="true" className="text-gray-300">·</span>
-                      <span className="text-primary font-medium">🕌 {hijriToday.hijriDate}</span>
+                      <bdi className="text-primary font-medium">🕌 {formatHijriLocalized(hijriToday.hijriDate, hijriToday.hijriDay, hijriToday.hijriMonth, hijriToday.hijriYear, dateLocale)}</bdi>
                     </>
                   )}
                 </span>
@@ -511,6 +522,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
           </header>
           <main id="dashboard-main" tabIndex={-1} className="flex-1 p-6 overflow-auto">
+            {/* Lane 10 (2026-05-09): super-admin "View as user" support banner */}
+            <SupportModeBanner />
             <TrialBanner />
             <AnnualUpgradeBanner />
             {children}
@@ -533,10 +546,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {/* Floating feedback widget — visible on all dashboard pages */}
         <FeedbackWidget />
 
-        {/* 2026-05-03 (Section B·2): Ask Barakah floating assistant.
-            Demo-grade pattern-match assistant over the user's own data —
-            no LLM call required, runs entirely in-browser using endpoints
-            we already authenticate against. Sits above FeedbackWidget. */}
+        {/* 2026-05-03 (Section B·2): Ask Barakah — guided help panel
+            that answers questions from the user's own account data
+            using a local pattern-match library. Runs entirely
+            in-browser against endpoints we already authenticate
+            against. Sits above FeedbackWidget. */}
         <AskBarakah />
 
         {/*

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
@@ -31,6 +32,8 @@ interface RibaFlag {
 
 interface RibaResult {
   totalScanned: number;
+  totalTransactions: number;
+  truncated: boolean;
   flaggedCount: number;
   totalRibaAmount: number;
   ribaPercentage: number;
@@ -71,6 +74,10 @@ interface RibaScanResponse {
   totalScanned?: number;
   totalRibaAmount?: number;
   ribaPercentage?: number;
+  // 2026-05-08: backend now flags when scan didn't cover everything
+  // (e.g. > 100k txns, paged) so the UI can render a truthful
+  // "Showing scan of N of M" instead of silently understating riba.
+  truncated?: boolean;
 }
 
 interface DebtRecord {
@@ -174,6 +181,10 @@ export default function RibaPage() {
   // ── Scan state ──────────────────────────────────────────────────────────────
   const [result, setResult] = useState<RibaResult | null>(null);
   const [ribaDebts, setRibaDebts] = useState<RibaDebt[]>([]);
+  // 2026-05-06 (D-5): debts with `interestRate > 0 && ribaFree === true` —
+  // internally inconsistent, surfaced as "Review these" instead of silently
+  // hidden from the Detector verdict.
+  const [reviewDebts, setReviewDebts] = useState<RibaDebt[]>([]);
   const [loading, setLoading] = useState(true);
 
   // ── Purification state ──────────────────────────────────────────────────────
@@ -230,6 +241,8 @@ export default function RibaPage() {
             : Array.isArray(d?.flaggedTransactions) ? d.flaggedTransactions : [];
           setResult({
             totalScanned: d?.scannedCount ?? d?.totalTransactions ?? d?.totalScanned ?? 0,
+            totalTransactions: d?.totalTransactions ?? d?.scannedCount ?? d?.totalScanned ?? 0,
+            truncated: d?.truncated ?? false,
             flaggedCount: d?.ribaCount ?? d?.flaggedCount ?? flaggedTxns.length,
             totalRibaAmount: d?.totalRibaAmount ?? 0,
             ribaPercentage: d?.ribaPercentage ?? 0,
@@ -269,6 +282,33 @@ export default function RibaPage() {
           lender: debt.lender ?? '',
         }));
         setRibaDebts(interestDebts);
+
+        // 2026-05-06 (D-5 founder decision in release-triage):
+        // Surface debts that are internally inconsistent — `interestRate > 0`
+        // (so they DO charge riba) but `ribaFree === true` (so they're
+        // currently being treated as Islamic-compliant). This typically
+        // happens when:
+        //   1. Plaid imports a credit card during its grace period and
+        //      sets ribaFree=true via PlaidService.gracePeriodSafe heuristic
+        //      (PlaidService.java:1744). The user may not have consciously
+        //      confirmed this.
+        //   2. The user added a debt manually with interest>0 and the
+        //      backend defaulted ribaFree=true.
+        // Either way the user should review and confirm whether the
+        // ribaFree flag is correct (e.g. paid-in-grace-period, 0% intro
+        // APR) before the Detector silently hides the debt from its
+        // verdict.
+        const reviewDebts = debtList.filter(
+          (debt) => (debt.interestRate ?? 0) > 0 && debt.ribaFree === true && (debt.remainingAmount ?? 0) > 0,
+        ).map((debt) => ({
+          id: debt.id,
+          name: debt.name,
+          type: debt.type,
+          interestRate: debt.interestRate ?? 0,
+          remainingAmount: debt.remainingAmount ?? 0,
+          lender: debt.lender ?? '',
+        }));
+        setReviewDebts(reviewDebts);
       }
 
       // Load purification status
@@ -480,9 +520,9 @@ export default function RibaPage() {
               preview={
                 <div className="space-y-2">
                   {[
-                    { desc: 'Bank interest (savings)', amt: '+$8.42', cls: 'text-red-600' },
-                    { desc: 'Credit-card APR charge', amt: '−$45.50', cls: 'text-red-600' },
-                    { desc: 'Investment APY payout', amt: '+$12.18', cls: 'text-red-600' },
+                    { desc: 'Bank interest (savings)', amt: `+${fmt(8.42)}`, cls: 'text-red-600' },
+                    { desc: 'Credit-card APR charge', amt: `−${fmt(45.50)}`, cls: 'text-red-600' },
+                    { desc: 'Investment APY payout', amt: `+${fmt(12.18)}`, cls: 'text-red-600' },
                   ].map((t) => (
                     <div key={t.desc} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                       <div>
@@ -507,7 +547,9 @@ export default function RibaPage() {
                   {isClean ? 'Riba-Free!' : 'Riba Detected'}
                 </p>
                 <p className="text-white/80 mt-1">
-                  {`${result?.totalScanned || 0} transactions scanned${hasRibaDebts ? ` · ${ribaDebts.length} interest-bearing debt${ribaDebts.length !== 1 ? 's' : ''} found` : ''}`}
+                  {result?.truncated
+                    ? `Showing scan of ${result.totalScanned.toLocaleString()} of ${result.totalTransactions.toLocaleString()} transactions${hasRibaDebts ? ` · ${ribaDebts.length} interest-bearing debt${ribaDebts.length !== 1 ? 's' : ''} found` : ''}`
+                    : `${(result?.totalScanned || 0).toLocaleString()} transactions scanned${hasRibaDebts ? ` · ${ribaDebts.length} interest-bearing debt${ribaDebts.length !== 1 ? 's' : ''} found` : ''}`}
                 </p>
               </div>
 
@@ -534,6 +576,66 @@ export default function RibaPage() {
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-800 mb-6">
               <strong>Alhamdulillah!</strong> No riba-related transactions or debts were detected in your records.
               Continue to avoid interest-based dealings as commanded in the Quran (2:275).
+            </div>
+          )}
+
+          {/* ── Review-needed debts (D-5): interest>0 but marked ribaFree ── */}
+          {/*
+            2026-05-06: These debts are currently being treated as
+            Islamic-compliant despite charging interest — usually because
+            Plaid auto-imported a credit card during a grace period, or
+            because the founder/user explicitly marked a 0% intro APR card
+            ribaFree. Either case CAN be legitimate, but the Detector should
+            never silently hide them — surface for review.
+          */}
+          {reviewDebts.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-amber-700 mb-3">
+                Review {reviewDebts.length} debt{reviewDebts.length !== 1 ? 's' : ''} marked Riba-Free
+              </h2>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900 mb-4">
+                <strong>Heads up:</strong> these debts charge interest but are
+                currently flagged as Riba-Free. That&rsquo;s legitimate when
+                you pay in full each grace period or are inside a 0% intro
+                APR window — but the Detector hides them from its verdict
+                while the flag is on. Confirm each one in{' '}
+                <Link href="/dashboard/debts" className="underline font-semibold">
+                  Debt Tracker
+                </Link>{' '}
+                so the Riba-Free verdict above reflects what you actually
+                want it to say.
+              </div>
+              <div className="space-y-3">
+                {reviewDebts.map(debt => (
+                  <div key={debt.id} className="bg-white rounded-xl p-5 border-l-4 border-amber-400">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-semibold text-gray-900">{debt.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {debt.type.replace(/_/g, ' ')}{debt.lender ? ` · ${debt.lender}` : ''}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-amber-700">{fmt(debt.remainingAmount)}</p>
+                        <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">
+                          {debt.interestRate}% interest · marked Riba-Free
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Link
+                        href={`/dashboard/debts?review=${debt.id}`}
+                        className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-md font-medium hover:opacity-90 transition"
+                      >
+                        Review in Debt Tracker
+                      </Link>
+                      <span className="text-xs text-gray-500 self-center">
+                        Common reasons this is correct: paid-in-grace-period · 0% intro APR · charge card
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -929,9 +1031,9 @@ export default function RibaPage() {
                   preview={
                     <div className="space-y-2">
                       {[
-                        { src: '🏠 Mortgage', name: 'Chase Mortgage', amt: '$240,000', status: 'Active' },
-                        { src: '💳 Credit Card', name: 'Discover Card', amt: '$3,400', status: 'In progress' },
-                        { src: '🚗 Car Loan', name: 'Toyota Finance', amt: '$11,200', status: 'Active' },
+                        { src: '🏠 Mortgage', name: 'Chase Mortgage', amt: fmt(240000), status: 'Active' },
+                        { src: '💳 Credit Card', name: 'Discover Card', amt: fmt(3400), status: 'In progress' },
+                        { src: '🚗 Car Loan', name: 'Toyota Finance', amt: fmt(11200), status: 'Active' },
                       ].map((g) => (
                         <div key={g.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                           <div>

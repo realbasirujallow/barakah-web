@@ -178,7 +178,7 @@ function buildAdvice(p: AdviceQueueProps): Advice[] {
       id: 'auto-categorize',
       severity: 'suggestion',
       icon: Tags,
-      title: 'Turn on auto-categorize',
+      title: 'Turn on transaction sorting',
       body: 'Let Barakah label imported transactions for you (Plus). Saves ~5 minutes per import.',
       href: '/dashboard/categorize',
       cta: 'Enable',

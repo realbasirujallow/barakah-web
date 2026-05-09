@@ -6,20 +6,38 @@
  * setup flow, PlanGate component, and Flutter billing_screen.dart.
  * Keep ALL of these in sync when adding features.
  */
+// 2026-05-06 (conversion audit): yearlySaving copy now leads with absolute
+// dollars, with the percent in parentheses. Concrete dollars convert better
+// than percentages — "Save $20/yr" lands harder than "Save 17%" because the
+// reader doesn't have to do math on the yearly price to feel the value.
+// 2026-05-08 (multilingual audit): Family annual bumped from $119 to $149
+// to fix the Plus-monthly-to-Family-annual pricing inversion. Old:
+// $9.99 × 12 = $119.88 monthly cost (Plus) sat ABOVE $119 (Family annual),
+// so a Plus-monthly user saved money by switching to Family annual. New
+// Family annual at $149 is comfortably above Plus monthly × 12 and gives
+// a 17% discount vs Family monthly × 12 = $179.88 (matches Plus's 17%).
+// Math:
+//   Plus: $9.99 × 12 = $119.88 monthly cost; $99 yearly = $20.88 saved → ~$20 (17%).
+//   Family: $14.99 × 12 = $179.88 monthly cost; $149 yearly = $30.88 saved → ~$30 (17%).
 export const PRICING = {
   plus: {
     monthly: '$9.99',
     yearly: '$99',
     monthlyPeriod: '/mo',
     yearlyPeriod: '/year',
+    // 2026-05-08 (item K cascade): yearlySaving was "Save $20/yr (17%)"
+    // which leaked the dollar symbol onto every non-USD user's pricing
+    // tile next to the FX-converted "~£78.21/year" headline. The
+    // percentage is currency-neutral and conveys the same value at a
+    // glance, so we drop the absolute dollar amount here.
     yearlySaving: 'Save 17%',
   },
   family: {
     monthly: '$14.99',
-    yearly: '$119',
+    yearly: '$149',
     monthlyPeriod: '/mo',
     yearlyPeriod: '/year',
-    yearlySaving: 'Save 34%',
+    yearlySaving: 'Save 17%',
   },
 } as const;
 
@@ -53,7 +71,7 @@ export const PLUS_FEATURES = [
   'Debt Payoff Projector',
   'Analytics & Year-over-Year',
   'CSV & PDF export',
-  'Auto-categorization rules',
+  'Transaction sorting rules',
 ] as const;
 
 /** Family plan features — the "household continuity" plan. */

@@ -300,9 +300,9 @@ export default function WaqfPage() {
                   preview={
                     <div className="space-y-2">
                       {[
-                        { org: 'Local masjid expansion', purpose: 'Mosque', amt: '$500.00' },
-                        { org: 'Yatim orphanage waqf', purpose: 'Orphans', amt: '$250.00' },
-                        { org: 'Islamic library endowment', purpose: 'Education', amt: '$100.00' },
+                        { org: 'Local masjid expansion', purpose: 'Mosque', amt: fmt(500) },
+                        { org: 'Yatim orphanage waqf', purpose: 'Orphans', amt: fmt(250) },
+                        { org: 'Islamic library endowment', purpose: 'Education', amt: fmt(100) },
                       ].map((w) => (
                         <div key={w.org} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                           <div>

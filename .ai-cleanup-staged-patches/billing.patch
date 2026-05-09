@@ -1,0 +1,11 @@
+--- a/src/app/dashboard/billing/page.tsx
++++ b/src/app/dashboard/billing/page.tsx
+@@ -57,7 +57,7 @@
+       'All Free features',
+       'Halal stock screener (30,000+)',
+       'Riba & Subscription detector',
+-      'Auto-categorize transactions',
++      'Transaction sorting',
+       'Wasiyyah & Waqf planning',
+       'Investments & net worth',
+       'Barakah Score & analytics',

@@ -263,7 +263,7 @@ export default function RamadanPage() {
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
         <h2 className="font-bold text-primary mb-3">Zakat al-Fitr</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Obligatory charity paid before Eid al-Fitr prayer. Enter the amount your mosque specifies — typically $10–$15 per person based on staple food equivalent.
+          Obligatory charity paid before Eid al-Fitr prayer. Enter the amount your mosque specifies — typically {fmt(10)}–{fmt(15)} per person based on staple food equivalent.
         </p>
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>

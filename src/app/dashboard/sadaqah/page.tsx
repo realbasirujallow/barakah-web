@@ -213,7 +213,7 @@ function SadaqahContent() {
                     : 'bg-white text-gray-700 border-gray-300 hover:border-primary'
                 }`}
               >
-                ${amt}
+                {fmt(amt)}
               </button>
             ))}
             <button
@@ -248,7 +248,7 @@ function SadaqahContent() {
           disabled={donating || effectiveAmount <= 0}
           className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-50"
         >
-          {donating ? 'Redirecting to payment…' : `Donate ${effectiveAmount > 0 ? `$${effectiveAmount}` : ''} via Barakah`}
+          {donating ? 'Redirecting to payment…' : `Donate ${effectiveAmount > 0 ? fmt(effectiveAmount) : ''} via Barakah`}
         </button>
 
         <p className="text-xs text-gray-400 text-center mt-2">

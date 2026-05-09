@@ -26,7 +26,7 @@ export default function Page() {
           
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">Three Scholarly Approaches</h2>
-            <p className="text-gray-700 leading-relaxed dark:text-gray-300">1. Full Accessible Value (AMJA/Majority): Calculate zakat on what you could access today after estimated taxes and penalties. 2. Employer Match Only: Only the employer-contributed portion is zakatable since you did not earn it from labor. 3. Deferred Until Withdrawal: Pay zakat when you actually withdraw funds.</p>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">1. Accessible Value (AMJA/FCNA): Calculate zakat on what you could access today after estimated taxes and penalties. 2. Employer Match Only: Only the employer-contributed portion is zakatable under that opinion. 3. Deferred Until Withdrawal: Pay zakat when you actually withdraw funds. Barakah supports multiple positions because qualified scholars differ.</p>
           </section>
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">How to Calculate (Accessible Value)</h2>

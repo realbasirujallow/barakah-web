@@ -476,9 +476,9 @@ export default function RecurringPage() {
           preview={
             <div className="space-y-2">
               {[
-                { name: 'Netflix', cat: 'Subscriptions', cycle: 'Monthly · $15.49' },
-                { name: 'Gym membership', cat: 'Health', cycle: 'Monthly · $39.00' },
-                { name: 'iCloud storage', cat: 'Subscriptions', cycle: 'Monthly · $2.99' },
+                { name: 'Netflix', cat: 'Subscriptions', cycle: `Monthly · ${fmt(15.49)}` },
+                { name: 'Gym membership', cat: 'Health', cycle: `Monthly · ${fmt(39)}` },
+                { name: 'iCloud storage', cat: 'Subscriptions', cycle: `Monthly · ${fmt(2.99)}` },
               ].map((r) => (
                 <div key={r.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                   <div>

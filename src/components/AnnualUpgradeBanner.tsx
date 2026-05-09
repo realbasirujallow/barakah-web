@@ -86,7 +86,7 @@ export default function AnnualUpgradeBanner() {
   if (!user || user.isAdmin || !loaded || !show) return null;
 
   const isFamily = user.plan === 'family';
-  const savingPct = isFamily ? PRICING.family.yearlySaving : PRICING.plus.yearlySaving; // 'Save 34%' or 'Save 17%'
+  const savingPct = isFamily ? PRICING.family.yearlySaving : PRICING.plus.yearlySaving; // both 'Save $X/yr (17%)' since 2026-05-08 family bump
   const monthlyPrice = isFamily ? PRICING.family.monthly : PRICING.plus.monthly;
   const yearlyPrice = isFamily ? PRICING.family.yearly : PRICING.plus.yearly;
   // Calculate annual savings: (monthly × 12) - yearly

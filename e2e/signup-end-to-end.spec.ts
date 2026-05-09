@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Signup → email verification (skipped in dev) → login → dashboard E2E.
+ * Signup → email verification (skipped in dev) → login → first-session E2E.
  *
  * This test is the regression guard for the 2026-05-02 incident where
  * /auth/signup returned 500 `UnexpectedRollbackException` because
@@ -60,10 +60,11 @@ test.describe('Signup end-to-end (regression for 2026-05-02 signup-500)', () => 
     // Should be 201 (new user) on local; 200/201 either is acceptable.
     expect(signupResp.status()).toBeLessThan(400);
 
-    // The page should advance to the success state. Either a green check
-    // confirmation OR an automatic redirect to /dashboard depending on
-    // the build.
-    await page.waitForURL(/(\/dashboard|\/signup)/, { timeout: 10_000 });
+    // The page should advance to the success state. Newer builds may send
+    // fresh users to /setup before /dashboard; older builds may keep the
+    // success confirmation on /signup. The regression being pinned here is
+    // the server-side signup/login path, not the chosen activation route.
+    await page.waitForURL(/(\/setup|\/dashboard|\/signup)/, { timeout: 10_000 });
 
     // Step 2: log in with the freshly-created credentials.
     await page.goto('/login');
@@ -77,10 +78,10 @@ test.describe('Signup end-to-end (regression for 2026-05-02 signup-500)', () => 
 
     expect(loginResp.status(), 'POST /auth/login must succeed').toBeLessThan(400);
 
-    // Step 3: dashboard renders. We don't make assertions on dashboard
-    // copy (it changes too often) — just that we landed there without
-    // being kicked back to /login.
-    await page.waitForURL(/\/dashboard/, { timeout: 15_000 });
-    expect(page.url(), 'After login, must land on /dashboard').toMatch(/\/dashboard/);
+    // Step 3: the first-session surface renders. Fresh accounts are expected
+    // to land on /setup; already-onboarded accounts land on /dashboard. In
+    // either case, the user must not be kicked back to /login.
+    await page.waitForURL(/\/(setup|dashboard)/, { timeout: 15_000 });
+    expect(page.url(), 'After login, must land on /setup or /dashboard').toMatch(/\/(setup|dashboard)/);
   });
 });

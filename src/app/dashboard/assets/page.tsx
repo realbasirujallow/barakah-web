@@ -533,7 +533,7 @@ export default function AssetsPage() {
                     <p className="text-[10px] text-gray-500">2.5 oz · live price</p>
                   </div>
                 </div>
-                <p className="text-xs text-primary font-bold">$5,200</p>
+                <p className="text-xs text-primary font-bold">{fmt(5200)}</p>
               </div>
             </div>
           }
@@ -653,6 +653,58 @@ export default function AssetsPage() {
                     </optgroup>
                   ))}
                 </select>
+                {/* 2026-05-08: Name-vs-type hint. If the user typed a name
+                    that suggests a rental/investment property but kept the
+                    generic real_estate type, the zakat breakdown will show
+                    "Personal use - exempt" — wrong for income-producing
+                    real estate. Nudge them to the correct type. The
+                    inverse case (type rental_property but name "primary
+                    home") is rarer; we skip that check to avoid noise. */}
+                {(() => {
+                  const lowerName = form.name.toLowerCase();
+                  const isRentalName = /\b(rental|rent|tenant|airbnb|vrbo|leas(e|ing)|investment\s+property)\b/.test(lowerName);
+                  const isGenericRealEstate = form.type === 'real_estate';
+                  const isPrimaryHomeName = /\b(primary\s+home|primary\s+residence|main\s+home|family\s+home|my\s+home)\b/.test(lowerName);
+                  if (isRentalName && (isGenericRealEstate || form.type === 'primary_home')) {
+                    return (
+                      <p className="text-xs text-amber-700 mt-1.5 flex items-start gap-1.5">
+                        <span aria-hidden="true">⚠️</span>
+                        <span>
+                          The name suggests this is a rental — pick{' '}
+                          <button type="button"
+                            onClick={() => setForm({ ...form, type: 'rental_property' })}
+                            className="underline font-medium text-amber-800 hover:text-amber-900">
+                            Rental Property
+                          </button>
+                          {' '}or{' '}
+                          <button type="button"
+                            onClick={() => setForm({ ...form, type: 'investment_property' })}
+                            className="underline font-medium text-amber-800 hover:text-amber-900">
+                            Investment Property (Rental)
+                          </button>
+                          {' '}so zakat treats the rental income correctly.
+                        </span>
+                      </p>
+                    );
+                  }
+                  if (isPrimaryHomeName && (form.type === 'rental_property' || form.type === 'investment_property')) {
+                    return (
+                      <p className="text-xs text-amber-700 mt-1.5 flex items-start gap-1.5">
+                        <span aria-hidden="true">⚠️</span>
+                        <span>
+                          The name suggests this is your primary home — pick{' '}
+                          <button type="button"
+                            onClick={() => setForm({ ...form, type: 'primary_home' })}
+                            className="underline font-medium text-amber-800 hover:text-amber-900">
+                            Primary Home
+                          </button>
+                          {' '}so zakat treats it as personal-use exempt.
+                        </span>
+                      </p>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
               <div>
                 <label htmlFor="asset-value" className="block text-sm font-medium text-gray-700 mb-1">Value ({currency})</label>

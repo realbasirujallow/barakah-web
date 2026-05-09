@@ -18,11 +18,13 @@
 
 import { useState } from 'react';
 import { api } from '../../lib/api';
+import ViewAsUserButton from '../ViewAsUserButton';
 import { useBodyScrollLock } from '../../lib/useBodyScrollLock';
 import { PRICING } from '../../lib/pricing';
 import type { AdminUser, ActivityCountKey, UserActivity, UsersResponse } from './adminTypes';
 import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDate, fmtDateTimeMs, fmtFullTs, daysUntil } from './adminFormatting';
 import AdminUserDrilldownSheet, { type DrilldownKind } from './AdminUserDrilldownSheet';
+import AdminUserNotesPanel from './AdminUserNotesPanel';
 
 export interface AdminUserDetailModalProps {
   selected: AdminUser;
@@ -323,6 +325,15 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
         </div>
 
         <div className="p-6 space-y-5">
+          {/* Lane 10 (2026-05-09): super-admin-only "View as user". Returns null for non-super-admins. */}
+          <div className="flex justify-end">
+            <ViewAsUserButton
+              targetUserId={selected.id}
+              targetEmail={selected.email}
+              targetName={selected.name}
+            />
+          </div>
+
           {/* User Activity Summary */}
           {userActivity && (
             <div className="bg-gray-50 rounded-xl p-4">
@@ -669,6 +680,14 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
                 Delete User
               </button>
             )}
+          </div>
+
+          {/* 2026-05-06 — Founder-CRM notes panel. Captures conversation
+              colour the lifecycle event stream can't: "what made them
+              hesitate?" Tagged so the cross-user /dashboard/admin/notes
+              view can pull every note matching a tag. */}
+          <div className="mt-4">
+            <AdminUserNotesPanel userId={selected.id} toast={toast} />
           </div>
         </div>
       </div>

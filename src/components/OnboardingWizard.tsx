@@ -54,7 +54,7 @@ const steps = [
   {
     icon: '📊',
     title: 'Track income & expenses',
-    subtitle: 'Auto-categorised, halal-aware',
+    subtitle: 'Sorted automatically, halal-aware',
     body: 'Log transactions and Barakah sorts them by category, flags interest charges (riba), and shows what share of your spending is halal-compliant.',
     action: { label: 'Add First Transaction', href: '/dashboard/transactions' },
   },

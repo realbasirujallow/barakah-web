@@ -317,8 +317,14 @@ export default function TransactionsPage() {
         setSaving(false);
         return;
       }
-      if (amt > 100000) {
-        const msg = 'Transaction amount cannot exceed $100,000';
+      if (amt > 100_000_000) {
+        // 2026-05-08 (Bug G + L cascade): client-side cap was hardcoded
+        // at $100,000, which (a) doesn't match the backend's new
+        // 100,000,000 native ceiling, and (b) hardcoded "$" in the error
+        // text bled the dollar sign into a non-USD user's UI. The
+        // backend's USD-equivalent sanity layer ($1M USD-equiv) is the
+        // primary defense for fat-finger typos.
+        const msg = 'Transaction amount cannot exceed 100,000,000.';
         setFormError(msg);
         toast(msg, 'error');
         setSaving(false);
@@ -389,8 +395,9 @@ export default function TransactionsPage() {
     setDeleteConfirmation(null);
     try {
       await api.deleteTransaction(id);
+      setTxs(prev => prev.filter(t => t.id !== id));
       toast('Transaction deleted', 'success');
-      setPage(0);
+      load();
     } catch {
       toast('Failed to delete transaction', 'error');
     }
@@ -627,9 +634,18 @@ export default function TransactionsPage() {
           <p className="text-xl font-bold mt-1">{fmt(income - expense)}</p>
         </div>
       </div>
-      {mixedCurrencyCount > 0 && (
+      {/* 2026-05-08 (Bug B): only surface the mixed-currency note when the
+          user genuinely has cross-currency transactions AND meaningful
+          activity in their preferred currency. Previously this fired even
+          for a fresh non-USD user whose transactions ALL match their
+          preferred currency — because the prior summary defaulted to USD
+          server-side and the entire ledger looked "mixed" relative to it.
+          With AuthContext now syncing user.preferredCurrency to the hook
+          on login, the filter at line 523 lines up correctly and this
+          message only appears when it's actually true. */}
+      {mixedCurrencyCount > 0 && sameCurrencyTxns.length > 0 && (
         <p className="text-xs text-gray-500 mb-4 -mt-2">
-          Mixed-currency transactions ({mixedCurrencyCount}) not shown in totals above. Switch display currency in Settings to view them.
+          {mixedCurrencyCount} transaction{mixedCurrencyCount === 1 ? '' : 's'} in other currencies not included in totals above. Switch display currency in Settings to view them.
         </p>
       )}
 
@@ -1105,9 +1121,9 @@ export default function TransactionsPage() {
           preview={
             <div className="space-y-2">
               {[
-                { desc: 'Whole Foods Market', cat: 'Groceries', amt: '−$84.31', date: 'Today' },
-                { desc: 'Salary — Acme Corp', cat: 'Income', amt: '+$5,400.00', date: 'Apr 25' },
-                { desc: 'Sadaqah · Local masjid', cat: 'Sadaqah', amt: '−$50.00', date: 'Apr 24' },
+                { desc: 'Whole Foods Market', cat: 'Groceries', amt: `−${fmt(84.31)}`, date: 'Today' },
+                { desc: 'Salary — Acme Corp', cat: 'Income', amt: `+${fmt(5400)}`, date: 'Apr 25' },
+                { desc: 'Sadaqah · Local masjid', cat: 'Sadaqah', amt: `−${fmt(50)}`, date: 'Apr 24' },
               ].map((t, i) => (
                 <div key={i} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                   <div>

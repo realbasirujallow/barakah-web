@@ -90,7 +90,7 @@ export default function ZakatOnRetirementAccountsPage() {
               <h2 className="font-bold text-[#1B5E20] mb-4">Table of Contents</h2>
               <ul className="space-y-2 text-sm">
                 <li><Link href="#challenge" className="text-[#1B5E20] hover:underline">The Modern Challenge</Link></li>
-                <li><Link href="#position1" className="text-[#1B5E20] hover:underline">Position 1: Full Accessible Balance (AMJA)</Link></li>
+                <li><Link href="#position1" className="text-[#1B5E20] hover:underline">Position 1: Accessible Balance (AMJA/FCNA)</Link></li>
                 <li><Link href="#position2" className="text-[#1B5E20] hover:underline">Position 2: Employer Match Only</Link></li>
                 <li><Link href="#position3" className="text-[#1B5E20] hover:underline">Position 3: On Withdrawal Only</Link></li>
                 <li><Link href="#special" className="text-[#1B5E20] hover:underline">HSA & 529 Accounts</Link></li>
@@ -115,9 +115,9 @@ export default function ZakatOnRetirementAccountsPage() {
             </section>
 
             <section id="position1" className="space-y-4">
-              <h2 className="text-2xl font-bold text-[#1B5E20]">Position 1: Full Accessible Balance (AMJA Recommendation)</h2>
+              <h2 className="text-2xl font-bold text-[#1B5E20]">Position 1: Accessible Balance (AMJA/FCNA Guidance)</h2>
               <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-                <strong>Endorsed by:</strong> American Muslim Jurists Association (AMJA), Fiqh Council of North America
+                <strong>Published guidance represented by:</strong> American Muslim Jurists Association (AMJA) retirement-account recommendations and Fiqh Council of North America guidance
               </p>
               <p className="text-gray-700 leading-relaxed dark:text-gray-300">
                 This position treats retirement account balances as zakatable wealth after deducting penalties and taxes owed on withdrawal.
@@ -226,7 +226,7 @@ export default function ZakatOnRetirementAccountsPage() {
                   <ul className="space-y-2 text-gray-700 text-sm dark:text-gray-300">
                     <li><strong>If unused:</strong> Follow one of the three positions above (most treat as zakatable retirement savings)</li>
                     <li><strong>If earmarked for near-term medical expenses:</strong> Some scholars exempt funds you reasonably expect to spend soon (like emergency medical costs)</li>
-                    <li><strong>Recommendation:</strong> Treat as zakatable wealth using Position 1 (AMJA approach) to be conservative and compliant</li>
+                    <li><strong>Conservative option:</strong> Treat as zakatable wealth using the accessible-balance approach, while documenting why you chose it</li>
                   </ul>
                 </div>
 
@@ -265,7 +265,7 @@ export default function ZakatOnRetirementAccountsPage() {
               <div className="bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-bold text-[#1B5E20] mb-2">Q: Which position should I follow?</h3>
                 <p className="text-gray-700 text-sm dark:text-gray-300">
-                  Consult with your local imam or qualified Islamic finance advisor. AMJA (Position 1) is the most widely recommended by major Islamic organizations in North America. However, all three positions are legitimate. Choose based on your madhab (school) and advisor&apos;s guidance.
+                  Consult with your local imam or qualified Islamic finance advisor. The AMJA/FCNA-style accessible-balance approach is a prominent North American position, but qualified scholars differ on retirement-account access, penalties, employer match, and withdrawal timing. Choose based on your madhab, advisor&apos;s guidance, and documented intent.
                 </p>
               </div>
 
