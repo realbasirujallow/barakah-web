@@ -24,6 +24,11 @@ export const metadata: Metadata = {
   // trimmed from 193 chars (over the 160-char SERP cap) to 142 — same
   // three outcomes, less repetition.
   title: {
+    // HEAD (admin-journey-tools) won this merge: the 56-char SEO-trimmed
+    // version matches the surrounding comment about avoiding SERP
+    // truncation past ~60 chars. origin/main's 96-char version was
+    // pre-trim copy that would have been cut mid-keyword in Google
+    // results, undoing the intended SEO win.
     default: "Try Barakah — Free Zakat Calculator & Muslim Budgeting App",
     template: "%s | Try Barakah",
   },
