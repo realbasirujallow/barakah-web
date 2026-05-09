@@ -655,7 +655,7 @@ export default function DashboardPage() {
               users what they actually get, not what the action does. */}
           <div className="flex flex-wrap gap-2 justify-center mb-5">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
-              <span aria-hidden="true">📊</span> Auto-categorise spending
+              <span aria-hidden="true">📊</span> Spending sorted automatically
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
               <span aria-hidden="true">🕌</span> Zakat calculated automatically

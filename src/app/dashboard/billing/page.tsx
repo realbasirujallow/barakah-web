@@ -57,7 +57,7 @@ const PLANS = [
       'All Free features',
       'Halal stock screener (30,000+)',
       'Riba & Subscription detector',
-      'Auto-categorize transactions',
+      'Transaction sorting',
       'Wasiyyah & Waqf planning',
       'Investments & net worth',
       'Barakah Score & analytics',

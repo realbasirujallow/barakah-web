@@ -60,7 +60,7 @@ export const PLUS_FEATURES = [
   'Debt Payoff Projector',
   'Analytics & Year-over-Year',
   'CSV & PDF export',
-  'Auto-categorization rules',
+  'Transaction sorting rules',
 ] as const;
 
 /** Family plan features — the "household continuity" plan. */
