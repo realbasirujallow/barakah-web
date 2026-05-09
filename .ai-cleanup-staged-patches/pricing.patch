@@ -1,0 +1,11 @@
+--- a/src/lib/pricing.ts
++++ b/src/lib/pricing.ts
+@@ -60,7 +60,7 @@
+   'Debt Payoff Projector',
+   'Analytics & Year-over-Year',
+   'CSV & PDF export',
+-  'Auto-categorization rules',
++  'Transaction sorting rules',
+ ] as const;
+ 
+ /** Family plan features — the "household continuity" plan. */

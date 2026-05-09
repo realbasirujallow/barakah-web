@@ -4,6 +4,71 @@ import { usePathname, useRouter } from 'next/navigation';
 import { api, setRefreshToken, setUnauthorizedHandler } from '../lib/api';
 import { trackLogin, trackSignUp, trackTrialStarted, trackOnce } from '../lib/analytics';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS } from '../lib/trial';
+import { saveCurrencyPreference, saveLocalePreference } from '../lib/useCurrency';
+import { setLocale as setI18nLocale, getLocale as getI18nLocale } from '../lib/i18n';
+
+// 2026-05-08 (Bug E): map a 2-letter country code to its BCP-47 number/date
+// locale. This is what `Intl.DateTimeFormat` uses to pick "Friday, 8 May 2026"
+// vs "Friday, May 8, 2026" — i.e. day-first vs. month-first ordering — and
+// the right thousands separator (1,234 vs 1.234 vs 1 234). Falls back to
+// 'en-US' when the country is null or unmapped.
+function dateLocaleForCountry(country: string | null | undefined): string {
+  if (!country) return 'en-US';
+  const c = country.trim().toUpperCase();
+  switch (c) {
+    case 'US': return 'en-US';
+    case 'GB': case 'UK': return 'en-GB';
+    case 'CA': return 'en-CA';
+    case 'AU': return 'en-AU';
+    case 'NZ': return 'en-NZ';
+    case 'IE': return 'en-IE';
+    case 'SG': return 'en-SG';
+    case 'IN': return 'en-IN';
+    case 'FR': return 'fr-FR';
+    case 'DE': return 'de-DE';
+    case 'ES': return 'es-ES';
+    case 'IT': return 'it-IT';
+    case 'NL': return 'nl-NL';
+    case 'BE': return 'fr-BE';
+    case 'AT': return 'de-AT';
+    case 'PT': return 'pt-PT';
+    case 'CH': return 'de-CH';
+    case 'SA': return 'ar-SA';
+    case 'AE': return 'ar-AE';
+    case 'QA': return 'ar-QA';
+    case 'KW': return 'ar-KW';
+    case 'BH': return 'ar-BH';
+    case 'OM': return 'ar-OM';
+    case 'JO': return 'ar-JO';
+    case 'LB': return 'ar-LB';
+    case 'IQ': return 'ar-IQ';
+    case 'EG': return 'ar-EG';
+    case 'MA': return 'ar-MA';
+    case 'TN': return 'ar-TN';
+    case 'TR': return 'tr-TR';
+    case 'PK': return 'ur-PK';
+    case 'BD': return 'bn-BD';
+    case 'MY': return 'ms-MY';
+    case 'ID': return 'id-ID';
+    case 'TH': return 'th-TH';
+    case 'PH': return 'en-PH';
+    case 'VN': return 'vi-VN';
+    case 'NG': return 'en-NG';
+    case 'KE': return 'en-KE';
+    case 'ZA': return 'en-ZA';
+    case 'BR': return 'pt-BR';
+    case 'MX': return 'es-MX';
+    case 'CO': return 'es-CO';
+    case 'JP': return 'ja-JP';
+    case 'CN': return 'zh-CN';
+    case 'KR': return 'ko-KR';
+    case 'SE': return 'sv-SE';
+    case 'NO': return 'nb-NO';
+    case 'DK': return 'da-DK';
+    case 'FI': return 'fi-FI';
+    default: return 'en-GB'; // International default = day-first; en-US is the deliberate USA-only outlier
+  }
+}
 
 // Dev-only trace hook. In production these traces would add noise to
 // DevTools and pollute any UI/infra log capture; Sentry already receives
@@ -31,6 +96,13 @@ export interface User {
    */
   isAdmin?: boolean;
   /**
+   * 2026-05-09 Lane 10: SUPER_ADMIN flag — used to gate the web admin
+   * "View as user" support button. Backend re-checks every
+   * /admin/support-sessions/start request. Absent on legacy cached
+   * profiles that predate the flag; treated as false.
+   */
+  isSuperAdmin?: boolean;
+  /**
    * Round 23: server-side guided-setup completion timestamp (epoch ms).
    * Replaces the per-device `barakah_guided_setup_completed_<userId>`
    * localStorage flag as source of truth. Null means either the user
@@ -44,6 +116,15 @@ export interface User {
    * and related hooks. Not shown in UI directly.
    */
   country?: string;
+  /**
+   * 2026-05-08 (Bug A): user's preferred display currency, set at signup
+   * from the country (GB→GBP, FR→EUR, SA→SAR, PK→PKR, etc.) and editable
+   * via the Profile page. Synced to `barakah_preferred_currency` localStorage
+   * via `saveCurrencyPreference` whenever this field changes, so every
+   * `useCurrency()` call site reflects the right symbol immediately after
+   * login.
+   */
+  preferredCurrency?: string;
 }
 
 interface AuthContextType {
@@ -94,6 +175,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     routerRef.current = router;
   }, [router]);
+
+  // 2026-05-08 (Bugs A + C + E): whenever the user object updates, propagate
+  // their server-stored preferredCurrency AND derive a number/date locale
+  // from their country to the local Currency hook. Effect: every dashboard
+  // `fmt()` call paints in the right symbol AND every `toLocaleDateString`
+  // shows the right date order ("8 May 2026" for UK, "May 8, 2026" only for
+  // US users) immediately after login — no manual Settings step needed.
+  // On logout the locale (UI translation) resets to English, so a Saudi
+  // user's RTL state doesn't follow the next person who logs in on a
+  // shared device.
+  useEffect(() => {
+    if (user?.preferredCurrency) {
+      saveCurrencyPreference(user.preferredCurrency);
+    }
+    if (user?.country) {
+      saveLocalePreference(dateLocaleForCountry(user.country));
+    }
+  }, [user?.preferredCurrency, user?.country]);
 
   useEffect(() => {
     // HIGH BUG FIX: cancellation flag so rapid unmount (e.g. fast-navigation) does
@@ -178,6 +277,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // admin access takes effect on the next tab visibility / page load
             // instead of requiring a full logout.
             isAdmin: data.isAdmin === true,
+              isSuperAdmin: data.isSuperAdmin === true,
             // Round 23: fetch server-side setup completion + country so
             // dashboard/setup redirect logic and currency formatting
             // always have the latest truth across devices.
@@ -255,6 +355,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               plan: data.plan as User['plan'],
               planExpiresAt: data.planExpiresAt ?? null,
               isAdmin: data.isAdmin === true,
+              isSuperAdmin: data.isSuperAdmin === true,
             };
             try { localStorage.setItem(USER_KEY, JSON.stringify(updated)); } catch { /* SSR */ }
             setUser(updated);
@@ -404,12 +505,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       planExpiresAt: data.planExpiresAt ?? null,
       referralCode: data.referralCode,
       isAdmin: data.isAdmin === true,
+      isSuperAdmin: data.isSuperAdmin === true,
       // Round 23: server-side guided-setup completion + country locale
       // source. Login-response fields may be undefined for legacy
       // backends; null-coalesce to avoid writing `undefined` into
       // the cached profile JSON.
       setupCompletedAt: (data.setupCompletedAt as number | null | undefined) ?? null,
       country: (data.country as string | undefined) ?? undefined,
+      // 2026-05-08 (Bug A): pull preferredCurrency from login response so
+      // the locale-sync useEffect fires immediately on the very first
+      // dashboard paint after login. Falls back to undefined for legacy
+      // backends that don't include the field — the /auth/profile fetch
+      // will fill it in shortly afterwards.
+      preferredCurrency: (data.preferredCurrency as string | undefined) ?? undefined,
     };
     localStorage.setItem(USER_KEY, JSON.stringify(profile));
     localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
@@ -458,6 +566,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // localStorage access failed
     }
+    // 2026-05-08 (Bug C): reset UI language to English on logout so a
+    // previous user's RTL Arabic/Urdu state doesn't leak into the next
+    // person who logs in on this device. The shared device case is
+    // common (family computer, masjid kiosk). The next user's language
+    // will get set from their own profile when they log back in.
+    try {
+      if (getI18nLocale() !== 'en') {
+        setI18nLocale('en');
+      }
+    } catch {
+      // i18n module not loaded — non-fatal
+    }
     setRefreshToken(null);
     setUser(null);
     const query = reason ? `?reason=${reason}` : '';
@@ -474,6 +594,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           plan: data.plan as User['plan'],
           planExpiresAt: data.planExpiresAt ?? null,
           isAdmin: data.isAdmin === true,
+          isSuperAdmin: data.isSuperAdmin === true,
           setupCompletedAt: (data.setupCompletedAt as number | null | undefined) ?? user.setupCompletedAt ?? null,
           country: (data.country as string | undefined) ?? user.country,
         };

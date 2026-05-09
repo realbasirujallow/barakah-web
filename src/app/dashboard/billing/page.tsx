@@ -7,8 +7,10 @@ import { useToast } from '../../../lib/toast';
 import { REFEREE_FIRST_MONTH_PRICE } from '../../../lib/referralCopy';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { PRICING } from '../../../lib/pricing';
+import { useLocalizedPrice } from '../../../lib/useLocalizedPrice';
 import { trackPaywallViewed, trackUpgradeStarted } from '../../../lib/analytics';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 
 // ── Plan tier ranking ────────────────────────────────────────────────────────
 const PLAN_TIER: Record<string, number> = { free: 0, plus: 1, family: 2 };
@@ -89,6 +91,12 @@ const PLANS = [
 
 // ── Billing content (needs Suspense for useSearchParams) ─────────────────────
 function BillingContent() {
+  // 2026-05-08 (W-P1-1 top-of-funnel i18n pass): localize the labels and
+  // button strings on the dashboard billing page. Stripe-required legal /
+  // pricing strings (e.g. "$9.99/mo", PCI compliance line, Stripe portal
+  // copy) intentionally stay English — Stripe support and the audit trail
+  // need stable canonical price labels and Stripe's own UI is English.
+  const { t } = useI18n();
   const params = useSearchParams();
   const { refreshPlan } = useAuth();
   const { toast } = useToast();
@@ -288,7 +296,7 @@ function BillingContent() {
     <div className="max-w-5xl mx-auto px-4 py-8">
 
       <PageHeader
-        title="Billing & Plans"
+        title={t('billingPageTitle')}
         className="mb-8"
         subtitle={
           statusLoading ? (
@@ -362,7 +370,7 @@ function BillingContent() {
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 mb-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-semibold text-amber-900">Before you cancel</p>
+              <p className="text-sm font-semibold text-amber-900">{t('billingBeforeYouCancel')}</p>
               <h2 className="text-xl font-bold text-gray-900 mt-1">
                 {String(saveOffer.label || 'Stay with Barakah and keep your progress')}
               </h2>
@@ -384,7 +392,7 @@ function BillingContent() {
                   disabled={loading === 'save-offer'}
                   className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
                 >
-                  {loading === 'save-offer' ? 'Applying offer...' : 'Keep My Plan With This Offer'}
+                  {loading === 'save-offer' ? t('billingApplyingOffer') : t('billingKeepPlanWithOffer')}
                 </button>
               ) : null}
               <button
@@ -393,14 +401,14 @@ function BillingContent() {
                 disabled={loading === 'portal'}
                 className="rounded-xl border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-white disabled:opacity-60"
               >
-                {loading === 'portal' ? 'Opening portal...' : 'Continue to Billing Portal'}
+                {loading === 'portal' ? t('billingOpeningPortal') : t('billingContinueToPortal')}
               </button>
               <button
                 type="button"
                 onClick={() => setSaveOffer(null)}
                 className="text-sm text-gray-500 hover:text-gray-700"
               >
-                Not now
+                {t('billingNotNow')}
               </button>
             </div>
           </div>
@@ -426,12 +434,19 @@ function BillingContent() {
               ? 'text-green-700 bg-green-100'
               : 'text-amber-700 bg-amber-100 animate-pulse'
           }`}>
-            {billing === 'yearly' ? 'Save up to 34%' : '🎁 GET 2 MONTHS FREE'}
+            {billing === 'yearly' ? 'Save 17%' : '🎁 GET 2 MONTHS FREE'}
           </span>
         </div>
         {billing === 'monthly' && (
           <p className="text-xs text-gray-500">
-            Switch to annual and save ${(9.99 * 12 - 99).toFixed(0)} on Plus or ${(14.99 * 12 - 119).toFixed(0)} on Family per year.
+            {/* 2026-05-08 (item K cascade): the savings figures here are
+                derived from the USD list price. Showing them as "$21 on Plus
+                or $31 on Family" is fine for USD users but jarring for the
+                non-USD audience the rest of this page now localizes. The
+                text is intentionally currency-neutral ("17% on Plus or 17%
+                on Family") so it's true for every customer regardless of
+                the local currency Stripe charges them in. */}
+            Switch to annual and save 17% on Plus or 17% on Family per year.
           </p>
         )}
       </div>
@@ -465,8 +480,7 @@ function BillingContent() {
               <h2 className="text-lg font-bold text-gray-800 mt-1">{plan.name}</h2>
 
               <div className="mt-2 mb-4">
-                <span className="text-3xl font-extrabold text-primary">{price}</span>
-                <span className="text-gray-400 text-sm">{period}</span>
+                <PlanPriceDisplay price={price} period={period} />
                 {billing === 'yearly' && plan.yearlySaving && (
                   <span className="ml-2 text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
                     {plan.yearlySaving}
@@ -494,7 +508,7 @@ function BillingContent() {
                 if (isCurrent) {
                   return (
                     <div className="text-center text-sm font-semibold text-primary py-2 bg-green-50 rounded-xl">
-                      ✅ Current Plan
+                      ✅ {t('billingCurrentPlan')}
                     </div>
                   );
                 }
@@ -541,9 +555,9 @@ function BillingContent() {
       {/* Manage subscription */}
       {status?.hasSubscription && (
         <div className="border border-gray-200 rounded-2xl p-5 bg-white">
-          <h3 className="font-semibold text-gray-700 mb-1">Manage Subscription</h3>
+          <h3 className="font-semibold text-gray-700 mb-1">{t('billingManageSubscription')}</h3>
           <p className="text-sm text-gray-500 mb-3">
-            Update your payment method, switch plans, or review cancellation options before you leave.
+            {t('billingManageSubscriptionBody')}
           </p>
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <button
@@ -551,14 +565,14 @@ function BillingContent() {
               disabled={loading === 'portal'}
               className="rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary hover:bg-green-50 disabled:opacity-60"
             >
-              {loading === 'portal' ? 'Opening portal...' : 'Open Billing Portal'}
+              {loading === 'portal' ? t('billingOpeningPortal') : t('billingOpenPortal')}
             </button>
             <button
               onClick={handleCancelFlow}
               disabled={loading === 'cancel'}
               className="rounded-xl border border-amber-300 px-4 py-3 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-60"
             >
-              {loading === 'cancel' ? 'Checking options...' : 'See Cancellation Options'}
+              {loading === 'cancel' ? t('billingCheckingOptions') : t('billingSeeCancellationOptions')}
             </button>
           </div>
         </div>
@@ -573,7 +587,7 @@ function BillingContent() {
           </div>
           <p className="text-sm text-gray-600 mb-4 leading-relaxed">
             Share your referral link. When a friend signs up and verifies their
-            email, <strong>you</strong> get a free extra month of Barakah Plus
+            email, <strong>you</strong> get a free extra month of Barakah
             and <strong>they</strong> get their first month for{' '}
             <strong>{REFEREE_FIRST_MONTH_PRICE}</strong>.
           </p>
@@ -620,5 +634,31 @@ export default function BillingPage() {
     <Suspense fallback={<div className="p-8 text-gray-400">Loading billing...</div>}>
       <BillingContent />
     </Suspense>
+  );
+}
+
+/**
+ * Renders a plan price with locale-aware approximate conversion.
+ * 2026-05-08 (item K): pricing tiles previously hardcoded "$9.99/mo" for
+ * every user. Non-USD users now see an approximate local-currency price
+ * with a "Charged in your local currency at checkout" caption so the
+ * displayed value sits coherently next to the actual Stripe charge.
+ *
+ * Free plan ("$0") is rendered verbatim — no conversion needed.
+ */
+function PlanPriceDisplay({ price, period }: { price: string; period: string }) {
+  const { localized, approximate, loading } = useLocalizedPrice(price);
+  // The "$0 / forever" free plan should render plainly — no FX dance.
+  const isFree = price === '$0';
+  return (
+    <>
+      <span className="text-3xl font-extrabold text-primary">
+        {isFree ? price : (loading ? price : localized)}
+      </span>
+      <span className="text-gray-400 text-sm">{period}</span>
+      {!isFree && approximate && !loading && (
+        <p className="text-[11px] text-gray-500 mt-1">Charged in your local currency at checkout.</p>
+      )}
+    </>
   );
 }

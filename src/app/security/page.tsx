@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Security | How Barakah Protects Your Financial Data',
   description:
-    'Learn how Barakah protects your financial data with TLS 1.2+ in transit, application-layer AES-256 encryption for bank-linking secrets, managed-disk encryption at rest, httpOnly sessions, bcrypt password hashing, and zero third-party data sharing.',
+    'Learn how Barakah protects your financial data with TLS 1.2+ in transit, application-layer AES-256 encryption for bank-linking secrets, managed-disk encryption at rest, httpOnly sessions, bcrypt password hashing, and no data selling.',
   alternates: {
     canonical: 'https://trybarakah.com/security',
   },

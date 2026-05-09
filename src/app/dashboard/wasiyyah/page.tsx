@@ -540,9 +540,9 @@ function WasiyyahPageContent() {
               preview={
                 <div className="space-y-2">
                   {[
-                    { type: '🕌 Unpaid Zakat', desc: 'Zakat for 2024 owed', amt: '$640' },
-                    { type: '💰 Unpaid loan', desc: 'Borrowed from Yusuf in 2023', amt: '$1,200' },
-                    { type: '📿 Kaffarah', desc: 'Broken oath atonement', amt: '$60' },
+                    { type: '🕌 Unpaid Zakat', desc: 'Zakat for 2024 owed', amt: fmt(640) },
+                    { type: '💰 Unpaid loan', desc: 'Borrowed from Yusuf in 2023', amt: fmt(1200) },
+                    { type: '📿 Kaffarah', desc: 'Broken oath atonement', amt: fmt(60) },
                   ].map((o) => (
                     <div key={o.type} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                       <div>

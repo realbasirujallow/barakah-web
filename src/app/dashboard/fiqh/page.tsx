@@ -469,7 +469,7 @@ export default function FiqhSettingsPage() {
                   onChange={(e) => handleRuleChange('retirementMethod', e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
                 >
-                  <option value="full_accessible">Full Accessible Balance (AMJA/Majority)</option>
+                  <option value="full_accessible">Accessible Balance Method (AMJA/FCNA)</option>
                   <option value="employer_match_only">Employer Match Only</option>
                   <option value="on_withdrawal_only">On Withdrawal Only</option>
                 </select>

@@ -168,7 +168,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
           </button>
           <span className={`text-sm font-semibold ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
           <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${billing === 'yearly' ? 'bg-green-100 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-            {billing === 'yearly' ? 'Saving up to 34%!' : 'Save up to 34%'}
+            {billing === 'yearly' ? 'Saving 17%!' : 'Save 17%'}
           </span>
         </div>
 
@@ -298,7 +298,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
           </button>
           <span className={`text-sm font-semibold ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
           <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${billing === 'yearly' ? 'bg-green-100 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-            {billing === 'yearly' ? PRICING.family.yearlySaving : 'Save up to 34%'}
+            {billing === 'yearly' ? PRICING.family.yearlySaving : 'Save 17%'}
           </span>
         </div>
 

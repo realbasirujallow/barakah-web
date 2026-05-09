@@ -8,6 +8,7 @@ import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useAuth } from '../../../context/AuthContext';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { saveCurrencyPreference } from '../../../lib/useCurrency';
+import { useLocalizedPrice } from '../../../lib/useLocalizedPrice';
 import { useDarkMode, toggleDarkMode as toggleDarkModeShared } from '../../../lib/useDarkMode';
 import { PRICING } from '../../../lib/pricing';
 import HouseholdSection from '../../../components/HouseholdSection';
@@ -368,7 +369,7 @@ export default function ProfilePage() {
                     </button>
                     <span className={`text-xs font-medium ${billingPeriod === 'yearly' ? 'text-primary' : 'text-gray-400'}`}>Yearly</span>
                     {billingPeriod === 'yearly' && (
-                      <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save up to 34%</span>
+                      <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save 17%</span>
                     )}
                   </div>
 
@@ -378,10 +379,10 @@ export default function ProfilePage() {
                       <div className="border-2 border-primary rounded-xl p-5 relative">
                         <span className="absolute -top-3 left-4 bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">Most Popular</span>
                         <h3 className="text-lg font-bold text-primary">Barakah Plus</h3>
-                        <p className="text-2xl font-extrabold text-gray-900 mt-1">
-                          {billingPeriod === 'yearly' ? PRICING.plus.yearly : PRICING.plus.monthly}
-                          <span className="text-sm font-normal text-gray-500">{billingPeriod === 'yearly' ? '/year' : '/month'}</span>
-                        </p>
+                        <ProfilePlanPrice
+                          usdPrice={billingPeriod === 'yearly' ? PRICING.plus.yearly : PRICING.plus.monthly}
+                          period={billingPeriod === 'yearly' ? '/year' : '/month'}
+                        />
                         {billingPeriod === 'yearly' && (
                           <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save 17%</span>
                         )}
@@ -412,12 +413,12 @@ export default function ProfilePage() {
                     {/* Family Plan */}
                     <div className={`border rounded-xl p-5 ${planKey === 'plus' ? 'border-2 border-purple-300' : 'border-purple-200'}`}>
                       <h3 className="text-lg font-bold text-purple-700">Barakah Family</h3>
-                      <p className="text-2xl font-extrabold text-gray-900 mt-1">
-                        {billingPeriod === 'yearly' ? PRICING.family.yearly : PRICING.family.monthly}
-                        <span className="text-sm font-normal text-gray-500">{billingPeriod === 'yearly' ? '/year' : '/month'}</span>
-                      </p>
+                      <ProfilePlanPrice
+                        usdPrice={billingPeriod === 'yearly' ? PRICING.family.yearly : PRICING.family.monthly}
+                        period={billingPeriod === 'yearly' ? '/year' : '/month'}
+                      />
                       {billingPeriod === 'yearly' && (
-                        <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save 34%</span>
+                        <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save 17%</span>
                       )}
                       <ul className="mt-3 space-y-1.5 text-sm text-gray-700">
                         <li>&#10003; Everything in Plus</li>
@@ -1004,5 +1005,27 @@ export default function ProfilePage() {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Renders a plan price with locale-aware approximate conversion.
+ * 2026-05-08 (item K): non-USD users now see an approximate local-
+ * currency price ("~£7.91/month") with a "Charged in your local currency
+ * at checkout" caption to keep the visible number coherent with what
+ * Stripe actually charges.
+ */
+function ProfilePlanPrice({ usdPrice, period }: { usdPrice: string; period: string }) {
+  const { localized, approximate, loading } = useLocalizedPrice(usdPrice);
+  return (
+    <>
+      <p className="text-2xl font-extrabold text-gray-900 mt-1">
+        {loading ? usdPrice : localized}
+        <span className="text-sm font-normal text-gray-500">{period}</span>
+      </p>
+      {approximate && !loading && (
+        <p className="text-[11px] text-gray-500 mt-0.5">Charged in your local currency at checkout.</p>
+      )}
+    </>
   );
 }

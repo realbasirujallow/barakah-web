@@ -556,7 +556,7 @@ function ReportsPageContent() {
             <span className="text-amber-500 text-lg flex-shrink-0">ℹ️</span>
             <div className="text-sm text-amber-900">
               <strong>Reports are for personal record-keeping.</strong> For tax purposes or legal matters, consult a qualified accountant or Islamic finance advisor.
-              Your data is never shared with third parties.
+              Barakah does not sell your data; trusted service providers are used only where needed to operate the product.
             </div>
           </div>
         </>

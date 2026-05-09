@@ -32,6 +32,8 @@ interface RibaFlag {
 
 interface RibaResult {
   totalScanned: number;
+  totalTransactions: number;
+  truncated: boolean;
   flaggedCount: number;
   totalRibaAmount: number;
   ribaPercentage: number;
@@ -72,6 +74,10 @@ interface RibaScanResponse {
   totalScanned?: number;
   totalRibaAmount?: number;
   ribaPercentage?: number;
+  // 2026-05-08: backend now flags when scan didn't cover everything
+  // (e.g. > 100k txns, paged) so the UI can render a truthful
+  // "Showing scan of N of M" instead of silently understating riba.
+  truncated?: boolean;
 }
 
 interface DebtRecord {
@@ -235,6 +241,8 @@ export default function RibaPage() {
             : Array.isArray(d?.flaggedTransactions) ? d.flaggedTransactions : [];
           setResult({
             totalScanned: d?.scannedCount ?? d?.totalTransactions ?? d?.totalScanned ?? 0,
+            totalTransactions: d?.totalTransactions ?? d?.scannedCount ?? d?.totalScanned ?? 0,
+            truncated: d?.truncated ?? false,
             flaggedCount: d?.ribaCount ?? d?.flaggedCount ?? flaggedTxns.length,
             totalRibaAmount: d?.totalRibaAmount ?? 0,
             ribaPercentage: d?.ribaPercentage ?? 0,
@@ -512,9 +520,9 @@ export default function RibaPage() {
               preview={
                 <div className="space-y-2">
                   {[
-                    { desc: 'Bank interest (savings)', amt: '+$8.42', cls: 'text-red-600' },
-                    { desc: 'Credit-card APR charge', amt: '−$45.50', cls: 'text-red-600' },
-                    { desc: 'Investment APY payout', amt: '+$12.18', cls: 'text-red-600' },
+                    { desc: 'Bank interest (savings)', amt: `+${fmt(8.42)}`, cls: 'text-red-600' },
+                    { desc: 'Credit-card APR charge', amt: `−${fmt(45.50)}`, cls: 'text-red-600' },
+                    { desc: 'Investment APY payout', amt: `+${fmt(12.18)}`, cls: 'text-red-600' },
                   ].map((t) => (
                     <div key={t.desc} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                       <div>
@@ -539,7 +547,9 @@ export default function RibaPage() {
                   {isClean ? 'Riba-Free!' : 'Riba Detected'}
                 </p>
                 <p className="text-white/80 mt-1">
-                  {`${result?.totalScanned || 0} transactions scanned${hasRibaDebts ? ` · ${ribaDebts.length} interest-bearing debt${ribaDebts.length !== 1 ? 's' : ''} found` : ''}`}
+                  {result?.truncated
+                    ? `Showing scan of ${result.totalScanned.toLocaleString()} of ${result.totalTransactions.toLocaleString()} transactions${hasRibaDebts ? ` · ${ribaDebts.length} interest-bearing debt${ribaDebts.length !== 1 ? 's' : ''} found` : ''}`
+                    : `${(result?.totalScanned || 0).toLocaleString()} transactions scanned${hasRibaDebts ? ` · ${ribaDebts.length} interest-bearing debt${ribaDebts.length !== 1 ? 's' : ''} found` : ''}`}
                 </p>
               </div>
 
@@ -1021,9 +1031,9 @@ export default function RibaPage() {
                   preview={
                     <div className="space-y-2">
                       {[
-                        { src: '🏠 Mortgage', name: 'Chase Mortgage', amt: '$240,000', status: 'Active' },
-                        { src: '💳 Credit Card', name: 'Discover Card', amt: '$3,400', status: 'In progress' },
-                        { src: '🚗 Car Loan', name: 'Toyota Finance', amt: '$11,200', status: 'Active' },
+                        { src: '🏠 Mortgage', name: 'Chase Mortgage', amt: fmt(240000), status: 'Active' },
+                        { src: '💳 Credit Card', name: 'Discover Card', amt: fmt(3400), status: 'In progress' },
+                        { src: '🚗 Car Loan', name: 'Toyota Finance', amt: fmt(11200), status: 'Active' },
                       ].map((g) => (
                         <div key={g.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                           <div>

@@ -152,7 +152,7 @@ export default function ZakatOnNftsPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { href: '/learn/zakat-on-crypto', title: 'Zakat on Crypto', desc: 'How to calculate zakat on Bitcoin, ETH, and altcoins.' },
-                { href: '/learn/is-bitcoin-halal-2026', title: 'Is Bitcoin Halal?', desc: 'Scholar consensus on cryptocurrency in 2026.' },
+                { href: '/learn/is-bitcoin-halal-2026', title: 'Is Bitcoin Halal?', desc: 'Current scholarly positions on cryptocurrency in 2026.' },
                 { href: '/learn/nisab', title: 'Nisab Threshold', desc: '85g gold and 595g silver explained.' },
                 { href: '/learn/hawl', title: 'Hawl (Lunar Year)', desc: 'How the 354-day cycle works for zakat.' },
               ].map((a) => (

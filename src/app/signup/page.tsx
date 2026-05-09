@@ -5,8 +5,17 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { api } from '../../lib/api';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../lib/trial';
+import LanguageSwitcher from '../../components/LanguageSwitcher';
+import { useI18n } from '../../lib/i18n';
 
 function SignupContent() {
+  // 2026-05-08 (W-P1-2 top-of-funnel i18n pass): the signup page rendered
+  // every label, button, hint, and validation message in English even when
+  // the user had switched the locale picker. Wiring useI18n here so a
+  // first-time French / Arabic / Urdu visitor sees the form in their
+  // language. Country and US-state lists stay English (Stripe + audit logs
+  // need stable canonical names).
+  const { t } = useI18n();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -417,17 +426,17 @@ function SignupContent() {
     // had to be rejected with a round-trip.
     const trimmedEmail = email.trim();
     if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmedEmail)) {
-      setError('Please enter a valid email address');
+      setError(t('signupErrInvalidEmail'));
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('signupErrPasswordTooShort'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('signupErrPasswordsDoNotMatch'));
       return;
     }
 
@@ -441,11 +450,11 @@ function SignupContent() {
     // against typos like "555" or "123" while staying tolerant of
     // international formats.
     if (!phoneNumber.trim()) {
-      setError('Please enter a phone number so we can reach you about your account');
+      setError(t('signupErrPhoneRequired'));
       return;
     }
     if (phoneNumber.replace(/\D/g, '').length < 7) {
-      setError('Please enter a valid phone number');
+      setError(t('signupErrPhoneInvalid'));
       return;
     }
 
@@ -458,7 +467,7 @@ function SignupContent() {
       const { trackSignUp } = await import('../../lib/analytics');
       trackSignUp('email');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Signup failed');
+      setError(err instanceof Error ? err.message : t('signupErrGeneric'));
     } finally {
       setLoading(false);
     }
@@ -484,29 +493,35 @@ function SignupContent() {
             <Link href="/" className="text-3xl font-bold text-[#1B5E20]">&#127769; Barakah</Link>
           </div>
           <div className="bg-white rounded-2xl shadow-sm p-8">
-            <div className="text-5xl mb-4">{emailSent ? '📧' : '⚠️'}</div>
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-2">
-              {emailSent ? 'Check Your Email!' : 'Account Created'}
-            </h2>
-            {emailSent ? (
-              <>
-                <p className="text-gray-600 mb-2">
-                  We sent a verification link to <strong>{email}</strong>.
-                </p>
-                <p className="text-gray-500 text-sm mb-6">
-                  Click the link in the email to verify your account, then sign in to choose your starting plan and connect your accounts.
-                  Don&apos;t forget to check your spam folder!
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-gray-600 mb-2">
-                  Your account was created, but we had trouble sending the verification email.
-                </p>
-                <p className="text-gray-500 text-sm mb-6">
-                  Please click &ldquo;Resend&rdquo; below to try again. Once you&apos;re verified, sign in to choose your plan and connect your accounts.
-                </p>
-              </>
+            {/* 2026-05-08 (P0 production fix, mirror of AuthController fix):
+                previously we keyed both the icon and the headline off
+                `emailSent`. Because the backend's afterCommit timing race
+                made `emailSent` always false on success, every healthy
+                signup got the alarmist "⚠️ Account Created — we had trouble
+                sending..." headline, which trained users to immediately
+                click "Resend" — invalidating the original token that was
+                already in flight (see the brimaus@gmail.com report).
+                After the backend fix the flag is accurate again, but we
+                still show the calm "Check Your Email" headline by default
+                and surface the trouble-state only when Resend itself
+                explicitly fails. Defense in depth: even if the backend
+                lies, the user gets a normal-looking page with a quietly
+                available Resend button at the bottom. */}
+            <div className="text-5xl mb-4">📧</div>
+            <h2 className="text-xl font-bold text-[#1B5E20] mb-2">Check Your Email!</h2>
+            <p className="text-gray-600 mb-2">
+              We sent a verification link to <strong>{email}</strong>.
+            </p>
+            <p className="text-gray-500 text-sm mb-6">
+              Click the link in the email to verify your account, then sign in to choose your starting plan and connect your accounts.
+              Don&apos;t forget to check your spam folder!
+            </p>
+            {!emailSent && (
+              <p className="text-amber-700 text-xs bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4 text-left">
+                <strong>Heads up:</strong> our email provider didn&apos;t confirm delivery.
+                If nothing lands in the next minute, click <em>Resend verification email</em>
+                below.
+              </p>
             )}
 
             <div className="mb-4 rounded-xl bg-[#FFF3CD] text-[#1B5E20] text-sm font-medium px-4 py-3">
@@ -541,10 +556,23 @@ function SignupContent() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
+        {/* 2026-05-08 (Bug F): language switcher on signup so a non-English
+            first-time user can change UI language before creating an account.
+            The marketing-page chrome has it but a user landing on /signup
+            via a deep link or referral wouldn't see it otherwise. */}
+        <div className="flex justify-end mb-4">
+          <LanguageSwitcher compact />
+        </div>
         <div className="text-center mb-6">
           <Link href="/" className="text-3xl font-bold text-[#1B5E20]">&#127769; Barakah</Link>
-          <p className="text-gray-600 mt-3 font-semibold">Create your account &mdash; get {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Plus on us</p>
-          <p className="text-xs text-gray-500 mt-2">No credit card or debit card required &middot; Zakat calculator &middot; Bank sync &middot; Halal screener</p>
+          {/* 2026-05-08 (W-P1-2): the localized signupCreateAccountSubtitle
+              key embeds {trialLabel} so we can substitute the trial-days
+              string at render time instead of hardcoding "30 days" into
+              every locale dictionary. */}
+          <p className="text-gray-600 mt-3 font-semibold">
+            {t('signupCreateAccountSubtitle').replace('{trialLabel}', DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL)}
+          </p>
+          <p className="text-xs text-gray-500 mt-2">{t('signupNoCardLine')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-8">
@@ -553,11 +581,11 @@ function SignupContent() {
           )}
 
           <div className="mb-6 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
-            <p className="text-sm font-semibold text-[#1B5E20] mb-2">Your first win takes about 2 minutes.</p>
+            <p className="text-sm font-semibold text-[#1B5E20] mb-2">{t('signupFirstWinTitle')}</p>
             <ol className="space-y-1 text-xs text-emerald-900 list-decimal list-inside">
-              <li>Create your account. No credit card or debit card.</li>
-              <li>Run a zakat estimate or add your first budget.</li>
-              <li>Upgrade only when Barakah is clearly useful.</li>
+              <li>{t('signupFirstWinStep1')}</li>
+              <li>{t('signupFirstWinStep2')}</li>
+              <li>{t('signupFirstWinStep3')}</li>
             </ol>
           </div>
 
@@ -566,14 +594,14 @@ function SignupContent() {
               label focuses the input. aria-label is now redundant once
               htmlFor is wired up, so we remove it. */}
           <div className="mb-4">
-            <label htmlFor="signup-name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <label htmlFor="signup-name" className="block text-sm font-medium text-gray-700 mb-1">{t('authFullName')}</label>
             <input
               id="signup-name"
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none transition"
-              placeholder="Your full name"
+              placeholder={t('signupFullNamePlaceholder')}
               maxLength={255}
               required
               autoComplete="name"
@@ -581,14 +609,14 @@ function SignupContent() {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700 mb-1">{t('authEmail')}</label>
             <input
               id="signup-email"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none transition"
-              placeholder="you@example.com"
+              placeholder={t('signupEmailPlaceholder')}
               maxLength={254}
               required
               autoComplete="email"
@@ -596,21 +624,21 @@ function SignupContent() {
           </div>
 
           <div className="mb-6">
-            <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700 mb-1">{t('authPassword')}</label>
             <input
               id="signup-password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none transition"
-              placeholder="At least 8 characters"
+              placeholder={t('signupPasswordPlaceholder')}
               minLength={8}
               maxLength={256}
               required
               autoComplete="new-password"
             />
             <div className="flex items-center gap-2 mt-2">
-              <p className="text-xs text-gray-500">At least 8 characters</p>
+              <p className="text-xs text-gray-500">{t('signupPasswordHint')}</p>
               {password && (
                 <div className="flex items-center gap-1">
                   {/*
@@ -635,7 +663,7 @@ function SignupContent() {
                     }`} />
                   </div>
                   <span className={`text-xs font-medium ${passwordStrength === 'weak' ? 'text-red-500' : passwordStrength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}>
-                    {passwordStrength === 'weak' ? 'Weak' : passwordStrength === 'medium' ? 'Medium' : 'Strong'}
+                    {passwordStrength === 'weak' ? t('signupPasswordWeak') : passwordStrength === 'medium' ? t('signupPasswordMedium') : t('signupPasswordStrong')}
                   </span>
                 </div>
               )}
@@ -643,24 +671,24 @@ function SignupContent() {
           </div>
 
           <div className="mb-6">
-            <label htmlFor="signup-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <label htmlFor="signup-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">{t('authConfirmPassword')}</label>
             <input
               id="signup-confirm-password"
               type="password"
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               className={`w-full px-4 py-3 rounded-lg border outline-none transition focus:ring-1 ${confirmPassword && password !== confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : 'border-gray-200 focus:border-[#1B5E20] focus:ring-[#1B5E20]'}`}
-              placeholder="Re-enter your password"
+              placeholder={t('signupConfirmPasswordPlaceholder')}
               minLength={8}
               required
               autoComplete="new-password"
             />
             {confirmPassword && password !== confirmPassword && (
-              <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
+              <p className="text-red-500 text-xs mt-1">{t('signupPasswordsDoNotMatch')}</p>
             )}
           </div>
           <div className="mb-4">
-            <label htmlFor="signup-country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+            <label htmlFor="signup-country" className="block text-sm font-medium text-gray-700 mb-1">{t('authCountry')}</label>
             <select
               id="signup-country"
               value={country}
@@ -677,17 +705,17 @@ function SignupContent() {
           {country === 'US' && (
             <div className="mb-4">
               <label htmlFor="signup-state" className="block text-sm font-medium text-gray-700 mb-1">
-                State <span className="text-gray-400 font-normal">(for tax estimate)</span>
+                {t('signupStateLabel')} <span className="text-gray-400 font-normal">{t('signupStateOptional')}</span>
               </label>
               <select id="signup-state" value={state} onChange={e => setState(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                {US_STATES.map((s) => (<option key={s} value={s}>{s ? s : 'Select your state'}</option>))}
+                {US_STATES.map((s) => (<option key={s} value={s}>{s ? s : t('signupStateSelectPrompt')}</option>))}
               </select>
             </div>
           )}
 
           <div className="mb-4">
             <label htmlFor="signup-phone" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone number <span className="text-red-500">*</span>
+              {t('authPhone')} <span className="text-red-500">{t('signupPhoneRequiredAsterisk')}</span>
             </label>
             <input
               id="signup-phone"
@@ -699,17 +727,17 @@ function SignupContent() {
               maxLength={20}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
             />
-            <p className="text-xs text-gray-400 mt-1">So our team can reach you by phone if there&rsquo;s an issue with your account. We never share your number and never use it for marketing.</p>
+            <p className="text-xs text-gray-400 mt-1">{t('signupPhoneNote')}</p>
           </div>
 
           <div>
             <label htmlFor="signup-referral" className="block text-sm font-medium text-gray-700 mb-1">
-              Referral code <span className="text-gray-400 font-normal">(optional)</span>
+              {t('signupReferralCodeLabel')} <span className="text-gray-400 font-normal">{t('signupReferralOptional')}</span>
             </label>
             <input
               id="signup-referral"
               type="text"
-              placeholder="e.g. ABCD1234"
+              placeholder={t('signupReferralPlaceholder')}
               value={referralCode}
               onChange={e => setReferralCode(e.target.value.toUpperCase())}
               maxLength={8}
@@ -717,18 +745,18 @@ function SignupContent() {
             />
             {referralCode.length === 8 ? (
               <p className="text-xs text-amber-700 font-medium mt-1 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">
-                🎁 Referral code applied — your first month will be just <strong>$4.99</strong> instead of $9.99.
+                🎁 {t('signupReferralAppliedNote')} <strong>$4.99</strong> {t('signupReferralAppliedSuffix')}
               </p>
             ) : (
-              <p className="text-xs text-gray-400 mt-1">Have a friend&apos;s code? You get your first month for $4.99 — they earn a free month. 🎁</p>
+              <p className="text-xs text-gray-400 mt-1">{t('signupReferralHint')} 🎁</p>
             )}
           </div>
 
           <p className="text-center text-xs text-gray-600 mb-6">
-            By creating an account, you agree to our{' '}
-            <Link href="/terms" className="text-[#1B5E20] hover:underline font-medium">Terms of Service</Link>
-            {' '}and{' '}
-            <Link href="/privacy" className="text-[#1B5E20] hover:underline font-medium">Privacy Policy</Link>.
+            {t('signupTermsPrefix')}{' '}
+            <Link href="/terms" className="text-[#1B5E20] hover:underline font-medium">{t('signupTermsOfService')}</Link>
+            {' '}{t('signupTermsAnd')}{' '}
+            <Link href="/privacy" className="text-[#1B5E20] hover:underline font-medium">{t('signupPrivacyPolicy')}</Link>.
           </p>
 
           <button
@@ -736,12 +764,12 @@ function SignupContent() {
             disabled={loading}
             className="w-full bg-[#1B5E20] text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition disabled:opacity-50"
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? t('authCreating') : t('authCreateAccountButton')}
           </button>
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            Already have an account?{' '}
-            <Link href="/login" className="text-[#1B5E20] font-semibold hover:underline">Sign In</Link>
+            {t('authHaveAccount')}{' '}
+            <Link href="/login" className="text-[#1B5E20] font-semibold hover:underline">{t('authSignInButton')}</Link>
           </p>
         </form>
       </div>

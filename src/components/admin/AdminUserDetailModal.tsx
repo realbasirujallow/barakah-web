@@ -18,6 +18,7 @@
 
 import { useState } from 'react';
 import { api } from '../../lib/api';
+import ViewAsUserButton from '../ViewAsUserButton';
 import { useBodyScrollLock } from '../../lib/useBodyScrollLock';
 import { PRICING } from '../../lib/pricing';
 import type { AdminUser, ActivityCountKey, UserActivity, UsersResponse } from './adminTypes';
@@ -324,6 +325,15 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
         </div>
 
         <div className="p-6 space-y-5">
+          {/* Lane 10 (2026-05-09): super-admin-only "View as user". Returns null for non-super-admins. */}
+          <div className="flex justify-end">
+            <ViewAsUserButton
+              targetUserId={selected.id}
+              targetEmail={selected.email}
+              targetName={selected.name}
+            />
+          </div>
+
           {/* User Activity Summary */}
           {userActivity && (
             <div className="bg-gray-50 rounded-xl p-4">

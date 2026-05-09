@@ -497,9 +497,9 @@ export default function BillsPage() {
           preview={
             <div className="space-y-2">
               {[
-                { name: 'Mortgage', amt: '$1,840.00', due: 'Due in 5 days', status: 'upcoming' },
-                { name: 'Internet', amt: '$79.99', due: 'Due tomorrow', status: 'soon' },
-                { name: 'Phone', amt: '$45.00', due: 'Paid', status: 'paid' },
+                { name: 'Mortgage', amt: fmt(1840), due: 'Due in 5 days', status: 'upcoming' },
+                { name: 'Internet', amt: fmt(79.99), due: 'Due tomorrow', status: 'soon' },
+                { name: 'Phone', amt: fmt(45), due: 'Paid', status: 'paid' },
               ].map((b) => (
                 <div key={b.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                   <div>

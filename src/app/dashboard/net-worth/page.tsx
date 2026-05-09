@@ -549,9 +549,9 @@ export default function NetWorthPage() {
           preview={
             <div className="space-y-2">
               {[
-                { label: 'Last week', delta: '+$1,240', cls: 'text-green-600' },
-                { label: 'Last month', delta: '+$8,560', cls: 'text-green-600' },
-                { label: 'Year to date', delta: '+$23,400', cls: 'text-green-600' },
+                { label: 'Last week', delta: `+${fmt(1240)}`, cls: 'text-green-600' },
+                { label: 'Last month', delta: `+${fmt(8560)}`, cls: 'text-green-600' },
+                { label: 'Year to date', delta: `+${fmt(23400)}`, cls: 'text-green-600' },
               ].map((s) => (
                 <div key={s.label} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                   <p className="font-medium text-gray-700">{s.label}</p>

@@ -395,7 +395,7 @@ export default function BudgetPage() {
                     <p className="text-[10px] text-gray-500">{MONTHS[viewMonth - 1]} {viewYear}</p>
                   </div>
                 </div>
-                <p className="text-xs"><span className="text-gray-700">$320</span> / $500</p>
+                <p className="text-xs"><span className="text-gray-700">{fmt(320)}</span> / {fmt(500)}</p>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-1.5">
                 <div className="h-1.5 rounded-full bg-primary" style={{ width: '64%' }} />

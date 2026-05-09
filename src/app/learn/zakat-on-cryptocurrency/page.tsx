@@ -79,7 +79,7 @@ export default function ZakatOnCryptocurrencyPage() {
           </h1>
 
           <p className="text-lg text-gray-600 leading-relaxed mb-8 dark:text-gray-400">
-            If you hold Bitcoin, Ethereum, stablecoins, or earn staking rewards, zakat almost certainly applies. The mechanics are simple — 2.5% on the market value at your hawl anniversary — but getting the valuation date, the staking treatment, and the madhab nuances right matters. This guide walks through all of it.
+            If you hold Bitcoin, Ethereum, stablecoins, or earn staking rewards, many contemporary scholars treat those holdings as zakatable once they meet the usual wealth, nisab, and hawl conditions. The mechanics can be simple — 2.5% on market value at your hawl anniversary — but valuation date, staking treatment, token liquidity, and madhab nuance still matter. This guide walks through the practical issues.
           </p>
 
           <div className="bg-[#1B5E20] text-white rounded-2xl p-6 mb-10">
@@ -92,10 +92,10 @@ export default function ZakatOnCryptocurrencyPage() {
 
           <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">Is cryptocurrency zakatable at all?</h2>
           <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
-            Yes — by overwhelming contemporary scholarly consensus. Crypto is treated as a <em>māl</em> (zakatable wealth) because it functions as a medium of exchange and store of value, the same role gold and silver played classically. Mufti Taqi Usmani has held that crypto qualifies for zakat once it reaches nisab, even where he is cautious about its broader permissibility. AAOIFI working papers from 2022 onward likewise treat crypto holdings as zakatable assets.
+            In many contemporary rulings, yes. Crypto held as wealth or investment is often treated as <em>māl</em> (zakatable wealth) because it can function as a store of value or exchangeable asset. Some scholars remain cautious about crypto permissibility itself, so Barakah treats this as a calculation aid for users following the zakatable-digital-asset position, not as a binding ruling.
           </p>
           <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
-            The minority view — that crypto is not real wealth and therefore not zakatable — is increasingly difficult to maintain in 2026, when crypto routinely settles real-world transactions. If in doubt, the conservative path is to pay zakat.
+            If in doubt, document your intent, liquidity, and valuation source, then ask a qualified scholar. The conservative financial path is often to include marketable crypto in zakatable wealth, but edge cases such as locked tokens, disputed assets, staking, and DeFi require care.
           </p>
 
           <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">The nisab threshold for crypto</h2>
@@ -107,7 +107,7 @@ export default function ZakatOnCryptocurrencyPage() {
             <li><strong>Silver nisab:</strong> 595 grams of silver</li>
           </ul>
           <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
-            Most contemporary scholars recommend the <strong>silver nisab</strong> for individual Muslims, because it is lower and therefore captures more wealth — protecting the right of the poor to receive zakat. Some Hanafi authorities will accept the gold nisab when crypto is the primary holding rather than a mix of cash, gold and crypto. Barakah pulls live spot prices and calculates both.
+            Scholars and institutions differ on whether to apply gold, silver, or the lower-of-two methodology. Silver is more pro-obligation because it is usually lower; gold is a common contemporary North American default; Hanafi users often prefer silver. Barakah pulls live spot prices and calculates both.
           </p>
 
           <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">Hanafi vs Shafii: where the schools differ</h2>

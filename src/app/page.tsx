@@ -246,7 +246,7 @@ export default function HomeV2() {
             {[
               ['1', 'Estimate zakat', 'Use the free calculator before connecting a bank.'],
               ['2', 'Add one money habit', 'Create a budget, savings goal, or recurring bill.'],
-              ['3', 'Upgrade only if it helps', 'Your Plus trial starts with no card required.'],
+              ['3', 'Upgrade only if it helps', 'Your Family trial starts with no card required.'],
             ].map(([num, title, body]) => (
               <div key={title} className="bg-white border border-amber-100 rounded-xl p-4 text-left">
                 <div className="w-7 h-7 rounded-full bg-[#1B5E20] text-white text-sm font-bold flex items-center justify-center mb-3">

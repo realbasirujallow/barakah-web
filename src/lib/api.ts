@@ -343,6 +343,27 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
     Object.assign(headers, acquisitionHeaders());
   }
 
+  // 2026-05-09 Lane 10: super-admin "View as user" support mode. When a
+  // support token is present in sessionStorage, attach it as
+  // X-Support-Token. The backend SupportSessionFilter intercepts and
+  // (a) verifies the token, (b) checks the support_sessions row,
+  // (c) overrides authentication to the target user only for VIEW_ONLY
+  // allow-listed endpoints, (d) blocks everything else with 403.
+  //
+  // The /admin/support-sessions/start + /end + /active endpoints must
+  // NOT carry the support token — they use the admin's normal cookie
+  // session. We skip header injection on those.
+  if (typeof window !== 'undefined' && !endpoint.startsWith('/admin/support-sessions')) {
+    try {
+      const supportToken = sessionStorage.getItem('barakah_support_token');
+      if (supportToken) {
+        headers['X-Support-Token'] = supportToken;
+      }
+    } catch {
+      /* sessionStorage may be disabled */
+    }
+  }
+
   // credentials: 'include' ensures the auth_token and refresh_token httpOnly
   // cookies are sent on every request.
   const controller = new AbortController();

@@ -282,7 +282,7 @@ function ForecastingPageContent() {
         </div>
         {loadError && (
           <p className="text-emerald-100 text-xs mt-4 italic">
-            Couldn&apos;t load your live net worth — showing a sample $100,000 starting point so you can still preview the projection.
+            Couldn&apos;t load your live net worth — showing a sample {fmt(100000)} starting point so you can still preview the projection.
           </p>
         )}
       </div>

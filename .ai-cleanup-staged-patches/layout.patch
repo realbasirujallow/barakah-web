@@ -1,0 +1,36 @@
+--- a/src/app/dashboard/layout.tsx
++++ b/src/app/dashboard/layout.tsx
+@@ -73,7 +73,7 @@
+   { href: '/dashboard/zakat', icon: Coins, label: 'Zakat' },
+   // ── Premium features (alphabetized) ───────────────────────────────────────
+   { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics', gate: 'plus' },
+-  { href: '/dashboard/categorize', icon: Tags, label: 'Auto-Categorize', gate: 'plus' },
++  { href: '/dashboard/categorize', icon: Tags, label: 'Transaction sorting', gate: 'plus' },
+   { href: '/dashboard/barakah-score', icon: Star, label: 'Barakah Score', gate: 'plus' },
+   { href: '/dashboard/summary', icon: FileText, label: 'Financial Summary', gate: 'plus' },
+   { href: '/dashboard/halal', icon: ShieldCheck, label: 'Stock Screener', gate: 'plus' },
+@@ -136,7 +136,7 @@
+ const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> = {
+   spending: {
+     label: 'Spending',
+-    items: ['Transactions', 'Budget', 'Recurring', 'Audit Ledger', 'Auto-Categorize', 'Analytics', 'Riba Detector', 'Subscription Detector'],
++    items: ['Transactions', 'Budget', 'Recurring', 'Audit Ledger', 'Transaction sorting', 'Analytics', 'Riba Detector', 'Subscription Detector'],
+   },
+   plan: {
+     label: 'Plan',
+@@ -533,10 +533,11 @@
+         {/* Floating feedback widget — visible on all dashboard pages */}
+         <FeedbackWidget />
+ 
+-        {/* 2026-05-03 (Section B·2): Ask Barakah floating assistant.
+-            Demo-grade pattern-match assistant over the user's own data —
+-            no LLM call required, runs entirely in-browser using endpoints
+-            we already authenticate against. Sits above FeedbackWidget. */}
++        {/* 2026-05-03 (Section B·2): Ask Barakah — guided help panel
++            that answers questions from the user's own account data
++            using a local pattern-match library. Runs entirely
++            in-browser against endpoints we already authenticate
++            against. Sits above FeedbackWidget. */}
+         <AskBarakah />
+ 
+         {/*

@@ -11,12 +11,16 @@ import {
  * src/lib/referralCopy.ts, which in turn mirrors the backend contract in
  * AuthController.verifyEmail + StripeController.REFEREE_FIRST_MONTH_COUPON_ID.
  *
- * Round 32: referrer gets a free extra month of Barakah Plus AFTER the
- * invitee verifies their email. Invitee gets their first month of Plus
- * for $4.99 via a Stripe coupon at checkout (saving ~50% off the $9.99
- * regular price). Previous page copy said "both get a free month" —
- * that was trust drift: the invitee was paying $4.99 while this page
- * promised them $0. Fixed 2026-04-22.
+ * Round 32: referrer gets a free extra month of Barakah AFTER the invitee
+ * verifies their email. The reward is "+30 days to the referrer's CURRENT
+ * plan", not a hardcoded Plus extension — a Family-trial referrer gets a
+ * free extra month of Family, a Plus referrer gets a free extra month of
+ * Plus. Invitee gets their first month of Plus for $4.99 via a Stripe
+ * coupon at checkout (~50% off the $9.99 regular Plus price). Previous
+ * page copy said "both get a free month" — that was trust drift: the
+ * invitee was paying $4.99 while this page promised them $0. Fixed
+ * 2026-04-22. Updated 2026-05-08 to drop "Barakah Plus" from the
+ * referrer-reward sentence (was misleading Family users).
  */
 export const metadata: Metadata = {
   title: `Refer a Friend — You Earn a Free Month, They Get Their First Month for ${REFEREE_FIRST_MONTH_PRICE} | Barakah`,
@@ -60,7 +64,7 @@ const FaqSchema = {
       acceptedAnswer: {
         '@type': 'Answer',
         text:
-          `There is no limit. Every successful referral earns you another free month of Barakah Plus, and every friend gets their first month of Plus for ${REFEREE_FIRST_MONTH_PRICE}.`,
+          `There is no limit. Every successful referral earns you another free month of Barakah on your current plan, and every friend gets their first month of Plus for ${REFEREE_FIRST_MONTH_PRICE}.`,
       },
     },
     {
@@ -87,7 +91,11 @@ const FaqSchema = {
       acceptedAnswer: {
         '@type': 'Answer',
         text:
-          `Your friend pays ${REFEREE_FIRST_MONTH_PRICE} for their first month of Barakah Plus instead of the standard $9.99. After the first month, they renew at the regular Plus price unless they cancel. Family plan pricing works the same way — the first-month discount applies to the Plus tier used at checkout.`,
+          // W-P1-6 (2026-05-08): drop the "Plus"-locked framing — backend
+          // applies the discount to the tier the invitee picks at
+          // checkout. "Barakah" alone is accurate for both tiers without
+          // overselling Family or under-promising Plus.
+          `Your friend gets ${REFEREE_REWARD_PHRASE}, applied automatically at checkout. After the first month, they renew at the regular monthly price unless they cancel.`,
       },
     },
   ],
@@ -106,14 +114,16 @@ const steps = [
     icon: '👤',
     title: 'Friend Signs Up',
     description:
-      `Your friend creates a Barakah account using your referral code, verifies their email, and starts Plus for just ${REFEREE_FIRST_MONTH_PRICE} their first month.`,
+      // W-P1-6 (2026-05-08): same drift fix — "starts Plus" leaks the
+      // tier-specific phrasing this hub is supposed to be neutral about.
+      `Your friend creates a Barakah account using your referral code, verifies their email, and gets ${REFEREE_REWARD_PHRASE}.`,
   },
   {
     number: '3',
     icon: '🎉',
     title: 'You Earn a Free Month',
     description:
-      'Once your friend verifies their email, you automatically receive a free extra month of Barakah Plus. No limits on how many friends you can refer.',
+      'Once your friend verifies their email, you automatically receive a free extra month on your current Barakah plan (Plus or Family). No limits on how many friends you can refer.',
   },
 ];
 
