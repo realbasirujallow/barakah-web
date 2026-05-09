@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Barakah — Free Islamic Finance App: Zakat Calculator, Halal Budgeting & Muslim Money Tracker",
-    template: "%s | Barakah",
+    default: "Try Barakah — Free Islamic Finance App: Zakat Calculator, Halal Budgeting & Muslim Money Tracker",
+    template: "%s | Try Barakah",
   },
   description:
     "Free Islamic finance app for Muslim households. Calculate zakat instantly, track halal investments, avoid riba, plan your Islamic will, and manage family budgets — all with fiqh rules built in.",
@@ -48,11 +48,11 @@ export const metadata: Metadata = {
     "best islamic finance app",
   ],
   openGraph: {
-    title: "Barakah — Free Islamic Finance App: Zakat, Halal Budgeting & Muslim Money Tracker",
+    title: "Try Barakah — Free Islamic Finance App: Zakat, Halal Budgeting & Muslim Money Tracker",
     description:
       "Free zakat calculator, halal stock screener, riba tracker, Islamic will planner, and family budgeting — all fiqh-aware. Start free, no credit card or debit card required.",
     url: "https://trybarakah.com",
-    siteName: "Barakah",
+    siteName: "Try Barakah",
     type: "website",
     locale: "en_US",
     images: [
@@ -60,13 +60,13 @@ export const metadata: Metadata = {
         url: "https://trybarakah.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Barakah - Free Islamic Finance App",
+        alt: "Try Barakah - Free Islamic Finance App",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Barakah — Free Islamic Finance App for Muslim Households",
+    title: "Try Barakah — Free Islamic Finance App for Muslim Households",
     description:
       "Calculate zakat, screen halal stocks, avoid riba, plan your Islamic will, and budget as a Muslim household — free to start.",
     images: ["https://trybarakah.com/og-image.png"],
