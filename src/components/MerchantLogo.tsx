@@ -167,7 +167,36 @@ export function MerchantLogo({
   bubbleClassName = 'bg-emerald-600 text-white',
 }: MerchantLogoProps) {
   const [errored, setErrored] = useState(false);
-  const domain = lookup(MERCHANT_DOMAINS, merchantName) ?? lookup(BANK_FALLBACK, institutionFallback);
+  // 2026-05-08 (founder report): when a Chase user paid down a Wells Fargo
+  // card the transaction row showed the CHASE logo (the source-account
+  // institution) instead of Wells Fargo. Root cause: BANK_FALLBACK was
+  // only consulted for the source-institution string, never for the
+  // merchant name itself — so a merchant that happens to be a bank
+  // (credit-card payments, ACH transfers, 529 contributions to a bank
+  // custodian) silently fell through to the source account.
+  //
+  // Fix: try merchant lookups in priority order — merchant brand, then
+  // merchant-name-as-bank. If the merchant is clearly a transfer/payment
+  // to an UNKNOWN destination (529 contributions, generic ACH, internal
+  // transfers), don't fall back to the source institution — that just
+  // mislabels the destination. Show an initial bubble instead so the
+  // logo doesn't lie about where the money went.
+  const isAmbiguousTransfer = (() => {
+    if (!merchantName) return false;
+    const s = merchantName.toLowerCase();
+    return /\b(529|ccpymt|web id|ach contrib|ach pmt|ach payment|direct dep|funds transfer|internal transfer|external transfer|external xfer|incoming wire|outgoing wire)\b/.test(s);
+  })();
+
+  const merchantDomain =
+    lookup(MERCHANT_DOMAINS, merchantName)
+    ?? lookup(BANK_FALLBACK, merchantName);
+
+  const domain =
+    merchantDomain
+    ?? (isAmbiguousTransfer
+          ? null  // unknown transfer destination — initial bubble is more truthful
+          : (lookup(MERCHANT_DOMAINS, institutionFallback)
+              ?? lookup(BANK_FALLBACK, institutionFallback)));
 
   if (!domain || errored) {
     const initial = ((merchantName ?? institutionFallback)?.trim()[0] ?? '?').toUpperCase();

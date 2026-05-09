@@ -64,3 +64,73 @@ export function toHijri(date: Date): { year: number; month: number; day: number;
     return { year, month: month + 1, day, monthName: HIJRI_MONTHS[month] ?? '' };
   }
 }
+
+/**
+ * Hijri month names in Arabic (1-indexed: position 0 is empty padding).
+ * Used for {@link formatHijriLocalized} when rendering for an Arabic-locale user.
+ *
+ * 2026-05-08 (item J): rendering "21 Dhul Qadah 1447" verbatim on the
+ * `ar` locale was tonally wrong — Latin transliteration of Hijri month
+ * names in an Arabic-language UI reads as a translation gap rather than
+ * a deliberate choice. True Arabic rendering uses Eastern Arabic
+ * numerals (٠١٢٣٤٥٦٧٨٩) plus the Arabic-script month names.
+ */
+const HIJRI_MONTH_NAMES_AR = [
+  '',
+  'محرم',
+  'صفر',
+  'ربيع الأول',
+  'ربيع الآخر',
+  'جمادى الأولى',
+  'جمادى الآخرة',
+  'رجب',
+  'شعبان',
+  'رمضان',
+  'شوال',
+  'ذو القعدة',
+  'ذو الحجة',
+];
+
+/** Convert a Latin-numeral string ("1447") to Eastern Arabic numerals ("١٤٤٧"). */
+function toArabicNumerals(input: string | number): string {
+  const s = typeof input === 'number' ? String(input) : input;
+  const map = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return s.replace(/[0-9]/g, (d) => map[parseInt(d, 10)]);
+}
+
+/**
+ * Render a Hijri date appropriate to the user's locale.
+ *
+ * - For `ar` (Arabic): "٢١ ذو القعدة ١٤٤٧" — Eastern Arabic numerals plus
+ *   Arabic-script month name.
+ * - For everything else (en/fr/ur/...): the English form Barakah's
+ *   backend already produces, e.g. "21 Dhul Qadah 1447". Urdu uses
+ *   Latin transliteration by convention (Urdu speakers are familiar
+ *   with the Latin spelling of Hijri months and the dashboard already
+ *   pairs the Hijri date with the locale-formatted Gregorian).
+ *
+ * The function is robust to a missing month number (falls back to the
+ * pre-formatted English string) so a backend that hasn't rolled out the
+ * 2026-05-08 schema additions still renders something sensible.
+ *
+ * @param formatted The English-canonical "{day} {monthName} {year}" string
+ *                  the backend has always returned. Used as the non-Arabic
+ *                  fallback and as the safety fallback if {@code month}
+ *                  is missing or out of range.
+ * @param day       1-indexed day of the Hijri month.
+ * @param month     1-indexed Hijri month number (1 = Muharram, 12 = Dhul Hijjah).
+ * @param year      Hijri year.
+ * @param locale    BCP-47 locale tag (e.g. "ar-SA", "en-GB", "fr-FR").
+ */
+export function formatHijriLocalized(
+  formatted: string,
+  day: number | undefined,
+  month: number | undefined,
+  year: number | undefined,
+  locale: string | undefined,
+): string {
+  const isArabic = (locale || '').toLowerCase().startsWith('ar');
+  if (!isArabic) return formatted;
+  if (!day || !month || !year || month < 1 || month > 12) return formatted;
+  return `${toArabicNumerals(day)} ${HIJRI_MONTH_NAMES_AR[month]} ${toArabicNumerals(year)}`;
+}

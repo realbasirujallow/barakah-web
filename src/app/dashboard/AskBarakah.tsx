@@ -1,10 +1,11 @@
 'use client';
 /**
- * 2026-05-03 (Section B·2): "Ask Barakah" floating assistant.
+ * 2026-05-03 (Section B·2): "Ask Barakah" — guided help over the user's
+ * own data.
  *
- * A demo-grade in-app assistant that answers questions about the
- * user's own data using a local pattern-match library (no LLM call
- * required, so the demo is free + offline-tolerant). Surfaces:
+ * In-app guided help that answers questions about the user's own
+ * records using a local pattern-match library, so the panel works
+ * offline-tolerantly and never sends user data anywhere. Surfaces:
  *
  *   1. Floating green/gold pill button in the bottom-right
  *   2. On click, a right-anchored side panel slides in with:
@@ -17,10 +18,6 @@
  * For questions outside the supported intents we surface a friendly
  * fallback that points the user at the relevant page — never invent
  * a financial answer we can't back with their data.
- *
- * Future swap-in: replace `runLocalIntentMatch` with a call to an
- * /api/assistant/ask endpoint that proxies to a real model. The
- * response shape (`{ text, links }`) is already structured for that.
  */
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api';
@@ -194,9 +191,9 @@ export function AskBarakah() {
 
   // Hydrate the snapshot once the panel opens (on demand to avoid
   // hammering the API on every dashboard mount). All endpoints are
-  // best-effort — a 404 or 500 on any one shouldn't break the
-  // assistant; the local intent matcher gracefully falls back to
-  // "I don't have that data yet, here's where to set it up" copy.
+  // best-effort — a 404 or 500 on any one shouldn't break the panel;
+  // the local intent matcher gracefully falls back to "I don't have
+  // that data yet, here's where to set it up" copy.
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
@@ -242,7 +239,7 @@ export function AskBarakah() {
         }
         setSnap(next);
       } catch {
-        // swallow — assistant still works with whatever subset we got.
+        // swallow — panel still works with whatever subset we got.
       }
     })();
     return () => { cancelled = true; };
@@ -275,7 +272,7 @@ export function AskBarakah() {
           type="button"
           onClick={() => setOpen(true)}
           className="fixed bottom-20 right-6 z-40 bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-lg rounded-full pl-4 pr-5 py-3 flex items-center gap-2 transition"
-          aria-label="Open Ask Barakah assistant"
+          aria-label="Open Ask Barakah"
         >
           <span aria-hidden="true">🕌</span>
           <span className="text-sm font-semibold">Ask Barakah</span>
@@ -288,7 +285,7 @@ export function AskBarakah() {
           {/* Click-outside scrim */}
           <button
             type="button"
-            aria-label="Close assistant"
+            aria-label="Close Ask Barakah"
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-40 bg-black/20"
           />
@@ -379,7 +376,7 @@ export function AskBarakah() {
             </form>
 
             <p className="px-4 pb-3 text-[10px] text-muted-foreground text-center">
-              Demo mode — answers come from your account data, not investment advice. Not a fatwa.
+              Guidance is based on your Barakah records. Verify important financial or religious decisions with a qualified professional or scholar.
             </p>
           </div>
         </>

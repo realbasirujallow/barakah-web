@@ -24,6 +24,19 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://trybarakah.com/learn/sadaqah-distribution',
   },
+  // Page contains unconfirmed TODO placeholders (partner names, processing fees,
+  // disbursement cadence). Keep noindex until those values are real — a public
+  // disclosure page with "Partner organisation #1" labels would damage trust.
+  // 2026-05-08 (W-P3-1): switched `follow: false` → `follow: true` so internal
+  // crawl signals (links to /methodology, /contact, /learn) still flow even
+  // while this page itself is suppressed from the SERP. Google does not
+  // penalize for noindex; absence of the page is safer than indexing a
+  // disclosure document with literal placeholders. Remove the entire
+  // `robots` block once placeholders are replaced with confirmed values.
+  robots: {
+    index: false,
+    follow: true,
+  },
   openGraph: {
     title: 'Where Your Sadaqah Goes — Barakah Disbursement Disclosure',
     description:
@@ -57,12 +70,19 @@ export default function SadaqahDistributionPage() {
           {' '}for the rules behind sadaqah, waqf, and zakat tracking.
         </p>
 
+        {/* W-P3-1 (2026-05-08): top-of-page banner reinforces the
+            noindex'd disclosure status so a referrer who lands here from
+            the dashboard donate flow still sees the placeholder warning
+            in the body — not just in the meta tags. Until the partner
+            directory and processing-fee values are filled in below, this
+            page is intentionally suppressed from the SERP. */}
         <section className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-8">
-          <h2 className="text-lg font-bold text-amber-900 mb-2">⚠️ Page in review</h2>
+          <h2 className="text-lg font-bold text-amber-900 mb-2">⚠️ This page is being verified — partner directory coming soon</h2>
           <p className="text-sm text-amber-900/90">
             This disclosure page is being finalized with our payment processor and partner
-            charities. The accurate numbers and partners will replace the {/* TODO */} markers
-            below before the page is linked from the dashboard donate flow.
+            charities. The accurate numbers and partners will replace the {/* TODO */} placeholders
+            below before the page is linked from the dashboard donate flow. Until then, the page is
+            <strong> noindex,follow</strong> so it does not surface in search results.
           </p>
         </section>
 

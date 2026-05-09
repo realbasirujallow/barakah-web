@@ -343,6 +343,27 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
     Object.assign(headers, acquisitionHeaders());
   }
 
+  // 2026-05-09 Lane 10: super-admin "View as user" support mode. When a
+  // support token is present in sessionStorage, attach it as
+  // X-Support-Token. The backend SupportSessionFilter intercepts and
+  // (a) verifies the token, (b) checks the support_sessions row,
+  // (c) overrides authentication to the target user only for VIEW_ONLY
+  // allow-listed endpoints, (d) blocks everything else with 403.
+  //
+  // The /admin/support-sessions/start + /end + /active endpoints must
+  // NOT carry the support token — they use the admin's normal cookie
+  // session. We skip header injection on those.
+  if (typeof window !== 'undefined' && !endpoint.startsWith('/admin/support-sessions')) {
+    try {
+      const supportToken = sessionStorage.getItem('barakah_support_token');
+      if (supportToken) {
+        headers['X-Support-Token'] = supportToken;
+      }
+    } catch {
+      /* sessionStorage may be disabled */
+    }
+  }
+
   // credentials: 'include' ensures the auth_token and refresh_token httpOnly
   // cookies are sent on every request.
   const controller = new AbortController();
@@ -1300,6 +1321,15 @@ export const api = {
   getAdminUserCount: () => apiFetch('/admin/user-count', {}, API_TIMEOUT, true),
   getAdminUsers: (page = 0, size = 50) =>
     apiFetch(`/admin/active-users?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
+  /**
+   * Returns ALL unverified users (email_verified = false), newest first.
+   * No pagination — the unverified set is bounded and the admin "Unverified"
+   * tab needs the full list to match the badge count from /admin/overview.
+   * Without this, the tab was filtering /admin/active-users client-side and
+   * missing unverified rows that didn't land on page 1.
+   */
+  adminGetUnverifiedUsers: () =>
+    apiFetch('/admin/unverified-users', {}, API_TIMEOUT, true),
   adminResetPassword: (userId: number) =>
     apiFetch(`/admin/users/${userId}/reset-password`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   adminResendVerification: (userId: number) =>
@@ -1379,6 +1409,31 @@ export const api = {
     apiFetch(`/admin/users/${userId}/email-queue/unstick`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   adminGetUserHawlReport: (userId: number) =>
     apiFetch(`/admin/users/${userId}/hawl-report`, {}, API_TIMEOUT, true),
+
+  // ── Founder-CRM admin notes (2026-05-06) ───────────────────────────────
+  // Per-user notes (timeline view inside AdminUserDetailModal) +
+  // cross-user search by tag (/dashboard/admin/notes page) +
+  // tag-frequency aggregate (scorecard widget).
+  adminGetUserNotes: (userId: number, page = 0, size = 50) =>
+    apiFetch(`/admin/users/${userId}/notes?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
+  adminCreateUserNote: (userId: number, text: string, tags: string[]) =>
+    apiFetch(
+      `/admin/users/${userId}/notes`,
+      { method: 'POST', body: JSON.stringify({ text, tags }) },
+      API_TIMEOUT,
+      true,
+    ),
+  adminDeleteNote: (noteId: number) =>
+    apiFetch(`/admin/notes/${noteId}`, { method: 'DELETE' }, API_TIMEOUT, true),
+  adminListNotesByTag: (tag?: string, days = 365, limit = 200) => {
+    const qs = new URLSearchParams();
+    if (tag) qs.set('tag', tag);
+    qs.set('days', String(days));
+    qs.set('limit', String(limit));
+    return apiFetch(`/admin/notes?${qs.toString()}`, {}, API_TIMEOUT, true);
+  },
+  adminGetNoteTagFrequency: (days = 30) =>
+    apiFetch(`/admin/notes/tag-frequency?days=${days}`, {}, API_TIMEOUT, true),
   adminGetDeletedUsers: (page = 0, size = 50) =>
     apiFetch(`/admin/deleted-users?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
   adminGetChurnAnalysis: () =>

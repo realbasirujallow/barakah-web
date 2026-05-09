@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { api } from '../../lib/api';
 import { isSetupComplete } from '../../lib/setup';
 import { isSafeInternalPath } from '../../lib/safePath';
+import LanguageSwitcher from '../../components/LanguageSwitcher';
+import { useI18n } from '../../lib/i18n';
 
 const REMEMBERED_EMAIL_KEY = 'barakah_remembered_email';
 
@@ -26,6 +28,7 @@ function LoginForm() {
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [bannerReason, setBannerReason] = useState<'expired' | 'logout' | 'deleted' | null>(null);
   const { login } = useAuth();
+  const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -138,9 +141,17 @@ function LoginForm() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
+        {/* 2026-05-08 (Bug F): language switcher on the login page so a
+            non-English first-time user can change UI language before
+            signing in. The marketing-page chrome has it, but a user who
+            arrives at /login directly (deep link / cookie expired / saved
+            bookmark) couldn't otherwise. */}
+        <div className="flex justify-end mb-4">
+          <LanguageSwitcher compact />
+        </div>
         <div className="text-center mb-8">
           <Link href="/" className="text-3xl font-bold text-[#1B5E20]">&#127769; Barakah</Link>
-          <p className="text-gray-500 mt-2">Welcome back! Sign in to your account</p>
+          <p className="text-gray-500 mt-2">{t('authWelcomeBack')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-8">
@@ -200,7 +211,7 @@ function LoginForm() {
               screen readers announce the label, and clicking the label
               focuses the input. Prior markup had orphaned labels. */}
           <div className="mb-4">
-            <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">{t('authEmail')}</label>
             <input
               id="login-email"
               type="email"
@@ -215,8 +226,8 @@ function LoginForm() {
 
           <div className="mb-4">
             <div className="flex items-center justify-between mb-1">
-              <label htmlFor="login-password" className="block text-sm font-medium text-gray-700">Password</label>
-              <Link href="/forgot-password" className="text-xs text-[#1B5E20] hover:underline">Forgot Password?</Link>
+              <label htmlFor="login-password" className="block text-sm font-medium text-gray-700">{t('authPassword')}</label>
+              <Link href="/forgot-password" className="text-xs text-[#1B5E20] hover:underline">{t('authForgotPassword')}</Link>
             </div>
             <input
               id="login-password"
@@ -239,7 +250,7 @@ function LoginForm() {
               className="h-4 w-4 rounded border-gray-300 text-[#1B5E20] focus:ring-[#1B5E20] cursor-pointer"
             />
             <label htmlFor="remember-me" className="ml-2 text-sm text-gray-600 cursor-pointer select-none">
-              Remember me
+              {t('authRememberMe')}
             </label>
           </div>
 
@@ -248,12 +259,12 @@ function LoginForm() {
             disabled={loading}
             className="w-full bg-[#1B5E20] text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition disabled:opacity-50"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? t('authSigningIn') : t('authSignInButton')}
           </button>
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-[#1B5E20] font-semibold hover:underline">Sign Up</Link>
+            {t('authNoAccount')}{' '}
+            <Link href="/signup" className="text-[#1B5E20] font-semibold hover:underline">{t('authSignUp')}</Link>
           </p>
         </form>
       </div>

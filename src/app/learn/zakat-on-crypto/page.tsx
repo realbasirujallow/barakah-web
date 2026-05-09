@@ -21,11 +21,11 @@ export default function Page() {
         <div className="mx-auto max-w-3xl">
           <h1 className="text-4xl font-bold text-gray-900 mb-6 dark:text-gray-100">Zakat on Cryptocurrency</h1>
           <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
-          <p className="text-lg text-gray-700 leading-relaxed mb-8 dark:text-gray-300">Cryptocurrency is a relatively new asset class, and Islamic scholars have reached a strong consensus: crypto holdings that have been held for one full lunar year (hawl) above the nisab threshold are subject to zakat at the standard 2.5% rate.</p>
+          <p className="text-lg text-gray-700 leading-relaxed mb-8 dark:text-gray-300">Cryptocurrency is a relatively new asset class. Many contemporary scholars treat crypto held as wealth or investment as zakatable once it remains above nisab for a full lunar year (hawl), while users should still follow qualified guidance for edge cases such as disputed tokens, illiquid assets, staking, and DeFi.</p>
           
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">Is Crypto Zakatable?</h2>
-            <p className="text-gray-700 leading-relaxed dark:text-gray-300">Yes. The majority of contemporary scholars — including AMJA, Dr. Monzer Kahf, and the Fiqh Council of North America — treat cryptocurrency as zakatable wealth similar to cash or stocks. If your crypto portfolio&apos;s market value exceeds the nisab threshold on your hawl anniversary, zakat is due.</p>
+            <p className="text-gray-700 leading-relaxed dark:text-gray-300">Generally, crypto held as wealth or investment is treated like other zakatable assets by many contemporary scholars. If your crypto portfolio&apos;s market value exceeds the nisab threshold on your hawl anniversary, Barakah can help estimate the 2.5% amount. For staking, DeFi, locked tokens, or assets with unclear permissibility, consult a qualified scholar and use the calculator as a recordkeeping aid rather than a fatwa.</p>
           </section>
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">How to Calculate</h2>

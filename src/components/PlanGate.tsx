@@ -92,7 +92,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
     'Wasiyyah': 'Plan your Islamic will with automatic Faraid calculation and 1/3 cap enforcement. Export as PDF.',
     'Waqf': 'Track Islamic endowments, manage beneficiaries, and plan charitable distributions.',
     'Analytics': 'Spending trends, category breakdown, and month-over-month financial analysis.',
-    'Auto-Categorize': 'Transactions sort themselves into categories (groceries, halal/riba, recurring) so your records stay clean without manual triaging.',
+    'Transaction sorting': 'Transactions sort themselves into categories (groceries, halal/riba, recurring) so your records stay clean without manual triaging.',
     'Riba Detector': 'Automatically flag interest-bearing transactions and accounts in your finances.',
     'Subscription Detection': 'Auto-detect recurring subscriptions you may have forgotten about.',
     'Subscription Detector': 'Auto-detect recurring subscriptions from your transactions and flag non-halal services.',
@@ -115,7 +115,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
       'Halal Screener (30,000+ stocks)',
       'Riba Detector',
       'Subscription Detector',
-      'Auto-categorization',
+      'Transaction sorting',
       'Investments & net worth tracking',
       'Wasiyyah & Waqf planning',
       'Debt Payoff Projector',
@@ -168,7 +168,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
           </button>
           <span className={`text-sm font-semibold ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
           <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${billing === 'yearly' ? 'bg-green-100 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-            {billing === 'yearly' ? 'Saving up to 34%!' : 'Save up to 34%'}
+            {billing === 'yearly' ? 'Saving 17%!' : 'Save 17%'}
           </span>
         </div>
 
@@ -298,7 +298,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
           </button>
           <span className={`text-sm font-semibold ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
           <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${billing === 'yearly' ? 'bg-green-100 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-            {billing === 'yearly' ? PRICING.family.yearlySaving : 'Save up to 34%'}
+            {billing === 'yearly' ? PRICING.family.yearlySaving : 'Save 17%'}
           </span>
         </div>
 

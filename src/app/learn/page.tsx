@@ -142,7 +142,7 @@ const articles: ArticleCard[] = [
     slug: 'zakat-on-rental-property',
     category: 'Zakat',
     title: 'Zakat on Rental Property 2026',
-    description: 'Is your rental property zakatable? Scholar consensus on residential vs commercial real estate and rental income zakat.',
+    description: 'Is your rental property zakatable? Scholarly guidance on residential vs commercial real estate and rental income zakat.',
     readTime: 7,
   },
   {

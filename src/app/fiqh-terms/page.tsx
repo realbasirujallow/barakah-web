@@ -3,9 +3,17 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Islamic Finance Glossary (2026): 14 Fiqh Terms Every Muslim Investor Should Know | Barakah',
+  // 2026-05-06 (SEO audit + trust audit): title was 92 chars (truncated
+  // in SERPs); trimmed to 70 + frontloaded the 5 highest-intent terms.
+  // Description was 207 chars; trimmed to 158. Critically: REMOVED the
+  // "Scholar-reviewed" claim because the Scholar Board is currently
+  // empty (DRAFT, target Q3 2026) — making that claim in public-facing
+  // metadata is the kind of overconfidence the disclaimer page warns
+  // against. "Methodology-first" is the honest framing while we work
+  // toward signing the first named scholar.
+  title: 'Islamic Finance Glossary: Zakat, Riba, Faraid & 11 More Fiqh Terms',
   description:
-    'Plain-English definitions of the 14 core Islamic finance terms — zakat, riba, musharaka, murabaha, sukuk, takaful, waqf, and more. Scholar-reviewed, internally linked, and tied to real household decisions.',
+    'Plain-English definitions of zakat, riba, musharaka, murabaha, sukuk, takaful, waqf, and 7 more core Islamic finance terms. Methodology-first.',
   keywords: [
     'islamic finance glossary',
     'fiqh terms',

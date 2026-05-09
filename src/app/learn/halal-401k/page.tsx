@@ -50,7 +50,7 @@ const FaqSchema = {
       name: 'Do I pay zakat on my 401(k)?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Yes, but the methodology is madhab-sensitive. Three scholarly positions: (1) Full accessible value (majority/AMJA) — zakat 2.5% on the current balance minus estimated early-withdrawal penalty (10% IRS) and ordinary income tax. (2) Employer match only — zakat only on the employer-matched portion if vested, not on your own contributions until accessed. (3) On withdrawal only — zakat only applies when you actually receive the money post-retirement. Barakah's retirement zakat calculator supports all three and defaults to AMJA. Our state-tax service accounts for your state's income-tax treatment so the accessible-value calculation is accurate.",
+        text: "Yes, but the methodology is madhab-sensitive. Three scholarly positions: (1) Accessible value (AMJA/FCNA-style) — zakat 2.5% on the current balance minus estimated early-withdrawal penalty and ordinary income tax. (2) Employer match only — zakat only on the employer-matched portion if vested. (3) On withdrawal only — zakat applies when you actually receive the money post-retirement. Barakah's retirement zakat calculator supports all three and defaults to the accessible-value method while letting you change it in Fiqh Settings.",
       },
     },
     {
@@ -188,7 +188,7 @@ export default function Halal401kPage() {
                 Three scholarly positions are in common use:
               </p>
               <ul className="list-disc space-y-2 pl-6 text-sm leading-7 text-gray-800">
-                <li><strong>Full accessible value (majority, AMJA default in Barakah):</strong> 2.5% zakat annually on your 401(k) balance minus estimated early-withdrawal penalty (10% IRS) and ordinary income tax.</li>
+                <li><strong>Accessible value (AMJA/FCNA-style default in Barakah):</strong> 2.5% zakat annually on your 401(k) balance minus estimated early-withdrawal penalty (10% IRS) and ordinary income tax.</li>
                 <li><strong>Employer match only:</strong> zakat only on the employer-matched portion once vested; your own contributions are treated as inaccessible until retirement.</li>
                 <li><strong>On withdrawal only:</strong> zakat only when you actually receive retirement income.</li>
               </ul>

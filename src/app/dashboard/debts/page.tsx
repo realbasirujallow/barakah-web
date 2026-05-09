@@ -571,8 +571,8 @@ export default function DebtsPage() {
               preview={
                 <div className="space-y-2">
                   {[
-                    { name: 'Auto loan (riba)', balance: '$18,400', payoff: '38 months → 26 with $200/mo extra' },
-                    { name: 'Credit card', balance: '$3,200', payoff: '14 months → 8 with $200/mo extra' },
+                    { name: 'Auto loan (riba)', balance: fmt(18400), payoff: `38 months → 26 with ${fmt(200)}/mo extra` },
+                    { name: 'Credit card', balance: fmt(3200), payoff: `14 months → 8 with ${fmt(200)}/mo extra` },
                   ].map((d) => (
                     <div key={d.name} className="bg-white rounded-xl p-3 text-left text-sm">
                       <p className="font-medium text-gray-700">{d.name}</p>

@@ -28,7 +28,7 @@ export const PUBLIC_FEATURE_CARDS: readonly LocalizedFeatureCard[] = [
       fr: 'Calculateur de zakat',
     },
     desc: {
-      en: "Multi-madhab nisab (gold or silver standard), live prices, Hawl tracker, and auto-categorized asset breakdown — supporting Hanafi, Shafi'i, Maliki, Hanbali, and AMJA methodologies.",
+      en: "Multi-madhab nisab (gold or silver standard), live prices, Hawl tracker, and an automatically sorted asset breakdown — supporting Hanafi, Shafi'i, Maliki, Hanbali, and AMJA methodologies.",
       ar: 'نصاب متعدد المذاهب (ذهب أو فضة)، وأسعار لحظية، ومتتبع للحول، وتقسيم تلقائي للأصول — مع دعم مناهج الحنفي والشافعي والمالكي والحنبلي وAMJA.',
       ur: 'کئی مذاہب کے مطابق نصاب (سونا یا چاندی)، لائیو قیمتیں، حول ٹریکر، اور اثاثوں کی خودکار درجہ بندی — حنفی، شافعی، مالکی، حنبلی اور AMJA طریقوں کے ساتھ۔',
       fr: "Nisab multi-madhhab (or ou argent), prix en direct, suivi du hawl et répartition automatique des actifs — avec prise en charge des méthodologies hanafite, shafi'ite, malikite, hanbalite et AMJA.",

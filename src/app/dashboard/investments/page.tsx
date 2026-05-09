@@ -92,7 +92,7 @@ const emptyHoldingForm = { symbol: '', name: '', quantity: '', averageCost: '', 
 
 export default function InvestmentsPage() {
   const { toast } = useToast();
-  const { fmt, symbol } = useCurrency();
+  const { fmt } = useCurrency();
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [assetAccounts, setAssetAccounts] = useState<AssetAccount[]>([]);
@@ -759,9 +759,9 @@ export default function InvestmentsPage() {
           preview={
             <div className="space-y-2">
               {[
-                { sym: 'AAPL', name: 'Apple Inc.', value: '$12,450', tag: 'halal' },
-                { sym: 'MSFT', name: 'Microsoft Corp.', value: '$8,920', tag: 'halal' },
-                { sym: 'JPM', name: 'JPMorgan Chase', value: '$1,200', tag: 'haram' },
+                { sym: 'AAPL', name: 'Apple Inc.', value: fmt(12450), tag: 'halal' },
+                { sym: 'MSFT', name: 'Microsoft Corp.', value: fmt(8920), tag: 'halal' },
+                { sym: 'JPM', name: 'JPMorgan Chase', value: fmt(1200), tag: 'haram' },
               ].map((h) => (
                 <div key={h.sym} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                   <div className="flex items-center gap-3">

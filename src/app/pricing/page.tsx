@@ -51,6 +51,16 @@ const faqItems = [
       `Yes. Every signup gets ${DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Barakah Plus free, no credit card or debit card required. You can cancel or downgrade at any point; if you do nothing, your account drops to Free when the trial ends.`,
   },
   {
+    question: 'Is there a money-back guarantee?',
+    // 2026-05-06 (overnight A-Z): explicit money-back guarantee added to
+    // close the last objection for cautious buyers. The 30-day trial
+    // already removes the upfront-cost objection; the guarantee removes
+    // the regret-after-paying objection. Mirrors the same copy added to
+    // mobile billing screen footer in the same run.
+    answer:
+      "Yes. If Barakah Plus or Family isn't a fit in your first 30 days as a paying customer, email support@trybarakah.com and we'll refund your first month, no questions. This is on top of the 30-day no-card trial that runs before any charge.",
+  },
+  {
     question: 'Can I switch plans?',
     answer: 'Yes, upgrade or downgrade anytime.',
   },

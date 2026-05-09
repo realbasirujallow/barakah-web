@@ -31,8 +31,13 @@ export const REFEREE_FIRST_MONTH_PRICE = '$4.99';
 /** The regular monthly price the invitee transitions to after month 1. */
 export const REFEREE_REGULAR_PRICE = '$9.99';
 
-/** What the referrer gets (phrase that can slot into surrounding copy). */
-export const REFERRER_REWARD_PHRASE = 'a free extra month of Barakah Plus';
+/** What the referrer gets (phrase that can slot into surrounding copy).
+ *  2026-05-08: was "Barakah Plus" — but the backend reward is "+30 days to
+ *  the referrer's CURRENT plan", so a Family-trial referrer gets a free
+ *  extra month of Family, not Plus. Saying "Barakah Plus" misled Family
+ *  users into thinking the reward was a downgrade. Generic "Barakah" is
+ *  accurate for both tiers without overselling. */
+export const REFERRER_REWARD_PHRASE = 'a free extra month of Barakah';
 
 /** What the invitee gets (phrase that can slot into surrounding copy). */
 export const REFEREE_REWARD_PHRASE = `their first month for just ${REFEREE_FIRST_MONTH_PRICE}`;

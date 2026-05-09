@@ -431,7 +431,7 @@ export default function CategorizePage() {
             <EmptyState
               variant="bare"
               icon="🎯"
-              title="No auto-categorize rules yet"
+              title="No transaction sorting rules yet"
               description="Rules run on every new transaction. Use them for payroll, transfers, sadaqah patterns, or any recurring merchant."
               preview={
                 <div className="space-y-2">

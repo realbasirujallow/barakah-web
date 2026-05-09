@@ -217,7 +217,7 @@ export default function HalalBudgetingPage() {
           <section className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">Recommended Islamic Budget Allocation</h2>
             <p className="text-gray-600 mb-6 leading-relaxed dark:text-gray-400">
-              There is no single prescribed budget ratio in Islam, but scholars and Islamic finance advisors recommend this prioritized allocation based on Quranic guidance and scholarly consensus:
+              There is no single prescribed budget ratio in Islam, but scholars and Islamic finance advisors commonly recommend prioritizing obligations, family support, debt reduction, giving, and savings before lifestyle spending:
             </p>
             <div className="space-y-3">
               {budgetAllocation.map((item) => (

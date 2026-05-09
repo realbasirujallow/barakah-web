@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { trackReferralShare } from '../../../lib/analytics';
-import { REFEREE_FIRST_MONTH_PRICE, REFEREE_REGULAR_PRICE } from '../../../lib/referralCopy';
+import { REFEREE_FIRST_MONTH_PRICE, REFEREE_REGULAR_PRICE, REFEREE_REWARD_PHRASE } from '../../../lib/referralCopy';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { SkeletonPage } from '../SkeletonCard';
 
@@ -117,8 +117,14 @@ export default function ReferralPage() {
           <p className="text-3xl mb-2">💰</p>
           {/* Round 32: use constants from lib/referralCopy.ts so modal and
               this page stay in sync with the backend reward contract. */}
-          <p className="font-bold text-lg">They get first month for {REFEREE_FIRST_MONTH_PRICE}</p>
-          <p className="text-amber-100 text-sm mt-1">Your friend gets Barakah Plus for just {REFEREE_FIRST_MONTH_PRICE} instead of {REFEREE_REGULAR_PRICE} — 50% off their first month, automatically applied at checkout.</p>
+          {/* W-P1-5 (2026-05-08): use the generic REFEREE_REWARD_PHRASE
+              from referralCopy.ts so this card stays in sync with the
+              backend reward (no "Plus" lock-in language — Family-tier
+              referrers were getting confused). REFEREE_REGULAR_PRICE is
+              still rendered alongside so the percentage-off math is
+              transparent. */}
+          <p className="font-bold text-lg">They get {REFEREE_REWARD_PHRASE}</p>
+          <p className="text-amber-100 text-sm mt-1">Your friend gets {REFEREE_REWARD_PHRASE} instead of {REFEREE_REGULAR_PRICE} — 50% off their first month, automatically applied at checkout.</p>
         </div>
       </div>
 

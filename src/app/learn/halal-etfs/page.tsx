@@ -51,7 +51,7 @@ const FaqSchema = {
       name: 'Do I pay zakat on halal ETFs?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Yes. Halal ETFs are zakatable wealth. The majority scholarly view applies zakat to the full market value of ETFs held for investment (the simpler approach). A minority view applies zakat only to the proportional share of zakatable underlying assets (cash, inventory, receivables), exempting the proportional share of non-zakatable holdings (fixed property, equipment). Both views are supported; AAOIFI documents both. See our zakat-on-stocks guide for the full breakdown.",
+        text: "Yes. Halal ETFs are zakatable wealth. A common full-market-value view applies zakat to the full market value of ETFs held for investment (the simpler approach). A look-through view applies zakat only to the proportional share of zakatable underlying assets (cash, inventory, receivables), exempting the proportional share of non-zakatable holdings (fixed property, equipment). Both views are supported; AAOIFI documents the look-through distinction. See our zakat-on-stocks guide for the full breakdown.",
       },
     },
     {
@@ -231,22 +231,21 @@ export default function HalalEtfsPage() {
               </p>
               <ol className="list-decimal space-y-3 pl-6 text-sm leading-7 text-gray-800">
                 <li>
-                  <strong>Full market value (majority view):</strong> zakat is 2.5% of the
+                  <strong>Full market value:</strong> zakat is 2.5% of the
                   current market value of your ETF position on your hawl anniversary. Simpler. Higher
-                  zakat amount. Endorsed by AMJA, ISNA, most contemporary Hanafi and Shafi&apos;i
-                  fatawa.
+                  zakat amount. Commonly used by investors who want a simple, pro-obligation method.
                 </li>
                 <li>
-                  <strong>Proportional asset look-through (minority view):</strong> zakat only on
+                  <strong>Proportional asset look-through:</strong> zakat only on
                   the proportional share of zakatable underlying assets (cash, inventory,
                   receivables), exempting the proportional share of non-zakatable holdings (fixed
                   property, equipment, intellectual property). Requires you to look up the fund&apos;s
-                  balance sheet. Lower zakat amount. Endorsed by AAOIFI Standard 35 for trade-and-investment
+                  balance sheet. Lower zakat amount. Aligned with AAOIFI Standard 35 for trade-and-investment
                   distinction.
                 </li>
               </ol>
               <p className="mt-4 text-sm leading-7 text-gray-700">
-                Barakah defaults to the majority full-market-value position (simpler, more
+                Barakah defaults to the full-market-value position (simpler, more
                 pro-obligation) but shows both calculations on the zakat dashboard. See{' '}
                 <Link href="/learn/zakat-on-stocks" className="text-[#1B5E20] underline hover:no-underline">
                   zakat on stocks

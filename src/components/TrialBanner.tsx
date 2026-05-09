@@ -211,7 +211,7 @@ function TrialBannerInner({
           </p>
           <p className="text-xs text-gray-600 mt-0.5">
             {urgent
-              ? 'Upgrade now so you don\u2019t lose unlimited transactions, bank sync, and Plus reports.'
+              ? `Upgrade now so you don\u2019t lose unlimited transactions, bank sync, and ${planLabel} reports.`
               : 'Keep unlimited transactions, bank sync, and premium reports after your trial ends.'}
           </p>
         </div>

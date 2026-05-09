@@ -17,12 +17,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // 2026-05-06 (overnight A-Z, SEO audit): trimmed default title from 100
+  // chars (truncated in SERPs after ~60) to 56 chars. Frontloads the
+  // highest-converting keyword cluster ("zakat calculator + Muslim
+  // budgeting") instead of the previous feature spray. Description
+  // trimmed from 193 chars (over the 160-char SERP cap) to 142 — same
+  // three outcomes, less repetition.
   title: {
-    default: "Try Barakah — Free Islamic Finance App: Zakat Calculator, Halal Budgeting & Muslim Money Tracker",
+    // HEAD (admin-journey-tools) won this merge: the 56-char SEO-trimmed
+    // version matches the surrounding comment about avoiding SERP
+    // truncation past ~60 chars. origin/main's 96-char version was
+    // pre-trim copy that would have been cut mid-keyword in Google
+    // results, undoing the intended SEO win.
+    default: "Try Barakah — Free Zakat Calculator & Muslim Budgeting App",
     template: "%s | Try Barakah",
   },
   description:
-    "Free Islamic finance app for Muslim households. Calculate zakat instantly, track halal investments, avoid riba, plan your Islamic will, and manage family budgets — all with fiqh rules built in.",
+    "Calculate zakat in 60 seconds, screen halal stocks, avoid riba, and plan your Islamic will — all fiqh-aware. Free for Muslim households.",
   keywords: [
     "free zakat calculator",
     "islamic finance app",

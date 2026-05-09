@@ -377,9 +377,9 @@ export default function SavingsPage() {
           preview={
             <div className="space-y-2">
               {[
-                { name: 'Hajj 2027', target: '$8,500', progress: '$2,400', pct: 28 },
-                { name: 'Emergency fund', target: '$15,000', progress: '$11,200', pct: 75 },
-                { name: 'Wedding', target: '$25,000', progress: '$5,600', pct: 22 },
+                { name: 'Hajj 2027', target: fmt(8500), progress: fmt(2400), pct: 28 },
+                { name: 'Emergency fund', target: fmt(15000), progress: fmt(11200), pct: 75 },
+                { name: 'Wedding', target: fmt(25000), progress: fmt(5600), pct: 22 },
               ].map((g) => (
                 <div key={g.name} className="bg-white rounded-xl p-3 text-left text-sm">
                   <div className="flex justify-between items-center mb-1">
