@@ -604,7 +604,6 @@ export default function AdminPage() {
 
       {activeTab === 'unverified' && (
         <AdminUnverifiedTab
-          usersData={usersData}
           page={page}
           toast={toast}
           loadData={loadData}

@@ -1300,6 +1300,15 @@ export const api = {
   getAdminUserCount: () => apiFetch('/admin/user-count', {}, API_TIMEOUT, true),
   getAdminUsers: (page = 0, size = 50) =>
     apiFetch(`/admin/active-users?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
+  /**
+   * Returns ALL unverified users (email_verified = false), newest first.
+   * No pagination — the unverified set is bounded and the admin "Unverified"
+   * tab needs the full list to match the badge count from /admin/overview.
+   * Without this, the tab was filtering /admin/active-users client-side and
+   * missing unverified rows that didn't land on page 1.
+   */
+  adminGetUnverifiedUsers: () =>
+    apiFetch('/admin/unverified-users', {}, API_TIMEOUT, true),
   adminResetPassword: (userId: number) =>
     apiFetch(`/admin/users/${userId}/reset-password`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   adminResendVerification: (userId: number) =>
