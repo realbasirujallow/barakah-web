@@ -230,13 +230,29 @@ export default function AdminPage() {
   }, [activeTab, refreshBadgeCounts]);
 
   /* ── User modal handlers ── */
-  const openUser = (u: AdminUser) => {
+  /**
+   * 2026-05-10 (founder-report fix): when the modal is opened from a
+   * list context (e.g. Expiring Trials, Past Due, Recent Signups, the
+   * Users tab), remember the originating list so the modal can render
+   * Prev / Next arrows. Founder calls through 9 trial-expiring users
+   * in one sitting; back-clicking between each was the friction.
+   */
+  const [userListContext, setUserListContext] = useState<AdminUser[] | null>(null);
+  const openUser = (u: AdminUser, listContext?: AdminUser[]) => {
+    setSelected(u);
+    setUserListContext(listContext ?? null);
+    setDraftPlan(u.plan || 'free');
+    setUserActivity(null);
+    api.adminGetUserActivity(u.id).then(d => { if (d && !d.error) setUserActivity(d as UserActivity); }).catch(() => {});
+  };
+  const closeModal = () => { setSelected(null); setUserListContext(null); };
+  /** Move to a different user inside the same list context (◀ / ▶ buttons). */
+  const navigateToUser = (u: AdminUser) => {
     setSelected(u);
     setDraftPlan(u.plan || 'free');
     setUserActivity(null);
     api.adminGetUserActivity(u.id).then(d => { if (d && !d.error) setUserActivity(d as UserActivity); }).catch(() => {});
   };
-  const closeModal = () => setSelected(null);
 
   const handleResetPassword = async () => {
     if (!selected) return;
@@ -631,7 +647,23 @@ export default function AdminPage() {
       )}
 
       {/* ══════════════════ USER DETAIL MODAL ══════════════════ */}
-      {selected && (
+      {selected && (() => {
+        // 2026-05-10: prev/next nav. When the modal was opened from a
+        // list (Expiring Trials, Past Due, Recent Signups, Users tab),
+        // wire up arrow buttons so the founder can chip through the
+        // queue of users to call without back-clicking.
+        let prevUser: AdminUser | null = null;
+        let nextUser: AdminUser | null = null;
+        let listPosition: { index: number; total: number } | undefined;
+        if (userListContext && userListContext.length > 1) {
+          const idx = userListContext.findIndex(u => u.id === selected.id);
+          if (idx >= 0) {
+            prevUser = idx > 0 ? userListContext[idx - 1] : null;
+            nextUser = idx < userListContext.length - 1 ? userListContext[idx + 1] : null;
+            listPosition = { index: idx, total: userListContext.length };
+          }
+        }
+        return (
         <AdminUserDetailModal
           selected={selected}
           userActivity={userActivity}
@@ -650,8 +682,13 @@ export default function AdminPage() {
           onResendVerification={handleResendVerification}
           onGrantTrialOpen={openTrialModal}
           toast={toast}
+          prevUser={prevUser}
+          nextUser={nextUser}
+          onNavigate={navigateToUser}
+          listPosition={listPosition}
         />
-      )}
+        );
+      })()}
 
       {/* ══════════════════ GRANT TRIAL MODAL ══════════════════ */}
       {trialModalOpen && selected && (

@@ -25,7 +25,7 @@ export interface AdminOverviewTabProps {
   setActiveTab: (tab: AdminTab) => void;
   setUserFilter: (f: UserFilter) => void;
   setSearch: (s: string) => void;
-  openUser: (u: AdminUser) => void;
+  openUser: (u: AdminUser, listContext?: AdminUser[]) => void;
 }
 
 export function AdminOverviewTab({
@@ -390,7 +390,7 @@ export function AdminOverviewTab({
             {overview.recentSignups.map(u => {
               const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
               return (
-                <div key={u.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition" onClick={() => { setActiveTab('users'); openUser(u); }}>
+                <div key={u.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition" onClick={() => { setActiveTab('users'); openUser(u, overview?.recentSignups ?? []); }}>
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-[#1B5E20] text-white rounded-full flex items-center justify-center text-xs font-bold">
                       {(u.name || u.email)[0].toUpperCase()}

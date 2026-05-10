@@ -17,7 +17,7 @@ export interface AdminAlertsTabProps {
   overview: Overview | null;
   alertCount: number;
   setActiveTab: (tab: AdminTab) => void;
-  openUser: (u: AdminUser) => void;
+  openUser: (u: AdminUser, listContext?: AdminUser[]) => void;
 }
 
 export function AdminAlertsTab({ overview, alertCount, setActiveTab, openUser }: AdminAlertsTabProps) {
@@ -41,7 +41,7 @@ export function AdminAlertsTab({ overview, alertCount, setActiveTab, openUser }:
                   key={u.id}
                   type="button"
                   className="w-full text-left flex items-center justify-between px-5 py-3 hover:bg-gray-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-300"
-                  onClick={() => { setActiveTab('users'); openUser(u); }}
+                  onClick={() => { setActiveTab('users'); openUser(u, overview?.pastDueUsers ?? []); }}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-xs font-bold">
@@ -81,7 +81,7 @@ export function AdminAlertsTab({ overview, alertCount, setActiveTab, openUser }:
                   key={u.id}
                   type="button"
                   className="w-full text-left flex items-center justify-between px-5 py-3 hover:bg-gray-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-300"
-                  onClick={() => { setActiveTab('users'); openUser(u); }}
+                  onClick={() => { setActiveTab('users'); openUser(u, overview?.expiringTrials ?? []); }}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold">

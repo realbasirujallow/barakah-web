@@ -18,10 +18,16 @@
  * note's author can delete; backend enforces).
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 
 const SUGGESTED_TAGS: readonly string[] = [
+  'called',
+  'reached',
+  'voicemail',
+  'no-answer',
+  'discount-offered',
+  'trial-extended',
   'scholar',
   'pricing',
   'family-feature',
@@ -56,6 +62,32 @@ export default function AdminUserNotesPanel({ userId, toast }: AdminUserNotesPan
   const [draftTags, setDraftTags] = useState<Set<string>>(new Set());
   const [customTag, setCustomTag] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // One-click prefill for the most common founder action — logging a call.
+  // Adds 'called' + the outcome tag, drops a timestamped header into the
+  // draft, and focuses the textarea so the founder can type the call notes
+  // immediately without hunting for tags.
+  const prefillCall = (outcome: 'reached' | 'voicemail' | 'no-answer') => {
+    const now = new Date();
+    const stamp = now.toLocaleString();
+    const outcomeLabel = outcome === 'no-answer' ? 'no answer' : outcome;
+    const header = `📞 Called ${stamp} — ${outcomeLabel}\n`;
+    setDraft(prev => (prev.startsWith('📞 Called ') ? prev : header + prev));
+    setDraftTags(prev => {
+      const next = new Set(prev);
+      next.add('called');
+      next.add(outcome);
+      return next;
+    });
+    setTimeout(() => {
+      const el = textareaRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+    }, 0);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -161,9 +193,39 @@ export default function AdminUserNotesPanel({ userId, toast }: AdminUserNotesPan
         Tag for the cross-user view at <code className="bg-gray-100 px-1">/dashboard/admin/notes</code>.
       </p>
 
+      {/* Quick actions — one-click call log for the trial-outreach workflow */}
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        <span className="text-xs font-medium text-gray-700 mr-1">Log call:</span>
+        <button
+          type="button"
+          onClick={() => prefillCall('reached')}
+          className="text-xs px-2 py-1 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
+          title="Prefill: called + reached, focus textarea"
+        >
+          📞 Reached
+        </button>
+        <button
+          type="button"
+          onClick={() => prefillCall('voicemail')}
+          className="text-xs px-2 py-1 rounded-full border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 transition"
+          title="Prefill: called + voicemail, focus textarea"
+        >
+          📞 Voicemail
+        </button>
+        <button
+          type="button"
+          onClick={() => prefillCall('no-answer')}
+          className="text-xs px-2 py-1 rounded-full border border-gray-300 bg-gray-50 text-gray-700 hover:bg-gray-100 transition"
+          title="Prefill: called + no-answer, focus textarea"
+        >
+          📞 No answer
+        </button>
+      </div>
+
       {/* Compose */}
       <div className="mb-4">
         <textarea
+          ref={textareaRef}
           value={draft}
           onChange={e => setDraft(e.target.value)}
           rows={3}
