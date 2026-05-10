@@ -582,12 +582,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user || !pathname) return;
-    const sendHeartbeat = () => api.lifecycleHeartbeat({
-      platform: 'web',
-      appVersion: process.env.NEXT_PUBLIC_APP_VERSION || 'web',
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      route: pathname,
-    }).catch(() => {});
+    const sendHeartbeat = () => {
+      // 2026-05-10 (impersonation fix): skip the heartbeat entirely
+      // while in support mode. Two reasons:
+      //   1. Heartbeat updates User.lastSeenAt — under impersonation
+      //      that would pollute the TARGET user's timeline with the
+      //      founder's polling timestamps. The target's "last seen"
+      //      should reflect the user, not the support session.
+      //   2. POST /api/lifecycle/heartbeat is correctly blocked by
+      //      the support-mode VIEW_ONLY allowlist (writes are
+      //      forbidden), so every interval fired a 403 + audit-log
+      //      "blocked POST /api/lifecycle/heartbeat" entry. Dashboard
+      //      sessions in support mode were generating hundreds of
+      //      log lines per founder — pure noise.
+      try {
+        if (typeof window !== 'undefined'
+            && sessionStorage.getItem('barakah_support_token')) {
+          return;
+        }
+      } catch { /* sessionStorage may be disabled */ }
+      api.lifecycleHeartbeat({
+        platform: 'web',
+        appVersion: process.env.NEXT_PUBLIC_APP_VERSION || 'web',
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        route: pathname,
+      }).catch(() => {});
+    };
 
     sendHeartbeat();
     const interval = window.setInterval(sendHeartbeat, 5 * 60 * 1000);

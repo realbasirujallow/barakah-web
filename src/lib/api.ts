@@ -1311,19 +1311,44 @@ export const api = {
   getPreferences: () => apiFetch('/api/preferences'),
   updatePreferences: (data: Record<string, unknown>) =>
     apiFetch('/api/preferences', { method: 'PUT', body: JSON.stringify(data) }),
-  lifecycleHeartbeat: (data: { platform?: string; appVersion?: string; timeZone?: string; route?: string }) =>
-    apiFetch('/api/lifecycle/heartbeat', { method: 'POST', body: JSON.stringify(data) }, API_TIMEOUT, true),
+  lifecycleHeartbeat: (data: { platform?: string; appVersion?: string; timeZone?: string; route?: string }) => {
+    // 2026-05-10 (impersonation fix): no-op the heartbeat while
+    // impersonating. The target user's lastSeenAt should reflect
+    // their own activity, not the support session's polling cadence.
+    if (typeof window !== 'undefined') {
+      try {
+        if (sessionStorage.getItem('barakah_support_token')) {
+          return Promise.resolve(null);
+        }
+      } catch { /* sessionStorage may be disabled */ }
+    }
+    return apiFetch('/api/lifecycle/heartbeat', { method: 'POST', body: JSON.stringify(data) }, API_TIMEOUT, true);
+  },
   // R12 hardening (2026-04-22): lifecycleTrackEvent is fire-and-forget
   // analytics. A 401 on an analytics POST must NEVER bounce the user out
   // — the next user-initiated API call will surface a genuinely dead
   // session through the proper refresh + verifySessionStillValid flow.
   // Same rationale as getNotifications / getUnreadNotifications post
   // the NotificationBell fix (commit 57a4945).
-  lifecycleTrackEvent: (eventType: string, metadata?: Record<string, unknown>, source = 'web') =>
-    apiFetch('/api/lifecycle/events', {
+  //
+  // 2026-05-10 (impersonation fix): also no-op while impersonating —
+  // event payloads include "plan", "route", etc. attributed to the
+  // TARGET user, but the click was the founder's. Pollutes the
+  // target's funnel analytics + activation events. Drop them entirely
+  // during support mode.
+  lifecycleTrackEvent: (eventType: string, metadata?: Record<string, unknown>, source = 'web') => {
+    if (typeof window !== 'undefined') {
+      try {
+        if (sessionStorage.getItem('barakah_support_token')) {
+          return Promise.resolve(null);
+        }
+      } catch { /* sessionStorage may be disabled */ }
+    }
+    return apiFetch('/api/lifecycle/events', {
       method: 'POST',
       body: JSON.stringify({ eventType, metadata: metadata ?? {}, source }),
-    }, API_TIMEOUT, true),
+    }, API_TIMEOUT, true);
+  },
   getLifecycleSummary: () => apiFetch('/api/lifecycle/summary'),
   lifecycleCancelIntent: (context = 'billing') =>
     apiFetch('/api/lifecycle/cancel-intent', { method: 'POST', body: JSON.stringify({ context }) }),
