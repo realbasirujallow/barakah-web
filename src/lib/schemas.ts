@@ -103,6 +103,7 @@ export interface ZakatCalculation {
   interestDonationGuidance?: string;
   // 2026-05-10 (B-ZK-CCY): gold-grams + user-currency dual-display fields.
   totalWealthGoldGrams?: number;
+  zakatableWealthGoldGrams?: number;
   nisabGoldGrams?: number;
   goldPricePerGramUSD?: number;
   userCurrency?: string;
@@ -157,6 +158,7 @@ export function validateZakatCalculation(data: unknown): ValidationResult<ZakatC
       // secondary line. All optional — older backend builds simply omit
       // them and the UI falls back to the legacy USD-fmt rendering.
       totalWealthGoldGrams: isNonNegativeNumber(obj.totalWealthGoldGrams) ? (obj.totalWealthGoldGrams as number) : undefined,
+      zakatableWealthGoldGrams: isNonNegativeNumber(obj.zakatableWealthGoldGrams) ? (obj.zakatableWealthGoldGrams as number) : undefined,
       nisabGoldGrams: isNonNegativeNumber(obj.nisabGoldGrams) ? (obj.nisabGoldGrams as number) : undefined,
       goldPricePerGramUSD: isNonNegativeNumber(obj.goldPricePerGramUSD) ? (obj.goldPricePerGramUSD as number) : undefined,
       userCurrency: isString(obj.userCurrency) ? (obj.userCurrency as string) : undefined,

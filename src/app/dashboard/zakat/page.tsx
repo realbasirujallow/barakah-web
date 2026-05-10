@@ -34,6 +34,7 @@ interface ZakatCalculation {
   // because backend returned USD numbers + frontend stamped "Rs " in
   // front via fmt()). Backend now also returns user-currency conversions.
   totalWealthGoldGrams?: number;
+  zakatableWealthGoldGrams?: number;
   nisabGoldGrams?: number;
   goldPricePerGramUSD?: number;
   userCurrency?: string;
@@ -693,7 +694,14 @@ export default function ZakatPage() {
               </p>
             )}
             <p className="text-amber-200 mt-4 text-sm">
-              {fulfilled ? 'Mabrook! May Allah accept your Zakat. تقبل الله منك' : zakatEligible ? 'Your wealth exceeds Nisab — Zakat is obligatory' : 'Your wealth is below Nisab threshold'}
+              {/* 2026-05-10: clarify "wealth" → "zakatable wealth" so the
+                  hero verdict matches the cards below. Eligibility is
+                  computed from zakatableWealth vs nisab, not from total
+                  wealth — exempt assets (home, personal use) don't count.
+                  Pre-fix this said "Your wealth is below Nisab" while the
+                  Total Wealth card visibly showed 4749g >> 85g nisab,
+                  creating a confusing contradiction. */}
+              {fulfilled ? 'Mabrook! May Allah accept your Zakat. تقبل الله منك' : zakatEligible ? 'Your zakatable wealth exceeds Nisab — Zakat is obligatory' : 'Your zakatable wealth is below Nisab threshold'}
             </p>
             {totalPaid > 0 && (zakatDue ?? 0) > 0 && !hideZakat && (
               <div className="mt-4 max-w-md mx-auto">
@@ -736,8 +744,19 @@ export default function ZakatPage() {
             />
             <KpiCard
               label="Zakatable Wealth"
-              value={hideZakat ? '••••••' : fmt((data?.zakatableWealth as number) || 0)}
-              footer="After deductions & exemptions"
+              value={hideZakat
+                ? '••••••'
+                : (data?.zakatableWealthGoldGrams != null
+                    ? `${(data.zakatableWealthGoldGrams as number).toFixed(2)} g gold`
+                    : fmt((data?.zakatableWealth as number) || 0))}
+              footer={
+                <span className="text-xs text-gray-500">
+                  After deductions &amp; exemptions
+                  {!hideZakat && data?.zakatableWealth != null && (
+                    <> · ≈ {fmt(data.zakatableWealth as number)}</>
+                  )}
+                </span>
+              }
             />
             <div className="bg-white rounded-xl p-5">
               <p className="text-gray-500 text-sm flex items-center gap-1">
