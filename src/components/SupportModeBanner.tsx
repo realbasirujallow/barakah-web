@@ -34,8 +34,14 @@ export default function SupportModeBanner() {
       const t = Date.now();
       setNow(t);
       if (meta.expiresAt && t > meta.expiresAt) {
+        // 2026-05-10 (View-as-user fix): on natural expiry, also force
+        // a reload so AuthContext re-mounts and re-reads the founder's
+        // own cached profile from localStorage. Without this, the
+        // impersonated user object in AuthContext.user state stays
+        // visible to the founder even after the session expires.
         clearSupportToken();
         setMeta(null);
+        try { window.location.reload(); } catch { /* SSR safety */ }
       }
     }, 1000);
     return () => clearInterval(id);
