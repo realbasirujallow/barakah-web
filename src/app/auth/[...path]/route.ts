@@ -120,6 +120,19 @@ async function handler(
   const idempotency = request.headers.get('idempotency-key');
   if (idempotency) headers.set('Idempotency-Key', idempotency);
 
+  // 2026-05-10 (impersonation regression root cause): forward
+  // X-Support-Token. The Next.js rewrite path for /api/* already
+  // forwards arbitrary headers, but THIS auth proxy uses an explicit
+  // allowlist — so /auth/profile (and every other /auth/* path) was
+  // silently stripping the impersonation token. The backend's
+  // SupportSessionFilter then never saw the header, returned the
+  // founder's profile via JWT cookie auth, and the dashboard
+  // header/sidebar rendered "Basiru Jallow" while every /api/*
+  // endpoint correctly returned the target user's data. Same fix
+  // pattern as X-XSRF-TOKEN above. See SupportSessionFilter.HEADER.
+  const supportToken = request.headers.get('x-support-token');
+  if (supportToken) headers.set('X-Support-Token', supportToken);
+
   // Forward the real client IP — R5 audit (2026-04-21):
   //
   // Previously we relayed whatever X-Forwarded-For the caller sent us.
