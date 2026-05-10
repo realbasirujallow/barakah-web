@@ -24,7 +24,7 @@ export interface AdminUsersTabProps {
   page: number;
   setPage: (p: number) => void;
   loadData: (p: number) => void | Promise<void>;
-  openUser: (u: AdminUser) => void;
+  openUser: (u: AdminUser, listContext?: AdminUser[]) => void;
 }
 
 export function AdminUsersTab({
@@ -67,7 +67,7 @@ export function AdminUsersTab({
                 <button
                   key={u.id}
                   type="button"
-                  onClick={() => openUser(u)}
+                  onClick={() => openUser(u, recentSignups)}
                   className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-left hover:border-[#1B5E20]/30 hover:bg-white transition"
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -220,7 +220,7 @@ export function AdminUsersTab({
                   const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
                   const subInfo = SUB_STATUS_LABELS[u.subscriptionStatus ?? 'inactive'] ?? SUB_STATUS_LABELS.inactive;
                   return (
-                    <tr key={u.id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => openUser(u)}>
+                    <tr key={u.id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => openUser(u, filteredUsers)}>
                       <td className="px-3 py-3 text-gray-400 font-mono text-xs">{u.id}</td>
                       <td className="px-3 py-3">
                         <p className="font-medium text-gray-900 text-sm">{u.name || '—'}</p>

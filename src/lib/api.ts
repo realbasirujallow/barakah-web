@@ -789,6 +789,17 @@ export const api = {
   /** Bulk-categorize multiple transactions. */
   bulkCategorize: (ids: number[], category: string) =>
     apiFetch('/api/transactions/bulk-categorize', { method: 'POST', body: JSON.stringify({ ids, category, reviewStatus: 'reviewed' }) }),
+  /**
+   * Mark transactions as reviewed without changing category.
+   * 2026-05-10 founder report: Review tab had no per-row action to
+   * confirm "auto-tag is correct" — bulk-categorize forced overwriting
+   * the category. This endpoint just flips reviewStatus to "reviewed".
+   */
+  markReviewed: (ids: number[]) =>
+    apiFetch('/api/transactions/mark-reviewed', {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
+    }),
   deleteAllTransactions: (type?: string) => {
     const params = type ? `?type=${encodeURIComponent(type)}` : '';
     return apiFetch(`/api/transactions/all${params}`, { method: 'DELETE' });

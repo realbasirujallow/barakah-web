@@ -10,7 +10,7 @@ import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
-import { Pencil, Trash2, RefreshCw, Search } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw, Search, CheckCircle2 } from 'lucide-react';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
@@ -490,6 +490,29 @@ export default function TransactionsPage() {
     }
   };
 
+  /**
+   * 2026-05-10 founder report fix: confirm "auto-tag is correct" without
+   * forcing a category overwrite. Per-row variant (single id) + bulk-bar
+   * variant (selected ids). Uses the new POST /api/transactions/mark-reviewed
+   * endpoint.
+   */
+  const handleMarkReviewed = async (ids: number[]) => {
+    if (ids.length === 0) return;
+    setBulkCategorizing(true);
+    try {
+      const result = await api.markReviewed(ids);
+      const updated = (result as { updated?: number })?.updated ?? ids.length;
+      const noun = updated === 1 ? 'transaction' : 'transactions';
+      toast(`${updated} ${noun} marked as reviewed`, 'success');
+      if (selectMode) exitSelectMode();
+      load();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to mark reviewed', 'error');
+    } finally {
+      setBulkCategorizing(false);
+    }
+  };
+
   const handleExportCsv = async () => {
     setExportingCsv(true); setExportError(null);
     // trackFeatureUse fires on every click (not scoped to first-use) so
@@ -854,6 +877,26 @@ export default function TransactionsPage() {
                 )}
               </div>
             )}
+            {/* 2026-05-10: Mark-reviewed bulk action.
+                Founder report — when clicking Review tab to confirm
+                auto-tags, there was no button to say "looks right,
+                done". Now: select rows + click this to flip
+                reviewStatus to "reviewed" without changing categories.
+                Hidden when selectAllPages is on (same reason as
+                Recategorize — the underlying endpoint takes explicit
+                ids[]). */}
+            {selectedIds.size > 0 && !selectAllPages && (
+              <button
+                type="button"
+                onClick={() => handleMarkReviewed(Array.from(selectedIds))}
+                disabled={bulkCategorizing}
+                className="bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-40 flex items-center gap-1.5"
+                aria-label={`Mark ${selectedIds.size} transactions as reviewed`}
+              >
+                {bulkCategorizing ? <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" /> : '✓'}
+                Mark reviewed ({selectedIds.size})
+              </button>
+            )}
             <button onClick={handleBulkDelete}
               disabled={(selectAllPages ? totalElements : selectedIds.size) === 0 || bulkDeleting}
               className={`${selectedIds.size > 0 && !selectAllPages ? '' : 'ml-auto'} bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5`}>
@@ -1075,6 +1118,21 @@ export default function TransactionsPage() {
                   // wrapper, because group-hover styles target the
                   // closest ancestor with `class="group"`.)
                   <div className="flex items-center gap-1 sm:opacity-60 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
+                    {/* 2026-05-10 (founder report): per-row 'Mark reviewed'
+                        button. Only renders when the transaction is in
+                        the needs-review queue. Confirms the auto-tag
+                        without forcing a category overwrite. */}
+                    {tx.reviewStatus === 'needs_review' && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleMarkReviewed([tx.id]); }}
+                        aria-label={`Mark ${tx.description || tx.category} as reviewed`}
+                        title="Mark as reviewed (auto-tag is correct)"
+                        className="p-1.5 rounded-md text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); handleToggleRecurring(tx); }}

@@ -44,6 +44,22 @@ export interface AdminUserDetailModalProps {
   onResendVerification: () => void | Promise<void>;
   onGrantTrialOpen: () => void;
   toast: (msg: string, kind?: 'success' | 'error' | 'info') => void;
+  /**
+   * 2026-05-10 founder report: when calling through the trial-expiring
+   * list, founder had to back out of the modal and re-click each user.
+   * These optional list-context props enable ◀ Prev / Next ▶ buttons
+   * in the modal header so the founder can chip through a queue of
+   * users in order. Pass undefined when the modal is opened from a
+   * single-row context (e.g. search-result single click).
+   */
+  prevUser?: AdminUser | null;
+  nextUser?: AdminUser | null;
+  onNavigate?: (u: AdminUser) => void;
+  /**
+   * Position-in-list breadcrumb shown next to the navigation arrows
+   * (e.g. "3 of 9"). Optional; hides when undefined.
+   */
+  listPosition?: { index: number; total: number };
 }
 
 /**
@@ -243,6 +259,10 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
     onResendVerification,
     onGrantTrialOpen,
     toast,
+    prevUser,
+    nextUser,
+    onNavigate,
+    listPosition,
   } = props;
 
   // R37 (2026-04-30): per-user drilldown sheet (transactions, zakat).
@@ -321,7 +341,46 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
               </p>
             )}
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+          <div className="flex items-center gap-2 ml-3 shrink-0">
+            {/* 2026-05-10 (founder report): prev/next navigation through
+                the originating list (e.g. Expiring Trials). Lets the
+                founder chip through a queue of users to call without
+                back-clicking. Buttons are hidden if the parent didn't
+                provide list context. */}
+            {listPosition && (
+              <span
+                className="text-[11px] text-gray-400 tabular-nums select-none"
+                aria-label={`User ${listPosition.index + 1} of ${listPosition.total}`}
+              >
+                {listPosition.index + 1} / {listPosition.total}
+              </span>
+            )}
+            {onNavigate && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => prevUser && onNavigate(prevUser)}
+                  disabled={!prevUser}
+                  aria-label="Previous user"
+                  title={prevUser ? `Prev: ${prevUser.name || prevUser.email}` : 'Already at the first user'}
+                  className="text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed text-base leading-none px-2 py-1 rounded hover:bg-gray-100"
+                >
+                  ◀
+                </button>
+                <button
+                  type="button"
+                  onClick={() => nextUser && onNavigate(nextUser)}
+                  disabled={!nextUser}
+                  aria-label="Next user"
+                  title={nextUser ? `Next: ${nextUser.name || nextUser.email}` : 'Already at the last user'}
+                  className="text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed text-base leading-none px-2 py-1 rounded hover:bg-gray-100"
+                >
+                  ▶
+                </button>
+              </>
+            )}
+            <button onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-600 text-xl leading-none px-2">✕</button>
+          </div>
         </div>
 
         <div className="p-6 space-y-5">
