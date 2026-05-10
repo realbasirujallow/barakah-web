@@ -119,13 +119,17 @@ export default function ZakatRecipientsPage() {
         </section>
 
         <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-          <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">Where Barakah-collected sadaqah goes</h2>
+          <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">Donating through Barakah</h2>
           <p className="text-base text-gray-700">
-            If you donate via the Sadaqah / Waqf surface in Barakah, see{' '}
-            <Link href="/learn/sadaqah-distribution" className="underline text-[#1B5E20] hover:text-[#0d3a14] font-medium">
-              our disbursement disclosure
-            </Link>
-            {' '}for the partner charities and processing details.
+            Today, Barakah tracks sadaqah you have already given elsewhere — we
+            do not yet collect donations through the app. Before any donation
+            flow ships, we will publish a verified disbursement disclosure
+            covering partner charities, processing fees, and waqf custodial
+            arrangements. Email{' '}
+            <a href="mailto:support@trybarakah.com" className="underline text-[#1B5E20] hover:text-[#0d3a14] font-medium">
+              support@trybarakah.com
+            </a>
+            {' '}for early-access notifications.
           </p>
         </section>
 

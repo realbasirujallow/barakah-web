@@ -48,7 +48,7 @@ const faqItems = [
   {
     question: 'Is there a free trial?',
     answer:
-      `Yes. Every signup gets ${DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Barakah Plus free, no credit card or debit card required. You can cancel or downgrade at any point; if you do nothing, your account drops to Free when the trial ends.`,
+      `Yes. Every signup gets ${DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Barakah Family free, no credit card or debit card required. You can cancel or downgrade at any point; if you do nothing, your account drops to Free when the trial ends.`,
   },
   {
     question: 'Is there a money-back guarantee?',
