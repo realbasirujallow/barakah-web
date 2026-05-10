@@ -151,7 +151,7 @@ function formatPlaidBalance(value: number | null | undefined, currencyCode = 'US
 }
 
 function ImportPageInner() {
-  const { fmt } = useCurrency();
+  const { fmt, locale: dateLocale } = useCurrency();
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -624,7 +624,7 @@ function ImportPageInner() {
                             </p>
                           )}
                           {acct.lastSyncedAt && (
-                            <p className="text-xs text-gray-400">Last synced: {new Date(acct.lastSyncedAt).toLocaleDateString()}</p>
+                            <p className="text-xs text-gray-400">Last synced: {new Date(acct.lastSyncedAt).toLocaleDateString(dateLocale)}</p>
                           )}
                         </div>
                 <div className="flex gap-2">

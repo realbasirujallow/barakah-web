@@ -164,7 +164,7 @@ export default function TransactionsPage() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
 
-  const { currency: preferredCurrency, fmt } = useCurrency();
+  const { currency: preferredCurrency, fmt, locale: dateLocale } = useCurrency();
 
   const [form, setForm] = useState({
     type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: 'USD',
@@ -924,11 +924,16 @@ export default function TransactionsPage() {
               const dCmp = new Date(d);
               dCmp.setHours(0, 0, 0, 0);
               const diffDays = Math.round((today.getTime() - dCmp.getTime()) / 86400000);
+              // 2026-05-09 (B-DT-FMT): pass user's locale (en-GB / fr-FR /
+              // ar-SA / ur-PK) so en-GB users see "Friday, 31 January 2025"
+              // not the US-style "Friday, January 31, 2025". `undefined`
+              // would fall back to browser default which on most QA
+              // machines is en-US.
               const label = diffDays === 0
-                ? `Today, ${d.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}`
+                ? `Today, ${d.toLocaleDateString(dateLocale, { month: 'long', day: 'numeric' })}`
                 : diffDays === 1
-                  ? `Yesterday, ${d.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}`
-                  : d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: today.getFullYear() === d.getFullYear() ? undefined : 'numeric' });
+                  ? `Yesterday, ${d.toLocaleDateString(dateLocale, { month: 'long', day: 'numeric' })}`
+                  : d.toLocaleDateString(dateLocale, { weekday: 'long', month: 'long', day: 'numeric', year: today.getFullYear() === d.getFullYear() ? undefined : 'numeric' });
               g = { key, label, rows: [], net: 0 };
               groups.push(g);
               byKey[key] = g;
@@ -1035,7 +1040,7 @@ export default function TransactionsPage() {
                     )}
                   </div>
                   <p className="text-sm text-gray-500 capitalize">
-                    {tx.category?.replace(/_/g, ' ')} • {new Date(tx.timestamp).toLocaleDateString()}
+                    {tx.category?.replace(/_/g, ' ')} • {new Date(tx.timestamp).toLocaleDateString(dateLocale)}
                     {tx.currency && tx.currency !== preferredCurrency && (
                       <span className="ml-1 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-mono">{tx.currency}</span>
                     )}

@@ -160,7 +160,7 @@ export default function DebtsPage() {
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const { toast } = useToast();
-  const { symbol, fmt } = useCurrency();
+  const { symbol, fmt, locale: dateLocale } = useCurrency();
   const { user } = useAuth();
 
   const load = useCallback(() => {
@@ -467,7 +467,7 @@ export default function DebtsPage() {
                         {d.readOnly && (
                           <p className="text-xs text-gray-500">
                             {[d.accountSubtype, d.accountMask ? `••${d.accountMask}` : null].filter(Boolean).join(' • ')}
-                            {d.lastSyncedAt ? ` • Synced ${new Date(d.lastSyncedAt).toLocaleDateString()}` : ''}
+                            {d.lastSyncedAt ? ` • Synced ${new Date(d.lastSyncedAt).toLocaleDateString(dateLocale)}` : ''}
                           </p>
                         )}
                         {d.monthlyPayment > 0 && d.remainingAmount > 0 && (

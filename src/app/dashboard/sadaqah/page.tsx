@@ -37,7 +37,7 @@ const CATS = ['food', 'clothing', 'education', 'medical', 'shelter', 'water', 'g
 const PRESET_AMOUNTS = [5, 10, 25, 50, 100];
 
 function SadaqahContent() {
-  const { fmt } = useCurrency();
+  const { fmt, locale: dateLocale } = useCurrency();
   const [items, setItems] = useState<SadaqahItem[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -265,7 +265,7 @@ function SadaqahContent() {
               <div key={item.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
                 <div>
                   <p className="font-semibold text-primary">{item.recipientName || item.category}</p>
-                  <p className="text-sm text-gray-500 capitalize">{item.category} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString()}
+                  <p className="text-sm text-gray-500 capitalize">{item.category} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString(dateLocale)}
                     {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">Recurring</span>}
                     {item.anonymous && <span className="ml-1 bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">Anonymous</span>}
                   </p>

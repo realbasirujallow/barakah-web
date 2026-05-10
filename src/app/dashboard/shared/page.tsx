@@ -92,7 +92,7 @@ const emptyGroupForm = { name: '', description: '' };
 const emptyTxForm = { description: '', amount: '', category: '', type: 'expense' };
 
 export default function SharedPage() {
-  const { fmt, currency } = useCurrency();
+  const { fmt, currency, locale: dateLocale } = useCurrency();
   const [groups, setGroups] = useState<Group[]>([]);
   const [activeGroup, setActiveGroup] = useState<Group | null>(null);
   const [summary, setSummary] = useState<GroupSummary | null>(null);
@@ -613,7 +613,7 @@ export default function SharedPage() {
                               <div>
                                 <p className="font-medium text-gray-900">{goal.name}</p>
                                 {goal.targetDate && (
-                                  <p className="text-xs text-gray-500">Target: {new Date(goal.targetDate).toLocaleDateString()}</p>
+                                  <p className="text-xs text-gray-500">Target: {new Date(goal.targetDate).toLocaleDateString(dateLocale)}</p>
                                 )}
                               </div>
                               <button
