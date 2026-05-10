@@ -6,6 +6,7 @@ import { trackLogin, trackSignUp, trackTrialStarted, trackOnce } from '../lib/an
 import { DEFAULT_ONBOARDING_TRIAL_DAYS } from '../lib/trial';
 import { saveCurrencyPreference, saveLocalePreference } from '../lib/useCurrency';
 import { setLocale as setI18nLocale, getLocale as getI18nLocale } from '../lib/i18n';
+import { getSupportToken } from '../lib/supportSession';
 
 // 2026-05-08 (Bug E): map a 2-letter country code to its BCP-47 number/date
 // locale. This is what `Intl.DateTimeFormat` uses to pick "Friday, 8 May 2026"
@@ -201,6 +202,78 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const finishLoading = () => {
       window.setTimeout(() => { if (!cancelled) setIsLoading(false); }, 0);
     };
+
+    // 2026-05-10 (View-as-user fix): if a support token is present in
+    // sessionStorage, the founder (super-admin) is impersonating a
+    // target user. We MUST NOT use the localStorage cached profile —
+    // that holds the founder's own name/email/plan, and reading it
+    // would render every UI surface (header, sidebar, profile drawer)
+    // as the founder despite all API calls correctly returning the
+    // target's data via the X-Support-Token override.
+    //
+    // Instead: skip the cache, fetch /auth/profile fresh (which the
+    // backend's SupportSessionFilter resolves to the target user),
+    // and DO NOT write the result to localStorage — sessionStorage
+    // holds the impersonation state, and exiting support mode (close
+    // tab / clearSupportToken) reverts immediately to the founder's
+    // cached profile from localStorage on the next mount.
+    //
+    // Founder report 2026-05-10: "i just pulled a user, but my own
+    // personal info was showing".
+    const supportToken = (() => {
+      try { return getSupportToken(); } catch { return null; }
+    })();
+    if (supportToken) {
+      api.getProfile(true).then((data) => {
+        if (cancelled || !data) {
+          finishLoading();
+          return;
+        }
+        // Build a target-user shaped profile for AuthContext.user.
+        // Intentionally minimal — we only need what the dashboard
+        // header / sidebar render. Anything missing falls back to
+        // safe defaults.
+        const d = data as Record<string, unknown>;
+        const idRaw = d.id;
+        const impersonatedUser: User = {
+          id: typeof idRaw === 'string'
+              ? idRaw
+              : (typeof idRaw === 'number' ? String(idRaw) : ''),
+          name: typeof d.name === 'string'
+              ? d.name
+              : (typeof d.fullName === 'string' ? (d.fullName as string) : ''),
+          email: typeof d.email === 'string' ? d.email : '',
+          plan: (d.plan as User['plan']) ?? 'free',
+          planExpiresAt: typeof d.planExpiresAt === 'number'
+              ? (d.planExpiresAt as number) : null,
+          isAdmin: d.isAdmin === true,
+          isSuperAdmin: d.isSuperAdmin === true,
+          country: typeof d.country === 'string' ? (d.country as string) : undefined,
+          preferredCurrency: typeof d.preferredCurrency === 'string'
+              ? (d.preferredCurrency as string) : 'USD',
+          setupCompletedAt: typeof d.setupCompletedAt === 'number'
+              ? (d.setupCompletedAt as number) : null,
+        };
+        // CRITICAL: do NOT write impersonatedUser to localStorage.
+        // The founder's own profile must remain in localStorage so
+        // exit-support-mode reverts cleanly without an extra round-trip.
+        if (!cancelled) {
+          setUser(impersonatedUser);
+          finishLoading();
+        }
+      }).catch(() => {
+        // Couldn't fetch the target's profile — surface a null user
+        // rather than silently render the founder's cached profile.
+        // The dashboard's auth gate will redirect to login, the
+        // banner stays, and the founder can clear support mode.
+        if (!cancelled) {
+          setUser(null);
+          finishLoading();
+        }
+      });
+      return () => { cancelled = true; };
+    }
+
     let savedUser: string | null = null;
     try {
       savedUser = localStorage.getItem(USER_KEY);
