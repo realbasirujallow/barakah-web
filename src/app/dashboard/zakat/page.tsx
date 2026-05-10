@@ -26,6 +26,20 @@ interface ZakatCalculation {
   breakdown?: Array<Record<string, unknown>>;
   totalDebts?: number;
   error?: string;
+  // 2026-05-10 (B-ZK-CCY) — Path C+B fields. Primary card now renders
+  // gold-grams ("Your wealth ≈ 7.2 g gold; Nisab 85 g") with the user's
+  // currency total as the secondary line. Eliminates the misleading
+  // "USD-denominated number with user-currency symbol" rendering for any
+  // non-USD user (PK user was seeing "Rs 1,097.12" for 305,000 PKR
+  // because backend returned USD numbers + frontend stamped "Rs " in
+  // front via fmt()). Backend now also returns user-currency conversions.
+  totalWealthGoldGrams?: number;
+  nisabGoldGrams?: number;
+  goldPricePerGramUSD?: number;
+  userCurrency?: string;
+  totalWealthUserCurrency?: number;
+  nisabUserCurrency?: number;
+  zakatDueUserCurrency?: number;
   [key: string]: unknown;
 }
 
@@ -659,9 +673,25 @@ export default function ZakatPage() {
           >
             <p className="text-4xl mb-2">{fulfilled ? '🌟' : zakatEligible ? '✅' : 'ℹ️'}</p>
             <p className="text-amber-100 mb-2">{fulfilled ? 'Zakat Fulfilled!' : 'Zakat Due (2.5%)'}</p>
+            {/* B-ZK-CCY (2026-05-10): the headline number is now the user-
+                currency conversion (verifiable against the wallet) when
+                available; falls back to the legacy fmt(zakatDue) USD figure
+                when the backend hasn't shipped the new field yet. The USD
+                companion line below removes ambiguity for cross-border or
+                multi-currency users. Pre-fix display showed
+                "Rs <USD-amount>" which mis-led non-USD users into believing
+                the figure was already in their currency. */}
             <p className="text-5xl font-bold">
-              {hideZakat ? '••••••' : fmt(zakatDue ?? 0)}
+              {hideZakat
+                ? '••••••'
+                : fmt((data?.zakatDueUserCurrency as number | undefined) ?? zakatDue ?? 0)}
             </p>
+            {!hideZakat && data?.userCurrency && data.userCurrency !== 'USD'
+              && data?.zakatDueUserCurrency != null && (
+              <p className="text-amber-100/80 text-xs mt-1">
+                ≈ USD ${(zakatDue ?? 0).toFixed(2)}
+              </p>
+            )}
             <p className="text-amber-200 mt-4 text-sm">
               {fulfilled ? 'Mabrook! May Allah accept your Zakat. تقبل الله منك' : zakatEligible ? 'Your wealth exceeds Nisab — Zakat is obligatory' : 'Your wealth is below Nisab threshold'}
             </p>
@@ -678,9 +708,31 @@ export default function ZakatPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-4">
+            {/* B-ZK-CCY (2026-05-10) — Path C+B: gold-grams primary, user-
+                currency secondary. The pre-fix card rendered USD totals with
+                whatever currency symbol the user had configured ("Rs 1,097.12"
+                for a 305,000 PKR user) which was both religiously and
+                financially misleading. New layout:
+                  • Big number = gold-grams ("Your wealth ≈ 7.2 g gold")
+                  • Footer line = user-currency conversion (verifiable)
+                Falls back gracefully to the legacy fmt() rendering when the
+                backend hasn't shipped the new fields yet (forward compat
+                across the deploy window).                                  */}
             <KpiCard
               label="Total Wealth"
-              value={hideZakat ? '••••••' : fmt((data?.totalWealth as number) || 0)}
+              value={hideZakat
+                ? '••••••'
+                : (data?.totalWealthGoldGrams != null
+                    ? `${(data.totalWealthGoldGrams as number).toFixed(2)} g gold`
+                    : fmt((data?.totalWealth as number) || 0))}
+              footer={hideZakat || data?.totalWealthUserCurrency == null
+                ? undefined
+                : <span className="text-xs text-gray-500">
+                    ≈ {fmt(data.totalWealthUserCurrency as number)}
+                    {data?.userCurrency && data.userCurrency !== 'USD' && (
+                      <> · USD ${((data?.totalWealth as number) || 0).toFixed(2)}</>
+                    )}
+                  </span>}
             />
             <KpiCard
               label="Zakatable Wealth"
@@ -701,9 +753,25 @@ export default function ZakatPage() {
                   }
                 />
               </p>
+              {/* B-ZK-CCY (2026-05-10): primary nisab line is gold-grams
+                  (always 85g for AMJA_GOLD; gold-equivalent of 595g silver
+                  for the silver path). Secondary line shows the user-
+                  currency conversion so a Pakistani user can sanity-check
+                  "85g gold ≈ Rs 4.3M" against their wallet. Old fmt(USD
+                  number with currency symbol) display is removed. */}
               <p className="text-2xl font-bold text-amber-600">
-                {data?.nisab ? fmt(data.nisab as number) : '—'}
+                {data?.nisabGoldGrams != null
+                  ? `${(data.nisabGoldGrams as number).toFixed(2)} g gold`
+                  : (data?.nisab ? fmt(data.nisab as number) : '—')}
               </p>
+              {data?.nisabUserCurrency != null && (
+                <p className="text-xs text-gray-500 mt-1">
+                  ≈ {fmt(data.nisabUserCurrency as number)}
+                  {data?.userCurrency && data.userCurrency !== 'USD' && (
+                    <> · USD ${((data?.nisab as number) || 0).toFixed(2)}</>
+                  )}
+                </p>
+              )}
               {nisabInfo && (
                 <p className="text-xs text-gray-400 mt-1">
                   {/* HIGH BUG FIX (H-1): goldPricePerGram / silverPricePerGram
