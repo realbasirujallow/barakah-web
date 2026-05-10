@@ -101,6 +101,14 @@ export interface ZakatCalculation {
   interestMustBeDonatedToCharity?: boolean;
   interestDonationAmount?: number;
   interestDonationGuidance?: string;
+  // 2026-05-10 (B-ZK-CCY): gold-grams + user-currency dual-display fields.
+  totalWealthGoldGrams?: number;
+  nisabGoldGrams?: number;
+  goldPricePerGramUSD?: number;
+  userCurrency?: string;
+  totalWealthUserCurrency?: number;
+  nisabUserCurrency?: number;
+  zakatDueUserCurrency?: number;
   // Asset breakdown from backend (per-asset zakatable/exempt detail)
   breakdown?: Array<Record<string, unknown>>;
   totalDebts?: number;
@@ -143,6 +151,18 @@ export function validateZakatCalculation(data: unknown): ValidationResult<ZakatC
       interestMustBeDonatedToCharity: isBoolean(obj.interestMustBeDonatedToCharity) ? (obj.interestMustBeDonatedToCharity as boolean) : undefined,
       interestDonationAmount: isFiniteNumber(obj.interestDonationAmount) ? (obj.interestDonationAmount as number) : undefined,
       interestDonationGuidance: isString(obj.interestDonationGuidance) ? (obj.interestDonationGuidance as string) : undefined,
+      // 2026-05-10 (B-ZK-CCY): Path C+B fields. Backend now ships gold-grams
+      // + user-currency conversions so the frontend can render a
+      // faith-anchored primary line and a verifiable user-currency
+      // secondary line. All optional — older backend builds simply omit
+      // them and the UI falls back to the legacy USD-fmt rendering.
+      totalWealthGoldGrams: isNonNegativeNumber(obj.totalWealthGoldGrams) ? (obj.totalWealthGoldGrams as number) : undefined,
+      nisabGoldGrams: isNonNegativeNumber(obj.nisabGoldGrams) ? (obj.nisabGoldGrams as number) : undefined,
+      goldPricePerGramUSD: isNonNegativeNumber(obj.goldPricePerGramUSD) ? (obj.goldPricePerGramUSD as number) : undefined,
+      userCurrency: isString(obj.userCurrency) ? (obj.userCurrency as string) : undefined,
+      totalWealthUserCurrency: isFiniteNumber(obj.totalWealthUserCurrency) ? (obj.totalWealthUserCurrency as number) : undefined,
+      nisabUserCurrency: isNonNegativeNumber(obj.nisabUserCurrency) ? (obj.nisabUserCurrency as number) : undefined,
+      zakatDueUserCurrency: isNonNegativeNumber(obj.zakatDueUserCurrency) ? (obj.zakatDueUserCurrency as number) : undefined,
     },
   };
 }
