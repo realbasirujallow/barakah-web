@@ -69,7 +69,7 @@ const faqSchema = {
       name: 'Is there a free Islamic finance app?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: `Yes — Barakah has a permanent free plan that includes the full zakat calculator, manual transaction tracking (up to 10/month), hawl tracker, and basic budgeting. The Plus plan ($9.99/month) adds unlimited transactions, bank sync, halal stock screener, savings goals, Faraid calculator, and Barakah Score. Both include a ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial of Plus.`,
+        text: `Yes — Barakah has a permanent free plan that includes the full zakat calculator, manual transaction tracking (up to 10/month), hawl tracker, and basic budgeting. The Plus plan ($9.99/month) adds unlimited transactions, bank sync, halal stock screener, savings goals, Faraid calculator, and Barakah Score. Both include a ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial of Family.`,
       },
     },
     {

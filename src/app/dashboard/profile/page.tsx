@@ -117,6 +117,11 @@ export default function ProfilePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  // 2026-05-10 (SEC-001): step-up auth state for irreversible delete.
+  // Password is verified server-side via BCrypt; the typed phrase must
+  // equal "DELETE" exactly. Both are required before the request fires.
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirmPhrase, setDeleteConfirmPhrase] = useState('');
   // 2026-05-02: lock body scroll while any deletion modal is open.
   useBodyScrollLock(showRetentionModal || showDeleteConfirm);
 
@@ -275,10 +280,30 @@ export default function ProfilePage() {
   };
 
   const handleDeleteAccount = async () => {
+    // 2026-05-10 (SEC-001): client-side gating mirrors the backend
+    // validation so the user gets a fast "type DELETE" / "enter
+    // password" prompt without a round-trip. The server is the
+    // authoritative gate either way.
+    if (!deletePassword) {
+      setDeleteMsg({ type: 'error', text: 'Enter your current password to confirm.' });
+      return;
+    }
+    if (deleteConfirmPhrase !== 'DELETE') {
+      setDeleteMsg({ type: 'error', text: 'Type DELETE in the confirmation field.' });
+      return;
+    }
     setDeleting(true);
     setDeleteMsg(null);
     try {
-      await api.deleteAccount();
+      await api.deleteAccount({
+        currentPassword: deletePassword,
+        confirmPhrase: deleteConfirmPhrase,
+      });
+      // Clear sensitive fields BEFORE logout so they never linger in
+      // React state after the redirect. logout() handles the auth
+      // state teardown.
+      setDeletePassword('');
+      setDeleteConfirmPhrase('');
       await logout('deleted'); // BUG FIX: await async logout to prevent stale auth state
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Failed to delete account.';
@@ -1009,12 +1034,39 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              /* Step 2: Final confirmation (no password required) */
+              // Step 2: Final confirmation with step-up auth (SEC-001).
+              // Pre-fix this step had no challenge — a logged-in browser
+              // session was enough to permanently delete the account.
+              // Now we require BOTH the current password (server-side
+              // BCrypt-verified) and the typed phrase DELETE to match
+              // fintech industry standard for irreversible actions.
               <div className="p-6">
                 <h3 id="delete-account-final-title" className="text-lg font-bold text-red-600 mb-4">Final Confirmation</h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Are you absolutely sure? This will permanently delete your account and all data. This action cannot be undone.
+                  Permanently deleting your account removes every transaction,
+                  asset, debt, zakat record, sadaqah ledger, and family link.
+                  This cannot be undone. To confirm, enter your current password
+                  and type <span className="font-mono font-semibold text-red-600">DELETE</span> below.
                 </p>
+                <div className="space-y-3 mb-4">
+                  <input
+                    type="password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    autoComplete="current-password"
+                    placeholder="Current password"
+                    aria-label="Current password"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  />
+                  <input
+                    type="text"
+                    value={deleteConfirmPhrase}
+                    onChange={(e) => setDeleteConfirmPhrase(e.target.value)}
+                    placeholder='Type DELETE to confirm'
+                    aria-label='Type DELETE to confirm'
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 font-mono focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  />
+                </div>
                 {deleteMsg && (
                   <div className={`text-sm px-3 py-2 rounded-lg mb-3 ${
                     deleteMsg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
@@ -1026,14 +1078,20 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={handleDeleteAccount}
-                    disabled={deleting}
+                    disabled={deleting || !deletePassword || deleteConfirmPhrase !== 'DELETE'}
                     className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 text-sm"
                   >
                     {deleting ? 'Deleting...' : 'Permanently Delete'}
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setShowRetentionModal(false); setShowDeleteConfirm(false); setDeleteMsg(null); }}
+                    onClick={() => {
+                      setShowRetentionModal(false);
+                      setShowDeleteConfirm(false);
+                      setDeleteMsg(null);
+                      setDeletePassword('');
+                      setDeleteConfirmPhrase('');
+                    }}
                     className="flex-1 text-gray-600 border border-gray-300 py-2.5 rounded-lg text-sm hover:bg-gray-50"
                   >
                     Cancel

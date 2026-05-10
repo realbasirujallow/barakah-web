@@ -51,7 +51,7 @@ export default function PressPage() {
                 ['Platforms', 'iOS · Android · Web'],
                 ['Languages', 'English · Arabic · Urdu · French'],
                 ['Pricing', `Free · Plus ${PLUS} · Family ${FAMILY}`],
-                ['Free trial', '30 days of Plus, no credit card'],
+                ['Free trial', '30 days of Family, no credit card'],
                 ['Bank coverage', 'Plaid (12,000+ US institutions)'],
                 ['Stock screener size', '30,000+ tickers, daily AAOIFI re-screen'],
                 ['Fiqh schools supported', 'Hanafi · Shafi&apos;i · Maliki · Hanbali · General'],

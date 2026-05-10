@@ -1256,8 +1256,24 @@ export const api = {
   // don't change the first-recorded time.
   markSetupComplete: () =>
     apiFetch('/auth/setup-complete', { method: 'POST', body: JSON.stringify({}) }),
-  deleteAccount: () =>
-    apiFetch('/auth/delete-account', { method: 'DELETE' }),
+  // 2026-05-10 (SEC-001): account deletion now requires step-up auth.
+  // Backend rejects with 401 + code=delete_step_up_required when:
+  //   • currentPassword is missing/wrong, OR
+  //   • confirmPhrase is not exactly "DELETE".
+  // Optional remarketing opt-in field carries the existing churn-analysis
+  // semantics. The controller logs the verification path on success so
+  // the audit trail captures who initiated the deletion.
+  deleteAccount: (body: {
+    currentPassword: string;
+    confirmPhrase: string;
+    reason?: string;
+    note?: string;
+    remarketingOptedIn?: boolean;
+  }) =>
+    apiFetch('/auth/delete-account', {
+      method: 'DELETE',
+      body: JSON.stringify(body),
+    }),
 
   exportData: () => apiFetch('/auth/export-data'),
 
