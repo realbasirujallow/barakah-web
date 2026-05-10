@@ -708,6 +708,46 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Language Preference - 2026-05-10 (B-L10N-NO-SWITCH).
+          The audit found there was no app-language switcher anywhere in
+          the UI: an SA / PK user signing up on a fresh device saw English
+          even though we knew their country. This picker hands the user
+          control AND sets a manual-override flag so the auto-derivation
+          in AuthContext (country → ar/ur/fr) doesn't keep flipping back.
+          Page-level setLocale also updates `<html dir>` so RTL/LTR
+          repaints immediately without a refresh. */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
+        <h2 className="text-lg font-bold text-primary mb-4">Language</h2>
+        <p className="text-sm text-gray-500 mb-3">
+          Choose the app interface language. Arabic and Urdu render
+          right-to-left automatically; date and number formats follow
+          your country.
+        </p>
+        <div className="flex items-center gap-3">
+          <select
+            aria-label="App language"
+            defaultValue={(typeof window !== 'undefined' && localStorage.getItem('barakah_locale')) || 'en'}
+            onChange={async (e) => {
+              const next = e.target.value;
+              try {
+                const { setLocale } = await import('../../../lib/i18n');
+                setLocale(next);
+                localStorage.setItem('barakah_locale_manual_override', 'true');
+                toast('Language updated.', 'success');
+              } catch {
+                toast('Failed to update language.', 'error');
+              }
+            }}
+            className="border rounded-lg px-3 py-2 text-gray-900 text-sm flex-1 max-w-xs"
+          >
+            <option value="en">English</option>
+            <option value="ar">العربية (Arabic)</option>
+            <option value="ur">اردو (Urdu)</option>
+            <option value="fr">Français (French)</option>
+          </select>
+        </div>
+      </div>
+
       {/* Currency Preference - FEATURE 4 */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
         <h2 className="text-lg font-bold text-primary mb-4">Currency</h2>
