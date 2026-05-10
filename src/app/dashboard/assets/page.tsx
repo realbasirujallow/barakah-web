@@ -96,7 +96,7 @@ const ADDRESS_TYPES = ["primary_home","investment_property","investment_property
 const EMPTY_FORM: AssetFormState = { name: '', type: 'cash', value: '', penaltyRate: '', taxRate: '', address: '' };
 
 export default function AssetsPage() {
-  const { fmt, currency } = useCurrency();
+  const { fmt, currency, locale: dateLocale } = useCurrency();
   const { toast } = useToast();
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -569,7 +569,7 @@ export default function AssetsPage() {
                     {a.readOnly && (
                       <p className="text-xs text-gray-500">
                         {[a.institutionName, a.accountSubtype, a.accountMask ? `••${a.accountMask}` : null].filter(Boolean).join(' • ')}
-                        {a.lastSyncedAt ? ` • Synced ${new Date(a.lastSyncedAt).toLocaleDateString()}` : ''}
+                        {a.lastSyncedAt ? ` • Synced ${new Date(a.lastSyncedAt).toLocaleDateString(dateLocale)}` : ''}
                       </p>
                     )}
                     {a.address && (

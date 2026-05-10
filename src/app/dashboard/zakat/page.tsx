@@ -75,7 +75,7 @@ function computeHijriYear(): number {
 export default function ZakatPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { fmt, symbol, currency } = useCurrency();
+  const { fmt, symbol, currency, locale: dateLocale } = useCurrency();
   const mountedRef = useRef(true);
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [data, setData] = useState<ZakatCalculation | null>(null);
@@ -512,7 +512,7 @@ export default function ZakatPage() {
             <h1>${escHtml(report.title) || 'Zakat Report'}</h1>
             <p><strong>Prepared for:</strong> ${escHtml(report.generatedFor) || 'User'}</p>
             <p><strong>Lunar Year:</strong> ${escHtml(report.lunarYear) || lunarYear} AH</p>
-            <p><strong>Generated:</strong> ${new Date().toLocaleDateString()}</p>
+            <p><strong>Generated:</strong> ${new Date().toLocaleDateString(dateLocale)}</p>
 
             <div class="summary-box">
               <h2>Zakat Summary</h2>
@@ -1026,7 +1026,7 @@ export default function ZakatPage() {
                       <p className="font-bold text-primary">{hideZakat ? '••••' : fmt(p.amount as number)}</p>
                       {p.recipient ? <p className="text-gray-500 text-sm truncate">{String(p.recipient)}</p> : null}
                       {p.notes ? <p className="text-gray-400 text-xs truncate">{String(p.notes)}</p> : null}
-                      <p className="text-gray-400 text-xs">{date.toLocaleDateString()}</p>
+                      <p className="text-gray-400 text-xs">{date.toLocaleDateString(dateLocale)}</p>
                     </div>
                     <button onClick={() => handleDeletePayment(p.id as number)} className="text-gray-300 hover:text-red-500 transition">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>

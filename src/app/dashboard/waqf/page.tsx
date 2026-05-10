@@ -23,7 +23,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export default function WaqfPage() {
   const [tab, setTab] = useState<'contributions' | 'distribution'>('contributions');
-  const { symbol, fmt } = useCurrency();
+  const { symbol, fmt, locale: dateLocale } = useCurrency();
 
   // contributions
   const [items, setItems] = useState<WaqfItem[]>([]);
@@ -281,7 +281,7 @@ export default function WaqfPage() {
                   <div key={item.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
                     <div>
                       <p className="font-semibold text-primary">{item.organizationName || item.purpose}</p>
-                      <p className="text-sm text-gray-500 capitalize">{item.purpose} • {item.type} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString()}
+                      <p className="text-sm text-gray-500 capitalize">{item.purpose} • {item.type} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString(dateLocale)}
                         {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">Recurring</span>}
                       </p>
                     </div>

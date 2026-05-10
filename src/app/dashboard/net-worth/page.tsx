@@ -97,7 +97,19 @@ export default function NetWorthPage() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const mountedRef = useRef(true);
-  useEffect(() => () => { mountedRef.current = false; }, []);
+  // 2026-05-09 (B-N-W fix): React 18 strict-mode runs effects + their
+  // cleanups on every render of the dev tree, so the previous one-liner
+  // `useEffect(() => () => { mountedRef.current = false; }, [])` was
+  // setting mountedRef.current = false on the first cleanup pass right
+  // after mount, before load()'s Promise.all could resolve. The
+  // `if (!mountedRef.current) return;` guard then short-circuited every
+  // setState in load(), leaving the page stuck on the loading spinner
+  // forever. Set mountedRef.current = true on every mount so the guard
+  // only triggers on genuine unmount.
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const formatDate = (epoch: number) => {
     const ms = epoch < 1e12 ? epoch * 1000 : epoch;

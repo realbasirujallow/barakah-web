@@ -160,7 +160,7 @@ export default function RibaPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const { fmt, symbol } = useCurrency();
+  const { fmt, symbol, locale: dateLocale } = useCurrency();
   const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
 
   // GA4 feature-engagement event — fires once per browser on first riba-
@@ -686,7 +686,7 @@ export default function RibaPage() {
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <p className="font-semibold text-gray-900">{tx.description}</p>
-                      <p className="text-sm text-gray-500">{tx.date && !isNaN(new Date(tx.date).getTime()) ? new Date(tx.date).toLocaleDateString() : ''}</p>
+                      <p className="text-sm text-gray-500">{tx.date && !isNaN(new Date(tx.date).getTime()) ? new Date(tx.date).toLocaleDateString(dateLocale) : ''}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-red-600">{fmt(tx.amount)}</p>
@@ -1008,7 +1008,7 @@ export default function RibaPage() {
                             <p className="text-sm text-green-700">{fmt(goal.originalAmount)} eliminated</p>
                             {goal.eliminatedAt && (
                               <p className="text-xs text-green-600 mt-1">
-                                {new Date(goal.eliminatedAt).toLocaleDateString()}
+                                {new Date(goal.eliminatedAt).toLocaleDateString(dateLocale)}
                               </p>
                             )}
                           </div>
