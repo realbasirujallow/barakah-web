@@ -1256,15 +1256,14 @@ export const api = {
   // don't change the first-recorded time.
   markSetupComplete: () =>
     apiFetch('/auth/setup-complete', { method: 'POST', body: JSON.stringify({}) }),
-  // 2026-05-10 (SEC-001): account deletion now requires step-up auth.
-  // Backend rejects with 401 + code=delete_step_up_required when:
-  //   • currentPassword is missing/wrong, OR
-  //   • confirmPhrase is not exactly "DELETE".
-  // Optional remarketing opt-in field carries the existing churn-analysis
-  // semantics. The controller logs the verification path on success so
-  // the audit trail captures who initiated the deletion.
+  // 2026-05-10 (SEC-001 v2): account deletion requires the typed
+  // phrase "DELETE" only. NO password — Apple App Store §5.1.1(v)
+  // and Google Play's data-deletion policy reject apps that gate
+  // deletion behind a password challenge. The typed phrase is the
+  // sole accidental-click safeguard (Stripe / Wise / Mercury all
+  // use the same pattern). Backend returns 400 +
+  // code=delete_confirm_required when the phrase is wrong/missing.
   deleteAccount: (body: {
-    currentPassword: string;
     confirmPhrase: string;
     reason?: string;
     note?: string;
