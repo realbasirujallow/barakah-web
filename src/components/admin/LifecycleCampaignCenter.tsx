@@ -313,7 +313,7 @@ const FALLBACK_TEMPLATES: Array<Record<string, unknown>> = [
     channel: 'email',
     subject: 'Your Barakah trial ends soon — here is what you keep',
     title: 'Your trial ends in a few days',
-    body: `Assalamu alaykum, {first_name}.\n\nYour Barakah Plus trial is ending soon. We wanted to make sure you know what happens next.\n\nIf you subscribe before your trial ends, you keep:\n\n✅ All your linked accounts and transaction history\n✅ Your zakat calculations and hawl tracking\n✅ Your budgets, net worth history, and sadaqah log\n✅ Full access to all Barakah Plus features\n\nIf you do not subscribe, your account switches to the free plan and some features will be limited — but your data is safe.\n\nSubscribe now to keep the full Barakah experience. JazakAllahu khairan for trying it.`,
+    body: `Assalamu alaykum, {first_name}.\n\nYour Barakah Family trial is ending soon. We wanted to make sure you know what happens next.\n\nIf you subscribe before your trial ends, you keep:\n\n✅ All your linked accounts and transaction history\n✅ Your zakat calculations and hawl tracking\n✅ Your budgets, net worth history, and sadaqah log\n✅ Full access to every Barakah feature\n\nIf you do not subscribe, your account switches to the free plan and some features will be limited — but your data is safe.\n\nSubscribe now to keep the full Barakah experience. JazakAllahu khairan for trying it.`,
   },
   {
     key: 'upgrade_to_plus',
