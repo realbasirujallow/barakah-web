@@ -89,7 +89,7 @@ const faqSchema = {
       name: 'Is Barakah free like Mint was?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: `Yes. Barakah has a free plan that includes the full zakat calculator, manual transaction tracking, budgeting, and savings goals. The paid Plus plan ($9.99/month or less annually) adds bank account sync, halal stock screener, Faraid inheritance calculator, and the Barakah Score. There is a ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial of the Plus plan — no credit card or debit card required.`,
+        text: `Yes. Barakah has a free plan that includes the full zakat calculator, manual transaction tracking, budgeting, and savings goals. The paid Plus plan ($9.99/month or less annually) adds bank account sync, halal stock screener, Faraid inheritance calculator, and the Barakah Score. There is a ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} free trial of the Family plan — no credit card or debit card required.`,
       },
     },
     {
@@ -317,7 +317,7 @@ export default function MintAlternativeForMuslimsPage() {
             <p className="text-gray-600 mb-6 dark:text-gray-400">Join Muslim households who&apos;ve moved from Mint to a finance app that actually understands their deen. Free to start. No card required.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-[#1B5E20] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition">
-                Start Free — 30 Days Plus Included
+                Start Free — 30 Days Family Included
               </Link>
               <Link href="/zakat-calculator" className="border border-[#1B5E20] text-[#1B5E20] px-8 py-3.5 rounded-xl font-bold hover:bg-green-50 transition">
                 Try Zakat Calculator
