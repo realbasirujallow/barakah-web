@@ -205,6 +205,38 @@ body {
 }
 .dark body { background: oklch(0.145 0 0); }
 
+/* 2026-05-10 (B-UR-FONT + AR-FONT): RTL Urdu / Arabic font targeting.
+   Without explicit Urdu font, browsers fall back to Latin or generic
+   Arabic fonts that don't have full Urdu Unicode coverage — PK user
+   was seeing "بقتہ، 9 منی، 2026" instead of "ہفتہ، 9 مئی، 2026"
+   (the "ہ" + "ئ" glyphs were substituted with Arabic-script siblings
+   that don't read correctly in Urdu). Loading Noto Nastaliq Urdu via
+   next/font in layout.tsx + this CSS declaration ensures every
+   ur-* surface gets the right glyphs. AR users get Noto Sans Arabic
+   for consistency across OSes (default macOS / iOS / Windows render
+   Arabic differently). Both fonts ship with `display: swap` so the
+   text never blocks paint. */
+html[lang^="ur"],
+html[lang^="ur"] body,
+[lang^="ur"] {
+  font-family: var(--font-noto-nastaliq-urdu),
+               var(--font-geist-sans),
+               "Noto Nastaliq Urdu",
+               "Jameel Noori Nastaleeq",
+               Arial,
+               sans-serif;
+}
+
+html[lang^="ar"],
+html[lang^="ar"] body,
+[lang^="ar"] {
+  font-family: var(--font-noto-sans-arabic),
+               var(--font-geist-sans),
+               "Noto Sans Arabic",
+               Arial,
+               sans-serif;
+}
+
 /* ── Accessibility: larger text for older / low-vision users ──────────── */
 /* Bumps the base font size from the browser default (16px) to 17px.
    All rem-based sizes inherit this, making sidebar labels, descriptions,

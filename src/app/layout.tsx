@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Nastaliq_Urdu, Noto_Sans_Arabic } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -14,6 +14,31 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// 2026-05-10 (B-UR-FONT): Urdu glyph corruption fix. PK user dashboard
+// header was rendering "بقتہ، 9 منی، 2026" instead of "ہفتہ، 9 مئی، 2026"
+// — Intl.DateTimeFormat with ur-PK locale was producing partial Urdu and
+// the fallback browser font was substituting wrong glyphs (Arabic-script
+// "ب" instead of Urdu "ہ", "ن" instead of "ئ"). Loading Noto Nastaliq
+// Urdu via next/font ensures a font with full Urdu Unicode coverage is
+// always available; CSS in globals.css applies it to [lang^='ur'] +
+// [dir='rtl'][lang^='ur'] surfaces.
+const notoNastaliqUrdu = Noto_Nastaliq_Urdu({
+  variable: "--font-noto-nastaliq-urdu",
+  subsets: ["arabic"],
+  weight: ["400", "700"],
+  display: "swap",
+});
+
+// Also load Noto Sans Arabic so AR users get a clean modern Arabic font
+// instead of the OS default (which can be inconsistent on Windows /
+// older macOS / Linux).
+const notoSansArabic = Noto_Sans_Arabic({
+  variable: "--font-noto-sans-arabic",
+  subsets: ["arabic"],
+  weight: ["400", "500", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -288,7 +313,7 @@ export default async function RootLayout({
         {/* WebSite Schema (enables Google Sitelinks Search Box) */}
         <JsonLdScript schema={websiteSchema} />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${notoNastaliqUrdu.variable} ${notoSansArabic.variable} antialiased`}>
         <Providers>
           {/* 2026-05-01: global MarketingNav. Renders on every public
               marketing page automatically (denylist in the component

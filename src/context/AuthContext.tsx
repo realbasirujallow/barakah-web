@@ -193,6 +193,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user?.country) {
       saveLocalePreference(dateLocaleForCountry(user.country));
     }
+    // 2026-05-10 (B-RTL-DIR + B-L10N-NO-SWITCH): also auto-derive the UI
+    // translation locale from country so an SA / PK / AE user lands on
+    // RTL Arabic / Urdu by default instead of English. The pre-paint
+    // script in layout.tsx reads localStorage `barakah_locale` and
+    // sets `<html dir="rtl">` before first paint, so this single call
+    // — gated to only fire when the user hasn't manually picked a
+    // language yet (Profile page picker, see B-L10N-NO-SWITCH) — closes
+    // the gap from the founder's audit: a Saudi user signing up on a
+    // fresh device shouldn't see English when we know they're Saudi.
+    //
+    // We persist a separate `barakah_locale_manual_override` flag the
+    // language picker sets, so the auto-derivation NEVER overrides a
+    // deliberate user choice.
+    try {
+      if (typeof window !== 'undefined' && user?.country) {
+        const manualOverride = localStorage.getItem('barakah_locale_manual_override') === 'true';
+        if (!manualOverride) {
+          const c = user.country.trim().toUpperCase();
+          let derived: string | null = null;
+          if (['SA', 'AE', 'EG', 'JO', 'KW', 'QA', 'BH', 'OM', 'YE', 'IQ', 'SY', 'LB', 'PS', 'MA', 'DZ', 'TN', 'LY', 'SD'].includes(c)) {
+            derived = 'ar';
+          } else if (c === 'PK') {
+            derived = 'ur';
+          } else if (['FR', 'BE', 'LU', 'MC'].includes(c)) {
+            derived = 'fr';
+          }
+          if (derived && getI18nLocale() !== derived) {
+            setI18nLocale(derived);
+          }
+        }
+      }
+    } catch { /* SSR / private mode — pre-paint script and CSS still cover the basics */ }
   }, [user?.preferredCurrency, user?.country]);
 
   useEffect(() => {
