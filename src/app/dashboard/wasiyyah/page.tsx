@@ -89,6 +89,16 @@ function WasiyyahPageContent() {
   }));
   const [saving, setSaving]         = useState(false);
   const [exporting, setExporting]   = useState(false);
+  // 2026-05-10 — jurisdiction selector for the PDF export. Drives the
+  // ?jurisdiction= query param the backend uses to inject the curated
+  // wills-law warnings block. Closing the IFG/NZF differentiation gap.
+  const [exportJurisdiction, setExportJurisdiction] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'US';
+    try {
+      return window.localStorage.getItem('barakah_wasiyyah_jurisdiction') || 'US';
+    } catch { return 'US'; }
+  });
+  const [exportPickerOpen, setExportPickerOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<{ type: 'beneficiary' | 'obligation'; id: number } | null>(null);
   const [formError, setFormError]   = useState<string | null>(null);
   const loadingRef = useRef(false);
@@ -281,19 +291,63 @@ function WasiyyahPageContent() {
             >
               📖 Guide
             </button>
-            <button
-              type="button"
-              disabled={exporting}
-              onClick={async () => {
-                setExporting(true);
-                try { await api.downloadWasiyyahPdf(); }
-                catch (err) { toast(err instanceof Error ? err.message : 'Failed to export PDF', 'error'); }
-                finally { setExporting(false); }
-              }}
-              className="border border-primary text-primary px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium flex items-center gap-1 disabled:opacity-50"
-            >
-              {exporting ? 'Exporting...' : '📄 PDF'}
-            </button>
+            {/* 2026-05-10 — PDF export with jurisdiction picker. Click
+                "PDF" opens a small popover; selecting a jurisdiction
+                downloads the PDF immediately with the matching
+                wills-law warnings block. Selection persists in
+                localStorage so frequent re-exports are one-click. */}
+            <div className="relative">
+              <button
+                type="button"
+                disabled={exporting}
+                onClick={() => setExportPickerOpen(prev => !prev)}
+                className="border border-primary text-primary px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium flex items-center gap-1 disabled:opacity-50"
+              >
+                {exporting ? 'Exporting...' : '📄 PDF ▾'}
+              </button>
+              {exportPickerOpen && (
+                <div className="absolute right-0 mt-1 z-20 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-2">
+                  <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide px-2 py-1">
+                    Jurisdiction
+                  </p>
+                  {[
+                    { code: 'US', label: '🇺🇸 United States' },
+                    { code: 'UK', label: '🇬🇧 United Kingdom' },
+                    { code: 'CA', label: '🇨🇦 Canada' },
+                    { code: 'AU', label: '🇦🇺 Australia' },
+                    { code: 'AE', label: '🇦🇪 UAE (DIFC/ADGM aware)' },
+                    { code: 'SA', label: '🇸🇦 Saudi Arabia / GCC' },
+                    { code: 'OTHER', label: '🌍 Other / Generic' },
+                  ].map(j => (
+                    <button
+                      key={j.code}
+                      type="button"
+                      onClick={async () => {
+                        setExportJurisdiction(j.code);
+                        try { window.localStorage.setItem('barakah_wasiyyah_jurisdiction', j.code); } catch { /* private mode */ }
+                        setExportPickerOpen(false);
+                        setExporting(true);
+                        try {
+                          await api.downloadWasiyyahPdf(j.code);
+                        } catch (err) {
+                          toast(err instanceof Error ? err.message : 'Failed to export PDF', 'error');
+                        } finally {
+                          setExporting(false);
+                        }
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50 transition ${
+                        exportJurisdiction === j.code ? 'bg-green-50 text-primary font-semibold' : 'text-gray-700'
+                      }`}
+                    >
+                      {j.label}
+                    </button>
+                  ))}
+                  <p className="text-[10px] text-gray-400 px-2 py-1 mt-1 border-t border-gray-100 leading-tight">
+                    Pick the jurisdiction the testator lives in — we&apos;ll append the matching wills-law warnings. Not legal advice; review with a local solicitor.
+                  </p>
+                </div>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => tab === 'beneficiaries' ? setShowForm(true) : setShowObForm(true)}

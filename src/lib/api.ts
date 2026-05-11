@@ -2120,8 +2120,18 @@ export const api = {
   // ── Wasiyyah PDF Export ─────────────────────────────────────────────────────
   // BUG FIX: use apiDownload() instead of raw fetch() so auth/CSRF/timeout/retry
   // are all handled consistently with the rest of the API surface.
-  downloadWasiyyahPdf: () =>
-    apiDownload('/api/wasiyyah/export/pdf', `wasiyyah_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.pdf`),
+  /**
+   * 2026-05-10 — optional jurisdiction code (US, UK, CA, AU, AE, SA,
+   * OTHER) appends the matching wills-law warnings block to the PDF.
+   * Defaults to OTHER (generic) when omitted.
+   */
+  downloadWasiyyahPdf: (jurisdiction?: string) => {
+    const qs = jurisdiction ? `?jurisdiction=${encodeURIComponent(jurisdiction)}` : '';
+    return apiDownload(
+      `/api/wasiyyah/export/pdf${qs}`,
+      `wasiyyah_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.pdf`,
+    );
+  },
 
   // ── Sadaqah / Donation to Barakah ────────────────────────────────────────────
   /**
