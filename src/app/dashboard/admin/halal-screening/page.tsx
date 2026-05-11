@@ -113,8 +113,15 @@ export default function AdminHalalScreeningPage() {
           <Link href="/dashboard/admin" className="text-sm text-primary hover:underline">← Admin</Link>
           <h1 className="text-2xl font-bold text-primary mt-1">Halal-screening monitor</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Daily AAOIFI re-screen of every stock symbol any user holds. Religious-trust observability —
-            verify the scan ran and that users with newly-haram holdings were notified.
+            Daily AAOIFI re-screen of every distinct stock symbol present in <code className="bg-gray-100 px-1 rounded">investment_holdings</code>.
+            Religious-trust observability — verify the scan ran and that users with newly-haram holdings were notified.
+          </p>
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 max-w-3xl">
+            <strong>Coverage note:</strong> the scan reads from per-position <code className="bg-amber-100 px-1 rounded">InvestmentHolding</code> rows.
+            Users who only have aggregate brokerage-account balances on their <em>Assets</em> page (no
+            per-symbol detail) are <strong>not</strong> covered. If &quot;Symbols&quot; reads 0 across recent runs,
+            it most likely means no users have linked per-position investment data yet — not that
+            the scan is broken.
           </p>
         </div>
         <button

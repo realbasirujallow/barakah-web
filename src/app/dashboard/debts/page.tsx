@@ -556,6 +556,16 @@ export default function DebtsPage() {
                             {ISLAMIC_TYPES.includes(d.type) ? `Profit Rate: ${d.interestRate}% (Halal)` : `Interest: ${d.interestRate}% (Riba)`}
                           </p>
                         )}
+                        {/* 2026-05-11 (Bug-A5 founder follow-up): conventional credit cards
+                            tagged Halal are halal ONLY when paid in full within the grace
+                            period and outside any 0% intro rate. Once interest accrues, it
+                            becomes riba. Surface that conditionality so users don't read the
+                            green pill as a blanket blessing. */}
+                        {halal && d.type === 'credit_card' && !ISLAMIC_TYPES.includes(d.type) && (
+                          <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 mt-1.5 leading-snug">
+                            ⚠️ Halal <em>only</em> if you pay the statement in full within the grace period and the card isn&apos;t carrying a 0% intro balance that will retroactively bill interest. If interest posts, it becomes riba.
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         {!d.readOnly ? (

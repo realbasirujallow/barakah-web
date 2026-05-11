@@ -242,6 +242,17 @@ export default function MarketPricesPage() {
       {/* Crypto tab */}
       {tab === 'crypto' && (
         <div className="bg-white rounded-2xl shadow-sm p-4">
+          {/* 2026-05-11 (Bug-A6): show a per-tab disclaimer about scholarly
+              diversity on crypto. Prices alone don't constitute halal-ness;
+              yield-staking + governance + lending coins each carry separate
+              questions. Listing prices without this note read as a blanket
+              blessing of any listed coin. */}
+          <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
+            <strong>Scholarly opinions vary on crypto.</strong> Pricing is shown for portfolio
+            tracking and zakat valuation only — not as a halal classification. Yield-staking,
+            governance, and interest-bearing tokens each carry separate fiqh questions.
+            Consult a qualified scholar before treating any specific coin as halal.
+          </div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold text-gray-700">Top {Math.min(supportedCryptos.length, 12)} cryptos</p>
             <button

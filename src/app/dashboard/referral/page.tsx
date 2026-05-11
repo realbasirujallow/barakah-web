@@ -138,8 +138,11 @@ export default function ReferralPage() {
           <p className="text-4xl font-bold">{data.referralCount}</p>
           <p className="text-green-200 text-sm mt-1">Rewards Triggered</p>
         </div>
-        <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-6 text-center">
-          <p className="text-4xl font-bold">{data.referralCode}</p>
+        {/* 2026-05-11 (Bug-A12): 8-char codes overflowed the card width.
+            Cap font size + allow tracking-tight + min-width-0 so longer
+            codes shrink-fit rather than clip. */}
+        <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-6 text-center min-w-0">
+          <p className="text-3xl sm:text-4xl font-bold tracking-tight break-all">{data.referralCode}</p>
           <p className="text-amber-100 text-sm mt-1">Your Referral Code</p>
         </div>
       </div>
