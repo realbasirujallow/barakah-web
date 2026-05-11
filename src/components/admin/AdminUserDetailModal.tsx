@@ -830,6 +830,19 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
             </button>
           </div>
 
+          {/* 2026-05-10 founder-CRM: issue a Stripe discount to close
+              trial-expiring outreach calls. The trial-call workflow shipped
+              today had no close — admin could call but couldn't hand them
+              a discount. Backend creates an ad-hoc Stripe Coupon + attaches
+              via Customer.update. */}
+          <div className="border-t pt-5">
+            <AdminIssueCouponSection
+              userId={selected.id}
+              userEmail={selected.email}
+              toast={toast}
+            />
+          </div>
+
           {/* Delete Account */}
           <div className="border-t pt-5">
             <p className="text-sm font-medium text-red-700 mb-1">Delete Account</p>
@@ -893,6 +906,227 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
           onClose={() => setDrilldown(null)}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * 2026-05-10 — founder-CRM: issue an ad-hoc Stripe discount to a user.
+ * Surfaces as a section inside AdminUserDetailModal between Grant Trial
+ * and Delete Account. Wires to POST /admin/users/{id}/coupon.
+ *
+ * Backend creates a fresh Stripe Coupon, attaches it to the user's
+ * stripeCustomerId via Customer.update — applied to their NEXT invoice
+ * (and following invoices depending on duration). Backend 409s if the
+ * user has no Stripe customer yet (never subscribed).
+ */
+function AdminIssueCouponSection({
+  userId,
+  userEmail,
+  toast,
+}: {
+  userId: number;
+  userEmail: string;
+  toast: (msg: string, kind?: 'success' | 'error' | 'info') => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<'percent' | 'amount'>('percent');
+  const [percentOff, setPercentOff] = useState('50');
+  const [amountOffDollars, setAmountOffDollars] = useState('5');
+  const [duration, setDuration] = useState<'once' | 'repeating' | 'forever'>('once');
+  const [durationInMonths, setDurationInMonths] = useState('3');
+  const [reason, setReason] = useState('');
+  const [sendEmail, setSendEmail] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const issue = async () => {
+    const params: Parameters<typeof api.adminIssueCoupon>[1] = {
+      duration,
+      reason: reason.trim() || undefined,
+      sendEmail,
+    };
+    if (mode === 'percent') {
+      const p = Number(percentOff);
+      if (!Number.isFinite(p) || p < 1 || p > 100) {
+        toast('Percent off must be 1–100', 'error');
+        return;
+      }
+      params.percentOff = Math.round(p);
+    } else {
+      const a = Number(amountOffDollars);
+      if (!Number.isFinite(a) || a < 0.5) {
+        toast('Amount off must be at least $0.50', 'error');
+        return;
+      }
+      params.amountOffCents = Math.round(a * 100);
+      params.currency = 'USD';
+    }
+    if (duration === 'repeating') {
+      const m = Number(durationInMonths);
+      if (!Number.isFinite(m) || m < 1 || m > 24) {
+        toast('Duration must be 1–24 months for repeating', 'error');
+        return;
+      }
+      params.durationInMonths = Math.round(m);
+    }
+
+    if (!confirm(
+      `Apply ${mode === 'percent' ? `${params.percentOff}% off` : `$${(params.amountOffCents! / 100).toFixed(2)} off`}`
+      + ` (${duration}${duration === 'repeating' ? `, ${params.durationInMonths} months` : ''})`
+      + ` to ${userEmail}? Their next Stripe invoice will reflect the discount.`,
+    )) return;
+
+    setSaving(true);
+    try {
+      const r = await api.adminIssueCoupon(userId, params);
+      if (r?.error) {
+        toast(r.error, 'error');
+        return;
+      }
+      toast(`Discount applied: ${r.discount}`, 'success');
+      setOpen(false);
+      // Reset form to defaults so the next open is clean.
+      setReason('');
+      setSendEmail(false);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to issue coupon', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <>
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-sm font-medium text-gray-700">Issue Discount</p>
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="text-xs font-semibold text-[#1B5E20] hover:underline"
+          >
+            🎟 Apply coupon
+          </button>
+        </div>
+        <p className="text-xs text-gray-500">
+          Issue an ad-hoc Stripe coupon (% off or $ off, once / N months / forever) to close a trial-expiring outreach call.
+        </p>
+      </>
+    );
+  }
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold text-amber-900">Issue Discount</p>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="text-xs text-gray-500 hover:text-gray-800"
+        >
+          Cancel
+        </button>
+      </div>
+
+      {/* Mode toggle */}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setMode('percent')}
+          className={`flex-1 text-xs px-2 py-1.5 rounded border ${mode === 'percent' ? 'bg-[#1B5E20] text-white border-[#1B5E20]' : 'bg-white border-gray-300 text-gray-700'}`}
+        >
+          Percent off
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('amount')}
+          className={`flex-1 text-xs px-2 py-1.5 rounded border ${mode === 'amount' ? 'bg-[#1B5E20] text-white border-[#1B5E20]' : 'bg-white border-gray-300 text-gray-700'}`}
+        >
+          Amount off (USD)
+        </button>
+      </div>
+
+      {/* Amount input */}
+      {mode === 'percent' ? (
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min={1}
+            max={100}
+            value={percentOff}
+            onChange={e => setPercentOff(e.target.value)}
+            className="w-20 border border-gray-300 rounded px-2 py-1.5 text-sm"
+          />
+          <span className="text-sm text-gray-700">% off</span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-700">$</span>
+          <input
+            type="number"
+            step="0.50"
+            min={0.5}
+            value={amountOffDollars}
+            onChange={e => setAmountOffDollars(e.target.value)}
+            className="w-24 border border-gray-300 rounded px-2 py-1.5 text-sm"
+          />
+          <span className="text-sm text-gray-700">USD off</span>
+        </div>
+      )}
+
+      {/* Duration */}
+      <div className="flex gap-2">
+        {(['once', 'repeating', 'forever'] as const).map(d => (
+          <button
+            key={d}
+            type="button"
+            onClick={() => setDuration(d)}
+            className={`flex-1 text-xs px-2 py-1 rounded border ${duration === d ? 'bg-[#1B5E20] text-white border-[#1B5E20]' : 'bg-white border-gray-300 text-gray-700'}`}
+          >
+            {d === 'once' ? 'Next invoice' : d === 'repeating' ? 'N months' : 'Forever'}
+          </button>
+        ))}
+      </div>
+      {duration === 'repeating' && (
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min={1}
+            max={24}
+            value={durationInMonths}
+            onChange={e => setDurationInMonths(e.target.value)}
+            className="w-20 border border-gray-300 rounded px-2 py-1.5 text-sm"
+          />
+          <span className="text-xs text-gray-700">month(s)</span>
+        </div>
+      )}
+
+      <input
+        type="text"
+        value={reason}
+        onChange={e => setReason(e.target.value)}
+        maxLength={500}
+        placeholder="Reason (optional, e.g. 'phone call — agreed to convert')"
+        className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs"
+      />
+
+      <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={sendEmail}
+          onChange={e => setSendEmail(e.target.checked)}
+        />
+        Email the user that a discount was applied
+      </label>
+
+      <button
+        type="button"
+        disabled={saving}
+        onClick={issue}
+        className="w-full py-2 bg-[#1B5E20] text-white text-sm font-semibold rounded hover:bg-[#1B5E20]/90 disabled:opacity-40 transition"
+      >
+        {saving ? 'Applying…' : 'Apply discount'}
+      </button>
     </div>
   );
 }

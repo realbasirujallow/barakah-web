@@ -1579,9 +1579,73 @@ export default function ZakatPage() {
 
       {/* Payment Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-primary mb-4">Record Zakat Payment — {lunarYear} AH</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md my-8">
+            <h2 className="text-xl font-bold text-primary mb-2">Record Zakat Payment — {lunarYear} AH</h2>
+
+            {/* 2026-05-10 founder ask: "no charity rails — we compute the
+                obligation, then dump them back to Google." Curated partner
+                deep-links bridge the gap until true money-rail integration
+                (Stripe Connect / Dwolla + KYC + non-profit shell) lands.
+                Click → opens the partner's zakat-giving page in a new tab
+                AND prefills the recipient field so the local ledger
+                tracks who they paid through. */}
+            <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+              <p className="text-xs font-semibold text-emerald-800 mb-2">
+                Pay through a partner (opens new tab)
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  {
+                    name: 'NZF (USA / UK)',
+                    url: 'https://nzf.org.uk/donate-zakat/',
+                    note: 'National Zakat Foundation — 100% distributed locally',
+                  },
+                  {
+                    name: 'LaunchGood Zakat',
+                    url: 'https://www.launchgood.com/zakat',
+                    note: 'Verified projects, scholar-reviewed',
+                  },
+                  {
+                    name: 'Islamic Relief',
+                    url: 'https://www.islamic-relief.org/zakat/',
+                    note: 'Global 8-asnaf distribution',
+                  },
+                  {
+                    name: 'Penny Appeal',
+                    url: 'https://www.pennyappeal.org/appeal/zakat',
+                    note: 'UK-based, scholar-audited',
+                  },
+                  {
+                    name: 'Helping Hand',
+                    url: 'https://www.hhrd.org/Donate?cause=Zakat',
+                    note: 'US 501(c)(3), tax-deductible',
+                  },
+                  {
+                    name: 'Zakat Foundation US',
+                    url: 'https://www.zakat.org/donate',
+                    note: 'US-based, Shariah board',
+                  },
+                ].map(p => (
+                  <a
+                    key={p.name}
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setForm(prev => ({ ...prev, recipient: prev.recipient || p.name }))}
+                    className="text-left text-xs bg-white border border-emerald-200 rounded px-2 py-1.5 hover:border-emerald-500 hover:bg-emerald-50 transition"
+                    title={p.note}
+                  >
+                    <p className="font-semibold text-emerald-900">{p.name} ↗</p>
+                    <p className="text-[10px] text-emerald-700/80 leading-tight">{p.note}</p>
+                  </a>
+                ))}
+              </div>
+              <p className="text-[10px] text-emerald-700/70 mt-2">
+                Tap any partner → opens their giving page + auto-fills the recipient below so this entry is logged in your ledger.
+              </p>
+            </div>
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{`Amount (${currency})`}</label>

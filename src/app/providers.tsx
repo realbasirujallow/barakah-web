@@ -2,7 +2,7 @@
 import { AuthProvider } from '../context/AuthContext';
 import { FeatureFlagsProvider } from '../context/FeatureFlagsContext';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { captureAcquisitionFromUrl } from '../lib/api';
+import { captureAcquisitionFromUrl, captureReferralCodeFromUrl } from '../lib/api';
 import { Toaster } from '../components/ui/sonner';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
@@ -23,6 +23,10 @@ import Script from 'next/script';
 function AcquisitionCapture() {
   useEffect(() => {
     captureAcquisitionFromUrl();
+    // 2026-05-10: also capture ?ref= so a friend's link shared as
+    // /?ref=ABC12345 (or /pricing?ref=...) survives the user's
+    // in-app navigation to /signup. First-touch wins.
+    captureReferralCodeFromUrl();
   }, []);
   return null;
 }
