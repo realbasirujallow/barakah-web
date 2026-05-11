@@ -2,14 +2,14 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Zakat al-Fitr 2026: Amount, Rules & Calculator | Barakah',
+  title: 'Zakat al-Fitr 2026: Amount, Rules & Calculator',
   description: 'Complete guide to zakat al-fitr for Eid 2026. Learn the amount, when to pay, who must pay, and the scholarly basis from Sahih Bukhari.',
   keywords: ['zakat al fitr', 'zakat al fitr calculator', 'how much is zakat al fitr', 'when to pay zakat al fitr', 'fitrah amount 2026'],
   alternates: {
     canonical: 'https://trybarakah.com/learn/zakat-al-fitr',
   },
   openGraph: {
-    title: 'Zakat al-Fitr 2026: Amount, Rules & Calculator | Barakah',
+    title: 'Zakat al-Fitr 2026: Amount, Rules & Calculator',
     description: 'Master zakat al-fitr with 2026 amounts and complete Islamic guidance for Eid al-Fitr.',
     url: 'https://trybarakah.com/learn/zakat-al-fitr',
     type: 'article',

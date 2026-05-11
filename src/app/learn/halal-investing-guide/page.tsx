@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal Investing Guide 2026 — How to Invest According to Islamic Finance | Barakah',
+  title: 'Halal Investing Guide 2026 — How to Invest According to Islamic Finance',
   description:
     'Complete halal investing guide 2026: what makes an investment haram or halal, AAOIFI standards, how to screen stocks, halal ETFs, Islamic bonds (sukuk), and the best halal investing apps.',
   keywords: [

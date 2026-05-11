@@ -161,6 +161,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/login`,      changeFrequency: 'monthly', priority: 0.60, lastModified: now },
     { url: `${baseUrl}/signup`,     changeFrequency: 'monthly', priority: 0.80, lastModified: now },
 
+    // ── About / founder ──────────────────────────────────────────────────────
+    // 2026-05-11 (SEO-4): /about/founder exists in source and is linked from
+    // the homepage hero but was missing from the sitemap.
+    { url: `${baseUrl}/about/founder`, changeFrequency: 'monthly', priority: 0.78, lastModified: now },
+
+    // ── Learn pages backfilled 2026-05-11 (SEO-4) ────────────────────────────
+    // These existed in src/app/learn/* but were missing from the sitemap.
+    { url: `${baseUrl}/learn/aaoifi-halal-screening`,             changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/learn/faraid-awl-radd-explained`,          changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/learn/halal-investing-for-beginners`,      changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-total-cost-comparison`, changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/learn/hawl-reset-rules`,                   changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/learn/islamic-will-checklist`,             changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/learn/nisab-gold-vs-silver`,               changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/learn/sadaqah-distribution`,               changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/learn/zakat-on-401k-methodology`,          changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/learn/zakat-on-business-inventory`,        changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/learn/zakat-recipients-2026`,              changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+
     // ── Legal & contact ───────────────────────────────────────────────────────
     { url: `${baseUrl}/contact`,    changeFrequency: 'yearly', priority: 0.40, lastModified: now },
     { url: `${baseUrl}/privacy`,    changeFrequency: 'yearly', priority: 0.30, lastModified: now },

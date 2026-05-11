@@ -3,12 +3,12 @@ import Link from 'next/link';
 import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Stocks and ETFs 2026 — AAOIFI Method Explained | Barakah',
+  title: 'Zakat on Stocks and ETFs 2026 — AAOIFI Method Explained',
   description: 'How to calculate zakat on stocks, ETFs, and investment portfolios. The market value method vs AAOIFI zakatable assets method — with worked examples for Apple, S&P 500 ETF.',
   keywords: ['zakat on stocks', 'zakat etf', 'zakat on shares', 'stock zakat calculator', 'zakat on investments', 'aaoifi zakat stocks', 'zakat on portfolio', 'halal stock zakat', 'zakat on 401k stocks', 'calculating zakat investments'],
   alternates: { canonical: 'https://trybarakah.com/learn/zakat-on-stocks-and-etfs' },
   openGraph: {
-    title: 'Zakat on Stocks and ETFs 2026 — AAOIFI Method Explained | Barakah',
+    title: 'Zakat on Stocks and ETFs 2026 — AAOIFI Method Explained',
     description: 'How to calculate zakat on stocks, ETFs, and investment portfolios. The market value method vs AAOIFI zakatable assets method — with worked examples for Apple, S&P 500 ETF.',
     url: 'https://trybarakah.com/learn/zakat-on-stocks-and-etfs',
     siteName: 'Barakah',
@@ -94,11 +94,11 @@ export default function Page() {
               </div>
               <div className="border rounded-lg p-5">
                 <h3 className="font-semibold text-gray-900 mb-2 dark:text-gray-100">Method 2 — Zakatable Assets per Share (AAOIFI Standard 21)</h3>
-                <p className="text-gray-700 dark:text-gray-300">Research the underlying zakatable assets of each company (cash, receivables, inventory) per share, multiply by the number of shares you own, and pay 2.5% on that portion. More accurate but requires company financial data. This is the method endorsed by AAOIFI and most Islamic finance institutions globally.</p>
+                <p className="text-gray-700 dark:text-gray-300">Research the underlying zakatable assets of each company (cash, receivables, inventory) per share, multiply by the number of shares you own, and pay 2.5% on that portion. More accurate but requires company financial data. This is the method described in AAOIFI Shariah Standard No. 21 (Financial Papers) and used by many Islamic finance institutions.</p>
               </div>
             </div>
             <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-              Barakah provides AAOIFI-compliant zakatable asset data for 30,000+ stocks and ETFs — making Method 2 accessible for the first time to retail investors without requiring manual balance sheet analysis.
+              Barakah surfaces zakatable-asset data for over 30,000 stocks and ETFs, applying the AAOIFI Standard No. 21 methodology where balance-sheet data is available. Verify your specific holdings with your scholar or financial advisor before relying on automated classifications.
             </p>
           </section>
 

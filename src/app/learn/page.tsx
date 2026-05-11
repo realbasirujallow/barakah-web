@@ -2,14 +2,14 @@ import { Metadata } from 'next';
 import LearnPageClient from './LearnPageClient';
 
 export const metadata: Metadata = {
-  title: 'Islamic Finance, Zakat & Estate Planning Guides | Barakah',
+  title: 'Islamic Finance, Zakat & Estate Planning Guides',
   description: 'Practical guides on zakat, halal investing, household finance, and Islamic estate planning backed by scholarly references and real-world examples.',
   keywords: ['islamic finance guide', 'zakat guide', 'halal investing', 'muslim finance', 'zakat rules', 'islamic banking'],
   alternates: {
     canonical: 'https://trybarakah.com/learn',
   },
   openGraph: {
-    title: 'Islamic Finance, Zakat & Estate Planning Guides | Barakah',
+    title: 'Islamic Finance, Zakat & Estate Planning Guides',
     description: 'Practical guides on zakat, halal investing, household finance, and Islamic estate planning.',
     url: 'https://trybarakah.com/learn',
     type: 'website',

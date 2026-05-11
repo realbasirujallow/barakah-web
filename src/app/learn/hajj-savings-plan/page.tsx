@@ -3,7 +3,7 @@ import Link from 'next/link';
 import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
-  title: 'Hajj Savings Plan 2026 — How Much Hajj Costs & How to Save | Barakah',
+  title: 'Hajj Savings Plan 2026 — How Much Hajj Costs & How to Save',
   description:
     'Complete guide to saving for Hajj and Umrah. 2026 cost breakdown, monthly savings calculator, and how to track your Hajj savings goal with Barakah.',
   keywords: [
@@ -33,7 +33,7 @@ const breadcrumbSchema = {
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trybarakah.com' },
     { '@type': 'ListItem', position: 2, name: 'Learn', item: 'https://trybarakah.com/learn' },
-    { '@type': 'ListItem', position: 3, name: 'Hajj Savings Plan 2026 — How Much Hajj Costs & How to Save | Barakah', item: 'https://trybarakah.com/learn/hajj-savings-plan' },
+    { '@type': 'ListItem', position: 3, name: 'Hajj Savings Plan 2026 — How Much Hajj Costs & How to Save', item: 'https://trybarakah.com/learn/hajj-savings-plan' },
   ],
 };
 

@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Takaful (تكافل) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Takaful (تكافل) — Definition & Meaning in Islamic Finance',
   description:
     'Takaful is cooperative mutual-aid risk-sharing — the halal alternative to conventional insurance. Learn the structures, models, and why it avoids gharar and riba.',
   keywords: ['takaful', 'takaful definition', 'islamic insurance', 'halal insurance', 'takaful meaning'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/takaful' },
   openGraph: {
-    title: 'Takaful (تكافل) — Definition & Meaning | Barakah',
+    title: 'Takaful (تكافل) — Definition & Meaning',
     description: 'The halal alternative to conventional insurance.',
     url: 'https://trybarakah.com/fiqh-terms/takaful',
     type: 'article',

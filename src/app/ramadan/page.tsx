@@ -4,7 +4,7 @@ import RamadanEmailCapture from '../../components/RamadanEmailCapture';
 import RamadanCountdown from './RamadanCountdown';
 
 export const metadata: Metadata = {
-  title: 'Ramadan 2027 Financial Planner: Zakat, Sadaqah, Fidyah, Kaffarah | Barakah',
+  title: 'Ramadan 2027 Financial Planner: Zakat, Sadaqah, Fidyah, Kaffarah',
   description:
     "Plan your Ramadan 2027 finances: calculate zakat on every asset class, track sadaqah and sadaqah jariyah, handle fidyah and kaffarah, and automate Zakat al-Fitr.",
   keywords: [
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/ramadan' },
   openGraph: {
-    title: 'Ramadan 2027 Financial Planner | Barakah',
+    title: 'Ramadan 2027 Financial Planner',
     description: 'Zakat, sadaqah, fidyah, kaffarah, and Zakat al-Fitr — one app for the whole month.',
     url: 'https://trybarakah.com/ramadan',
     type: 'article',

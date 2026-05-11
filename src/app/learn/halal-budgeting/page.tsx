@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal Budgeting 2026 — Complete Islamic Guide to Managing Money | Barakah',
+  title: 'Halal Budgeting 2026 — Complete Islamic Guide to Managing Money',
   description:
     'Learn how to create a halal budget aligned with Islamic principles. Step-by-step guide covering zakat prioritization, riba avoidance, sadaqah goals, and Islamic expense categories.',
   keywords: [

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Tiller (2026): Halal Alternative for Muslim Households | Barakah',
+  title: 'Barakah vs Tiller (2026): Halal Alternative for Muslim Households',
   description:
     "Tiller is the spreadsheet-lover's budgeting tool — daily transaction sync straight to Google Sheets. But there's no zakat, no hawl, no halal screening, no riba detection. Barakah is the Islamic-first answer.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-tiller' },
   openGraph: {
-    title: 'Barakah vs Tiller (2026) — Halal Alternative for Muslim Households | Barakah',
+    title: 'Barakah vs Tiller (2026) — Halal Alternative for Muslim Households',
     description: 'Honest comparison of Tiller and Barakah for Muslim households.',
     url: 'https://trybarakah.com/compare/barakah-vs-tiller',
     type: 'article',

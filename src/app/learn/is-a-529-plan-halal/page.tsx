@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Is a 529 Plan Halal? Sharia Review for 2026 | Barakah',
+  title: 'Is a 529 Plan Halal? Sharia Review for 2026',
   description:
     'Are 529 college savings plans halal? Typical fund composition, halal alternatives, gift options, and Georgia Path2College specifics for Muslim parents in 2026.',
   keywords: [

@@ -3,14 +3,14 @@ import Link from 'next/link';
 import { GoldNisabUSD } from '../../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Savings & Bank Accounts: How to Calculate in 2026 | Barakah',
+  title: 'Zakat on Savings & Bank Accounts: How to Calculate in 2026',
   description: 'Complete guide to calculating zakat on savings accounts, checking accounts, and emergency funds. Step-by-step calculator with Islamic fiqh references.',
   keywords: ['zakat on savings', 'zakat on bank account', 'do I pay zakat on savings', 'zakat on money in bank', 'emergency fund zakat'],
   alternates: {
     canonical: 'https://trybarakah.com/learn/zakat-on-savings',
   },
   openGraph: {
-    title: 'Zakat on Savings & Bank Accounts: How to Calculate in 2026 | Barakah',
+    title: 'Zakat on Savings & Bank Accounts: How to Calculate in 2026',
     description: 'Master zakat calculations on savings with practical examples and Islamic scholarly guidance.',
     url: 'https://trybarakah.com/learn/zakat-on-savings',
     type: 'article',

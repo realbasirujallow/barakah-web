@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Connecting Your Bank | Barakah',
+  title: 'Connecting Your Bank',
   description:
     'Finishing your secure bank connection via Plaid. You will be returned to Barakah automatically once the handshake completes.',
   // Plaid OAuth callback URL — never index; short-lived per-session.

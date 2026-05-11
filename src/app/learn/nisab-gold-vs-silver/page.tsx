@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Gold vs Silver Nisab — Which Threshold Applies to You? | Barakah',
+  title: 'Gold vs Silver Nisab — Which Threshold Applies to You?',
   description:
     'The classical silver-nisab threshold (612g) is far lower than the gold one (87.48g). Choosing one over the other can mean owing zakat or not. Here&apos;s how scholars decide.',
   keywords: [

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Is My 401(k) Halal? AAOIFI Standard 21 Explained | Barakah',
+  title: 'Is My 401(k) Halal? AAOIFI Standard 21 Explained',
   description:
     'Most 401(k)s are not halal — here is why, and what to do about it. Target-date funds, employer match, AAOIFI Standard 21 screening, and Amana / Wahed alternatives.',
   keywords: [

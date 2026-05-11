@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Faraid Awl &amp; Radd Explained — When Quranic Shares Don&apos;t Sum to 1 | Barakah',
+  title: 'Faraid Awl &amp; Radd Explained — When Quranic Shares Don&apos;t Sum to 1',
   description:
     'When the prescribed faraid shares add up to MORE than the estate, Awl reduces them proportionally. When they add up to LESS, Radd returns the residual. Worked examples for both.',
   keywords: [

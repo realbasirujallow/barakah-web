@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Is Amazon (AMZN) Halal? Shariah Screening 2026 | Barakah',
+  title: 'Is Amazon (AMZN) Halal? Shariah Screening 2026',
   description:
     "Is Amazon stock halal? AAOIFI screening for AMZN — business-activity review, the three financial ratios, AWS and marketplace caveats, and purification guidance.",
   keywords: ['is amazon halal', 'amzn halal', 'amazon stock halal', 'is amzn shariah compliant', 'amazon shariah'],
   alternates: { canonical: 'https://trybarakah.com/halal-stocks/amzn' },
   openGraph: {
-    title: 'Is Amazon (AMZN) Halal? Shariah Screening 2026 | Barakah',
+    title: 'Is Amazon (AMZN) Halal? Shariah Screening 2026',
     description: 'AAOIFI screening review of Amazon (AMZN) — compliance status, ratios, purification guidance.',
     url: 'https://trybarakah.com/halal-stocks/amzn',
     type: 'article',

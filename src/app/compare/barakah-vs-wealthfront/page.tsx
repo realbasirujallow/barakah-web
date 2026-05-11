@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Wealthfront (2026): Halal Alternative for Muslim Households | Barakah',
+  title: 'Barakah vs Wealthfront (2026): Halal Alternative for Muslim Households',
   description:
     "Wealthfront is a leading robo-advisor with a high-yield cash account — but the cash APY is interest-bearing (riba) and there's no zakat, hawl, or halal screening. Barakah is the Islamic-finance complement.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-wealthfront' },
   openGraph: {
-    title: 'Barakah vs Wealthfront (2026) — Halal Alternative for Muslim Households | Barakah',
+    title: 'Barakah vs Wealthfront (2026) — Halal Alternative for Muslim Households',
     description: 'Honest comparison of Wealthfront and Barakah for Muslim households.',
     url: 'https://trybarakah.com/compare/barakah-vs-wealthfront',
     type: 'article',

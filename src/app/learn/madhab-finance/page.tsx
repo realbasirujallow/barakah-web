@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title:
-    'How Your Madhab Affects Your Finances: Hanafi, Shafi\'i, Maliki & Hanbali Differences | Barakah',
+    'How Your Madhab Affects Your Finances: Hanafi, Shafi\'i, Maliki & Hanbali Differences',
   description:
     'Understand how your Islamic school of thought (madhab) affects zakat calculation, jewelry zakatabillity, hawl tracking, and wasiyyah rules. Compare Hanafi, Shafi\'i, Maliki, and Hanbali positions.',
   keywords: [

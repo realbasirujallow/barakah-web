@@ -2,14 +2,14 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Zakat on 401(k), IRA & Retirement Accounts: 3 Scholarly Positions | Barakah',
+  title: 'Zakat on 401(k), IRA & Retirement Accounts: 3 Scholarly Positions',
   description: 'Complete guide to zakat obligations on 401(k), IRA, Roth IRA, and retirement accounts. Three scholarly positions explained with practical examples.',
   keywords: ['zakat on 401k', 'zakat on IRA', 'zakat on retirement accounts', 'zakat on Roth IRA', 'zakat on HSA'],
   alternates: {
     canonical: 'https://trybarakah.com/learn/zakat-on-retirement-accounts',
   },
   openGraph: {
-    title: 'Zakat on 401(k), IRA & Retirement Accounts: 3 Scholarly Positions | Barakah',
+    title: 'Zakat on 401(k), IRA & Retirement Accounts: 3 Scholarly Positions',
     description: 'Work out zakat on retirement accounts using three major scholarly approaches.',
     url: 'https://trybarakah.com/learn/zakat-on-retirement-accounts',
     type: 'article',

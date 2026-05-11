@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Receivables and Business Debts 2026 | Barakah',
+  title: 'Zakat on Receivables and Business Debts 2026',
   description:
     'How to pay zakat on money owed to you. Strong vs weak receivables, deductibility of debts you owe, and AAOIFI guidance for business owners in 2026.',
   keywords: [

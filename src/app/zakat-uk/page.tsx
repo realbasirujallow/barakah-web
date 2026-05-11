@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Zakat in the UK (2026): Calculate, Distribute, and Track Your Obligation | Barakah',
+  title: 'Zakat in the UK (2026): Calculate, Distribute, and Track Your Obligation',
   description:
     'How UK Muslims calculate and pay zakat in 2026. Live nisab in GBP, ISA and pension rules, UK distribution partners (NZF, Islamic Relief), and a scholar-aligned methodology per Hanafi, Shafi\u2019i, Maliki, and Hanbali positions.',
   keywords: [
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/zakat-uk' },
   openGraph: {
-    title: 'Zakat in the UK (2026) | Barakah',
+    title: 'Zakat in the UK (2026)',
     description: 'Complete UK zakat guide — GBP nisab, ISA/pension rules, UK charities.',
     url: 'https://trybarakah.com/zakat-uk',
     type: 'article',

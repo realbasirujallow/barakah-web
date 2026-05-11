@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Best Halal ETFs 2026: SPUS, HLAL, IGDA & Shariah-Compliant Funds | Barakah',
+  title: 'Best Halal ETFs 2026: SPUS, HLAL, IGDA & Shariah-Compliant Funds',
   description:
     'Compare the top halal ETFs available to US and UK Muslim investors in 2026: SPUS, HLAL, IGDA, and more. AAOIFI methodology, expense ratios, and how they fit into your zakat-aware portfolio.',
   keywords: [
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/learn/halal-etfs',
   },
   openGraph: {
-    title: 'Best Halal ETFs 2026: SPUS, HLAL, IGDA & Shariah-Compliant Funds | Barakah',
+    title: 'Best Halal ETFs 2026: SPUS, HLAL, IGDA & Shariah-Compliant Funds',
     description: 'Compare the top halal ETFs available to US and UK Muslim investors in 2026.',
     url: 'https://trybarakah.com/learn/halal-etfs',
     type: 'article',

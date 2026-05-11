@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Zakat on a 401(k) — Three Methodologies Compared | Barakah',
+  title: 'Zakat on a 401(k) — Three Methodologies Compared',
   description:
     'Should you pay zakat on the gross balance, the accessible value after taxes and penalties, or only when you actually withdraw? AMJA-aligned methodology and worked examples.',
   keywords: [

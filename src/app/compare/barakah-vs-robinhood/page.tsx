@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Robinhood (2026): Halal Alternative for Muslim Investors | Barakah',
+  title: 'Barakah vs Robinhood (2026): Halal Alternative for Muslim Investors',
   description:
     "Robinhood made commission-free trading mainstream. But its cash sweep pays interest (riba) and it has no halal screening. Barakah is the Islamic compliance layer.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-robinhood' },
   openGraph: {
-    title: 'Barakah vs Robinhood (2026) — Halal Alternative for Muslim Investors | Barakah',
+    title: 'Barakah vs Robinhood (2026) — Halal Alternative for Muslim Investors',
     description: 'Honest comparison of Robinhood and Barakah for Muslim investors.',
     url: 'https://trybarakah.com/compare/barakah-vs-robinhood',
     type: 'article',

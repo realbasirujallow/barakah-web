@@ -6,7 +6,7 @@ import {
 } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Zoya (2026): Halal Finance App Comparison | Barakah',
+  title: 'Barakah vs Zoya (2026): Halal Finance App Comparison',
   description:
     "An honest, feature-by-feature comparison of Barakah and Zoya for Muslim households in 2026. Where Zoya wins, where Barakah wins, and how to decide which one (or both) fits your needs.",
   keywords: [
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/compare/barakah-vs-zoya',
   },
   openGraph: {
-    title: 'Barakah vs Zoya (2026): Halal Finance App Comparison | Barakah',
+    title: 'Barakah vs Zoya (2026): Halal Finance App Comparison',
     description: 'An honest, feature-by-feature comparison of Barakah and Zoya for Muslim households in 2026.',
     url: 'https://trybarakah.com/compare/barakah-vs-zoya',
     type: 'article',

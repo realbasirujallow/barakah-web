@@ -5,7 +5,7 @@ import {
 import ComparePageClient from './ComparePageClient';
 
 export const metadata: Metadata = {
-  title: 'Compare Islamic Finance Apps 2026 — Barakah vs Competitors | Barakah',
+  title: 'Compare Islamic Finance Apps 2026 — Barakah vs Competitors',
   description:
     'Compare Barakah with other Islamic finance and budgeting apps. Side-by-side feature comparison of zakat calculators, halal screeners, budgeting tools, and pricing for Muslim households.',
   keywords: [

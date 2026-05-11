@@ -3,7 +3,7 @@ import Link from 'next/link';
 import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
-  title: 'How Much Zakat Do I Owe? 2026 Step-by-Step Calculation Guide | Barakah',
+  title: 'How Much Zakat Do I Owe? 2026 Step-by-Step Calculation Guide',
   description:
     'Find out exactly how much zakat you owe in 2026. Step-by-step guide covering nisab check, zakatable assets, deductible debts, and the 2.5% calculation — with free calculator.',
   keywords: [

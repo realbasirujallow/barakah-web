@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Free Faraid Calculator 2026 — Islamic Inheritance Distribution | Barakah',
+  title: 'Free Faraid Calculator 2026 — Islamic Inheritance Distribution',
   description:
     'Calculate Islamic inheritance shares (faraid) instantly. Supports all Quranic heirs — spouse, children, parents, siblings. Awl, Radd, and blocking rules applied automatically per Quran 4:11-12.',
   keywords: [

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Is My Mortgage Halal? Complete Islamic Home Financing Guide | Barakah',
+  title: 'Is My Mortgage Halal? Complete Islamic Home Financing Guide',
   description:
     'Is your mortgage halal or haram? Understand riba in conventional mortgages, explore Shariah-compliant alternatives (murabaha, ijara, diminishing musharaka), and learn what top scholars say about the necessity exception.',
   alternates: { canonical: 'https://trybarakah.com/learn/is-my-mortgage-halal' },

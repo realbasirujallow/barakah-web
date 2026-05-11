@@ -1,7 +1,7 @@
 export default function Head() {
   return (
     <>
-      <title>Disclaimer & Islamic Guidance Notice | Barakah</title>
+      <title>Disclaimer & Islamic Guidance Notice</title>
       <meta
         name="description"
         content="Understand the scope of Barakah's fiqh-aware guidance, data sources, and product limitations before relying on calculations or screening results."

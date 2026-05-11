@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Murabaha (مرابحة) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Murabaha (مرابحة) — Definition & Meaning in Islamic Finance',
   description:
     'Murabaha is a cost-plus sale where the seller discloses the purchase cost and adds an agreed markup. The structure behind most halal trade and asset financing.',
   keywords: ['murabaha', 'murabahah', 'murabaha definition', 'cost-plus sale', 'islamic trade finance'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/murabaha' },
   openGraph: {
-    title: 'Murabaha (مرابحة) — Definition & Meaning | Barakah',
+    title: 'Murabaha (مرابحة) — Definition & Meaning',
     description: 'The disclosed cost-plus sale used throughout Islamic trade finance.',
     url: 'https://trybarakah.com/fiqh-terms/murabaha',
     type: 'article',

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal Mortgage Providers in the USA (2025) | Barakah',
+  title: 'Halal Mortgage Providers in the USA (2025)',
   description:
     'Compare Shariah-compliant home financing providers in the United States: Guidance Residential, UIF Corporation, Ameen Housing, Devon Bank, and more. Rates, structures, and availability.',
   alternates: { canonical: 'https://trybarakah.com/learn/halal-mortgage-providers-usa' },

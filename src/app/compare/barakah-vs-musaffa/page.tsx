@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Musaffa (2026): Household Money vs Halal Stock Screener | Barakah',
+  title: 'Barakah vs Musaffa (2026): Household Money vs Halal Stock Screener',
   description:
     "Musaffa screens stocks; Barakah manages your whole Muslim household's money. Honest comparison of both products, pricing, and when to use which.",
   keywords: [
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/compare/barakah-vs-musaffa',
   },
   openGraph: {
-    title: 'Barakah vs Musaffa (2026): Household Money vs Halal Stock Screener | Barakah',
+    title: 'Barakah vs Musaffa (2026): Household Money vs Halal Stock Screener',
     description: 'Honest comparison of Musaffa vs Barakah for Muslim households in 2026.',
     url: 'https://trybarakah.com/compare/barakah-vs-musaffa',
     type: 'article',

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Muslim Household Budget Template 2026 — Free Islamic Family Finance Guide | Barakah',
+  title: 'Muslim Household Budget Template 2026 — Free Islamic Family Finance Guide',
   description:
     'Free Muslim household budget template for 2026. Build a family budget that covers zakat, sadaqah, Hajj savings, halal expenses, and Islamic obligations — with Barakah\'s free budgeting tool.',
   keywords: [

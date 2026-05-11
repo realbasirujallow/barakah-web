@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Empower Personal Wealth (2026): Halal Alternative for Muslim Households | Barakah',
+  title: 'Barakah vs Empower Personal Wealth (2026): Halal Alternative for Muslim Households',
   description:
     "Empower Personal Wealth (the rebrand of Personal Capital) is the leading free wealth dashboard. But it has no zakat, no hawl, no halal screening, no riba detection. Barakah adds the Islamic layer.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-empower' },
   openGraph: {
-    title: 'Barakah vs Empower Personal Wealth (2026) — Halal Alternative for Muslim Households | Barakah',
+    title: 'Barakah vs Empower Personal Wealth (2026) — Halal Alternative for Muslim Households',
     description: 'Honest comparison of Empower Personal Wealth and Barakah for Muslim households.',
     url: 'https://trybarakah.com/compare/barakah-vs-empower',
     type: 'article',

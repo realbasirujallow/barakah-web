@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Zakat al-Fitr Calculator 2026 (Fitrana) — Amount, Deadline & Ruling | Barakah',
+  title: 'Zakat al-Fitr Calculator 2026 (Fitrana) — Amount, Deadline & Ruling',
   description:
     'Calculate Zakat al-Fitr (Fitrana) for 2026 Ramadan. Learn the exact amount per person, who must pay, the deadline before Eid prayer, and madhab-specific rulings.',
   keywords: [

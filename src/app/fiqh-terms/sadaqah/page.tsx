@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Sadaqah (صدقة) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Sadaqah (صدقة) — Definition & Meaning in Islamic Finance',
   description:
     'Sadaqah is voluntary charity — any time, any amount, any asset. Learn the distinction from zakat, the reward structure, and types (sadaqah jariyah).',
   keywords: ['sadaqah', 'sadaqah definition', 'sadaqah meaning', 'voluntary charity', 'sadaqah jariyah'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/sadaqah' },
   openGraph: {
-    title: 'Sadaqah (صدقة) — Definition & Meaning | Barakah',
+    title: 'Sadaqah (صدقة) — Definition & Meaning',
     description: 'Voluntary charity given any time, any amount, any asset.',
     url: 'https://trybarakah.com/fiqh-terms/sadaqah',
     type: 'article',

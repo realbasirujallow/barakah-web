@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'AAOIFI Halal Stock Screening — The Three Thresholds Explained | Barakah',
+  title: 'AAOIFI Halal Stock Screening — The Three Thresholds Explained',
   description:
     'AAOIFI Standard 21 sets the most widely-cited halal stock criteria: debt &lt; 33%, interest income &lt; 5%, non-permissible income &lt; 5%. Here&apos;s what each one means in practice.',
   keywords: [

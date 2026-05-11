@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Is Microsoft (MSFT) Halal? Shariah Screening 2026 | Barakah',
+  title: 'Is Microsoft (MSFT) Halal? Shariah Screening 2026',
   description:
     "Is Microsoft stock halal? AAOIFI screening for MSFT — business-activity review, the three financial ratios, Azure and gaming caveats, and purification guidance.",
   keywords: ['is microsoft halal', 'msft halal', 'microsoft stock halal', 'is msft shariah compliant', 'microsoft shariah'],
   alternates: { canonical: 'https://trybarakah.com/halal-stocks/msft' },
   openGraph: {
-    title: 'Is Microsoft (MSFT) Halal? Shariah Screening 2026 | Barakah',
+    title: 'Is Microsoft (MSFT) Halal? Shariah Screening 2026',
     description: 'AAOIFI screening review of Microsoft (MSFT) — compliance status, ratios, purification guidance.',
     url: 'https://trybarakah.com/halal-stocks/msft',
     type: 'article',

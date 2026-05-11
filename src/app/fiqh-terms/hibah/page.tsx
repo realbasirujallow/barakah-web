@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Hibah (هبة) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Hibah (هبة) — Definition & Meaning in Islamic Finance',
   description:
     "Hibah is a gift transferring ownership during the giver's lifetime. Unlike wassiyah (will), hibah is irrevocable once accepted and takes effect immediately.",
   keywords: ['hibah', 'hiba', 'hibah definition', 'islamic gift', 'lifetime gift', 'hibah meaning'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/hibah' },
   openGraph: {
-    title: 'Hibah (هبة) — Definition & Meaning | Barakah',
+    title: 'Hibah (هبة) — Definition & Meaning',
     description: "The Islamic gift that transfers ownership during the giver's lifetime.",
     url: 'https://trybarakah.com/fiqh-terms/hibah',
     type: 'article',

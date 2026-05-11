@@ -3,7 +3,7 @@ import Link from 'next/link';
 import VerifyHashInput from './VerifyHashInput';
 
 export const metadata: Metadata = {
-  title: 'Verify a Zakat Snapshot Hash | Barakah',
+  title: 'Verify a Zakat Snapshot Hash',
   description:
     'Every zakat calculation in Barakah produces a SHA-256 integrity hash. Paste a hash to verify the calculation is authentic and see the methodology + inputs that produced it.',
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/verify' },
   openGraph: {
-    title: 'Verify a Zakat Snapshot Hash | Barakah',
+    title: 'Verify a Zakat Snapshot Hash',
     description: 'Paste a Barakah integrity hash to verify a zakat calculation.',
     url: 'https://trybarakah.com/verify',
     type: 'website',

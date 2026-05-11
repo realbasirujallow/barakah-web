@@ -3,12 +3,12 @@ import Link from 'next/link';
 import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Business Assets 2026 — How to Calculate Zakat If You Own a Business | Barakah',
+  title: 'Zakat on Business Assets 2026 — How to Calculate Zakat If You Own a Business',
   description: 'Step-by-step guide to calculating zakat on business assets for self-employed Muslims and business owners. What inventory, cash, and receivables are zakatable.',
   keywords: ['zakat on business', 'zakat business assets', 'zakat self employed', 'business zakat calculator', 'zakat for business owners', 'zakat on inventory', 'calculating business zakat', 'zakat on sole proprietorship'],
   alternates: { canonical: 'https://trybarakah.com/learn/zakat-on-business-assets' },
   openGraph: {
-    title: 'Zakat on Business Assets 2026 — How to Calculate Zakat If You Own a Business | Barakah',
+    title: 'Zakat on Business Assets 2026 — How to Calculate Zakat If You Own a Business',
     description: 'Step-by-step guide to calculating zakat on business assets for self-employed Muslims and business owners. What inventory, cash, and receivables are zakatable.',
     url: 'https://trybarakah.com/learn/zakat-on-business-assets',
     siteName: 'Barakah',
@@ -103,7 +103,7 @@ export default function Page() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">How to Calculate Business Zakat</h2>
             <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
-              The formula accepted by the majority of contemporary scholars and endorsed by AAOIFI is:
+              The formula described in AAOIFI Shariah Standard No. 35 (Zakah), which reflects the majority contemporary view, is:
             </p>
             <div className="bg-gray-50 border rounded-lg p-5 mb-4 font-mono text-sm text-gray-800 leading-relaxed dark:bg-gray-800 dark:text-gray-100">
               <p>(Inventory at market/cost value)</p>

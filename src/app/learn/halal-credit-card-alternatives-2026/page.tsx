@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal Credit Card Alternatives 2026 | Barakah',
+  title: 'Halal Credit Card Alternatives 2026',
   description:
     'Halal alternatives to credit cards in 2026: debit cards, charge cards, and Islamic credit products from UIF and ALAN. How to avoid riba while keeping spending power.',
   keywords: [

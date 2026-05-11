@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Riba (ربا) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Riba (ربا) — Definition & Meaning in Islamic Finance',
   description:
     'Riba is interest or usury — categorically forbidden in Islam. Learn the two classical types (riba al-nasi\'a, riba al-fadl) and what counts today.',
   keywords: ['riba', 'riba definition', 'riba meaning', 'what is riba', 'interest in islam', 'islamic interest'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/riba' },
   openGraph: {
-    title: 'Riba (ربا) — Definition & Meaning | Barakah',
+    title: 'Riba (ربا) — Definition & Meaning',
     description: 'Interest or usury — categorically prohibited in Islam.',
     url: 'https://trybarakah.com/fiqh-terms/riba',
     type: 'article',

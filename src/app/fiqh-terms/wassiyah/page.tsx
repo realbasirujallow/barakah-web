@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Wassiyah (وصية) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Wassiyah (وصية) — Definition & Meaning in Islamic Finance',
   description:
     'Wassiyah is the discretionary Islamic will — up to 1/3 of the estate to non-heirs. Learn why it\'s required, the 1/3 cap, and how it coexists with faraid.',
   keywords: ['wassiyah', 'wasiyyah', 'wasiyah', 'islamic will', 'wassiyah definition', 'wassiyah meaning'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/wassiyah' },
   openGraph: {
-    title: 'Wassiyah (وصية) — Definition & Meaning | Barakah',
+    title: 'Wassiyah (وصية) — Definition & Meaning',
     description: 'The Islamic will: discretionary bequests up to 1/3 of the estate.',
     url: 'https://trybarakah.com/fiqh-terms/wassiyah',
     type: 'article',

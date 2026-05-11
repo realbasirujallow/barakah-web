@@ -12,7 +12,7 @@ export async function generateMetadata({
   const { hash } = await params;
   const safe = hash.slice(0, 8);
   return {
-    title: `Verify snapshot ${safe}… | Barakah`,
+    title: `Verify snapshot ${safe}…`,
     description: `Independent verification page for Barakah zakat snapshot integrity hash ${safe}…`,
     robots: { index: false, follow: true },
     alternates: { canonical: `https://trybarakah.com/verify/${hash}` },

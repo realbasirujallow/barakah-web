@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Nisab in GBP 2026: Live Gold & Silver Thresholds for UK Muslims | Barakah',
+  title: 'Nisab in GBP 2026: Live Gold & Silver Thresholds for UK Muslims',
   description:
     'The zakat nisab threshold in British pounds. Live gold (85g, AMJA standard) and silver (595g) values in GBP, methodology explained for UK Muslims, madhab guidance, and the 2026 update schedule.',
   keywords: [
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/learn/nisab-gbp' },
   openGraph: {
-    title: 'Nisab in GBP 2026 — UK Zakat Threshold | Barakah',
+    title: 'Nisab in GBP 2026 — UK Zakat Threshold',
     description: 'Live nisab values in GBP for UK Muslims calculating zakat.',
     url: 'https://trybarakah.com/learn/nisab-gbp',
     type: 'article',

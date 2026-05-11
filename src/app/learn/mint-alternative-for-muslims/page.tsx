@@ -6,7 +6,7 @@ import {
 } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Best Mint Alternative for Muslims 2026 — Free Islamic Finance App | Barakah',
+  title: 'Best Mint Alternative for Muslims 2026 — Free Islamic Finance App',
   description:
     'Mint shut down. The best Muslim alternative is Barakah: free zakat calculator, halal budget tracking, riba detection, and Islamic investing — all fiqh-aware. Start free today.',
   keywords: [

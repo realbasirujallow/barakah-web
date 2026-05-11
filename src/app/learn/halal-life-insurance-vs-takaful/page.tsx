@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal Life Insurance vs Takaful: 2026 Comparison | Barakah',
+  title: 'Halal Life Insurance vs Takaful: 2026 Comparison',
   description:
     'Halal life insurance vs takaful 2026: why conventional insurance is gharar/riba, how takaful pools differ, family takaful providers, pricing, what to do without takaful.',
   keywords: [

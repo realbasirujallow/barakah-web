@@ -3,14 +3,14 @@ import Link from 'next/link';
 import NisabLivePrices from '../../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
-  title: 'How to Write an Islamic Will (Wasiyyah): Complete Guide 2026 | Barakah',
+  title: 'How to Write an Islamic Will (Wasiyyah): Complete Guide 2026',
   description: 'Learn how to write a valid Islamic will (wasiyyah) that follows Shariah inheritance rules. Covers the 1/3 rule, faraid shares, legal heirs, and estate planning for Muslims in the West.',
   keywords: ['islamic will', 'wasiyyah', 'islamic inheritance', 'faraid calculator', 'islamic estate planning', 'muslim will', 'shariah inheritance', 'islamic succession'],
   alternates: {
     canonical: 'https://trybarakah.com/learn/islamic-will',
   },
   openGraph: {
-    title: 'How to Write an Islamic Will (Wasiyyah): Complete Guide 2026 | Barakah',
+    title: 'How to Write an Islamic Will (Wasiyyah): Complete Guide 2026',
     description: 'Complete guide to Islamic wills covering the 1/3 rule, faraid shares, legal heirs, and practical steps for Muslims in the West.',
     url: 'https://trybarakah.com/learn/islamic-will',
     type: 'article',

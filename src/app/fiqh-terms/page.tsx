@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/fiqh-terms',
   },
   openGraph: {
-    title: 'Islamic Finance Glossary — 14 Fiqh Terms | Barakah',
+    title: 'Islamic Finance Glossary — 14 Fiqh Terms',
     description: 'Plain-English definitions of the 14 core Islamic finance terms every Muslim investor should know.',
     url: 'https://trybarakah.com/fiqh-terms',
     type: 'article',

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal Investing for Beginners — Your First Steps in 2026 | Barakah',
+  title: 'Halal Investing for Beginners — Your First Steps in 2026',
   description:
     'Brand new to halal investing? Start here. What halal investing is, what to avoid, the simplest first portfolio (3 ETFs), and how to scale up — with no jargon.',
   keywords: [

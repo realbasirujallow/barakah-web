@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Ramadan Giving Tracker Setup 2026 | Barakah',
+  title: 'Ramadan Giving Tracker Setup 2026',
   description:
     'How to set up a Ramadan giving tracker for 2026: daily targets, fitra timing, last-10-nights bonuses, sadaqah jariyah categorization, family-shared goals.',
   keywords: [

@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Hawl (حول) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Hawl (حول) — Definition & Meaning in Islamic Finance',
   description:
     'Hawl is the lunar year holding period that makes zakat due. Explained with scholarly rulings on interruptions, resets, and daily wealth tracking.',
   keywords: ['hawl', 'hawl definition', 'zakat hawl', 'hawl meaning', 'lunar year zakat'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/hawl' },
   openGraph: {
-    title: 'Hawl (حول) — Definition & Meaning | Barakah',
+    title: 'Hawl (حول) — Definition & Meaning',
     description: 'The lunar year holding period that makes zakat due.',
     url: 'https://trybarakah.com/fiqh-terms/hawl',
     type: 'article',

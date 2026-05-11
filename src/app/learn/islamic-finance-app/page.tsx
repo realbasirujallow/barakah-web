@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Best Islamic Finance App 2026 — Complete Guide & Comparison | Barakah',
+  title: 'Best Islamic Finance App 2026 — Complete Guide & Comparison',
   description:
     'Find the best Islamic finance app for 2026. Compare Barakah, Zoya, Wahed, and others across zakat, halal investing, budgeting, and Islamic will planning. Fiqh-aware reviews.',
   keywords: [

@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Musharaka (مشاركة) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Musharaka (مشاركة) — Definition & Meaning in Islamic Finance',
   description:
     'Musharaka is a profit-and-loss partnership contract — the foundation of Shariah-compliant home financing and Islamic venture capital. Learn how it works.',
   keywords: ['musharaka', 'musharakah', 'musharaka definition', 'islamic partnership', 'diminishing musharaka'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/musharaka' },
   openGraph: {
-    title: 'Musharaka (مشاركة) — Definition & Meaning | Barakah',
+    title: 'Musharaka (مشاركة) — Definition & Meaning',
     description: 'The profit-and-loss partnership behind halal home finance.',
     url: 'https://trybarakah.com/fiqh-terms/musharaka',
     type: 'article',

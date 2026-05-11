@@ -2,12 +2,12 @@ import type { Metadata } from 'next';
 import { PRICING } from '../../lib/pricing';
 
 export const metadata: Metadata = {
-  title: 'Press & Media Kit | Barakah Islamic Finance',
+  title: 'Press & Media Kit',
   description:
     'Press resources for Barakah — the Muslim-household financial OS covering zakat, hawl, halal investing, riba detection, faraid, and wasiyyah in one app.',
   alternates: { canonical: 'https://trybarakah.com/press' },
   openGraph: {
-    title: 'Press & Media Kit | Barakah',
+    title: 'Press & Media Kit',
     description: 'Press resources, fact sheet, screenshots, and founder contact for Barakah Islamic Finance.',
     url: 'https://trybarakah.com/press',
     type: 'website',

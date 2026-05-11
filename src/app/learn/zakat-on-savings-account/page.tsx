@@ -3,12 +3,12 @@ import Link from 'next/link';
 import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Savings Accounts 2026 — How to Calculate Zakat on Bank Savings | Barakah',
+  title: 'Zakat on Savings Accounts 2026 — How to Calculate Zakat on Bank Savings',
   description: 'Do you pay zakat on a savings account? Yes — here is how to calculate zakat on bank savings, what counts toward nisab, and how to handle interest (riba).',
   keywords: ['zakat on savings account', 'zakat bank savings', 'zakat on cash', 'is savings zakatable', 'zakat savings calculator', 'how to calculate zakat savings', 'zakat on checking account', 'zakat on bank balance', 'nisab savings'],
   alternates: { canonical: 'https://trybarakah.com/learn/zakat-on-savings-account' },
   openGraph: {
-    title: 'Zakat on Savings Accounts 2026 — How to Calculate Zakat on Bank Savings | Barakah',
+    title: 'Zakat on Savings Accounts 2026 — How to Calculate Zakat on Bank Savings',
     description: 'Do you pay zakat on a savings account? Yes — here is how to calculate zakat on bank savings, what counts toward nisab, and how to handle interest (riba).',
     url: 'https://trybarakah.com/learn/zakat-on-savings-account',
     siteName: 'Barakah',

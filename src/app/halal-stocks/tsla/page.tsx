@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Is Tesla (TSLA) Halal? Shariah Screening 2026 | Barakah',
+  title: 'Is Tesla (TSLA) Halal? Shariah Screening 2026',
   description:
     "Is Tesla stock halal? AAOIFI screening for TSLA — business-activity review, the three financial ratios, debt history, energy credits, and purification guidance.",
   keywords: ['is tesla halal', 'tsla halal', 'tesla stock halal', 'is tsla shariah compliant', 'tesla shariah'],
   alternates: { canonical: 'https://trybarakah.com/halal-stocks/tsla' },
   openGraph: {
-    title: 'Is Tesla (TSLA) Halal? Shariah Screening 2026 | Barakah',
+    title: 'Is Tesla (TSLA) Halal? Shariah Screening 2026',
     description: 'AAOIFI screening review of Tesla (TSLA) — compliance status, ratios, purification guidance.',
     url: 'https://trybarakah.com/halal-stocks/tsla',
     type: 'article',

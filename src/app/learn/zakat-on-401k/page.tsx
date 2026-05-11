@@ -3,7 +3,7 @@ import Link from 'next/link';
 import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
-  title: 'Zakat on 401(k) — How to Calculate Zakat on Retirement Accounts | Barakah',
+  title: 'Zakat on 401(k) — How to Calculate Zakat on Retirement Accounts',
   description: 'Learn the scholarly positions on zakat for 401(k), IRA, Roth IRA, and other retirement accounts. Calculate your accessible value and zakat obligation.',
   alternates: { canonical: 'https://trybarakah.com/learn/zakat-on-401k' },
 };

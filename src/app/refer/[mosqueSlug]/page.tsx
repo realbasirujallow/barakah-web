@@ -26,7 +26,7 @@ export async function generateMetadata({
   const m = mosques.find((x) => x.slug === mosqueSlug);
   if (!m) {
     return {
-      title: 'Mosque Referral | Barakah',
+      title: 'Mosque Referral',
       description: 'Mosque-branded Barakah referral landing.',
       robots: { index: false, follow: true },
     };

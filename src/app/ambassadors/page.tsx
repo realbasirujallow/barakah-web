@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Become a Barakah Ambassador (2026) | Barakah',
+  title: 'Become a Barakah Ambassador (2026)',
   description:
     'Join the Barakah Ambassador Program — free Family plan, early access to new features, monthly founder Q&A, and a platform to serve your community. Open to creators, scholars, and Muslim-finance educators.',
   keywords: [
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/ambassadors' },
   openGraph: {
-    title: 'Barakah Ambassador Program | Barakah',
+    title: 'Barakah Ambassador Program',
     description: 'Free Family plan, early access, monthly founder Q&A, and a platform to serve your community.',
     url: 'https://trybarakah.com/ambassadors',
     type: 'website',

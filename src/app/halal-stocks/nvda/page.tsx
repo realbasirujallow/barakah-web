@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Is NVIDIA (NVDA) Halal? Shariah Screening 2026 | Barakah',
+  title: 'Is NVIDIA (NVDA) Halal? Shariah Screening 2026',
   description:
     "Is NVIDIA stock halal? AAOIFI screening for NVDA — business-activity review, the three financial ratios, gaming and AI caveats, and purification guidance.",
   keywords: ['is nvidia halal', 'nvda halal', 'nvidia stock halal', 'is nvda shariah compliant', 'nvidia shariah'],
   alternates: { canonical: 'https://trybarakah.com/halal-stocks/nvda' },
   openGraph: {
-    title: 'Is NVIDIA (NVDA) Halal? Shariah Screening 2026 | Barakah',
+    title: 'Is NVIDIA (NVDA) Halal? Shariah Screening 2026',
     description: 'AAOIFI screening review of NVIDIA (NVDA) — compliance status, ratios, purification guidance.',
     url: 'https://trybarakah.com/halal-stocks/nvda',
     type: 'article',

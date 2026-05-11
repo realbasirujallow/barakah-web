@@ -6,7 +6,7 @@ import {
 } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs YNAB (2026): Which Budgeting App for Muslim Households? | Barakah',
+  title: 'Barakah vs YNAB (2026): Which Budgeting App for Muslim Households?',
   description:
     "YNAB is the gold standard for envelope budgeting but has no Islamic features. Barakah adds zakat, hawl, halal screening, riba detection, and faraid — all on top of modern budgeting.",
   keywords: [
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-ynab' },
   openGraph: {
-    title: 'Barakah vs YNAB (2026) — Which Budgeting App for Muslim Households? | Barakah',
+    title: 'Barakah vs YNAB (2026) — Which Budgeting App for Muslim Households?',
     description: 'Honest comparison of YNAB and Barakah for Muslim households.',
     url: 'https://trybarakah.com/compare/barakah-vs-ynab',
     type: 'article',

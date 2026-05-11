@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal Mortgage vs Renting in 2026: Honest Math | Barakah',
+  title: 'Halal Mortgage vs Renting in 2026: Honest Math',
   description:
     'Honest comparison of halal mortgages and renting in 2026 — Guidance Residential, UIF, Lariba. Total-cost math, when each makes sense, and the niyyah decision.',
   keywords: [
