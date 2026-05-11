@@ -932,6 +932,15 @@ export const api = {
     apiFetch('/api/debts/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
   deleteAllDebts: () =>
     apiFetch('/api/debts/bulk-delete', { method: 'POST', body: JSON.stringify({ deleteAll: true }) }),
+  /**
+   * 2026-05-10 — cross-debt snowball vs avalanche simulation. Backend
+   * runs a month-by-month sim with proper snowball cascade (freed-up
+   * minimums roll into the next target). Returns both strategies +
+   * per-month per-debt remaining series for a stacked-bar timeline.
+   * Plus plan required.
+   */
+  getDebtPayoffStrategies: (extraMonthly: number) =>
+    apiFetch(`/api/debts/payoff-strategies?extraMonthly=${encodeURIComponent(String(extraMonthly))}`),
   getDebtProjections: () => apiFetch('/api/debts/projections'),
 
   // Bills
