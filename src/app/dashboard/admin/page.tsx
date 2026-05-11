@@ -18,7 +18,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
@@ -171,6 +171,27 @@ export default function AdminPage() {
     if (isAuthLoading || !isAdminKnown || !isAdmin) return;
     loadData(0);
   }, [isAuthLoading, isAdminKnown, isAdmin, loadData]);
+
+  // 2026-05-10: deep-link from /dashboard/admin/notes (and other
+  // cross-user views) — if the URL has ?focusUser=ID, open that user's
+  // detail modal automatically once usersData is loaded, then strip the
+  // param so a hard-refresh doesn't keep re-opening the modal forever.
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (!searchParams) return;
+    const focusId = searchParams.get('focusUser');
+    if (!focusId) return;
+    const id = Number(focusId);
+    if (!Number.isFinite(id) || id <= 0) return;
+    const users = usersData?.users ?? [];
+    const match = users.find(u => u.id === id);
+    if (!match) return;
+    openUser(match, users);
+    // Strip the param so a refresh doesn't re-open. Use replace so
+    // there's no back-button entry for the deep-link state.
+    router.replace('/dashboard/admin');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, usersData]);
 
   // Auto-refresh every 30 minutes
   useEffect(() => {
@@ -623,6 +644,7 @@ export default function AdminPage() {
           page={page}
           toast={toast}
           loadData={loadData}
+          openUser={openUser}
         />
       )}
 

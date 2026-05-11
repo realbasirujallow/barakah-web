@@ -1393,6 +1393,27 @@ export const api = {
     apiFetch(`/admin/users/${userId}`, { method: 'DELETE' }, API_TIMEOUT, true),
   adminVerifyEmail: (userId: number) =>
     apiFetch(`/admin/users/${userId}/verify-email`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
+  /**
+   * Admin: correct a user's email when they typo'd at signup and can't
+   * verify. `markVerified=true` skips the new verification email (admin
+   * asserts ownership out-of-band, e.g. over the phone). `markVerified`
+   * false or undefined → user is set unverified + a fresh verification
+   * email goes out to the corrected address.
+   */
+  adminUpdateUserEmail: (userId: number, email: string, opts?: { markVerified?: boolean; reason?: string }) =>
+    apiFetch(
+      `/admin/users/${userId}/email`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({
+          email,
+          markVerified: opts?.markVerified ?? false,
+          reason: opts?.reason ?? undefined,
+        }),
+      },
+      API_TIMEOUT,
+      true,
+    ),
   adminGetUserActivity: (userId: number) =>
     apiFetch(`/admin/users/${userId}/activity`, {}, API_TIMEOUT, true),
 

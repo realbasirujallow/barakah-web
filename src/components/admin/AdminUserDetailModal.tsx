@@ -269,6 +269,17 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
   // Opens on click of the matching activity-count card.
   const [drilldown, setDrilldown] = useState<DrilldownKind | null>(null);
 
+  // 2026-05-10: email-edit form for typo'd-at-signup correction.
+  // Visible to admins when collapsed shows a "Fix email" link; expanded
+  // shows the form. `emailDraft` defaults to the user's current address
+  // each time the form opens so we never silently keep stale draft state
+  // across user-detail navigations.
+  const [emailEditOpen, setEmailEditOpen] = useState(false);
+  const [emailDraft, setEmailDraft] = useState('');
+  const [emailReason, setEmailReason] = useState('');
+  const [emailMarkVerified, setEmailMarkVerified] = useState(false);
+  const [emailSaving, setEmailSaving] = useState(false);
+
   return (
     // 2026-05-02 (revert): the earlier `flex min-h-full` outer-scroll
     // pattern broke modal mounting on some browser/window combos —
@@ -621,6 +632,128 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
               the queue to see what's stuck, click "Unstick" to flip
               them back to pending. The scheduler retries within ~2min. */}
           <EmailQueueSection userId={selected.id} email={selected.email} toast={toast} />
+
+          {/* 2026-05-10: Fix Email Typo — for users who entered a wrong
+              address at signup and can't receive verification. Available
+              for both verified + unverified users (verified case covers
+              the founder ad-hoc "they're calling because they lost
+              access to their old mailbox" scenario). */}
+          <div className="border-t pt-5">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-medium text-gray-700">Fix Email Typo</p>
+              {!emailEditOpen && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailDraft(selected.email || '');
+                    setEmailReason('');
+                    setEmailMarkVerified(false);
+                    setEmailEditOpen(true);
+                  }}
+                  className="text-xs font-semibold text-[#1B5E20] hover:underline"
+                >
+                  ✏️ Edit email
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mb-3">
+              Current: <strong>{selected.email}</strong>
+              {selected.emailVerified === false && <span className="ml-1 text-red-600 font-semibold">(unverified)</span>}
+            </p>
+            {emailEditOpen && (
+              <div className="space-y-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <input
+                  type="email"
+                  value={emailDraft}
+                  onChange={e => setEmailDraft(e.target.value)}
+                  placeholder="corrected-email@example.com"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
+                />
+                <input
+                  type="text"
+                  value={emailReason}
+                  onChange={e => setEmailReason(e.target.value)}
+                  maxLength={500}
+                  placeholder="Reason (optional, e.g. 'phone call — typo @gmial.com')"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
+                />
+                <label className="flex items-start gap-2 text-xs text-gray-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={emailMarkVerified}
+                    onChange={e => setEmailMarkVerified(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span>
+                    <strong>Mark verified immediately</strong> — only check if you confirmed ownership out-of-band (e.g. on a call). Otherwise we&apos;ll send a fresh verification email to the new address.
+                  </span>
+                </label>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    disabled={emailSaving || !emailDraft.trim() || emailDraft.trim().toLowerCase() === selected.email.toLowerCase()}
+                    onClick={async () => {
+                      const newAddr = emailDraft.trim();
+                      if (!newAddr) return;
+                      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newAddr)) {
+                        toast('That doesn’t look like a valid email address', 'error');
+                        return;
+                      }
+                      if (!confirm(
+                        `Change email from "${selected.email}" to "${newAddr}"?` +
+                        (emailMarkVerified ? '\n\nThis will mark the email VERIFIED immediately and skip sending a verification link.' : '\n\nA fresh verification email will be sent to the new address.')
+                      )) return;
+                      setEmailSaving(true);
+                      try {
+                        const data = await api.adminUpdateUserEmail(selected.id, newAddr, {
+                          markVerified: emailMarkVerified,
+                          reason: emailReason.trim() || undefined,
+                        });
+                        if (data?.error) {
+                          toast(data.error, 'error');
+                          return;
+                        }
+                        const next = {
+                          ...selected,
+                          email: typeof data?.email === 'string' ? data.email : newAddr.toLowerCase(),
+                          emailVerified: Boolean(data?.emailVerified),
+                        };
+                        setSelected(next);
+                        setUsersData(prev => prev ? {
+                          ...prev,
+                          users: prev.users.map(u => u.id === selected.id ? {
+                            ...u,
+                            email: next.email,
+                            emailVerified: next.emailVerified,
+                          } : u),
+                        } : prev);
+                        toast(
+                          (typeof data?.message === 'string' ? data.message : 'Email updated'),
+                          'success',
+                        );
+                        setEmailEditOpen(false);
+                      } catch (err) {
+                        toast(err instanceof Error ? err.message : 'Email update failed', 'error');
+                      } finally {
+                        setEmailSaving(false);
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-[#1B5E20] text-white text-xs font-semibold rounded hover:bg-[#1B5E20]/90 disabled:opacity-40 transition"
+                  >
+                    {emailSaving ? 'Saving…' : 'Save new email'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={emailSaving}
+                    onClick={() => setEmailEditOpen(false)}
+                    className="px-3 py-1.5 border border-gray-300 text-gray-600 text-xs font-medium rounded hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Resend Verification Email */}
           {!selected.emailVerified && (
