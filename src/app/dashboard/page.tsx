@@ -1065,6 +1065,8 @@ export default function DashboardPage() {
             <p className="text-sm text-gray-500 mt-1">
               {fmt(safeToSpend.dailySafeToSpend ?? (safeToSpend.daysRemainingInMonth > 0 ? safeToSpend.safeToSpend / safeToSpend.daysRemainingInMonth : 0))} per day for {safeToSpend.daysRemainingInMonth} days remaining
             </p>
+          ) : safeToSpend.totalIncome <= 0 && safeToSpend.totalSpent <= 0 && safeToSpend.totalBillsDue <= 0 ? (
+            <p className="text-sm text-gray-500 mt-1">Add income or transactions to see your safe-to-spend</p>
           ) : (
             <p className="text-sm text-red-500 mt-1 font-medium">You&apos;ve exceeded your budget this month</p>
           )}
