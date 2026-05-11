@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { api } from '../../lib/api';
+import { api, readCapturedReferralCode } from '../../lib/api';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../lib/trial';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 import { useI18n } from '../../lib/i18n';
@@ -27,7 +27,14 @@ function SignupContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const ref = searchParams.get('ref');
+    // 2026-05-10: prefer the URL ?ref= (most recent intent) but fall back
+    // to a previously-captured code from sessionStorage so users who
+    // clicked /?ref=... on the landing page, then navigated to /signup,
+    // still get the referral attached. Providers.tsx mounts a one-shot
+    // captureReferralCodeFromUrl() on every route load.
+    const urlRef = searchParams.get('ref');
+    const captured = readCapturedReferralCode();
+    const ref = urlRef || captured;
     if (ref) {
       setReferralCode(ref.toUpperCase());
       // Fire-and-forget referral click tracking

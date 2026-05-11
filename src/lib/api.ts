@@ -86,6 +86,49 @@ export function captureAcquisitionFromUrl() {
   }
 }
 
+// ─── Referral code capture (2026-05-10) ────────────────────────────────
+// Founder-CRM: friends share /signup?ref=ABC12345 — capture works
+// already when the user lands DIRECTLY on /signup, but if they click
+// /?ref=ABC12345 (the landing page), browse around, then go to /signup,
+// the ref is dropped. Mirror the UTM capture so a referral code lives
+// in sessionStorage across in-app navigations and the signup form can
+// fall back to it when searchParams is empty.
+const REFERRAL_STORAGE_KEY = 'barakah_referral_code';
+
+export function captureReferralCodeFromUrl() {
+  if (typeof window === 'undefined') return;
+  try {
+    const ref = new URL(window.location.href).searchParams.get('ref');
+    if (!ref) return;
+    const cleaned = ref.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (cleaned.length < 4 || cleaned.length > 16) return; // sanity
+    // First-touch wins — never overwrite an existing capture with a
+    // later one (e.g. user shared another friend's link by mistake).
+    if (window.sessionStorage.getItem(REFERRAL_STORAGE_KEY)) return;
+    window.sessionStorage.setItem(REFERRAL_STORAGE_KEY, cleaned);
+  } catch {
+    /* malformed URL or sessionStorage blocked — silent */
+  }
+}
+
+export function readCapturedReferralCode(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.sessionStorage.getItem(REFERRAL_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function clearCapturedReferralCode() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.removeItem(REFERRAL_STORAGE_KEY);
+  } catch {
+    /* silent */
+  }
+}
+
 function acquisitionHeaders(): Record<string, string> {
   const a = readAcquisition();
   const h: Record<string, string> = {};
@@ -1460,6 +1503,32 @@ export const api = {
           reason: opts?.reason ?? undefined,
         }),
       },
+      API_TIMEOUT,
+      true,
+    ),
+
+  /**
+   * 2026-05-10 founder-CRM: issue a Stripe customer-level discount
+   * to a specific user (closes the trial-expiring call workflow).
+   * Exactly one of percentOff or amountOffCents must be set. Backend
+   * creates an ad-hoc Stripe Coupon + attaches to the user's customer.
+   */
+  adminIssueCoupon: (
+    userId: number,
+    params: {
+      percentOff?: number;
+      amountOffCents?: number;
+      currency?: string;
+      duration: 'once' | 'repeating' | 'forever';
+      durationInMonths?: number;
+      name?: string;
+      reason?: string;
+      sendEmail?: boolean;
+    },
+  ) =>
+    apiFetch(
+      `/admin/users/${userId}/coupon`,
+      { method: 'POST', body: JSON.stringify(params) },
       API_TIMEOUT,
       true,
     ),

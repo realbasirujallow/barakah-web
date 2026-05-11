@@ -337,9 +337,48 @@ export default function FiqhSettingsPage() {
               )}
               <div className="space-y-3">
                 {[
-                  { value: 'AMJA_GOLD', title: 'Gold Standard (AMJA)', desc: '85g gold. Recommended by AMJA, ISNA, and the Fiqh Council of North America for North American Muslims. Most contemporary scholars.' },
-                  { value: 'CLASSICAL_SILVER', title: 'Silver Standard (Classical Hanafi)', desc: '595g silver. Classical Hanafi position — more conservative; lower threshold means more people qualify to pay zakat.' },
-                  { value: 'LOWER_OF_TWO', title: 'Lower of Gold/Silver (Al-Qaradawi)', desc: 'Whichever is lower at current market prices. Most conservative — typically follows silver since silver is much cheaper per gram than gold.' },
+                  // 2026-05-10 founder ask: surface scholar attribution on the
+                  // nisab toggle so the multi-madhab option is a trust artifact,
+                  // not bare config. Citations mirror NisabMethodology.getCitations()
+                  // on the backend; sources from AMJA, AAOIFI, Al-Kasani, Ibn
+                  // Abidin, al-Qaradawi (Fiqh al-Zakat), Bukhari, Abu Dawud.
+                  {
+                    value: 'AMJA_GOLD',
+                    title: 'Gold Standard (AMJA)',
+                    desc: '85g gold. Recommended by AMJA, ISNA, and the Fiqh Council of North America for North American Muslims. Most contemporary scholars.',
+                    citations: {
+                      primary: 'Sahih Abu Dawud 1573 — the Prophet ﷺ prescribed zakat on gold at 20 mithqals (~85g)',
+                      classical: 'Ibn Qudamah, Al-Mughni — gold nisab as 20 mithqals',
+                      contemporary: 'AMJA (Assembly of Muslim Jurists of America) — practical default for North America',
+                      school: 'Cross-madhab; contemporary Western baseline',
+                      note: 'Higher threshold means fewer people pay zakat than under the silver standard.',
+                    },
+                  },
+                  {
+                    value: 'CLASSICAL_SILVER',
+                    title: 'Silver Standard (Classical Hanafi)',
+                    desc: '595g silver. Classical Hanafi position — more conservative; lower threshold means more people qualify to pay zakat.',
+                    citations: {
+                      primary: 'Sahih al-Bukhari 1454 — "No zakat is due on less than five uqiyah (200 dirhams ~595g) of silver"',
+                      classical: 'Al-Kasani, Bada’i al-Sana’i — Hanafi codification of silver nisab',
+                      secondaryClassical: 'Ibn Abidin, Radd al-Muhtar — defence of silver against modern gold-only practice',
+                      contemporary: 'Mufti Taqi Usmani — silver is more protective of the poor',
+                      school: 'Classical Hanafi',
+                      note: 'Lower threshold reaches more wealth → more reaches the poor.',
+                    },
+                  },
+                  {
+                    value: 'LOWER_OF_TWO',
+                    title: 'Lower of Gold/Silver (Al-Qaradawi)',
+                    desc: 'Whichever is lower at current market prices. Most conservative — typically follows silver since silver is much cheaper per gram than gold.',
+                    citations: {
+                      primary: 'Combined Bukhari 1454 + Abu Dawud 1573 — take whichever protects the poor most',
+                      classical: 'Some Hanbali scholars on maslahah grounds',
+                      contemporary: 'Shaykh Yusuf al-Qaradawi, Fiqh al-Zakat, Vol. 1',
+                      school: 'Strict / maslahah-driven contemporary position',
+                      note: 'In practice this defaults to silver today. Matches AMJA’s strict worksheet for cash + trade goods.',
+                    },
+                  },
                 ].map(opt => (
                   <label
                     key={opt.value}
@@ -361,6 +400,33 @@ export default function FiqhSettingsPage() {
                     <div className="flex-1">
                       <p className="font-semibold text-primary">{opt.title}</p>
                       <p className="text-sm text-gray-600 mt-1">{opt.desc}</p>
+                      {opt.citations && (
+                        <details className="mt-2 text-xs">
+                          <summary className="cursor-pointer text-[#1B5E20] font-semibold hover:underline">
+                            View sources ({Object.keys(opt.citations).length} citations)
+                          </summary>
+                          <dl className="mt-2 space-y-1 bg-white/80 border border-green-100 rounded p-2">
+                            {opt.citations.primary && (
+                              <div><dt className="font-semibold text-gray-700 inline">Primary: </dt><dd className="inline text-gray-600">{opt.citations.primary}</dd></div>
+                            )}
+                            {opt.citations.classical && (
+                              <div><dt className="font-semibold text-gray-700 inline">Classical: </dt><dd className="inline text-gray-600">{opt.citations.classical}</dd></div>
+                            )}
+                            {opt.citations.secondaryClassical && (
+                              <div><dt className="font-semibold text-gray-700 inline">Also: </dt><dd className="inline text-gray-600">{opt.citations.secondaryClassical}</dd></div>
+                            )}
+                            {opt.citations.contemporary && (
+                              <div><dt className="font-semibold text-gray-700 inline">Contemporary: </dt><dd className="inline text-gray-600">{opt.citations.contemporary}</dd></div>
+                            )}
+                            {opt.citations.school && (
+                              <div><dt className="font-semibold text-gray-700 inline">School: </dt><dd className="inline text-gray-600">{opt.citations.school}</dd></div>
+                            )}
+                            {opt.citations.note && (
+                              <div className="text-gray-500 italic">{opt.citations.note}</div>
+                            )}
+                          </dl>
+                        </details>
+                      )}
                     </div>
                   </label>
                 ))}
