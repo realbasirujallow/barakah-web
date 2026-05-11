@@ -47,6 +47,41 @@ interface SubscriptionStatus {
   hasSubscription: boolean;
 }
 
+/**
+ * 2026-05-10 — shape of the GET /api/debts/payoff-strategies response.
+ * Both `snowball` and `avalanche` carry: monthsToDebtFree (null if
+ * the simulator hit its 600-month cap), totalInterestPaid, perDebt
+ * payoff month, and a `monthlySeries` for the stacked-bar timeline.
+ */
+interface BackendStrategyResult {
+  strategy: 'snowball' | 'avalanche';
+  startingBalance: number;
+  minimumsTotal: number;
+  extraMonthly: number;
+  monthsToDebtFree: number | null;
+  monthsSimulated: number;
+  totalInterestPaid: number;
+  cappedAtMaxMonths: boolean;
+  debtFreeAt: number | null;
+  debts: Array<{ id: number; name: string; startingBalance: number; minimumPayment: number; annualRate: number; ribaFree: boolean }>;
+  perDebtPayoffMonth: Array<{ id: number; name: string; monthPaidOff: number | null }>;
+  monthlySeries: Array<{
+    month: number;
+    totalRemaining: number;
+    debts: Array<{ id: number; remaining: number }>;
+  }>;
+}
+interface BackendStrategiesResponse {
+  activeDebts: number;
+  snowball: BackendStrategyResult;
+  avalanche: BackendStrategyResult;
+  comparison: {
+    totalInterestDelta: number;
+    monthsDelta: number | null;
+    recommended: 'snowball' | 'avalanche';
+  };
+}
+
 /* ── Payoff simulation ──────────────────────────────────────────── */
 
 function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' | 'snowball' = 'avalanche') {
@@ -322,9 +357,47 @@ export default function DebtsPage() {
 
   // Projector calculations
   const totalMinPayment = useMemo(() => debts.reduce((s, d) => s + (d.monthlyPayment || 0), 0), [debts]);
-  const projBase       = useMemo(() => simulatePayoff(debts, 0, 'avalanche'), [debts]);
-  const projAvalanche  = useMemo(() => simulatePayoff(debts, extra, 'avalanche'), [debts, extra]);
-  const projSnowball   = useMemo(() => simulatePayoff(debts, extra, 'snowball'), [debts, extra]);
+  const clientProjBase       = useMemo(() => simulatePayoff(debts, 0, 'avalanche'), [debts]);
+  const clientProjAvalanche  = useMemo(() => simulatePayoff(debts, extra, 'avalanche'), [debts, extra]);
+  const clientProjSnowball   = useMemo(() => simulatePayoff(debts, extra, 'snowball'), [debts, extra]);
+
+  // 2026-05-10 — backend cross-debt sim with proper snowball cascade
+  // (freed-up minimums roll into next target). Fetched whenever
+  // `extra` or `debts.length` changes; debounced via setTimeout so
+  // the user can type a target like 350 → 3500 without N requests.
+  const [backendStrategies, setBackendStrategies] = useState<BackendStrategiesResponse | null>(null);
+  useEffect(() => {
+    if (!debts.some(d => d.remainingAmount > 0 && d.monthlyPayment > 0)) {
+      setBackendStrategies(null);
+      return;
+    }
+    const t = setTimeout(() => {
+      api.getDebtPayoffStrategies(extra)
+        .then((r: BackendStrategiesResponse & { error?: string }) => {
+          if (r?.error) return;
+          setBackendStrategies(r);
+        })
+        .catch(() => { /* fall back to client-side sim */ });
+    }, 400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [extra, debts.length]);
+
+  // Prefer backend numbers (correct cascade math) when available; fall
+  // back to the client-side sim while the request is in flight.
+  const projBase = clientProjBase;
+  const projAvalanche = backendStrategies?.avalanche
+    ? {
+        months: Number(backendStrategies.avalanche.monthsToDebtFree) || clientProjAvalanche.months,
+        totalInterest: Number(backendStrategies.avalanche.totalInterestPaid) || 0,
+      }
+    : clientProjAvalanche;
+  const projSnowball = backendStrategies?.snowball
+    ? {
+        months: Number(backendStrategies.snowball.monthsToDebtFree) || clientProjSnowball.months,
+        totalInterest: Number(backendStrategies.snowball.totalInterestPaid) || 0,
+      }
+    : clientProjSnowball;
 
   // R38 (2026-04-30): SkeletonPage instead of bare animate-spin.
   if (loading) return <SkeletonPage />;
@@ -685,6 +758,19 @@ export default function DebtsPage() {
                 </div>
               </div>
 
+              {/* 2026-05-10 — Payoff Timeline. Stacked-bar chart using
+                  backend monthlySeries (correct snowball cascade). Shows
+                  total remaining debt over time + per-debt segments,
+                  highlighting "Debt 1 cleared at month X" markers. Only
+                  renders once backend data lands. */}
+              {backendStrategies && (
+                <PayoffTimelineChart
+                  result={backendStrategies[backendStrategies.comparison.recommended] || backendStrategies.avalanche}
+                  recommended={backendStrategies.comparison.recommended}
+                  fmt={fmt}
+                />
+              )}
+
               {/* Per-debt breakdown */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <h2 className="font-bold text-primary mb-4">Your Debts at a Glance</h2>
@@ -783,6 +869,111 @@ export default function DebtsPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * 2026-05-10 — Stacked-bar payoff timeline using the backend
+ * `monthlySeries`. Shows total-remaining curve + per-debt segments so
+ * the user can see "Debt A clears at month 6, Debt B at month 14" in
+ * one glance.
+ *
+ * No chart library — pure HTML/CSS bars to keep bundle slim. The
+ * chart auto-samples to ~36 ticks (3-year horizon) so longer payoffs
+ * stay readable.
+ */
+function PayoffTimelineChart({
+  result,
+  recommended,
+  fmt,
+}: {
+  result: BackendStrategyResult;
+  recommended: 'snowball' | 'avalanche';
+  fmt: (n: number) => string;
+}) {
+  const series = result.monthlySeries || [];
+  if (series.length === 0) return null;
+
+  // Sample to ~36 ticks for readability — over a 10-yr payoff that's
+  // every ~3.3 months; for a 12-mo payoff every tick is shown.
+  const TICKS = 36;
+  const step = Math.max(1, Math.ceil(series.length / TICKS));
+  const sampled = series.filter((_, i) => i % step === 0 || i === series.length - 1);
+
+  const maxTotal = Math.max(...sampled.map(s => s.totalRemaining), 1);
+  const palette = ['#1B5E20', '#2563eb', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#65a30d', '#db2777'];
+  const debtColors = new Map<number, string>();
+  result.debts.forEach((d, i) => debtColors.set(d.id, palette[i % palette.length]));
+
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <div className="flex items-baseline justify-between mb-3 flex-wrap gap-2">
+        <div>
+          <h2 className="font-bold text-primary">Payoff Timeline</h2>
+          <p className="text-xs text-gray-500">
+            Recommended strategy: <strong className="capitalize">{recommended}</strong>
+            {result.monthsToDebtFree
+              ? ` — clears in ${result.monthsToDebtFree} months (${fmt(result.totalInterestPaid)} total interest)`
+              : ' — would take longer than 50 years at current minimums; increase your extra-monthly to clear faster.'}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {result.debts.map(d => (
+            <span key={d.id} className="inline-flex items-center gap-1.5 text-xs text-gray-600">
+              <span className="w-3 h-3 rounded-sm" style={{ background: debtColors.get(d.id) }} />
+              {d.name}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-end gap-[2px] h-40 mt-4 border-b border-gray-200">
+        {sampled.map(tick => {
+          const segs = (tick.debts || []).filter(d => d.remaining > 0);
+          const heightPct = (tick.totalRemaining / maxTotal) * 100;
+          return (
+            <div
+              key={tick.month}
+              className="flex-1 flex flex-col-reverse justify-end relative group min-w-[3px]"
+              style={{ height: `${heightPct}%` }}
+              title={`Month ${tick.month} — ${fmt(tick.totalRemaining)} remaining`}
+            >
+              {segs.map(s => {
+                const segHeight = tick.totalRemaining > 0 ? (s.remaining / tick.totalRemaining) * 100 : 0;
+                return (
+                  <div
+                    key={s.id}
+                    style={{
+                      height: `${segHeight}%`,
+                      background: debtColors.get(s.id) || '#9ca3af',
+                    }}
+                    className="w-full"
+                  />
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+        <span>Month 1</span>
+        <span>Month {result.monthsToDebtFree ?? result.monthsSimulated}</span>
+      </div>
+
+      {/* Per-debt payoff month markers */}
+      <div className="mt-4 space-y-1">
+        {result.perDebtPayoffMonth
+          .filter(p => p.monthPaidOff !== null)
+          .sort((a, b) => (a.monthPaidOff ?? 999) - (b.monthPaidOff ?? 999))
+          .map(p => (
+            <div key={p.id} className="flex items-center gap-2 text-xs text-gray-700">
+              <span className="w-3 h-3 rounded-sm" style={{ background: debtColors.get(p.id) || '#9ca3af' }} />
+              <span className="font-medium">{p.name}</span>
+              <span className="text-gray-500">cleared at month {p.monthPaidOff}</span>
+            </div>
+          ))}
+      </div>
     </div>
   );
 }
