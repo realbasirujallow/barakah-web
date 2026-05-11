@@ -177,7 +177,14 @@ export function WeeklyRecap({
               <span className="text-base flex-shrink-0 leading-tight" aria-hidden="true">
                 {severityToEmoji(i.severity)}
               </span>
-              <p className="text-foreground leading-snug min-w-0">{i.body}</p>
+              {/* 2026-05-11: dir="auto" lets the browser pick direction
+                  from the first strong char in the insight body, so
+                  English insights ("Your tracked assets total Rs 305,000.")
+                  render LTR with the trailing period in the right place
+                  even when the surrounding page chrome is RTL (Urdu/Arabic).
+                  Without this, the bidi algorithm pulled the period across
+                  the number on PKR-locale accounts. */}
+              <p dir="auto" className="text-foreground leading-snug min-w-0">{i.body}</p>
             </li>
           ))}
         </ul>
