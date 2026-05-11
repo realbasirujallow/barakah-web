@@ -10,7 +10,7 @@ import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
-import { Pencil, Trash2, RefreshCw, Search, CheckCircle2 } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon } from 'lucide-react';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
@@ -133,6 +133,12 @@ export default function TransactionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editTx, setEditTx]     = useState<Tx | null>(null);
+  // 2026-05-10 — split transaction state. When non-null, the split modal
+  // is open and editing this parent transaction.
+  const [splitTx, setSplitTx] = useState<Tx | null>(null);
+  // Transactions known to have splits (for the "split" icon on the row).
+  // Refreshed alongside the transactions list on every load.
+  const [txnIdsWithSplits, setTxnIdsWithSplits] = useState<Set<number>>(new Set());
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState(() => {
     // Accept only known filter values from the URL.
@@ -268,9 +274,26 @@ export default function TransactionsPage() {
           setError(transactionsResult.error);
           return;
         }
-        setTxs(Array.isArray(transactionsResult?.transactions) ? transactionsResult.transactions : []);
+        const txList: Tx[] = Array.isArray(transactionsResult?.transactions)
+          ? transactionsResult.transactions
+          : [];
+        setTxs(txList);
         setTotalPages(transactionsResult?.totalPages || 0);
         setTotalElements(transactionsResult?.totalElements || 0);
+        // 2026-05-10 — batch-fetch which transactions have splits so the
+        // row icon renders amber. Best-effort: on failure, just clear the
+        // set; the icon falls back to "no splits" appearance.
+        const ids = txList.map(t => t.id).filter(Boolean);
+        if (ids.length > 0) {
+          api.getTransactionSplitsSummary(ids)
+            .then((r: { idsWithSplits?: number[]; error?: string }) => {
+              if (r?.error) return;
+              setTxnIdsWithSplits(new Set(r.idsWithSplits ?? []));
+            })
+            .catch(() => setTxnIdsWithSplits(new Set()));
+        } else {
+          setTxnIdsWithSplits(new Set());
+        }
       })
       .catch(() => {
         toast('Failed to load transactions', 'error');
@@ -1133,6 +1156,25 @@ export default function TransactionsPage() {
                         <CheckCircle2 className="w-4 h-4" />
                       </button>
                     )}
+                    {/* 2026-05-10: Split transaction — for cross-category
+                        purchases (Costco = groceries + household + kids).
+                        Only meaningful on expenses; income/transfer rows
+                        hide the icon. */}
+                    {tx.type === 'expense' && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setSplitTx(tx); }}
+                        aria-label={`Split ${tx.description || tx.category}`}
+                        title={txnIdsWithSplits.has(tx.id) ? 'Edit splits' : 'Split into multiple categories'}
+                        className={`p-1.5 rounded-md transition-colors ${
+                          txnIdsWithSplits.has(tx.id)
+                            ? 'text-amber-700 bg-amber-50 hover:bg-amber-100'
+                            : 'text-muted-foreground hover:text-amber-700 hover:bg-amber-50'
+                        }`}
+                      >
+                        <SplitIcon className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); handleToggleRecurring(tx); }}
@@ -1397,6 +1439,270 @@ export default function TransactionsPage() {
           </div>
         </div>
       )}
+
+      {/* ── Split transaction modal (2026-05-10) ─────────────────────────── */}
+      {splitTx && (
+        <SplitTransactionModal
+          tx={splitTx}
+          fmt={fmt}
+          onClose={() => setSplitTx(null)}
+          onSaved={(hadSplits) => {
+            setTxnIdsWithSplits(prev => {
+              const next = new Set(prev);
+              if (hadSplits) next.add(splitTx.id); else next.delete(splitTx.id);
+              return next;
+            });
+            setSplitTx(null);
+            toast(hadSplits ? 'Splits saved' : 'Splits cleared', 'success');
+          }}
+          onError={(msg) => toast(msg, 'error')}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Split modal component ──────────────────────────────────────────────
+// Founder competitive audit 2026-05-10: every serious budgeter splits
+// Costco. A parent transaction stays as the payment record; splits are
+// child rows that budget aggregation attributes to per-category budgets.
+// Sum of splits must equal the parent amount within $0.01.
+interface SplitLine {
+  category: string;
+  amount: string; // string while editing — parsed to number on submit
+  description: string;
+}
+function SplitTransactionModal({
+  tx,
+  fmt,
+  onClose,
+  onSaved,
+  onError,
+}: {
+  tx: Tx;
+  fmt: (n: number) => string;
+  onClose: () => void;
+  onSaved: (hadSplits: boolean) => void;
+  onError: (msg: string) => void;
+}) {
+  const [lines, setLines] = useState<SplitLine[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const parentAmount = Number(tx.amount) || 0;
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    api.getTransactionSplits(tx.id)
+      .then((r: { splits?: Array<{ category: string; amount: number | string; description?: string }>; error?: string }) => {
+        if (cancelled) return;
+        if (r?.error) {
+          onError(r.error);
+          return;
+        }
+        const existing = (r?.splits ?? []).map(s => ({
+          category: s.category,
+          amount: String(s.amount),
+          description: s.description || '',
+        }));
+        // Default: if no existing splits, seed with the parent's category
+        // taking the full amount + one empty line ready for the user.
+        if (existing.length === 0) {
+          setLines([
+            { category: tx.category, amount: parentAmount.toFixed(2), description: '' },
+            { category: '', amount: '', description: '' },
+          ]);
+        } else {
+          setLines(existing);
+        }
+      })
+      .catch(() => onError('Failed to load splits'))
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tx.id]);
+
+  const sum = lines.reduce((acc, l) => {
+    const n = Number(l.amount);
+    return acc + (Number.isFinite(n) ? n : 0);
+  }, 0);
+  const diff = parentAmount - sum;
+  const balanced = Math.abs(diff) < 0.005;
+  const canSubmit = !saving && balanced && lines.every(l => l.category.trim() !== '' && Number(l.amount) > 0);
+
+  const addLine = () => setLines(prev => [...prev, { category: '', amount: '', description: '' }]);
+  const removeLine = (i: number) => setLines(prev => prev.filter((_, idx) => idx !== i));
+  const updateLine = (i: number, patch: Partial<SplitLine>) =>
+    setLines(prev => prev.map((l, idx) => idx === i ? { ...l, ...patch } : l));
+  // Auto-fill an empty line with the remaining diff (one-click balance).
+  // If every line already has a non-zero amount, append a new line for the diff.
+  const autoBalance = () => {
+    const emptyIdx = lines.findIndex(l => !l.amount || Number(l.amount) === 0);
+    if (emptyIdx < 0) {
+      setLines(prev => [...prev, { category: '', amount: diff.toFixed(2), description: '' }]);
+      return;
+    }
+    setLines(prev => prev.map((l, i) => {
+      if (i !== emptyIdx) return l;
+      const current = Number(l.amount) || 0;
+      return { ...l, amount: (current + diff).toFixed(2) };
+    }));
+  };
+
+  const submit = async (clear = false) => {
+    setSaving(true);
+    try {
+      if (clear) {
+        const r = await api.clearTransactionSplits(tx.id);
+        if (r?.error) { onError(r.error); return; }
+        onSaved(false);
+        return;
+      }
+      const payload = lines
+        .filter(l => l.category.trim() !== '' && Number(l.amount) > 0)
+        .map(l => ({
+          category: l.category.trim(),
+          amount: Number(l.amount),
+          description: l.description.trim() || undefined,
+        }));
+      const r = await api.setTransactionSplits(tx.id, payload);
+      if (r?.error) { onError(r.error); return; }
+      onSaved(payload.length > 0);
+    } catch (e) {
+      onError(e instanceof Error ? e.message : 'Save failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="split-modal-title"
+        className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="p-5 border-b">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 id="split-modal-title" className="font-bold text-gray-900 text-lg">Split transaction</h3>
+              <p className="text-xs text-gray-500 mt-1 max-w-md">
+                Divide <strong>{tx.description || tx.category}</strong> across multiple categories. Splits replace the single-category attribution in your budgets.
+              </p>
+            </div>
+            <button onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+          </div>
+        </div>
+
+        <div className="p-5 space-y-3">
+          {loading ? (
+            <p className="text-center text-gray-400 py-6">Loading splits…</p>
+          ) : (
+            <>
+              {lines.map((line, i) => (
+                <div key={i} className="grid grid-cols-12 gap-2 items-center">
+                  <input
+                    type="text"
+                    placeholder="Category"
+                    value={line.category}
+                    onChange={e => updateLine(i, { category: e.target.value })}
+                    className="col-span-4 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
+                  />
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    value={line.amount}
+                    onChange={e => updateLine(i, { amount: e.target.value })}
+                    className="col-span-3 px-3 py-2 border border-gray-300 rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Note (optional)"
+                    value={line.description}
+                    onChange={e => updateLine(i, { description: e.target.value })}
+                    className="col-span-4 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeLine(i)}
+                    aria-label="Remove split"
+                    className="col-span-1 text-gray-400 hover:text-rose-600 text-lg leading-none"
+                  >×</button>
+                </div>
+              ))}
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={addLine}
+                  className="text-xs font-semibold text-[#1B5E20] hover:underline"
+                >
+                  + Add split
+                </button>
+                {!balanced && diff !== 0 && (
+                  <button
+                    type="button"
+                    onClick={autoBalance}
+                    className="text-xs font-semibold text-blue-600 hover:underline"
+                  >
+                    Auto-balance ({diff > 0 ? '+' : ''}{fmt(diff)})
+                  </button>
+                )}
+              </div>
+              <div className={`mt-4 rounded-lg p-3 text-sm ${balanced ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'}`}>
+                <div className="flex justify-between">
+                  <span>Parent total</span>
+                  <strong>{fmt(parentAmount)}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>Split total</span>
+                  <strong>{fmt(sum)}</strong>
+                </div>
+                {!balanced && (
+                  <div className="flex justify-between mt-1 border-t border-amber-200 pt-1">
+                    <span>{diff > 0 ? 'Remaining' : 'Over by'}</span>
+                    <strong>{fmt(Math.abs(diff))}</strong>
+                  </div>
+                )}
+                {balanced && (
+                  <p className="mt-1 text-xs">✓ Splits sum to parent amount</p>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="p-5 border-t flex flex-wrap items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => submit(true)}
+            disabled={saving}
+            className="text-xs text-rose-700 hover:text-rose-900 disabled:opacity-40"
+          >
+            Clear all splits
+          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => submit(false)}
+              disabled={!canSubmit}
+              className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-semibold hover:bg-[#1B5E20]/90 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {saving ? 'Saving…' : 'Save splits'}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

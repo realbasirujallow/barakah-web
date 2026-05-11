@@ -16,12 +16,24 @@ interface Subscription {
   haramFlagged: boolean;
   haramReason?: string;
   /** Phase 25 (2026-04-30): backend-provided cancellation deep link
-   *  for known merchants (Netflix, Spotify, NYT, etc). null when we
-   *  don't recognise the merchant — UI falls back to a Google search. */
+   *  for known merchants (Netflix, Spotify, NYT, etc). When null on the
+   *  initial detector run, the backend now fills it with a Google-search
+   *  fallback so the UI always has SOME link to surface. */
   cancelUrl?: string;
+  /** 2026-05-10: true when cancelUrl is the Google-search fallback
+   *  (curated link not found). Used to label the button "How to cancel"
+   *  vs "Cancel" so the user knows it's a search not a direct link. */
+  cancelUrlFallback?: boolean;
   /** Phase 25 (2026-04-30): suggested halal alternative for haram-flagged
    *  services. e.g. Spotify → Muslim Central + Quran.com. */
   halalAlternative?: string;
+  /** 2026-05-10: Rocket-Money cancellation tracking.
+   *  - undefined → never tried to cancel
+   *  - "requested" → user clicked Cancel ↗ (awaits confirmation)
+   *  - "cancelled" → user confirmed cancellation stuck (savings tally) */
+  cancellationStatus?: 'requested' | 'cancelled';
+  cancellationRequestedAt?: number;
+  cancellationCancelledAt?: number;
 }
 
 interface HaramFlag {
@@ -54,36 +66,90 @@ interface HaramFlag {
 function CancelHelpLink({
   sub,
   flag,
+  onCancelClick,
 }: {
   sub?: Subscription;
   flag?: HaramFlag;
+  /** 2026-05-10: invoked when the user opens the cancel URL so the
+   *  parent can flip status → "requested" + persist intent. */
+  onCancelClick?: (sub: Subscription) => void;
 }) {
   const name = sub?.name ?? flag?.subscription ?? 'subscription';
-  if (sub?.cancelUrl) {
-    return (
-      <a
-        href={sub.cancelUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition shrink-0"
-        aria-label={`Open ${name} cancellation page`}
-      >
-        Cancel ↗
-      </a>
-    );
-  }
-  const fallback = `https://www.google.com/search?q=${encodeURIComponent(`how to cancel ${name}`)}`;
+  const url = sub?.cancelUrl
+    ?? `https://www.google.com/search?q=${encodeURIComponent(`how to cancel ${name}`)}`;
+  const isFallback = !sub?.cancelUrl || sub?.cancelUrlFallback === true;
   return (
     <a
-      href={fallback}
+      href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-xs font-semibold hover:bg-gray-50 transition shrink-0"
-      aria-label={`Search how to cancel ${name}`}
+      onClick={() => { if (sub && onCancelClick) onCancelClick(sub); }}
+      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition shrink-0 ${
+        isFallback
+          ? 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+          : 'bg-red-600 text-white hover:bg-red-700'
+      }`}
+      aria-label={isFallback ? `Search how to cancel ${name}` : `Open ${name} cancellation page`}
     >
-      How to cancel ↗
+      {isFallback ? 'How to cancel ↗' : 'Cancel ↗'}
     </a>
   );
+}
+
+/**
+ * 2026-05-10 — Cancellation status pill + "I cancelled it" / "Mark active"
+ * affordance. Visible only when the user has clicked the Cancel link at
+ * least once (cancellationStatus !== undefined).
+ */
+function CancellationStatus({
+  sub,
+  onMarkCancelled,
+  onMarkStillActive,
+}: {
+  sub: Subscription;
+  onMarkCancelled: (sub: Subscription) => void;
+  onMarkStillActive: (sub: Subscription) => void;
+}) {
+  if (sub.cancellationStatus === 'cancelled') {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+          ✓ Cancelled
+        </span>
+        <button
+          type="button"
+          onClick={() => onMarkStillActive(sub)}
+          className="text-[11px] text-gray-500 hover:text-gray-700 underline"
+        >
+          Undo
+        </button>
+      </div>
+    );
+  }
+  if (sub.cancellationStatus === 'requested') {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+          ⏳ Cancellation requested
+        </span>
+        <button
+          type="button"
+          onClick={() => onMarkCancelled(sub)}
+          className="text-[11px] font-semibold text-emerald-700 hover:text-emerald-900 underline"
+        >
+          I cancelled it
+        </button>
+        <button
+          type="button"
+          onClick={() => onMarkStillActive(sub)}
+          className="text-[11px] text-gray-500 hover:text-gray-700 underline"
+        >
+          Still active
+        </button>
+      </div>
+    );
+  }
+  return null;
 }
 
 /**
@@ -242,6 +308,10 @@ export default function SubscriptionsPage() {
   const [haramFlags, setHaramFlags] = useState<HaramFlag[]>([]);
   const [totalMonthly, setTotalMonthly] = useState(0);
   const [totalYearly, setTotalYearly] = useState(0);
+  // 2026-05-10: cumulative savings from cancellations the user has
+  // confirmed stuck. Used in the savings summary card.
+  const [cancelledMonthly, setCancelledMonthly] = useState(0);
+  const [cancelledYearly, setCancelledYearly] = useState(0);
   const [error, setError] = useState('');
 
   const loadSubscriptions = useCallback(async () => {
@@ -256,6 +326,8 @@ export default function SubscriptionsPage() {
         setHaramFlags(data?.haramFlags || []);
         setTotalMonthly(data?.totalMonthly || 0);
         setTotalYearly(data?.totalYearly || 0);
+        setCancelledMonthly(Number(data?.cancelledMonthlySavings) || 0);
+        setCancelledYearly(Number(data?.cancelledYearlySavings) || 0);
       }
     } catch {
       setError('Failed to detect subscriptions. Please try again.');
@@ -263,6 +335,76 @@ export default function SubscriptionsPage() {
       setLoading(false);
     }
   }, []);
+
+  /** Convert this subscription's "amount per frequency" → monthly cost
+   *  so the savings tally we send to the backend is comparable
+   *  across weekly/monthly/yearly subscriptions. */
+  const toMonthlyAmount = (amount: number, frequency: string) => {
+    switch (frequency) {
+      case 'weekly': return amount * 4.33;
+      case 'monthly': return amount;
+      case 'quarterly': return amount / 3;
+      case 'yearly': return amount / 12;
+      default: return amount;
+    }
+  };
+
+  /** User clicked the Cancel ↗ link. Optimistically flips local row to
+   *  "requested" and POSTs the intent to the backend so refreshes
+   *  preserve state. Doesn't block opening the cancel URL — that's the
+   *  point of the click. */
+  const onCancelClick = async (sub: Subscription) => {
+    setSubscriptions(prev => prev.map(s =>
+      s.name === sub.name
+        ? { ...s, cancellationStatus: 'requested', cancellationRequestedAt: Date.now() }
+        : s,
+    ));
+    try {
+      await api.requestSubscriptionCancellation({
+        name: sub.name,
+        estMonthlySavings: toMonthlyAmount(sub.amount, sub.frequency),
+        currency: sub.currency,
+        cancelUrlUsed: sub.cancelUrl,
+      });
+    } catch {
+      // best-effort; the optimistic update keeps the local UX in sync
+    }
+  };
+
+  const onMarkCancelled = async (sub: Subscription) => {
+    const monthly = toMonthlyAmount(sub.amount, sub.frequency);
+    setSubscriptions(prev => prev.map(s =>
+      s.name === sub.name
+        ? { ...s, cancellationStatus: 'cancelled', cancellationCancelledAt: Date.now() }
+        : s,
+    ));
+    setCancelledMonthly(prev => prev + monthly);
+    setCancelledYearly(prev => prev + monthly * 12);
+    try {
+      await api.markSubscriptionCancelled(sub.name, monthly);
+    } catch {
+      // optimistic; refresh on next re-scan will reconcile
+    }
+  };
+
+  const onMarkStillActive = async (sub: Subscription) => {
+    const wasCancelled = sub.cancellationStatus === 'cancelled';
+    const monthly = toMonthlyAmount(sub.amount, sub.frequency);
+    setSubscriptions(prev => prev.map(s =>
+      s.name === sub.name
+        ? { ...s, cancellationStatus: undefined, cancellationRequestedAt: undefined, cancellationCancelledAt: undefined }
+        : s,
+    ));
+    if (wasCancelled) {
+      setCancelledMonthly(prev => Math.max(0, prev - monthly));
+      setCancelledYearly(prev => Math.max(0, prev - monthly * 12));
+    }
+    try {
+      await api.markSubscriptionStillActive(sub.name);
+    } catch {
+      // optimistic
+    }
+  };
 
   useEffect(() => {
     void loadSubscriptions();
@@ -334,13 +476,24 @@ export default function SubscriptionsPage() {
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{fmt(totalYearly)}</p>
           <p className="text-xs text-gray-400">estimated</p>
         </div>
-        <div className={`rounded-xl p-4 shadow-sm ${haramFlags.length > 0 ? 'bg-red-50 dark:bg-red-900/20' : 'bg-green-50 dark:bg-green-900/20'}`}>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Haram Flags</p>
-          <p className={`text-2xl font-bold ${haramFlags.length > 0 ? 'text-red-600' : 'text-green-600'}`}>
-            {haramFlags.length}
-          </p>
-          <p className="text-xs text-gray-400">{haramFlags.length === 0 ? 'all clear!' : 'needs attention'}</p>
-        </div>
+        {/* 2026-05-10: cancellation savings card. When the user has marked
+            zero subscriptions as cancelled, show haram flag count instead
+            so the slot isn't wasted on day 1. */}
+        {cancelledMonthly > 0 ? (
+          <div className="rounded-xl p-4 shadow-sm bg-emerald-50 dark:bg-emerald-900/20">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Saved by cancelling</p>
+            <p className="text-2xl font-bold text-emerald-700">{fmt(cancelledMonthly)}/mo</p>
+            <p className="text-xs text-emerald-700/80">{fmt(cancelledYearly)} per year</p>
+          </div>
+        ) : (
+          <div className={`rounded-xl p-4 shadow-sm ${haramFlags.length > 0 ? 'bg-red-50 dark:bg-red-900/20' : 'bg-green-50 dark:bg-green-900/20'}`}>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Haram Flags</p>
+            <p className={`text-2xl font-bold ${haramFlags.length > 0 ? 'text-red-600' : 'text-green-600'}`}>
+              {haramFlags.length}
+            </p>
+            <p className="text-xs text-gray-400">{haramFlags.length === 0 ? 'all clear!' : 'needs attention'}</p>
+          </div>
+        )}
       </div>
 
       {/* Haram alerts — now with cancel + halal-alt CTAs (Phase 25) */}
@@ -377,8 +530,17 @@ export default function SubscriptionsPage() {
                         <strong>Halal alternative:</strong> {sub.halalAlternative}
                       </p>
                     )}
+                    {sub && (
+                      <div className="mt-2">
+                        <CancellationStatus
+                          sub={sub}
+                          onMarkCancelled={onMarkCancelled}
+                          onMarkStillActive={onMarkStillActive}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <CancelHelpLink sub={sub} flag={flag} />
+                  <CancelHelpLink sub={sub} flag={flag} onCancelClick={onCancelClick} />
                 </div>
               );
             })}
@@ -425,23 +587,32 @@ export default function SubscriptionsPage() {
                       {sub.nextExpected ? formatDate(sub.nextExpected) : 'N/A'}
                     </td>
                     <td className="px-4 py-3">
-                      {sub.haramFlagged ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                          Non-Halal
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                          Halal
-                        </span>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {sub.haramFlagged ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 w-fit">
+                            Non-Halal
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 w-fit">
+                            Halal
+                          </span>
+                        )}
+                        <CancellationStatus
+                          sub={sub}
+                          onMarkCancelled={onMarkCancelled}
+                          onMarkStillActive={onMarkStillActive}
+                        />
+                      </div>
                     </td>
                     {/* Phase 25: Cancel-help button per row.
                         R37 (2026-04-30): also dismiss + recategorize
                         false positives (founder feedback: restaurant
-                        charge stuck as subscription). */}
+                        charge stuck as subscription).
+                        2026-05-10: clicking Cancel ↗ POSTs cancel-request
+                        so the row flips to "Cancellation requested". */}
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2 flex-wrap">
-                        <CancelHelpLink sub={sub} />
+                        <CancelHelpLink sub={sub} onCancelClick={onCancelClick} />
                         <SubscriptionRowEditor
                           sub={sub}
                           onChanged={() => loadSubscriptions()}

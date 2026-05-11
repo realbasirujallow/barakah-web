@@ -800,6 +800,55 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ ids }),
     }),
+
+  // ── Split transactions (2026-05-10) ────────────────────────────────────
+  // Replace all splits for a transaction. Pass an empty array to clear.
+  // Sum of splits must equal parent amount within $0.01.
+  getTransactionSplits: (id: number) =>
+    apiFetch(`/api/transactions/${id}/splits`),
+  // Batched lookup for the row-indicator on the transactions page.
+  getTransactionSplitsSummary: (ids: number[]) =>
+    apiFetch('/api/transactions/splits-summary', {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
+    }),
+  setTransactionSplits: (
+    id: number,
+    splits: { category: string; amount: number; description?: string }[],
+  ) =>
+    apiFetch(`/api/transactions/${id}/splits`, {
+      method: 'POST',
+      body: JSON.stringify({ splits }),
+    }),
+  clearTransactionSplits: (id: number) =>
+    apiFetch(`/api/transactions/${id}/splits`, { method: 'DELETE' }),
+
+  // ── Subscription cancellation (2026-05-10) ─────────────────────────────
+  // Rocket-Money-style: user clicks Cancel → we POST cancel-request
+  // (status: "requested"); after they confirm it stuck → mark-cancelled
+  // (status: "cancelled" + savings tally); mark-still-active reverts.
+  requestSubscriptionCancellation: (params: {
+    name: string;
+    estMonthlySavings?: number;
+    currency?: string;
+    cancelUrlUsed?: string;
+  }) =>
+    apiFetch('/api/subscriptions/cancel-request', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    }),
+  markSubscriptionCancelled: (name: string, estMonthlySavings?: number) =>
+    apiFetch('/api/subscriptions/mark-cancelled', {
+      method: 'POST',
+      body: JSON.stringify({ name, estMonthlySavings }),
+    }),
+  markSubscriptionStillActive: (name: string) =>
+    apiFetch('/api/subscriptions/mark-still-active', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+  listSubscriptionCancellations: () =>
+    apiFetch('/api/subscriptions/cancellations'),
   deleteAllTransactions: (type?: string) => {
     const params = type ? `?type=${encodeURIComponent(type)}` : '';
     return apiFetch(`/api/transactions/all${params}`, { method: 'DELETE' });
