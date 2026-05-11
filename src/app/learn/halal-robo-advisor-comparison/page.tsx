@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal Robo-Advisors 2026: Wahed vs Amana vs DIY | Barakah',
+  title: 'Halal Robo-Advisors 2026: Wahed vs Amana vs DIY',
   description:
     'Honest comparison of halal robo-advisors in 2026 — Wahed Invest vs Amana Mutual Funds vs DIY. Fees, screening methodology, minimums, custody, and portability.',
   keywords: [

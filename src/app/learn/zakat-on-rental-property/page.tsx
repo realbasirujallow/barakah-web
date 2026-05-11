@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Rental Property Income — Islamic Ruling & Calculator | Barakah',
+  title: 'Zakat on Rental Property Income — Islamic Ruling & Calculator',
   description: 'Understand whether rental property income is subject to zakat, how different scholars approach it, and how to calculate your obligation on real estate investments.',
   alternates: { canonical: 'https://trybarakah.com/learn/zakat-on-rental-property' },
 };

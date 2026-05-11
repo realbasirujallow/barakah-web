@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Yaqeen Money (2026): Muslim Budget App Comparison | Barakah',
+  title: 'Barakah vs Yaqeen Money (2026): Muslim Budget App Comparison',
   description:
     "Yaqeen Money is a newer Muslim-focused budgeting app. Honest comparison: where it overlaps with Barakah, where Barakah goes further, and how to choose.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-yaqeen-money' },
   openGraph: {
-    title: 'Barakah vs Yaqeen Money (2026) — Muslim Budget App Comparison | Barakah',
+    title: 'Barakah vs Yaqeen Money (2026) — Muslim Budget App Comparison',
     description: 'Honest comparison of Yaqeen Money and Barakah for Muslim households.',
     url: 'https://trybarakah.com/compare/barakah-vs-yaqeen-money',
     type: 'article',

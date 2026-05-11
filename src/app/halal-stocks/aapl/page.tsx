@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Is Apple (AAPL) Halal? Shariah Screening 2026 | Barakah',
+  title: 'Is Apple (AAPL) Halal? Shariah Screening 2026',
   description:
     "Is Apple stock halal? Full AAOIFI screening review for AAPL — business-activity check, the three financial ratios, purification dividend guidance, and what to verify before you buy.",
   keywords: ['is apple halal', 'aapl halal', 'apple stock halal', 'is aapl shariah compliant', 'apple shariah'],
   alternates: { canonical: 'https://trybarakah.com/halal-stocks/aapl' },
   openGraph: {
-    title: 'Is Apple (AAPL) Halal? Shariah Screening 2026 | Barakah',
+    title: 'Is Apple (AAPL) Halal? Shariah Screening 2026',
     description: 'AAOIFI screening review of Apple (AAPL) — compliance status, ratios, purification guidance.',
     url: 'https://trybarakah.com/halal-stocks/aapl',
     type: 'article',

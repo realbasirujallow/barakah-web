@@ -5,7 +5,7 @@ import NisabLivePrices, { GoldPricePerGram, SilverPricePerGram, GoldNisabUSD, Si
 import { REFEREE_FIRST_MONTH_PRICE } from '../../lib/referralCopy';
 
 export const metadata: Metadata = {
-  title: 'Free Zakat Calculator 2026 — Calculate Your Zakat Instantly | Barakah',
+  title: 'Free Zakat Calculator 2026 — Calculate Your Zakat Instantly',
   description:
     'Calculate your zakat in 60 seconds with our free online zakat calculator. Supports gold, silver, cash, savings, investments, retirement accounts, and business assets with live nisab references.',
   keywords: [
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://trybarakah.com/og-zakat-calculator.png',
+        url: 'https://trybarakah.com/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Barakah Zakat Calculator',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Free Zakat Calculator 2026 — Calculate Your Zakat Instantly',
     description: 'Calculate zakat on all your assets with live nisab references and clear fiqh-aware guidance.',
-    images: ['https://trybarakah.com/og-zakat-calculator.png'],
+    images: ['https://trybarakah.com/og-image.png'],
   },
 };
 

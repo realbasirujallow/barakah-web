@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Saturna Capital / Amana Funds (2026): Complementary, Not Competitive | Barakah',
+  title: 'Barakah vs Saturna Capital / Amana Funds (2026): Complementary, Not Competitive',
   description:
     "Saturna's Amana Funds have been Sharia-compliant since 1986. Barakah doesn't compete — it's the household OS that sits alongside funds like AMANX. Here's how they fit together.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-saturna' },
   openGraph: {
-    title: 'Barakah vs Saturna Capital (2026) — Complementary, Not Competitive | Barakah',
+    title: 'Barakah vs Saturna Capital (2026) — Complementary, Not Competitive',
     description: 'How Saturna\'s Amana Funds and Barakah work together for Muslim households.',
     url: 'https://trybarakah.com/compare/barakah-vs-saturna',
     type: 'article',

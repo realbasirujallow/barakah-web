@@ -3,7 +3,7 @@ import Link from 'next/link';
 import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
-  title: 'Ramadan Giving Tracker 2026 — Zakat al-Fitr, Sadaqah & Charity Guide | Barakah',
+  title: 'Ramadan Giving Tracker 2026 — Zakat al-Fitr, Sadaqah & Charity Guide',
   description:
     'Complete Ramadan giving guide: how much is Zakat al-Fitr in 2026, when to give Sadaqah for maximum reward, and how to track your Ramadan charity with Barakah.',
   keywords: [
@@ -33,7 +33,7 @@ const breadcrumbSchema = {
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trybarakah.com' },
     { '@type': 'ListItem', position: 2, name: 'Learn', item: 'https://trybarakah.com/learn' },
-    { '@type': 'ListItem', position: 3, name: 'Ramadan Giving Tracker 2026 — Zakat al-Fitr, Sadaqah & Charity Guide | Barakah', item: 'https://trybarakah.com/learn/ramadan-giving-tracker' },
+    { '@type': 'ListItem', position: 3, name: 'Ramadan Giving Tracker 2026 — Zakat al-Fitr, Sadaqah & Charity Guide', item: 'https://trybarakah.com/learn/ramadan-giving-tracker' },
   ],
 };
 

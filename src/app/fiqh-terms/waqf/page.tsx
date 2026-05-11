@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Waqf (وقف) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Waqf (وقف) — Definition & Meaning in Islamic Finance',
   description:
     "Waqf is a perpetual endowment: the asset's principal is preserved forever and only its income is used for charitable purposes. The oldest form of sadaqah jariyah.",
   keywords: ['waqf', 'awqaf', 'waqf definition', 'islamic endowment', 'sadaqah jariyah', 'waqf meaning'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/waqf' },
   openGraph: {
-    title: 'Waqf (وقف) — Definition & Meaning | Barakah',
+    title: 'Waqf (وقف) — Definition & Meaning',
     description: 'Perpetual Islamic endowment — the oldest form of continuous charity.',
     url: 'https://trybarakah.com/fiqh-terms/waqf',
     type: 'article',

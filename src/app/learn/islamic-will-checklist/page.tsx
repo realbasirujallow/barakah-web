@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Islamic Will Checklist — 12 Things to Include in Your Wasiyyah | Barakah',
+  title: 'Islamic Will Checklist — 12 Things to Include in Your Wasiyyah',
   description:
     'A practical 12-point checklist for writing or reviewing your Islamic will. Covers faraid shares, the 1/3 bequest rule, executors, guardianship, debts, and contingency cases.',
   keywords: [

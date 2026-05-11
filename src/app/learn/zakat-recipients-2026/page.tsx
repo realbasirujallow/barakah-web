@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Where to Give Your Zakat in 2026 — The 8 Categories + Verified Charities | Barakah',
+  title: 'Where to Give Your Zakat in 2026 — The 8 Categories + Verified Charities',
   description:
     'The Quran names 8 categories of zakat-eligible recipients (Surah At-Tawbah 9:60). Here&apos;s what each category means today, plus a vetting rubric for choosing a charity.',
   keywords: [

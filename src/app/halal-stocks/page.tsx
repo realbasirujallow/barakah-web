@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   // 158. Lead with keyword "halal stock screener" to match search
   // intent; mention AAOIFI + the 5 most-searched tickers + purification
   // upsell hook.
-  title: 'Halal Stock Screener (2026) — AAOIFI Screening for US Tickers | Barakah',
+  title: 'Halal Stock Screener (2026) — AAOIFI Screening for US Tickers',
   description:
     'Halal stock screener for AAPL, MSFT, AMZN, TSLA, NVDA — AAOIFI screening, the three financial ratios, and a purification guide. Free.',
   keywords: [
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/halal-stocks' },
   openGraph: {
-    title: 'Halal Stocks — Live Shariah Screening for Major US Tickers | Barakah',
+    title: 'Halal Stocks — Live Shariah Screening for Major US Tickers',
     description: 'AAOIFI-standard halal screening for AAPL, MSFT, AMZN, TSLA, NVDA, GOOGL, META.',
     url: 'https://trybarakah.com/halal-stocks',
     type: 'article',

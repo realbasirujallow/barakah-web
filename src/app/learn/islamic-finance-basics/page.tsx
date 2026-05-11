@@ -2,14 +2,14 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Islamic Finance 101: A Beginner\'s Guide to Halal Money Management | Barakah',
+  title: 'Islamic Finance 101: A Beginner\'s Guide to Halal Money Management',
   description: 'Learn the core principles of Islamic finance: no riba, no gharar, no haram. Master halal investing, Islamic banking, and ethical financial planning.',
   keywords: ['islamic finance', 'halal finance', 'islamic banking', 'riba', 'gharar', 'what is halal investing', 'ethical investing'],
   alternates: {
     canonical: 'https://trybarakah.com/learn/islamic-finance-basics',
   },
   openGraph: {
-    title: 'Islamic Finance 101: A Beginner\'s Guide to Halal Money Management | Barakah',
+    title: 'Islamic Finance 101: A Beginner\'s Guide to Halal Money Management',
     description: 'Master Islamic finance principles and start your halal financial journey today.',
     url: 'https://trybarakah.com/learn/islamic-finance-basics',
     type: 'article',

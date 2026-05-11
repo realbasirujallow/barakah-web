@@ -30,13 +30,13 @@ export const metadata: Metadata = {
     url: 'https://trybarakah.com/learn/what-is-zakat',
     siteName: 'Barakah',
     type: 'article',
-    images: [{ url: 'https://trybarakah.com/og-zakat-calculator.png', width: 1200, height: 630 }],
+    images: [{ url: 'https://trybarakah.com/og-image.png', width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'What is Zakat? Complete 2026 Guide',
     description: 'The conditions, nisab, calculation formula, types of zakatable assets, and everything else you need to know about zakat — with a free calculator.',
-    images: ['https://trybarakah.com/og-zakat-calculator.png'],
+    images: ['https://trybarakah.com/og-image.png'],
   },
 };
 
@@ -60,7 +60,7 @@ const articleSchema = {
   dateModified: '2026-04-15',
   author: { '@type': 'Organization', name: 'Barakah', url: 'https://trybarakah.com' },
   publisher: { '@type': 'Organization', name: 'Barakah', logo: { '@type': 'ImageObject', url: 'https://trybarakah.com/icon.png' } },
-  image: 'https://trybarakah.com/og-zakat-calculator.png',
+  image: 'https://trybarakah.com/og-image.png',
 };
 
 const faqSchema = {

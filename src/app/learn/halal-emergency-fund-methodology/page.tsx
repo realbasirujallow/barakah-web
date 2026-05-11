@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal Emergency Fund Methodology 2026 | Barakah',
+  title: 'Halal Emergency Fund Methodology 2026',
   description:
     'How to build a halal emergency fund in 2026: 3-6 month sizing tied to nisab, where to park it (no high-APY savings), and how to keep it riba-free.',
   keywords: [

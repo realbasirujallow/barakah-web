@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Hawl Meaning: Your Zakat Anniversary Year, Explained | Barakah',
+  title: 'Hawl Meaning: Your Zakat Anniversary Year, Explained',
   description:
     "Hawl is the 354-day Islamic lunar year your wealth must sit above nisab for zakat to become due. Learn how hawl starts, resets, and why Barakah tracks daily continuity for signed-in users.",
   keywords: [
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/learn/hawl',
   },
   openGraph: {
-    title: 'Hawl Meaning: Your Zakat Anniversary Year, Explained | Barakah',
+    title: 'Hawl Meaning: Your Zakat Anniversary Year, Explained',
     description: 'Hawl is the 354-day Islamic lunar year your wealth must sit above nisab for zakat to become due.',
     url: 'https://trybarakah.com/learn/hawl',
     type: 'article',

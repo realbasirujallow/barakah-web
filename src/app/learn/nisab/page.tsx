@@ -3,7 +3,7 @@ import Link from 'next/link';
 import NisabLivePrices, { GoldNisabUSD, SilverNisabUSD } from '../../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
-  title: 'Nisab Threshold 2026 USD: Live Gold & Silver Calculator | Barakah',
+  title: 'Nisab Threshold 2026 USD: Live Gold & Silver Calculator',
   description:
     'The exact 2026 nisab threshold in USD, calculated from live gold and silver spot prices. Understand which methodology (AMJA gold, classical silver, or lower-of-two) applies to your madhab and why.',
   keywords: [
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/learn/nisab',
   },
   openGraph: {
-    title: 'Nisab Threshold 2026 USD: Live Gold & Silver Calculator | Barakah',
+    title: 'Nisab Threshold 2026 USD: Live Gold & Silver Calculator',
     description:
       'The exact 2026 nisab threshold in USD, calculated from live gold and silver spot prices.',
     url: 'https://trybarakah.com/learn/nisab',

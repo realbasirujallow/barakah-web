@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'How to Eliminate Riba from Your Finances: A Muslim\'s Complete Guide 2026 | Barakah',
+  title: 'How to Eliminate Riba from Your Finances: A Muslim\'s Complete Guide 2026',
   description:
     'Step-by-step guide to identifying and eliminating riba (interest) from your financial life. Halal alternatives for mortgages, credit cards, loans, and savings accounts.',
   keywords: [

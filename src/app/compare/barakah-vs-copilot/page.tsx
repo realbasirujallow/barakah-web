@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Copilot Money (2026): Halal Alternative for Muslim Households | Barakah',
+  title: 'Barakah vs Copilot Money (2026): Halal Alternative for Muslim Households',
   description:
     "Copilot Money is the most beautiful iOS budgeting app — but it's iOS-only, and there's no zakat, no hawl, no halal screening, no riba detection. Barakah covers Android + the full Islamic layer.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-copilot' },
   openGraph: {
-    title: 'Barakah vs Copilot Money (2026) — Halal Alternative for Muslim Households | Barakah',
+    title: 'Barakah vs Copilot Money (2026) — Halal Alternative for Muslim Households',
     description: 'Honest comparison of Copilot Money and Barakah for Muslim households.',
     url: 'https://trybarakah.com/compare/barakah-vs-copilot',
     type: 'article',

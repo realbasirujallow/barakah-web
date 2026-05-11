@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Is Bitcoin Halal in 2026? The Honest Answer | Barakah',
+  title: 'Is Bitcoin Halal in 2026? The Honest Answer',
   description:
     'Is Bitcoin halal in 2026? Mufti Taqi Usmani, Mufti Faraz Adam, and AAOIFI on BTC vs altcoins, staking, and mining electricity ethics. Honest scholar survey.',
   keywords: [

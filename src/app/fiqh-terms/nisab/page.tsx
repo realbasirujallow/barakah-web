@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Nisab (نصاب) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Nisab (نصاب) — Definition & Meaning in Islamic Finance',
   description:
     'Nisab is the minimum wealth threshold that triggers zakat. Explained with the gold standard, silver standard, and the scholarly reasoning behind each.',
   keywords: ['nisab', 'nisab definition', 'nisab threshold', 'zakat threshold', 'nisab meaning'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/nisab' },
   openGraph: {
-    title: 'Nisab (نصاب) — Definition & Meaning | Barakah',
+    title: 'Nisab (نصاب) — Definition & Meaning',
     description: 'The minimum wealth threshold that triggers zakat.',
     url: 'https://trybarakah.com/fiqh-terms/nisab',
     type: 'article',

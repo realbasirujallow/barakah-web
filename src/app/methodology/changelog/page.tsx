@@ -2,14 +2,14 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Methodology Changelog | Barakah',
+  title: 'Methodology Changelog',
   description:
     'Every fiqh and methodology rule change in Barakah, dated with rationale and scholar review status. Full transparency on how our calculations evolve.',
   alternates: {
     canonical: 'https://trybarakah.com/methodology/changelog',
   },
   openGraph: {
-    title: 'Methodology Changelog | Barakah',
+    title: 'Methodology Changelog',
     description: 'Every fiqh and methodology rule change in Barakah, dated with rationale.',
     url: 'https://trybarakah.com/methodology/changelog',
     type: 'article',

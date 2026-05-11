@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Acorns (2026): Halal Alternative for Muslim Investors | Barakah',
+  title: 'Barakah vs Acorns (2026): Halal Alternative for Muslim Investors',
   description:
     "Acorns built round-up investing. But its checking account pays interest (riba) and there's no halal screening. Barakah is the Islamic compliance layer for Muslim families.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-acorns' },
   openGraph: {
-    title: 'Barakah vs Acorns (2026) — Halal Alternative for Muslim Investors | Barakah',
+    title: 'Barakah vs Acorns (2026) — Halal Alternative for Muslim Investors',
     description: 'Honest comparison of Acorns and Barakah for Muslim families.',
     url: 'https://trybarakah.com/compare/barakah-vs-acorns',
     type: 'article',

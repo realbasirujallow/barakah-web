@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Fudget (2026): Halal Alternative for Muslim Households | Barakah',
+  title: 'Barakah vs Fudget (2026): Halal Alternative for Muslim Households',
   description:
     "Fudget is a $4.99 one-time list-based budget. It's deliberately simple — no bank sync, no zakat, no halal screening. Barakah covers the Muslim household end-to-end.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-fudget' },
   openGraph: {
-    title: 'Barakah vs Fudget (2026) — Halal Alternative for Muslim Households | Barakah',
+    title: 'Barakah vs Fudget (2026) — Halal Alternative for Muslim Households',
     description: 'Honest comparison of Fudget and Barakah for Muslim households.',
     url: 'https://trybarakah.com/compare/barakah-vs-fudget',
     type: 'article',

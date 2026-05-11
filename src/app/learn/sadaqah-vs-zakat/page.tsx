@@ -3,7 +3,7 @@ import Link from 'next/link';
 import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
-  title: 'Sadaqah vs Zakat — Key Differences Every Muslim Must Know | Barakah',
+  title: 'Sadaqah vs Zakat — Key Differences Every Muslim Must Know',
   description:
     'Understand the key differences between sadaqah and zakat. Learn which is obligatory, who pays, how much, when, and how to track both in your Islamic budget.',
   keywords: [

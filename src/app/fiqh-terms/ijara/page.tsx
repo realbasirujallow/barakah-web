@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Ijara (إجارة) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Ijara (إجارة) — Definition & Meaning in Islamic Finance',
   description:
     'Ijara is the Islamic leasing contract — a transfer of usufruct (use) for rent, while ownership stays with the lessor. The backbone of halal auto and equipment finance.',
   keywords: ['ijara', 'ijarah', 'ijara definition', 'islamic leasing', 'halal lease'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/ijara' },
   openGraph: {
-    title: 'Ijara (إجارة) — Definition & Meaning | Barakah',
+    title: 'Ijara (إجارة) — Definition & Meaning',
     description: 'The Islamic lease contract that underpins halal auto and equipment finance.',
     url: 'https://trybarakah.com/fiqh-terms/ijara',
     type: 'article',

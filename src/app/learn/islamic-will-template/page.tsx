@@ -3,7 +3,7 @@ import Link from 'next/link';
 import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
-  title: 'Islamic Will Template 2026 — Wasiyyah Guide & What to Include | Barakah',
+  title: 'Islamic Will Template 2026 — Wasiyyah Guide & What to Include',
   description:
     'What to include in an Islamic will (Wasiyyah). The 1/3 rule, Faraid shares, required clauses, and how to make your will Sharia-compliant in the US.',
   keywords: [
@@ -33,7 +33,7 @@ const breadcrumbSchema = {
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trybarakah.com' },
     { '@type': 'ListItem', position: 2, name: 'Learn', item: 'https://trybarakah.com/learn' },
-    { '@type': 'ListItem', position: 3, name: 'Islamic Will Template 2026 — Wasiyyah Guide & What to Include | Barakah', item: 'https://trybarakah.com/learn/islamic-will-template' },
+    { '@type': 'ListItem', position: 3, name: 'Islamic Will Template 2026 — Wasiyyah Guide & What to Include', item: 'https://trybarakah.com/learn/islamic-will-template' },
   ],
 };
 

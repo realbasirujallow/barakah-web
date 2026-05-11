@@ -3,14 +3,14 @@ import Link from 'next/link';
 import NisabLivePrices from '../../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
-  title: 'Halal Stocks List 2026: How to Screen for Shariah Compliance | Barakah',
+  title: 'Halal Stocks List 2026: How to Screen for Shariah Compliance',
   description: 'Learn how to screen stocks for Shariah compliance using AAOIFI standards. Covers halal sectors, haram industries, financial ratios, and how to build a halal portfolio in 2026.',
   keywords: ['halal stocks', 'shariah compliant stocks', 'halal investing', 'islamic stocks', 'halal stock screener', 'AAOIFI screening', 'halal ETF', 'islamic finance investing'],
   alternates: {
     canonical: 'https://trybarakah.com/learn/halal-stocks',
   },
   openGraph: {
-    title: 'Halal Stocks List 2026: How to Screen for Shariah Compliance | Barakah',
+    title: 'Halal Stocks List 2026: How to Screen for Shariah Compliance',
     description: 'Complete guide to screening stocks for Shariah compliance using AAOIFI standards, with sector analysis and screening ratios.',
     url: 'https://trybarakah.com/learn/halal-stocks',
     type: 'article',

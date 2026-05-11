@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Stock Options & RSUs: 2026 Guide | Barakah',
+  title: 'Zakat on Stock Options & RSUs: 2026 Guide',
   description:
     'Zakat treatment of vested vs unvested RSUs and stock options in 2026 — fair-market valuation, blackout windows, and exactly when zakat is owed.',
   keywords: [

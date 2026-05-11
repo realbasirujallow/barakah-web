@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Diminishing Musharaka Explained: How Islamic Mortgages Work | Barakah',
+  title: 'Diminishing Musharaka Explained: How Islamic Mortgages Work',
   description:
     'A step-by-step explanation of diminishing musharaka (declining co-ownership) — the most widely used Shariah-compliant home financing structure in the US and UK. Learn how it works, why scholars prefer it, and how it differs from conventional mortgages.',
   alternates: { canonical: 'https://trybarakah.com/learn/diminishing-musharaka-explained' },
@@ -229,7 +229,7 @@ export default function Page() {
               </div>
               <div className="flex gap-3 items-start">
                 <span className="text-green-700 font-bold flex-shrink-0 mt-0.5">✅</span>
-                <p><strong>Endorsed by major bodies:</strong> The AAOIFI (Accounting and Auditing Organization for Islamic Financial Institutions), OIC Fiqh Academy, and most contemporary Islamic finance scholars endorse properly-structured diminishing musharaka.</p>
+                <p><strong>Described by major standard-setters:</strong> Diminishing musharaka is the subject of AAOIFI Shariah Standard No. 12 (Sharikah) and OIC Fiqh Academy Resolution 30/4 (where applicable), and is widely discussed in the contemporary Islamic finance literature. Implementations vary — verify your specific provider&apos;s Shariah supervisory board has reviewed and approved their contract.</p>
               </div>
               <div className="flex gap-3 items-start">
                 <span className="text-amber-600 font-bold flex-shrink-0 mt-0.5">⚠️</span>

@@ -3,14 +3,14 @@ import Link from 'next/link';
 import NisabLivePrices, { GoldNisabUSD, SilverNisabUSD } from '../../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Stocks & Investments: How to Calculate in 2026 | Barakah',
+  title: 'Zakat on Stocks & Investments: How to Calculate in 2026',
   description: 'Complete guide to calculating zakat on stocks, mutual funds, ETFs, and cryptocurrency. Learn the market value method, net asset method, and when zakat is due on investments.',
   keywords: ['zakat on stocks', 'zakat on investments', 'zakat on mutual funds', 'zakat on cryptocurrency', 'zakat on ETF', 'zakat on shares', 'investment zakat calculation'],
   alternates: {
     canonical: 'https://trybarakah.com/learn/zakat-on-stocks',
   },
   openGraph: {
-    title: 'Zakat on Stocks & Investments: How to Calculate in 2026 | Barakah',
+    title: 'Zakat on Stocks & Investments: How to Calculate in 2026',
     description: 'How to calculate zakat on stocks, mutual funds, ETFs, and crypto using market value and net asset methods.',
     url: 'https://trybarakah.com/learn/zakat-on-stocks',
     type: 'article',

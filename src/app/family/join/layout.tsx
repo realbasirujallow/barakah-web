@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Join Your Family Plan | Barakah Islamic Finance',
+  title: 'Join Your Family Plan',
   description:
     "Accept your Barakah Family plan invite and start sharing household finances, zakat tracking, and estate planning with your family in one private space.",
   robots: { index: false, follow: false },

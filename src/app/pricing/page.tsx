@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://trybarakah.com/og-pricing.png',
+        url: 'https://trybarakah.com/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Barakah Pricing Plans',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     title: 'Pricing — Barakah Islamic Finance | Compare Plans',
     description:
       'Compare Barakah plans: Free, Plus ($9.99/mo), and Family ($14.99/mo). The most affordable Islamic finance platform.',
-    images: ['https://trybarakah.com/og-pricing.png'],
+    images: ['https://trybarakah.com/og-image.png'],
   },
 };
 

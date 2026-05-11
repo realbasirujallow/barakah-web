@@ -744,8 +744,14 @@ export default function DashboardPage() {
       )}
 
       {/* Phase 6.4: Getting-started checklist — only for users not yet
-          activated. Auto-hides when all items are done. */}
-      {!gettingStartedDismissed && !hasNoData && (
+          activated. Auto-hides when all items are done.
+          2026-05-11 (UX-8 fix): also auto-hide when the user has
+          completed 4 or 5 of the 5 steps, even without explicit
+          dismissal. The checklist persisted on the founder's prod
+          dashboard at 3/5 forever; the long-tail nudge value is
+          gone once 80%+ of items are done. */}
+      {!gettingStartedDismissed && !hasNoData
+        && gettingStartedItems.filter((i) => i.done).length < 4 && (
         <GettingStartedChecklist
           items={gettingStartedItems}
           onDismiss={dismissGettingStarted}

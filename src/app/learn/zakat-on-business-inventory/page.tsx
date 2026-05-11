@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Business Inventory — Trading Goods vs Operating Equipment | Barakah',
+  title: 'Zakat on Business Inventory — Trading Goods vs Operating Equipment',
   description:
     'Trading inventory IS zakatable. Operating equipment ISN&apos;T. Here&apos;s the rule, the test, and worked examples for retail / restaurants / e-commerce / professional services.',
   keywords: [

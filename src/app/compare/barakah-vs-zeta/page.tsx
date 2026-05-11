@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Zeta (2026): Halal Alternative for Muslim Couples & Families | Barakah',
+  title: 'Barakah vs Zeta (2026): Halal Alternative for Muslim Couples & Families',
   description:
     "Zeta is the gold standard for couples-and-family budgeting with joint banking. But it has no zakat, no hawl, no halal screening, no riba detection. Barakah adds the Islamic layer for Muslim households.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-zeta' },
   openGraph: {
-    title: 'Barakah vs Zeta (2026) — Halal Alternative for Muslim Couples & Families | Barakah',
+    title: 'Barakah vs Zeta (2026) — Halal Alternative for Muslim Couples & Families',
     description: 'Honest comparison of Zeta and Barakah for Muslim couples and families.',
     url: 'https://trybarakah.com/compare/barakah-vs-zeta',
     type: 'article',

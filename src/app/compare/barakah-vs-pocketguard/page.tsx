@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs PocketGuard (2026): Halal Alternative for Muslim Households | Barakah',
+  title: 'Barakah vs PocketGuard (2026): Halal Alternative for Muslim Households',
   description:
     "PocketGuard's 'In My Pocket' calculation is one of the slickest spending guards in any budgeting app. But it has no zakat, no hawl, no halal screening, no riba detection. Barakah adds the Islamic layer.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-pocketguard' },
   openGraph: {
-    title: 'Barakah vs PocketGuard (2026) — Halal Alternative for Muslim Households | Barakah',
+    title: 'Barakah vs PocketGuard (2026) — Halal Alternative for Muslim Households',
     description: 'Honest comparison of PocketGuard and Barakah for Muslim households.',
     url: 'https://trybarakah.com/compare/barakah-vs-pocketguard',
     type: 'article',

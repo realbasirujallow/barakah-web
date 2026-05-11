@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Quicken Classic & Simplifi (2026): Halal Alternative for Muslim Households | Barakah',
+  title: 'Barakah vs Quicken Classic & Simplifi (2026): Halal Alternative for Muslim Households',
   description:
     "Quicken Classic and Simplifi are two of the most established personal-finance tools — but neither has zakat, hawl, halal screening, or riba detection. Barakah adds the Islamic layer Muslim households need.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-quicken' },
   openGraph: {
-    title: 'Barakah vs Quicken Classic & Simplifi (2026) — Halal Alternative for Muslim Households | Barakah',
+    title: 'Barakah vs Quicken Classic & Simplifi (2026) — Halal Alternative for Muslim Households',
     description: 'Honest comparison of Quicken Classic, Simplifi, and Barakah for Muslim households.',
     url: 'https://trybarakah.com/compare/barakah-vs-quicken',
     type: 'article',

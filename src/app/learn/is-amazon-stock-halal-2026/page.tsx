@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Is Amazon Stock (AMZN) Halal in 2026? | Barakah',
+  title: 'Is Amazon Stock (AMZN) Halal in 2026?',
   description:
     'AAOIFI Standard 21 screen of Amazon (AMZN): debt ratio, interest income, AWS revenue mix, and the verdict for Muslim investors in 2026 with purification calculation.',
   keywords: [

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Transparency Reports | Barakah',
+  title: 'Transparency Reports',
   description:
     "Barakah publishes a public transparency report every six months: user growth, zakat calculated, methodology changes, scholar engagements, and security posture. The first Muslim-finance app to commit to this cadence.",
   keywords: [
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/transparency' },
   openGraph: {
-    title: 'Transparency Reports | Barakah',
+    title: 'Transparency Reports',
     description: 'Public 6-month reports on user growth, zakat calculated, methodology changes, and more.',
     url: 'https://trybarakah.com/transparency',
     type: 'website',

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Ijara vs Murabaha vs Musharaka Explained | Barakah',
+  title: 'Ijara vs Murabaha vs Musharaka Explained',
   description:
     'The three pillars of Islamic financing compared with real examples: Ijara (lease), Murabaha (cost-plus sale), and Musharaka (partnership). Which to use when in 2026.',
   keywords: [

@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Sukuk (صكوك) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Sukuk (صكوك) — Definition & Meaning in Islamic Finance',
   description:
     'Sukuk are Shariah-compliant investment certificates — the Islamic equivalent of bonds, but backed by real assets rather than debt. Explained with common structures.',
   keywords: ['sukuk', 'sukuk definition', 'islamic bonds', 'sukuk meaning', 'halal bonds'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/sukuk' },
   openGraph: {
-    title: 'Sukuk (صكوك) — Definition & Meaning | Barakah',
+    title: 'Sukuk (صكوك) — Definition & Meaning',
     description: 'Asset-backed Islamic investment certificates, often called "Islamic bonds".',
     url: 'https://trybarakah.com/fiqh-terms/sukuk',
     type: 'article',

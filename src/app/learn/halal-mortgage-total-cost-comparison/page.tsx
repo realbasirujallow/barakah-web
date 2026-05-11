@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal Mortgage vs Conventional — Total Cost Compared (2026) | Barakah',
+  title: 'Halal Mortgage vs Conventional — Total Cost Compared (2026)',
   description:
     'Run the numbers: a 30-year halal home-financing arrangement vs a conventional mortgage on the same house. Total cost, monthly payment, what changes when rates move.',
   keywords: [

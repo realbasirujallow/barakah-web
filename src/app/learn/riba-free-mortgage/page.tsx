@@ -3,7 +3,7 @@ import Link from 'next/link';
 import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
-  title: 'Riba-Free Mortgage 2026 — Halal Islamic Home Financing Options for Muslims | Barakah',
+  title: 'Riba-Free Mortgage 2026 — Halal Islamic Home Financing Options for Muslims',
   description:
     'Complete guide to riba-free mortgage alternatives for Muslims in the US — murabaha, diminishing musharakah, ijara, and LARIBA. Compare providers and understand Islamic home finance.',
   keywords: [
@@ -105,7 +105,7 @@ const methods = [
     how: 'You and the bank jointly own the home. You buy back the bank\'s share monthly while paying rent on the bank\'s remaining ownership. Ownership transfers fully to you at the end.',
     pros: ['True co-ownership model', 'Most widely used in the US', 'Clean Sharia structure', 'Offered by Guidance Residential, UIF'],
     cons: ['Slightly higher effective rate', 'Limited geographic availability', 'Not all states covered'],
-    scholars: 'Approved by AAOIFI and most major Islamic scholars',
+    scholars: 'Described in AAOIFI Shariah Standard No. 12 (Sharikah); verify the specific provider\'s Shariah board has reviewed their implementation.',
   },
   {
     name: 'Murabaha (Cost-Plus Sale)',

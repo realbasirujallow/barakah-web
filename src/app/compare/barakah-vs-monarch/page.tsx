@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Monarch Money (2026): Halal Alternative for Muslim Households | Barakah',
+  title: 'Barakah vs Monarch Money (2026): Halal Alternative for Muslim Households',
   description:
     "Monarch is the most popular Mint successor. But it has no zakat, no hawl, no halal screening, no riba detection. Barakah adds the Islamic layer to modern budgeting.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-monarch' },
   openGraph: {
-    title: 'Barakah vs Monarch Money (2026) — Halal Alternative for Muslim Households | Barakah',
+    title: 'Barakah vs Monarch Money (2026) — Halal Alternative for Muslim Households',
     description: 'Honest comparison of Monarch Money and Barakah for Muslim households.',
     url: 'https://trybarakah.com/compare/barakah-vs-monarch',
     type: 'article',

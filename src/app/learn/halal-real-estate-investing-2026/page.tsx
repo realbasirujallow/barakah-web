@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal Real Estate Investing 2026 | Barakah',
+  title: 'Halal Real Estate Investing 2026',
   description:
     'Halal real estate investing in 2026: direct ownership, which REITs are halal, crowdfunding platforms, and Diminishing Musharaka structures for Muslim investors.',
   keywords: [

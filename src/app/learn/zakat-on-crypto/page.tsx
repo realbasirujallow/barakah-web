@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Cryptocurrency (Bitcoin, Ethereum) — Islamic Guide 2026 | Barakah',
+  title: 'Zakat on Cryptocurrency (Bitcoin, Ethereum) — Islamic Guide 2026',
   description: 'Learn how to calculate zakat on Bitcoin, Ethereum, and other crypto. Understand the scholarly rulings, nisab thresholds, and whether your crypto holdings are zakatable.',
   alternates: { canonical: 'https://trybarakah.com/learn/zakat-on-crypto' },
 };

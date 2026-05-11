@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Rocket Money (2026): Halal Alternative for Muslim Households | Barakah',
+  title: 'Barakah vs Rocket Money (2026): Halal Alternative for Muslim Households',
   description:
     "Rocket Money (formerly Truebill) is the best subscription canceller in the market. But it has no zakat, no hawl, no halal screening, no riba detection. Barakah adds the Islamic layer for Muslim households.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-rocketmoney' },
   openGraph: {
-    title: 'Barakah vs Rocket Money (2026) — Halal Alternative for Muslim Households | Barakah',
+    title: 'Barakah vs Rocket Money (2026) — Halal Alternative for Muslim Households',
     description: 'Honest comparison of Rocket Money (formerly Truebill) and Barakah for Muslim households.',
     url: 'https://trybarakah.com/compare/barakah-vs-rocketmoney',
     type: 'article',

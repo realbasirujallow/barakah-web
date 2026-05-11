@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal 401(k) Options in the US 2026: HR Template + Fund Guide | Barakah',
+  title: 'Halal 401(k) Options in the US 2026: HR Template + Fund Guide',
   description:
     "Can you have a halal 401(k) in the US? Usually yes — with the right fund selection or employer conversation. Complete guide with ShariaPortfolio, Amana, Guidestone options + an email template to send HR.",
   keywords: [
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/learn/halal-401k',
   },
   openGraph: {
-    title: 'Halal 401(k) Options in the US 2026: HR Template + Fund Guide | Barakah',
+    title: 'Halal 401(k) Options in the US 2026: HR Template + Fund Guide',
     description: 'Can you have a halal 401(k)? Yes — with the right fund selection or employer conversation.',
     url: 'https://trybarakah.com/learn/halal-401k',
     type: 'article',

@@ -2,14 +2,14 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Scholar Board | Barakah',
+  title: 'Scholar Board',
   description:
     "Barakah is building a public Scholar Board across madhabs. Track review briefs, named reviewers once confirmed, and the methodology changelog behind Barakah's fiqh-aware product decisions.",
   alternates: {
     canonical: 'https://trybarakah.com/scholars',
   },
   openGraph: {
-    title: 'Scholar Board | Barakah',
+    title: 'Scholar Board',
     description:
       "Barakah is building a public Scholar Board across madhabs and publishing review status transparently.",
     url: 'https://trybarakah.com/scholars',

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Zakat and Related Giving Obligations: Al-Mal, Al-Fitr, Fidyah & Kaffarah | Barakah',
+  title: 'Zakat and Related Giving Obligations: Al-Mal, Al-Fitr, Fidyah & Kaffarah',
   description:
     'Zakat al-mal and zakat al-fitr are true zakat obligations. This guide also explains related obligations Muslims often ask about — fidyah, kaffarah, and sadaqah — with links to deeper guides.',
   keywords: [
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/learn/types-of-zakat',
   },
   openGraph: {
-    title: 'Zakat and Related Giving Obligations: Al-Mal, Al-Fitr, Fidyah & Kaffarah | Barakah',
+    title: 'Zakat and Related Giving Obligations: Al-Mal, Al-Fitr, Fidyah & Kaffarah',
     description:
       'Clear distinctions between zakat al-mal, zakat al-fitr, fidyah, kaffarah, and sadaqah, with links to deeper Barakah guides.',
     url: 'https://trybarakah.com/learn/types-of-zakat',

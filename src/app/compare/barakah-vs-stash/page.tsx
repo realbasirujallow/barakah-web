@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Stash (2026): Halal Alternative for Muslim Investors | Barakah',
+  title: 'Barakah vs Stash (2026): Halal Alternative for Muslim Investors',
   description:
     "Stash bundles fractional investing with banking. But interest-bearing cash and non-screened ETFs are riba issues for Muslim users. Barakah is the Islamic compliance layer.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare/barakah-vs-stash' },
   openGraph: {
-    title: 'Barakah vs Stash (2026) — Halal Alternative for Muslim Investors | Barakah',
+    title: 'Barakah vs Stash (2026) — Halal Alternative for Muslim Investors',
     description: 'Honest comparison of Stash and Barakah for Muslim investors.',
     url: 'https://trybarakah.com/compare/barakah-vs-stash',
     type: 'article',

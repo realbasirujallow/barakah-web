@@ -3,12 +3,12 @@ import Link from 'next/link';
 import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Gold Jewelry — Hanafi, Shafi\'i & All Madhab Rulings | Barakah',
+  title: 'Zakat on Gold Jewelry — Hanafi, Shafi\'i & All Madhab Rulings',
   description: 'Is gold jewelry zakatable? The Hanafi, Shafi\'i, Maliki, and Hanbali rulings on zakat for gold and silver jewelry — with live calculation examples.',
   keywords: ['zakat on gold jewelry', 'zakat gold hanafi', 'is jewelry zakatable', 'hanafi gold zakat', 'shafii gold exempt', 'zakat on gold', 'gold nisab 2026', 'zakat gold calculation', 'how to calculate gold zakat'],
   alternates: { canonical: 'https://trybarakah.com/learn/zakat-on-gold-hanafi' },
   openGraph: {
-    title: 'Zakat on Gold Jewelry — Hanafi, Shafi\'i & All Madhab Rulings | Barakah',
+    title: 'Zakat on Gold Jewelry — Hanafi, Shafi\'i & All Madhab Rulings',
     description: 'Is gold jewelry zakatable? The Hanafi, Shafi\'i, Maliki, and Hanbali rulings on zakat for gold and silver jewelry — with live calculation examples.',
     url: 'https://trybarakah.com/learn/zakat-on-gold-hanafi',
     siteName: 'Barakah',

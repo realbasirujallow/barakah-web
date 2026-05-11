@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Best Islamic Finance Apps Compared (2026) — Barakah, Zoya, Wahed, Saturna, Musaffa | Barakah',
+  title: 'Best Islamic Finance Apps Compared (2026) — Barakah, Zoya, Wahed, Saturna, Musaffa',
   description:
     'Side-by-side comparison of the leading Islamic finance apps: zakat tools, halal stock screening, Plus/Family pricing, fiqh assumptions, and what each one actually does well.',
   keywords: [

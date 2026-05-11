@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Halal Stock Screener 2026 — Screen 30,000+ Stocks for Islamic Compliance | Barakah',
+  title: 'Halal Stock Screener 2026 — Screen 30,000+ Stocks for Islamic Compliance',
   description:
     'Screen stocks for halal compliance using AAOIFI Standard 21 criteria. Understand business screening, financial ratio tests, and how to purify haram income — with Barakah\'s free halal stock screener.',
   keywords: [

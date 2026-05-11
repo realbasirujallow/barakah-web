@@ -26,7 +26,7 @@ import Link from 'next/link';
  */
 
 export const metadata: Metadata = {
-  title: 'Sadaqah & Waqf Distribution Disclosure | Barakah',
+  title: 'Sadaqah & Waqf Distribution Disclosure',
   description:
     'Barakah is preparing a verified sadaqah and waqf distribution disclosure. Donation flows are not live yet — this page will publish full partner, fee, and custodian detail before any donation feature ships.',
   alternates: {

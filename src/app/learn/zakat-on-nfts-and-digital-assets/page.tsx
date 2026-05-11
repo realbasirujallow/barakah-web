@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Zakat on NFTs and Digital Assets 2026 | Barakah',
+  title: 'Zakat on NFTs and Digital Assets 2026',
   description:
     'How to calculate zakat on NFTs, in-game items, and digital collectibles. Fungibility test, fair-value methodology, blue-chip vs speculative treatment, and AAOIFI guidance.',
   keywords: [

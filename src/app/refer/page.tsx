@@ -23,7 +23,7 @@ import {
  * referrer-reward sentence (was misleading Family users).
  */
 export const metadata: Metadata = {
-  title: `Refer a Friend — You Earn a Free Month, They Get Their First Month for ${REFEREE_FIRST_MONTH_PRICE} | Barakah`,
+  title: `Refer a Friend — You Earn a Free Month, They Get Their First Month for ${REFEREE_FIRST_MONTH_PRICE}`,
   description:
     `Share Barakah with friends and family. When they sign up with your code and verify their email, you get ${REFERRER_REWARD_PHRASE}, and they get ${REFEREE_REWARD_PHRASE}.`,
   keywords: [
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/refer',
   },
   openGraph: {
-    title: `Refer a Friend — You Earn a Free Month, They Get Their First Month for ${REFEREE_FIRST_MONTH_PRICE} | Barakah`,
+    title: `Refer a Friend — You Earn a Free Month, They Get Their First Month for ${REFEREE_FIRST_MONTH_PRICE}`,
     description:
       `Share Barakah with your community. When a friend signs up and verifies their email, you earn a free extra month of Plus, and they get their first month for ${REFEREE_FIRST_MONTH_PRICE}.`,
     url: 'https://trybarakah.com/refer',

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../../lib/trial';
 
 export const metadata: Metadata = {
-  title: 'Barakah vs Wahed (2026): Household Money vs Halal Robo-Advisor | Barakah',
+  title: 'Barakah vs Wahed (2026): Household Money vs Halal Robo-Advisor',
   description:
     "Barakah and Wahed Invest solve different problems. Wahed invests your money; Barakah manages your household's entire money. Honest comparison, pricing, and which one (or both) fits.",
   keywords: [
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/compare/barakah-vs-wahed',
   },
   openGraph: {
-    title: 'Barakah vs Wahed (2026): Household Money vs Halal Robo-Advisor | Barakah',
+    title: 'Barakah vs Wahed (2026): Household Money vs Halal Robo-Advisor',
     description: "Barakah and Wahed Invest solve different problems. Honest comparison and recommendation.",
     url: 'https://trybarakah.com/compare/barakah-vs-wahed',
     type: 'article',

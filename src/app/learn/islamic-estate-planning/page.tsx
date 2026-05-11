@@ -3,7 +3,7 @@ import Link from 'next/link';
 import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 
 export const metadata: Metadata = {
-  title: 'Islamic Estate Planning 2026 — Wasiyyah, Faraid & Waqf Guide for Muslims | Barakah',
+  title: 'Islamic Estate Planning 2026 — Wasiyyah, Faraid & Waqf Guide for Muslims',
   description:
     'Complete guide to Islamic estate planning for Muslims in the US. Understand Wasiyyah (Islamic will), Faraid (inheritance shares), and Waqf (endowment) — and how they work together.',
   keywords: [
@@ -34,7 +34,7 @@ const breadcrumbSchema = {
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trybarakah.com' },
     { '@type': 'ListItem', position: 2, name: 'Learn', item: 'https://trybarakah.com/learn' },
-    { '@type': 'ListItem', position: 3, name: 'Islamic Estate Planning 2026 — Wasiyyah, Faraid & Waqf Guide for Muslims | Barakah', item: 'https://trybarakah.com/learn/islamic-estate-planning' },
+    { '@type': 'ListItem', position: 3, name: 'Islamic Estate Planning 2026 — Wasiyyah, Faraid & Waqf Guide for Muslims', item: 'https://trybarakah.com/learn/islamic-estate-planning' },
   ],
 };
 

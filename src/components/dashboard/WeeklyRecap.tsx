@@ -164,7 +164,12 @@ export function WeeklyRecap({
               )}
             </p>
           ) : (
-            <p className="text-base sm:text-lg font-semibold text-muted-foreground">—</p>
+            // 2026-05-11 (UX-3 fix): bare em-dash reads as "broken value".
+            // Add a title attribute so hovering reveals the intent.
+            <p
+              className="text-base sm:text-lg font-semibold text-muted-foreground"
+              title="Not enough month-over-month spending data to compare yet (both months must have at least $50 in expenses)."
+            >—</p>
           )}
         </div>
       </div>

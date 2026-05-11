@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Hawl Reset Rules — Does Your Lunar Year Restart? | Barakah',
+  title: 'Hawl Reset Rules — Does Your Lunar Year Restart?',
   description:
     'When does the hawl (lunar zakat year) reset? What if your wealth dipped below nisab and recovered? Hanafi vs Shafi&apos;i positions explained with worked examples.',
   keywords: [

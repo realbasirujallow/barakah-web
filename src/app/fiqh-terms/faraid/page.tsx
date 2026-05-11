@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Faraid (فرائض) — Definition & Meaning in Islamic Finance | Barakah',
+  title: 'Faraid (فرائض) — Definition & Meaning in Islamic Finance',
   description:
     "Faraid is the Qur'anic science of inheritance — fixed, divinely-allocated shares for each heir. Learn the spouse, parent, child, and residuary shares.",
   keywords: ['faraid', "fara'id", 'faraid definition', 'islamic inheritance', 'faraid meaning'],
   alternates: { canonical: 'https://trybarakah.com/fiqh-terms/faraid' },
   openGraph: {
-    title: 'Faraid (فرائض) — Definition & Meaning | Barakah',
+    title: 'Faraid (فرائض) — Definition & Meaning',
     description: 'Qur\'anically-fixed inheritance shares for Muslim heirs.',
     url: 'https://trybarakah.com/fiqh-terms/faraid',
     type: 'article',

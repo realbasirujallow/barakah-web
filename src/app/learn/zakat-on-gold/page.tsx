@@ -3,14 +3,14 @@ import Link from 'next/link';
 import NisabLivePrices, { GoldPricePerGram, GoldNisabUSD } from '../../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Gold & Jewelry: Complete 2026 Guide | Barakah',
+  title: 'Zakat on Gold & Jewelry: Complete 2026 Guide',
   description: 'Complete guide to calculating zakat on gold, jewelry, and silver. Learn about nisab thresholds, Hanafi vs Shafi\'i positions, and 2026 gold prices.',
   keywords: ['zakat on gold', 'zakat on gold jewelry', 'how to calculate zakat on gold', 'is jewelry zakatable', 'gold nisab'],
   alternates: {
     canonical: 'https://trybarakah.com/learn/zakat-on-gold',
   },
   openGraph: {
-    title: 'Zakat on Gold & Jewelry: Complete 2026 Guide | Barakah',
+    title: 'Zakat on Gold & Jewelry: Complete 2026 Guide',
     description: 'Calculate zakat on gold with our complete guide covering nisab, calculation methods, and scholarly positions.',
     url: 'https://trybarakah.com/learn/zakat-on-gold',
     type: 'article',
