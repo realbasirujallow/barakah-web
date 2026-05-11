@@ -294,11 +294,24 @@ export default function BudgetPage() {
         className="grid md:grid-cols-3 gap-4 mb-6"
         style={{ viewTransitionName: 'budget-hero' }}
       >
+        {/* 2026-05-11 (Bug-A3): when both Budget and Spent are 0 (empty
+            state) the orange/green semantics read as "you spent zero (bad),
+            remaining zero (good)" which is meaningless. Drop the semantic
+            color in the empty state. */}
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Budget</p><p className="text-2xl font-bold text-primary">{fmt(totalBudget)}</p></div>
-        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Spent</p><p className="text-2xl font-bold text-orange-600">{fmt(totalSpent)}</p></div>
+        <div className="bg-white rounded-xl p-5">
+          <p className="text-gray-500 text-sm">Total Spent</p>
+          <p className={`text-2xl font-bold ${totalBudget === 0 && totalSpent === 0 ? 'text-gray-400' : 'text-orange-600'}`}>{fmt(totalSpent)}</p>
+        </div>
         <div className="bg-white rounded-xl p-5">
           <p className="text-gray-500 text-sm">Remaining</p>
-          <p className={`text-2xl font-bold ${totalBudget - totalSpent >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(totalBudget - totalSpent)}</p>
+          <p className={`text-2xl font-bold ${
+            totalBudget === 0 && totalSpent === 0
+              ? 'text-gray-400'
+              : totalBudget - totalSpent >= 0
+                ? 'text-green-600'
+                : 'text-red-600'
+          }`}>{fmt(totalBudget - totalSpent)}</p>
         </div>
       </div>
 

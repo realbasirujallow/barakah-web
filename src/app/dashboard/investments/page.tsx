@@ -295,9 +295,33 @@ export default function InvestmentsPage() {
               {fmt(totalValue)} tracked holdings + {fmt(assetTotal)} retirement &amp; asset accounts
             </p>
           )}
-          <p className={`text-sm mt-1 ${isGain ? 'text-green-200' : 'text-red-300'}`}>
-            {isGain ? '▲' : '▼'} {fmt(Math.abs(totalGainLoss))} ({fmtPct(totalGainLossPct)}) all time
-          </p>
+          {/* 2026-05-11 (Bug-A8): hide / annotate the gain line when the
+              numbers don't reconcile. A non-zero dollar delta with a 0.00%
+              percent reads as broken math — usually cost-basis is missing
+              so the percent denominator is wrong. Three cases:
+                  • delta == 0 AND pct == 0     → show nothing (true flat)
+                  • delta != 0 AND pct == 0     → show delta, label as "cost basis pending"
+                  • everything else             → standard ▲ ▼ render */}
+          {(() => {
+            const deltaAbs = Math.abs(totalGainLoss);
+            const pctAbs = Math.abs(totalGainLossPct);
+            if (deltaAbs < 0.005 && pctAbs < 0.005) return null;
+            if (pctAbs < 0.005 && deltaAbs >= 0.005) {
+              return (
+                <p
+                  className="text-sm mt-1 text-green-100"
+                  title="Cost basis not yet available — % return can't be computed. Showing balance change only."
+                >
+                  {isGain ? '▲' : '▼'} {fmt(deltaAbs)} all time · cost basis pending
+                </p>
+              );
+            }
+            return (
+              <p className={`text-sm mt-1 ${isGain ? 'text-green-200' : 'text-red-300'}`}>
+                {isGain ? '▲' : '▼'} {fmt(deltaAbs)} ({fmtPct(totalGainLossPct)}) all time
+              </p>
+            );
+          })()}
         </div>
       )}
 
@@ -610,9 +634,13 @@ export default function InvestmentsPage() {
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="font-bold text-gray-900">{fmt(account.totalValue)}</p>
-                      <p className={`text-xs ${accGainPositive ? 'text-green-600' : 'text-red-600'}`}>
-                        {accGainPositive ? '▲' : '▼'} {fmt(Math.abs(accGain))} ({fmtPct(account.gainLossPct)})
-                      </p>
+                      {/* 2026-05-11 (Bug-A9): hide the green-up "▲ $0.00 (0.00%)"
+                          line when there's no gain to report. Visual noise. */}
+                      {(Math.abs(accGain) >= 0.005 || Math.abs(account.gainLossPct || 0) >= 0.005) && (
+                        <p className={`text-xs ${accGainPositive ? 'text-green-600' : 'text-red-600'}`}>
+                          {accGainPositive ? '▲' : '▼'} {fmt(Math.abs(accGain))} ({fmtPct(account.gainLossPct)})
+                        </p>
+                      )}
                     </div>
                     <span className="text-gray-400 text-sm">{isExpanded ? '▲' : '▼'}</span>
                   </div>
@@ -667,9 +695,12 @@ export default function InvestmentsPage() {
                               <div className="flex items-center gap-4">
                                 <div className="text-right">
                                   <p className="font-medium text-sm">{fmt(h.totalValue)}</p>
-                                  <p className={`text-xs ${hGainPos ? 'text-green-600' : 'text-red-600'}`}>
-                                    {hGainPos ? '▲' : '▼'} {fmt(Math.abs(hGain))} ({fmtPct(h.gainLossPct)})
-                                  </p>
+                                  {/* Bug-A9: hide $0.00/0% gain rows. */}
+                                  {(Math.abs(hGain) >= 0.005 || Math.abs(h.gainLossPct || 0) >= 0.005) && (
+                                    <p className={`text-xs ${hGainPos ? 'text-green-600' : 'text-red-600'}`}>
+                                      {hGainPos ? '▲' : '▼'} {fmt(Math.abs(hGain))} ({fmtPct(h.gainLossPct)})
+                                    </p>
+                                  )}
                                 </div>
                                 <button
                                   onClick={() => handleDeleteHolding(h.id)}

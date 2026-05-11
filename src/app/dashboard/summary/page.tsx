@@ -401,33 +401,45 @@ export default function SummaryPage() {
         }
       />
 
-      {/* Controls */}
-      <div className="flex gap-3 mb-6 flex-wrap">
-        <div className="flex gap-2">
-          {PERIOD_OPTIONS.map(p => (
-            <button
-              key={p.value}
-              onClick={() => setPeriod(p.value as 'month' | 'year')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                period === p.value ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+      {/* Controls.
+          2026-05-11 (Bug-A7): the two button groups (KPI period + chart
+          history) used to sit flush against each other with no visual
+          separation, so users saw "This Month" active AND "6m" active and
+          assumed only one should be selectable at a time. Add labels +
+          a divider so each group's scope is unambiguous. */}
+      <div className="flex gap-6 mb-6 flex-wrap items-end">
+        <div>
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium mb-1">KPI period</p>
+          <div className="flex gap-2">
+            {PERIOD_OPTIONS.map(p => (
+              <button
+                key={p.value}
+                onClick={() => setPeriod(p.value as 'month' | 'year')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  period === p.value ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex gap-2">
-          {MONTHS_BACK.map(m => (
-            <button
-              key={m}
-              onClick={() => setMonths(m)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-                months === m ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {m}m
-            </button>
-          ))}
+        <div className="hidden md:block w-px h-9 bg-gray-200 self-end" aria-hidden="true" />
+        <div>
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium mb-1">Chart history</p>
+          <div className="flex gap-2">
+            {MONTHS_BACK.map(m => (
+              <button
+                key={m}
+                onClick={() => setMonths(m)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                  months === m ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {m}m
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

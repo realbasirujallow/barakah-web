@@ -521,7 +521,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-primary">{user.name}</span></p>
             </div>
           </header>
-          <main id="dashboard-main" tabIndex={-1} className="flex-1 p-6 overflow-auto">
+          {/* 2026-05-11 (Bug-A4): the "Ask Barakah" + "Feedback" floating
+              pills at fixed bottom-right used to overlap row-action buttons
+              (Edit/Delete/Pay) on every list page (Assets, Debts, Investments,
+              Transactions, Ledger…). Reserve ~7rem of right-padding on the
+              bottom of the main scroll container so the FAB never sits over
+              clickable content. */}
+          <main id="dashboard-main" tabIndex={-1} className="flex-1 p-6 pb-28 overflow-auto">
             {/* Lane 10 (2026-05-09): super-admin "View as user" support banner */}
             <SupportModeBanner />
             <TrialBanner />

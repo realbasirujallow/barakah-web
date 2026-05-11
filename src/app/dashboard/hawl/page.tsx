@@ -431,8 +431,16 @@ function HawlPageContent() {
       )}
 
       <div className="grid md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Tracking</p><p className="text-2xl font-bold text-primary">{items.length}</p></div>
-        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Zakat Due</p><p className="text-2xl font-bold text-amber-600">{zakatDue.length}</p></div>
+        {/* 2026-05-11 (Bug-A10): "Zakat Due 0" was ambiguous — is that
+            $0 or 0 trackers? Suffix with units. */}
+        <div className="bg-white rounded-xl p-5">
+          <p className="text-gray-500 text-sm">Tracking</p>
+          <p className="text-2xl font-bold text-primary">{items.length} <span className="text-sm font-medium text-gray-400">{items.length === 1 ? 'asset' : 'assets'}</span></p>
+        </div>
+        <div className="bg-white rounded-xl p-5">
+          <p className="text-gray-500 text-sm">Zakat Due</p>
+          <p className="text-2xl font-bold text-amber-600">{zakatDue.length} <span className="text-sm font-medium text-gray-400">{zakatDue.length === 1 ? 'tracker' : 'trackers'}</span></p>
+        </div>
         <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Current Zakatable Wealth</p><p className="text-2xl font-bold text-primary">{fmt(currentZakatableWealth)}</p></div>
       </div>
 

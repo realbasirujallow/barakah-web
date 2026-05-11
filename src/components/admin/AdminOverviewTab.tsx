@@ -74,7 +74,10 @@ export function AdminOverviewTab({
           <div className="bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] rounded-2xl p-5 text-white">
             <p className="text-green-200 text-xs font-medium mb-1">Total Users</p>
             <p className="text-3xl font-bold">{overview.totalUsers.toLocaleString()}</p>
-            <p className="text-green-200 text-xs mt-1">
+            <p
+              className="text-green-200 text-xs mt-1 cursor-help"
+              title="'Truly paid' = users on a Stripe or RevenueCat plan that has actually charged. Excludes active trials and family-plan inherited seats. So 0.0% with 55 'Active' subs means everyone active is currently on a trial or family-inherited seat — not zero conversion."
+            >
               {truePaidConversion}% truly paid
             </p>
           </div>

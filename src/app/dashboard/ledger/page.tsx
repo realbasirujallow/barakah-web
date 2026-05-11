@@ -129,7 +129,12 @@ export default function AuditLedgerPage() {
     }
   };
 
-  // Extract a human-readable description from metadataJson or description field
+  // Extract a human-readable description from metadataJson or description field.
+  // 2026-05-11 (Bug-A2): old version only knew the asset/debt/goal/bill keys
+  // and returned "—" for everything else (FIQH_CONFIG_CHANGED,
+  // NISAB_METHODOLOGY_AUTO_SWITCHED, …) — so the whole Description column
+  // read as a column of em-dashes. Expanded the key list to cover the
+  // fiqh-config + nisab-methodology event metadata.
   const getDescription = (entry: LedgerEntry): string => {
     if (entry.description) return entry.description;
     if (entry.metadataJson) {
@@ -147,6 +152,12 @@ export default function AuditLedgerPage() {
         if (meta.goalName) parts.push(meta.goalName);
         if (meta.billName) parts.push(meta.billName);
         if (meta.transactionDescription) parts.push(meta.transactionDescription);
+        // Fiqh / nisab config events.
+        if (meta.oldMadhab && meta.newMadhab) parts.push(`${meta.oldMadhab} → ${meta.newMadhab}`);
+        if (meta.oldMethodology && meta.newMethodology) parts.push(`${meta.oldMethodology} → ${meta.newMethodology}`);
+        if (meta.fieldChanged) parts.push(`${meta.fieldChanged}`);
+        if (meta.reason) parts.push(meta.reason);
+        if (meta.note) parts.push(meta.note);
         return parts.join(' · ') || '—';
       } catch {
         return '—';
