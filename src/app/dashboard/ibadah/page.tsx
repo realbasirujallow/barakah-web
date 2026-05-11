@@ -225,9 +225,16 @@ export default function IbadahFinancePage() {
                   </div>
                   <p className="text-3xl font-bold mb-1">{fmt(data.zakat.totalZakatDue)}</p>
                   <p className="text-green-100 text-sm flex-1">
+                    {/* 2026-05-11 (Bug-A11 follow-up): backend now returns
+                        zakatDueCount = 1 when ANY zakat is owed on consolidated
+                        zakatable wealth (it's one obligation, not per-asset).
+                        Render that semantically instead of "1 assets with zakat
+                        due" which reads weird. */}
                     {data.zakat.belowNisab
                       ? 'Not eligible yet'
-                      : `${data.zakat.zakatDueCount} asset${data.zakat.zakatDueCount !== 1 ? 's' : ''} with zakat due`}
+                      : data.zakat.zakatDueCount > 0
+                        ? 'Obligation — matches Zakat Calculator'
+                        : 'No zakat owed right now'}
                   </p>
                   {!data.zakat.belowNisab && data.zakat.activeTrackers === 0 && data.zakat.totalZakatDue === 0 && (
                     <p className="mt-2 rounded-lg bg-white/15 px-3 py-2 text-xs leading-5 text-green-50">
