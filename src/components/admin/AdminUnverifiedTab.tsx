@@ -34,6 +34,14 @@ export interface AdminUnverifiedTabProps {
    */
   loadData?: (p: number) => void | Promise<void>;
   page?: number;
+  /**
+   * Open the shared user-detail modal so admins can call the user, fix
+   * a typo in their email, force-verify, or grant a trial. Wired by the
+   * parent admin page. Founder report 2026-05-10: prior to this prop,
+   * unverified rows had no onClick at all — you could see the user but
+   * couldn't act on them.
+   */
+  openUser?: (u: AdminUser, listContext?: AdminUser[]) => void;
 }
 
 interface UnverifiedResponse {
@@ -41,7 +49,7 @@ interface UnverifiedResponse {
   count: number;
 }
 
-export function AdminUnverifiedTab({ toast, loadData, page = 0 }: AdminUnverifiedTabProps) {
+export function AdminUnverifiedTab({ toast, loadData, page = 0, openUser }: AdminUnverifiedTabProps) {
   const [unverified, setUnverified] = useState<AdminUser[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -154,32 +162,51 @@ export function AdminUnverifiedTab({ toast, loadData, page = 0 }: AdminUnverifie
             <div>Location</div>
             <div>Action</div>
           </div>
-          {(unverified ?? []).map(u => (
-            <div
-              key={u.id}
-              className="grid grid-cols-4 px-5 py-4 gap-4 items-center hover:bg-gray-50 transition"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
-                  {(u.name || u.email)[0].toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">{u.name || 'Unnamed'}</p>
-                  <p className="text-xs text-gray-400 truncate">{u.email}</p>
-                </div>
-              </div>
-              <div className="text-sm text-gray-600">{fmtDateMs(u.createdAt)}</div>
-              <div className="text-sm text-gray-600">
-                {u.country && u.state ? `${u.state}, ${u.country}` : u.country || u.state || '—'}
-              </div>
-              <button
-                onClick={() => handleResendOne(u)}
-                className="px-3 py-1.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition"
+          {(unverified ?? []).map(u => {
+            const list = unverified ?? [];
+            const handleOpen = openUser
+              ? () => openUser(u, list)
+              : undefined;
+            return (
+              <div
+                key={u.id}
+                role={handleOpen ? 'button' : undefined}
+                tabIndex={handleOpen ? 0 : undefined}
+                onClick={handleOpen}
+                onKeyDown={handleOpen
+                  ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpen(); } }
+                  : undefined}
+                className={`grid grid-cols-4 px-5 py-4 gap-4 items-center transition ${
+                  handleOpen ? 'cursor-pointer hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:bg-amber-50' : 'hover:bg-gray-50'
+                }`}
               >
-                Resend
-              </button>
-            </div>
-          ))}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                    {(u.name || u.email)[0].toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">{u.name || 'Unnamed'}</p>
+                    <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-600">{fmtDateMs(u.createdAt)}</div>
+                <div className="text-sm text-gray-600">
+                  {u.country && u.state ? `${u.state}, ${u.country}` : u.country || u.state || '—'}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleResendOne(u); }}
+                    className="px-3 py-1.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition"
+                  >
+                    Resend
+                  </button>
+                  {handleOpen && (
+                    <span className="text-[#1B5E20] text-xs font-medium" aria-hidden>View →</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

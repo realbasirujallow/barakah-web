@@ -227,9 +227,17 @@ export default function AdminNotesPage() {
                     <li key={n.id} className="border border-gray-200 rounded-lg px-3 py-2">
                       <div className="flex items-baseline justify-between gap-2 mb-1">
                         <div className="text-sm">
-                          <span className="font-semibold text-gray-900">
+                          {/* 2026-05-10: deep-link to admin user-detail modal.
+                              The parent admin page reads ?focusUser=ID on
+                              mount and auto-opens the modal, so the founder
+                              can jump straight into "view → fix email →
+                              log call" instead of scrolling the user table. */}
+                          <Link
+                            href={`/dashboard/admin?focusUser=${n.user.id}`}
+                            className="font-semibold text-gray-900 hover:text-[#1B5E20] hover:underline"
+                          >
                             {n.user.name || n.user.email}
-                          </span>
+                          </Link>
                           {n.user.name && (
                             <span className="text-xs text-gray-500 ml-1">{n.user.email}</span>
                           )}
