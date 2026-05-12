@@ -91,14 +91,14 @@ export default function IsAmazonStockHalalPage() {
             Best public estimates put Amazon&apos;s alcohol, prohibited media, and pork sales at well under 5% of total revenue. Sheikh Joe Bradford&apos;s 2024 review of AMZN landed at roughly 1.8% incidental haram. <strong>Pass.</strong>
           </p>
 
-          <h3 className="text-lg font-bold text-gray-900 mt-6 mb-3 dark:text-gray-100">2. Debt to total assets &lt; 33%</h3>
+          <h3 className="text-lg font-bold text-gray-900 mt-6 mb-3 dark:text-gray-100">2. Interest-bearing debt ÷ market cap &lt; 30%</h3>
           <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
-            Most recent balance sheet: total interest-bearing debt around $135B against total assets around $625B. Ratio: 21.6%. <strong>Pass.</strong> Amazon has historically been low on long-term debt relative to its asset base because operating cash flow funds most of its capex.
+            Most recent balance sheet: total interest-bearing debt around $135B against a trailing 12-month average market cap around $1.85T. Ratio: ~7.3%. <strong>Pass.</strong> Amazon has historically been low on long-term debt relative to its market cap because operating cash flow funds most of its capex.
           </p>
 
-          <h3 className="text-lg font-bold text-gray-900 mt-6 mb-3 dark:text-gray-100">3. Interest-bearing securities ÷ total assets &lt; 33%</h3>
+          <h3 className="text-lg font-bold text-gray-900 mt-6 mb-3 dark:text-gray-100">3. Interest-bearing securities + cash ÷ market cap &lt; 30%</h3>
           <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
-            Cash, cash equivalents, and marketable securities sit around $90B. The marketable securities slice (which is the interest-bearing portion that triggers AAOIFI&apos;s concern) is roughly $25B. Against $625B in assets, that is about 4%. <strong>Pass.</strong>
+            Cash, cash equivalents, and marketable securities sit around $90B. Against ~$1.85T in average market cap, that is about 4.9%. <strong>Pass.</strong>
           </p>
 
           <h3 className="text-lg font-bold text-gray-900 mt-6 mb-3 dark:text-gray-100">4. Interest income ÷ total revenue &lt; 5%</h3>

@@ -615,7 +615,21 @@ export default function ZakatPage() {
       <PageHeader
         title="Zakat Calculator"
         subtitle="Calculate gross zakat due across cash, gold, stocks, and savings"
-        icon={<span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{lunarYear} AH</span>}
+        // 2026-05-12 (QA-2026-05-12, Finding F7): the chip just said "1448 AH"
+        // while the dashboard's Islamic calendar widget said "25 Dhul Qadah
+        // 1447" — looks like an off-by-one bug. It's not: the backend returns
+        // the year of the user's *next* zakat anniversary, which is in the
+        // following Hijri year for a user who joined mid-year. Add a tooltip
+        // and aria-label so the meaning is discoverable.
+        icon={
+          <span
+            className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium"
+            title={`Hijri year of your next zakat anniversary (${lunarYear} AH)`}
+            aria-label={`Zakat anniversary year ${lunarYear} AH`}
+          >
+            {lunarYear} AH
+          </span>
+        }
         actions={
           <>
             <button
@@ -703,6 +717,25 @@ export default function ZakatPage() {
                   creating a confusing contradiction. */}
               {fulfilled ? 'Mabrook! May Allah accept your Zakat. تقبل الله منك' : zakatEligible ? 'Your zakatable wealth exceeds Nisab — Zakat is obligatory' : 'Your zakatable wealth is below Nisab threshold'}
             </p>
+            {/* 2026-05-12 (QA-2026-05-12, Finding F6): a brand-new user with
+                no connected accounts saw "$0.00 — below Nisab" on the Overview
+                tab while the Asset Calc tab could compute their actual zakat
+                from manual input. Without context the Overview $0 read as
+                "broken result". Add a one-tap CTA to Asset Calc when there's
+                genuinely no data (not fulfilled, not eligible, and total
+                wealth is zero). */}
+            {!fulfilled && !zakatEligible && ((data?.totalWealth as number | undefined) ?? 0) === 0 && tab === 'calculator' && (
+              <p className="mt-3 text-xs text-amber-100/90">
+                No connected accounts yet —{' '}
+                <button
+                  type="button"
+                  onClick={() => setTab('assets')}
+                  className="underline font-semibold hover:text-white"
+                >
+                  enter your assets manually →
+                </button>
+              </p>
+            )}
             {totalPaid > 0 && (zakatDue ?? 0) > 0 && !hideZakat && (
               <div className="mt-4 max-w-md mx-auto">
                 <div className="w-full bg-white/20 rounded-full h-3">
@@ -812,9 +845,12 @@ export default function ZakatPage() {
                 </p>
               )}
               <p className="text-xs text-green-700 bg-green-50 rounded px-2 py-0.5 mt-2 inline-block font-medium">
+                {/* 2026-05-12 (QA-2026-05-12, Finding I5): label softened from
+                    "Gold Standard (AMJA)" to "Gold Standard (85g)" so the
+                    chip doesn't read as AMJA-endorsed by Barakah. */}
                 {selectedMethodology === 'CLASSICAL_SILVER' ? 'Silver Standard (Classical Hanafi)' :
                  selectedMethodology === 'LOWER_OF_TWO' ? 'Lower of Gold/Silver (Al-Qaradawi)' :
-                 'Gold Standard (AMJA)'} · <button onClick={() => { const el = document.getElementById('methodology-section'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="underline">Change</button>
+                 'Gold Standard (85g)'} · <button onClick={() => { const el = document.getElementById('methodology-section'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="underline">Change</button>
               </p>
             </div>
           </div>

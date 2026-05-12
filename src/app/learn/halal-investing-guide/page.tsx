@@ -70,7 +70,7 @@ const faqSchema = {
       name: 'What makes an investment halal?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'An investment is halal if it avoids riba (interest), gharar (excessive uncertainty), maysir (gambling), and haram industries. The company must derive less than 5% of its revenue from prohibited activities (alcohol, tobacco, pork, weapons, pornography, conventional banking). Financial ratios must also pass screening: debt-to-assets under 33%, interest-bearing securities under 33%, and cash/receivables under 33% of total assets.',
+        text: 'An investment is halal if it avoids riba (interest), gharar (excessive uncertainty), maysir (gambling), and haram industries. The company must derive less than 5% of its revenue from prohibited activities (alcohol, tobacco, pork, weapons, pornography, conventional banking). Financial ratios must also pass screening per AAOIFI Shariah Standard 21: interest-bearing debt under 30% of market cap, interest-bearing securities under 30%, and impermissible income under 5% of revenue.',
       },
     },
     {
@@ -94,7 +94,7 @@ const faqSchema = {
       name: 'What is AAOIFI Standard 21 for halal stock screening?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'AAOIFI (Accounting and Auditing Organization for Islamic Financial Institutions) Standard 21 provides the most widely accepted criteria for halal stock screening. It requires: (1) less than 5% revenue from prohibited activities, (2) total debt ÷ total assets < 33%, (3) interest-bearing investments ÷ total assets < 33%, (4) total cash and receivables ÷ total assets < 33%. Barakah screens 30,000+ stocks against these criteria.',
+        text: 'AAOIFI (Accounting and Auditing Organization for Islamic Financial Institutions) Standard 21 provides the most widely accepted criteria for halal stock screening. It requires: (1) less than 5% revenue from prohibited activities, (2) interest-bearing debt ÷ trailing 12-month avg market cap < 30%, (3) interest-bearing securities + cash ÷ market cap < 30%, (4) impermissible income < 5% of revenue. Barakah screens stocks against these criteria.',
       },
     },
     {
@@ -196,9 +196,14 @@ export default function HalalInvestingGuidePage() {
           <h3 className="text-lg font-bold text-gray-900 mt-6 mb-3 dark:text-gray-100">2. Financial Ratio Screens</h3>
           <div className="space-y-3 mb-6">
             {[
-              { ratio: 'Total Debt ÷ Total Assets', limit: '< 33%', desc: 'Excessive leverage through interest-bearing debt makes a company non-compliant.' },
-              { ratio: 'Interest-Bearing Securities ÷ Total Assets', limit: '< 33%', desc: 'Large holdings of conventional bonds or interest-bearing instruments disqualify a stock.' },
-              { ratio: 'Cash + Receivables ÷ Total Assets', limit: '< 33%', desc: 'When trading a stock purely based on its cash, you may be paying a premium for riba — hence this cap.' },
+              // 2026-05-12 (QA-2026-05-12, Bug #11): AAOIFI Shariah Standard 21
+              // thresholds are 30%, not 33%. The 33% figure is DJIM. The third
+              // row (cash + receivables) is NOT in AAOIFI 21; that ratio comes
+              // from S&P/DJIM and isn't part of Barakah's screen. Drop it
+              // rather than mislabel another standard's threshold as AAOIFI.
+              { ratio: 'Interest-Bearing Debt ÷ Market Cap', limit: '< 30%', desc: 'Excessive leverage through interest-bearing debt makes a company non-compliant.' },
+              { ratio: 'Interest-Bearing Securities + Cash ÷ Market Cap', limit: '< 30%', desc: 'Large holdings of conventional bonds or interest-bearing instruments disqualify a stock.' },
+              { ratio: 'Impermissible Income ÷ Total Revenue', limit: '< 5%', desc: 'Small incidental haram revenue is tolerated and purified via charity. Larger shares fail the screen.' },
             ].map((r) => (
               <div key={r.ratio} className="flex gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                 <div className="shrink-0">

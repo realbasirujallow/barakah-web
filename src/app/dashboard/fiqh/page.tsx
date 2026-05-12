@@ -167,7 +167,12 @@ export default function FiqhSettingsPage() {
   const naturalNisabLabel = (key: string): string => {
     if (key === 'CLASSICAL_SILVER') return 'Silver Standard (Classical Hanafi)';
     if (key === 'LOWER_OF_TWO') return 'Lower of Gold/Silver (Al-Qaradawi)';
-    return 'Gold Standard (AMJA)';
+    // 2026-05-12 (QA-2026-05-12, Finding I5): label changed from
+    // "Gold Standard (AMJA)" to "Gold Standard (85g)". Per the no-overclaim
+    // copy stance, putting "AMJA" in the label reads as "AMJA-endorsed".
+    // The actual choice is the 85g-of-gold nisab — that's what the user
+    // is selecting, and "85g" is unambiguous and verifiable.
+    return 'Gold Standard (85g)';
   };
 
   const handleNisabChange = async (methodology: string) => {
@@ -344,8 +349,15 @@ export default function FiqhSettingsPage() {
                   // Abidin, al-Qaradawi (Fiqh al-Zakat), Bukhari, Abu Dawud.
                   {
                     value: 'AMJA_GOLD',
-                    title: 'Gold Standard (AMJA)',
-                    desc: '85g gold. Recommended by AMJA, ISNA, and the Fiqh Council of North America for North American Muslims. Most contemporary scholars.',
+                    // 2026-05-12 (QA-2026-05-12, Finding I5): title softened
+                    // from "Gold Standard (AMJA)" to "Gold Standard (85g)" so
+                    // the chip doesn't read as "AMJA-endorsed by Barakah".
+                    // The descriptive citation below still mentions AMJA as
+                    // one of the bodies that recommends 85g — that's a
+                    // factual claim about *AMJA's* published guidance, not a
+                    // claim about Barakah's endorsement.
+                    title: 'Gold Standard (85g)',
+                    desc: '85g gold nisab. This is the threshold AMJA, ISNA, and the Fiqh Council of North America cite for North American Muslims, and the AAOIFI Shariah Standard 35 codifies the same 85g threshold. Most contemporary scholars.',
                     citations: {
                       primary: 'Sahih Abu Dawud 1573 — the Prophet ﷺ prescribed zakat on gold at 20 mithqals (~85g)',
                       classical: 'Ibn Qudamah, Al-Mughni — gold nisab as 20 mithqals',

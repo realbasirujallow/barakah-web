@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { api, readCapturedReferralCode } from '../../lib/api';
@@ -424,6 +424,34 @@ function SignupContent() {
 
   const passwordStrength = getPasswordStrength(password);
 
+  // 2026-05-12 (QA-2026-05-12, Finding F8): when client-side validation fires
+  // (e.g. invalid phone) the error banner renders at the top of a tall form,
+  // far below the user's scroll position. They clicked Create Account at the
+  // bottom, got no visible feedback, and re-clicked confused. fieldRefs +
+  // failValidation focus and scroll the offending input into view, AND scroll
+  // the error banner into view, so the failure is visible no matter where the
+  // user was scrolled.
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const errorBannerRef = useRef<HTMLDivElement>(null);
+
+  const failValidation = (message: string, fieldRef?: React.RefObject<HTMLInputElement | null>) => {
+    setError(message);
+    // Defer to next frame so React paints the banner before we scroll.
+    requestAnimationFrame(() => {
+      const target = fieldRef?.current;
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.focus({ preventScroll: true });
+        return;
+      }
+      errorBannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -433,17 +461,17 @@ function SignupContent() {
     // had to be rejected with a round-trip.
     const trimmedEmail = email.trim();
     if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmedEmail)) {
-      setError(t('signupErrInvalidEmail'));
+      failValidation(t('signupErrInvalidEmail'), emailRef);
       return;
     }
 
     if (password.length < 8) {
-      setError(t('signupErrPasswordTooShort'));
+      failValidation(t('signupErrPasswordTooShort'), passwordRef);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError(t('signupErrPasswordsDoNotMatch'));
+      failValidation(t('signupErrPasswordsDoNotMatch'), confirmPasswordRef);
       return;
     }
 
@@ -457,11 +485,11 @@ function SignupContent() {
     // against typos like "555" or "123" while staying tolerant of
     // international formats.
     if (!phoneNumber.trim()) {
-      setError(t('signupErrPhoneRequired'));
+      failValidation(t('signupErrPhoneRequired'), phoneRef);
       return;
     }
     if (phoneNumber.replace(/\D/g, '').length < 7) {
-      setError(t('signupErrPhoneInvalid'));
+      failValidation(t('signupErrPhoneInvalid'), phoneRef);
       return;
     }
 
@@ -584,7 +612,14 @@ function SignupContent() {
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-8">
           {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{error}</div>
+            <div
+              ref={errorBannerRef}
+              role="alert"
+              aria-live="assertive"
+              className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm"
+            >
+              {error}
+            </div>
           )}
 
           <div className="mb-6 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
@@ -604,6 +639,7 @@ function SignupContent() {
             <label htmlFor="signup-name" className="block text-sm font-medium text-gray-700 mb-1">{t('authFullName')}</label>
             <input
               id="signup-name"
+              ref={nameRef}
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
@@ -619,6 +655,7 @@ function SignupContent() {
             <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700 mb-1">{t('authEmail')}</label>
             <input
               id="signup-email"
+              ref={emailRef}
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -634,6 +671,7 @@ function SignupContent() {
             <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700 mb-1">{t('authPassword')}</label>
             <input
               id="signup-password"
+              ref={passwordRef}
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -681,6 +719,7 @@ function SignupContent() {
             <label htmlFor="signup-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">{t('authConfirmPassword')}</label>
             <input
               id="signup-confirm-password"
+              ref={confirmPasswordRef}
               type="password"
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
@@ -726,6 +765,7 @@ function SignupContent() {
             </label>
             <input
               id="signup-phone"
+              ref={phoneRef}
               type="tel"
               placeholder={phonePlaceholder}
               value={phoneNumber}

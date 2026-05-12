@@ -74,7 +74,7 @@ export default function DisclaimerPage() {
         <section className="bg-white rounded-xl shadow-sm border p-6 space-y-3">
           <h2 className="text-xl font-semibold text-[#1B5E20]">Halal Investment Screening</h2>
           <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm">
-            <li>Stock screening follows <strong>AAOIFI Shariah Standard No. 21</strong>: debt ratio &lt; 33%, interest-bearing securities &lt; 33%, haram revenue &lt; 5%.</li>
+            <li>Stock screening follows <strong>AAOIFI Shariah Standard No. 21</strong>: interest-bearing debt &lt; 30% of trailing 12-month average market cap, interest-bearing securities &lt; 30% of market cap, impermissible revenue &lt; 5% of total revenue.</li>
             <li>Financial data is sourced from third-party APIs and may have delays or inaccuracies.</li>
             <li>Screening is a <strong>general guideline</strong> — some scholars may apply stricter or more lenient criteria.</li>
           </ul>
