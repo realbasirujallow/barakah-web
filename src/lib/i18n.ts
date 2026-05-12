@@ -20,6 +20,15 @@ import { useSyncExternalStore } from 'react';
 type Translations = Record<string, string>;
 
 const en: Translations = {
+  // 2026-05-12 (QA-2026-05-12, Bug #17): trial-banner keys added so ar/ur/fr
+  // users see the banner in their language. Tokens {plan} / {time} are
+  // substituted at render time via .replace(). Mirror keys exist in all
+  // four dictionaries below.
+  trialBannerTitle: 'Your Barakah {plan} trial — {time}',
+  trialBannerBody: 'Keep unlimited transactions, bank sync, and premium reports after your trial ends.',
+  trialBannerUrgentBody: 'Upgrade now so you don’t lose unlimited transactions, bank sync, and {plan} reports.',
+  trialBannerKeepPlan: 'Keep {plan}',
+  trialBannerCancel: 'Cancel trial',
   // Navigation
   dashboard: 'Dashboard',
   assets: 'Assets',
@@ -323,6 +332,12 @@ const en: Translations = {
 };
 
 const ar: Translations = {
+  // QA-2026-05-12 Bug #17: trial-banner translations
+  trialBannerTitle: 'تجربة {plan} من بركة — {time}',
+  trialBannerBody: 'احتفظ بالمعاملات غير المحدودة ومزامنة البنك والتقارير المميزة بعد انتهاء التجربة.',
+  trialBannerUrgentBody: 'قم بالترقية الآن حتى لا تفقد المعاملات غير المحدودة ومزامنة البنك وتقارير {plan}.',
+  trialBannerKeepPlan: 'الاحتفاظ بـ {plan}',
+  trialBannerCancel: 'إلغاء التجربة',
   // Navigation
   dashboard: 'لوحة القيادة',
   assets: 'الأصول',
@@ -607,6 +622,12 @@ const ar: Translations = {
 };
 
 const ur: Translations = {
+  // QA-2026-05-12 Bug #17: trial-banner translations
+  trialBannerTitle: 'برکہ {plan} ٹرائل — {time}',
+  trialBannerBody: 'ٹرائل ختم ہونے کے بعد بھی لامحدود ٹرانزیکشنز، بینک سنک، اور پریمیم رپورٹس برقرار رکھیں۔',
+  trialBannerUrgentBody: 'ابھی اپ گریڈ کریں تاکہ آپ لامحدود ٹرانزیکشنز، بینک سنک، اور {plan} رپورٹس نہ کھو دیں۔',
+  trialBannerKeepPlan: '{plan} برقرار رکھیں',
+  trialBannerCancel: 'ٹرائل منسوخ کریں',
   // Navigation
   dashboard: 'ڈیش بورڈ',
   assets: 'اثاثے',
@@ -891,6 +912,12 @@ const ur: Translations = {
 };
 
 const fr: Translations = {
+  // QA-2026-05-12 Bug #17: trial-banner translations
+  trialBannerTitle: 'Votre essai Barakah {plan} — {time}',
+  trialBannerBody: 'Conservez les transactions illimitées, la synchronisation bancaire et les rapports premium après la fin de votre essai.',
+  trialBannerUrgentBody: 'Mettez à niveau maintenant pour ne pas perdre les transactions illimitées, la synchronisation bancaire et les rapports {plan}.',
+  trialBannerKeepPlan: 'Garder {plan}',
+  trialBannerCancel: 'Annuler l’essai',
   // Navigation
   dashboard: 'Tableau de bord',
   assets: 'Actifs',

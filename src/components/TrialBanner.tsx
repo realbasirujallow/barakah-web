@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { trackPaywallViewed } from '../lib/analytics';
+import { useI18n } from '../lib/i18n';
 
 // ── "Current time" external store ────────────────────────────────────────
 // useSyncExternalStore is the React-approved way to read a mutable, non-
@@ -167,6 +168,12 @@ function TrialBannerInner({
     try { trackPaywallViewed('trial_banner'); } catch { /* GA4 unavailable */ }
   }, []);
 
+  // 2026-05-12 (QA-2026-05-12, Bug #17): pull strings through i18n so the
+  // trial banner respects ar / ur / fr locales. Falls back to English keys
+  // that already existed for the title + cancel actions; new keys
+  // (trialBannerBody, trialBannerKeepPlan) added to lib/i18n.ts.
+  const { t } = useI18n();
+
   // 2026-05-05 (P1 audit): give trial users a one-click "cancel trial" path.
   // Previously the only way out was the Stripe Customer Portal, which is
   // confusing for onboarding-trial users who never entered a payment method.
@@ -206,13 +213,19 @@ function TrialBannerInner({
           {urgent ? '⏰' : '🎁'}
         </span>
         <div className="min-w-0">
-          <p className={`font-semibold ${labelCls} text-sm sm:text-base`}>
-            Your Barakah {planLabel} trial — {timeCopy}
+          {/* 2026-05-12 (QA-2026-05-12, Bug #17 + #18): pull title + body
+              through t() so ar/ur/fr render the localized banner. dir="auto"
+              on both paragraphs prevents bidi punctuation flip when text
+              starts with leading LTR punctuation inside an RTL container
+              (e.g. ".Keep unlimited..." rendered the period at line start
+              under Arabic locale). */}
+          <p dir="auto" className={`font-semibold ${labelCls} text-sm sm:text-base`}>
+            {t('trialBannerTitle').replace('{plan}', planLabel).replace('{time}', timeCopy)}
           </p>
-          <p className="text-xs text-gray-600 mt-0.5">
+          <p dir="auto" className="text-xs text-gray-600 mt-0.5">
             {urgent
-              ? `Upgrade now so you don\u2019t lose unlimited transactions, bank sync, and ${planLabel} reports.`
-              : 'Keep unlimited transactions, bank sync, and premium reports after your trial ends.'}
+              ? t('trialBannerUrgentBody').replace('{plan}', planLabel)
+              : t('trialBannerBody')}
           </p>
         </div>
       </div>
@@ -221,7 +234,7 @@ function TrialBannerInner({
           href="/dashboard/billing"
           className="bg-[#1B5E20] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#2E7D32] transition whitespace-nowrap"
         >
-          Keep {planLabel}
+          {t('trialBannerKeepPlan').replace('{plan}', planLabel)}
         </Link>
         {!showConfirm ? (
           <button
@@ -229,7 +242,7 @@ function TrialBannerInner({
             className="text-gray-600 hover:text-gray-800 text-xs underline whitespace-nowrap px-2"
             data-testid="trial-banner-cancel"
           >
-            Cancel trial
+            {t('trialBannerCancel')}
           </button>
         ) : (
           <span className="flex items-center gap-1">
