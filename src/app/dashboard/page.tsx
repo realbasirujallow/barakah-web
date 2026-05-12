@@ -6,6 +6,7 @@ import { useCurrency } from '../../lib/useCurrency';
 import { formatHijriLocalized } from '../../lib/format';
 import { useToast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
+import { useI18n } from '../../lib/i18n';
 import Link from 'next/link';
 import OnboardingWizard from '../../components/OnboardingWizard';
 import ReferralPromptModal, { useReferralPrompt } from '../../components/ReferralPromptModal';
@@ -153,6 +154,11 @@ export default function DashboardPage() {
   };
   const { toast } = useToast();
   const { user } = useAuth();
+  // 2026-05-12 (QA-2026-05-12, Bug #17): wire useI18n so the time-of-day
+  // greeting respects the active locale. The hook subscribes to locale
+  // changes via useSyncExternalStore so switching language live re-renders
+  // the greeting without a reload.
+  const { t } = useI18n();
   const { show: showReferralPrompt, dismiss: dismissReferralPrompt } = useReferralPrompt();
   const [referralBannerDismissed, setReferralBannerDismissed] = useState(false);
 
@@ -180,18 +186,25 @@ export default function DashboardPage() {
   // strings, which triggers a hydration mismatch. Start with a neutral
   // greeting and replace it after mount, deferred via setTimeout(0) to keep
   // react-hooks/set-state-in-effect happy (same pattern as layout headerDate).
-  const [greeting, setGreeting] = useState<{ text: string; emoji: string }>({ text: 'Welcome back', emoji: '🌙' });
+  // 2026-05-12 (QA-2026-05-12, Bug #17): pull greeting copy from i18n
+  // dictionaries. The English literals here used to render even when the
+  // user's locale was ar/ur/fr — the keys existed in lib/i18n.ts but the
+  // dashboard never called t(). Storing the i18n KEY in state (not the
+  // resolved string) so the live locale-change subscription re-renders
+  // the greeting when the user toggles language without a reload.
+  const [greetingKey, setGreetingKey] = useState<{ key: string; emoji: string }>({ key: 'welcomeBack', emoji: '🌙' });
   useEffect(() => {
     let cancelled = false;
     const id = window.setTimeout(() => {
       if (cancelled) return;
       const h = new Date().getHours();
-      if (h < 12) setGreeting({ text: 'Good morning', emoji: '🌅' });
-      else if (h < 18) setGreeting({ text: 'Good afternoon', emoji: '☀️' });
-      else setGreeting({ text: 'Good evening', emoji: '🌙' });
+      if (h < 12) setGreetingKey({ key: 'goodMorning', emoji: '🌅' });
+      else if (h < 18) setGreetingKey({ key: 'goodAfternoon', emoji: '☀️' });
+      else setGreetingKey({ key: 'goodEvening', emoji: '🌙' });
     }, 0);
     return () => { cancelled = true; window.clearTimeout(id); };
   }, []);
+  const greeting = { text: t(greetingKey.key), emoji: greetingKey.emoji };
 
   useEffect(() => {
     let cancelled = false;
