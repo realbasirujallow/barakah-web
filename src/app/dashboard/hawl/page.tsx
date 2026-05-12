@@ -395,7 +395,14 @@ function HawlPageContent() {
                 {' '}against a live nisab of <span className="font-semibold text-gray-900">{fmt(liveNisab)}</span>.
               </p>
               {nisabMethodology && (
-                <p className="text-xs text-gray-500 mt-1">Method: {nisabMethodology}{wealthSource ? ` • Source: ${wealthSource.replace('_', ' ')}` : ''}</p>
+                <p className="text-xs text-gray-500 mt-1">Method: {/* 2026-05-12 (QA-2026-05-12, Bug #14): pretty-print the raw
+                    enum code into the user-facing displayName so the chip
+                    matches /dashboard/zakat and /dashboard/fiqh. Mirrors
+                    naturalNisabLabel() in dashboard/fiqh/page.tsx. */
+                  nisabMethodology === 'CLASSICAL_SILVER' ? 'Silver Standard (Classical Hanafi)'
+                  : nisabMethodology === 'LOWER_OF_TWO' ? 'Lower of Gold/Silver (Al-Qaradawi)'
+                  : nisabMethodology === 'AMJA_GOLD' ? 'Gold Standard (85g)'
+                  : nisabMethodology}{wealthSource ? ` • Source: ${wealthSource.replace('_', ' ')}` : ''}</p>
               )}
             </div>
             <div className="text-right">
