@@ -26,7 +26,7 @@ const FaqSchema = {
       name: 'How do I know if a stock is halal?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'A stock is considered halal if the company passes both business activity screening (no haram revenue sources like alcohol, gambling, or interest-based finance) and financial ratio screening (debt-to-market-cap below 33%, interest income below 5%, and illiquid assets ratio below certain thresholds as defined by AAOIFI).',
+        text: 'A stock is considered halal if the company passes both business activity screening (no haram revenue sources like alcohol, gambling, or interest-based finance) and financial ratio screening (debt-to-market-cap below 30%, interest income below 5%, and illiquid assets ratio below certain thresholds as defined by AAOIFI).',
       },
     },
     {
@@ -34,7 +34,7 @@ const FaqSchema = {
       name: 'What are the AAOIFI screening standards for halal stocks?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'AAOIFI (Accounting and Auditing Organization for Islamic Financial Institutions) sets three main financial ratios: (1) total debt divided by trailing 12-month average market cap must be below 33%, (2) interest-bearing securities divided by trailing 12-month average market cap must be below 33%, and (3) impermissible income must be below 5% of total revenue.',
+        text: 'AAOIFI (Accounting and Auditing Organization for Islamic Financial Institutions) sets three main financial ratios: (1) total debt divided by trailing 12-month average market cap must be below 30%, (2) interest-bearing securities divided by trailing 12-month average market cap must be below 30%, and (3) impermissible income must be below 5% of total revenue.',
       },
     },
     {
@@ -158,14 +158,14 @@ export default function HalalStocksPage() {
                 <div className="border-l-4 border-blue-600 bg-blue-50 p-4 rounded">
                   <h3 className="font-bold text-blue-900 mb-2">2. Debt Ratio</h3>
                   <p className="text-gray-700 text-sm dark:text-gray-300">
-                    <strong>Total interest-bearing debt / Trailing 12-month average market capitalization &lt; 33%.</strong> This ensures the company is not excessively leveraged with interest-bearing loans. High debt levels indicate reliance on riba (interest), which is prohibited.
+                    <strong>Total interest-bearing debt / Trailing 12-month average market capitalization &lt; 30%.</strong> This ensures the company is not excessively leveraged with interest-bearing loans. High debt levels indicate reliance on riba (interest), which is prohibited.
                   </p>
                 </div>
 
                 <div className="border-l-4 border-amber-600 bg-amber-50 p-4 rounded">
                   <h3 className="font-bold text-amber-900 mb-2">3. Interest-Bearing Securities Ratio</h3>
                   <p className="text-gray-700 text-sm dark:text-gray-300">
-                    <strong>Interest-bearing securities and deposits / Trailing 12-month average market cap &lt; 33%.</strong> This measures how much of the company&apos;s assets are held in interest-generating instruments like bonds or interest-bearing bank deposits.
+                    <strong>Interest-bearing securities and deposits / Trailing 12-month average market cap &lt; 30%.</strong> This measures how much of the company&apos;s assets are held in interest-generating instruments like bonds or interest-bearing bank deposits.
                   </p>
                 </div>
 
@@ -251,12 +251,12 @@ export default function HalalStocksPage() {
                   <tbody>
                     <tr className="bg-white dark:bg-gray-800">
                       <td className="border border-gray-300 p-3 font-semibold dark:border-gray-600">Debt Ratio</td>
-                      <td className="border border-gray-300 p-3 dark:border-gray-600">&lt; 33% of market cap</td>
+                      <td className="border border-gray-300 p-3 dark:border-gray-600">&lt; 30% of market cap</td>
                       <td className="border border-gray-300 p-3 text-sm dark:border-gray-600">Reliance on interest-bearing loans</td>
                     </tr>
                     <tr className="bg-gray-50 dark:bg-gray-800">
                       <td className="border border-gray-300 p-3 font-semibold dark:border-gray-600">Interest Securities</td>
-                      <td className="border border-gray-300 p-3 dark:border-gray-600">&lt; 33% of market cap</td>
+                      <td className="border border-gray-300 p-3 dark:border-gray-600">&lt; 30% of market cap</td>
                       <td className="border border-gray-300 p-3 text-sm dark:border-gray-600">Holdings in bonds or interest deposits</td>
                     </tr>
                     <tr className="bg-white dark:bg-gray-800">

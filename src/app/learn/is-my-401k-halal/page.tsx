@@ -110,9 +110,9 @@ export default function Is401kHalalPage() {
           </p>
           <div className="space-y-3 mb-6">
             {[
-              { ratio: 'Debt ÷ Total Assets', limit: '< 33%', desc: 'A company with more than a third of its balance sheet in interest-bearing debt fails.' },
+              { ratio: 'Interest-Bearing Debt ÷ Market Cap', limit: '< 30%', desc: 'A company whose interest-bearing debt exceeds 30% of its market cap (trailing 12-month average) fails.' },
               { ratio: 'Interest Income ÷ Total Revenue', limit: '< 5%', desc: 'A small amount of incidental interest is tolerated; more than 5% disqualifies the stock.' },
-              { ratio: 'Interest-Bearing Assets ÷ Total Assets', limit: '< 33%', desc: 'Cash parked in money-market or treasury holdings cannot dominate the balance sheet.' },
+              { ratio: 'Interest-Bearing Securities + Cash ÷ Market Cap', limit: '< 30%', desc: 'Cash and bond holdings cannot exceed 30% of the company’s market capitalization.' },
             ].map((r) => (
               <div key={r.ratio} className="flex gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                 <div className="shrink-0">

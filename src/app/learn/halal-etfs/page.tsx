@@ -35,7 +35,7 @@ const FaqSchema = {
       name: 'What makes an ETF halal?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "A halal (Shariah-compliant) ETF is one whose underlying holdings have been screened against Islamic investment rules: no more than ~5% of revenue from prohibited industries (alcohol, gambling, conventional banking, adult entertainment, pork-related, weapons manufacturing), interest-bearing debt below 33% of market cap, and liquid assets plus receivables below 33–45% of total assets depending on the standard. The major Shariah screening standards are AAOIFI (global) and the Dow Jones Islamic Market methodology. ETFs that meet these criteria and have ongoing scholar-board oversight are considered halal.",
+        text: "A halal (Shariah-compliant) ETF is one whose underlying holdings have been screened against Islamic investment rules: no more than ~5% of revenue from prohibited industries (alcohol, gambling, conventional banking, adult entertainment, pork-related, weapons manufacturing), and balance-sheet ratios within the chosen screening standard. AAOIFI Shariah Standard 21 caps interest-bearing debt at 30% of market cap and interest-bearing securities at 30% of market cap; the Dow Jones Islamic Market methodology uses 33% instead. ETFs that meet these criteria and have ongoing scholar-board oversight are considered halal.",
       },
     },
     {

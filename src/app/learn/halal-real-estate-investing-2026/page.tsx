@@ -96,13 +96,13 @@ export default function HalalRealEstatePage() {
 
           <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-gray-100">Route 2: REITs (be selective)</h2>
           <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
-            Most US REITs fail AAOIFI Standard 21. They typically carry debt at 40-60% of total assets (a feature of the REIT business model, not a bug), which busts the 33% debt ratio. They earn interest on cash holdings and sometimes on tenant escrows. The underlying tenant mix often includes haram industries (casinos in gaming REITs, banks in office REITs).
+            Most US REITs fail AAOIFI Standard 21. They typically carry interest-bearing debt at 40-60% of market cap (a feature of the REIT business model, not a bug), which busts the 30% AAOIFI debt-to-market-cap ratio. They earn interest on cash holdings and sometimes on tenant escrows. The underlying tenant mix often includes haram industries (casinos in gaming REITs, banks in office REITs).
           </p>
           <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
             That said, a small number of REITs and REIT-like structures do pass:
           </p>
           <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4 pl-2 dark:text-gray-300">
-            <li><strong>Equinix (EQIX)</strong> — historically passes AAOIFI screens (debt ratio sometimes hits 33-35%, watch quarterly). Halal tenants (data center colocation).</li>
+            <li><strong>Equinix (EQIX)</strong> — historically borderline on AAOIFI screens (debt-to-market-cap has hit 30%+ in some quarters; this can flip a stock between passing and failing — watch the quarterly numbers). Halal tenants (data center colocation).</li>
             <li><strong>Public Storage (PSA)</strong> — periodically passes. Storage tenant mix is benign. Debt ratio fluctuates with acquisitions.</li>
             <li><strong>Sabana Industrial REIT</strong> (Singapore SGX) — a fully Sharia-compliant REIT with AAOIFI certification. Listed on SGX.</li>
             <li><strong>Yarlung Tangco REIT</strong> (Malaysia) — KLSE-listed Islamic REIT.</li>

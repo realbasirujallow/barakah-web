@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'AAOIFI Halal Stock Screening — The Three Thresholds Explained',
   description:
-    'AAOIFI Standard 21 sets the most widely-cited halal stock criteria: debt &lt; 33%, interest income &lt; 5%, non-permissible income &lt; 5%. Here&apos;s what each one means in practice.',
+    'AAOIFI Standard 21 sets the most widely-cited halal stock criteria: debt < 30%, interest income < 5%, non-permissible income < 5%. Here is what each one means in practice.',
   keywords: [
     'aaoifi standard 21',
     'halal stock screening criteria',
@@ -39,7 +39,7 @@ const faqJsonLd = {
       name: 'What are the three financial thresholds?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'AAOIFI Standard 21 sets: (1) interest-bearing debt must be less than 33% of the company&apos;s market capitalization, (2) interest income must be less than 5% of total revenue, (3) non-permissible (haram) income must be less than 5% of total revenue.',
+        text: 'AAOIFI Standard 21 sets: (1) interest-bearing debt must be less than 30% of the company&apos;s trailing 12-month average market capitalization, (2) interest-bearing securities + cash must be less than 30% of market cap, (3) non-permissible (haram) income must be less than 5% of total revenue.',
       },
     },
     {
@@ -47,7 +47,7 @@ const faqJsonLd = {
       name: 'Are AAOIFI standards stricter than alternatives?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'AAOIFI is widely considered a middle-ground standard. Some scholars apply stricter filters: lower debt thresholds (e.g. 25% instead of 33%), no tolerance for interest income at all, or active-investing rules. Always verify against your scholar&apos;s preferred methodology.',
+        text: 'AAOIFI is widely considered a middle-ground standard. Some scholars apply stricter filters: lower debt thresholds (e.g. 20% or 25% instead of 30%), no tolerance for interest income at all, or active-investing rules. Always verify against your scholar&apos;s preferred methodology.',
       },
     },
     {
@@ -117,7 +117,7 @@ export default function AAOIFIScreeningPage() {
             <tbody>
               <tr className="border-b border-gray-100">
                 <td className="py-2 align-top"><strong>Interest-bearing debt</strong></td>
-                <td className="py-2 align-top">&lt; 33% of market cap</td>
+                <td className="py-2 align-top">&lt; 30% of market cap</td>
                 <td className="py-2 align-top text-gray-700">Companies with too much riba on their balance sheet are tainted.</td>
               </tr>
               <tr className="border-b border-gray-100">
@@ -152,7 +152,7 @@ export default function AAOIFIScreeningPage() {
             positions include:
           </p>
           <ul className="list-disc list-inside space-y-1 text-base text-gray-700">
-            <li>Lower debt ratio (e.g. 25% instead of 33%)</li>
+            <li>Lower debt ratio (e.g. 20% or 25% instead of 30%)</li>
             <li>Zero tolerance for interest income (any non-zero share fails the stock)</li>
             <li>Zero tolerance for non-permissible income</li>
             <li>Sector-specific bans beyond AAOIFI&apos;s list (e.g. some scholars exclude all entertainment companies)</li>

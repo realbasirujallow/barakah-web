@@ -64,7 +64,11 @@ export default function HalalStocksHub() {
           <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-[#1B5E20]">Halal Stocks — Live Screening</h1>
           <p className="text-base text-gray-600 mb-2">Last reviewed: 2026-04-18 · AAOIFI methodology</p>
           <p className="text-sm text-gray-600 mb-6">
-            Screening uses AAOIFI Standard 21 thresholds (debt &lt; 33%, interest income &lt; 5%, non-permissible income &lt; 5%). Some scholars apply stricter filters. Always verify before investing — see our{' '}
+            {/* 2026-05-12 (QA-2026-05-12, Bug #11): aligned to AAOIFI
+                Shariah Standard 21's actual 30% debt threshold. The
+                33% figure that appeared here previously is the Dow Jones
+                Islamic Market Index (DJIM) threshold, NOT AAOIFI's. */}
+            Screening uses AAOIFI Standard 21 thresholds (interest-bearing debt &lt; 30%, interest-bearing securities &lt; 30%, non-permissible income &lt; 5%). Some scholars apply stricter filters. Always verify before investing — see our{' '}
             <Link href="/methodology" className="underline text-[#1B5E20] hover:text-[#0d3a14] font-medium">
               full methodology
             </Link>

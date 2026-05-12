@@ -109,7 +109,15 @@ test.describe('Browser Authenticated Flows', () => {
     await page.reload();
     // After reload the AuthContext re-validates the cookie before the dashboard
     // mounts — give it room for that round-trip plus widget fetch.
-    await expect(page.locator('text=/Good (morning|afternoon|evening)/i')).toBeVisible({ timeout: 15000 });
+    // 2026-05-12 (QA-2026-05-12): the greeting now renders in TWO places
+    // (topbar span + body heading) post-mobile-redesign. Playwright strict
+    // mode flagged the bare locator as resolving to 2 elements. Take .first()
+    // — the test is asserting "session restores, dashboard rendered with
+    // greeting", not "greeting appears exactly once". Both occurrences
+    // proves the same thing.
+    await expect(
+      page.locator('text=/Good (morning|afternoon|evening)/i').first()
+    ).toBeVisible({ timeout: 15000 });
   });
 
   // ── Transactions ───────────────────────────────────────────────────────────

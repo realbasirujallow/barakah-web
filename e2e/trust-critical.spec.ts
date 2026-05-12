@@ -97,7 +97,13 @@ test.describe('Round 33: trust-critical surfaces', () => {
     await page.goto(`${BASE}/dashboard/referral`);
     await page.waitForLoadState('networkidle').catch(() => {});
     // Round 31 fix: invitee gets $4.99 first month, NOT a free month.
-    await expect(page.getByText(/first month for \$4\.99/i).first()).toBeVisible();
+    // 2026-05-12 (QA-2026-05-12): canonical copy in src/lib/referralCopy.ts
+    // is "their first month for just $4.99". Old regex required the literal
+    // "first month for $4.99" with no words in between and failed when the
+    // "just" was added for readability. Loosen to "first month .* $4.99"
+    // so future copy tweaks (e.g. "their first MONTH for only $4.99") don't
+    // re-trigger this without losing the substance of the assertion.
+    await expect(page.getByText(/first month\b[^.\n]*\$4\.99/i).first()).toBeVisible();
     // Round 31 fix: referrer gets a free extra MONTH (not "both get free").
     await expect(page.getByText(/free extra month/i).first()).toBeVisible();
     // Negative assertion: the old wrong copy ("you both get a free month")

@@ -647,6 +647,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(USER_KEY, JSON.stringify(profile));
     localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
     localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
+    // 2026-05-12 (QA-2026-05-12, Finding F1): clear stale anonymous-locale
+    // override before login so the user's country-derived locale wins.
+    // Without this, an Urdu language-switcher session from a prior visitor
+    // would leak its manual-override flag into the new user's first paint.
+    try { localStorage.removeItem('barakah_locale_manual_override'); } catch { /* ignore */ }
     setRefreshToken(typeof data.refreshToken === 'string'
       ? data.refreshToken
       : (typeof data.refresh_token === 'string' ? data.refresh_token : null));
@@ -696,10 +701,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // person who logs in on this device. The shared device case is
     // common (family computer, masjid kiosk). The next user's language
     // will get set from their own profile when they log back in.
+    // 2026-05-12 (QA-2026-05-12, Finding F1): the previous fix only reset
+    // the active locale but left `barakah_locale_manual_override=true` if
+    // the prior user (or an anonymous visitor) had picked a language via
+    // the switcher. That flag is the guard the auto-derive-from-country
+    // effect checks before applying user.country → locale on the next
+    // login. With the flag stale, a US persona logging in after an
+    // anonymous Urdu-switcher session got skipped past auto-derive and
+    // never picked up en-US. Clear the flag on logout so the next user's
+    // country-derived locale wins. If they want a different language,
+    // their per-account preference (Profile page picker) sets the flag
+    // again post-login.
     try {
       if (getI18nLocale() !== 'en') {
         setI18nLocale('en');
       }
+      localStorage.removeItem('barakah_locale_manual_override');
     } catch {
       // i18n module not loaded — non-fatal
     }

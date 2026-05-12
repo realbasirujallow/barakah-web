@@ -435,9 +435,9 @@ export default function HalalPage() {
       <div className="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
         <h3 className="font-semibold text-amber-800 mb-2">How We Screen Stocks</h3>
         <p className="text-sm text-amber-700 leading-relaxed">
-          Our screening follows <strong>AAOIFI Standard 21</strong> guidelines used by major Islamic finance institutions.
+          Our screening follows <strong>AAOIFI Shariah Standard 21</strong> guidelines used by major Islamic finance institutions.
           A stock is considered <strong>Halal</strong> if: (1) the company&apos;s core business is permissible,
-          (2) debt-to-total-assets ratio is below 33%, (3) interest-bearing securities and cash are below 33% of total assets,
+          (2) interest-bearing debt ÷ trailing 12-month average market cap is below 30%, (3) interest-bearing securities and cash ÷ market cap is below 30%,
           and (4) non-permissible revenue is less than 5% of total revenue. Industries like gambling, alcohol, tobacco,
           conventional banking, weapons, and adult entertainment are excluded entirely.
         </p>

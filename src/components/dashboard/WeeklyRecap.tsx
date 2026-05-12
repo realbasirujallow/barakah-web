@@ -194,6 +194,24 @@ export function WeeklyRecap({
           ))}
         </ul>
       )}
+
+      {/* 2026-05-12 (QA-2026-05-12, Finding F4): for a brand-new user with no
+          connected accounts, no transactions, and no insights, the recap
+          previously showed only the greeting + range + two em-dashes. That
+          reads as "the app is broken" instead of "no data yet". Render an
+          empty-state CTA when we have nothing to recap. The check mirrors the
+          three conditions above so the empty state only fires when truly
+          empty, not when we're just missing one of the metrics. */}
+      {top3.length === 0 && !hasNetWorth && !hasSpending && (
+        <div className="border-t border-border px-5 py-4 text-sm text-muted-foreground bg-muted/30">
+          <p className="leading-snug">
+            No recap yet — your first few transactions will populate this.{' '}
+            <Link href="/dashboard/accounts" className="text-primary font-semibold hover:underline whitespace-nowrap">
+              Connect a bank →
+            </Link>
+          </p>
+        </div>
+      )}
     </section>
   );
 }
