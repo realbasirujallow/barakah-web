@@ -323,7 +323,31 @@ function SetupPageInner() {
     setError('');
     setPlaidMessage('');
     try {
-      const data = await api.plaidCreateLinkToken();
+      // 2026-05-13 (EU Plaid fix): defensive same prompt as
+      // /dashboard/import — setup flow already collects country during
+      // onboarding, but if a legacy account got to /setup without it
+      // we still need a country hint to avoid the silent US fallback.
+      let countryHint: string | undefined;
+      const storedCountry = (user?.country ?? '').trim().toUpperCase();
+      if (!storedCountry) {
+        const supported = 'US, CA, GB, FR, IE, ES, NL, DE, IT, PT, BE, DK, NO, SE, EE, LT, LV, PL, AU';
+        const answer = window.prompt(
+          `Plaid needs to know your country to show the right bank list.\n\nEnter your two-letter country code (ISO-3166 alpha-2).\n\nSupported: ${supported}\n\nExample: GB for the United Kingdom, DE for Germany.`,
+          '',
+        );
+        if (answer === null) {
+          setPlaidLoading(false);
+          return;
+        }
+        const cleaned = answer.trim().toUpperCase();
+        if (!/^[A-Z]{2}$/.test(cleaned)) {
+          setError('Please enter a valid two-letter country code (e.g. GB, US, DE).');
+          setPlaidLoading(false);
+          return;
+        }
+        countryHint = cleaned;
+      }
+      const data = await api.plaidCreateLinkToken(countryHint);
       if (data?.linkToken) {
         savePendingPlaidLinkToken(data.linkToken as string);
         setPlaidLinkToken(data.linkToken as string);
