@@ -126,8 +126,20 @@ export default function BudgetPage() {
       const key = `${b.category}_${b.month}_${b.year}`;
       if (alertedRef.current.has(key)) return;
       const pct = (b.spent / b.monthlyLimit) * 100;
+      // 2026-05-12 overnight QA (BG-003): celebrate over-charity instead
+      // of flagging it as overspending. Same detection rule as the row
+      // rendering below.
+      const cat = (b.category ?? '').toLowerCase();
+      const isCharity = (
+        cat.includes('charity') || cat.includes('sadaqah') || cat.includes('zakat')
+        || cat.includes('donation') || cat.includes('masjid')
+      );
       if (b.spent >= b.monthlyLimit) {
-        toast(`🚨 ${catLabel(b.category)} budget exceeded! (${fmt(b.spent)} / ${fmt(b.monthlyLimit)})`, 'error');
+        if (isCharity) {
+          toast(`🤲 You gave ${fmt(b.spent - b.monthlyLimit)} above your ${catLabel(b.category)} budget. Mashā Allāh.`, 'success');
+        } else {
+          toast(`🚨 ${catLabel(b.category)} budget exceeded! (${fmt(b.spent)} / ${fmt(b.monthlyLimit)})`, 'error');
+        }
         addAlertedKey(key);
       } else if (pct >= 80) {
         toast(`⚠️ ${catLabel(b.category)} is at ${Math.round(pct)}% of budget`, 'info');
@@ -354,11 +366,28 @@ export default function BudgetPage() {
             const criticalWarn = pct >= 90;
             const warn = !over && !criticalWarn && pct >= 75;
             const overage = Math.max(0, b.spent - effectiveLimit);
+            // 2026-05-12 overnight QA (BG-003): for Barakah's Muslim
+            // audience, exceeding a Sadaqah / Zakat / Charity budget is
+            // praiseworthy — not a failure. Treat over-budget on
+            // charity-tagged categories as a positive ("generous") signal
+            // instead of the red alarm. Detection is case-insensitive
+            // substring match against the category slug because the
+            // backend stores it lower-case (charity, sadaqah, zakat,
+            // donation, masjid) but pretty-print may capitalize.
+            const charityCategorySlug = (b.category ?? '').toLowerCase();
+            const isCharityCategory = (
+              charityCategorySlug.includes('charity')
+              || charityCategorySlug.includes('sadaqah')
+              || charityCategorySlug.includes('zakat')
+              || charityCategorySlug.includes('donation')
+              || charityCategorySlug.includes('masjid')
+            );
+            const isGenerous = over && isCharityCategory;
             const kindLabel = b.categoryKind === 'FIXED' ? 'Fixed' : 'Flex';
             const strategyLabel = b.rolloverStrategy === 'ACCUMULATE'
               ? 'Accumulating' : b.rolloverStrategy === 'NONE' ? 'No rollover' : 'Refills monthly';
             return (
-              <div key={b.id} className={`bg-white rounded-xl p-4 ${over ? 'border-l-4 border-red-500' : criticalWarn ? 'border-l-4 border-red-400' : warn ? 'border-l-4 border-amber-400' : ''}`}>
+              <div key={b.id} className={`bg-white rounded-xl p-4 ${isGenerous ? 'border-l-4 border-emerald-500' : over ? 'border-l-4 border-red-500' : criticalWarn ? 'border-l-4 border-red-400' : warn ? 'border-l-4 border-amber-400' : ''}`}>
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{getCategoryIcon(b.category)}</span>
@@ -376,16 +405,24 @@ export default function BudgetPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    {over && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Over {fmt(overage)}</span>}
+                    {isGenerous && (
+                      <span
+                        className="text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 px-2 py-0.5 rounded-full font-medium"
+                        title="Exceeding a charity/sadaqah/zakat budget is praiseworthy — Barakah celebrates generosity rather than flagging it as overspending."
+                      >
+                        + {fmt(overage)} generous
+                      </span>
+                    )}
+                    {over && !isGenerous && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Over {fmt(overage)}</span>}
                     {criticalWarn && !over && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">{Math.round(pct)}% - Critical</span>}
                     {warn && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{Math.round(pct)}% - Warning</span>}
-                    <p className="text-sm"><span className={over ? 'text-red-600 font-bold' : criticalWarn ? 'text-red-600' : 'text-gray-700'}>{fmt(b.spent)}</span> / {fmt(effectiveLimit)}</p>
+                    <p className="text-sm"><span className={isGenerous ? 'text-emerald-700 font-bold' : over ? 'text-red-600 font-bold' : criticalWarn ? 'text-red-600' : 'text-gray-700'}>{fmt(b.spent)}</span> / {fmt(effectiveLimit)}</p>
                     <button type="button" onClick={() => openEdit(b)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
                     <button type="button" onClick={() => handleDelete(b.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
                   </div>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className={`h-2 rounded-full transition-all ${over ? 'bg-red-600' : pct >= 90 ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+                  <div className={`h-2 rounded-full transition-all ${isGenerous ? 'bg-emerald-500' : over ? 'bg-red-600' : pct >= 90 ? 'bg-red-500' : pct > 75 ? 'bg-amber-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
                 </div>
                 {rolled > 0 && (
                   // Show the carry-over breakdown so users understand

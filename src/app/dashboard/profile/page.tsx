@@ -735,9 +735,18 @@ export default function ProfilePage() {
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
         <h2 className="text-lg font-bold text-primary mb-4">Language</h2>
         <p className="text-sm text-gray-500 mb-3">
-          Choose the app interface language. Arabic and Urdu render
-          right-to-left automatically; date and number formats follow
-          your country.
+          {/* 2026-05-12 overnight QA (RTL-001): the previous copy
+              ("Choose the app interface language") over-promised what
+              the locale switch actually does. Today it only flips the
+              layout direction + date/number formats — the dashboard
+              chrome (sidebar labels, KPI labels, hero events) is still
+              hardcoded English. Honest copy until the full i18n sweep
+              ships. */}
+          Switches the layout direction (right-to-left for Arabic and
+          Urdu) and the date and number formats to match your country.
+          Full dashboard translations are still in progress — most
+          labels currently appear in English regardless of the
+          selected language.
         </p>
         <div className="flex items-center gap-3">
           <select

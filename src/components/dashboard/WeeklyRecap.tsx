@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useCurrency } from '../../lib/useCurrency';
 
 /**
  * R45 (2026-05-01) — Monarch-style Weekly Recap card.
@@ -45,6 +46,11 @@ export interface WeeklyRecapProps {
     severity?: 'good' | 'warning' | 'info' | string;
     title?: string;
     body: string;
+    // 2026-05-12 overnight QA (RC-002): backend insights now carry an
+    // optional `link` pointing at the dashboard page that owns the
+    // detail (e.g. subscription-detected → /dashboard/subscriptions).
+    // Renders the body as a <Link> when present.
+    link?: string;
   }>;
   /** Spending widget month-over-month delta (already on the page). */
   spendingThisMonth?: number | null;
@@ -56,7 +62,12 @@ export interface WeeklyRecapProps {
 // the most recent COMPLETED week ("April 19th–25th") at the top of
 // their recap. We mirror that: "last week's recap" ending the
 // previous Sunday. Dates are formatted in the user's locale.
-function lastWeekRange(now = new Date()): string {
+//
+// 2026-05-12 overnight QA (RTL-004): `toLocaleDateString(undefined, ...)`
+// used the BROWSER default locale (typically en-US for US users) regardless
+// of the app-selected language. Now accepts an explicit `locale` so Arabic /
+// Urdu / French users see month names in their own script.
+function lastWeekRange(now = new Date(), locale?: string): string {
   // 0 = Sunday in JS; we want the most recent completed Mon–Sun.
   const d = new Date(now);
   d.setHours(0, 0, 0, 0);
@@ -68,11 +79,12 @@ function lastWeekRange(now = new Date()): string {
   const lastMonday = new Date(lastSunday);
   lastMonday.setDate(lastSunday.getDate() - 6);
 
+  const loc = locale ?? undefined;
   const sameMonth = lastMonday.getMonth() === lastSunday.getMonth();
   if (sameMonth) {
-    return `${lastMonday.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}–${lastSunday.toLocaleDateString(undefined, { day: 'numeric' })}`;
+    return `${lastMonday.toLocaleDateString(loc, { month: 'long', day: 'numeric' })}–${lastSunday.toLocaleDateString(loc, { day: 'numeric' })}`;
   }
-  return `${lastMonday.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – ${lastSunday.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+  return `${lastMonday.toLocaleDateString(loc, { month: 'short', day: 'numeric' })} – ${lastSunday.toLocaleDateString(loc, { month: 'short', day: 'numeric' })}`;
 }
 
 function severityToEmoji(s: string | undefined): string {
@@ -90,7 +102,11 @@ export function WeeklyRecap({
   spendingLastMonth,
   spendingChangePercent,
 }: WeeklyRecapProps) {
-  const range = React.useMemo(() => lastWeekRange(), []);
+  // 2026-05-12 overnight QA (RTL-004): pull the app's selected locale so
+  // the week-range string ("May 4–10" in en-US, "4–10 mai" in fr,
+  // "٤–١٠ مايو" in ar) matches the rest of the UI.
+  const { locale: dateLocale } = useCurrency();
+  const range = React.useMemo(() => lastWeekRange(new Date(), dateLocale), [dateLocale]);
 
   const hasNetWorth = typeof netWorthChangeAmount === 'number' && Number.isFinite(netWorthChangeAmount);
   const hasSpending =
@@ -146,19 +162,28 @@ export function WeeklyRecap({
         <div className="px-5 py-3">
           <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Net worth Δ (30d)</p>
           {hasNetWorth ? (
+            // 2026-05-12 overnight QA (RTL-003): wrap the entire numeric
+            // stat in a <bdi dir="ltr"> so the bidi algorithm doesn't
+            // re-order the ▲ / dollar / parens / percent run when the
+            // surrounding page chrome is `dir="rtl"` (Arabic / Urdu).
+            // Previously "(0.0%) $100.00 ▲" appeared with the percent
+            // visually before the amount; LTR stats survive an RTL
+            // container intact when wrapped this way.
             <p className={`text-base sm:text-lg font-semibold tabular-nums ${nwPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-              {nwPositive ? '▲' : '▼'} {fmt(Math.abs(netWorthChangeAmount as number))}
-              {typeof netWorthChangePercent === 'number' && (
-                <span className="text-xs font-medium ml-1 opacity-80">
-                  {/* 2026-05-12 overnight QA (UI-003): when net worth is
-                      large, a small dollar delta produces a sub-0.05 %
-                      ratio that rounds to "0.0%" and reads as broken
-                      ("▲ $100 (0.0%)"). Render `<0.1%` instead. */}
-                  ({Math.abs(netWorthChangePercent) > 0 && Math.abs(netWorthChangePercent) < 0.05
-                    ? '<0.1%'
-                    : `${netWorthChangePercent.toFixed(1)}%`})
-                </span>
-              )}
+              <bdi dir="ltr">
+                {nwPositive ? '▲' : '▼'} {fmt(Math.abs(netWorthChangeAmount as number))}
+                {typeof netWorthChangePercent === 'number' && (
+                  <span className="text-xs font-medium ml-1 opacity-80">
+                    {/* 2026-05-12 overnight QA (UI-003): when net worth is
+                        large, a small dollar delta produces a sub-0.05 %
+                        ratio that rounds to "0.0%" and reads as broken
+                        ("▲ $100 (0.0%)"). Render `<0.1%` instead. */}
+                    ({Math.abs(netWorthChangePercent) > 0 && Math.abs(netWorthChangePercent) < 0.05
+                      ? '<0.1%'
+                      : `${netWorthChangePercent.toFixed(1)}%`})
+                  </span>
+                )}
+              </bdi>
             </p>
           ) : (
             <p className="text-base sm:text-lg font-semibold text-muted-foreground">—</p>
@@ -168,12 +193,14 @@ export function WeeklyRecap({
           <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Spending vs last month</p>
           {hasSpending ? (
             <p className={`text-base sm:text-lg font-semibold tabular-nums ${spendingDown ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-              {spendingDown ? '▼' : '▲'} {fmt(Math.abs((spendingThisMonth ?? 0) - (spendingLastMonth ?? 0)))}
-              {typeof spendingChangePercent === 'number' && (
-                <span className="text-xs font-medium ml-1 opacity-80">
-                  ({Math.abs(spendingChangePercent) > 500 ? '500+' : Math.abs(spendingChangePercent).toFixed(1)}%)
-                </span>
-              )}
+              <bdi dir="ltr">
+                {spendingDown ? '▼' : '▲'} {fmt(Math.abs((spendingThisMonth ?? 0) - (spendingLastMonth ?? 0)))}
+                {typeof spendingChangePercent === 'number' && (
+                  <span className="text-xs font-medium ml-1 opacity-80">
+                    ({Math.abs(spendingChangePercent) > 500 ? '500+' : Math.abs(spendingChangePercent).toFixed(1)}%)
+                  </span>
+                )}
+              </bdi>
             </p>
           ) : (
             // 2026-05-11 (UX-3 fix): bare em-dash reads as "broken value".
@@ -200,8 +227,18 @@ export function WeeklyRecap({
                   render LTR with the trailing period in the right place
                   even when the surrounding page chrome is RTL (Urdu/Arabic).
                   Without this, the bidi algorithm pulled the period across
-                  the number on PKR-locale accounts. */}
-              <p dir="auto" className="text-foreground leading-snug min-w-0">{i.body}</p>
+                  the number on PKR-locale accounts.
+                  2026-05-12 overnight QA (RC-002): when the backend
+                  provides a `link`, render the body as a Link so the
+                  user can jump to the page that owns the detail (e.g.
+                  subscription-detected → /dashboard/subscriptions). */}
+              {i.link ? (
+                <Link href={i.link} dir="auto" className="text-foreground leading-snug min-w-0 hover:underline hover:text-primary transition-colors">
+                  {i.body}
+                </Link>
+              ) : (
+                <p dir="auto" className="text-foreground leading-snug min-w-0">{i.body}</p>
+              )}
             </li>
           ))}
         </ul>

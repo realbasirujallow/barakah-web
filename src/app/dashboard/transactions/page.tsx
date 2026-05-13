@@ -1106,7 +1106,18 @@ export default function TransactionsPage() {
                     )}
                   </div>
                   <p className="text-sm text-gray-500 capitalize">
-                    {tx.category?.replace(/_/g, ' ')} • {new Date(tx.timestamp).toLocaleDateString(dateLocale)}
+                    {/* 2026-05-12 overnight QA (TX-002): transfer rows
+                        already carry a "Transfer In/Out" pill in the
+                        header. Repeating the Plaid auto-classifier's
+                        category here led to nonsense like "Income" on a
+                        negative "Transfer Out" row (admin's Wells Fargo
+                        CARD transfer on May 10). Hide the category
+                        subtitle for transfers — the pill already says
+                        what it is — and just show the date. */}
+                    {tx.type !== 'transfer' && (
+                      <>{tx.category?.replace(/_/g, ' ')} • </>
+                    )}
+                    {new Date(tx.timestamp).toLocaleDateString(dateLocale)}
                     {tx.currency && tx.currency !== preferredCurrency && (
                       <span className="ml-1 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-mono">{tx.currency}</span>
                     )}
