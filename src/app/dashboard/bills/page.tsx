@@ -472,8 +472,18 @@ export default function BillsPage() {
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-5 flex items-start gap-3">
           <span className="text-2xl">⚠️</span>
           <div>
+            {/* 2026-05-12 overnight QA (BL-004): pluralisation was
+                inconsistent — title pluralised correctly ("overdue bill" /
+                "overdue bills") but the body always used "them / them",
+                producing "You have 1 overdue bill / Mark them as paid once
+                you've settled them." for single-bill accounts. Mirror the
+                title's pluralisation in the body pronoun. */}
             <p className="font-semibold text-red-800">You have {overdue.length} overdue bill{overdue.length > 1 ? 's' : ''}</p>
-            <p className="text-sm text-red-700 mt-0.5">Mark them as paid once you&apos;ve settled them.</p>
+            <p className="text-sm text-red-700 mt-0.5">
+              {overdue.length === 1
+                ? <>Mark it as paid once you&apos;ve settled it.</>
+                : <>Mark them as paid once you&apos;ve settled them.</>}
+            </p>
           </div>
         </div>
       )}
