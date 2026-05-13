@@ -208,8 +208,27 @@ export default function FamilyPage() {
   }
 
   const members = data?.members ?? [];
-  const pendingInvites = (data?.invites ?? []).filter(i => i.status === 'pending');
-  const pastInvites = (data?.invites ?? []).filter(i => i.status !== 'pending');
+  // 2026-05-12 overnight QA (FM-001): the backend keeps an invite's
+  // `status` as 'pending' even after its expiresAt has passed (no
+  // server-side sweep). The "Pending invites" list was showing invites
+  // that the recipient could no longer click — admin's account had a
+  // pending invite for mariyamou.diallo@gmail.com that expired on May
+  // 7 (today is May 12) still shown as "pending". Split the list:
+  // truly pending (status===pending AND expiresAt in the future) vs
+  // expired (status===pending AND expiresAt in the past). Expired
+  // ones drop into the "Previous invites" details fold below where
+  // they're labeled with their status, and the owner can resend.
+  const nowMs = Date.now();
+  const pendingInvitesRaw = (data?.invites ?? []).filter(i => i.status === 'pending');
+  const pendingInvites = pendingInvitesRaw.filter(i => (i.expiresAt ?? 0) > nowMs);
+  const expiredInvites = pendingInvitesRaw.filter(i => (i.expiresAt ?? 0) <= nowMs)
+                                          .map(i => ({ ...i, status: 'expired' as const }));
+  const pastInvites = [
+    ...expiredInvites,
+    ...(data?.invites ?? []).filter(i => i.status !== 'pending'),
+  ];
+  // Seat accounting: count only invites that haven't expired (the
+  // expired ones don't actually consume a seat).
   const seatsUsed = members.length + pendingInvites.length;
   const seatsTotal = data?.memberLimit ?? 6;
 
@@ -372,6 +391,7 @@ export default function FamilyPage() {
                 <span className={`text-xs uppercase font-medium ${
                   inv.status === 'accepted' ? 'text-green-700'
                   : inv.status === 'canceled' ? 'text-gray-500'
+                  : inv.status === 'expired' ? 'text-gray-500'
                   : 'text-amber-700'
                 }`}>{inv.status}</span>
               </li>
