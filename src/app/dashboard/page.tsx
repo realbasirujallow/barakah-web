@@ -568,9 +568,6 @@ export default function DashboardPage() {
           worth showing (no insights AND no usable deltas). */}
       {(insights.length > 0 || widgets?.netWorthMini || widgets?.spending) && (
         <WeeklyRecap
-          greeting={greeting.text}
-          greetingEmoji={greeting.emoji}
-          userName={user?.name?.split(' ')[0] ?? null}
           netWorthChangeAmount={widgets?.netWorthMini?.changeAmount ?? null}
           netWorthChangePercent={widgets?.netWorthMini?.changePercent ?? null}
           spendingThisMonth={widgets?.spending?.thisMonth ?? null}

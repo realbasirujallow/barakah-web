@@ -24,8 +24,13 @@ import Link from 'next/link';
  */
 
 export interface WeeklyRecapProps {
-  greeting: string;        // "Good morning" / "Good afternoon"
-  greetingEmoji: string;   // "🌅" / "🌇"
+  // 2026-05-12 overnight QA (UI-001 follow-up): greeting + emoji + userName
+  // removed. The page header now owns the greeting; the card leads with
+  // the week range. Callers still passing these props get a no-op (kept
+  // as optional, unused, so we don't break the older revision of
+  // dashboard/page.tsx before this commit lands in CI).
+  greeting?: string;
+  greetingEmoji?: string;
   userName?: string | null;
   netWorthChangeAmount?: number | null;
   netWorthChangePercent?: number | null;
@@ -77,9 +82,6 @@ function severityToEmoji(s: string | undefined): string {
 }
 
 export function WeeklyRecap({
-  greeting,
-  greetingEmoji,
-  userName,
   netWorthChangeAmount,
   netWorthChangePercent,
   fmt,
