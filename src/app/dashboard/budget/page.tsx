@@ -257,7 +257,31 @@ export default function BudgetPage() {
   // ── Skeleton loading ────────────────────────────────────────────────────────
   if (loading) return <SkeletonPage summaryCount={3} listCount={4} />;
 
-  const filteredBudgets = budgets.filter(b => b.month === viewMonth && b.year === viewYear);
+  // 2026-05-12 overnight QA (BG-001): the previous render order was
+  // whatever the API returned (typically createdAt asc), which buried
+  // the meaningful rows ("Charity over budget", "Housing 6%
+  // utilized") behind 8–10 untouched $0 categories. First-glance read
+  // was "every category is $0, the math is broken." Sort by activity:
+  //   1. Over-budget categories first (spent >= limit, biggest %% over)
+  //   2. Then categories with spend, by % utilized descending
+  //   3. Then untouched categories, alphabetically
+  // The Total Spent / Total Budget summary stays accurate regardless
+  // because we don't change the underlying array length or values.
+  const filteredBudgets = budgets
+    .filter(b => b.month === viewMonth && b.year === viewYear)
+    .slice() // copy before sort to avoid mutating state
+    .sort((a, b) => {
+      const aPct = a.monthlyLimit > 0 ? a.spent / a.monthlyLimit : 0;
+      const bPct = b.monthlyLimit > 0 ? b.spent / b.monthlyLimit : 0;
+      const aOver = aPct >= 1;
+      const bOver = bPct >= 1;
+      if (aOver !== bOver) return aOver ? -1 : 1;          // over-budget first
+      const aActive = a.spent > 0;
+      const bActive = b.spent > 0;
+      if (aActive !== bActive) return aActive ? -1 : 1;     // any spend next
+      if (aActive && bActive) return bPct - aPct;           // descending %
+      return (a.category ?? '').localeCompare(b.category ?? '');
+    });
   const totalBudget = filteredBudgets.reduce((s, b) => s + b.monthlyLimit, 0);
   const totalSpent  = filteredBudgets.reduce((s, b) => s + b.spent, 0);
 
