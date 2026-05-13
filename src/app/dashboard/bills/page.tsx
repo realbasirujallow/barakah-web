@@ -13,6 +13,11 @@ interface BillItem {
   frequency: string; dueDay: number; paid: boolean; nextDueDate: number;
   readOnly?: boolean; linkedSource?: string | null; description?: string;
   sourceLabel?: string; minimumPaymentDue?: number; statementBalance?: number;
+  // 2026-05-13: when linkedSource === 'subscription_detector', the row
+  // is a synthetic bill emitted by SubscriptionDetectionService. Users
+  // can mark it as "not a subscription" via POST /api/subscriptions/dismiss
+  // which persists the merchant name in dismissed_subscriptions and the
+  // detector skips it on every subsequent run.
 }
 
 const FREQS = ['weekly', 'monthly', 'quarterly', 'yearly', 'one_time'];
@@ -63,16 +68,24 @@ interface BillRowProps {
   b: BillItem;
   now: number;
   deletingId: number | null;
+  dismissingName: string | null;
   onPaid: (id: number) => void;
   onEdit: (b: BillItem) => void;
   onDelete: (id: number) => void;
+  onDismissDetected: (b: BillItem) => void;
 }
 
-function BillRow({ b, now, deletingId, onPaid, onEdit, onDelete }: BillRowProps) {
+function BillRow({ b, now, deletingId, dismissingName, onPaid, onEdit, onDelete, onDismissDetected }: BillRowProps) {
   const { fmt } = useCurrency();
   const days = getDaysUntilDue(b);
   const isOverdue  = b.nextDueDate && b.nextDueDate < now && !b.paid;
   const isUpcoming = !isOverdue && days !== null && days <= 7 && !b.paid;
+  // 2026-05-13: detected-subscription rows can be dismissed by the user
+  // ("this isn't actually a subscription"). Other read-only rows (e.g.
+  // Plaid-linked liability payments) are not dismissible because their
+  // source is the bank's own statement, not a heuristic guess.
+  const isDetectedSubscription = b.readOnly && b.linkedSource === 'subscription_detector';
+  const isDismissing = isDetectedSubscription && dismissingName === b.name;
 
   return (
     <div className={`bg-white rounded-2xl shadow-sm p-6 flex justify-between items-center border-l-4 ${
@@ -112,6 +125,21 @@ function BillRow({ b, now, deletingId, onPaid, onEdit, onDelete }: BillRowProps)
         )}
         {!b.readOnly && <button type="button" onClick={() => onEdit(b)} className="text-gray-400 hover:text-primary text-sm px-1">✏️</button>}
         {!b.readOnly && <button type="button" onClick={() => onDelete(b.id)} disabled={deletingId === b.id} className="text-gray-400 hover:text-red-600 text-sm px-1 disabled:opacity-50" title={deletingId === b.id ? 'Deleting...' : 'Delete'}>{deletingId === b.id ? '⏳' : '🗑️'}</button>}
+        {/* 2026-05-13: dismiss action for detected-subscription rows. Tells
+            the backend to add this merchant to dismissed_subscriptions so
+            the detector stops surfacing it under Bills / Subscriptions on
+            every subsequent run. */}
+        {isDetectedSubscription && (
+          <button
+            type="button"
+            onClick={() => onDismissDetected(b)}
+            disabled={isDismissing}
+            className="text-xs text-gray-500 border border-gray-200 rounded-lg px-2.5 py-1 hover:border-red-300 hover:text-red-600 transition disabled:opacity-50 whitespace-nowrap"
+            title="Tell Barakah this isn't actually a subscription so it stops appearing under Bills."
+          >
+            {isDismissing ? 'Removing…' : 'Not a subscription'}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -124,18 +152,32 @@ interface SectionProps {
   color: string;
   now: number;
   deletingId: number | null;
+  dismissingName: string | null;
   onPaid: (id: number) => void;
   onEdit: (b: BillItem) => void;
   onDelete: (id: number) => void;
+  onDismissDetected: (b: BillItem) => void;
 }
 
-function Section({ title, items, color, now, deletingId, onPaid, onEdit, onDelete }: SectionProps) {
+function Section({ title, items, color, now, deletingId, dismissingName, onPaid, onEdit, onDelete, onDismissDetected }: SectionProps) {
   if (items.length === 0) return null;
   return (
     <div className="mb-6">
       <h2 className={`text-base font-semibold mb-3 ${color}`}>{title} <span className="text-gray-400 font-normal">({items.length})</span></h2>
       <div className="space-y-2">
-        {items.map(b => <BillRow key={b.id} b={b} now={now} deletingId={deletingId} onPaid={onPaid} onEdit={onEdit} onDelete={onDelete} />)}
+        {items.map(b => (
+          <BillRow
+            key={b.id}
+            b={b}
+            now={now}
+            deletingId={deletingId}
+            dismissingName={dismissingName}
+            onPaid={onPaid}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onDismissDetected={onDismissDetected}
+          />
+        ))}
       </div>
     </div>
   );
@@ -230,6 +272,10 @@ export default function BillsPage() {
   const [saving, setSaving]         = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  // 2026-05-13: state for "Not a subscription" dismissal action on
+  // detected-subscription rows. Tracks the in-flight merchant name so
+  // the row's button can show a pending state.
+  const [dismissingName, setDismissingName] = useState<string | null>(null);
   // 2026-05-02: lock body scroll while any modal is open.
   useBodyScrollLock(showForm || deleteConfirmation !== null);
   const { toast } = useToast();
@@ -346,6 +392,33 @@ export default function BillsPage() {
     } finally {
       setDeletingId(null);
       load();
+    }
+  };
+
+  /**
+   * 2026-05-13: handler for "Not a subscription" button on detected-
+   * subscription rows. Calls the existing
+   * `POST /api/subscriptions/dismiss` endpoint, which persists the
+   * merchant in the `dismissed_subscriptions` table. The next time
+   * `BillService.listSyntheticBills` runs, the detector loads dismissed
+   * names and skips this merchant — so the row stops showing up under
+   * Bills (and on the Subscription Detector page) for good.
+   *
+   * No optimistic UI: we wait for the server then reload the bills
+   * list so totals + section counts stay consistent.
+   */
+  const handleDismissDetected = async (b: BillItem) => {
+    if (!b.name) return;
+    setDismissingName(b.name);
+    try {
+      await api.dismissSubscription(b.name, 'user_marked_not_a_subscription');
+      toast(`Stopped tracking '${b.name}' as a subscription.`, 'success');
+      load();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to dismiss subscription';
+      toast(msg, 'error');
+    } finally {
+      setDismissingName(null);
     }
   };
 
@@ -489,11 +562,11 @@ export default function BillsPage() {
       )}
 
       {/* Sections */}
-      <Section title="🔴 Overdue"      items={overdue}   color="text-red-700"    now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
-      <Section title="🟠 Due This Week" items={upcoming}  color="text-orange-600" now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
-      <Section title="🗓️ Upcoming"     items={future}    color="text-gray-700"   now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
-      <Section title="📋 Scheduled"    items={noDueDate} color="text-gray-500"   now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
-      <Section title="✅ Paid"          items={paid}      color="text-green-700"  now={now} deletingId={deletingId} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} />
+      <Section title="🔴 Overdue"      items={overdue}   color="text-red-700"    now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+      <Section title="🟠 Due This Week" items={upcoming}  color="text-orange-600" now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+      <Section title="🗓️ Upcoming"     items={future}    color="text-gray-700"   now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+      <Section title="📋 Scheduled"    items={noDueDate} color="text-gray-500"   now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+      <Section title="✅ Paid"          items={paid}      color="text-green-700"  now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
 
       {bills.length === 0 && (
         <EmptyState
