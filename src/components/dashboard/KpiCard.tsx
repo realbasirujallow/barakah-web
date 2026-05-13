@@ -250,10 +250,21 @@ export function KpiChange({
     return null;
   }
   const positive = amount >= 0;
+  // 2026-05-13 overnight QA (UI-003 follow-up): mirror the WeeklyRecap
+  // fix from 2026-05-12 (commit 832b8c1). On a large balance, a small
+  // dollar delta produces a sub-0.05% ratio that rounds to "0.0%" and
+  // reads as broken ("▲ $100 (0.0%)"). Render `<0.1%` instead so the
+  // Overview Net Worth KPI footer matches the WeeklyRecap card's
+  // formatting.
+  const renderedPercent = percent == null
+    ? null
+    : (Math.abs(percent) > 0 && Math.abs(percent) < 0.05
+        ? '<0.1%'
+        : `${percent.toFixed(1)}%`);
   return (
     <span className={cn('font-medium', positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
       {positive ? '▲' : '▼'} {format(Math.abs(amount))}
-      {percent != null && <> ({percent.toFixed(1)}%)</>}
+      {renderedPercent != null && <> ({renderedPercent})</>}
     </span>
   );
 }
