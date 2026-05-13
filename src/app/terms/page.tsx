@@ -15,10 +15,27 @@ export default function TermsOfServicePage() {
 
       <main className="max-w-3xl mx-auto px-6 py-12 space-y-8">
         <h1 className="text-3xl font-bold text-[#1B5E20]">Terms of Service</h1>
-        <p className="text-sm text-gray-500">Last updated: March 30, 2026</p>
+        <p className="text-sm text-gray-500">Last updated: May 13, 2026</p>
 
         <p className="text-gray-700 leading-relaxed">
-          Welcome to Barakah. By creating an account or using our mobile application or web dashboard (the &ldquo;Service&rdquo;), you agree to the following terms. Please read them carefully.
+          {/* 2026-05-13 TikTok app review (2nd rejection): reviewer flagged
+              that the Terms &ldquo;does not mention your app by name.&rdquo;
+              Although &ldquo;Barakah&rdquo; appears throughout, the
+              TikTok-registered app name is &ldquo;Try Barakah&rdquo;
+              (com.trybarakah.app on Google Play, id6761279229 on the App
+              Store). Explicitly naming both the registered name and the
+              bundle identifiers in the opening paragraph satisfies the
+              standard TikTok review check. */}
+          These Terms of Service govern your use of <strong>Try Barakah</strong> (also referred to in this document as &ldquo;Barakah&rdquo;, the &ldquo;App&rdquo;, or the &ldquo;Service&rdquo;), including:
+        </p>
+        <ul className="list-disc pl-6 text-gray-700 leading-relaxed space-y-1">
+          <li>the <strong>Try Barakah</strong> iOS mobile application (App Store ID <code>id6761279229</code>);</li>
+          <li>the <strong>Try Barakah</strong> Android mobile application (package <code>com.trybarakah.app</code>);</li>
+          <li>the Try Barakah web dashboard at <a href="https://trybarakah.com" className="text-[#1B5E20] underline">https://trybarakah.com</a>;</li>
+          <li>any optional third-party integrations offered within Try Barakah (including but not limited to Plaid for bank-linking, RevenueCat for subscription billing, and TikTok Login Kit for optional social sign-in).</li>
+        </ul>
+        <p className="text-gray-700 leading-relaxed">
+          Welcome to Try Barakah. By creating an account or using the Service, you agree to the following terms. Please read them carefully.
         </p>
 
         <section className="space-y-3">
