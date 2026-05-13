@@ -6,6 +6,7 @@ import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { trackPaywallViewed } from '../lib/analytics';
 import { useI18n } from '../lib/i18n';
+import { useToast } from '../lib/toast';
 
 // ── "Current time" external store ────────────────────────────────────────
 // useSyncExternalStore is the React-approved way to read a mutable, non-
@@ -173,6 +174,12 @@ function TrialBannerInner({
   // that already existed for the title + cancel actions; new keys
   // (trialBannerBody, trialBannerKeepPlan) added to lib/i18n.ts.
   const { t } = useI18n();
+  // 2026-05-12 (QA-2026-05-12, audit A3): replace native window.alert()
+  // with the in-app toast. alert() ships a blocking modal that locks the
+  // event loop, can't be dismissed by VoiceOver consistently, and looks
+  // unbranded inside a fintech app where every other error path uses
+  // toast().
+  const { toast } = useToast();
 
   // 2026-05-05 (P1 audit): give trial users a one-click "cancel trial" path.
   // Previously the only way out was the Stripe Customer Portal, which is
@@ -185,14 +192,14 @@ function TrialBannerInner({
     try {
       const result = (await api.cancelTrial()) as { success?: boolean; error?: string };
       if (result?.error) {
-        alert(result.error);
+        toast(result.error, 'error');
         setCancelling(false);
         return;
       }
       // Reload so AuthContext refreshes user.plan / status everywhere.
       window.location.reload();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to cancel trial. Please try again.');
+      toast(err instanceof Error ? err.message : 'Failed to cancel trial. Please try again.', 'error');
       setCancelling(false);
     }
   }

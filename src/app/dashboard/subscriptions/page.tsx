@@ -3,6 +3,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+// 2026-05-12 (QA-2026-05-12, audit A3): swap two window.alert() error
+// paths to the in-app toast so error UX matches the rest of the dashboard.
+import { useToast } from '../../../lib/toast';
 
 interface Subscription {
   name: string;
@@ -180,6 +183,8 @@ function SubscriptionRowEditor({
   const [open, setOpen] = useState(false);
   const [pickingCategory, setPickingCategory] = useState(false);
   const [busy, setBusy] = useState(false);
+  // 2026-05-12 (audit A3): swap window.alert() for the in-app toast.
+  const { toast } = useToast();
 
   const CATEGORIES = [
     'food', 'dining', 'groceries', 'coffee',
@@ -204,7 +209,7 @@ function SubscriptionRowEditor({
       // so the row disappears regardless.
       onChanged();
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : 'Could not dismiss');
+      toast(err instanceof Error ? err.message : 'Could not dismiss', 'error');
     } finally {
       setBusy(false);
       setOpen(false);
@@ -218,7 +223,7 @@ function SubscriptionRowEditor({
       if (r?.error) throw new Error(r.error);
       onChanged();
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : 'Could not recategorize');
+      toast(err instanceof Error ? err.message : 'Could not recategorize', 'error');
     } finally {
       setBusy(false);
       setOpen(false);
