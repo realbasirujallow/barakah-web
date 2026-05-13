@@ -9,6 +9,11 @@ import { useToast } from '../../../lib/toast';
 
 interface Subscription {
   name: string;
+  /** 2026-05-13 (SUB-001): clean display name with the "::CCY" bucket-key
+   *  suffix stripped. Backend started exposing this so the UI shows
+   *  "Amazon Prime" not "Amazon Prime::USD". Falls back to `name` for
+   *  older backend responses. */
+  displayName?: string;
   amount: number;
   currency: string;
   frequency: string;
@@ -576,7 +581,7 @@ export default function SubscriptionsPage() {
                 {subscriptions.map((sub, i) => (
                   <tr key={i} className={sub.haramFlagged ? 'bg-red-50/50 dark:bg-red-900/10' : ''}>
                     <td className="px-4 py-3">
-                      <div className="font-medium text-gray-900 dark:text-white">{sub.name}</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{sub.displayName ?? sub.name}</div>
                       <div className="text-xs text-gray-400">{sub.category}</div>
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">

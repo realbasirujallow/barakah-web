@@ -13,6 +13,12 @@ interface BillItem {
   frequency: string; dueDay: number; paid: boolean; nextDueDate: number;
   readOnly?: boolean; linkedSource?: string | null; description?: string;
   sourceLabel?: string; minimumPaymentDue?: number; statementBalance?: number;
+  // 2026-05-13: backend now exposes the subscription detector's bucket
+  // key (with "::CCY" suffix) separately from the clean displayName.
+  // FE displays `name` (clean) but sends `dismissKey` (bucket key)
+  // when the user taps "Not a subscription" so the dismissed_subscriptions
+  // row matches the key the detector checks against.
+  dismissKey?: string;
   // 2026-05-13: when linkedSource === 'subscription_detector', the row
   // is a synthetic bill emitted by SubscriptionDetectionService. Users
   // can mark it as "not a subscription" via POST /api/subscriptions/dismiss
@@ -411,7 +417,12 @@ export default function BillsPage() {
     if (!b.name) return;
     setDismissingName(b.name);
     try {
-      await api.dismissSubscription(b.name, 'user_marked_not_a_subscription');
+      // 2026-05-13 SUB-001: dispatch the bucket key (b.dismissKey)
+      // when present so the dismissed_subscriptions row matches the
+      // detector's check. Fall back to b.name for older backend
+      // responses that don't yet expose dismissKey.
+      const keyForDismissal = b.dismissKey ?? b.name;
+      await api.dismissSubscription(keyForDismissal, 'user_marked_not_a_subscription');
       toast(`Stopped tracking '${b.name}' as a subscription.`, 'success');
       load();
     } catch (err) {
