@@ -592,7 +592,13 @@ export default function DashboardPage() {
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-lg">🤝</span>
-            <p className="text-sm text-green-800 font-medium">
+            {/* 2026-05-12 overnight QA (RTL-002): under `dir="rtl"` (Arabic /
+                Urdu locale), the bidi algorithm pushed the trailing period to
+                the visual start, rendering ".Earn a free extra month for
+                every friend who joins Barakah". `dir="auto"` lets the
+                browser pick direction from the first strong-LTR char in the
+                English text so the punctuation lands at the visual end. */}
+            <p dir="auto" className="text-sm text-green-800 font-medium">
               Earn a <strong>free extra month</strong> for every friend who joins Barakah.
             </p>
           </div>

@@ -418,6 +418,28 @@ nav a, nav button { min-height: 2.5rem; }
   color: var(--text-primary) !important;
   border-color: var(--border-color) !important;
 }
+/* 2026-05-12 overnight QA (PF-005): browser autofill (saved-password
+   replay, address-book replay) paints a light blue/yellow inset
+   background on the input that overrides our dark-mode bg. Looks
+   broken: the "Current Password" field on /dashboard/profile flashes
+   white-on-cream while the New + Confirm fields next to it render
+   dark. The standard fix is to override `:autofill` with an enormous
+   inset box-shadow that paints the field in the dark color the
+   browser leaves alone, plus `-webkit-text-fill-color` so the typed
+   value uses our dark-mode foreground instead of the browser's
+   forced black-on-yellow. Applies to login + signup as well as any
+   form behind /dashboard. */
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active,
+.dark textarea:-webkit-autofill,
+.dark select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #1a2e1d inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
 
 /* Additional dark overrides for the few non-token patterns left. */
 .dark .bg-white\/50, .dark .bg-white\/80 { background-color: rgba(26, 46, 29, 0.8) !important; }
