@@ -589,7 +589,15 @@ export default function DashboardPage() {
           Founder feedback: "this is fake since everyone gets 1 month
           free of family plan." Closing the dishonesty gap. */}
       {!referralBannerDismissed && !showReferralPrompt && (
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 mb-4 flex items-center justify-between">
+        // 2026-05-12 overnight QA (UI-005): the floating "Ask Barakah" +
+        // "Feedback" FAB pills at fixed bottom-right used to overlap the
+        // banner's right-edge Share button + dismiss × on shorter
+        // viewports. Reserve right padding on the banner so the FABs
+        // can't sit over its controls. (The main scroll container in
+        // layout.tsx already has `pb-28` for the FAB zone; that handles
+        // the BOTTOM clearance, but a banner placed mid-page also
+        // needed RIGHT clearance.)
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 mb-4 flex items-center justify-between gap-3 sm:pr-40">
           <div className="flex items-center gap-2">
             <span className="text-lg">🤝</span>
             {/* 2026-05-12 overnight QA (RTL-002): under `dir="rtl"` (Arabic /
