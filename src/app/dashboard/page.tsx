@@ -198,9 +198,18 @@ export default function DashboardPage() {
     const id = window.setTimeout(() => {
       if (cancelled) return;
       const h = new Date().getHours();
-      if (h < 12) setGreetingKey({ key: 'goodMorning', emoji: '🌅' });
-      else if (h < 18) setGreetingKey({ key: 'goodAfternoon', emoji: '☀️' });
-      else setGreetingKey({ key: 'goodEvening', emoji: '🌙' });
+      // 2026-05-12 overnight QA (UI-002): "Good evening" at midnight reads
+      // wrong. Four-bucket scheme — morning (5–11), afternoon (12–16),
+      // evening (17–21), late-night (22–4). For the late-night bucket we
+      // reuse the already-localized `welcomeBack` key (present in en/ar/
+      // ur/fr dictionaries) so we don't need to ship a new `goodNight`
+      // translation, and so the copy stays semantically neutral instead of
+      // implying "go to sleep" (the literal "Good night" in many of those
+      // locales is a farewell, not a greeting).
+      if (h >= 5 && h < 12) setGreetingKey({ key: 'goodMorning', emoji: '🌅' });
+      else if (h >= 12 && h < 17) setGreetingKey({ key: 'goodAfternoon', emoji: '☀️' });
+      else if (h >= 17 && h < 22) setGreetingKey({ key: 'goodEvening', emoji: '🌙' });
+      else setGreetingKey({ key: 'welcomeBack', emoji: '🌙' });
     }, 0);
     return () => { cancelled = true; window.clearTimeout(id); };
   }, []);
@@ -862,8 +871,23 @@ export default function DashboardPage() {
             stays consistent across surfaces. */}
         <KpiCard
           label="Zakat Due"
-          tone={totals?.zakatFullyPaid ? 'positive' : 'warning'}
-          value={hideZakat ? '••••••' : (loading ? '…' : fmt((totals?.zakatDue as number) ?? 0))}
+          // 2026-05-12 overnight QA (UI-007): when hawl isn't reached yet
+          // (zakatEligible === false), rendering "$0.00" reads as "you
+          // owe nothing" instead of "we haven't computed it yet because
+          // the lunar year isn't up". Use the same `muted` tone as the
+          // Zakat Eligible card and show "—" so the two cards read
+          // consistently. The hover-title gives the full context.
+          tone={
+            totals && totals.zakatEligible === false ? 'muted'
+            : (totals?.zakatFullyPaid ? 'positive' : 'warning')
+          }
+          value={
+            hideZakat ? '••••••'
+            : loading ? '…'
+            : (totals && totals.zakatEligible === false)
+              ? '—'
+              : fmt((totals?.zakatDue as number) ?? 0)
+          }
           // R41 (2026-05-01): hero link to /zakat detail page.
           href="/dashboard/zakat"
           heroName="zakat-hero"
@@ -878,7 +902,9 @@ export default function DashboardPage() {
             </div>
           }
           footer={
-            !hideZakat && !loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid)
+            !hideZakat && !loading && totals && totals.zakatEligible === false
+              ? <span title="Zakat is owed only after a full lunar year (hawl) of holding wealth above the nisab. Visit Zakat Anniversary to see how many days remain.">Pending hawl</span>
+            : !hideZakat && !loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid)
               ? <>Paid {fmt((totals?.zakatPaid as number) || 0)} · Remaining {fmt((totals?.zakatRemaining as number) ?? Math.max(0, ((totals?.zakatDue as number) || 0) - ((totals?.zakatPaid as number) || 0)))}</>
               : null
           }

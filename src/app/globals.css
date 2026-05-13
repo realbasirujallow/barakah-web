@@ -396,7 +396,13 @@ nav a, nav button { min-height: 2.5rem; }
    token already lifts `--primary` from oklch(0.43) to oklch(0.65) so
    no manual override is needed. */
 .dark .bg-white { background-color: var(--card-bg) !important; }
-.dark .bg-\[#FFF8E1\] { background-color: oklch(0.145 0 0) !important; }
+/* 2026-05-12 overnight QA (DM-001): the `#` MUST be escaped in CSS class
+   selectors — otherwise the parser treats it as the start of an ID selector
+   and the rule never matches `.bg-[#FFF8E1]` elements. Line 418 below
+   gets this right for `bg-[#FFF3CD]`. Without the fix, dashboard layout
+   wrapper stayed cream-colored under dark mode (sidebar + cards went dark
+   but body did not). */
+.dark .bg-\[\#FFF8E1\] { background-color: oklch(0.145 0 0) !important; }
 .dark .text-gray-900 { color: var(--text-primary) !important; }
 .dark .text-gray-700 { color: #d1d5db !important; }
 .dark .text-gray-600 { color: #9ca3af !important; }
