@@ -404,6 +404,12 @@ nav a, nav button { min-height: 2.5rem; }
    but body did not). */
 .dark .bg-\[\#FFF8E1\] { background-color: oklch(0.145 0 0) !important; }
 .dark .text-gray-900 { color: var(--text-primary) !important; }
+/* 2026-05-12 overnight QA (AD-001): text-gray-800 had no dark override
+   while every other gray-XXX did, so 383 usages across the dashboard
+   (admin KPI numbers, plan-distribution counts, budget-row labels,
+   ledger entries, etc.) rendered near-black on the dark card bg and
+   were effectively invisible. Mirror the gray-700 token (#d1d5db). */
+.dark .text-gray-800 { color: #e5e7eb !important; }
 .dark .text-gray-700 { color: #d1d5db !important; }
 .dark .text-gray-600 { color: #9ca3af !important; }
 .dark .text-gray-500 { color: #6b7280 !important; }
