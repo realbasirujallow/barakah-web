@@ -260,7 +260,23 @@ function ImportPageInner() {
     setError('');
     setPlaidMessage('');
     try {
-      const data = await api.plaidCreateLinkToken();
+      // 2026-05-13 (EU Plaid fix): if the user.country is blank, prompt
+      // for an ISO-3166 alpha-2 country code BEFORE asking the backend
+      // for a Plaid link token. Without this the backend fell back to
+      // ["US"] in PlaidCountryCodes.codesFor("") and European users
+      // saw a US-only institution list ("No results found"). 47 of 50
+      // active users today have blank user.country.
+      let countryHint: string | undefined;
+      const storedCountry = (user?.country ?? '').trim().toUpperCase();
+      if (!storedCountry) {
+        const picked = await promptForCountry();
+        if (!picked) {
+          setPlaidLoading(false);
+          return; // user cancelled
+        }
+        countryHint = picked;
+      }
+      const data = await api.plaidCreateLinkToken(countryHint);
       if (data?.linkToken) {
         savePendingPlaidLinkToken(data.linkToken);
         setPlaidLinkToken(data.linkToken);
@@ -275,6 +291,33 @@ function ImportPageInner() {
       setPlaidLoading(false);
     }
   };
+
+  /**
+   * 2026-05-13: minimal blocking country prompt for users whose
+   * `user.country` is blank. Uses `window.prompt` for simplicity —
+   * a richer custom modal can land later. Returns the ISO-3166 alpha-2
+   * the user picked, or `null` if they cancelled.
+   */
+  function promptForCountry(): Promise<string | null> {
+    return new Promise((resolve) => {
+      const supported = 'US, CA, GB, FR, IE, ES, NL, DE, IT, PT, BE, DK, NO, SE, EE, LT, LV, PL, AU';
+      const answer = window.prompt(
+        `Plaid needs to know your country to show the right bank list.\n\nEnter your two-letter country code (ISO-3166 alpha-2).\n\nSupported: ${supported}\n\nExample: GB for the United Kingdom, DE for Germany.`,
+        '',
+      );
+      if (answer === null) {
+        resolve(null);
+        return;
+      }
+      const cleaned = answer.trim().toUpperCase();
+      if (!/^[A-Z]{2}$/.test(cleaned)) {
+        window.alert('Please enter a valid two-letter country code (e.g. GB, US, DE).');
+        resolve(null);
+        return;
+      }
+      resolve(cleaned);
+    });
+  }
 
   const onPlaidSuccess = useCallback(async (publicToken: string, metadata: { institution: { name: string; institution_id: string } | null }) => {
     try {

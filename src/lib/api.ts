@@ -1820,8 +1820,17 @@ export const api = {
     apiFetch(`/admin/notifications/broadcast/${broadcastId}/stats`, {}, API_TIMEOUT, true),
 
   // Plaid Bank Linking
-  plaidCreateLinkToken: () =>
-    apiFetch('/api/plaid/create-link-token', { method: 'POST', body: JSON.stringify({}) }),
+  // 2026-05-13: optional `country` arg lets the caller pass an ISO-3166
+  // alpha-2 freshly picked by the user — required for users whose stored
+  // user.country is blank, otherwise Plaid Link falls back to US-only
+  // institutions and EU/UK users see "No results found". Backend also
+  // persists the picked country on the user row so subsequent calls
+  // don't need the prompt.
+  plaidCreateLinkToken: (country?: string) =>
+    apiFetch('/api/plaid/create-link-token', {
+      method: 'POST',
+      body: JSON.stringify(country ? { country } : {}),
+    }),
   plaidExchangeToken: (publicToken: string, institutionName?: string) =>
     apiFetch('/api/plaid/exchange-token', { method: 'POST', body: JSON.stringify({ publicToken, institutionName }) }),
   plaidSync: (linkedAccountId: number) =>
