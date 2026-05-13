@@ -562,8 +562,16 @@ export default function DebtsPage() {
                             becomes riba. Surface that conditionality so users don't read the
                             green pill as a blanket blessing. */}
                         {halal && d.type === 'credit_card' && !ISLAMIC_TYPES.includes(d.type) && (
+                          // 2026-05-13: the previous `<em>only</em>` markup
+                          // rendered as "Halal onlyif" on some browsers/
+                          // fonts — the trailing space adjacent to the
+                          // closing `</em>` got eaten by JSX whitespace
+                          // collapse / italic kerning. Drop the `<em>` and
+                          // bold "only" via `<strong>` so the surrounding
+                          // text stays plain-roman with reliable spacing.
                           <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 mt-1.5 leading-snug">
-                            ⚠️ Halal <em>only</em> if you pay the statement in full within the grace period and the card isn&apos;t carrying a 0% intro balance that will retroactively bill interest. If interest posts, it becomes riba.
+                            <span aria-hidden="true">⚠️ </span>
+                            Halal <strong className="font-semibold">only</strong> if you pay the statement in full within the grace period and the card isn&apos;t carrying a 0% intro balance that will retroactively bill interest. If interest posts, it becomes riba.
                           </p>
                         )}
                       </div>
