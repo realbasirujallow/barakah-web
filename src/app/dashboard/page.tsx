@@ -154,6 +154,21 @@ export default function DashboardPage() {
   };
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // SUB-002 (2026-05-13): when Stripe checkout is cancelled the user
+  // now lands on /dashboard?checkout=canceled instead of a deep billing
+  // route. Show a one-shot toast and scrub the param so a refresh
+  // doesn't re-fire it.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get('checkout') === 'canceled') {
+      toast('Checkout cancelled — no charge was made.', 'info');
+      sp.delete('checkout');
+      const qs = sp.toString();
+      window.history.replaceState({}, '', `/dashboard${qs ? `?${qs}` : ''}`);
+    }
+  }, [toast]);
   // 2026-05-12 (QA-2026-05-12, Bug #17): wire useI18n so the time-of-day
   // greeting respects the active locale. The hook subscribes to locale
   // changes via useSyncExternalStore so switching language live re-renders

@@ -82,10 +82,19 @@ function CancelHelpLink({
    *  parent can flip status → "requested" + persist intent. */
   onCancelClick?: (sub: Subscription) => void;
 }) {
-  const name = sub?.name ?? flag?.subscription ?? 'subscription';
-  const url = sub?.cancelUrl
+  const name = sub?.displayName ?? sub?.name ?? flag?.subscription ?? 'subscription';
+  const directUrl = sub?.cancelUrl
     ?? `https://www.google.com/search?q=${encodeURIComponent(`how to cancel ${name}`)}`;
   const isFallback = !sub?.cancelUrl || sub?.cancelUrlFallback === true;
+  // SUB-002 (2026-05-13): curated merchant cancel URLs go stale (HBO
+  // "Detail/000001719", ChatGPT #fragment deep links, etc.) and the user
+  // had no easy way back to Barakah from a bad page. Route curated links
+  // through /cancel-redirect which provides an in-app "Back to Barakah"
+  // fallback. The Google-search fallback path stays direct — no point
+  // wrapping a search URL that's already safe.
+  const url = isFallback
+    ? directUrl
+    : `/cancel-redirect?to=${encodeURIComponent(directUrl)}&name=${encodeURIComponent(name)}`;
   return (
     <a
       href={url}
