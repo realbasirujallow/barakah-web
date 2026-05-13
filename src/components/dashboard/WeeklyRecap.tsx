@@ -116,15 +116,19 @@ export function WeeklyRecap({
       <div className="px-5 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b border-border">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
+            {/* 2026-05-12 overnight QA (UI-001): page header already shows
+                the greeting ("Good evening, Basiru") ~80 px above this
+                card. Repeating it here was duplication and made the card
+                feel like the header. Lead the card with its actual purpose
+                instead — "Your weekly recap" + the date range. The
+                `greeting`/`greetingEmoji` props are kept on the type so
+                callers don't break, but we no longer render them here. */}
             <p className="text-xs uppercase tracking-wide font-semibold text-emerald-700 dark:text-emerald-300 mb-0.5">
               Your weekly recap
             </p>
             <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
-              {greeting}{userName ? `, ${userName}` : ''} <span aria-hidden="true">{greetingEmoji}</span>
+              Last week — {range}
             </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Recap for {range}
-            </p>
           </div>
           <Link
             href="/dashboard/analytics"
@@ -144,7 +148,13 @@ export function WeeklyRecap({
               {nwPositive ? '▲' : '▼'} {fmt(Math.abs(netWorthChangeAmount as number))}
               {typeof netWorthChangePercent === 'number' && (
                 <span className="text-xs font-medium ml-1 opacity-80">
-                  ({netWorthChangePercent.toFixed(1)}%)
+                  {/* 2026-05-12 overnight QA (UI-003): when net worth is
+                      large, a small dollar delta produces a sub-0.05 %
+                      ratio that rounds to "0.0%" and reads as broken
+                      ("▲ $100 (0.0%)"). Render `<0.1%` instead. */}
+                  ({Math.abs(netWorthChangePercent) > 0 && Math.abs(netWorthChangePercent) < 0.05
+                    ? '<0.1%'
+                    : `${netWorthChangePercent.toFixed(1)}%`})
                 </span>
               )}
             </p>
