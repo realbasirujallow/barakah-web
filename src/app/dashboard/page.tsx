@@ -874,12 +874,17 @@ export default function DashboardPage() {
             stays consistent across surfaces. */}
         <KpiCard
           label="Zakat Due"
-          // 2026-05-12 overnight QA (UI-007): when hawl isn't reached yet
-          // (zakatEligible === false), rendering "$0.00" reads as "you
-          // owe nothing" instead of "we haven't computed it yet because
-          // the lunar year isn't up". Use the same `muted` tone as the
-          // Zakat Eligible card and show "—" so the two cards read
-          // consistently. The hover-title gives the full context.
+          // 2026-05-12 overnight QA (UI-007 + UI-007b): when `zakatEligible
+          // === false`, the backend means "zakatable wealth < nisab" (see
+          // AssetService.java line 596: `zakatEligible = zakatableWealthBD
+          // .compareTo(nisabBD) >= 0`). Rendering "$0.00" reads as "you
+          // owe nothing" instead of "your zakatable wealth is below the
+          // nisab threshold". Use the same `muted` tone as the Zakat
+          // Eligible card and show "—" so the two cards read consistently.
+          // The footer copy + hover title clarify it's a nisab check, not
+          // a payment status. (Earlier revision of this comment said
+          // "Pending hawl" — that was wrong; eligibility here is nisab,
+          // not hawl. Hawl status lives on /dashboard/hawl.)
           tone={
             totals && totals.zakatEligible === false ? 'muted'
             : (totals?.zakatFullyPaid ? 'positive' : 'warning')
@@ -906,7 +911,7 @@ export default function DashboardPage() {
           }
           footer={
             !hideZakat && !loading && totals && totals.zakatEligible === false
-              ? <span title="Zakat is owed only after a full lunar year (hawl) of holding wealth above the nisab. Visit Zakat Anniversary to see how many days remain.">Pending hawl</span>
+              ? <span title="Zakat is owed once your zakatable wealth (cash, gold, stocks, savings — excluding your home and personal-use assets) crosses the nisab threshold. Visit /dashboard/zakat to see the breakdown.">Below nisab</span>
             : !hideZakat && !loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid)
               ? <>Paid {fmt((totals?.zakatPaid as number) || 0)} · Remaining {fmt((totals?.zakatRemaining as number) ?? Math.max(0, ((totals?.zakatDue as number) || 0) - ((totals?.zakatPaid as number) || 0)))}</>
               : null
