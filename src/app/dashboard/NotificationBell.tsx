@@ -167,9 +167,9 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <p className="font-semibold text-gray-800 text-sm">Notifications</p>
+        <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-700 z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-neutral-700">
+            <p className="font-semibold text-gray-800 dark:text-neutral-100 text-sm">Notifications</p>
             {unreadCount > 0 && (
               <button onClick={markAllRead} className="text-xs text-primary hover:underline font-medium">
                 Mark all read
@@ -197,9 +197,9 @@ export function NotificationBell() {
                 <>
                   <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900' : 'text-gray-700'} truncate`}>{n.title}</p>
-                    {n.body && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>}
-                    <p className="text-xs text-gray-400 mt-1">{fmtTime(n.createdAt)}</p>
+                    <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900 dark:text-neutral-50' : 'text-gray-700 dark:text-neutral-200'} truncate`}>{n.title}</p>
+                    {n.body && <p className="text-xs text-gray-600 dark:text-neutral-300 mt-0.5 line-clamp-2">{n.body}</p>}
+                    <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1">{fmtTime(n.createdAt)}</p>
                   </div>
                   {!n.read && <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-2" />}
                 </>
@@ -210,7 +210,7 @@ export function NotificationBell() {
               // positioned sibling. Prior nesting was invalid HTML
               // (button inside button/a) and non-keyboard-focusable
               // on the no-link fallback.
-              const rowClass = `flex gap-3 border-b border-gray-50 hover:bg-gray-50 transition group relative ${!n.read ? 'bg-green-50/40' : ''}`;
+              const rowClass = `flex gap-3 border-b border-gray-50 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 transition group relative ${!n.read ? 'bg-green-50/40 dark:bg-emerald-900/20' : ''}`;
               const activationClass = 'flex flex-1 gap-3 px-4 py-3 pr-8 cursor-pointer text-left';
 
               const activation = isSafeInternalPath(n.link) ? (
@@ -247,7 +247,7 @@ export function NotificationBell() {
 
           <Link
             href="/dashboard/notifications"
-            className="block text-center py-3 text-xs text-primary font-medium hover:bg-green-50 transition border-t border-gray-100"
+            className="block text-center py-3 text-xs text-primary dark:text-emerald-400 font-medium hover:bg-green-50 dark:hover:bg-emerald-900/20 transition border-t border-gray-100 dark:border-neutral-700"
             onClick={() => setOpen(false)}
           >
             View all notifications →
