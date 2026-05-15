@@ -15,17 +15,21 @@ export default function PrivacyPolicyPage() {
 
       <main className="max-w-3xl mx-auto px-6 py-12 space-y-8">
         <h1 className="text-3xl font-bold text-[#1B5E20]">Privacy Policy</h1>
-        <p className="text-sm text-gray-500">Last updated: May 13, 2026</p>
+        <p className="text-sm text-gray-500">Last updated: May 15, 2026</p>
 
         <p className="text-gray-700 leading-relaxed">
-          {/* 2026-05-13 TikTok app review (2nd rejection): reviewer flagged
-              that this policy &ldquo;does not mention your app by name.&rdquo;
-              Although &ldquo;Barakah&rdquo; appears throughout, the
-              TikTok-registered app name is &ldquo;Try Barakah&rdquo;
-              (com.trybarakah.app on Google Play, id6761279229 on the App
-              Store). Explicitly naming both the registered name and the
-              bundle identifiers in the opening paragraph satisfies the
-              standard TikTok review check. */}
+          {/* 2026-05-13: App Store + Play Store reviews flagged that this
+              policy did not mention the registered app name. "Barakah"
+              appears throughout, but the stores register the app as
+              "Try Barakah" (com.trybarakah.app on Google Play,
+              id6761279229 on the App Store). Naming both the registered
+              name and the bundle identifiers in the opening paragraph
+              satisfies the standard reviewer check.
+              2026-05-15: Removed the TikTok Login Kit / TikTok Display
+              API line — that integration is not implemented in the app
+              and the privacy policy must describe what the app actually
+              does, not what a future version might. Re-add when (and
+              only when) the TikTok SDK is shipped. */}
           This Privacy Policy applies to <strong>Try Barakah</strong> (also
           referred to in this document as &ldquo;Barakah&rdquo;, the
           &ldquo;App&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, or
@@ -34,8 +38,7 @@ export default function PrivacyPolicyPage() {
         <ul className="list-disc pl-6 text-gray-700 leading-relaxed space-y-1">
           <li>the <strong>Try Barakah</strong> iOS mobile application (App Store ID <code>id6761279229</code>);</li>
           <li>the <strong>Try Barakah</strong> Android mobile application (package <code>com.trybarakah.app</code>);</li>
-          <li>the Try Barakah web dashboard at <a href="https://trybarakah.com" className="text-[#1B5E20] underline">https://trybarakah.com</a>;</li>
-          <li>any TikTok Login Kit / TikTok Display API integration offered within Try Barakah.</li>
+          <li>the Try Barakah web dashboard at <a href="https://trybarakah.com" className="text-[#1B5E20] underline">https://trybarakah.com</a>.</li>
         </ul>
         <p className="text-gray-700 leading-relaxed">
           Try Barakah is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use the Service (collectively, the surfaces listed above).
@@ -54,20 +57,6 @@ export default function PrivacyPolicyPage() {
           </p>
           <p className="text-gray-700 leading-relaxed">
             <strong>Device Information:</strong> We may collect device type, operating system version, and app version for troubleshooting and compatibility purposes.
-          </p>
-          <p className="text-gray-700 leading-relaxed">
-            <strong>TikTok account information (only if you use TikTok Login):</strong> If you choose to sign in to <strong>Try Barakah</strong> with your TikTok account, TikTok provides us with the data covered by the scopes you authorize on the TikTok consent screen:
-          </p>
-          <ul className="list-disc pl-6 text-gray-700 leading-relaxed space-y-1">
-            <li>
-              <strong><code>user.info.basic</code></strong> — your TikTok <code>open_id</code> (a stable but pseudonymous identifier that lets us recognise you next sign-in), your display name, and your profile avatar. We use <code>open_id</code> only to look up or create your Barakah account; we store display name + avatar so the Barakah header can show who is signed in.
-            </li>
-            <li>
-              <strong><code>user.info.profile</code></strong> — your TikTok profile web link, profile deep link, bio description, and is-verified flag. We use these only to render an optional &ldquo;TikTok creator&rdquo; chip on your Barakah profile so other family-plan members in your household can see your verified status and visit your public TikTok page; we do not crawl, store, or repost any of your TikTok videos, comments, or followers.
-            </li>
-          </ul>
-          <p className="text-gray-700 leading-relaxed">
-            We never receive your TikTok password, your private messages, your viewing history, or any data outside the scopes you explicitly approve. You can revoke Try Barakah&apos;s TikTok access at any time from your TikTok account settings and TikTok will notify us, after which we delete the corresponding fields from your Barakah profile.
           </p>
         </section>
 

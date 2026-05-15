@@ -15,24 +15,28 @@ export default function TermsOfServicePage() {
 
       <main className="max-w-3xl mx-auto px-6 py-12 space-y-8">
         <h1 className="text-3xl font-bold text-[#1B5E20]">Terms of Service</h1>
-        <p className="text-sm text-gray-500">Last updated: May 13, 2026</p>
+        <p className="text-sm text-gray-500">Last updated: May 15, 2026</p>
 
         <p className="text-gray-700 leading-relaxed">
-          {/* 2026-05-13 TikTok app review (2nd rejection): reviewer flagged
-              that the Terms &ldquo;does not mention your app by name.&rdquo;
-              Although &ldquo;Barakah&rdquo; appears throughout, the
-              TikTok-registered app name is &ldquo;Try Barakah&rdquo;
-              (com.trybarakah.app on Google Play, id6761279229 on the App
-              Store). Explicitly naming both the registered name and the
-              bundle identifiers in the opening paragraph satisfies the
-              standard TikTok review check. */}
+          {/* 2026-05-13: App Store + Play Store reviews flagged that this
+              policy did not mention the registered app name. "Barakah"
+              appears throughout, but the stores register the app as
+              "Try Barakah" (com.trybarakah.app on Google Play,
+              id6761279229 on the App Store). Naming both the registered
+              name and the bundle identifiers in the opening paragraph
+              satisfies the standard reviewer check.
+              2026-05-15: Removed the "TikTok Login Kit" line from the
+              third-party-integrations bullet — that integration is not
+              implemented in the app. Terms must describe what the app
+              actually does. Re-add when (and only when) the TikTok SDK
+              is shipped. */}
           These Terms of Service govern your use of <strong>Try Barakah</strong> (also referred to in this document as &ldquo;Barakah&rdquo;, the &ldquo;App&rdquo;, or the &ldquo;Service&rdquo;), including:
         </p>
         <ul className="list-disc pl-6 text-gray-700 leading-relaxed space-y-1">
           <li>the <strong>Try Barakah</strong> iOS mobile application (App Store ID <code>id6761279229</code>);</li>
           <li>the <strong>Try Barakah</strong> Android mobile application (package <code>com.trybarakah.app</code>);</li>
           <li>the Try Barakah web dashboard at <a href="https://trybarakah.com" className="text-[#1B5E20] underline">https://trybarakah.com</a>;</li>
-          <li>any optional third-party integrations offered within Try Barakah (including but not limited to Plaid for bank-linking, RevenueCat for subscription billing, and TikTok Login Kit for optional social sign-in).</li>
+          <li>third-party integrations offered within Try Barakah (Plaid for bank-linking and RevenueCat for subscription billing).</li>
         </ul>
         <p className="text-gray-700 leading-relaxed">
           Welcome to Try Barakah. By creating an account or using the Service, you agree to the following terms. Please read them carefully.
