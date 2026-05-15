@@ -1026,7 +1026,7 @@ export default function DashboardPage() {
         const todayAmt = latestPortfolioSnapshot?.dayGainLoss ?? 0;
         const hasToday = !!latestPortfolioSnapshot;
         return (
-          <div className="bg-card rounded-2xl p-5 border border-border mb-6">
+          <Link href="/dashboard/investments" className="block bg-card rounded-2xl p-5 border border-border mb-6 hover:shadow-md hover:border-primary/30 transition">
             <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Investments</p>
@@ -1042,10 +1042,10 @@ export default function DashboardPage() {
                   </p>
                 )}
                 {!hasPortfolio && (
-                  <p className="text-[11px] text-gray-500">From linked accounts</p>
+                  <p className="text-[11px] text-gray-500">Tap to drill into each account</p>
                 )}
               </div>
-              <Link href="/dashboard/investments" className="text-sm text-primary font-medium hover:underline">View all</Link>
+              <span className="text-sm text-primary font-medium">View all →</span>
             </div>
             {hasPortfolio && (gainers.length > 0 || losers.length > 0) ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
@@ -1089,7 +1089,7 @@ export default function DashboardPage() {
             ) : hasPortfolio ? (
               <p className="text-sm text-gray-400 text-center py-4">No holdings with price data yet.</p>
             ) : null}
-          </div>
+          </Link>
         );
       })()}
 
