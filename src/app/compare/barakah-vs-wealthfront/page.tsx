@@ -31,7 +31,7 @@ const rows = [
   { feature: 'Collaborative / family', barakah: 'Family plan — 6 seats, shared budgets + zakat', wealthfront: 'Single-account; joint accounts only via shared login', winner: 'Barakah' as const },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', wealthfront: 'None', winner: 'Barakah' as const },
   { feature: 'Hawl continuity tracking', barakah: 'Daily nisab-check, fiqh-aware', wealthfront: 'None', winner: 'Barakah' as const },
-  { feature: 'Halal stock screening', barakah: '30,000+ AAOIFI-screened', wealthfront: 'None — uses standard ESG / index portfolios, not Shariah', winner: 'Barakah' as const },
+  { feature: 'Halal stock screening', barakah: '30,000+ library + on-demand AAOIFI ratios', wealthfront: 'None — uses standard ESG / index portfolios, not Shariah', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', wealthfront: 'None — and the cash account itself pays interest (riba)', winner: 'Barakah' as const, note: 'See honest-recommendation box below — the cash APY is riba.' },
   { feature: 'Islamic will / faraid', barakah: 'Faraid calculator + wasiyyah builder', wealthfront: 'None', winner: 'Barakah' as const },
   { feature: 'Net-worth history', barakah: 'Yes, with integrity-hash snapshots', wealthfront: 'Yes — projection-focused, less historical detail', winner: 'Barakah' as const },

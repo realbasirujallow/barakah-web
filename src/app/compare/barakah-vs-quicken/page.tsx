@@ -31,7 +31,7 @@ const rows = [
   { feature: 'Collaborative / family', barakah: 'Family plan — 6 seats, shared budgets + zakat', quicken: 'Quicken Classic: single-user oriented. Simplifi: limited household sharing.', winner: 'Barakah' as const },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', quicken: 'None', winner: 'Barakah' as const },
   { feature: 'Hawl continuity tracking', barakah: 'Daily nisab-check, fiqh-aware', quicken: 'None', winner: 'Barakah' as const },
-  { feature: 'Halal stock screening', barakah: '30,000+ AAOIFI-screened', quicken: 'None', winner: 'Barakah' as const },
+  { feature: 'Halal stock screening', barakah: '30,000+ library + on-demand AAOIFI ratios', quicken: 'None', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', quicken: 'None — interest income shown as ordinary revenue', winner: 'Barakah' as const },
   { feature: 'Islamic will / faraid', barakah: 'Faraid calculator + wasiyyah builder', quicken: 'None (Quicken WillMaker is a separate product, not Islamic)', winner: 'Barakah' as const },
   { feature: 'Net-worth history', barakah: 'Yes, with integrity-hash snapshots', quicken: 'Quicken Classic: decades-deep history possible. Simplifi: solid snapshots.', winner: 'Quicken' as const, note: 'Quicken Classic users routinely have 15+ year ledgers.' },

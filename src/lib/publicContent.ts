@@ -58,10 +58,10 @@ export const PUBLIC_FEATURE_CARDS: readonly LocalizedFeatureCard[] = [
       fr: 'Filtre d’actions halal',
     },
     desc: {
-      en: '30,000+ stocks screened using criteria based on AAOIFI Standard 21 — filter by halal or haram with sector breakdown.',
-      ar: 'فحص أكثر من 30,000 سهم وفق معايير مستندة إلى المعيار 21 لـAAOIFI — مع تصفية الحلال والحرام وبيان القطاعات.',
-      ur: '30,000 سے زیادہ اسٹاک AAOIFI اسٹینڈرڈ 21 پر مبنی معیار سے جانچے گئے — شعبہ وار تفصیل کے ساتھ حلال یا حرام فلٹر کریں۔',
-      fr: 'Plus de 30 000 actions filtrées selon des critères inspirés de la norme 21 de l’AAOIFI — avec filtre halal/haram et ventilation sectorielle.',
+      en: 'A 30,000+ stock business-activity library, plus live AAOIFI Standard 21 ratio screening on demand — filter by halal or haram with sector breakdown.',
+      ar: 'مكتبة تضم أكثر من 30,000 سهم بفحص النشاط التجاري، إضافة إلى فحص مباشر للنسب المالية وفق المعيار 21 لـAAOIFI عند الطلب — مع تصفية الحلال والحرام وبيان القطاعات.',
+      ur: '30,000 سے زیادہ اسٹاکس کی کاروباری سرگرمی کی لائبریری، ساتھ ہی کسی بھی اسٹاک کے لیے AAOIFI اسٹینڈرڈ 21 مالیاتی تناسب کی لائیو جانچ — شعبہ وار تفصیل کے ساتھ حلال یا حرام فلٹر کریں۔',
+      fr: 'Une bibliothèque de plus de 30 000 actions avec filtrage par activité, plus une analyse en direct des ratios financiers selon la norme 21 de l’AAOIFI à la demande — avec filtre halal/haram et ventilation sectorielle.',
     },
   },
   {

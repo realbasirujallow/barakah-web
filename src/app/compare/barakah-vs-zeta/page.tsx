@@ -32,7 +32,7 @@ const rows = [
   { feature: 'Joint banking', barakah: 'None — Barakah aggregates, doesn\'t bank', zeta: 'Yes — joint debit card, no fees, no minimums (FDIC via partner bank)', winner: 'Zeta' as const, note: 'Zeta is one of very few apps that actually bundles a joint bank account.' },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', zeta: 'None', winner: 'Barakah' as const },
   { feature: 'Hawl continuity tracking', barakah: 'Daily nisab-check, fiqh-aware', zeta: 'None', winner: 'Barakah' as const },
-  { feature: 'Halal stock screening', barakah: '30,000+ AAOIFI-screened', zeta: 'None', winner: 'Barakah' as const },
+  { feature: 'Halal stock screening', barakah: '30,000+ library + on-demand AAOIFI ratios', zeta: 'None', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', zeta: 'None — Zeta\'s own joint account may pay interest (treated as income)', winner: 'Barakah' as const },
   { feature: 'Islamic will / faraid', barakah: 'Faraid calculator + wasiyyah builder', zeta: 'None', winner: 'Barakah' as const },
   { feature: 'Mobile app quality', barakah: 'Live on iOS & Android', zeta: 'Polished iOS & Android, designed for two-user workflows', winner: 'Zeta' as const },

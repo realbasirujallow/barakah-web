@@ -126,17 +126,19 @@ export default function HalalStocksHub() {
             <h2 className="mb-3 text-xl font-bold text-amber-900">Why static lists mislead</h2>
             <p className="text-sm leading-7 text-amber-900">
               Most &quot;halal stocks 2026&quot; lists were assembled once and never re-screened. The financial ratios that determine
-              compliance change every quarter as debt, cash, and market cap fluctuate. Barakah re-runs the AAOIFI screen against
-              30,000+ stocks continuously, so when you ask &quot;is AAPL halal <em>today</em>&quot;, the answer is calculated against
-              the latest available data — not last year&apos;s.
+              compliance change every quarter as debt, cash, and market cap fluctuate. When you check a ticker in Barakah, the full
+              AAOIFI Standard 21 ratio screen runs live against the latest available data — and the stocks you actually hold are
+              re-screened automatically on a schedule — so &quot;is AAPL halal <em>today</em>&quot; is answered against current
+              numbers, not last year&apos;s.
             </p>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">
             <h2 className="mb-3 text-xl font-bold">Screen any US/UK/GCC stock in seconds</h2>
             <p className="mb-4 text-sm leading-7 text-green-100">
-              Barakah Plus ($9.99/mo) gives you unlimited halal screening against 30,000+ tickers with live AAOIFI ratios,
-              purification amounts, and zakat integration. Free for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL}.
+              Barakah Plus ($9.99/mo) runs the full AAOIFI Standard 21 ratio screen live for any US/UK/GCC ticker you check,
+              plus a browse-able library of 30,000+ stocks with business-activity screening, purification amounts, and zakat
+              integration. Free for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL}.
             </p>
             <Link href="/signup" className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#1B5E20] transition hover:bg-green-50">
               Start {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} free trial →

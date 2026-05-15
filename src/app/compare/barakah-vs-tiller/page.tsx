@@ -31,7 +31,7 @@ const rows = [
   { feature: 'Collaborative / family', barakah: 'Family plan — 6 seats, shared budgets + zakat', tiller: 'Share the Google Sheet — collaboration is free via Sheets', winner: 'Tie' as const },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', tiller: 'None (build your own zakat sheet if you can)', winner: 'Barakah' as const },
   { feature: 'Hawl continuity tracking', barakah: 'Daily nisab-check, fiqh-aware', tiller: 'None', winner: 'Barakah' as const },
-  { feature: 'Halal stock screening', barakah: '30,000+ AAOIFI-screened', tiller: 'None', winner: 'Barakah' as const },
+  { feature: 'Halal stock screening', barakah: '30,000+ library + on-demand AAOIFI ratios', tiller: 'None', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', tiller: 'None — interest income just appears as a row', winner: 'Barakah' as const },
   { feature: 'Islamic will / faraid', barakah: 'Faraid calculator + wasiyyah builder', tiller: 'None', winner: 'Barakah' as const },
   { feature: 'Net-worth history', barakah: 'Yes, with integrity-hash snapshots', tiller: 'Yes — Tiller appends daily balances; you graph them in Sheets', winner: 'Tie' as const },
@@ -111,7 +111,7 @@ export default function BarakahVsTillerPage() {
               Tiller is a beautiful product for spreadsheet people — and at $79/year it&apos;s the cheapest serious budgeting
               tool on this list. If you already live in Google Sheets, you&apos;d miss being able to pivot, formula, and slice
               your data. But every Islamic feature you&apos;d want — zakat across multiple asset types, hawl-aware nisab checks,
-              30,000-stock halal screening, riba flagging on transaction sync, faraid distributions — would have to be
+              halal stock screening with live AAOIFI ratios, riba flagging on transaction sync, faraid distributions — would have to be
               hand-built. The honest answer for most Muslim households: use Barakah for the Islamic layer and budgeting,
               and keep Tiller only if you have specific spreadsheet workflows that justify it.
             </p>

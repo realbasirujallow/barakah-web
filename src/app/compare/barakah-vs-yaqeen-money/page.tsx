@@ -31,7 +31,7 @@ const rows = [
   { feature: 'Collaborative / family', barakah: 'Family plan — 6 seats, shared budgets + zakat', yaqeen: 'Single-user focus at the time of review', winner: 'Barakah' as const },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', yaqeen: 'Zakat calculator (cash-focused)', winner: 'Barakah' as const, note: 'Yaqeen has zakat — but multi-asset coverage is narrower.' },
   { feature: 'Hawl continuity tracking', barakah: 'Daily nisab-check, fiqh-aware', yaqeen: 'Basic hawl reminders', winner: 'Barakah' as const },
-  { feature: 'Halal stock screening', barakah: '30,000+ AAOIFI-screened', yaqeen: 'Not the core focus', winner: 'Barakah' as const },
+  { feature: 'Halal stock screening', barakah: '30,000+ library + on-demand AAOIFI ratios', yaqeen: 'Not the core focus', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', yaqeen: 'Basic flagging', winner: 'Barakah' as const },
   { feature: 'Islamic will / faraid', barakah: 'Faraid calculator + wasiyyah builder', yaqeen: 'Not currently included', winner: 'Barakah' as const },
   { feature: 'Sadaqah / giving tracker', barakah: 'Round-up sadaqah + Ramadan tracker', yaqeen: 'Sadaqah tracking is a headline feature', winner: 'Yaqeen Money' as const, note: 'Yaqeen has put real polish into the giving flow.' },

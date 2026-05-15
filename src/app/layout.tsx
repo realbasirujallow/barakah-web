@@ -211,7 +211,7 @@ export default async function RootLayout({
       'Free zakat calculator with live gold and silver nisab prices',
       'Multi-madhab zakat support (Hanafi, Shafi\'i, Maliki, Hanbali)',
       'Hawl anniversary tracking and alerts',
-      'Halal stock screener — 30,000+ stocks using AAOIFI-derived criteria',
+      'Halal stock screener — live AAOIFI Standard 21 ratio screening on demand, plus a 30,000+ stock business-activity library',
       'Riba detector and elimination journey',
       'Islamic will (wasiyyah) planner',
       'Faraid inheritance calculator',
