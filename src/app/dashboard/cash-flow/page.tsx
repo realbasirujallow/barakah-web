@@ -59,6 +59,44 @@ interface BreakdownResponse {
   sadaqahZakat: BreakdownRow[];
 }
 
+// Auto-detected recurring income — backed by IncomeDetectionService.java.
+type IncomeFrequency = 'weekly' | 'biweekly' | 'semimonthly' | 'monthly';
+interface IncomeStream {
+  source: string;
+  currency: string;
+  frequency: IncomeFrequency;
+  averageAmount: number;
+  lastAmount: number;
+  occurrences: number;
+  lastReceived: number;   // epoch millis
+  nextExpected: number;   // epoch millis
+  monthlyEquivalent: number;
+  amountVaries: boolean;
+  confidence: 'high' | 'medium' | 'low';
+}
+interface IncomeStreamsResponse {
+  streams: IncomeStream[];
+  count: number;
+  totalMonthlyIncome: number;
+  primaryStream: IncomeStream | null;
+}
+
+const FREQUENCY_LABEL: Record<IncomeFrequency, string> = {
+  weekly: 'Weekly',
+  biweekly: 'Every 2 weeks',
+  semimonthly: 'Twice a month',
+  monthly: 'Monthly',
+};
+
+function formatDay(epochMillis: number): string {
+  if (!epochMillis) return '';
+  return new Date(epochMillis).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
 type Dimension = 'category' | 'merchant';
 type TimeView = 'monthly' | 'quarterly' | 'yearly';
 type ChartView = 'bars' | 'sankey';
@@ -103,6 +141,11 @@ export default function CashFlowPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
+  // Auto-detected recurring income streams (paychecks). Independent of the
+  // selected month — it's a whole-history pattern, so it loads once and
+  // fails quietly (the chart + breakdown don't depend on it).
+  const [incomeStreams, setIncomeStreams] = React.useState<IncomeStreamsResponse | null>(null);
+
   // PR 4 (2026-05-01): per-month breakdown + dimension toggle
   // (Category / Merchant). Re-fetches when month or dimension changes.
   const [dimension, setDimension] = React.useState<Dimension>('category');
@@ -146,6 +189,20 @@ export default function CashFlowPage() {
     })();
     return () => { cancelled = true; };
   }, [urlMonth]);
+
+  // Load detected income streams once on mount.
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await api.getIncomeStreams();
+        if (!cancelled) setIncomeStreams(result as IncomeStreamsResponse);
+      } catch {
+        if (!cancelled) setIncomeStreams(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Re-fetch breakdown whenever month or dimension changes.
   React.useEffect(() => {
@@ -730,6 +787,13 @@ export default function CashFlowPage() {
         </>
       )}
 
+      {/* Recurring income — auto-detected paycheck streams. Only shown
+          when at least one stream is detected; the panel fails quiet so
+          it never blocks the rest of the page. */}
+      {!loading && !error && incomeStreams && incomeStreams.count > 0 && (
+        <IncomeStreamsPanel data={incomeStreams} fmt={fmt} className="mb-4" />
+      )}
+
       {/* Breakdown (PR 4 — Income / Expenses / Sadaqah-Zakat) */}
       {!loading && !error && months.length > 0 && (
         <div className="bg-card rounded-2xl p-5 border border-border">
@@ -1045,4 +1109,79 @@ function StatCard({
   );
   if (tooltip) return <div title={tooltip}>{card}</div>;
   return card;
+}
+
+/**
+ * Recurring-income panel. Renders the streams detected by
+ * IncomeDetectionService — paychecks and other regular deposits — with
+ * their cadence, typical amount, and the next expected date.
+ *
+ * This is the "we found your paycheck" surface: it turns a pile of raw
+ * deposit transactions into a legible picture of how money comes in,
+ * which is what makes the safe-to-spend and forecast numbers trustworthy.
+ */
+function IncomeStreamsPanel({
+  data,
+  fmt,
+  className,
+}: {
+  data: IncomeStreamsResponse;
+  fmt: (n: number) => string;
+  className?: string;
+}) {
+  return (
+    <section className={`bg-card rounded-2xl p-5 border border-border ${className ?? ''}`}>
+      <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+          Recurring income
+        </p>
+        <p className="text-sm font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
+          ≈ {fmt(data.totalMonthlyIncome)}/mo
+        </p>
+      </div>
+      <p className="text-[11px] text-muted-foreground mb-3">
+        Detected automatically from your deposits — used to power safe-to-spend and your forecast.
+      </p>
+      <ul className="space-y-1.5">
+        {data.streams.map((s, i) => (
+          <li
+            key={`${s.source}-${s.currency}-${i}`}
+            className="flex items-center justify-between gap-3 rounded-md px-2 py-2 hover:bg-muted/40 transition-colors"
+          >
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-sm font-medium text-foreground truncate capitalize">
+                  {s.source}
+                </span>
+                {s.confidence === 'low' && (
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded px-1 py-0.5">
+                    Low confidence
+                  </span>
+                )}
+                {s.amountVaries && (
+                  <span className="text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-400 border border-amber-300/60 dark:border-amber-800/60 rounded px-1 py-0.5">
+                    Amount varies
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {FREQUENCY_LABEL[s.frequency]} · {s.occurrences} deposits
+                {s.lastReceived ? ` · last ${formatDay(s.lastReceived)}` : ''}
+              </p>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <p className="text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">
+                {s.amountVaries ? '~' : ''}{fmt(s.averageAmount)}
+              </p>
+              {s.nextExpected > Date.now() && (
+                <p className="text-[11px] text-muted-foreground">
+                  next ~{formatDay(s.nextExpected)}
+                </p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
 }

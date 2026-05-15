@@ -794,6 +794,9 @@ export const api = {
   // a forced /login?reason=expired. Same bug class as R12/R13.
   getAssets: (suppressUnauthorized = true) => apiFetch('/api/assets/list', {}, API_TIMEOUT, suppressUnauthorized),
   getAssetTotal: (suppressUnauthorized = true) => apiFetch('/api/assets/total', {}, API_TIMEOUT, suppressUnauthorized),
+  // Assets bucketed by category group (Cash / Investments / Real Estate /
+  // …) with per-group totals + % of assets. See AssetController#getGroupedAssets.
+  getGroupedAssets: (suppressUnauthorized = true) => apiFetch('/api/assets/grouped', {}, API_TIMEOUT, suppressUnauthorized),
   addAsset: (data: Record<string, unknown>) =>
     apiFetch('/api/assets/add', { method: 'POST', body: JSON.stringify(data) }),
   updateAsset: (id: number, data: Record<string, unknown>) =>
@@ -942,6 +945,12 @@ export const api = {
   getDebtPayoffStrategies: (extraMonthly: number) =>
     apiFetch(`/api/debts/payoff-strategies?extraMonthly=${encodeURIComponent(String(extraMonthly))}`),
   getDebtProjections: () => apiFetch('/api/debts/projections'),
+  // Debt-burden intelligence — debt-to-income ratio + riba-bearing vs
+  // riba-free split. See DebtInsightService.java.
+  // suppressUnauthorized: mount-fired on /dashboard/debts — a transient 401
+  // must not cascade into a forced logout (see backgroundPollsDoNotLogout).
+  getDebtBurden: (suppressUnauthorized = true) =>
+    apiFetch('/api/debts/burden', {}, API_TIMEOUT, suppressUnauthorized),
 
   // Bills
   getBills: () => apiFetch('/api/bills/list'),
@@ -992,6 +1001,12 @@ export const api = {
   // Sadaqah
   getSadaqah: () => apiFetch('/api/sadaqah/list'),
   getSadaqahStats: () => apiFetch('/api/sadaqah/stats'),
+  // Giving-pattern intelligence — streak, trend, recurring gifts, top
+  // recipients. See SadaqahInsightService.java.
+  // suppressUnauthorized: mount-fired on /dashboard/sadaqah — a transient
+  // 401 must not cascade into a forced logout (see backgroundPollsDoNotLogout).
+  getSadaqahInsights: (suppressUnauthorized = true) =>
+    apiFetch('/api/sadaqah/insights', {}, API_TIMEOUT, suppressUnauthorized),
   addSadaqah: (data: Record<string, unknown>) =>
     apiFetch('/api/sadaqah/add', { method: 'POST', body: JSON.stringify(data) }),
   deleteSadaqah: (id: number) =>
@@ -1226,6 +1241,12 @@ export const api = {
     apiFetch(`/api/cashflow/months?range=${range}`),
   getCashflowBreakdown: (month: string, dimension: 'category' | 'merchant' = 'category') =>
     apiFetch(`/api/cashflow/breakdown?month=${encodeURIComponent(month)}&dimension=${dimension}`),
+  // Auto-detected recurring income streams (paychecks). See
+  // IncomeDetectionService.java — read-only, derived from real deposits.
+  // suppressUnauthorized: mount-fired on the Cash Flow page — a transient
+  // 401 must not cascade into a forced logout (see backgroundPollsDoNotLogout).
+  getIncomeStreams: (suppressUnauthorized = true) =>
+    apiFetch('/api/cashflow/income-streams', {}, API_TIMEOUT, suppressUnauthorized),
 
   // Multi-currency
   getCurrencyRates: () => apiFetch('/api/currency/rates'),
@@ -1355,6 +1376,10 @@ export const api = {
   // 401 silently logs the user out.
   getRamadanGoals: (suppressUnauthorized = true) =>
     apiFetch('/api/ramadan/goals', {}, API_TIMEOUT, suppressUnauthorized),
+  // Most-recent completed Ramadan vs. ordinary months — spending + giving.
+  // See RamadanInsightService.java.
+  getRamadanSpendingComparison: (suppressUnauthorized = true) =>
+    apiFetch('/api/ramadan/spending-comparison', {}, API_TIMEOUT, suppressUnauthorized),
   saveRamadanGoals: (data: Record<string, unknown>) =>
     apiFetch('/api/ramadan/goals', { method: 'PUT', body: JSON.stringify(data) }),
 
