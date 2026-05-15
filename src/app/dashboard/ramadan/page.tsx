@@ -70,6 +70,26 @@ const OPTIONAL_CATEGORIES = [
 
 interface BudgetItem { key: string; label: string; icon: string; suggested: number; allocated: number; }
 
+// Most-recent completed Ramadan vs. ordinary months — RamadanInsightService.
+interface RamadanComparison {
+  available: boolean;
+  ramadanLabel: string | null;
+  hasData: boolean;
+  currency: string;
+  ramadanSpending: number;
+  normalMonthlySpending: number;
+  spendingDeltaPct: number | null;
+  ramadanGiving: number;
+  normalMonthlyGiving: number;
+  givingDeltaPct: number | null;
+  topRamadanCategories: { category: string; amount: number }[];
+}
+
+function deltaText(pct: number | null): string {
+  if (pct === null) return '—';
+  return `${pct > 0 ? '+' : ''}${pct}%`;
+}
+
 const DUAS = [
   { arabic: 'اللَّهُمَّ بَلِّغْنَا رَمَضَانَ', transliteration: 'Allahumma ballighna Ramadan', meaning: 'O Allah, let us reach Ramadan' },
   { arabic: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي', transliteration: "Allahumma innaka 'afuwwun tuhibbul 'afwa fa'fu 'anni", meaning: 'O Allah, You are the Pardoner, You love to pardon, so pardon me' },
@@ -98,6 +118,9 @@ export default function RamadanPage() {
   const [dailyNafila, setDailyNafila]   = useState<boolean[]>(Array(30).fill(false));
   const [expandDua, setExpandDua]       = useState<number | null>(null);
   const [syncStatus, setSyncStatus]     = useState<'idle' | 'saving' | 'synced' | 'error'>('idle');
+  // Last completed Ramadan, spending + giving vs ordinary months. Loads
+  // independently and stays null until there's something worth showing.
+  const [comparison, setComparison]     = useState<RamadanComparison | null>(null);
   const { toast } = useToast();
   // Guard against a race where the localStorage-save effect fires on initial
   // state before the server-side load completes, overwriting the server copy.
@@ -202,6 +225,18 @@ export default function RamadanPage() {
     return () => clearInterval(t);
   }, []);
 
+  // Load the last-Ramadan comparison. Only surfaces when there's a
+  // completed Ramadan with real transaction data behind it.
+  useEffect(() => {
+    api.getRamadanSpendingComparison()
+      .then((d) => {
+        if (d && !d.error && d.available && d.hasData) {
+          setComparison(d as RamadanComparison);
+        }
+      })
+      .catch(() => { /* reflective card is optional — fail quiet */ });
+  }, []);
+
   const hijri = toHijri(now);
   const ramadan = getRamadanStatus(now);
   const totalBudget = budget.reduce((s, b) => s + b.allocated, 0);
@@ -255,6 +290,59 @@ export default function RamadanPage() {
               Expected to begin {ramadan.start.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
               <span className="text-xs text-gray-400 ml-1">(subject to moon sighting)</span>
             </p>
+          )}
+        </div>
+      )}
+
+      {/* Last Ramadan, in review — how spending and giving moved vs an
+          ordinary month. Only rendered when there's a completed Ramadan
+          with real transaction data behind it. */}
+      {comparison && (
+        <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
+          <h2 className="font-bold text-primary mb-1">{comparison.ramadanLabel}, in review</h2>
+          <p className="text-xs text-gray-500 mb-4">
+            How your spending and giving moved compared with an ordinary month.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
+              <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-1">Spending</p>
+              <p className="text-2xl font-bold text-gray-900">{fmt(comparison.ramadanSpending)}</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                vs {fmt(comparison.normalMonthlySpending)}/mo normally
+                {comparison.spendingDeltaPct !== null && (
+                  <span className={`ml-1 font-semibold ${comparison.spendingDeltaPct > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
+                    ({deltaText(comparison.spendingDeltaPct)})
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3">
+              <p className="text-[11px] uppercase tracking-wide text-emerald-700 font-medium mb-1">Giving</p>
+              <p className="text-2xl font-bold text-gray-900">{fmt(comparison.ramadanGiving)}</p>
+              <p className="text-xs text-gray-600 mt-0.5">
+                vs {fmt(comparison.normalMonthlyGiving)}/mo normally
+                {comparison.givingDeltaPct !== null && (
+                  <span className={`ml-1 font-semibold ${comparison.givingDeltaPct >= 0 ? 'text-emerald-700' : 'text-gray-500'}`}>
+                    ({deltaText(comparison.givingDeltaPct)})
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+          {comparison.givingDeltaPct !== null && comparison.givingDeltaPct > 0 && (
+            <p className="text-sm text-emerald-700 mt-3">
+              You gave <span className="font-semibold">{deltaText(comparison.givingDeltaPct)}</span> more than your usual month — may Allah accept it.
+            </p>
+          )}
+          {comparison.topRamadanCategories.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {comparison.topRamadanCategories.map((c) => (
+                <span key={c.category} className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700">
+                  <span className="capitalize">{c.category.replace(/_/g, ' ')}</span>
+                  <span className="font-semibold text-gray-900">{fmt(c.amount)}</span>
+                </span>
+              ))}
+            </div>
           )}
         </div>
       )}

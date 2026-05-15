@@ -13,6 +13,23 @@ import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 interface SadaqahItem { id: number; amount: number; recipientName: string; category: string; date: number; description: string; recurring: boolean; anonymous: boolean; }
 interface Stats { totalDonated: number; donationCount: number; thisMonthTotal: number; topCategory: string; }
 
+// Giving-pattern intelligence — backed by SadaqahInsightService.java.
+interface RecurringGift { recipient: string; averageAmount: number; occurrences: number; lastDate: number; nextExpected: number; }
+interface TopRecipient { recipient: string; total: number; count: number; }
+interface GivingInsights {
+  currency: string;
+  thisMonthTotal: number;
+  lastMonthTotal: number;
+  thisYearTotal: number;
+  monthlyAverage: number;
+  trend: 'up' | 'down' | 'flat' | 'none';
+  givingStreakMonths: number;
+  monthsActiveLast12: number;
+  lastGift: { amount: number; recipient: string; date: number } | null;
+  recurringGiving: RecurringGift[];
+  topRecipients: TopRecipient[];
+}
+
 // Map backend stats response fields to frontend Stats interface
 function mapStats(raw: Record<string, unknown>): Stats | null {
   if (!raw) return null;
@@ -40,6 +57,7 @@ function SadaqahContent() {
   const { fmt, locale: dateLocale } = useCurrency();
   const [items, setItems] = useState<SadaqahItem[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [giving, setGiving] = useState<GivingInsights | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false });
@@ -60,13 +78,16 @@ function SadaqahContent() {
 
   const load = useCallback(() => {
     setLoading(true);
-    Promise.allSettled([api.getSadaqah(), api.getSadaqahStats()])
+    Promise.allSettled([api.getSadaqah(), api.getSadaqahStats(), api.getSadaqahInsights()])
       .then((results) => {
         const d = results[0].status === 'fulfilled' ? results[0].value : null;
         const s = results[1].status === 'fulfilled' ? results[1].value : null;
+        // Insights are additive — a failure here must not block the page.
+        const g = results[2].status === 'fulfilled' ? results[2].value : null;
         if (d?.error) { toast(d.error, 'error'); return; }
         setItems(Array.isArray(d?.donations) ? d.donations : Array.isArray(d) ? d : []);
         setStats(mapStats(s));
+        setGiving(g && !g.error ? (g as GivingInsights) : null);
       })
       .catch(() => { toast('Failed to load sadaqah records', 'error'); }).finally(() => setLoading(false));
   }, [toast]);
@@ -178,6 +199,13 @@ function SadaqahContent() {
           <div><p className="text-teal-200 text-xs">Top Category</p><p className="text-xl font-semibold capitalize">{stats?.topCategory || 'N/A'}</p></div>
         </div>
       </div>
+
+      {/* Giving patterns — auto-detected from the unified charity-transaction
+          history (manual sadaqah + bank-synced giving). Only shown when
+          there's something meaningful to surface. */}
+      {giving && (giving.givingStreakMonths > 0 || giving.recurringGiving.length > 0 || giving.topRecipients.length > 0) && (
+        <GivingPatternsPanel giving={giving} fmt={fmt} />
+      )}
 
       {/* ── Donate via Barakah ────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-6 mb-6">
@@ -349,5 +377,101 @@ export default function SadaqahPage() {
     <Suspense fallback={<SkeletonPage />}>
       <SadaqahContent />
     </Suspense>
+  );
+}
+
+/**
+ * Giving-patterns panel — turns the raw charity-transaction history into a
+ * legible picture of *how* the household gives: a streak to keep going, a
+ * trend vs. the running average, consistency over the year, recurring gifts,
+ * and the recipients they return to most.
+ *
+ * The streak is celebratory only — there is no "you missed a month" state.
+ * Consistency of giving is a quiet good in Islam; the panel reflects that
+ * back without ever turning into a guilt prompt.
+ */
+function GivingPatternsPanel({
+  giving,
+  fmt,
+}: {
+  giving: GivingInsights;
+  fmt: (n: number) => string;
+}) {
+  const trendLabel =
+    giving.trend === 'up' ? 'Above your average' :
+    giving.trend === 'down' ? 'Below your average' :
+    giving.trend === 'flat' ? 'In line with your average' :
+    null;
+  const fmtDay = (ms: number) =>
+    ms ? new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' }) : '';
+
+  return (
+    <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-6 mb-6">
+      <h2 className="text-lg font-bold text-primary mb-1">Your giving patterns</h2>
+      <p className="text-sm text-gray-500 mb-4">
+        Detected automatically from your logged sadaqah and bank-synced giving.
+      </p>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        {giving.givingStreakMonths > 0 && (
+          <div className="rounded-xl bg-amber-50 border border-amber-200 p-3">
+            <p className="text-2xl font-bold text-amber-700">🔥 {giving.givingStreakMonths}</p>
+            <p className="text-xs text-amber-800 mt-0.5">
+              month{giving.givingStreakMonths === 1 ? '' : 's'} giving streak
+            </p>
+          </div>
+        )}
+        <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
+          <p className="text-2xl font-bold text-gray-800">{fmt(giving.thisMonthTotal)}</p>
+          <p className="text-xs text-gray-600 mt-0.5">given this month</p>
+        </div>
+        <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
+          <p className="text-2xl font-bold text-gray-800">{giving.monthsActiveLast12}<span className="text-base text-gray-500">/12</span></p>
+          <p className="text-xs text-gray-600 mt-0.5">months active (past year)</p>
+        </div>
+        <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
+          <p className="text-2xl font-bold text-gray-800">{fmt(giving.monthlyAverage)}</p>
+          <p className="text-xs text-gray-600 mt-0.5">monthly average</p>
+        </div>
+      </div>
+
+      {trendLabel && (
+        <p className="text-sm text-gray-600 mb-4">
+          This month is <span className="font-semibold text-gray-800">{trendLabel.toLowerCase()}</span>.
+        </p>
+      )}
+
+      {giving.recurringGiving.length > 0 && (
+        <div className="mb-4">
+          <p className="text-sm font-semibold text-gray-700 mb-2">Recurring giving</p>
+          <ul className="space-y-1.5">
+            {giving.recurringGiving.map((r, i) => (
+              <li key={`${r.recipient}-${i}`} className="flex items-center justify-between gap-3 text-sm">
+                <span className="text-gray-800 truncate capitalize">{r.recipient}</span>
+                <span className="text-gray-500 flex-shrink-0 tabular-nums">
+                  {fmt(r.averageAmount)}/mo · next ~{fmtDay(r.nextExpected)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {giving.topRecipients.length > 0 && (
+        <div>
+          <p className="text-sm font-semibold text-gray-700 mb-2">Where you give most</p>
+          <ul className="space-y-1.5">
+            {giving.topRecipients.map((r, i) => (
+              <li key={`${r.recipient}-${i}`} className="flex items-center justify-between gap-3 text-sm">
+                <span className="text-gray-800 truncate capitalize">{r.recipient}</span>
+                <span className="text-gray-500 flex-shrink-0 tabular-nums">
+                  {fmt(r.total)} · {r.count} gift{r.count === 1 ? '' : 's'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }

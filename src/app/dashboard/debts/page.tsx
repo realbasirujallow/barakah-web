@@ -47,6 +47,23 @@ interface SubscriptionStatus {
   hasSubscription: boolean;
 }
 
+// Debt-burden intelligence — backed by DebtInsightService.java.
+interface DebtBurden {
+  currency: string;
+  debtCount: number;
+  totalRemainingDebt: number;
+  ribaBearingRemaining: number;
+  ribaFreeRemaining: number;
+  ribaBearingDebtCount: number;
+  totalMonthlyDebtPayment: number;
+  ribaBearingMonthly: number;
+  ribaFreeMonthly: number;
+  ribaShareOfPayments: number;
+  detectedMonthlyIncome: number;
+  debtToIncomeRatio: number | null;
+  dtiBand: 'healthy' | 'moderate' | 'elevated' | 'unknown';
+}
+
 /**
  * 2026-05-10 — shape of the GET /api/debts/payoff-strategies response.
  * Both `snowball` and `avalanche` carry: monthsToDebtFree (null if
@@ -194,21 +211,25 @@ export default function DebtsPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
+  // Debt-burden intelligence — additive, fails quiet (the page works without it).
+  const [burden, setBurden] = useState<DebtBurden | null>(null);
   const { toast } = useToast();
   const { symbol, fmt, locale: dateLocale } = useCurrency();
   const { user } = useAuth();
 
   const load = useCallback(() => {
     setLoading(true);
-    Promise.allSettled([api.getDebts(), api.subscriptionStatus()])
+    Promise.allSettled([api.getDebts(), api.subscriptionStatus(), api.getDebtBurden()])
       .then(results => {
         const debtResult = results[0].status === 'fulfilled' ? results[0].value : null;
         const subscriptionResult = results[1].status === 'fulfilled' ? results[1].value : null;
+        const burdenResult = results[2].status === 'fulfilled' ? results[2].value : null;
         setSubscriptionStatus(
           subscriptionResult
             ? (subscriptionResult as SubscriptionStatus)
             : { plan: 'free', status: 'inactive', hasSubscription: false },
         );
+        setBurden(burdenResult && !burdenResult.error ? (burdenResult as DebtBurden) : null);
         if (debtResult?.error) {
           toast(debtResult.error as string, 'error');
           return;
@@ -492,6 +513,10 @@ export default function DebtsPage() {
             <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Remaining</p><p className="text-2xl font-bold text-red-600">{fmt(totalDebt)}</p></div>
             <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Monthly Payments</p><p className="text-2xl font-bold text-orange-600">{fmt(totalMinPayment)}</p></div>
           </div>
+
+          {burden && burden.debtCount > 0 && (
+            <DebtBurdenPanel burden={burden} fmt={fmt} />
+          )}
 
           {totalMinPayment === 0 && debts.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-700 flex items-start gap-2">
@@ -991,6 +1016,91 @@ function PayoffTimelineChart({
               <span className="text-gray-500">cleared at month {p.monthPaidOff}</span>
             </div>
           ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Debt-burden panel — the two numbers a secular budgeting app won't give a
+ * Muslim household: how heavy the debt load is against *detected* income
+ * (debt-to-income ratio), and how much of that monthly burden is
+ * riba-bearing vs. riba-free.
+ *
+ * DTI is shown only when income could actually be detected — a fabricated
+ * ratio is worse than none. The riba split is always shown when there's a
+ * monthly payment, because that's the number that motivates the journey
+ * out of riba.
+ */
+function DebtBurdenPanel({
+  burden,
+  fmt,
+}: {
+  burden: DebtBurden;
+  fmt: (n: number) => string;
+}) {
+  const dtiPct = burden.debtToIncomeRatio != null ? Math.round(burden.debtToIncomeRatio * 100) : null;
+  const ribaPct = Math.round(burden.ribaShareOfPayments * 100);
+  const bandStyle: Record<DebtBurden['dtiBand'], { label: string; cls: string }> = {
+    healthy: { label: 'Healthy', cls: 'text-emerald-700' },
+    moderate: { label: 'Moderate', cls: 'text-amber-700' },
+    elevated: { label: 'Elevated', cls: 'text-red-600' },
+    unknown: { label: '', cls: '' },
+  };
+  const band = bandStyle[burden.dtiBand];
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
+      <h2 className="text-lg font-bold text-primary mb-1">Debt burden</h2>
+      <p className="text-sm text-gray-500 mb-4">
+        How your debt load measures up — against your income, and against riba.
+      </p>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        {/* Debt-to-income */}
+        <div className="rounded-xl bg-gray-50 border border-gray-200 p-4">
+          <p className="text-xs uppercase tracking-wide text-gray-500 font-medium mb-1">Debt-to-income</p>
+          {dtiPct != null && burden.dtiBand !== 'unknown' ? (
+            <>
+              <p className="text-3xl font-bold text-gray-900">
+                {dtiPct}% <span className={`text-base font-semibold ${band.cls}`}>· {band.label}</span>
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {fmt(burden.totalMonthlyDebtPayment)}/mo of debt against {fmt(burden.detectedMonthlyIncome)}/mo detected income.
+                Lenders treat under 36% as comfortable.
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-gray-500 mt-1">
+              We&apos;ll show your debt-to-income ratio once we can detect a regular income stream from your transactions.
+            </p>
+          )}
+        </div>
+
+        {/* Riba split */}
+        <div className="rounded-xl bg-gray-50 border border-gray-200 p-4">
+          <p className="text-xs uppercase tracking-wide text-gray-500 font-medium mb-1">Riba in your monthly payments</p>
+          {burden.ribaBearingDebtCount === 0 ? (
+            <p className="text-sm text-emerald-700 mt-1 font-medium">
+              All your tracked debt is riba-free — Alhamdulillah.
+            </p>
+          ) : (
+            <>
+              <p className="text-3xl font-bold text-gray-900">
+                {ribaPct}% <span className="text-base font-semibold text-red-600">riba-bearing</span>
+              </p>
+              {/* Proportion bar */}
+              <div className="mt-2 flex h-2 rounded-full overflow-hidden bg-gray-200">
+                <div className="bg-red-500" style={{ width: `${ribaPct}%` }} />
+                <div className="bg-emerald-500" style={{ width: `${100 - ribaPct}%` }} />
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {fmt(burden.ribaBearingMonthly)}/mo riba-bearing · {fmt(burden.ribaFreeMonthly)}/mo riba-free.
+                {' '}<Link href="/dashboard/riba" className="text-primary underline">See your riba-elimination journey</Link>.
+              </p>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
