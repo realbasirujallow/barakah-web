@@ -34,6 +34,26 @@ interface Tx {
   direction?: string;
 }
 
+interface Holding {
+  id: number;
+  symbol: string;
+  name: string;
+  shares?: number;
+  currentPrice?: number;
+  marketValue?: number;
+  gainLoss?: number;
+  gainLossPercent?: number;
+  holdingType?: string;
+  sector?: string;
+}
+
+const INVESTMENT_TYPES = new Set([
+  'stock', 'crypto', 'etf', 'business', 'individual_brokerage',
+  '401k', 'retirement_401k', 'roth_ira', 'ira', 'hsa', '403b',
+  'pension', 'retirement', 'tsp', 'sep_ira',
+  '529', '529_plan', 'education_savings',
+]);
+
 const TYPE_OPTIONS: Array<{ value: string; label: string; group: string }> = [
   { value: 'cash', label: 'Cash', group: 'Cash & Savings' },
   { value: 'savings_account', label: 'Savings Account', group: 'Cash & Savings' },
@@ -66,6 +86,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const { toast } = useToast();
   const [asset, setAsset] = useState<Asset | null>(null);
   const [txs, setTxs] = useState<Tx[]>([]);
+  const [holdings, setHoldings] = useState<Holding[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingType, setSavingType] = useState(false);
   const [typeDraft, setTypeDraft] = useState<string>('');
@@ -88,11 +109,29 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         setAsset(found);
         setTypeDraft(found.type);
         if (found.linkedAccountId) {
-          try {
-            const tr = await api.getTransactions(undefined, 0, 100, undefined, found.linkedAccountId) as { transactions?: Tx[] };
-            if (!cancelled) setTxs(tr?.transactions ?? []);
-          } catch (e) {
-            logError(e, { tags: { area: 'asset-detail.getTransactions' } });
+          // Fetch transactions + holdings in parallel. For investment-type
+          // accounts the user is more interested in what's HELD inside the
+          // account than the cash-in/out transactions, so we render holdings
+          // first when present.
+          const wantsHoldings = INVESTMENT_TYPES.has(found.type);
+          const [trRes, hRes] = await Promise.allSettled([
+            api.getTransactions(undefined, 0, 100, undefined, found.linkedAccountId),
+            wantsHoldings
+              ? api.getHoldingsByAccount(found.linkedAccountId)
+              : Promise.resolve({ holdings: [] }),
+          ]);
+          if (cancelled) return;
+          if (trRes.status === 'fulfilled') {
+            const v = trRes.value as { transactions?: Tx[] };
+            setTxs(v?.transactions ?? []);
+          } else {
+            logError(trRes.reason, { tags: { area: 'asset-detail.getTransactions' } });
+          }
+          if (hRes.status === 'fulfilled') {
+            const v = hRes.value as { holdings?: Holding[] };
+            setHoldings(v?.holdings ?? []);
+          } else {
+            logError(hRes.reason, { tags: { area: 'asset-detail.getHoldings' } });
           }
         }
       } catch (e) {
@@ -186,13 +225,48 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
+      {holdings.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-primary mb-3">Holdings</h2>
+          <ul className="divide-y divide-gray-100">
+            {holdings.map(h => {
+              const gain = h.gainLoss ?? 0;
+              const pct = h.gainLossPercent ?? 0;
+              const isGain = gain >= 0;
+              return (
+                <li key={h.id} className="py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">{h.symbol}</p>
+                    <p className="text-[11px] text-gray-500 truncate">
+                      {h.name}{h.shares ? ` · ${h.shares} shares` : ''}{h.currentPrice ? ` @ ${fmt(h.currentPrice)}` : ''}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold tabular-nums text-foreground">{fmt(h.marketValue ?? 0)}</p>
+                    {(Math.abs(gain) >= 0.005 || Math.abs(pct) >= 0.005) && (
+                      <p className={`text-[11px] tabular-nums ${isGain ? 'text-emerald-700' : 'text-rose-700'}`}>
+                        {isGain ? '▲' : '▼'} {fmt(Math.abs(gain))} ({pct >= 0 ? '+' : ''}{pct.toFixed(2)}%)
+                      </p>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl shadow-sm p-6">
         <h2 className="text-lg font-semibold text-primary mb-3">Transactions</h2>
         {!asset.linkedAccountId && (
           <p className="text-sm text-gray-400">Manual asset — no transactions are tracked for this entry. Link a bank account via Plaid to see transactions here.</p>
         )}
         {asset.linkedAccountId && txs.length === 0 && (
-          <p className="text-sm text-gray-400">No transactions yet for this account.</p>
+          <p className="text-sm text-gray-400">
+            {holdings.length > 0
+              ? 'No cash transactions for this account — investment activity (buys, sells, dividends) is shown above as Holdings.'
+              : 'No transactions yet for this account. Hit Sync banks on the dashboard to refresh.'}
+          </p>
         )}
         {txs.length > 0 && (
           <ul className="divide-y divide-gray-100">
