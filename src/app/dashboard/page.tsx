@@ -129,7 +129,7 @@ export default function DashboardPage() {
   // 9-call Promise.allSettled. Both are non-critical → silently skipped
   // on failure.
   const [recurringSummary, setRecurringSummary] = useState<{ income: number; expense: number; count: number } | null>(null);
-  const [topMovers, setTopMovers] = useState<Array<{ symbol: string; name: string; gainLossPct: number; marketValue: number }>>([]);
+  const [topMovers, setTopMovers] = useState<Array<{ symbol: string; name: string; gainLossPct: number; marketValue: number; currentPrice: number }>>([]);
   // Plaid-linked-only fallback: total value of all assets in the "Investments"
   // group from /api/assets/grouped. Populated when getPortfolioSummary is empty.
   const [linkedInvestmentsTotal, setLinkedInvestmentsTotal] = useState<number>(0);
@@ -349,7 +349,7 @@ export default function DashboardPage() {
       // gainers and losers at render time.
       if (portfolioResult.status === 'fulfilled') {
         const data = portfolioResult.value as { accounts?: Array<{ holdings?: Array<{ symbol: string; name: string; gainLossPercent?: number; gainLossPct?: number; currentPrice?: number; marketValue?: number }> }> };
-        const allHoldings: Array<{ symbol: string; name: string; gainLossPct: number; marketValue: number }> = [];
+        const allHoldings: Array<{ symbol: string; name: string; gainLossPct: number; marketValue: number; currentPrice: number }> = [];
         (data?.accounts ?? []).forEach((acc) => {
           (acc.holdings ?? []).forEach((h) => {
             const pct = Number(h.gainLossPercent ?? h.gainLossPct) || 0;
@@ -358,7 +358,7 @@ export default function DashboardPage() {
             if (price <= 0) return;
             if (mv < 1) return;
             if (Math.abs(pct) > 200) return;
-            allHoldings.push({ symbol: h.symbol, name: h.name, gainLossPct: pct, marketValue: mv });
+            allHoldings.push({ symbol: h.symbol, name: h.name, gainLossPct: pct, marketValue: mv, currentPrice: price });
           });
         });
         allHoldings.sort((a, b) => Math.abs(b.gainLossPct) - Math.abs(a.gainLossPct));
@@ -1030,90 +1030,74 @@ export default function DashboardPage() {
           users with EITHER manually-tracked portfolio (InvestmentAccount rows)
           OR Plaid-linked investment-category assets. The latter doesn't have
           a day-P&L snapshot, so that line is conditional. */}
+      {/* Investments card — Monarch-style layout. Big total at top, today's
+          P&L with chevron, then a single "Top movers today" list sorted by
+          absolute %. No gainers/losers split — both surface naturally in
+          the same list, which matches the screenshot Basiru referenced. */}
       {((portfolioSummary?.totalValue ?? 0) > 0 || linkedInvestmentsTotal > 0) && (() => {
         const hasPortfolio = (portfolioSummary?.totalValue ?? 0) > 0;
         const totalValue = hasPortfolio ? portfolioSummary!.totalValue : linkedInvestmentsTotal;
-        const gainers = topMovers.filter(h => h.gainLossPct > 0).sort((a, b) => b.gainLossPct - a.gainLossPct).slice(0, 3);
-        const losers = topMovers.filter(h => h.gainLossPct < 0).sort((a, b) => a.gainLossPct - b.gainLossPct).slice(0, 3);
-        const todayPct = latestPortfolioSnapshot?.dayGainLossPercent ?? 0;
-        const todayAmt = latestPortfolioSnapshot?.dayGainLoss ?? 0;
-        const hasToday = !!latestPortfolioSnapshot;
+        const movers = topMovers
+          .slice()
+          .sort((a, b) => Math.abs(b.gainLossPct) - Math.abs(a.gainLossPct))
+          .slice(0, 4);
+        const todayAmt = widgets?.investments?.dayGainLoss ?? latestPortfolioSnapshot?.dayGainLoss;
+        const todayPct = widgets?.investments?.dayGainLossPercent ?? latestPortfolioSnapshot?.dayGainLossPercent;
+        const hasToday = typeof todayAmt === 'number' && typeof todayPct === 'number';
+        const periodAmt = widgets?.investments?.periodGainLoss;
+        const periodPct = widgets?.investments?.periodGainLossPercent;
+        const periodDays = widgets?.investments?.periodDays;
+        const hasPeriod = typeof periodAmt === 'number' && typeof periodPct === 'number' && !!periodDays;
         return (
-          <Link href="/dashboard/investments" className="block bg-card rounded-2xl p-5 border border-border mb-6 hover:shadow-md hover:border-primary/30 transition">
-            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-              <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide">Investments</p>
-                <p className="text-2xl font-bold text-foreground mt-0.5 tabular-nums">{fmt(totalValue)}</p>
-                {hasToday && (
-                  <p className={`text-sm font-medium ${todayAmt >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                    {todayAmt >= 0 ? '▲' : '▼'} {fmt(Math.abs(todayAmt))} ({todayPct >= 0 ? '+' : ''}{todayPct.toFixed(2)}%) today
-                  </p>
-                )}
-                {hasPortfolio && (
-                  <p className={`text-[11px] ${(portfolioSummary!.totalGainLoss ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                    {(portfolioSummary!.totalGainLoss ?? 0) >= 0 ? '+' : ''}{fmt(portfolioSummary!.totalGainLoss ?? 0)} ({(portfolioSummary!.totalGainLossPct ?? 0).toFixed(2)}%) all time
-                  </p>
-                )}
-                {(() => {
-                  const periodAmt = widgets?.investments?.periodGainLoss;
-                  const periodPct = widgets?.investments?.periodGainLossPercent;
-                  const periodDays = widgets?.investments?.periodDays;
-                  if (typeof periodAmt !== 'number' || typeof periodPct !== 'number' || !periodDays) return null;
-                  return (
-                    <p className={`text-sm font-medium ${periodAmt >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                      {periodAmt >= 0 ? '▲' : '▼'} {fmt(Math.abs(periodAmt))} ({periodPct >= 0 ? '+' : ''}{periodPct.toFixed(2)}%) past {periodDays}d
-                    </p>
-                  );
-                })()}
-                {!hasPortfolio && (
-                  <p className="text-[11px] text-gray-500">Tap to drill into each account</p>
-                )}
+          <div className="bg-white rounded-2xl shadow-sm mb-6 overflow-hidden">
+            <Link href="/dashboard/investments" className="block p-5 hover:bg-gray-50 transition">
+              <p className="text-2xl font-bold text-gray-900 tabular-nums">
+                {fmt(totalValue)} <span className="text-gray-500 font-medium">investments</span>
+              </p>
+              {hasToday && (
+                <p className="mt-1 flex items-center gap-1.5 text-sm">
+                  <span className={todayAmt! >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
+                    {todayAmt! >= 0 ? '↗' : '↘'} {fmt(Math.abs(todayAmt!))} ({todayPct! >= 0 ? '+' : ''}{todayPct!.toFixed(2)}%)
+                  </span>
+                  <span className="text-gray-500">Today</span>
+                  <span className="text-gray-400">›</span>
+                </p>
+              )}
+              {!hasToday && hasPeriod && (
+                <p className="mt-1 flex items-center gap-1.5 text-sm">
+                  <span className={periodAmt! >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
+                    {periodAmt! >= 0 ? '↗' : '↘'} {fmt(Math.abs(periodAmt!))} ({periodPct! >= 0 ? '+' : ''}{periodPct!.toFixed(2)}%)
+                  </span>
+                  <span className="text-gray-500">Past {periodDays}d</span>
+                  <span className="text-gray-400">›</span>
+                </p>
+              )}
+              {hasPortfolio && !hasToday && !hasPeriod && (
+                <p className="mt-1 text-xs text-gray-500">All-time {(portfolioSummary!.totalGainLoss ?? 0) >= 0 ? '+' : ''}{fmt(portfolioSummary!.totalGainLoss ?? 0)} ({(portfolioSummary!.totalGainLossPct ?? 0).toFixed(2)}%)</p>
+              )}
+              {!hasPortfolio && !hasToday && !hasPeriod && (
+                <p className="mt-1 text-xs text-gray-500">Sync banks to refresh today&apos;s prices</p>
+              )}
+            </Link>
+            {movers.length > 0 && (
+              <div className="border-t border-gray-100">
+                <p className="text-xs text-gray-500 px-5 pt-3 pb-2 bg-gray-50">Top movers today</p>
+                <ul>
+                  {movers.map(h => (
+                    <li key={h.symbol} className="flex items-center justify-between px-5 py-3 border-t border-gray-100 first:border-t-0">
+                      <p className="text-base font-semibold text-gray-900">{h.symbol}</p>
+                      <div className="flex items-center gap-3">
+                        <p className="text-base text-gray-900 tabular-nums">{h.currentPrice.toFixed(2)}</p>
+                        <span className={`text-sm font-bold tabular-nums px-3 py-1 rounded-full ${h.gainLossPct >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                          {h.gainLossPct >= 0 ? '↑' : '↓'} {Math.abs(h.gainLossPct).toFixed(2)}%
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <span className="text-sm text-primary font-medium">View all →</span>
-            </div>
-            {hasPortfolio && (gainers.length > 0 || losers.length > 0) ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">Top gainers</p>
-                  {gainers.length === 0 ? (
-                    <p className="text-xs text-gray-400">—</p>
-                  ) : (
-                    <ul className="divide-y divide-gray-100">
-                      {gainers.map(h => (
-                        <li key={h.symbol} className="flex items-center justify-between py-1.5">
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-foreground">{h.symbol}</p>
-                            <p className="text-[11px] text-gray-500 truncate">{h.name}</p>
-                          </div>
-                          <p className="text-sm font-bold tabular-nums text-emerald-700">+{h.gainLossPct.toFixed(2)}%</p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">Top losers</p>
-                  {losers.length === 0 ? (
-                    <p className="text-xs text-gray-400">—</p>
-                  ) : (
-                    <ul className="divide-y divide-gray-100">
-                      {losers.map(h => (
-                        <li key={h.symbol} className="flex items-center justify-between py-1.5">
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-foreground">{h.symbol}</p>
-                            <p className="text-[11px] text-gray-500 truncate">{h.name}</p>
-                          </div>
-                          <p className="text-sm font-bold tabular-nums text-rose-700">{h.gainLossPct.toFixed(2)}%</p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-            ) : hasPortfolio ? (
-              <p className="text-sm text-gray-400 text-center py-4">No holdings with price data yet.</p>
-            ) : null}
-          </Link>
+            )}
+          </div>
         );
       })()}
 
