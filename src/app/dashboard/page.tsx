@@ -46,6 +46,16 @@ interface BillItem { id: number; name: string; amount: number; category: string;
 interface UpcomingBillsWidget { bills: BillItem[]; upcomingItems: Array<Record<string, unknown>>; totalMonthlyBills: number; upcomingCount: number; overdueCount: number; }
 interface NetWorthHistoryPoint { date: number; netWorth: number; }
 interface NetWorthMiniWidget { currentNetWorth: number; totalAssets: number; totalDebts: number; changeAmount: number; changePercent: number; history: NetWorthHistoryPoint[]; }
+interface InvestmentMover {
+  symbol: string;
+  name: string;
+  currentPrice?: number;
+  marketValue?: number;
+  gainLossPercent?: number;
+  dayChangePercent?: number;
+  dayChange?: number;
+  hasDayData?: boolean;
+}
 interface InvestmentsWidget {
   totalValue?: number;
   totalGainLoss?: number;
@@ -56,8 +66,9 @@ interface InvestmentsWidget {
   periodGainLossPercent?: number;
   periodDays?: number;
   periodPreviousDate?: string;
-  topGainers?: Array<{ symbol: string; name: string; gainLossPercent: number }>;
-  topLosers?: Array<{ symbol: string; name: string; gainLossPercent: number }>;
+  topMovers?: InvestmentMover[];
+  topGainers?: InvestmentMover[];
+  topLosers?: InvestmentMover[];
 }
 interface DashboardWidgets { spending: SpendingWidget | null; budgetOverview: BudgetWidget | null; recentTransactions: RecentTransactionsWidget | null; upcomingBills: UpcomingBillsWidget | null; netWorthMini: NetWorthMiniWidget | null; investments: InvestmentsWidget | null; }
 
@@ -1037,10 +1048,20 @@ export default function DashboardPage() {
       {((portfolioSummary?.totalValue ?? 0) > 0 || linkedInvestmentsTotal > 0) && (() => {
         const hasPortfolio = (portfolioSummary?.totalValue ?? 0) > 0;
         const totalValue = hasPortfolio ? portfolioSummary!.totalValue : linkedInvestmentsTotal;
-        const movers = topMovers
-          .slice()
-          .sort((a, b) => Math.abs(b.gainLossPct) - Math.abs(a.gainLossPct))
-          .slice(0, 4);
+        // Prefer backend-computed top movers (intraday from Finnhub, properly
+        // ranked by day %); fall back to client-computed lifetime ranking if
+        // the backend block is missing (e.g. user has no holding data).
+        const backendMovers = widgets?.investments?.topMovers ?? [];
+        const movers = backendMovers.length > 0
+          ? backendMovers.slice(0, 4)
+          : topMovers
+              .slice()
+              .sort((a, b) => Math.abs(b.gainLossPct) - Math.abs(a.gainLossPct))
+              .slice(0, 4)
+              .map(h => ({
+                symbol: h.symbol, name: h.name, currentPrice: h.currentPrice,
+                dayChangePercent: h.gainLossPct, hasDayData: false,
+              }));
         const todayAmt = widgets?.investments?.dayGainLoss ?? latestPortfolioSnapshot?.dayGainLoss;
         const todayPct = widgets?.investments?.dayGainLossPercent ?? latestPortfolioSnapshot?.dayGainLossPercent;
         const hasToday = typeof todayAmt === 'number' && typeof todayPct === 'number';
@@ -1079,24 +1100,33 @@ export default function DashboardPage() {
                 <p className="mt-1 text-xs text-gray-500">Sync banks to refresh today&apos;s prices</p>
               )}
             </Link>
-            {movers.length > 0 && (
-              <div className="border-t border-gray-100">
-                <p className="text-xs text-gray-500 px-5 pt-3 pb-2 bg-gray-50">Top movers (lifetime)</p>
-                <ul>
-                  {movers.map(h => (
-                    <li key={h.symbol} className="flex items-center justify-between px-5 py-3 border-t border-gray-100 first:border-t-0">
-                      <p className="text-base font-semibold text-gray-900">{h.symbol}</p>
-                      <div className="flex items-center gap-3">
-                        <p className="text-base text-gray-900 tabular-nums">{h.currentPrice.toFixed(2)}</p>
-                        <span className={`text-sm font-bold tabular-nums px-3 py-1 rounded-full ${h.gainLossPct >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-                          {h.gainLossPct >= 0 ? '↑' : '↓'} {Math.abs(h.gainLossPct).toFixed(2)}%
-                        </span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {movers.length > 0 && (() => {
+              const allHaveDay = movers.every(m => m.hasDayData);
+              return (
+                <div className="border-t border-gray-100">
+                  <p className="text-xs text-gray-500 px-5 pt-3 pb-2 bg-gray-50">
+                    {allHaveDay ? 'Top movers today' : 'Top movers'}
+                  </p>
+                  <ul>
+                    {movers.map(h => {
+                      const pct = h.dayChangePercent ?? 0;
+                      const price = h.currentPrice ?? 0;
+                      return (
+                        <li key={h.symbol} className="flex items-center justify-between px-5 py-3 border-t border-gray-100 first:border-t-0">
+                          <p className="text-base font-semibold text-gray-900">{h.symbol}</p>
+                          <div className="flex items-center gap-3">
+                            <p className="text-base text-gray-900 tabular-nums">{price.toFixed(2)}</p>
+                            <span className={`text-sm font-bold tabular-nums px-3 py-1 rounded-full ${pct >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                              {pct >= 0 ? '↑' : '↓'} {Math.abs(pct).toFixed(2)}%
+                            </span>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+            })()}
           </div>
         );
       })()}
