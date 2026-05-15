@@ -397,7 +397,7 @@ export default function AssetsPage() {
           )}
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-semibold text-primary">{a.name}</p>
+              <Link href={`/dashboard/assets/${a.id}`} className="font-semibold text-primary hover:underline">{a.name}</Link>
               {a.readOnly && (
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                   Linked via Plaid
@@ -422,7 +422,7 @@ export default function AssetsPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <p className="text-lg font-bold text-primary">{fmt(a.value)}</p>
+          <Link href={`/dashboard/assets/${a.id}`} className="text-lg font-bold text-primary hover:underline">{fmt(a.value)}</Link>
           {!selectMode && (
             <>
               {!a.readOnly && (

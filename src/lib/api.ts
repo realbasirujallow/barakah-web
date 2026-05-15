@@ -805,12 +805,13 @@ export const api = {
     apiFetch(`/api/assets/${id}`, { method: 'DELETE' }),
 
   // Transactions
-  getTransactions: (type?: string, page?: number, size?: number, search?: string) => {
+  getTransactions: (type?: string, page?: number, size?: number, search?: string, accountId?: number) => {
     const params = new URLSearchParams();
     if (type) params.set('type', type);
     if (page !== undefined) params.set('page', String(page));
     if (size !== undefined) params.set('size', String(size));
     if (search) params.set('search', search);
+    if (accountId !== undefined) params.set('accountId', String(accountId));
     return apiFetch(`/api/transactions/list?${params}`);
   },
   // R13 hardening (2026-04-23): suppressUnauthorized=true.
