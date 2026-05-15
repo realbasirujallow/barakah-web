@@ -992,6 +992,77 @@ export default function DashboardPage() {
           upcoming bills, net-worth chart. We keep it intact and one
           click away rather than removing functionality, but no longer
           render it on first paint. */}
+      {/* Investments — top-level card so the day's P&L and top gainers/losers
+          are visible above the fold for users with holdings. */}
+      {portfolioSummary && portfolioSummary.totalValue > 0 && (() => {
+        const gainers = topMovers.filter(h => h.gainLossPct > 0).sort((a, b) => b.gainLossPct - a.gainLossPct).slice(0, 3);
+        const losers = topMovers.filter(h => h.gainLossPct < 0).sort((a, b) => a.gainLossPct - b.gainLossPct).slice(0, 3);
+        const todayPct = latestPortfolioSnapshot?.dayGainLossPercent ?? 0;
+        const todayAmt = latestPortfolioSnapshot?.dayGainLoss ?? 0;
+        const hasToday = !!latestPortfolioSnapshot;
+        return (
+          <div className="bg-card rounded-2xl p-5 border border-border mb-6">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Investments</p>
+                <p className="text-2xl font-bold text-foreground mt-0.5 tabular-nums">{fmt(portfolioSummary.totalValue)}</p>
+                {hasToday && (
+                  <p className={`text-sm font-medium ${todayAmt >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {todayAmt >= 0 ? '▲' : '▼'} {fmt(Math.abs(todayAmt))} ({todayPct >= 0 ? '+' : ''}{todayPct.toFixed(2)}%) today
+                  </p>
+                )}
+                <p className={`text-[11px] ${(portfolioSummary.totalGainLoss ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                  {(portfolioSummary.totalGainLoss ?? 0) >= 0 ? '+' : ''}{fmt(portfolioSummary.totalGainLoss ?? 0)} ({(portfolioSummary.totalGainLossPct ?? 0).toFixed(2)}%) all time
+                </p>
+              </div>
+              <Link href="/dashboard/investments" className="text-sm text-primary font-medium hover:underline">View all</Link>
+            </div>
+            {(gainers.length > 0 || losers.length > 0) ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">Top gainers</p>
+                  {gainers.length === 0 ? (
+                    <p className="text-xs text-gray-400">—</p>
+                  ) : (
+                    <ul className="divide-y divide-gray-100">
+                      {gainers.map(h => (
+                        <li key={h.symbol} className="flex items-center justify-between py-1.5">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-foreground">{h.symbol}</p>
+                            <p className="text-[11px] text-gray-500 truncate">{h.name}</p>
+                          </div>
+                          <p className="text-sm font-bold tabular-nums text-emerald-700">+{h.gainLossPct.toFixed(2)}%</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">Top losers</p>
+                  {losers.length === 0 ? (
+                    <p className="text-xs text-gray-400">—</p>
+                  ) : (
+                    <ul className="divide-y divide-gray-100">
+                      {losers.map(h => (
+                        <li key={h.symbol} className="flex items-center justify-between py-1.5">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-foreground">{h.symbol}</p>
+                            <p className="text-[11px] text-gray-500 truncate">{h.name}</p>
+                          </div>
+                          <p className="text-sm font-bold tabular-nums text-rose-700">{h.gainLossPct.toFixed(2)}%</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-4">No holdings with price data yet.</p>
+            )}
+          </div>
+        );
+      })()}
+
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
           More details
@@ -1358,75 +1429,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Investments preview — today's P&L on top, top gainers + losers below. */}
-          {portfolioSummary && portfolioSummary.totalValue > 0 && (() => {
-            const gainers = topMovers.filter(h => h.gainLossPct > 0).sort((a, b) => b.gainLossPct - a.gainLossPct).slice(0, 3);
-            const losers = topMovers.filter(h => h.gainLossPct < 0).sort((a, b) => a.gainLossPct - b.gainLossPct).slice(0, 3);
-            const todayPct = latestPortfolioSnapshot?.dayGainLossPercent ?? 0;
-            const todayAmt = latestPortfolioSnapshot?.dayGainLoss ?? 0;
-            const hasToday = !!latestPortfolioSnapshot;
-            return (
-              <div className="bg-card rounded-2xl p-5 border border-border">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">Investments</p>
-                    <p className="text-lg font-bold text-foreground mt-0.5 tabular-nums">{fmt(portfolioSummary.totalValue)}</p>
-                    {hasToday && (
-                      <p className={`text-xs font-medium ${todayAmt >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                        {todayAmt >= 0 ? '▲' : '▼'} {fmt(Math.abs(todayAmt))} ({todayPct >= 0 ? '+' : ''}{todayPct.toFixed(2)}%) today
-                      </p>
-                    )}
-                    <p className={`text-[11px] ${(portfolioSummary.totalGainLoss ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                      {(portfolioSummary.totalGainLoss ?? 0) >= 0 ? '+' : ''}{fmt(portfolioSummary.totalGainLoss ?? 0)} ({(portfolioSummary.totalGainLossPct ?? 0).toFixed(2)}%) all time
-                    </p>
-                  </div>
-                  <Link href="/dashboard/investments" className="text-sm text-primary font-medium hover:underline">View all</Link>
-                </div>
-                {(gainers.length > 0 || losers.length > 0) ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-                    <div>
-                      <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">Top gainers</p>
-                      {gainers.length === 0 ? (
-                        <p className="text-xs text-gray-400">—</p>
-                      ) : (
-                        <ul className="divide-y divide-gray-100">
-                          {gainers.map(h => (
-                            <li key={h.symbol} className="flex items-center justify-between py-1.5">
-                              <div className="min-w-0">
-                                <p className="text-sm font-semibold text-foreground">{h.symbol}</p>
-                                <p className="text-[11px] text-gray-500 truncate">{h.name}</p>
-                              </div>
-                              <p className="text-sm font-bold tabular-nums text-emerald-700">+{h.gainLossPct.toFixed(2)}%</p>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">Top losers</p>
-                      {losers.length === 0 ? (
-                        <p className="text-xs text-gray-400">—</p>
-                      ) : (
-                        <ul className="divide-y divide-gray-100">
-                          {losers.map(h => (
-                            <li key={h.symbol} className="flex items-center justify-between py-1.5">
-                              <div className="min-w-0">
-                                <p className="text-sm font-semibold text-foreground">{h.symbol}</p>
-                                <p className="text-[11px] text-gray-500 truncate">{h.name}</p>
-                              </div>
-                              <p className="text-sm font-bold tabular-nums text-rose-700">{h.gainLossPct.toFixed(2)}%</p>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-400 text-center py-4">No holdings with price data yet.</p>
-                )}
-              </div>
-            );
-          })()}
         </div>
       )}
 
