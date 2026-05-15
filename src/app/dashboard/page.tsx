@@ -32,7 +32,7 @@ import HeroLink from '../../components/HeroLink';
 interface IslamicEvent { name: string; daysAway: number; hijriDate: string; approximateGregorianDate: string; }
 interface HijriData { hijriDate: string; hijriMonthName: string; hijriDay?: number; hijriMonth?: number; hijriYear?: number; isRamadan: boolean; upcomingEvents: IslamicEvent[]; }
 interface HawlDue { dueCount: number; upcomingCount: number; due: Array<{ assetName: string; zakatAmount: number }>; }
-interface AssetTotal { netWorth?: number; totalWealth?: number; zakatDue?: number; zakatRemaining?: number; zakatPaid?: number; zakatFullyPaid?: boolean; zakatEligible?: boolean; currentLunarYear?: number; }
+interface AssetTotal { netWorth?: number; netWorthWithLinked?: number; totalWealth?: number; totalWealthWithLinked?: number; zakatDue?: number; zakatRemaining?: number; zakatPaid?: number; zakatFullyPaid?: boolean; zakatEligible?: boolean; currentLunarYear?: number; }
 interface PortfolioSummary { totalValue: number; totalGainLoss: number; totalGainLossPct: number; }
 interface PortfolioHistorySnapshot { date: string; dayGainLoss: number; dayGainLossPercent: number; }
 
@@ -375,7 +375,15 @@ export default function DashboardPage() {
   const hasInvestmentPulse = (portfolioSummary?.totalValue || 0) > 0;
   const dayMove = latestPortfolioSnapshot?.dayGainLoss ?? 0;
   const dayMovePct = latestPortfolioSnapshot?.dayGainLossPercent ?? 0;
-  const netWorthValue = (totals?.netWorth as number) || (totals?.totalWealth as number) || 0;
+  // Prefer the *WithLinked variants so the KPI matches the Net Worth Breakdown
+  // card, which sums manual assets + Plaid-linked accounts. The bare `netWorth`
+  // field only covers manual assets — for users with Plaid the two diverge by
+  // however much is linked (e.g. $720k header vs $1.03M breakdown).
+  const netWorthValue = (totals?.netWorthWithLinked as number)
+    ?? (totals?.netWorth as number)
+    ?? (totals?.totalWealthWithLinked as number)
+    ?? (totals?.totalWealth as number)
+    ?? 0;
   // Tick every minute so the trial banner flips on even if the user keeps
   // the dashboard open past their plan's expiration time.
   const [currentTimestamp, setCurrentTimestamp] = useState(() => Math.floor(Date.now() / 1000));
