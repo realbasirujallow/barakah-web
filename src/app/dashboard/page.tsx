@@ -46,7 +46,20 @@ interface BillItem { id: number; name: string; amount: number; category: string;
 interface UpcomingBillsWidget { bills: BillItem[]; upcomingItems: Array<Record<string, unknown>>; totalMonthlyBills: number; upcomingCount: number; overdueCount: number; }
 interface NetWorthHistoryPoint { date: number; netWorth: number; }
 interface NetWorthMiniWidget { currentNetWorth: number; totalAssets: number; totalDebts: number; changeAmount: number; changePercent: number; history: NetWorthHistoryPoint[]; }
-interface DashboardWidgets { spending: SpendingWidget | null; budgetOverview: BudgetWidget | null; recentTransactions: RecentTransactionsWidget | null; upcomingBills: UpcomingBillsWidget | null; netWorthMini: NetWorthMiniWidget | null; }
+interface InvestmentsWidget {
+  totalValue?: number;
+  totalGainLoss?: number;
+  totalGainLossPercent?: number;
+  dayGainLoss?: number;
+  dayGainLossPercent?: number;
+  periodGainLoss?: number;
+  periodGainLossPercent?: number;
+  periodDays?: number;
+  periodPreviousDate?: string;
+  topGainers?: Array<{ symbol: string; name: string; gainLossPercent: number }>;
+  topLosers?: Array<{ symbol: string; name: string; gainLossPercent: number }>;
+}
+interface DashboardWidgets { spending: SpendingWidget | null; budgetOverview: BudgetWidget | null; recentTransactions: RecentTransactionsWidget | null; upcomingBills: UpcomingBillsWidget | null; netWorthMini: NetWorthMiniWidget | null; investments: InvestmentsWidget | null; }
 
 // Safe localStorage helpers
 const safeGetItem = (key: string): string | null => {
@@ -1041,6 +1054,17 @@ export default function DashboardPage() {
                     {(portfolioSummary!.totalGainLoss ?? 0) >= 0 ? '+' : ''}{fmt(portfolioSummary!.totalGainLoss ?? 0)} ({(portfolioSummary!.totalGainLossPct ?? 0).toFixed(2)}%) all time
                   </p>
                 )}
+                {(() => {
+                  const periodAmt = widgets?.investments?.periodGainLoss;
+                  const periodPct = widgets?.investments?.periodGainLossPercent;
+                  const periodDays = widgets?.investments?.periodDays;
+                  if (typeof periodAmt !== 'number' || typeof periodPct !== 'number' || !periodDays) return null;
+                  return (
+                    <p className={`text-sm font-medium ${periodAmt >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      {periodAmt >= 0 ? '▲' : '▼'} {fmt(Math.abs(periodAmt))} ({periodPct >= 0 ? '+' : ''}{periodPct.toFixed(2)}%) past {periodDays}d
+                    </p>
+                  );
+                })()}
                 {!hasPortfolio && (
                   <p className="text-[11px] text-gray-500">Tap to drill into each account</p>
                 )}
