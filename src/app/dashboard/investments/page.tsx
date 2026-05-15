@@ -751,7 +751,11 @@ export default function InvestmentsPage() {
             Added via Assets or CSV import. To update balances, edit them in Assets.
           </p>
           {assetAccounts.map(asset => (
-            <div key={asset.id} className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center">
+            <Link
+              key={asset.id}
+              href={`/dashboard/assets/${asset.id}`}
+              className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center hover:shadow-md hover:bg-gray-50 transition cursor-pointer"
+            >
               <div>
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-gray-900">{asset.name}</p>
@@ -768,11 +772,9 @@ export default function InvestmentsPage() {
               </div>
               <div className="text-right">
                 <p className="font-bold text-gray-900 text-lg">{fmt(asset.value || 0)}</p>
-                <Link href="/dashboard/assets" className="text-xs text-primary hover:underline">
-                  Edit →
-                </Link>
+                <p className="text-xs text-primary">View details →</p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
