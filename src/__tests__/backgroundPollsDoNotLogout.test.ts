@@ -217,4 +217,26 @@ describe('background-poll API helpers do not force-logout on 401', () => {
       expect(logoutSpy).not.toHaveBeenCalled();
     });
   }
+
+  // 2026-05-14 — the Priority-2 intelligence + categorized-assets reads.
+  // Each fires from a dashboard page's mount useEffect (Cash Flow, Sadaqah,
+  // Debts, Ramadan, Assets). Same contract: a transient 401 on landing must
+  // not cascade into a forced /login?reason=expired — the session check
+  // happens on the user's next action, not on page mount.
+  const intelligenceMountFiredCalls: Array<[string, () => Promise<unknown>]> = [
+    ['getIncomeStreams',            () => import('../lib/api').then(({api}) => api.getIncomeStreams())],
+    ['getSadaqahInsights',          () => import('../lib/api').then(({api}) => api.getSadaqahInsights())],
+    ['getDebtBurden',               () => import('../lib/api').then(({api}) => api.getDebtBurden())],
+    ['getRamadanSpendingComparison',() => import('../lib/api').then(({api}) => api.getRamadanSpendingComparison())],
+    ['getGroupedAssets',            () => import('../lib/api').then(({api}) => api.getGroupedAssets())],
+  ];
+
+  for (const [name, call] of intelligenceMountFiredCalls) {
+    it(`${name} — no global logout on 401 (Priority-2 page mount-fired)`, async () => {
+      await expect(call()).rejects.toThrow(
+        /session has expired|API error|Network|connection/,
+      );
+      expect(logoutSpy).not.toHaveBeenCalled();
+    });
+  }
 });
