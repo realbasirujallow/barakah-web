@@ -116,7 +116,7 @@ export default function DashboardPage() {
   // 9-call Promise.allSettled. Both are non-critical → silently skipped
   // on failure.
   const [recurringSummary, setRecurringSummary] = useState<{ income: number; expense: number; count: number } | null>(null);
-  const [topMovers, setTopMovers] = useState<Array<{ symbol: string; name: string; gainLossPct: number }>>([]);
+  const [topMovers, setTopMovers] = useState<Array<{ symbol: string; name: string; gainLossPct: number; marketValue: number }>>([]);
   // Phase 14: last meaningful dashboard visit, hydrated client-side.
   const [lastVisit, setLastVisit] = useState<LastVisit | null>(null);
   useEffect(() => {
@@ -277,9 +277,15 @@ export default function DashboardPage() {
       if (hijriResult.status === 'fulfilled') setHijri(hijriResult.value as HijriData);
       if (hawlResult.status === 'fulfilled') setHawlDue(hawlResult.value as typeof hawlDue);
       if (portfolioResult.status === 'fulfilled') {
-        const data = portfolioResult.value as PortfolioSummary;
-        if ((data?.totalValue || 0) > 0) {
-          setPortfolioSummary(data);
+        const raw = portfolioResult.value as PortfolioSummary & { overallReturnPercent?: number };
+        if ((raw?.totalValue || 0) > 0) {
+          // Backend emits `overallReturnPercent` from getPortfolioSummary; older
+          // shape used `totalGainLossPct`. Read either so the "all time" % renders.
+          setPortfolioSummary({
+            totalValue: raw.totalValue,
+            totalGainLoss: raw.totalGainLoss,
+            totalGainLossPct: Number(raw.totalGainLossPct ?? raw.overallReturnPercent) || 0,
+          });
         }
       }
       if (portfolioHistoryResult.status === 'fulfilled') {
@@ -311,23 +317,27 @@ export default function DashboardPage() {
         const expense = active.filter(t => t.type !== 'income').reduce((s, t) => s + Math.abs(Number(t.amount) || 0), 0);
         setRecurringSummary({ income, expense, count: active.length });
       }
-      // 2026-05-02: top movers from the latest portfolio history entry's
-      // holdings if exposed, else from /api/investments/portfolio's accounts.
+      // Top movers: filter out holdings with stale/missing prices (currentPrice<=0,
+      // marketValue<$1, or absurd |pct|>200% — the GTLL 9900% bug). Backend exposes
+      // `gainLossPercent` from holdingToMap; older paths sometimes return `gainLossPct`.
+      // Read both. Keep them sorted by absolute move so the dashboard can split
+      // gainers and losers at render time.
       if (portfolioResult.status === 'fulfilled') {
-        const data = portfolioResult.value as { accounts?: Array<{ holdings?: Array<{ symbol: string; name: string; gainLossPct?: number }> }> };
-        const allHoldings: Array<{ symbol: string; name: string; gainLossPct: number }> = [];
+        const data = portfolioResult.value as { accounts?: Array<{ holdings?: Array<{ symbol: string; name: string; gainLossPercent?: number; gainLossPct?: number; currentPrice?: number; marketValue?: number }> }> };
+        const allHoldings: Array<{ symbol: string; name: string; gainLossPct: number; marketValue: number }> = [];
         (data?.accounts ?? []).forEach((acc) => {
           (acc.holdings ?? []).forEach((h) => {
-            allHoldings.push({
-              symbol: h.symbol,
-              name: h.name,
-              gainLossPct: Number(h.gainLossPct) || 0,
-            });
+            const pct = Number(h.gainLossPercent ?? h.gainLossPct) || 0;
+            const price = Number(h.currentPrice) || 0;
+            const mv = Number(h.marketValue) || 0;
+            if (price <= 0) return;
+            if (mv < 1) return;
+            if (Math.abs(pct) > 200) return;
+            allHoldings.push({ symbol: h.symbol, name: h.name, gainLossPct: pct, marketValue: mv });
           });
         });
-        // Sort by absolute % move so both top gainers AND big losers surface.
         allHoldings.sort((a, b) => Math.abs(b.gainLossPct) - Math.abs(a.gainLossPct));
-        setTopMovers(allHoldings.slice(0, 4));
+        setTopMovers(allHoldings);
       }
       setLoading(false);
     };
@@ -1348,41 +1358,75 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Investments preview */}
-          {portfolioSummary && portfolioSummary.totalValue > 0 && (
-            <div className="bg-card rounded-2xl p-5 border border-border">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Investments</p>
-                  <p className="text-lg font-bold text-foreground mt-0.5 tabular-nums">{fmt(portfolioSummary.totalValue)}</p>
-                  <p className={`text-xs font-medium ${(portfolioSummary.totalGainLoss ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                    {(portfolioSummary.totalGainLoss ?? 0) >= 0 ? '▲' : '▼'} {fmt(Math.abs(portfolioSummary.totalGainLoss ?? 0))} ({(portfolioSummary.totalGainLossPct ?? 0).toFixed(2)}%) all time
-                  </p>
+          {/* Investments preview — today's P&L on top, top gainers + losers below. */}
+          {portfolioSummary && portfolioSummary.totalValue > 0 && (() => {
+            const gainers = topMovers.filter(h => h.gainLossPct > 0).sort((a, b) => b.gainLossPct - a.gainLossPct).slice(0, 3);
+            const losers = topMovers.filter(h => h.gainLossPct < 0).sort((a, b) => a.gainLossPct - b.gainLossPct).slice(0, 3);
+            const todayPct = latestPortfolioSnapshot?.dayGainLossPercent ?? 0;
+            const todayAmt = latestPortfolioSnapshot?.dayGainLoss ?? 0;
+            const hasToday = !!latestPortfolioSnapshot;
+            return (
+              <div className="bg-card rounded-2xl p-5 border border-border">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Investments</p>
+                    <p className="text-lg font-bold text-foreground mt-0.5 tabular-nums">{fmt(portfolioSummary.totalValue)}</p>
+                    {hasToday && (
+                      <p className={`text-xs font-medium ${todayAmt >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                        {todayAmt >= 0 ? '▲' : '▼'} {fmt(Math.abs(todayAmt))} ({todayPct >= 0 ? '+' : ''}{todayPct.toFixed(2)}%) today
+                      </p>
+                    )}
+                    <p className={`text-[11px] ${(portfolioSummary.totalGainLoss ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      {(portfolioSummary.totalGainLoss ?? 0) >= 0 ? '+' : ''}{fmt(portfolioSummary.totalGainLoss ?? 0)} ({(portfolioSummary.totalGainLossPct ?? 0).toFixed(2)}%) all time
+                    </p>
+                  </div>
+                  <Link href="/dashboard/investments" className="text-sm text-primary font-medium hover:underline">View all</Link>
                 </div>
-                <Link href="/dashboard/investments" className="text-sm text-primary font-medium hover:underline">View all</Link>
+                {(gainers.length > 0 || losers.length > 0) ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">Top gainers</p>
+                      {gainers.length === 0 ? (
+                        <p className="text-xs text-gray-400">—</p>
+                      ) : (
+                        <ul className="divide-y divide-gray-100">
+                          {gainers.map(h => (
+                            <li key={h.symbol} className="flex items-center justify-between py-1.5">
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-foreground">{h.symbol}</p>
+                                <p className="text-[11px] text-gray-500 truncate">{h.name}</p>
+                              </div>
+                              <p className="text-sm font-bold tabular-nums text-emerald-700">+{h.gainLossPct.toFixed(2)}%</p>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">Top losers</p>
+                      {losers.length === 0 ? (
+                        <p className="text-xs text-gray-400">—</p>
+                      ) : (
+                        <ul className="divide-y divide-gray-100">
+                          {losers.map(h => (
+                            <li key={h.symbol} className="flex items-center justify-between py-1.5">
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-foreground">{h.symbol}</p>
+                                <p className="text-[11px] text-gray-500 truncate">{h.name}</p>
+                              </div>
+                              <p className="text-sm font-bold tabular-nums text-rose-700">{h.gainLossPct.toFixed(2)}%</p>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 text-center py-4">No holdings with price data yet.</p>
+                )}
               </div>
-              {topMovers.length > 0 ? (
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">Top movers today</p>
-                  <ul className="divide-y divide-gray-100">
-                    {topMovers.map((h) => (
-                      <li key={h.symbol} className="flex items-center justify-between py-2">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-foreground">{h.symbol}</p>
-                          <p className="text-xs text-gray-500 truncate">{h.name}</p>
-                        </div>
-                        <p className={`text-sm font-bold tabular-nums ${(h.gainLossPct ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                          {(h.gainLossPct ?? 0) >= 0 ? '+' : ''}{(h.gainLossPct ?? 0).toFixed(2)}%
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-400 text-center py-4">No holdings tracked yet.</p>
-              )}
-            </div>
-          )}
+            );
+          })()}
         </div>
       )}
 
