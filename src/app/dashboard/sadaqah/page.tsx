@@ -189,16 +189,34 @@ function SadaqahContent() {
         </p>
       </div>
 
-      {/* Stats banner */}
-      <div className="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-2xl p-6 text-white mb-6">
-        <p className="text-teal-100 text-sm">Total Donated</p>
-        <p className="text-4xl font-bold">{fmt(stats?.totalDonated || 0)}</p>
-        <div className="grid grid-cols-3 gap-4 mt-4">
-          <div><p className="text-teal-200 text-xs">Donations</p><p className="text-xl font-semibold">{stats?.donationCount || 0}</p></div>
-          <div><p className="text-teal-200 text-xs">This Month</p><p className="text-xl font-semibold">{fmt(stats?.thisMonthTotal || 0)}</p></div>
-          <div><p className="text-teal-200 text-xs">Top Category</p><p className="text-xl font-semibold capitalize">{stats?.topCategory || 'N/A'}</p></div>
-        </div>
-      </div>
+      {/* Stats banner — combines manual sadaqah log + bank-synced charity.
+          Prefer the giving-insights aggregate (which already includes both)
+          for the headline; fall back to manual-only stats when insights
+          aren't available. Without this, users who only have bank-synced
+          giving (like Basiru's $2,000/mo via Zelle) saw a misleading
+          "$0.00 Total Donated" hero next to a $850/mo monthly average
+          panel right below. */}
+      {(() => {
+        const insightsThisMonth = giving?.thisMonthTotal ?? 0;
+        const manualThisMonth = stats?.thisMonthTotal ?? 0;
+        const thisMonth = Math.max(insightsThisMonth, manualThisMonth);
+        const insightsYearTotal = giving?.thisYearTotal ?? 0;
+        const manualTotal = stats?.totalDonated ?? 0;
+        const headline = Math.max(insightsYearTotal, manualTotal);
+        return (
+          <div className="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-2xl p-6 text-white mb-6">
+            <p className="text-teal-100 text-sm">
+              {insightsYearTotal > manualTotal ? 'Given this year (manual + linked)' : 'Total Donated'}
+            </p>
+            <p className="text-4xl font-bold">{fmt(headline)}</p>
+            <div className="grid grid-cols-3 gap-4 mt-4">
+              <div><p className="text-teal-200 text-xs">Manual donations</p><p className="text-xl font-semibold">{stats?.donationCount || 0}</p></div>
+              <div><p className="text-teal-200 text-xs">This Month</p><p className="text-xl font-semibold">{fmt(thisMonth)}</p></div>
+              <div><p className="text-teal-200 text-xs">Top Category</p><p className="text-xl font-semibold capitalize">{stats?.topCategory || (giving?.topRecipients?.length ? 'See below' : 'N/A')}</p></div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Giving patterns — auto-detected from the unified charity-transaction
           history (manual sadaqah + bank-synced giving). Only shown when
