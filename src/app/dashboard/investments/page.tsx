@@ -76,7 +76,12 @@ const ACCOUNT_TYPES = [
 ];
 
 // Asset types that are investment-related and should surface on this page
-const INVESTMENT_ASSET_TYPES = ['investment', '401k', 'roth_ira', 'ira', 'hsa', '529', 'crypto'];
+const INVESTMENT_ASSET_TYPES = [
+  'investment', 'individual_brokerage', 'brokerage', 'stock', 'etf',
+  '401k', 'retirement_401k', 'roth_ira', 'ira', 'hsa', '403b', 'pension', 'tsp', 'sep_ira',
+  '529', '529_plan', 'education_savings',
+  'crypto', 'business',
+];
 const INVESTMENT_ASSET_LABELS: Record<string, string> = {
   investment: 'Investment',
   '401k': '401(k)',

@@ -1081,7 +1081,7 @@ export default function DashboardPage() {
             </Link>
             {movers.length > 0 && (
               <div className="border-t border-gray-100">
-                <p className="text-xs text-gray-500 px-5 pt-3 pb-2 bg-gray-50">Top movers today</p>
+                <p className="text-xs text-gray-500 px-5 pt-3 pb-2 bg-gray-50">Top movers (lifetime)</p>
                 <ul>
                   {movers.map(h => (
                     <li key={h.symbol} className="flex items-center justify-between px-5 py-3 border-t border-gray-100 first:border-t-0">
