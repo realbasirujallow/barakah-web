@@ -45,7 +45,7 @@ interface HistoryPoint {
 function groupForAsset(t: string): string {
   const x = (t || '').toLowerCase();
   if (/cash|checking|saving|money[\s-]?market/.test(x)) return 'Cash';
-  if (/stock|crypto|investment|401k|ira|hsa|403b|pension|529/.test(x)) return 'Investments';
+  if (/stock|crypto|investment|brokerage|etf|401k|ira|hsa|403b|pension|529|tsp|business/.test(x)) return 'Investments';
   if (/real[\s_-]?estate|property|home|rental/.test(x)) return 'Real Estate';
   if (/vehicle|car/.test(x)) return 'Vehicles';
   if (/gold|silver|metal/.test(x)) return 'Metals';
