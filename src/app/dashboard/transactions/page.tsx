@@ -129,6 +129,11 @@ export default function TransactionsPage() {
   const urlMonth = /^\d{4}-(0[1-9]|1[0-2])$/.test(urlMonthRaw) ? urlMonthRaw : '';
 
   const [txs, setTxs] = useState<Tx[]>([]);
+  // Summary KPIs are server-side aggregates over the full dataset for the
+  // period, not the visible page. Without this, the page KPI sums only
+  // the 20 currently-rendered rows — which gave Income=$0 for any user
+  // whose first page didn't happen to include a payroll row.
+  const [summary, setSummary] = useState<{ totalIncome: number; totalExpenses: number; totalTransfers: number; period: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -256,11 +261,16 @@ export default function TransactionsPage() {
       txPromise,
       api.subscriptionStatus(),
       api.getReviewQueue(0, 1),
+      api.getTransactionSummary('month'),
     ])
       .then(results => {
         const transactionsResult = results[0].status === 'fulfilled' ? results[0].value : null;
         const subscriptionResult = results[1].status === 'fulfilled' ? results[1].value : null;
         const reviewResult = results[2].status === 'fulfilled' ? results[2].value : null;
+        const summaryResult = results[3].status === 'fulfilled' ? results[3].value : null;
+        if (summaryResult && typeof summaryResult === 'object' && 'totalIncome' in summaryResult) {
+          setSummary(summaryResult as { totalIncome: number; totalExpenses: number; totalTransfers: number; period: string });
+        }
         setSubscriptionStatus(
           subscriptionResult
             ? (subscriptionResult as SubscriptionStatus)
@@ -574,9 +584,11 @@ export default function TransactionsPage() {
   // without FX conversion. Show a note if other-currency transactions exist.
   const sameCurrencyTxns = txs.filter(t => (t.currency || 'USD') === (preferredCurrency || 'USD'));
   const mixedCurrencyCount = txs.length - sameCurrencyTxns.length;
-  const income  = sameCurrencyTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-  const expense = sameCurrencyTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-  const transfers = sameCurrencyTxns.filter(t => t.type === 'transfer').reduce((s, t) => s + t.amount, 0);
+  // Use server-side summary aggregates (whole month) when available;
+  // fall back to current-page sums only if the summary fetch failed.
+  const income  = summary?.totalIncome    ?? sameCurrencyTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const expense = summary?.totalExpenses  ?? sameCurrencyTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const transfers = summary?.totalTransfers ?? sameCurrencyTxns.filter(t => t.type === 'transfer').reduce((s, t) => s + t.amount, 0);
   const allPageSelected = txs.length > 0 && selectedIds.size === txs.length;
   const hasMorePages = totalPages > 1;
   const hasLinkedPlaidTransactions = txs.some(tx => tx.importSource === 'plaid');
@@ -664,19 +676,19 @@ export default function TransactionsPage() {
         style={{ viewTransitionName: 'transactions-hero' }}
       >
         <div className="bg-gradient-to-br from-[#1B5E20] to-green-500 rounded-xl p-4 text-white shadow-sm">
-          <p className="text-green-200 text-[10px] uppercase tracking-wide font-semibold">Income</p>
+          <p className="text-green-200 text-[10px] uppercase tracking-wide font-semibold">Income · This month</p>
           <p className="text-xl font-bold mt-1">{fmt(income)}</p>
         </div>
         <div className="bg-gradient-to-br from-red-600 to-red-400 rounded-xl p-4 text-white shadow-sm">
-          <p className="text-red-200 text-[10px] uppercase tracking-wide font-semibold">Expenses</p>
+          <p className="text-red-200 text-[10px] uppercase tracking-wide font-semibold">Expenses · This month</p>
           <p className="text-xl font-bold mt-1">{fmt(expense)}</p>
         </div>
         <div className="bg-gradient-to-br from-cyan-600 to-cyan-500 rounded-xl p-4 text-white shadow-sm">
-          <p className="text-cyan-100 text-[10px] uppercase tracking-wide font-semibold">Transfers</p>
+          <p className="text-cyan-100 text-[10px] uppercase tracking-wide font-semibold">Transfers · This month</p>
           <p className="text-xl font-bold mt-1">{fmt(transfers)}</p>
         </div>
         <div className={`rounded-xl p-4 text-white shadow-sm bg-gradient-to-br ${income - expense >= 0 ? 'from-teal-600 to-cyan-500' : 'from-orange-600 to-amber-500'}`}>
-          <p className="opacity-80 text-[10px] uppercase tracking-wide font-semibold">Net</p>
+          <p className="opacity-80 text-[10px] uppercase tracking-wide font-semibold">Net · This month</p>
           <p className="text-xl font-bold mt-1">{fmt(income - expense)}</p>
         </div>
       </div>
