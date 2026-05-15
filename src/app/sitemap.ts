@@ -75,6 +75,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/compare/barakah-vs-stash`,                 changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/compare/barakah-vs-yaqeen-money`,          changeFrequency: 'monthly', priority: 0.86, lastModified: now },
     { url: `${baseUrl}/compare/barakah-vs-saturna`,               changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    // 2026-05-14: six compare pages existed as routes but were missing from
+    // the sitemap — Google had no canonical discovery path for them. The
+    // `/compare/islamic-finance-apps` hub gets the highest priority because
+    // it's a multi-app comparison page with strong long-tail intent.
+    { url: `${baseUrl}/compare/islamic-finance-apps`,             changeFrequency: 'monthly', priority: 0.92, lastModified: now },
+    { url: `${baseUrl}/compare/barakah-vs-empower`,               changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/compare/barakah-vs-personal-capital`,      changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/compare/barakah-vs-wealthfront`,           changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/compare/barakah-vs-copilot`,               changeFrequency: 'monthly', priority: 0.83, lastModified: now },
+    { url: `${baseUrl}/compare/barakah-vs-tiller`,                changeFrequency: 'monthly', priority: 0.83, lastModified: now },
     { url: `${baseUrl}/learn/halal-stock-screener`,               changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/halal-investing-guide`,              changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/is-my-mortgage-halal`,               changeFrequency: 'monthly', priority: 0.88, lastModified: now },
