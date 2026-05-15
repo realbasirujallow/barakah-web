@@ -117,6 +117,9 @@ export default function DashboardPage() {
   // on failure.
   const [recurringSummary, setRecurringSummary] = useState<{ income: number; expense: number; count: number } | null>(null);
   const [topMovers, setTopMovers] = useState<Array<{ symbol: string; name: string; gainLossPct: number; marketValue: number }>>([]);
+  // Plaid-linked-only fallback: total value of all assets in the "Investments"
+  // group from /api/assets/grouped. Populated when getPortfolioSummary is empty.
+  const [linkedInvestmentsTotal, setLinkedInvestmentsTotal] = useState<number>(0);
   // Phase 14: last meaningful dashboard visit, hydrated client-side.
   const [lastVisit, setLastVisit] = useState<LastVisit | null>(null);
   useEffect(() => {
@@ -237,7 +240,7 @@ export default function DashboardPage() {
       const [
         assetResult, hijriResult, hawlResult, portfolioResult, portfolioHistoryResult,
         widgetResult, safeToSpendResult, insightsResult, reviewQueueResult,
-        recurringResult,
+        recurringResult, groupedAssetsResult,
       ] = await Promise.allSettled([
         api.getAssetTotal(),
         api.getIslamicCalendarToday(),
@@ -254,6 +257,10 @@ export default function DashboardPage() {
         api.getReviewQueue(0, 1),
         // 2026-05-02: recurring summary for the new dashboard preview card.
         api.getRecurringTransactions().catch(() => null),
+        // 2026-05-15: grouped assets — used as a fallback for the
+        // Investments card when the user has no manually-tracked portfolio
+        // (i.e. all their investments are Plaid-linked into the Assets table).
+        api.getGroupedAssets(),
       ]);
 
       if (cancelled) return;
@@ -276,6 +283,11 @@ export default function DashboardPage() {
       }
       if (hijriResult.status === 'fulfilled') setHijri(hijriResult.value as HijriData);
       if (hawlResult.status === 'fulfilled') setHawlDue(hawlResult.value as typeof hawlDue);
+      if (groupedAssetsResult.status === 'fulfilled') {
+        const gd = groupedAssetsResult.value as { groups?: Array<{ label: string; total: number | string }> };
+        const inv = (gd?.groups ?? []).find(g => g.label === 'Investments');
+        setLinkedInvestmentsTotal(Number(inv?.total) || 0);
+      }
       if (portfolioResult.status === 'fulfilled') {
         const raw = portfolioResult.value as PortfolioSummary & { overallReturnPercent?: number };
         if ((raw?.totalValue || 0) > 0) {
@@ -1001,8 +1013,13 @@ export default function DashboardPage() {
           click away rather than removing functionality, but no longer
           render it on first paint. */}
       {/* Investments — top-level card so the day's P&L and top gainers/losers
-          are visible above the fold for users with holdings. */}
-      {portfolioSummary && portfolioSummary.totalValue > 0 && (() => {
+          are visible above the fold for users with holdings. Renders for
+          users with EITHER manually-tracked portfolio (InvestmentAccount rows)
+          OR Plaid-linked investment-category assets. The latter doesn't have
+          a day-P&L snapshot, so that line is conditional. */}
+      {((portfolioSummary?.totalValue ?? 0) > 0 || linkedInvestmentsTotal > 0) && (() => {
+        const hasPortfolio = (portfolioSummary?.totalValue ?? 0) > 0;
+        const totalValue = hasPortfolio ? portfolioSummary!.totalValue : linkedInvestmentsTotal;
         const gainers = topMovers.filter(h => h.gainLossPct > 0).sort((a, b) => b.gainLossPct - a.gainLossPct).slice(0, 3);
         const losers = topMovers.filter(h => h.gainLossPct < 0).sort((a, b) => a.gainLossPct - b.gainLossPct).slice(0, 3);
         const todayPct = latestPortfolioSnapshot?.dayGainLossPercent ?? 0;
@@ -1013,19 +1030,24 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Investments</p>
-                <p className="text-2xl font-bold text-foreground mt-0.5 tabular-nums">{fmt(portfolioSummary.totalValue)}</p>
+                <p className="text-2xl font-bold text-foreground mt-0.5 tabular-nums">{fmt(totalValue)}</p>
                 {hasToday && (
                   <p className={`text-sm font-medium ${todayAmt >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                     {todayAmt >= 0 ? '▲' : '▼'} {fmt(Math.abs(todayAmt))} ({todayPct >= 0 ? '+' : ''}{todayPct.toFixed(2)}%) today
                   </p>
                 )}
-                <p className={`text-[11px] ${(portfolioSummary.totalGainLoss ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                  {(portfolioSummary.totalGainLoss ?? 0) >= 0 ? '+' : ''}{fmt(portfolioSummary.totalGainLoss ?? 0)} ({(portfolioSummary.totalGainLossPct ?? 0).toFixed(2)}%) all time
-                </p>
+                {hasPortfolio && (
+                  <p className={`text-[11px] ${(portfolioSummary!.totalGainLoss ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {(portfolioSummary!.totalGainLoss ?? 0) >= 0 ? '+' : ''}{fmt(portfolioSummary!.totalGainLoss ?? 0)} ({(portfolioSummary!.totalGainLossPct ?? 0).toFixed(2)}%) all time
+                  </p>
+                )}
+                {!hasPortfolio && (
+                  <p className="text-[11px] text-gray-500">From linked accounts</p>
+                )}
               </div>
               <Link href="/dashboard/investments" className="text-sm text-primary font-medium hover:underline">View all</Link>
             </div>
-            {(gainers.length > 0 || losers.length > 0) ? (
+            {hasPortfolio && (gainers.length > 0 || losers.length > 0) ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                 <div>
                   <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">Top gainers</p>
@@ -1064,9 +1086,9 @@ export default function DashboardPage() {
                   )}
                 </div>
               </div>
-            ) : (
+            ) : hasPortfolio ? (
               <p className="text-sm text-gray-400 text-center py-4">No holdings with price data yet.</p>
-            )}
+            ) : null}
           </div>
         );
       })()}
