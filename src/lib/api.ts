@@ -1290,6 +1290,10 @@ export const api = {
     apiFetch(`/api/investments/accounts/${id}`, { method: 'DELETE' }),
   getHoldings: (accountId: number) =>
     apiFetch(`/api/investments/accounts/${accountId}/holdings`),
+  /** Holdings by accountId — works for Plaid-linked accounts that don't
+   *  have an InvestmentAccount row. Powers the per-asset detail page. */
+  getHoldingsByAccount: (accountId: number) =>
+    apiFetch(`/api/investments/holdings/by-account?accountId=${accountId}`),
   addHolding: (accountId: number, data: Record<string, unknown>) =>
     apiFetch(`/api/investments/accounts/${accountId}/holdings/add`, { method: 'POST', body: JSON.stringify(data) }),
   updateHolding: (id: number, data: Record<string, unknown>) =>
