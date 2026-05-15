@@ -38,6 +38,25 @@ interface AssetFormState {
   penaltyRate: string; taxRate: string; address: string;
 }
 
+// Category-grouped assets — backed by AssetController#getGroupedAssets.
+interface AssetGroup {
+  label: string;
+  total: number;
+  pctOfAssets: number;
+  count: number;
+  assets: Asset[];
+}
+
+// Emoji per display group — keeps the grouped view visually scannable.
+const GROUP_ICON: Record<string, string> = {
+  'Cash': '💵',
+  'Investments': '📈',
+  'Real Estate': '🏠',
+  'Vehicles': '🚗',
+  'Precious Metals': '🥇',
+  'Other': '📋',
+};
+
 interface SubscriptionStatus {
   plan: 'free' | 'plus' | 'family';
   status: string;
@@ -100,6 +119,7 @@ export default function AssetsPage() {
   const { toast } = useToast();
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [groups, setGroups] = useState<AssetGroup[]>([]);
   const [total, setTotal] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -122,7 +142,7 @@ export default function AssetsPage() {
   const load = () => {
     setLoading(true);
     setLoadError(null);
-    Promise.allSettled([api.getAssets(), api.getAssetTotal(), api.subscriptionStatus()])
+    Promise.allSettled([api.getGroupedAssets(), api.getAssetTotal(), api.subscriptionStatus()])
       .then((results) => {
         const aRaw = results[0].status === 'fulfilled' ? results[0].value : null;
         const tRaw = results[1].status === 'fulfilled' ? results[1].value : null;
@@ -145,22 +165,37 @@ export default function AssetsPage() {
           return;
         }
 
-        // Validate each asset
-        const assetList = Array.isArray(aRaw?.assets) ? aRaw.assets : Array.isArray(aRaw) ? aRaw : [];
+        // The grouped endpoint returns { groups: [{ label, total, pct, assets }] }.
+        // Validate each asset; keep a flat list for the add/edit/delete/select
+        // logic and a grouped list for rendering.
+        const rawGroups = Array.isArray(aRaw?.groups) ? aRaw.groups : [];
         const validatedAssets: Asset[] = [];
-        for (const item of assetList) {
-          const itemId = typeof item === 'object' && item !== null && 'id' in item
-            ? String((item as { id?: unknown }).id ?? 'unknown')
-            : 'unknown';
-          const result = safeParse(validateAsset, item, `asset/${itemId}`);
-          if (result) {
-            validatedAssets.push(result as Asset);
-          } else {
-            console.warn(`Skipped invalid asset (id=${itemId})`);
+        const validatedGroups: AssetGroup[] = [];
+        for (const g of rawGroups) {
+          const groupAssets: Asset[] = [];
+          for (const item of Array.isArray(g?.assets) ? g.assets : []) {
+            const itemId = typeof item === 'object' && item !== null && 'id' in item
+              ? String((item as { id?: unknown }).id ?? 'unknown')
+              : 'unknown';
+            const result = safeParse(validateAsset, item, `asset/${itemId}`);
+            if (result) {
+              groupAssets.push(result as Asset);
+              validatedAssets.push(result as Asset);
+            } else {
+              console.warn(`Skipped invalid asset (id=${itemId})`);
+            }
           }
+          validatedGroups.push({
+            label: String(g?.label ?? 'Other'),
+            total: Number(g?.total ?? 0),
+            pctOfAssets: Number(g?.pctOfAssets ?? 0),
+            count: Number(g?.count ?? groupAssets.length),
+            assets: groupAssets,
+          });
         }
 
         setAssets(validatedAssets);
+        setGroups(validatedGroups);
         setTotal(tRaw);
       })
       .catch((err) => {
@@ -343,6 +378,87 @@ export default function AssetsPage() {
 
   const mapsLink = (address: string) =>
     `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
+  // One asset row. Lifted into a helper so the flat list could become a
+  // category-grouped list without duplicating ~80 lines of card markup.
+  const renderAssetCard = (a: Asset) => (
+    <div key={a.id} className={`bg-white rounded-xl shadow-sm overflow-hidden transition ${selectMode && selectedIds.has(a.id) ? 'ring-2 ring-primary/40' : ''}`}>
+      <div className="p-4 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          {selectMode && (
+            <input
+              type="checkbox"
+              checked={selectedIds.has(a.id)}
+              disabled={a.readOnly}
+              onChange={() => toggleSelect(a.id)}
+              className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={e => e.stopPropagation()}
+            />
+          )}
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-semibold text-primary">{a.name}</p>
+              {a.readOnly && (
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                  Linked via Plaid
+                </span>
+              )}
+            </div>
+            {a.name.toLowerCase() !== typeLabel(a.type).toLowerCase() && (
+              <p className="text-sm text-gray-500">{typeLabel(a.type)}</p>
+            )}
+            {a.readOnly && (
+              <p className="text-xs text-gray-500">
+                {[a.institutionName, a.accountSubtype, a.accountMask ? `••${a.accountMask}` : null].filter(Boolean).join(' • ')}
+                {a.lastSyncedAt ? ` • Synced ${new Date(a.lastSyncedAt).toLocaleDateString(dateLocale)}` : ''}
+              </p>
+            )}
+            {a.address && (
+              <a href={mapsLink(a.address)} target="_blank" rel="noopener noreferrer"
+                className="text-xs text-blue-600 hover:underline mt-0.5 block">
+                📍 {a.address}
+              </a>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <p className="text-lg font-bold text-primary">{fmt(a.value)}</p>
+          {!selectMode && (
+            <>
+              {!a.readOnly && (
+                <>
+                  <button type="button" onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
+                  <button type="button" onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                </>
+              )}
+              {a.readOnly && (
+                <Link href="/dashboard/import" className="text-gray-500 hover:text-primary text-sm border border-gray-300 px-3 py-1 rounded-lg">
+                  Manage
+                </Link>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+      {a.address && ADDRESS_TYPES.includes(a.type) && (
+        <div className="border-t">
+          {mapsUrl(a.address) ? (
+            <iframe
+              width="100%"
+              height="200"
+              style={{ border: 0 }}
+              loading="lazy"
+              allowFullScreen
+              sandbox="allow-scripts"
+              src={mapsUrl(a.address)!}
+            />
+          ) : (
+            <p className="text-xs text-gray-400 italic py-2 px-3">Map unavailable</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   // R38 (2026-04-30): swap the bare animate-spin for the shared
   // SkeletonPage shimmer so loading feels Monarch-tier instead of
@@ -539,83 +655,23 @@ export default function AssetsPage() {
           }
         />
       ) : (
-        <div className="space-y-4">
-          {assets.map(a => (
-            <div key={a.id} className={`bg-white rounded-xl shadow-sm overflow-hidden transition ${selectMode && selectedIds.has(a.id) ? 'ring-2 ring-primary/40' : ''}`}>
-              <div className="p-4 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  {selectMode && (
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(a.id)}
-                      disabled={a.readOnly}
-                      onChange={() => toggleSelect(a.id)}
-                      className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-                      onClick={e => e.stopPropagation()}
-                    />
-                  )}
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-primary">{a.name}</p>
-                      {a.readOnly && (
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                          Linked via Plaid
-                        </span>
-                      )}
-                    </div>
-                    {a.name.toLowerCase() !== typeLabel(a.type).toLowerCase() && (
-                      <p className="text-sm text-gray-500">{typeLabel(a.type)}</p>
-                    )}
-                    {a.readOnly && (
-                      <p className="text-xs text-gray-500">
-                        {[a.institutionName, a.accountSubtype, a.accountMask ? `••${a.accountMask}` : null].filter(Boolean).join(' • ')}
-                        {a.lastSyncedAt ? ` • Synced ${new Date(a.lastSyncedAt).toLocaleDateString(dateLocale)}` : ''}
-                      </p>
-                    )}
-                    {a.address && (
-                      <a href={mapsLink(a.address)} target="_blank" rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:underline mt-0.5 block">
-                        📍 {a.address}
-                      </a>
-                    )}
-                  </div>
+        <div className="space-y-6">
+          {groups.map(group => (
+            <div key={group.label}>
+              <div className="flex items-baseline justify-between mb-2 px-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg" aria-hidden="true">{GROUP_ICON[group.label] ?? '📋'}</span>
+                  <h2 className="text-base font-bold text-gray-900">{group.label}</h2>
+                  <span className="text-xs text-gray-400">{group.count}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <p className="text-lg font-bold text-primary">{fmt(a.value)}</p>
-                  {!selectMode && (
-                    <>
-                      {!a.readOnly && (
-                        <>
-                          <button type="button" onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
-                          <button type="button" onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
-                        </>
-                      )}
-                      {a.readOnly && (
-                        <Link href="/dashboard/import" className="text-gray-500 hover:text-primary text-sm border border-gray-300 px-3 py-1 rounded-lg">
-                          Manage
-                        </Link>
-                      )}
-                    </>
-                  )}
+                <div className="text-right">
+                  <p className="text-base font-bold text-primary">{fmt(group.total)}</p>
+                  <p className="text-[11px] text-gray-400">{group.pctOfAssets}% of assets</p>
                 </div>
               </div>
-              {a.address && ADDRESS_TYPES.includes(a.type) && (
-                <div className="border-t">
-                  {mapsUrl(a.address) ? (
-                    <iframe
-                      width="100%"
-                      height="200"
-                      style={{ border: 0 }}
-                      loading="lazy"
-                      allowFullScreen
-                      sandbox="allow-scripts"
-                      src={mapsUrl(a.address)!}
-                    />
-                  ) : (
-                    <p className="text-xs text-gray-400 italic py-2 px-3">Map unavailable</p>
-                  )}
-                </div>
-              )}
+              <div className="space-y-3">
+                {group.assets.map(renderAssetCard)}
+              </div>
             </div>
           ))}
         </div>
