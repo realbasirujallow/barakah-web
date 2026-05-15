@@ -77,7 +77,7 @@ const faqSchema = {
       name: 'What Islamic finance apps have a halal stock screener?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Very few apps include a halal stock screener. Barakah screens 30,000+ stocks against AAOIFI Standard 21. Zoya and SalaamInvest also offer halal screening but are focused only on investing — they don\'t include zakat calculation, budgeting, or estate planning features.',
+        text: 'Very few apps include a halal stock screener. Barakah runs a live AAOIFI Standard 21 financial-ratio screen on demand for any ticker you check, backed by a 30,000+ stock business-activity library. Zoya and SalaamInvest also offer halal screening but are focused only on investing — they don\'t include zakat calculation, budgeting, or estate planning features.',
       },
     },
   ],

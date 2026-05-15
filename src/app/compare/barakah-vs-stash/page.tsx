@@ -28,7 +28,7 @@ const rows = [
   { feature: 'Trade execution', barakah: 'Read-only via Plaid (no trading)', stash: 'Yes — fractional shares + ETFs', winner: 'Stash' as const, note: 'Stash is a brokerage; Barakah is not.' },
   { feature: 'Investment selection', barakah: 'Halal screening on user-held positions', stash: 'Themed ETFs + individual stocks', winner: 'Stash' as const, note: 'Stash\'s themed ETFs include conventional and non-halal sectors.' },
   { feature: 'Cash / banking interest', barakah: 'Tracks but flags interest as non-halal', stash: 'Stash banking with stock-back rewards', winner: 'Barakah' as const, note: 'Stash\'s cash account features carry interest exposure — riba for Muslim users.' },
-  { feature: 'Halal stock screening', barakah: '30,000+ AAOIFI-screened', stash: 'None — no halal filter', winner: 'Barakah' as const },
+  { feature: 'Halal stock screening', barakah: '30,000+ library + on-demand AAOIFI ratios', stash: 'None — no halal filter', winner: 'Barakah' as const },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', stash: 'None', winner: 'Barakah' as const },
   { feature: 'Hawl continuity tracking', barakah: 'Daily nisab-check, fiqh-aware', stash: 'None', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', stash: 'None', winner: 'Barakah' as const },

@@ -29,7 +29,7 @@ const rows = [
   { feature: 'Options trading', barakah: 'None (most options carry gharar concerns)', robinhood: 'Best-in-class retail options UX', winner: 'Robinhood' as const, note: 'Many scholars consider conventional options non-halal — by design Barakah doesn\'t offer them.' },
   { feature: 'Cash sweep / interest', barakah: 'Tracks but flags interest as non-halal', robinhood: 'Gold cash sweep pays interest = riba', winner: 'Barakah' as const, note: 'Robinhood Gold\'s 4%+ cash APY is interest income — riba for Muslim users.' },
   { feature: 'Margin lending', barakah: 'None (riba)', robinhood: 'Margin available on Gold', winner: 'Barakah' as const, note: 'Margin loans are interest-based — riba.' },
-  { feature: 'Halal stock screening', barakah: '30,000+ AAOIFI-screened', robinhood: 'None — no halal filter', winner: 'Barakah' as const },
+  { feature: 'Halal stock screening', barakah: '30,000+ library + on-demand AAOIFI ratios', robinhood: 'None — no halal filter', winner: 'Barakah' as const },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', robinhood: 'None', winner: 'Barakah' as const },
   { feature: 'Hawl continuity tracking', barakah: 'Daily nisab-check, fiqh-aware', robinhood: 'None', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', robinhood: 'None — interest shown as gain', winner: 'Barakah' as const },

@@ -127,7 +127,8 @@ export default function AaplPage() {
             <h2 className="text-xl font-bold text-amber-900 mb-2">Check live compliance</h2>
             <p className="text-sm leading-7 text-amber-900">
               This page reflects <em>historical</em> status. Before you buy, confirm current compliance against the
-              latest quarterly filing. Barakah Plus ($9.99/mo) re-screens AAPL — and 30,000 other tickers — continuously.
+              latest quarterly filing. Barakah Plus ($9.99/mo) runs the full AAOIFI Standard 21 ratio screen live whenever
+              you check AAPL, and re-screens the tickers you hold automatically.
             </p>
           </section>
 

@@ -31,7 +31,7 @@ const rows = [
   { feature: 'Collaborative / family', barakah: 'Family plan — 6 seats, shared budgets + zakat', copilot: 'Single user — no native multi-user / household sharing', winner: 'Barakah' as const },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', copilot: 'None', winner: 'Barakah' as const },
   { feature: 'Hawl continuity tracking', barakah: 'Daily nisab-check, fiqh-aware', copilot: 'None', winner: 'Barakah' as const },
-  { feature: 'Halal stock screening', barakah: '30,000+ AAOIFI-screened', copilot: 'None', winner: 'Barakah' as const },
+  { feature: 'Halal stock screening', barakah: '30,000+ library + on-demand AAOIFI ratios', copilot: 'None', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', copilot: 'None — interest just shows as income', winner: 'Barakah' as const },
   { feature: 'Islamic will / faraid', barakah: 'Faraid calculator + wasiyyah builder', copilot: 'None', winner: 'Barakah' as const },
   { feature: 'Net-worth history', barakah: 'Yes, with integrity-hash snapshots', copilot: 'Yes — clean trend chart, but newer product so shorter history', winner: 'Tie' as const },

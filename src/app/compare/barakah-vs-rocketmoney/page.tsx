@@ -33,7 +33,7 @@ const rows = [
   { feature: 'Bill negotiation', barakah: 'None', rocket: 'Concierge negotiates cable/internet/cell bills; takes 30–60% of one year\'s savings', winner: 'Rocket Money' as const, note: 'Effective but the cut is steep — read the fine print.' },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', rocket: 'None', winner: 'Barakah' as const },
   { feature: 'Hawl continuity tracking', barakah: 'Daily nisab-check, fiqh-aware', rocket: 'None', winner: 'Barakah' as const },
-  { feature: 'Halal stock screening', barakah: '30,000+ AAOIFI-screened', rocket: 'None', winner: 'Barakah' as const },
+  { feature: 'Halal stock screening', barakah: '30,000+ library + on-demand AAOIFI ratios', rocket: 'None', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', rocket: 'None — Rocket also markets a savings account that pays interest', winner: 'Barakah' as const },
   { feature: 'Islamic will / faraid', barakah: 'Faraid calculator + wasiyyah builder', rocket: 'None', winner: 'Barakah' as const },
   { feature: 'Mobile app quality', barakah: 'Live on iOS & Android', rocket: 'Polished iOS & Android, mature; Rocket Companies brand backing', winner: 'Rocket Money' as const, note: 'Mobile UX is among the best in the category.' },

@@ -195,7 +195,7 @@ export default function MintAlternativeForMuslimsPage() {
             {[
               { icon: '🟡', title: 'Free Zakat Calculator', desc: 'Multi-madhab: Hanafi, Shafi\'i, Maliki, Hanbali. Live gold & silver nisab prices. Calculate in 60 seconds.' },
               { icon: '🔴', title: 'Riba Detector', desc: 'Automatically scans your transactions and flags interest payments so you can eliminate them.' },
-              { icon: '✅', title: 'Halal Stock Screener', desc: '30,000+ stocks screened against AAOIFI Standard 21. Know your portfolio\'s halal compliance instantly.' },
+              { icon: '✅', title: 'Halal Stock Screener', desc: 'Live AAOIFI Standard 21 ratio screening on demand for any ticker, plus a 30,000+ stock business-activity library. Know your portfolio\'s halal compliance instantly.' },
               { icon: '📜', title: 'Islamic Will Planner', desc: 'Record your wasiyyah, beneficiaries, and outstanding Islamic obligations — Zakat, Kaffarah, loans owed.' },
               { icon: '👨‍👩‍👧', title: 'Family Finance', desc: 'Shared budgets, group transactions, and family-level zakat visibility. Up to 6 members on one plan.' },
               { icon: '📊', title: 'Budgets & Analytics', desc: 'Bank sync via Plaid, transaction categorization, spending analytics — everything Mint did, but halal-aware.' },

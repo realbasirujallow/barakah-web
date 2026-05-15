@@ -60,7 +60,7 @@ const faqSchema = {
       name: 'How does a halal stock screener work?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'A halal stock screener checks companies against AAOIFI Standard 21 criteria in two stages: (1) Business Screen — checks whether the company\'s primary business is in a halal sector. If the company\'s core business is alcohol, tobacco, pork, weapons, gambling, or conventional finance, it fails immediately. (2) Financial Ratio Screen — checks whether the company\'s financial structure (debt, interest income, liquid assets) stays within permissible thresholds even for mostly-halal businesses. Barakah screens 30,000+ stocks against both criteria with updated data.',
+        text: 'A halal stock screener checks companies against AAOIFI Standard 21 criteria in two stages: (1) Business Screen — checks whether the company\'s primary business is in a halal sector. If the company\'s core business is alcohol, tobacco, pork, weapons, gambling, or conventional finance, it fails immediately. (2) Financial Ratio Screen — checks whether the company\'s financial structure (debt, interest income, liquid assets) stays within permissible thresholds even for mostly-halal businesses. Barakah runs the full two-stage screen — business activity plus live AAOIFI Standard 21 financial ratios — on demand for any ticker you check, backed by a 30,000+ stock business-activity library.',
       },
     },
     {
@@ -140,7 +140,7 @@ export default function HalalStockScreenerPage() {
           <div className="bg-green-700 rounded-2xl p-5 mb-10 flex flex-col sm:flex-row items-center gap-4">
             <div className="flex-1 text-white">
               <p className="font-bold">Screen any stock for halal compliance — free with Barakah</p>
-              <p className="text-green-100 text-sm">30,000+ stocks screened against AAOIFI Standard 21 with live financial data.</p>
+              <p className="text-green-100 text-sm">Live AAOIFI Standard 21 ratio screening on demand, plus a 30,000+ stock business-activity library.</p>
             </div>
             <Link href="/signup" className="flex-shrink-0 bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition whitespace-nowrap dark:bg-gray-800">
               Try Screener Free →
@@ -252,7 +252,7 @@ export default function HalalStockScreenerPage() {
           {/* CTA */}
           <div className="bg-green-700 rounded-2xl p-8 text-center text-white mb-10">
             <h2 className="text-2xl font-bold mb-3">Screen Stocks for Free — Barakah Halal Screener</h2>
-            <p className="text-green-100 mb-6">30,000+ stocks. AAOIFI Standard 21. Automatic purification calculation. Available with Barakah Plus.</p>
+            <p className="text-green-100 mb-6">Live AAOIFI Standard 21 ratio screening on demand. 30,000+ stock business-activity library. Automatic purification calculation. Available with Barakah Plus.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">{`Start ${DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL} Free Trial`}</Link>
               <Link href="/learn/halal-investing-guide" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Halal Investing Guide</Link>

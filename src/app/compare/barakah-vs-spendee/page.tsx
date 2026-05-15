@@ -31,7 +31,7 @@ const rows = [
   { feature: 'Collaborative / family', barakah: 'Family plan — 6 seats, shared budgets + zakat', spendee: 'Shared wallets are a core feature', winner: 'Spendee' as const, note: 'Shared wallets are Spendee\'s headline feature and they nailed it.' },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', spendee: 'None', winner: 'Barakah' as const },
   { feature: 'Hawl continuity tracking', barakah: 'Daily nisab-check, fiqh-aware', spendee: 'None', winner: 'Barakah' as const },
-  { feature: 'Halal stock screening', barakah: '30,000+ AAOIFI-screened', spendee: 'None', winner: 'Barakah' as const },
+  { feature: 'Halal stock screening', barakah: '30,000+ library + on-demand AAOIFI ratios', spendee: 'None', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', spendee: 'None', winner: 'Barakah' as const },
   { feature: 'Islamic will / faraid', barakah: 'Faraid calculator + wasiyyah builder', spendee: 'None', winner: 'Barakah' as const },
   { feature: 'Visualizations', barakah: 'Standard charts + zakat dashboards', spendee: 'Beautiful infographic-style charts', winner: 'Spendee' as const, note: 'Spendee\'s design is genuinely the prettiest in the category.' },

@@ -33,7 +33,7 @@ const rows = [
   { feature: 'Zakat (multi-asset, multi-madhab)', barakah: 'Full — across cash, gold, stocks, 401k, crypto, business', ynab: 'None', winner: 'Barakah' as const },
   { feature: 'Hawl (lunar year) tracking', barakah: 'Daily nisab-check, madhab-aware reset rules', ynab: 'None', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification journey', ynab: 'None (interest treated as ordinary income)', winner: 'Barakah' as const },
-  { feature: 'Halal stock screening', barakah: '30,000+ tickers, AAOIFI ratios, real-time', ynab: 'None', winner: 'Barakah' as const },
+  { feature: 'Halal stock screening', barakah: '30,000+ library + on-demand AAOIFI ratios', ynab: 'None', winner: 'Barakah' as const },
   { feature: 'Islamic will / faraid', barakah: 'Faraid calculator + wasiyyah builder', ynab: 'None', winner: 'Barakah' as const },
   { feature: 'Family / household plan', barakah: 'Family plan — 6 seats, shared budgets, household zakat', ynab: 'Up to 6 users on same account', winner: 'Tie' as const },
   { feature: 'Mobile app quality', barakah: 'Live on iOS & Android', ynab: '4.8 stars iOS, mature', winner: 'YNAB' as const, note: 'YNAB has 12+ years of mobile iteration; Barakah shipped iOS + Android in 2026.' },

@@ -184,7 +184,7 @@ export default function HalalPage() {
             page (consistent typography + subtitle slot for context). */}
         <PageHeader
           title="Halal Stock Screener"
-          subtitle="AAOIFI Standard 21 screening for 30,000+ tickers"
+          subtitle="Live AAOIFI Standard 21 ratio screening on demand, plus a 30,000+ stock business-activity library"
         />
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
           <p className="text-amber-800 font-semibold mb-2">Plus or Family plan required</p>
@@ -201,7 +201,7 @@ export default function HalalPage() {
     <div>
       <PageHeader
         title="Stock Screener"
-        subtitle="AAOIFI-screened stocks with debt/interest ratio analysis"
+        subtitle="Business-activity screening with live AAOIFI Standard 21 debt/interest ratio analysis"
       />
 
       {/* Freshness badge — daily re-screen status. Surfaces the same data

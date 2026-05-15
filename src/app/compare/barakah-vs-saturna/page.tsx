@@ -29,7 +29,7 @@ const rows = [
   { feature: 'Fund management', barakah: 'None — Barakah does not manage money', saturna: 'AMANX Income, AMAGX Growth, AMDWX Developing World, AMIGX Participation', winner: 'Saturna' as const, note: 'Active Sharia-compliant fund management is Saturna\'s entire business.' },
   { feature: 'Bank aggregation', barakah: 'Plaid — 12,000+ US banks', saturna: 'None — they manage funds, not households', winner: 'Barakah' as const },
   { feature: 'Budgeting', barakah: 'Category-based, flexible', saturna: 'None', winner: 'Barakah' as const },
-  { feature: 'Halal stock screening (third-party)', barakah: '30,000+ AAOIFI-screened — for any account', saturna: 'Internal screening for their own funds', winner: 'Barakah' as const, note: 'Different jobs — Saturna screens for AMANX; Barakah screens any ticker you hold anywhere.' },
+  { feature: 'Halal stock screening (third-party)', barakah: '30,000+ library + on-demand AAOIFI ratios — for any account', saturna: 'Internal screening for their own funds', winner: 'Barakah' as const, note: 'Different jobs — Saturna screens for AMANX; Barakah screens any ticker you hold anywhere.' },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', saturna: 'Provides zakat reports for fund holders', winner: 'Barakah' as const, note: 'Saturna\'s zakat reports are for their funds only.' },
   { feature: 'Hawl continuity tracking', barakah: 'Daily nisab-check, fiqh-aware', saturna: 'None', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', saturna: 'Funds avoid interest-bearing securities', winner: 'Tie' as const, note: 'Different scope — fund-level vs transaction-level.' },

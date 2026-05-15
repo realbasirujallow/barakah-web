@@ -28,7 +28,7 @@ const rows = [
   { feature: 'Round-ups', barakah: 'Round-up to sadaqah (giving) supported', acorns: 'Original round-up-to-invest workflow', winner: 'Acorns' as const, note: 'Acorns invented this UX; their execution is best-in-class.' },
   { feature: 'Investment portfolios', barakah: 'Halal screening on user-held positions', acorns: 'Pre-built ETF portfolios (none halal-screened)', winner: 'Acorns' as const, note: 'Acorns\' default ETFs include conventional bonds and non-halal sectors.' },
   { feature: 'Cash / checking interest', barakah: 'Tracks but flags interest as non-halal', acorns: 'Acorns Checking pays interest = riba', winner: 'Barakah' as const, note: 'Acorns Mighty Oak / checking interest is riba for Muslim users.' },
-  { feature: 'Halal stock screening', barakah: '30,000+ AAOIFI-screened', acorns: 'None — no halal filter on portfolios', winner: 'Barakah' as const },
+  { feature: 'Halal stock screening', barakah: '30,000+ library + on-demand AAOIFI ratios', acorns: 'None — no halal filter on portfolios', winner: 'Barakah' as const },
   { feature: 'Zakat (multi-asset)', barakah: 'Cash + gold + silver + stocks + 401k + rental + crypto + business', acorns: 'None', winner: 'Barakah' as const },
   { feature: 'Hawl continuity tracking', barakah: 'Daily nisab-check, fiqh-aware', acorns: 'None', winner: 'Barakah' as const },
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', acorns: 'None — interest shown as APY win', winner: 'Barakah' as const },
