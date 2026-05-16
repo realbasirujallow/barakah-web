@@ -331,7 +331,7 @@ export default function FaraidPage() {
       {/* Header */}
       <PageHeader
         title="Inheritance Calculator"
-        subtitle="Faraid — Qur&apos;anic inheritance shares, Sunni / Shia rules"
+        subtitle="Faraid — Qur&apos;anic inheritance shares per the Sunni majority position"
         className="mb-0"
       />
 

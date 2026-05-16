@@ -172,7 +172,7 @@ const OUTCOME_BLOCKS: Array<{
   {
     eyebrow: 'For your estate',
     headline: 'Plan your Islamic will, faraid-aware',
-    body: "List heirs with their Qur'anic inheritance shares, record obligations (debts, dowry, funeral costs), and generate a printable wasiyyah PDF. Faraid-aware shares are computed for you — Sunni or Shia rules, your choice.",
+    body: "List heirs with their Qur'anic inheritance shares, record obligations (debts, dowry, funeral costs), and generate a printable wasiyyah PDF. Faraid shares are computed per the Sunni majority position; verify with your scholar for your specific situation.",
     cta: { label: 'Open the planner →', href: '/faraid-calculator' },
     mockup: <WasiyyahMockup />,
     icon: ScrollText,

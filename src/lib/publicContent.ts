@@ -43,7 +43,7 @@ export const PUBLIC_FEATURE_CARDS: readonly LocalizedFeatureCard[] = [
       fr: 'Détecteur de riba',
     },
     desc: {
-      en: 'Scan transactions to flag interest-bearing activity and stay halal-compliant with automatic alerts.',
+      en: 'Scan transactions to flag interest-bearing activity so you can review and address it, with automatic alerts.',
       ar: 'يفحص المعاملات لاكتشاف الأنشطة المرتبطة بالفائدة حتى تبقى معاملتك متوافقة مع الحلال عبر تنبيهات تلقائية.',
       ur: 'لین دین کو اسکین کر کے سودی سرگرمیوں کو نمایاں کرتا ہے تاکہ خودکار الرٹس کے ساتھ آپ حلال دائرے میں رہ سکیں۔',
       fr: "Analyse les transactions pour signaler les activités porteuses d'intérêt et rester conforme au halal grâce à des alertes automatiques.",
@@ -163,7 +163,7 @@ export const PUBLIC_FEATURE_CARDS: readonly LocalizedFeatureCard[] = [
       fr: 'Détecteur d’abonnements',
     },
     desc: {
-      en: 'Automatically detect recurring subscriptions from your transactions — flag haram services instantly.',
+      en: 'Automatically detect recurring subscriptions from your transactions and flag commonly-questioned services for your review.',
       ar: 'يكتشف الاشتراكات المتكررة تلقائيًا من معاملاتك ويشير فورًا إلى الخدمات المحرمة.',
       ur: 'آپ کے لین دین سے بار بار آنے والی سبسکرپشنز خودکار طور پر پہچانیں — حرام سروسز کو فوراً نمایاں کریں۔',
       fr: 'Détecte automatiquement les abonnements récurrents à partir de vos transactions et signale immédiatement les services haram.',
