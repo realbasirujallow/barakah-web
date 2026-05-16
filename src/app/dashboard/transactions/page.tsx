@@ -699,6 +699,14 @@ export default function TransactionsPage() {
           <p className="text-xl font-bold mt-1">{fmt(income - expense)}</p>
         </div>
       </div>
+      {/* KPI-1 fix: when this-month is empty but the list has prior-month
+          rows visible, surface a hint so the four $0 KPIs don't read as
+          "broken" to a user mid-month with rich historical data. */}
+      {income === 0 && expense === 0 && transfers === 0 && totalElements > 0 && (
+        <p className="text-xs text-gray-500 -mt-3 mb-4">
+          No activity yet this month. Showing {totalElements} historical transactions below.
+        </p>
+      )}
       {/* 2026-05-08 (Bug B): only surface the mixed-currency note when the
           user genuinely has cross-currency transactions AND meaningful
           activity in their preferred currency. Previously this fired even

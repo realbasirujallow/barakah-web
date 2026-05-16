@@ -1093,9 +1093,19 @@ export default function DashboardPage() {
                   <span className="text-gray-400">›</span>
                 </p>
               )}
-              {hasPortfolio && !hasToday && !hasPeriod && (
-                <p className="mt-1 text-xs text-gray-500">All-time {(portfolioSummary!.totalGainLoss ?? 0) >= 0 ? '+' : ''}{fmt(portfolioSummary!.totalGainLoss ?? 0)} ({(portfolioSummary!.totalGainLossPct ?? 0).toFixed(2)}%)</p>
-              )}
+              {hasPortfolio && !hasToday && !hasPeriod && (() => {
+                // INV-CARD-1: omit % when cost basis is 0 (undefined math
+                // — showing 0.00% on a +$20k gain reads as broken).
+                const gain = portfolioSummary!.totalGainLoss ?? 0;
+                const pct = portfolioSummary!.totalGainLossPct ?? 0;
+                const hasCostBasis = Math.abs(gain) > 0 && Math.abs(pct) > 0.005;
+                return (
+                  <p className="mt-1 text-xs text-gray-500">
+                    All-time {gain >= 0 ? '+' : ''}{fmt(gain)}
+                    {hasCostBasis && <> ({pct.toFixed(2)}%)</>}
+                  </p>
+                );
+              })()}
               {!hasPortfolio && !hasToday && !hasPeriod && (
                 <p className="mt-1 text-xs text-gray-500">Sync banks to refresh today&apos;s prices</p>
               )}

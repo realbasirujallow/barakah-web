@@ -104,16 +104,16 @@ export default function AnnualUpgradeBanner() {
 
   return (
     <div
-      className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3 flex-wrap"
+      className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3 flex-wrap"
       data-testid="annual-upgrade-banner"
     >
       <div className="flex items-center gap-3 min-w-0">
         <span className="text-2xl flex-shrink-0" aria-hidden="true">💰</span>
         <div className="min-w-0">
-          <p className="font-semibold text-amber-900 text-sm sm:text-base">
+          <p className="font-semibold text-amber-900 dark:text-amber-200 text-sm sm:text-base">
             {savingPct} switching to annual — save ${annualSavings}/year
           </p>
-          <p className="text-xs text-gray-600 mt-0.5">
+          <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
             You&apos;re on Barakah {planLabel} monthly ({monthlyPrice}/mo). Switch to annual at{' '}
             <span className="font-semibold">{yearlyPrice}/year</span> and get 2 months free.
           </p>

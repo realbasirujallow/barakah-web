@@ -812,9 +812,20 @@ export default function ZakatPage() {
                   "85g gold ≈ Rs 4.3M" against their wallet. Old fmt(USD
                   number with currency symbol) display is removed. */}
               <p className="text-2xl font-bold text-amber-600">
-                {data?.nisabGoldGrams != null
-                  ? `${(data.nisabGoldGrams as number).toFixed(2)} g gold`
-                  : (data?.nisab ? fmt(data.nisab as number) : '—')}
+                {(() => {
+                  // ZAKAT-2 fix: when methodology is silver, show silver-grams
+                  // not gold-grams. Previously hardcoded "g gold" gave a
+                  // Hanafi user "10.00 g gold" (the gold-equivalent of 595g
+                  // silver) — confusing and wrong unit label.
+                  if (selectedMethodology === 'CLASSICAL_SILVER') {
+                    const silver = nisabInfo?.nisabSilverGrams ?? 595;
+                    return `${silver.toFixed(2)} g silver`;
+                  }
+                  if (data?.nisabGoldGrams != null) {
+                    return `${(data.nisabGoldGrams as number).toFixed(2)} g gold`;
+                  }
+                  return data?.nisab ? fmt(data.nisab as number) : '—';
+                })()}
               </p>
               {data?.nisabUserCurrency != null && (
                 <p className="text-xs text-gray-500 mt-1">

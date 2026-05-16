@@ -415,11 +415,17 @@ function GivingPatternsPanel({
   giving: GivingInsights;
   fmt: (n: number) => string;
 }) {
+  // SAD-2 fix: when this-month is exactly 0, the trend comparison reads
+  // "below average" or worse — but the more accurate copy is "haven't
+  // given yet this month". Previously a $0 this-month with $0 last-month
+  // could surface "Above your average" which is confusing.
   const trendLabel =
-    giving.trend === 'up' ? 'Above your average' :
-    giving.trend === 'down' ? 'Below your average' :
-    giving.trend === 'flat' ? 'In line with your average' :
-    null;
+    giving.thisMonthTotal === 0
+      ? "Haven't given this month yet"
+      : giving.trend === 'up' ? 'Above your average' :
+        giving.trend === 'down' ? 'Below your average' :
+        giving.trend === 'flat' ? 'In line with your average' :
+        null;
   const fmtDay = (ms: number) =>
     ms ? new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' }) : '';
 
