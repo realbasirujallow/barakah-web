@@ -50,115 +50,111 @@ function formatMoney(n: number, fmt: (n: number) => string) {
  * Pattern-match the user's question against a small intent library.
  * Each intent is a regex + a function that produces a `ChatMsg` from
  * the dashboard snapshot. Order matters — first match wins.
+ *
+ * Response bodies + link labels resolve through the i18n layer so the
+ * panel renders in the user's selected locale.
  */
+type IntentI18n = {
+  t: (key: string) => string;
+  tFmt: (key: string, args: ReadonlyArray<string | number>) => string;
+};
+
 function runLocalIntentMatch(
   q: string,
   snap: DashboardSnapshot,
   fmt: (n: number) => string,
   fallbackText: string,
+  i18n: IntentI18n,
 ): ChatMsg {
-  const t = q.toLowerCase().trim();
+  const { t, tFmt } = i18n;
+  const query = q.toLowerCase().trim();
 
   // Hajj / Umrah / "on track" — savings goal progress.
-  if (/hajj|umrah|on track|goal/.test(t)) {
+  if (/hajj|umrah|on track|goal/.test(query)) {
     const total = snap.goalsTotal ?? 0;
     const saved = snap.goalsSaved ?? 0;
     if (total === 0) {
       return {
         role: 'barakah',
-        text:
-          "You don't have any savings goals set yet. Create one (Hajj, Umrah, emergency fund) " +
-          'and Barakah will track your progress with milestone alerts.',
-        links: [{ label: 'Set a goal', href: '/dashboard/savings' }],
+        text: t('askBarakahGoalsEmpty'),
+        links: [{ label: t('askBarakahLinkSetGoal'), href: '/dashboard/savings' }],
       };
     }
     const pct = Math.round((saved / total) * 100);
+    const goalCount = snap.goalCount ?? 0;
+    const progressKey = goalCount === 1 ? 'askBarakahGoalsProgressSingular' : 'askBarakahGoalsProgressPlural';
+    const progress = tFmt(progressKey, [goalCount, formatMoney(saved, fmt), formatMoney(total, fmt), pct]);
+    const suffixKey =
+      pct >= 75 ? 'askBarakahGoalsNearlyThere' : pct >= 50 ? 'askBarakahGoalsHalfway' : 'askBarakahGoalsSlow';
     return {
       role: 'barakah',
-      text:
-        `Across ${snap.goalCount ?? 0} goal${(snap.goalCount ?? 0) === 1 ? '' : 's'}, ` +
-        `you've saved ${formatMoney(saved, fmt)} of ${formatMoney(total, fmt)} (${pct}%). ` +
-        (pct >= 75
-          ? "Mashallah — you're nearly there. Stay consistent."
-          : pct >= 50
-          ? 'You\'re past the halfway mark — consider bumping your monthly contribution.'
-          : 'Steady contributions get you there. Even small amounts compound.'),
-      links: [{ label: 'See goals', href: '/dashboard/savings' }],
+      text: progress + t(suffixKey),
+      links: [{ label: t('askBarakahLinkSeeGoals'), href: '/dashboard/savings' }],
     };
   }
 
   // Zakat — when due, how much.
-  if (/zakat|nisab/.test(t)) {
+  if (/zakat|nisab/.test(query)) {
     const due = snap.zakatDue ?? 0;
+    let text: string;
+    if (due > 0) {
+      text = tFmt('askBarakahZakatDue', [formatMoney(due, fmt)]);
+      if (snap.zakatNextDate) text += tFmt('askBarakahZakatNextDate', [snap.zakatNextDate]);
+    } else {
+      text = t('askBarakahZakatBelowNisab');
+    }
     return {
       role: 'barakah',
-      text:
-        due > 0
-          ? `Based on your current zakatable assets, your estimated zakat is ${formatMoney(due, fmt)}.` +
-            (snap.zakatNextDate ? ` Your next zakat date is ${snap.zakatNextDate}.` : '')
-          : "You're below the nisab threshold or haven't completed your zakat profile yet. " +
-            'Open the Zakat page to set your hawl date and itemize your assets.',
-      links: [{ label: 'Open Zakat', href: '/dashboard/zakat' }],
+      text,
+      links: [{ label: t('askBarakahLinkOpenZakat'), href: '/dashboard/zakat' }],
     };
   }
 
   // Savings rate / cash flow.
-  if (/savings rate|how much.*sav|cash flow|spend/.test(t)) {
+  if (/savings rate|how much.*sav|cash flow|spend/.test(query)) {
     const inc = snap.monthlyIncome ?? 0;
     const sav = snap.monthlySavings ?? 0;
     if (inc === 0) {
       return {
         role: 'barakah',
-        text:
-          "I don't see any income recorded this month. Once you log income transactions or " +
-          'connect a bank, your savings rate will appear here.',
-        links: [{ label: 'Open Cash Flow', href: '/dashboard/cash-flow' }],
+        text: t('askBarakahCashflowNoIncome'),
+        links: [{ label: t('askBarakahLinkOpenCashFlow'), href: '/dashboard/cash-flow' }],
       };
     }
     const rate = Math.round((sav / inc) * 100);
+    const summary = tFmt('askBarakahCashflowSummary', [formatMoney(inc, fmt), formatMoney(sav, fmt), rate]);
+    const suffix = rate >= 20 ? t('askBarakahCashflowHealthy') : t('askBarakahCashflowLow');
     return {
       role: 'barakah',
-      text:
-        `This month you earned ${formatMoney(inc, fmt)} and saved ${formatMoney(sav, fmt)} — ` +
-        `a savings rate of ${rate}%. ` +
-        (rate >= 20
-          ? '20% is widely considered healthy — alhamdulillah.'
-          : 'A 20% savings rate is a common target. Cash Flow shows where your dollars went.'),
-      links: [{ label: 'Open Cash Flow', href: '/dashboard/cash-flow' }],
+      text: summary + suffix,
+      links: [{ label: t('askBarakahLinkOpenCashFlow'), href: '/dashboard/cash-flow' }],
     };
   }
 
   // Recurring / subscriptions.
-  if (/recurring|subscription|biggest|bill/.test(t)) {
+  if (/recurring|subscription|biggest|bill/.test(query)) {
     const recur = snap.recurringExpenseTotal ?? 0;
     if (recur === 0) {
       return {
         role: 'barakah',
-        text:
-          "You haven't marked any recurring transactions yet. Tag a transaction as recurring " +
-          'on the Transactions page to start tracking subscriptions and bills.',
-        links: [{ label: 'Open Transactions', href: '/dashboard/transactions' }],
+        text: t('askBarakahRecurringNone'),
+        links: [{ label: t('askBarakahLinkOpenTransactions'), href: '/dashboard/transactions' }],
       };
     }
     return {
       role: 'barakah',
-      text:
-        `You're committed to ${formatMoney(recur, fmt)}/month in recurring expenses. ` +
-        'Open the Recurring page to see the full list and the new Calendar view to spot overlap days.',
-      links: [{ label: 'Open Recurring', href: '/dashboard/recurring' }],
+      text: tFmt('askBarakahRecurringSummary', [formatMoney(recur, fmt)]),
+      links: [{ label: t('askBarakahLinkOpenRecurring'), href: '/dashboard/recurring' }],
     };
   }
 
   // Net worth.
-  if (/net worth|how rich|how much.*worth/.test(t)) {
+  if (/net worth|how rich|how much.*worth/.test(query)) {
     const nw = snap.netWorth ?? 0;
     return {
       role: 'barakah',
-      text:
-        nw > 0
-          ? `Your current net worth is ${formatMoney(nw, fmt)}. The Net Worth page tracks the trend over time.`
-          : 'Add accounts to your Assets page to start tracking net worth — Barakah will reconcile it monthly.',
-      links: [{ label: 'Open Net Worth', href: '/dashboard/net-worth' }],
+      text: nw > 0 ? tFmt('askBarakahNetWorthSummary', [formatMoney(nw, fmt)]) : t('askBarakahNetWorthEmpty'),
+      links: [{ label: t('askBarakahLinkOpenNetWorth'), href: '/dashboard/net-worth' }],
     };
   }
 
@@ -167,7 +163,7 @@ function runLocalIntentMatch(
 
 export function AskBarakah() {
   const { fmt } = useCurrency();
-  const { t } = useI18n();
+  const { t, tFmt } = useI18n();
   const suggestions = [
     t('askBarakahSuggestion1'),
     t('askBarakahSuggestion2'),
@@ -257,7 +253,7 @@ export function AskBarakah() {
     // Tiny artificial delay so the response doesn't pop in instantly —
     // reads more conversational than telepathic.
     setTimeout(() => {
-      setMessages(prev => [...prev, runLocalIntentMatch(q, snap, fmt, fallbackText)]);
+      setMessages(prev => [...prev, runLocalIntentMatch(q, snap, fmt, fallbackText, { t, tFmt })]);
     }, 280);
   };
 
@@ -282,7 +278,7 @@ export function AskBarakah() {
           {/* Click-outside scrim */}
           <button
             type="button"
-            aria-label="Close Ask Barakah"
+            aria-label={t('askBarakahCloseLabel')}
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-40 bg-black/20"
           />
@@ -298,7 +294,7 @@ export function AskBarakah() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Close"
+                aria-label={t('askBarakahCloseShortLabel')}
                 className="text-white/80 hover:text-white text-xl leading-none px-2"
               >
                 ×
@@ -335,7 +331,7 @@ export function AskBarakah() {
 
             {messages.length <= 1 && (
               <div className="px-4 pb-2">
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium mb-2">Try asking</p>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium mb-2">{t('askBarakahTryAskingLabel')}</p>
                 <div className="flex flex-wrap gap-2">
                   {suggestions.map(s => (
                     <button
@@ -361,7 +357,7 @@ export function AskBarakah() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={t('askBarakahPlaceholder')}
                 className="flex-1 bg-gray-50 dark:bg-muted rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
-                aria-label="Message Barakah"
+                aria-label={t('askBarakahMessageInputLabel')}
               />
               <button
                 type="submit"

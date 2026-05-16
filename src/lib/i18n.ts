@@ -357,6 +357,36 @@ const en: Translations = {
   askBarakahSuggestion2: 'How much zakat do I owe?',
   askBarakahSuggestion3: "What's my savings rate this month?",
   askBarakahSuggestion4: 'Show my biggest recurring expenses',
+  // AskBarakah intent-match response bodies + link labels (LOC-1).
+  // Dynamic numerics use positional placeholders resolved via tFmt().
+  askBarakahTryAskingLabel: 'Try asking',
+  askBarakahCloseLabel: 'Close Ask Barakah',
+  askBarakahCloseShortLabel: 'Close',
+  askBarakahMessageInputLabel: 'Message Barakah',
+  askBarakahGoalsEmpty: "You don't have any savings goals set yet. Create one (Hajj, Umrah, emergency fund) and Barakah will track your progress with milestone alerts.",
+  askBarakahGoalsProgressSingular: "Across {0} goal, you've saved {1} of {2} ({3}%). ",
+  askBarakahGoalsProgressPlural: "Across {0} goals, you've saved {1} of {2} ({3}%). ",
+  askBarakahGoalsNearlyThere: "Mashallah — you're nearly there. Stay consistent.",
+  askBarakahGoalsHalfway: "You're past the halfway mark — consider bumping your monthly contribution.",
+  askBarakahGoalsSlow: 'Steady contributions get you there. Even small amounts compound.',
+  askBarakahLinkSetGoal: 'Set a goal',
+  askBarakahLinkSeeGoals: 'See goals',
+  askBarakahZakatDue: 'Based on your current zakatable assets, your estimated zakat is {0}.',
+  askBarakahZakatNextDate: ' Your next zakat date is {0}.',
+  askBarakahZakatBelowNisab: "You're below the nisab threshold or haven't completed your zakat profile yet. Open the Zakat page to set your hawl date and itemize your assets.",
+  askBarakahLinkOpenZakat: 'Open Zakat',
+  askBarakahCashflowNoIncome: "I don't see any income recorded this month. Once you log income transactions or connect a bank, your savings rate will appear here.",
+  askBarakahCashflowSummary: 'This month you earned {0} and saved {1} — a savings rate of {2}%. ',
+  askBarakahCashflowHealthy: '20% is widely considered healthy — alhamdulillah.',
+  askBarakahCashflowLow: 'A 20% savings rate is a common target. Cash Flow shows where your dollars went.',
+  askBarakahLinkOpenCashFlow: 'Open Cash Flow',
+  askBarakahRecurringNone: "You haven't marked any recurring transactions yet. Tag a transaction as recurring on the Transactions page to start tracking subscriptions and bills.",
+  askBarakahRecurringSummary: "You're committed to {0}/month in recurring expenses. Open the Recurring page to see the full list and the new Calendar view to spot overlap days.",
+  askBarakahLinkOpenTransactions: 'Open Transactions',
+  askBarakahLinkOpenRecurring: 'Open Recurring',
+  askBarakahNetWorthSummary: 'Your current net worth is {0}. The Net Worth page tracks the trend over time.',
+  askBarakahNetWorthEmpty: 'Add accounts to your Assets page to start tracking net worth — Barakah will reconcile it monthly.',
+  askBarakahLinkOpenNetWorth: 'Open Net Worth',
   // 2026-05-16 (Lane A.2 — OnboardingWizard localization)
   onboardingStep1Title: 'Welcome to Barakah',
   onboardingStep1Subtitle: 'Money management built on Islamic principles',
@@ -710,6 +740,35 @@ const ar: Translations = {
   askBarakahSuggestion2: 'كم تبلغ زكاتي المستحقة؟',
   askBarakahSuggestion3: 'كم معدل ادخاري هذا الشهر؟',
   askBarakahSuggestion4: 'اعرض أكبر نفقاتي المتكررة',
+  // First-draft AR; refresh during the next translator review cycle.
+  askBarakahTryAskingLabel: 'جرّب أن تسأل',
+  askBarakahCloseLabel: 'إغلاق اسأل بركة',
+  askBarakahCloseShortLabel: 'إغلاق',
+  askBarakahMessageInputLabel: 'اكتب رسالة لبركة',
+  askBarakahGoalsEmpty: 'لم تحدد أي أهداف ادخار بعد. أنشئ هدفًا (حج، عمرة، صندوق طوارئ) وستتابع بركة تقدمك مع تنبيهات عند الأهداف الفرعية.',
+  askBarakahGoalsProgressSingular: 'عبر {0} هدف، ادخرت {1} من أصل {2} ({3}٪). ',
+  askBarakahGoalsProgressPlural: 'عبر {0} أهداف، ادخرت {1} من أصل {2} ({3}٪). ',
+  askBarakahGoalsNearlyThere: 'ما شاء الله — أنت على وشك الوصول. واصل بثبات.',
+  askBarakahGoalsHalfway: 'تجاوزت منتصف الطريق — فكّر في زيادة مساهمتك الشهرية.',
+  askBarakahGoalsSlow: 'المساهمات المنتظمة توصلك. حتى المبالغ الصغيرة تتراكم.',
+  askBarakahLinkSetGoal: 'تحديد هدف',
+  askBarakahLinkSeeGoals: 'عرض الأهداف',
+  askBarakahZakatDue: 'بناءً على أصولك الزكوية الحالية، زكاتك المقدّرة هي {0}.',
+  askBarakahZakatNextDate: ' تاريخ زكاتك القادم هو {0}.',
+  askBarakahZakatBelowNisab: 'أنت دون عتبة النصاب أو لم تكمل ملف الزكاة بعد. افتح صفحة الزكاة لتحديد تاريخ الحول وتفصيل أصولك.',
+  askBarakahLinkOpenZakat: 'فتح الزكاة',
+  askBarakahCashflowNoIncome: 'لا أرى أي دخل مسجّل هذا الشهر. بمجرد تسجيل معاملات الدخل أو ربط حساب بنكي، سيظهر معدل ادخارك هنا.',
+  askBarakahCashflowSummary: 'هذا الشهر كسبت {0} وادخرت {1} — بمعدل ادخار {2}٪. ',
+  askBarakahCashflowHealthy: 'يُعتبر 20٪ معدلًا صحيًا — الحمد لله.',
+  askBarakahCashflowLow: '20٪ هدف ادخار شائع. صفحة التدفق النقدي توضح أين ذهبت أموالك.',
+  askBarakahLinkOpenCashFlow: 'فتح التدفق النقدي',
+  askBarakahRecurringNone: 'لم تحدد أي معاملات متكررة بعد. ضع علامة على معاملة كمتكررة في صفحة المعاملات لبدء تتبع الاشتراكات والفواتير.',
+  askBarakahRecurringSummary: 'أنت ملتزم بـ {0}/شهر في النفقات المتكررة. افتح صفحة المتكررة لرؤية القائمة الكاملة وعرض التقويم الجديد لاكتشاف أيام التداخل.',
+  askBarakahLinkOpenTransactions: 'فتح المعاملات',
+  askBarakahLinkOpenRecurring: 'فتح المتكررة',
+  askBarakahNetWorthSummary: 'صافي ثروتك الحالي هو {0}. صفحة صافي الثروة تتابع الاتجاه بمرور الوقت.',
+  askBarakahNetWorthEmpty: 'أضف حسابات إلى صفحة الأصول لبدء تتبع صافي الثروة — ستقوم بركة بالمطابقة شهريًا.',
+  askBarakahLinkOpenNetWorth: 'فتح صافي الثروة',
   // 2026-05-16 (Lane A.2 — OnboardingWizard localization)
   // First-draft AR; refresh during the next translator review cycle.
   onboardingStep1Title: 'مرحبًا بك في بركة',
@@ -1065,6 +1124,35 @@ const ur: Translations = {
   askBarakahSuggestion2: 'مجھ پر کتنی زکوٰۃ واجب ہے؟',
   askBarakahSuggestion3: 'اس مہینے میری بچت کی شرح کیا ہے؟',
   askBarakahSuggestion4: 'میرے سب سے بڑے ماہانہ اخراجات دکھائیں',
+  // First-draft UR; refresh during the next translator review cycle.
+  askBarakahTryAskingLabel: 'پوچھنے کی کوشش کریں',
+  askBarakahCloseLabel: 'برکہ سے پوچھیں بند کریں',
+  askBarakahCloseShortLabel: 'بند کریں',
+  askBarakahMessageInputLabel: 'برکہ کو پیغام بھیجیں',
+  askBarakahGoalsEmpty: 'آپ نے ابھی تک کوئی بچت کا ہدف مقرر نہیں کیا۔ ایک ہدف بنائیں (حج، عمرہ، ایمرجنسی فنڈ) اور برکہ سنگ میل الرٹس کے ساتھ آپ کی پیشرفت کا حساب رکھے گی۔',
+  askBarakahGoalsProgressSingular: '{0} ہدف میں، آپ نے {2} میں سے {1} بچائے ہیں ({3}٪)۔ ',
+  askBarakahGoalsProgressPlural: '{0} اہداف میں، آپ نے {2} میں سے {1} بچائے ہیں ({3}٪)۔ ',
+  askBarakahGoalsNearlyThere: 'ماشاء اللہ — آپ تقریباً پہنچ چکے ہیں۔ مستقل مزاجی رکھیں۔',
+  askBarakahGoalsHalfway: 'آپ نصف سے تجاوز کر چکے ہیں — ماہانہ شراکت بڑھانے پر غور کریں۔',
+  askBarakahGoalsSlow: 'مستقل شراکت آپ کو منزل تک پہنچاتی ہے۔ چھوٹی رقمیں بھی جمع ہو جاتی ہیں۔',
+  askBarakahLinkSetGoal: 'ہدف مقرر کریں',
+  askBarakahLinkSeeGoals: 'اہداف دیکھیں',
+  askBarakahZakatDue: 'آپ کے موجودہ قابلِ زکوٰۃ اثاثوں کی بنیاد پر، آپ کی تخمینی زکوٰۃ {0} ہے۔',
+  askBarakahZakatNextDate: ' آپ کی اگلی زکوٰۃ کی تاریخ {0} ہے۔',
+  askBarakahZakatBelowNisab: 'آپ نصاب کی حد سے کم ہیں یا ابھی تک اپنا زکوٰۃ پروفائل مکمل نہیں کیا۔ زکوٰۃ کا صفحہ کھولیں تاکہ حول کی تاریخ مقرر کریں اور اپنے اثاثے درج کریں۔',
+  askBarakahLinkOpenZakat: 'زکوٰۃ کھولیں',
+  askBarakahCashflowNoIncome: 'مجھے اس مہینے کوئی آمدنی درج نہیں ملی۔ ایک بار آمدنی کی ٹرانزیکشن درج کرنے یا بینک منسلک کرنے کے بعد، آپ کی بچت کی شرح یہاں ظاہر ہوگی۔',
+  askBarakahCashflowSummary: 'اس مہینے آپ نے {0} کمائے اور {1} بچائے — بچت کی شرح {2}٪۔ ',
+  askBarakahCashflowHealthy: '20٪ کو عام طور پر صحت مند سمجھا جاتا ہے — الحمدللہ۔',
+  askBarakahCashflowLow: '20٪ بچت کی شرح ایک عام ہدف ہے۔ کیش فلو دکھاتا ہے کہ آپ کے پیسے کہاں گئے۔',
+  askBarakahLinkOpenCashFlow: 'کیش فلو کھولیں',
+  askBarakahRecurringNone: 'آپ نے ابھی تک کسی ٹرانزیکشن کو دہرانے والی کے طور پر نشان زد نہیں کیا۔ ٹرانزیکشن کے صفحے پر کسی ٹرانزیکشن کو دہرانے والی کا ٹیگ کریں تاکہ سبسکرپشن اور بلوں کا حساب رکھنا شروع کیا جا سکے۔',
+  askBarakahRecurringSummary: 'آپ ماہانہ {0} دہرانے والے اخراجات کے پابند ہیں۔ مکمل فہرست اور تداخل کے دن دیکھنے کے لیے نیا کیلنڈر ویو دیکھنے کے لیے ریکرنگ کا صفحہ کھولیں۔',
+  askBarakahLinkOpenTransactions: 'ٹرانزیکشنز کھولیں',
+  askBarakahLinkOpenRecurring: 'ریکرنگ کھولیں',
+  askBarakahNetWorthSummary: 'آپ کی موجودہ خالص مالیت {0} ہے۔ نیٹ ورتھ کا صفحہ وقت کے ساتھ رجحان کا سراغ رکھتا ہے۔',
+  askBarakahNetWorthEmpty: 'نیٹ ورتھ کا حساب رکھنا شروع کرنے کے لیے اپنے اثاثوں کے صفحے میں اکاؤنٹس شامل کریں — برکہ ماہانہ ملاپ کرے گی۔',
+  askBarakahLinkOpenNetWorth: 'نیٹ ورتھ کھولیں',
   // 2026-05-16 (Lane A.2 — OnboardingWizard localization)
   // First-draft UR; refresh during the next translator review cycle.
   onboardingStep1Title: 'برکہ میں خوش آمدید',
@@ -1420,6 +1508,35 @@ const fr: Translations = {
   askBarakahSuggestion2: 'Quel est le montant de ma zakat ?',
   askBarakahSuggestion3: 'Quel est mon taux d’épargne ce mois-ci ?',
   askBarakahSuggestion4: 'Affiche mes plus grosses dépenses récurrentes',
+  // First-draft FR; refresh during the next translator review cycle.
+  askBarakahTryAskingLabel: 'Essayez de demander',
+  askBarakahCloseLabel: 'Fermer Demande à Barakah',
+  askBarakahCloseShortLabel: 'Fermer',
+  askBarakahMessageInputLabel: 'Envoyer un message à Barakah',
+  askBarakahGoalsEmpty: "Vous n'avez pas encore défini d'objectifs d'épargne. Créez-en un (Hajj, Omra, fonds d'urgence) et Barakah suivra votre progression avec des alertes d'étape.",
+  askBarakahGoalsProgressSingular: "Sur {0} objectif, vous avez économisé {1} sur {2} ({3} %). ",
+  askBarakahGoalsProgressPlural: "Sur {0} objectifs, vous avez économisé {1} sur {2} ({3} %). ",
+  askBarakahGoalsNearlyThere: "Mashallah — vous y êtes presque. Restez régulier.",
+  askBarakahGoalsHalfway: 'Vous avez dépassé la mi-parcours — envisagez d\'augmenter votre contribution mensuelle.',
+  askBarakahGoalsSlow: 'Les contributions régulières vous y amènent. Même les petites sommes finissent par compter.',
+  askBarakahLinkSetGoal: 'Définir un objectif',
+  askBarakahLinkSeeGoals: 'Voir les objectifs',
+  askBarakahZakatDue: 'Sur la base de vos actifs zakatables actuels, votre zakat estimée est {0}.',
+  askBarakahZakatNextDate: ' Votre prochaine date de zakat est {0}.',
+  askBarakahZakatBelowNisab: "Vous êtes en dessous du seuil du nisab ou n'avez pas terminé votre profil zakat. Ouvrez la page Zakat pour définir votre date de hawl et détailler vos actifs.",
+  askBarakahLinkOpenZakat: 'Ouvrir Zakat',
+  askBarakahCashflowNoIncome: "Je ne vois aucun revenu enregistré ce mois-ci. Une fois que vous enregistrez des transactions de revenu ou connectez une banque, votre taux d'épargne apparaîtra ici.",
+  askBarakahCashflowSummary: 'Ce mois-ci vous avez gagné {0} et économisé {1} — un taux d\'épargne de {2} %. ',
+  askBarakahCashflowHealthy: "20 % est largement considéré comme sain — alhamdulillah.",
+  askBarakahCashflowLow: "Un taux d'épargne de 20 % est un objectif courant. La page Flux de Trésorerie indique où sont passés vos dollars.",
+  askBarakahLinkOpenCashFlow: 'Ouvrir Flux de Trésorerie',
+  askBarakahRecurringNone: "Vous n'avez pas encore marqué de transactions récurrentes. Marquez une transaction comme récurrente dans la page Transactions pour suivre vos abonnements et factures.",
+  askBarakahRecurringSummary: "Vous êtes engagé à {0}/mois en dépenses récurrentes. Ouvrez la page Récurrent pour voir la liste complète et la nouvelle vue Calendrier pour repérer les jours de chevauchement.",
+  askBarakahLinkOpenTransactions: 'Ouvrir Transactions',
+  askBarakahLinkOpenRecurring: 'Ouvrir Récurrent',
+  askBarakahNetWorthSummary: 'Votre valeur nette actuelle est {0}. La page Valeur Nette suit la tendance dans le temps.',
+  askBarakahNetWorthEmpty: 'Ajoutez des comptes à votre page Actifs pour commencer à suivre votre valeur nette — Barakah réconciliera mensuellement.',
+  askBarakahLinkOpenNetWorth: 'Ouvrir Valeur Nette',
   // 2026-05-16 (Lane A.2 — OnboardingWizard localization)
   // First-draft FR; refresh during the next translator review cycle.
   onboardingStep1Title: 'Bienvenue sur Barakah',
@@ -1533,6 +1650,19 @@ export function t(key: string, locale: string = currentLocale): string {
   return dictionaries[locale]?.[key] ?? dictionaries.en[key] ?? key;
 }
 
+/**
+ * Translate a key with positional placeholders. Each {0}, {1}, ... in the
+ * resolved string is replaced with the corresponding stringified argument.
+ * Args left undefined are rendered as empty strings.
+ */
+export function tFmt(key: string, args: ReadonlyArray<string | number>, locale: string = currentLocale): string {
+  const raw = t(key, locale);
+  return raw.replace(/\{(\d+)\}/g, (_, n) => {
+    const v = args[Number(n)];
+    return v === undefined || v === null ? '' : String(v);
+  });
+}
+
 /** Available locales with display names. */
 export const SUPPORTED_LOCALES = [
   { code: 'en', label: 'English' },
@@ -1546,6 +1676,7 @@ export function useI18n() {
   return {
     locale,
     t: (key: string) => t(key, locale),
+    tFmt: (key: string, args: ReadonlyArray<string | number>) => tFmt(key, args, locale),
     setLocale,
     isRtl: isRtl(locale),
     locales: SUPPORTED_LOCALES,
