@@ -8,6 +8,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { ChevronRight } from 'lucide-react';
+import { useToast } from '../../../lib/toast';
 
 interface Snapshot {
   id?: number;
@@ -77,6 +78,7 @@ export default function NetWorthPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const { fmt } = useCurrency();
+  const { toast } = useToast();
   const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
 
   const [history, setHistory] = useState<Snapshot[]>([]);
@@ -213,17 +215,22 @@ export default function NetWorthPage() {
     setSnapping(true);
     try {
       await api.takeNetWorthSnapshot();
-      // CRITICAL BUG FIX (C-3): mark today's snapshot as taken BEFORE calling load(),
-      // so the daily-snapshot branch in load() short-circuits instead of creating a
-      // second snapshot for the same day.
       if (typeof window !== 'undefined') {
         try {
           localStorage.setItem('barakah_last_nw_snapshot', new Date().toISOString().slice(0, 10));
         } catch { /* ignore quota / privacy mode */ }
       }
-      if (mountedRef.current) await load();
+      if (mountedRef.current) {
+        await load();
+        // NW-snap-1 fix: previously this was a silent success — user
+        // couldn't tell whether the snapshot saved. Add an explicit toast.
+        toast('Snapshot saved · history updated', 'success');
+      }
     } catch {
-      if (mountedRef.current) setError('Failed to take snapshot. Make sure you have assets tracked.');
+      if (mountedRef.current) {
+        setError('Failed to take snapshot. Make sure you have assets tracked.');
+        toast('Snapshot failed. Make sure you have assets tracked.', 'error');
+      }
     }
     if (mountedRef.current) setSnapping(false);
   };
