@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Users, User, Check } from 'lucide-react';
 import { useFocusTrap } from '../lib/useFocusTrap';
+import { useI18n } from '../lib/i18n';
 import { cn } from '@/lib/utils';
 
 interface OnboardingWizardProps {
@@ -26,63 +27,68 @@ const SCOPE_KEY = 'barakah_onboarding_household_scope';
 // match the new sidebar labels (Phase 10) so the wizard doesn't say
 // "Open Hawl Tracker" while the destination page is now called "Zakat
 // Anniversary."
-const steps = [
-  {
-    icon: '🕌',
-    title: 'Welcome to Barakah',
-    subtitle: 'Money management built on Islamic principles',
-    body: 'Track your wealth, plan zakat, screen halal stocks, and prepare your Islamic estate. Free to start.',
-  },
-  // Phase 16 (Apr 30 2026): household-scope question. Renders a two-card
-  // picker instead of plain body copy. The chosen scope is persisted to
-  // localStorage immediately so subsequent steps + the dashboard banner
-  // (Phase 17) can adapt before the wizard finishes.
-  {
-    icon: '👥',
-    title: 'Solo or with your household?',
-    subtitle: "We'll tailor the next steps to match",
-    body: '',
-    interactive: 'household-scope' as const,
-  },
-  {
-    icon: '⏰',
-    title: 'Calculate zakat in 60 seconds',
-    subtitle: 'And watch the lunar year automatically',
-    body: 'Add your zakatable assets — cash, gold, stocks, crypto. Barakah tracks the 354-day holding period (hawl) and reminds you when zakat is due.',
-    action: { label: 'Open Zakat Anniversary', href: '/dashboard/hawl' },
-  },
-  {
-    icon: '📊',
-    title: 'Track income & expenses',
-    subtitle: 'Sorted automatically, halal-aware',
-    body: 'Log transactions and Barakah sorts them by category, flags interest charges (riba), and shows what share of your spending is halal-compliant.',
-    action: { label: 'Add First Transaction', href: '/dashboard/transactions' },
-  },
-  {
-    icon: '💰',
-    title: 'See your full net worth',
-    subtitle: 'Across cash, gold, real estate, stocks, and crypto',
-    body: 'Add every asset class. Barakah computes your total wealth, applies the nisab threshold, and tells you whether you owe zakat for the year.',
-    action: { label: 'Add Assets', href: '/dashboard/assets' },
-  },
-  {
-    icon: '📜',
-    title: 'Plan your Islamic will',
-    subtitle: 'Faraid-aware inheritance shares, in minutes',
-    body: 'List beneficiaries with their Qur\'anic inheritance shares, log obligations, and generate a printable PDF — all built on the rules of Qur\'an and Sunnah.',
-    action: { label: 'Start your Islamic Will', href: '/dashboard/wasiyyah' },
-  },
-  {
-    icon: '🤲',
-    title: "You're all set",
-    subtitle: 'May your wealth be blessed with barakah',
-    body: 'Halal stock screener, riba detector, hawl tracker, sadaqah log, budget — all available from the sidebar. Start with one and grow from there.',
-  },
-];
+type Step = {
+  icon: string;
+  title: string;
+  subtitle: string;
+  body: string;
+  interactive?: 'household-scope';
+  action?: { label: string; href: string };
+};
 
 const STEP_KEY = 'barakah_onboarding_step';
 
 export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
+  const { t } = useI18n();
+  const steps: Step[] = [
+    {
+      icon: '🕌',
+      title: t('onboardingStep1Title'),
+      subtitle: t('onboardingStep1Subtitle'),
+      body: t('onboardingStep1Body'),
+    },
+    {
+      icon: '👥',
+      title: t('onboardingStep2Title'),
+      subtitle: t('onboardingStep2Subtitle'),
+      body: '',
+      interactive: 'household-scope',
+    },
+    {
+      icon: '⏰',
+      title: t('onboardingStep3Title'),
+      subtitle: t('onboardingStep3Subtitle'),
+      body: t('onboardingStep3Body'),
+      action: { label: t('onboardingStep3ActionLabel'), href: '/dashboard/hawl' },
+    },
+    {
+      icon: '📊',
+      title: t('onboardingStep4Title'),
+      subtitle: t('onboardingStep4Subtitle'),
+      body: t('onboardingStep4Body'),
+      action: { label: t('onboardingStep4ActionLabel'), href: '/dashboard/transactions' },
+    },
+    {
+      icon: '💰',
+      title: t('onboardingStep5Title'),
+      subtitle: t('onboardingStep5Subtitle'),
+      body: t('onboardingStep5Body'),
+      action: { label: t('onboardingStep5ActionLabel'), href: '/dashboard/assets' },
+    },
+    {
+      icon: '📜',
+      title: t('onboardingStep6Title'),
+      subtitle: t('onboardingStep6Subtitle'),
+      body: t('onboardingStep6Body'),
+      action: { label: t('onboardingStep6ActionLabel'), href: '/dashboard/wasiyyah' },
+    },
+    {
+      icon: '🤲',
+      title: t('onboardingStep7Title'),
+      subtitle: t('onboardingStep7Subtitle'),
+      body: t('onboardingStep7Body'),
+    },
+  ];
   // BUG FIX: persist the current step so navigating to an action destination
   // and returning resumes from where the user left off rather than resetting
   // to step 0 or permanently dismissing the wizard.
@@ -108,6 +114,10 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
       } catch { /* SSR / incognito */ }
     }, 0);
     return () => window.clearTimeout(id);
+    // `steps.length` is a stable constant (7) defined inline; depending on it
+    // would re-run the localStorage hydration on every render once steps moved
+    // inside the component for i18n wiring (Lane A.2). Safe to omit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const current = steps[step];
   const isLast = step === steps.length - 1;
@@ -280,7 +290,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
             onClick={handleSkip}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            Skip tour
+            {t('onboardingSkipLabel')}
           </button>
           <div className="flex gap-2">
             {step > 0 && (
@@ -300,7 +310,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
               className="px-6 py-2 bg-primary text-primary-foreground rounded-md text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               aria-disabled={isInteractiveStepBlocked}
             >
-              {isLast ? 'Get Started' : 'Next'}
+              {isLast ? t('onboardingGetStartedLabel') : t('onboardingNextLabel')}
             </button>
           </div>
         </div>

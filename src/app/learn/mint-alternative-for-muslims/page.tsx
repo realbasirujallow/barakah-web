@@ -195,7 +195,7 @@ export default function MintAlternativeForMuslimsPage() {
             {[
               { icon: '🟡', title: 'Free Zakat Calculator', desc: 'Multi-madhab: Hanafi, Shafi\'i, Maliki, Hanbali. Live gold & silver nisab prices. Calculate in 60 seconds.' },
               { icon: '🔴', title: 'Riba Detector', desc: 'Automatically scans your transactions and flags interest payments so you can eliminate them.' },
-              { icon: '✅', title: 'Halal Stock Screener', desc: 'Live AAOIFI Standard 21 ratio screening on demand for any ticker, plus a 30,000+ stock business-activity library. Know your portfolio\'s halal compliance instantly.' },
+              { icon: '✅', title: 'Halal Stock Screener', desc: 'Live AAOIFI Standard 21 ratio screening on demand for any ticker, plus a 30,000+ stock business-activity library. See your portfolio\'s AAOIFI Standard 21 screening result instantly.' },
               { icon: '📜', title: 'Islamic Will Planner', desc: 'Record your wasiyyah, beneficiaries, and outstanding Islamic obligations — Zakat, Kaffarah, loans owed.' },
               { icon: '👨‍👩‍👧', title: 'Family Finance', desc: 'Shared budgets, group transactions, and family-level zakat visibility. Up to 6 members on one plan.' },
               { icon: '📊', title: 'Budgets & Analytics', desc: 'Bank sync via Plaid, transaction categorization, spending analytics — everything Mint did, but halal-aware.' },
@@ -286,7 +286,7 @@ export default function MintAlternativeForMuslimsPage() {
               { step: '2', title: 'Connect your bank accounts', desc: 'Use the Bank Accounts section in your dashboard. We support 12,000+ institutions via Plaid — the same technology used by Venmo and Robinhood.' },
               { step: '3', title: 'Run your first zakat calculation', desc: 'Head to the Zakat dashboard. Enter your assets and let Barakah calculate your obligation with live gold/silver nisab prices. Takes under 2 minutes.' },
               { step: '4', title: 'Set up your hawl anniversary', desc: 'Barakah tracks your hawl (Islamic lunar year) and notifies you when your next zakat is due.' },
-              { step: '5', title: 'Screen your investments for halal compliance', desc: 'Use the Halal Screener to check your stocks, ETFs, and funds against AAOIFI Standard 21. Know your portfolio\'s compliance in seconds.' },
+              { step: '5', title: 'Screen your investments against AAOIFI Standard 21', desc: 'Use the Halal Screener to check your stocks, ETFs, and funds against AAOIFI Standard 21. See your screening result in seconds.' },
             ].map((item) => (
               <li key={item.step} className="flex gap-4">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#1B5E20] text-white font-bold text-sm flex items-center justify-center">

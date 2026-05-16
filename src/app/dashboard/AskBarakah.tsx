@@ -22,6 +22,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { useCurrency } from '../../lib/useCurrency';
+import { useI18n } from '../../lib/i18n';
 
 interface ChatMsg {
   role: 'user' | 'barakah';
@@ -41,17 +42,6 @@ interface DashboardSnapshot {
   recurringExpenseTotal?: number;
 }
 
-const SUGGESTIONS = [
-  "Am I on track for Hajj?",
-  "How much zakat do I owe?",
-  "What's my savings rate this month?",
-  "Show my biggest recurring expenses",
-];
-
-const FALLBACK_TEXT =
-  "I can answer questions about your zakat, savings goals, recurring bills, and monthly cash flow. " +
-  "Try one of the suggestions above, or check the page that matches your question.";
-
 function formatMoney(n: number, fmt: (n: number) => string) {
   return Number.isFinite(n) ? fmt(n) : '—';
 }
@@ -64,7 +54,8 @@ function formatMoney(n: number, fmt: (n: number) => string) {
 function runLocalIntentMatch(
   q: string,
   snap: DashboardSnapshot,
-  fmt: (n: number) => string
+  fmt: (n: number) => string,
+  fallbackText: string,
 ): ChatMsg {
   const t = q.toLowerCase().trim();
 
@@ -171,20 +162,26 @@ function runLocalIntentMatch(
     };
   }
 
-  return { role: 'barakah', text: FALLBACK_TEXT };
+  return { role: 'barakah', text: fallbackText };
 }
 
 export function AskBarakah() {
   const { fmt } = useCurrency();
+  const { t } = useI18n();
+  const suggestions = [
+    t('askBarakahSuggestion1'),
+    t('askBarakahSuggestion2'),
+    t('askBarakahSuggestion3'),
+    t('askBarakahSuggestion4'),
+  ];
+  const fallbackText = t('askBarakahFallbackBody');
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [snap, setSnap] = useState<DashboardSnapshot>({});
   const [messages, setMessages] = useState<ChatMsg[]>([
     {
       role: 'barakah',
-      text:
-        'Assalamu alaikum 👋 — I\'m Barakah, your Islamic finance guide. ' +
-        'Ask me about zakat, savings goals, cash flow, or recurring bills.',
+      text: t('askBarakahWelcomeBody'),
     },
   ]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -260,7 +257,7 @@ export function AskBarakah() {
     // Tiny artificial delay so the response doesn't pop in instantly —
     // reads more conversational than telepathic.
     setTimeout(() => {
-      setMessages(prev => [...prev, runLocalIntentMatch(q, snap, fmt)]);
+      setMessages(prev => [...prev, runLocalIntentMatch(q, snap, fmt, fallbackText)]);
     }, 280);
   };
 
@@ -272,10 +269,10 @@ export function AskBarakah() {
           type="button"
           onClick={() => setOpen(true)}
           className="fixed bottom-20 right-6 z-40 bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-lg rounded-full pl-4 pr-5 py-3 flex items-center gap-2 transition"
-          aria-label="Open Ask Barakah"
+          aria-label={t('askBarakahLauncherLabel')}
         >
           <span aria-hidden="true">🕌</span>
-          <span className="text-sm font-semibold">Ask Barakah</span>
+          <span className="text-sm font-semibold">{t('askBarakahLauncherLabel')}</span>
         </button>
       )}
 
@@ -294,8 +291,8 @@ export function AskBarakah() {
               <div className="flex items-center gap-2">
                 <span aria-hidden="true">🕌</span>
                 <div>
-                  <p className="font-semibold text-sm">Ask Barakah</p>
-                  <p className="text-[11px] opacity-80">Your Islamic finance guide</p>
+                  <p className="font-semibold text-sm">{t('askBarakahHeaderTitle')}</p>
+                  <p className="text-[11px] opacity-80">{t('askBarakahHeaderSubtitle')}</p>
                 </div>
               </div>
               <button
@@ -340,7 +337,7 @@ export function AskBarakah() {
               <div className="px-4 pb-2">
                 <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium mb-2">Try asking</p>
                 <div className="flex flex-wrap gap-2">
-                  {SUGGESTIONS.map(s => (
+                  {suggestions.map(s => (
                     <button
                       key={s}
                       type="button"
@@ -362,7 +359,7 @@ export function AskBarakah() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about zakat, savings, cash flow..."
+                placeholder={t('askBarakahPlaceholder')}
                 className="flex-1 bg-gray-50 dark:bg-muted rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                 aria-label="Message Barakah"
               />
@@ -371,12 +368,12 @@ export function AskBarakah() {
                 disabled={!input.trim()}
                 className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg px-3 py-2 text-sm font-semibold transition"
               >
-                Send
+                {t('askBarakahSendLabel')}
               </button>
             </form>
 
             <p className="px-4 pb-3 text-[10px] text-muted-foreground text-center">
-              Guidance is based on your Barakah records. Verify important financial or religious decisions with a qualified professional or scholar.
+              {t('askBarakahDisclaimer')}
             </p>
           </div>
         </>

@@ -114,9 +114,9 @@ export default function NisabTermPage() {
             <h2 className="text-xl font-bold text-amber-900 mb-2">How Barakah applies this</h2>
             <p className="text-sm leading-7 text-amber-900">
               Barakah runs a <strong>daily nisab check</strong> against live gold and silver spot
-              prices. Hanafi users default to silver (automatically, with scholar-reviewed justification);
-              others can switch between the three methodologies at any time. Every snapshot records
-              which nisab was used and the exact USD value.
+              prices. Hanafi users default to silver (automatically, following the classical Hanafi
+              position which uses silver nisab); others can switch between the three methodologies at
+              any time. Every snapshot records which nisab was used and the exact USD value.
             </p>
           </section>
 

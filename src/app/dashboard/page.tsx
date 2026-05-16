@@ -524,12 +524,12 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3">
             <span className="text-2xl">⏰</span>
             <div>
-              <p className="font-semibold text-amber-900 dark:text-amber-200">Your trial has ended</p>
-              <p className="text-sm text-amber-700 dark:text-amber-300">Upgrade to keep syncing your accounts and accessing premium features.</p>
+              <p className="font-semibold text-amber-900 dark:text-amber-200">{t('trialExpiredBannerTitle')}</p>
+              <p className="text-sm text-amber-700 dark:text-amber-300">{t('trialExpiredBannerBody')}</p>
             </div>
           </div>
           <Link href="/dashboard/billing" className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/90 transition flex-shrink-0">
-            Upgrade Now
+            {t('trialExpiredBannerCta')}
           </Link>
         </div>
       )}
@@ -1189,7 +1189,7 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="min-w-0">
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Spending This Month</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">{t('spendingThisMonth')}</p>
               <p className="text-2xl font-bold text-gray-900 truncate tabular-nums">
                 {widgets?.spending ? fmt(widgets.spending.thisMonth) : loading ? '...' : fmt(0)}
               </p>
@@ -1384,7 +1384,7 @@ export default function DashboardPage() {
           style={{ viewTransitionName: 'transactions-hero' }}
         >
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Recent Transactions</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{t('recentTransactions')}</p>
             <HeroLink href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline">View all</HeroLink>
           </div>
           {widgets?.recentTransactions?.transactions && widgets.recentTransactions.transactions.length > 0 ? (
@@ -1423,7 +1423,7 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Upcoming Bills</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">{t('upcomingBills')}</p>
               {widgets?.upcomingBills && (widgets.upcomingBills.totalMonthlyBills || 0) > 0 && (
                 <p className="text-sm text-gray-600 mt-0.5">
                   {fmt(widgets.upcomingBills.totalMonthlyBills)} /month
@@ -1519,7 +1519,7 @@ export default function DashboardPage() {
           audit: "Best apps lead with calm, narrow daily flow; Barakah
           was leading with a feature catalog.") */}
       <div className="mb-6">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Quick Actions</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t('quickActions')}</h2>
         <div className="stagger-fade grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickActions.map(c => {
             const Icon = c.icon;
