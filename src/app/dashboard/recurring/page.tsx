@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
@@ -245,6 +246,13 @@ export default function RecurringPage() {
   const { toast } = useToast();
   const { fmt } = useCurrency();
 
+  // RCR-1 fix (2026-05-15): surface what the backend already auto-detected
+  // (recurring income streams + subscription charges) so the empty state
+  // doesn't lie when /dashboard/cash-flow + /dashboard/subscriptions are
+  // showing detected patterns. User can jump to the source page to act.
+  type Detected = { name: string; cycle: string; amount: number; href: string };
+  const [detected, setDetected] = useState<Detected[]>([]);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -257,7 +265,45 @@ export default function RecurringPage() {
     }
   }, [toast]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+    // Best-effort fetch of auto-detected items in parallel; failures are
+    // silent so the page still renders the manually-marked list.
+    (async () => {
+      try {
+        const [streams, subs] = await Promise.allSettled([
+          api.getIncomeStreams(),
+          api.detectSubscriptions(),
+        ]);
+        const items: Detected[] = [];
+        if (streams.status === 'fulfilled' && streams.value) {
+          const s = streams.value as { streams?: Array<{ merchantName?: string; cadence?: string; averageAmount?: number; monthlyAmount?: number }> };
+          (s?.streams ?? []).forEach(st => {
+            items.push({
+              name: st.merchantName ?? 'Income stream',
+              cycle: st.cadence ?? 'Recurring income',
+              amount: st.averageAmount ?? st.monthlyAmount ?? 0,
+              href: '/dashboard/cash-flow',
+            });
+          });
+        }
+        if (subs.status === 'fulfilled' && subs.value) {
+          const v = subs.value as { subscriptions?: Array<{ displayName?: string; name?: string; frequency?: string; amount?: number }> };
+          (v?.subscriptions ?? []).forEach(s => {
+            items.push({
+              name: s.displayName ?? s.name ?? 'Subscription',
+              cycle: s.frequency ?? 'Recurring',
+              amount: s.amount ?? 0,
+              href: '/dashboard/subscriptions',
+            });
+          });
+        }
+        setDetected(items);
+      } catch {
+        /* silent */
+      }
+    })();
+  }, [load]);
 
   const handleToggle = async (id: number) => {
     setToggling(id);
@@ -465,10 +511,35 @@ export default function RecurringPage() {
         </div>
       )}
 
+      {transactions.length === 0 && detected.length > 0 && (
+        <div className="bg-white dark:bg-card rounded-2xl shadow-sm mb-4 overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 dark:border-border">
+            <h2 className="font-semibold text-gray-700 dark:text-foreground">Detected automatically · {detected.length}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              These look recurring based on your transaction history. Open the source page to manage each one.
+            </p>
+          </div>
+          <ul className="divide-y divide-gray-100 dark:divide-border">
+            {detected.slice(0, 8).map((d, i) => (
+              <li key={`${d.name}-${i}`} className="px-5 py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-foreground truncate">{d.name}</p>
+                  <p className="text-xs text-gray-500">{d.cycle}</p>
+                </div>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  {d.amount > 0 && <p className="text-sm font-semibold tabular-nums text-gray-900 dark:text-foreground">{fmt(d.amount)}</p>}
+                  <Link href={d.href} className="text-xs text-primary font-medium hover:underline">Manage →</Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {transactions.length === 0 && (
         <EmptyState
           illustration="receipt"
-          title="No recurring transactions yet"
+          title={detected.length > 0 ? 'No manually marked recurring transactions yet' : 'No recurring transactions yet'}
           description="Mark a transaction as recurring on the Transactions page and Barakah will detect future instances automatically."
           actions={[
             { label: 'Open transactions', href: '/dashboard/transactions', primary: true },
