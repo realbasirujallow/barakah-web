@@ -274,7 +274,7 @@ export default function InvestmentsPage() {
 
       <PageHeader
         title="Investments"
-        subtitle="Brokerages, halal screening, and zakat-eligible holdings"
+        subtitle="Retirement, brokerage, and zakat-eligible holdings — halal screened"
         actions={
           <button
             onClick={() => setShowAccountForm(true)}

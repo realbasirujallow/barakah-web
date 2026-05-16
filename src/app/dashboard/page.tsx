@@ -520,12 +520,12 @@ export default function DashboardPage() {
 
       {/* Trial Expired Banner */}
       {isTrialExpired && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+        <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-2xl">⏰</span>
             <div>
-              <p className="font-semibold text-amber-900">Your trial has ended</p>
-              <p className="text-sm text-amber-700">Upgrade to keep syncing your accounts and accessing premium features.</p>
+              <p className="font-semibold text-amber-900 dark:text-amber-200">Your trial has ended</p>
+              <p className="text-sm text-amber-700 dark:text-amber-300">Upgrade to keep syncing your accounts and accessing premium features.</p>
             </div>
           </div>
           <Link href="/dashboard/billing" className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/90 transition flex-shrink-0">
@@ -726,12 +726,12 @@ export default function DashboardPage() {
           row keeps only the Hawl tile. */}
       <div className="grid md:grid-cols-2 gap-4 mb-4">
         {hawlDue && (hawlDue.dueCount > 0 || hawlDue.upcomingCount > 0) && (
-          <div className={`rounded-xl p-4 border ${hawlDue.dueCount > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-200'}`}>
+          <div className={`rounded-xl p-4 border ${hawlDue.dueCount > 0 ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800' : 'bg-card border-border'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide">Hawl / Zakat</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Hawl / Zakat</p>
                 {hawlDue.dueCount > 0 ? (
-                  <p className="text-base font-bold text-amber-700">{hawlDue.dueCount} due now</p>
+                  <p className="text-base font-bold text-amber-700 dark:text-amber-300">{hawlDue.dueCount} due now</p>
                 ) : (
                   <p className="text-base font-bold text-primary">{hawlDue.upcomingCount} upcoming</p>
                 )}
@@ -1486,19 +1486,19 @@ export default function DashboardPage() {
                 <Link href="/dashboard/recurring" className="text-sm text-primary font-medium hover:underline">View all</Link>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
+                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900 p-3">
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-600" aria-hidden="true" />
-                    <p className="text-[11px] uppercase tracking-wide text-emerald-700 font-semibold">Income</p>
+                    <p className="text-[11px] uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-semibold">Income</p>
                   </div>
-                  <p className="text-base font-bold text-emerald-700 tabular-nums">{fmt(recurringSummary.income)}</p>
+                  <p className="text-base font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">{fmt(recurringSummary.income)}</p>
                 </div>
-                <div className="rounded-xl bg-rose-50 border border-rose-100 p-3">
+                <div className="rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900 p-3">
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="w-2 h-2 rounded-full bg-rose-600" aria-hidden="true" />
-                    <p className="text-[11px] uppercase tracking-wide text-rose-700 font-semibold">Expenses</p>
+                    <p className="text-[11px] uppercase tracking-wide text-rose-700 dark:text-rose-400 font-semibold">Expenses</p>
                   </div>
-                  <p className="text-base font-bold text-rose-700 tabular-nums">{fmt(recurringSummary.expense)}</p>
+                  <p className="text-base font-bold text-rose-700 dark:text-rose-300 tabular-nums">{fmt(recurringSummary.expense)}</p>
                 </div>
               </div>
               <p className="text-[11px] text-gray-400 mt-2">
