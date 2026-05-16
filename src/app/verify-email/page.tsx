@@ -4,8 +4,10 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
 import { readTokenFromUrl, scrubTokenFromUrl } from '../../lib/scrubUrlToken';
+import { useI18n } from '../../lib/i18n';
 
 function VerifyEmailContent() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   // R8 audit: prefer the URL fragment (#token=...) over the query
   // string (?token=...). The fragment is never sent to the server
@@ -41,7 +43,7 @@ function VerifyEmailContent() {
       setResendStatus('sent');
     } catch {
       setResendStatus('idle');
-      setMessage('Failed to resend verification email. Please try again.');
+      setMessage(t('verifyEmailResendFailed'));
     }
   };
 
@@ -55,7 +57,7 @@ function VerifyEmailContent() {
       const id = requestAnimationFrame(() => {
         if (!readTokenFromUrl('token')) {
           setStatus('error');
-          setMessage('No verification token provided.');
+          setMessage(t('verifyEmailNoToken'));
         }
       });
       return () => cancelAnimationFrame(id);
@@ -76,7 +78,7 @@ function VerifyEmailContent() {
       .then((data: { message?: string }) => {
         if (cancelled) return;
         setStatus('success');
-        setMessage(data?.message || 'Email verified successfully!');
+        setMessage(data?.message || t('verifyEmailDefaultSuccess'));
       })
       .catch((err: Error) => {
         if (cancelled) return;
@@ -90,13 +92,16 @@ function VerifyEmailContent() {
         const raw = err.message || '';
         if (/already used|already verified/i.test(raw)) {
           setStatus('success');
-          setMessage('This email is already verified. You can sign in now.');
+          setMessage(t('verifyEmailAlreadyVerified'));
         } else {
           setStatus('error');
-          setMessage(raw || 'Verification failed. The link may be expired or already used.');
+          setMessage(raw || t('verifyEmailDefaultError'));
         }
       });
     return () => { cancelled = true; };
+    // `t` is a render-stable getter from the i18n store; we intentionally
+    // don't re-run the verify call when the user switches language.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   return (
@@ -110,20 +115,20 @@ function VerifyEmailContent() {
           {status === 'loading' && (
             <>
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B5E20] mx-auto mb-4"></div>
-              <p className="text-gray-600">Verifying your email...</p>
+              <p className="text-gray-600">{t('verifyEmailVerifying')}</p>
             </>
           )}
 
           {status === 'success' && (
             <>
               <div className="text-5xl mb-4">✅</div>
-              <h2 className="text-xl font-bold text-[#1B5E20] mb-2">Email Verified!</h2>
+              <h2 className="text-xl font-bold text-[#1B5E20] mb-2">{t('verifyEmailSuccessTitle')}</h2>
               <p className="text-gray-600 mb-6">{message}</p>
               <Link
                 href="/login"
                 className="inline-block w-full bg-[#1B5E20] text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition"
               >
-                Sign In
+                {t('verifyEmailSignInCta')}
               </Link>
             </>
           )}
@@ -131,11 +136,11 @@ function VerifyEmailContent() {
           {status === 'error' && (
             <>
               <div className="text-5xl mb-4">❌</div>
-              <h2 className="text-xl font-bold text-red-600 mb-2">Verification Failed</h2>
+              <h2 className="text-xl font-bold text-red-600 mb-2">{t('verifyEmailFailedTitle')}</h2>
               <p className="text-gray-600 mb-4">{message}</p>
 
               <div className="bg-gray-50 rounded-lg p-4 mb-4 text-left">
-                <label htmlFor="resend-email" className="text-gray-600 text-sm mb-2 block">Enter your email to resend the verification link:</label>
+                <label htmlFor="resend-email" className="text-gray-600 text-sm mb-2 block">{t('verifyEmailResendPrompt')}</label>
                 <input
                   id="resend-email"
                   type="email"
@@ -145,7 +150,7 @@ function VerifyEmailContent() {
                   className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mb-2 outline-none focus:border-[#1B5E20]"
                 />
                 {resendStatus === 'sent' ? (
-                  <p className="text-green-700 text-sm text-center">✅ Verification email sent! Check your inbox.</p>
+                  <p className="text-green-700 text-sm text-center">{t('verifyEmailResendSent')}</p>
                 ) : (
                   <button
                     type="button"
@@ -153,7 +158,7 @@ function VerifyEmailContent() {
                     disabled={resendStatus === 'sending' || !resendEmail}
                     className="w-full bg-amber-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-amber-700 transition disabled:opacity-50"
                   >
-                    {resendStatus === 'sending' ? 'Sending...' : 'Resend Verification Email'}
+                    {resendStatus === 'sending' ? t('verifyEmailResendSending') : t('verifyEmailResendButton')}
                   </button>
                 )}
               </div>
@@ -162,7 +167,7 @@ function VerifyEmailContent() {
                 href="/login"
                 className="inline-block w-full bg-[#1B5E20] text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition"
               >
-                Go to Login
+                {t('verifyEmailGoToLoginCta')}
               </Link>
             </>
           )}

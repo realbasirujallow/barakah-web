@@ -35,7 +35,7 @@ const rows = [
   { feature: 'Riba / interest detection', barakah: 'Transaction-level flagging + purification', mvelopes: 'None', winner: 'Barakah' as const },
   { feature: 'Islamic will / faraid', barakah: 'Faraid calculator + wasiyyah builder', mvelopes: 'None', winner: 'Barakah' as const },
   { feature: 'Debt paydown tools', barakah: 'Riba-aware paydown ranking', mvelopes: 'Built-in debt reduction planner', winner: 'Mvelopes' as const, note: 'Mvelopes\' debt module on Premier is detailed.' },
-  { feature: 'Coaching / 1-on-1', barakah: 'Self-serve + scholar-reviewed methodology', mvelopes: 'Premier tier includes a coach', winner: 'Mvelopes' as const, note: 'A real human coach is genuinely useful for some users.' },
+  { feature: 'Coaching / 1-on-1', barakah: 'Self-serve + published methodology (scholar review pending — see /trust)', mvelopes: 'Premier tier includes a coach', winner: 'Mvelopes' as const, note: 'A real human coach is genuinely useful for some users.' },
   { feature: 'Mobile app quality', barakah: 'Live on iOS & Android', mvelopes: 'iOS & Android, mature but dated UI', winner: 'Barakah' as const },
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', mvelopes: 'Standard SaaS; no data sale per policy', winner: 'Tie' as const },
 ];

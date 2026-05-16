@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 const benefits = [
   {
     title: 'Free Barakah Family',
-    desc: 'Unlimited access to all premium features for you and up to 5 family members. $179/yr value.',
+    desc: 'Unlimited access to all premium features for you and up to 5 family members. $149/yr value.',
   },
   {
     title: 'Early feature access',

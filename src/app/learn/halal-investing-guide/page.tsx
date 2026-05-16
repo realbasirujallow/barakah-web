@@ -268,7 +268,7 @@ export default function HalalInvestingGuidePage() {
           {/* CTA */}
           <div className="bg-[#1B5E20] text-white rounded-2xl p-8 text-center">
             <h2 className="text-2xl font-bold mb-2">Screen your portfolio for free</h2>
-            <p className="text-green-200 mb-6">Barakah screens 30,000+ stocks against AAOIFI Standard 21. Create a free account and see your portfolio&apos;s halal compliance in seconds.</p>
+            <p className="text-green-200 mb-6">Barakah screens 30,000+ stocks against AAOIFI Standard 21. Create a free account and see your portfolio&apos;s AAOIFI Standard 21 screening result in seconds.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-white text-[#1B5E20] px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">
                 Start Free — Screen My Portfolio

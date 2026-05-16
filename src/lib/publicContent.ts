@@ -172,10 +172,10 @@ export const PUBLIC_FEATURE_CARDS: readonly LocalizedFeatureCard[] = [
   {
     icon: '🔔',
     title: {
-      en: 'Smart Islamic Reminders',
-      ar: 'تذكيرات إسلامية ذكية',
-      ur: 'سمارٹ اسلامی یاددہانیاں',
-      fr: 'Rappels islamiques intelligents',
+      en: 'Built-in Islamic Reminders',
+      ar: 'تذكيرات إسلامية مدمجة',
+      ur: 'بلٹ ان اسلامی یاددہانیاں',
+      fr: 'Rappels islamiques intégrés',
     },
     desc: {
       en: 'Bill due alerts, Hawl anniversaries, Zakat nisab threshold alerts, and savings milestones built-in.',
