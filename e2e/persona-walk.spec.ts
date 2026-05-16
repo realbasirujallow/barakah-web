@@ -31,13 +31,23 @@ interface Persona {
 }
 
 const PERSONAS: Persona[] = [
-  { id: 'p02-plus-us',     email: 'demo+p02-plus-us@trybarakah.com',     expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'plus' },
-  { id: 'p03-family-us',   email: 'demo+p03-family-us@trybarakah.com',   expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'family' },
-  { id: 'p05-trial-uk',    email: 'demo+p05-trial-uk@trybarakah.com',    expectedLocale: 'en-GB', expectedCurrency: 'GBP', expectedRTL: false, plan: 'plus' },
-  { id: 'p06-arabic-sa',   email: 'demo+p06-arabic-sa@trybarakah.com',   expectedLocale: 'ar-SA', expectedCurrency: 'SAR', expectedRTL: true,  plan: 'family' },
-  { id: 'p07-french',      email: 'demo+p07-french@trybarakah.com',      expectedLocale: 'fr-FR', expectedCurrency: 'EUR', expectedRTL: false, plan: 'plus' },
-  { id: 'p08-urdu-pk',     email: 'demo+p08-urdu-pk@trybarakah.com',     expectedLocale: 'ur-PK', expectedCurrency: 'PKR', expectedRTL: true,  plan: 'free' },
-  { id: 'p13-zakat-heavy', email: 'demo+p13-zakat-heavy-gm@trybarakah.com', expectedLocale: 'en-GM', expectedCurrency: 'GMD', expectedRTL: false, plan: 'family' },
+  // Full 14-persona seed coverage. Added 7 (p01,p04,p09,p10,p11,p12,p14) on 2026-05-16
+  // for the heavy-test run — broad coverage including edge plans + zero-state +
+  // failed-payment + heavy-txn + plaid-ready + kids-parent.
+  { id: 'p01-free-us',         email: 'demo+p01-free-us@trybarakah.com',         expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'free' },
+  { id: 'p02-plus-us',         email: 'demo+p02-plus-us@trybarakah.com',         expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'plus' },
+  { id: 'p03-family-us',       email: 'demo+p03-family-us@trybarakah.com',       expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'family' },
+  { id: 'p04-invitee-ca',      email: 'demo+p04-invitee-ca@trybarakah.com',      expectedLocale: 'en-CA', expectedCurrency: 'CAD', expectedRTL: false, plan: 'plus' },
+  { id: 'p05-trial-uk',        email: 'demo+p05-trial-uk@trybarakah.com',        expectedLocale: 'en-GB', expectedCurrency: 'GBP', expectedRTL: false, plan: 'plus' },
+  { id: 'p06-arabic-sa',       email: 'demo+p06-arabic-sa@trybarakah.com',       expectedLocale: 'ar-SA', expectedCurrency: 'SAR', expectedRTL: true,  plan: 'family' },
+  { id: 'p07-french',          email: 'demo+p07-french@trybarakah.com',          expectedLocale: 'fr-FR', expectedCurrency: 'EUR', expectedRTL: false, plan: 'plus' },
+  { id: 'p08-urdu-pk',         email: 'demo+p08-urdu-pk@trybarakah.com',         expectedLocale: 'ur-PK', expectedCurrency: 'PKR', expectedRTL: true,  plan: 'free' },
+  { id: 'p09-failed-pay',      email: 'demo+p09-failed-pay@trybarakah.com',      expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'free' },
+  { id: 'p10-expired-trial',   email: 'demo+p10-expired-trial@trybarakah.com',   expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'free' },
+  { id: 'p11-heavy-txn',       email: 'demo+p11-heavy-txn@trybarakah.com',       expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'plus' },
+  { id: 'p12-plaid-ready',     email: 'demo+p12-plaid-ready@trybarakah.com',     expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'plus' },
+  { id: 'p13-zakat-heavy',     email: 'demo+p13-zakat-heavy-gm@trybarakah.com',  expectedLocale: 'en-GM', expectedCurrency: 'GMD', expectedRTL: false, plan: 'family' },
+  { id: 'p14-kids-parent',     email: 'demo+p14-kids-parent@trybarakah.com',     expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'family' },
 ];
 
 const PASSWORD = 'demo-Pa55!';
