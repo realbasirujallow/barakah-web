@@ -47,11 +47,13 @@ interface DebtRow {
 function groupForAsset(t: string): string {
   const x = (t || '').toLowerCase();
   if (/cash|checking|saving|money[\s-]?market/.test(x)) return 'Cash';
-  if (/invest|stock|etf|brokerage|retire|401|ira|pension/.test(x)) return 'Investments';
+  // Include hsa / 529 / 403b / tsp / sep_ira / business / education so a
+  // Plaid-linked HSA doesn't fall through to "Other Assets". Matches
+  // DomainConstants.assetCategoryGroup on the backend.
+  if (/invest|stock|etf|brokerage|retire|401|403b|ira|pension|tsp|hsa|529|education|business|crypto/.test(x)) return 'Investments';
   if (/real[\s-]?estate|home|property|land|rental/.test(x)) return 'Real Estate';
   if (/vehicle|car|auto|truck|bike/.test(x)) return 'Vehicles';
-  if (/gold|silver|crypto|commodit|bitcoin|ether/.test(x)) return 'Other Assets';
-  if (/business|equity/.test(x)) return 'Business';
+  if (/gold|silver|commodit/.test(x)) return 'Precious Metals';
   return 'Other Assets';
 }
 function groupForDebt(t: string): string {
