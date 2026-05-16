@@ -177,9 +177,16 @@ export default function TransactionsPage() {
 
   const { currency: preferredCurrency, fmt, locale: dateLocale } = useCurrency();
 
+  // Local-date YYYY-MM-DD so the picker pre-fills "today" in the user's zone,
+  // not UTC. Previously toISOString() gave UTC, which from US Eastern after
+  // 8pm rolled the date forward — a 5/15 transaction was filed as 5/16.
+  const localToday = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
   const [form, setForm] = useState({
     type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: 'USD',
-    date: new Date().toISOString().slice(0, 10),
+    date: localToday(),
     tags: '', notes: '',
   });
   const [formError, setFormError] = useState<string | null>(null);
@@ -322,7 +329,7 @@ export default function TransactionsPage() {
 
   const openAdd = () => {
     setEditTx(null);
-    setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10), tags: '', notes: '' });
+    setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '' });
     // BUG FIX: clear any stale validation error from a previous (failed) save
     // so it does not immediately show when the modal opens on a fresh attempt.
     setFormError(null);
@@ -382,7 +389,7 @@ export default function TransactionsPage() {
       }
       setShowForm(false);
       setEditTx(null);
-      setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: new Date().toISOString().slice(0, 10), tags: '', notes: '' });
+      setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '' });
       load();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : (editTx ? 'Failed to update transaction' : 'Failed to add transaction');
@@ -1358,7 +1365,7 @@ export default function TransactionsPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                 <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
-                  max={new Date().toISOString().slice(0, 10)}
+                  max={localToday()}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" />
               </div>
               {/* Tags */}
