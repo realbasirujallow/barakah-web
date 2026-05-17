@@ -85,7 +85,7 @@ const faqSchema = {
       name: 'What is the best Islamic finance app in 2026?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Barakah is the most complete Islamic finance app in 2026 for Muslim households. It combines zakat calculation, riba detection, halal stock screening, sadaqah tracking, Islamic will planning, and family budgeting — all built around fiqh principles. Zoya is the best dedicated halal stock screener. Wahed Invest is best for Sharia-compliant managed portfolios. For a complete household finance platform, Barakah is the top choice.',
+        text: 'Barakah aims to be an end-to-end Islamic finance platform for Muslim households — combining zakat calculation, riba detection, halal stock screening, sadaqah tracking, Islamic will planning, and family budgeting around fiqh principles. Zoya is a widely-used dedicated halal stock screener. Wahed Invest focuses on managed portfolios marketed as Shariah-compliant. The right app depends on your priorities: pick a household-finance platform if you want zakat + budgeting + screening in one place, or a single-purpose tool if you only need one of those.',
       },
     },
     {
