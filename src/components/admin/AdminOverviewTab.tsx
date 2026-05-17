@@ -55,7 +55,12 @@ export function AdminOverviewTab({
       {/* ── Revenue KPIs ── */}
       {overview && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-5 text-white">
+          <button
+            type="button"
+            onClick={() => setActiveTab('lifecycle')}
+            title="Open Lifecycle tab"
+            className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-5 text-white text-left transition hover:shadow-lg hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+          >
             <p className="text-emerald-200 text-xs font-medium mb-1">Monthly Revenue (MRR)</p>
             <p className="text-3xl font-bold">{fmtMoney(overview.mrr)}</p>
             <p className="text-emerald-200 text-xs mt-1">ARR: {fmtMoney(overview.arr)}</p>
@@ -70,18 +75,28 @@ export function AdminOverviewTab({
                 {overview.phantomSeats ?? 0} inherited seats
               </p>
             )}
-          </div>
-          <div className="bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] rounded-2xl p-5 text-white">
+          </button>
+          <button
+            type="button"
+            onClick={() => { setActiveTab('users'); setUserFilter('all'); setSearch(''); }}
+            title="Open Users tab"
+            className="bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] rounded-2xl p-5 text-white text-left transition hover:shadow-lg hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-green-300"
+          >
             <p className="text-green-200 text-xs font-medium mb-1">Total Users</p>
             <p className="text-3xl font-bold">{overview.totalUsers.toLocaleString()}</p>
             <p
-              className="text-green-200 text-xs mt-1 cursor-help"
+              className="text-green-200 text-xs mt-1"
               title="'Truly paid' = users on a Stripe or RevenueCat plan that has actually charged. Excludes active trials and family-plan inherited seats. So 0.0% with 55 'Active' subs means everyone active is currently on a trial or family-inherited seat — not zero conversion."
             >
               {truePaidConversion}% truly paid
             </p>
-          </div>
-          <div className="bg-white rounded-2xl p-5 border">
+          </button>
+          <button
+            type="button"
+            onClick={() => { setActiveTab('users'); setUserFilter('all'); setSearch(''); }}
+            title="Open Users tab"
+            className="bg-white rounded-2xl p-5 border text-left transition hover:shadow-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+          >
             <p className="text-gray-400 text-xs font-medium mb-1">Nominal Access Seats</p>
             <p className="text-3xl font-bold text-gray-800">{overview.paidUsers}</p>
             <p className="text-gray-400 text-xs mt-1">
@@ -90,12 +105,17 @@ export function AdminOverviewTab({
             <p className="text-gray-400 text-[11px] mt-0.5 italic">
               Includes active trials + inherited family seats; not true paid accounts
             </p>
-          </div>
-          <div className="bg-white rounded-2xl p-5 border">
+          </button>
+          <button
+            type="button"
+            onClick={() => { setActiveTab('users'); setUserFilter('all'); setSearch(''); }}
+            title="Open Users tab"
+            className="bg-white rounded-2xl p-5 border text-left transition hover:shadow-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+          >
             <p className="text-gray-400 text-xs font-medium mb-1">New Users Today</p>
             <p className="text-3xl font-bold text-gray-800">{overview.newUsersToday}</p>
             <p className="text-gray-400 text-xs mt-1">This week: {overview.newUsersThisWeek} · Month: {overview.newUsersThisMonth}</p>
-          </div>
+          </button>
         </div>
       )}
 
