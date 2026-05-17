@@ -141,6 +141,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/halal-stocks/amzn`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
     { url: `${baseUrl}/halal-stocks/tsla`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
     { url: `${baseUrl}/halal-stocks/nvda`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    // 2026-05-17 (SEO-5): three new high-volume tickers
+    { url: `${baseUrl}/halal-stocks/googl`,      changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/halal-stocks/meta`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/halal-stocks/nflx`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
 
 
     // ── Fiqh Terms Glossary ──────────────────────────────────────────────────
@@ -189,6 +193,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/zakat-on-401k-methodology`,          changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/zakat-on-business-inventory`,        changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/zakat-recipients-2026`,              changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+
+    // ── Learn pages added 2026-05-17 (SEO-5): 7 new long-tail SEO pages ──────
+    { url: `${baseUrl}/learn/halal-savings-account-usa`,          changeFrequency: 'monthly', priority: 0.92, lastModified: now },
+    { url: `${baseUrl}/learn/halal-index-funds-2026`,             changeFrequency: 'monthly', priority: 0.92, lastModified: now },
+    { url: `${baseUrl}/learn/islamic-banking-vs-conventional`,    changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/learn/halal-money-market-funds`,           changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/learn/sadaqah-jariyah-ideas`,              changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/learn/halal-investing-canada`,             changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/learn/zakat-on-pension-uk`,                changeFrequency: 'monthly', priority: 0.90, lastModified: now },
 
     // ── Legal & contact ───────────────────────────────────────────────────────
     { url: `${baseUrl}/contact`,    changeFrequency: 'yearly', priority: 0.40, lastModified: now },
