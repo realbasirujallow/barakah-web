@@ -90,10 +90,10 @@ const faqSchema = {
     },
     {
       '@type': 'Question',
-      name: 'What features should the best Islamic finance app have?',
+      name: 'What features should an Islamic finance app include?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "A truly Islamic finance app must include: (1) Zakat calculator with multi-madhab support and live nisab prices; (2) Hawl anniversary tracking; (3) Riba detection and elimination tools; (4) Halal stock screener using AAOIFI Standard 21; (5) Sadaqah and waqf tracking; (6) Islamic will (wasiyyah) planner with faraid; (7) Family budgeting that respects Islamic household roles; (8) Halal investment categories. Apps that only do budgeting or only do investing are incomplete for a Muslim's full financial life.",
+        text: "A comprehensive Islamic finance app generally includes: (1) Zakat calculator with multi-madhab support and live nisab prices; (2) Hawl anniversary tracking; (3) Riba detection and elimination tools; (4) Halal stock screener using AAOIFI Standard 21 methodology; (5) Sadaqah and waqf tracking; (6) Islamic will (wasiyyah) planner with faraid; (7) Family budgeting that respects Islamic household roles; (8) Halal investment categories. Apps that focus on only budgeting or only investing will cover a narrower slice of a Muslim household's financial life.",
       },
     },
     {
@@ -133,39 +133,39 @@ const faqSchema = {
 
 const appCategories = [
   {
-    category: 'Best Overall Islamic Finance App',
+    category: 'End-to-End Household Islamic Finance',
     winner: 'Barakah',
-    reason: 'Only app that covers the full Islamic household finance lifecycle — zakat, budgeting, riba elimination, halal investing, and Islamic will.',
+    reason: 'Covers zakat, budgeting, riba elimination, halal investing, and Islamic will in one platform — useful if you want a single fiqh-aware dashboard for the full household.',
     icon: '🏆',
   },
   {
-    category: 'Best Halal Stock Screener',
+    category: 'Dedicated Halal Stock Screener',
     winner: 'Zoya',
-    reason: 'Dedicated stock-screening tool with a clean UI, AAOIFI Standard 21 compliance, and a large database. Barakah includes a screener too.',
+    reason: 'Stock-screening tool with a clean UI and AAOIFI Standard 21 compliance methodology. Barakah includes a screener too if you want it bundled with your other finances.',
     icon: '📊',
   },
   {
-    category: 'Best Sharia-Compliant Investing',
+    category: 'Managed Halal Robo-Advisor',
     winner: 'Wahed Invest',
-    reason: 'Regulated robo-advisor that manages halal ETF portfolios, sukuk, and gold. Best for hands-off Islamic investing.',
+    reason: 'Regulated robo-advisor that manages halal ETF portfolios, sukuk, and gold. A fit if you want hands-off Islamic investing.',
     icon: '💹',
   },
   {
-    category: 'Best Free Zakat Calculator',
+    category: 'Free Multi-Madhab Zakat Calculator',
     winner: 'Barakah',
-    reason: 'Multi-madhab zakat calculator with live gold and silver prices, hawl tracking, and category breakdowns — entirely free.',
+    reason: 'Multi-madhab zakat calculator with live gold and silver prices, hawl tracking, and category breakdowns — free tier.',
     icon: '🧮',
   },
   {
-    category: 'Best Islamic Budgeting App',
+    category: 'Muslim-First Budgeting',
     winner: 'Barakah',
     reason: 'Purpose-built for Muslim household budgets with halal categories, riba alerts, family sharing, and Hajj savings goals.',
     icon: '📒',
   },
   {
-    category: 'Best Islamic Will Planner',
+    category: 'Islamic Will Planner',
     winner: 'Barakah',
-    reason: 'Full wasiyyah builder with faraid inheritance calculator. The only consumer app covering Islamic estate planning end-to-end.',
+    reason: 'Wasiyyah builder with a faraid inheritance calculator — among the few consumer apps that cover Islamic estate planning end-to-end.',
     icon: '📜',
   },
 ];
