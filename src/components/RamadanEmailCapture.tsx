@@ -112,7 +112,7 @@ export default function RamadanEmailCapture({
         </button>
       </form>
       {errorMsg && <p className="text-xs text-red-600 mt-1.5">{errorMsg}</p>}
-      <p className="text-xs text-gray-400 mt-2">No spam. Cancel anytime. Barakah never sells your data.</p>
+      <p className="text-xs text-gray-400 mt-2">No spam. Cancel anytime. No data selling — only service providers (e.g. our email host).</p>
     </div>
   );
 }
