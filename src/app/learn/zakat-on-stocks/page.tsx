@@ -161,7 +161,7 @@ export default function ZakatOnStocksPage() {
               </div>
 
               <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-                This method is recommended by AMJA and most contemporary scholars for investors who actively trade or intend to sell their stocks. It is analogous to zakat on merchandise held for trade.
+                This is the position taken by AMJA and is widely adopted by contemporary scholars for investors who actively trade or intend to sell their stocks. It is analogous to zakat on merchandise held for trade. Check what your madhab or local scholar follows before applying.
               </p>
             </section>
 

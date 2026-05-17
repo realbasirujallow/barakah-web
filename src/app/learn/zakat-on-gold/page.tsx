@@ -26,7 +26,7 @@ const FaqSchema = {
       name: 'What is the nisab for gold?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'The nisab for gold is 85 grams (approximately 2.747 troy ounces), as recommended by AMJA. Some scholars use a lower threshold based on silver (approximately 612 grams or 21 troy ounces of gold value equivalent).',
+        text: 'The nisab for gold is 85 grams (approximately 2.747 troy ounces), consistent with the gold-nisab figure published by AMJA and used across most contemporary fiqh councils. Some scholars use a lower threshold based on silver (approximately 612 grams or 21 troy ounces of gold value equivalent). Pick the threshold your madhab or local scholar follows.',
       },
     },
     {

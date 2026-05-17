@@ -223,7 +223,7 @@ export default function WhatIsZakatPage() {
             <div className="bg-[#FFF8E1] rounded-xl p-5 border border-green-100">
               <p className="font-bold text-[#1B5E20] text-lg mb-1">🟡 Gold Nisab</p>
               <p className="text-2xl font-extrabold text-gray-900 mb-1 dark:text-gray-100">85 grams</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">of pure gold at current market price. Recommended by AMJA and used by most Muslim scholars globally. Changes daily with gold prices.</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">of pure gold at current market price. Consistent with AMJA&apos;s published gold-nisab figure and widely used by contemporary fiqh councils. Changes daily with gold prices.</p>
             </div>
             <div className="bg-gray-50 rounded-xl p-5 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
               <p className="font-bold text-gray-700 text-lg mb-1 dark:text-gray-300">⚪ Silver Nisab</p>
