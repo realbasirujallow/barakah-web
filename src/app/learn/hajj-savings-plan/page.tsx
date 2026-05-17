@@ -272,7 +272,7 @@ export default function HajjSavingsPlanPage() {
             <p className="text-green-100 mb-6">Create a dedicated Hajj Fund goal, set your target date, and let Barakah track every contribution toward the journey of a lifetime.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">Start Free — No Card Needed</Link>
-              <Link href="/dashboard/savings" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Track Your Savings</Link>
+              <Link href="/signup?goal=hajj-savings" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Track Your Savings</Link>
             </div>
           </div>
 
