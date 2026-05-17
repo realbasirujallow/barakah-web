@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/compare' },
   openGraph: {
-    title: 'Compare Islamic Finance Apps 2026 — Find the Best Halal Finance App',
-    description: 'Side-by-side comparison of Islamic finance apps. See which app has the best zakat calculator, halal stock screener, budgeting tools, and pricing.',
+    title: 'Compare Islamic Finance Apps 2026 — Halal Finance App Comparison',
+    description: 'Side-by-side comparison of Islamic finance apps. See how each handles zakat calculation, halal stock screening, budgeting tools, and pricing.',
     url: 'https://trybarakah.com/compare',
     siteName: 'Barakah',
     type: 'website',

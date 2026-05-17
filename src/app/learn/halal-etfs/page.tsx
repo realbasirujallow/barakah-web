@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Best Halal ETFs 2026: SPUS, HLAL, IGDA & Shariah-Compliant Funds',
+  title: 'Halal ETFs 2026: SPUS, HLAL, IGDA & Shariah-Compliant Funds Compared',
   description:
-    'Compare the top halal ETFs available to US and UK Muslim investors in 2026: SPUS, HLAL, IGDA, and more. AAOIFI methodology, expense ratios, and how they fit into your zakat-aware portfolio.',
+    'Compare halal ETFs available to US and UK Muslim investors in 2026: SPUS, HLAL, IGDA, and more. AAOIFI methodology, expense ratios, and how each fits into a zakat-aware portfolio.',
   keywords: [
     'halal etfs',
     'shariah compliant etf',
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
     canonical: 'https://trybarakah.com/learn/halal-etfs',
   },
   openGraph: {
-    title: 'Best Halal ETFs 2026: SPUS, HLAL, IGDA & Shariah-Compliant Funds',
-    description: 'Compare the top halal ETFs available to US and UK Muslim investors in 2026.',
+    title: 'Halal ETFs 2026: SPUS, HLAL, IGDA & Shariah-Compliant Funds Compared',
+    description: 'Compare halal ETFs available to US and UK Muslim investors in 2026.',
     url: 'https://trybarakah.com/learn/halal-etfs',
     type: 'article',
   },
@@ -94,7 +94,7 @@ const etfs = [
     auM: '~$50M (2026 est)',
     holdings: 'Dow Jones Islamic Market World',
     screening: 'DJIM + Amanie Advisors',
-    standout: 'International equity exposure in one ETF. Higher expense but only halal option for broad global developed-market.',
+    standout: 'International equity exposure in one ETF. Higher expense; among the limited halal options for broad global developed-market exposure today.',
   },
   {
     ticker: 'IGDA',
@@ -142,7 +142,7 @@ export default function HalalEtfsPage() {
         <main className="flex-1">
           <div className="max-w-5xl mx-auto px-6 py-10">
             <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-[#1B5E20]">
-              Best Halal ETFs 2026 — A Shariah-Compliant Portfolio Builder&apos;s Guide
+              Halal ETFs 2026 — A Shariah-Compliant Portfolio Builder&apos;s Guide
             </h1>
             <p className="text-base text-gray-600 mb-6">Last reviewed: 2026-04-19</p>
 

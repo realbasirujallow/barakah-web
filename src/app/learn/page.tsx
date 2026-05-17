@@ -276,7 +276,7 @@ const articles: ArticleCard[] = [
   {
     slug: 'halal-etfs',
     category: 'Halal Investing',
-    title: 'Best Halal ETFs 2026',
+    title: 'Halal ETFs 2026: A Comparison Guide',
     description: 'Compare SPUS, HLAL, UMMA, IGDA, SPSK, and how they fit into a zakat-aware halal portfolio.',
     readTime: 8,
   },
