@@ -165,6 +165,45 @@ export default function AdminNotesPage() {
                 Clear filter
               </button>
             )}
+            {/* 2026-05-18 release-polish (admin gap #3): CSV export of the
+                currently-filtered notes set so the founder can run ad-hoc
+                analysis in a spreadsheet without re-querying. */}
+            <button
+              type="button"
+              disabled={notes.length === 0 || loading}
+              onClick={() => {
+                const escape = (s: string) =>
+                  `"${(s ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`;
+                const header = 'id,createdAtIso,userId,userEmail,userName,plan,tags,text';
+                const lines = notes.map(n =>
+                  [
+                    n.id,
+                    new Date(n.createdAt).toISOString(),
+                    n.userId,
+                    escape(n.user?.email ?? ''),
+                    escape(n.user?.name ?? ''),
+                    escape(n.user?.plan ?? ''),
+                    escape((n.tags ?? []).join('|')),
+                    escape(n.text ?? ''),
+                  ].join(','),
+                );
+                const csv = [header, ...lines].join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const tagSlug = tag ? `-tag-${tag}` : '';
+                a.download = `barakah-admin-notes${tagSlug}-${new Date().toISOString().slice(0, 10)}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              }}
+              className="text-xs px-3 py-1.5 border border-[#1B5E20] text-[#1B5E20] rounded hover:bg-[#1B5E20]/5 disabled:opacity-40"
+              title="Download the currently-filtered notes as CSV (one row per note)"
+            >
+              ⬇ Export CSV
+            </button>
           </div>
         </div>
 
