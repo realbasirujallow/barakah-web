@@ -281,14 +281,45 @@ async function verifySessionStillValid(): Promise<boolean> {
 
 async function extractErrorMessage(res: Response, fallback: string): Promise<string> {
   const text = await res.text();
-  if (!text) return fallback;
+  // 2026-05-18 release-polish (admin-robustness gap #10): on 5xx, append the
+  // backend request-id to the error message so user/admin can quote it when
+  // contacting support. The backend (RequestIdFilter) sets X-Request-Id on
+  // EVERY response and GlobalExceptionHandler also embeds it as
+  // body.requestId. We prefer the body field (matches the 500 error shape)
+  // and fall back to the header for non-5xx oddities.
+  const reqId = await extractRequestId(res, text);
+  const isServerError = res.status >= 500;
+  const buildMessage = (base: string) =>
+    isServerError && reqId
+      ? `${base} (ref: ${reqId.substring(0, 8)})`
+      : base;
+  if (!text) return buildMessage(fallback);
   try {
     const json = JSON.parse(text);
-    return json.error || json.message || fallback;
+    return buildMessage(json.error || json.message || fallback);
   } catch {
     // Never show raw server text to users — could contain stack traces or internal paths
-    return fallback;
+    return buildMessage(fallback);
   }
+}
+
+/**
+ * Pull the backend request-id from either the JSON body's `requestId`
+ * field (set by GlobalExceptionHandler on every error) or the
+ * `X-Request-Id` response header (set by RequestIdFilter on every
+ * response). Returns null if neither is present. Caller decides whether
+ * to surface — typically only on 5xx for support-correlation.
+ */
+async function extractRequestId(res: Response, bodyText: string): Promise<string | null> {
+  try {
+    if (bodyText) {
+      const json = JSON.parse(bodyText);
+      if (json && typeof json.requestId === 'string') return json.requestId;
+    }
+  } catch {
+    /* not JSON, fall through to header */
+  }
+  return res.headers.get('X-Request-Id') ?? res.headers.get('x-request-id');
 }
 
 /**
