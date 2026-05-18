@@ -340,7 +340,7 @@ export default function ZakatAlFitrPage() {
                 Use Barakah to calculate the exact amount you owe and donate directly to qualified recipients.
               </p>
               <Link
-                href="/dashboard"
+                href="/signup"
                 className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition dark:bg-gray-800"
               >
                 Open Calculator

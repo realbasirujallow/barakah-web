@@ -221,7 +221,7 @@ export default function ZakatOnStocksPage() {
               </div>
 
               <p className="text-gray-700 leading-relaxed font-semibold bg-yellow-50 border border-yellow-200 p-4 rounded dark:text-gray-300">
-                <strong>Barakah&apos;s default:</strong> Barakah uses the market value method by default, as it is simpler and the majority scholarly recommendation. You can switch to the net asset method in your <Link href="/dashboard" className="text-[#1B5E20] underline">dashboard settings</Link>.
+                <strong>Barakah&apos;s default:</strong> Barakah uses the market value method by default, as it is simpler and the majority scholarly recommendation. You can switch to the net asset method in your <Link href="/signup" className="text-[#1B5E20] underline">dashboard settings</Link>.
               </p>
             </section>
 
@@ -379,7 +379,7 @@ export default function ZakatOnStocksPage() {
                 Barakah&apos;s zakat calculator automatically pulls live stock prices, supports both market value and net asset methods, and tracks crypto holdings for complete zakat calculations.
               </p>
               <Link
-                href="/dashboard"
+                href="/signup"
                 className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition dark:bg-gray-800"
               >
                 Open Zakat Calculator

@@ -310,7 +310,7 @@ export default function HalalStocksPage() {
               <NisabLivePrices />
 
               <p className="text-gray-700 leading-relaxed font-semibold bg-yellow-50 border border-yellow-200 p-4 rounded dark:text-gray-300">
-                <strong>Tip:</strong> Stock compliance can change every quarter when new financial statements are released. Barakah automatically re-screens your portfolio and notifies you of any status changes. Visit your <Link href="/dashboard" className="text-[#1B5E20] underline">dashboard</Link> to set up alerts.
+                <strong>Tip:</strong> Stock compliance can change every quarter when new financial statements are released. Barakah automatically re-screens your portfolio and notifies you of any status changes. Visit your <Link href="/signup" className="text-[#1B5E20] underline">dashboard</Link> to set up alerts.
               </p>
             </section>
 
@@ -360,7 +360,7 @@ export default function HalalStocksPage() {
                 Barakah&apos;s halal stock screener checks AAOIFI compliance in real-time, tracks your portfolio, and calculates purification ratios automatically.
               </p>
               <Link
-                href="/dashboard"
+                href="/signup"
                 className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition dark:bg-gray-800"
               >
                 Open Halal Screener

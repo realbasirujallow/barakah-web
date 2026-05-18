@@ -377,7 +377,7 @@ export default function IslamicWillPage() {
                 Barakah&apos;s Wasiyyah planner calculates faraid shares, enforces the 1/3 rule, and generates a legally-formatted document ready for your attorney.
               </p>
               <Link
-                href="/dashboard"
+                href="/signup"
                 className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition dark:bg-gray-800"
               >
                 Start Your Wasiyyah

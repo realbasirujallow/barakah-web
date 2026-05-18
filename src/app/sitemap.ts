@@ -172,8 +172,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/ambassadors`, changeFrequency: 'monthly', priority: 0.75, lastModified: now },
 
     // ── Auth pages ───────────────────────────────────────────────────────────
-    { url: `${baseUrl}/login`,      changeFrequency: 'monthly', priority: 0.60, lastModified: now },
-    { url: `${baseUrl}/signup`,     changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    // 2026-05-18 release-polish: /login is an auth surface — no public content
+    // to rank. /signup stays in the sitemap but at low priority since the page
+    // is intent-to-convert (the home page already deep-links to it for ranking
+    // signals). Keeps Googlebot focused on the educational learn-page cluster.
+    { url: `${baseUrl}/signup`,     changeFrequency: 'monthly', priority: 0.30, lastModified: now },
 
     // ── About / founder ──────────────────────────────────────────────────────
     // 2026-05-11 (SEO-4): /about/founder exists in source and is linked from

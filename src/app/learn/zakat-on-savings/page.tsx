@@ -306,7 +306,7 @@ export default function ZakatOnSavingsPage() {
                 Barakah&apos;s zakat calculator makes it easy to determine your obligation on savings accounts and other assets.
               </p>
               <Link
-                href="/dashboard"
+                href="/signup"
                 className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition dark:bg-gray-800"
               >
                 Open Calculator

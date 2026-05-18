@@ -305,7 +305,7 @@ export default function ZakatOnRetirementAccountsPage() {
                 Barakah&apos;s calculator guides you through all three positions and helps you compute the correct amount based on your chosen approach.
               </p>
               <Link
-                href="/dashboard"
+                href="/signup"
                 className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition dark:bg-gray-800"
               >
                 Try the Calculator

@@ -205,7 +205,7 @@ export default function Page() {
             </ol>
             <div className="mt-5">
               <Link
-                href="/dashboard/riba"
+                href="/signup"
                 className="inline-flex items-center gap-2 bg-[#1B5E20] text-white px-4 py-2 rounded-xl font-medium text-sm hover:bg-[#2E7D32] transition"
               >
                 🛡️ Barakah Riba Elimination Journey →
@@ -231,7 +231,7 @@ export default function Page() {
             </div>
             <p className="text-gray-600 text-sm mt-4 dark:text-gray-400">
               Barakah supports both methods in{' '}
-              <Link href="/dashboard/fiqh" className="text-[#1B5E20] underline">Fiqh Settings</Link>{' '}
+              <Link href="/signup" className="text-[#1B5E20] underline">Fiqh Settings</Link>{' '}
               so your zakat calculation reflects your madhab.
             </p>
           </section>
@@ -263,7 +263,7 @@ export default function Page() {
               <Link href="/signup" className="bg-white text-green-800 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">
                 Start Free — 30 Days Family
               </Link>
-              <Link href="/dashboard/riba" className="border border-white text-white px-6 py-3 rounded-xl font-bold hover:bg-white/10 transition">
+              <Link href="/signup" className="border border-white text-white px-6 py-3 rounded-xl font-bold hover:bg-white/10 transition">
                 Riba Elimination Journey
               </Link>
             </div>

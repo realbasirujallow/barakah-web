@@ -249,7 +249,7 @@ export default function RamadanGivingTrackerPage() {
             <p className="text-green-100 mb-6">Log every donation, track Zakat al-Fitr, and build your Ramadan giving report with Barakah&apos;s free Sadaqah Tracker.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-white text-green-800 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">Start Free — No Card Needed</Link>
-              <Link href="/dashboard/sadaqah" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Open Sadaqah Tracker</Link>
+              <Link href="/signup" className="border border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition">Open Sadaqah Tracker</Link>
             </div>
           </div>
 

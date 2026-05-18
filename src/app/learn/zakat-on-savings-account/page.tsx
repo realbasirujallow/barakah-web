@@ -192,7 +192,7 @@ export default function Page() {
             <p className="text-gray-600 mb-6 dark:text-gray-400">Link your accounts or enter balances manually. Barakah calculates your zakat, flags riba interest, and shows your hawl date tracker — all free.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/zakat-calculator" className="bg-green-700 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-800 transition">Calculate Savings Zakat — Free</Link>
-              <Link href="/dashboard/zakat" className="border border-green-700 text-green-700 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition">Open Zakat Calculator</Link>
+              <Link href="/signup" className="border border-green-700 text-green-700 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition">Open Zakat Calculator</Link>
             </div>
           </div>
 
