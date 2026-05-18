@@ -9,6 +9,7 @@ import { logError } from '../../../../lib/logError';
 import { useAuth } from '../../../../context/AuthContext';
 import GrowthSnapshot, { type GrowthResponse } from '../../../../components/admin/GrowthSnapshot';
 import DataFreshness from '../../../../components/admin/DataFreshness';
+import FunnelStageDrilldown from '../../../../components/admin/FunnelStageDrilldown';
 
 /**
  * Conversion funnel dashboard — distinct-user counts at each lifecycle
@@ -54,6 +55,8 @@ export default function FunnelPage() {
   const [days, setDays] = useState<number>(30);
   // 2026-05-18 release-polish (admin gap #6): data-freshness signal.
   const [fetchedAt, setFetchedAt] = useState<number | null>(null);
+  // 2026-05-18 release-polish (admin gap #7): drill-down sheet state.
+  const [drilldownStage, setDrilldownStage] = useState<{ name: string; label: string } | null>(null);
   const isAdmin = user?.isAdmin === true;
   // Tri-state: `undefined` means the cached profile predates the isAdmin flag
   // and is still being reconciled by AuthContext (syncPlan on mount). We MUST
@@ -223,7 +226,18 @@ export default function FunnelPage() {
                             </span>
                           )}
                         </div>
-                        <span className="text-sm font-bold text-primary">{stage.count.toLocaleString()}</span>
+                        <div className="flex items-baseline gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setDrilldownStage({ name: stage.name, label: stage.label })}
+                            disabled={stage.count === 0}
+                            className="text-xs text-primary hover:underline disabled:opacity-30 disabled:no-underline"
+                            title={stage.count === 0 ? 'No users at this stage' : 'Show who\'s sitting at this stage'}
+                          >
+                            Who&apos;s here? →
+                          </button>
+                          <span className="text-sm font-bold text-primary">{stage.count.toLocaleString()}</span>
+                        </div>
                       </div>
                       <div className="h-6 bg-gray-100 rounded-md overflow-hidden">
                         <div
@@ -269,6 +283,17 @@ export default function FunnelPage() {
               )}
             </div>
           </>
+        )}
+
+        {/* 2026-05-18 release-polish (admin gap #7): drill-down sheet
+            when admin clicks "Who's here?" on a funnel stage. */}
+        {drilldownStage && (
+          <FunnelStageDrilldown
+            stageName={drilldownStage.name}
+            stageLabel={drilldownStage.label}
+            days={days}
+            onClose={() => setDrilldownStage(null)}
+          />
         )}
       </div>
     </div>

@@ -1713,6 +1713,20 @@ export const api = {
   getAdminAnalytics: () => apiFetch('/admin/analytics', {}, API_TIMEOUT, true),
   getAdminFunnel: (days = 30) =>
     apiFetch(`/admin/funnel?days=${days}`, {}, API_TIMEOUT, true),
+  /**
+   * 2026-05-18 release-polish (admin gap #7): drill into a funnel stage to
+   * see which users are sitting there. Returns up to `limit` user IDs +
+   * lightweight profile snippets (email, name, plan, status, createdAt).
+   * Stage must be one of the canonical event-type names enforced by
+   * AdminAnalyticsController.FUNNEL_STAGE_NAMES.
+   */
+  getAdminFunnelUsersInStage: (stage: string, days = 30, limit = 50) =>
+    apiFetch(
+      `/admin/funnel/users-in-stage/${encodeURIComponent(stage)}?days=${days}&limit=${limit}`,
+      {},
+      API_TIMEOUT,
+      true,
+    ),
   getAdminGrowth: (days = 30, since?: number, until?: number) => {
     const qs = new URLSearchParams();
     qs.set('days', String(days));
