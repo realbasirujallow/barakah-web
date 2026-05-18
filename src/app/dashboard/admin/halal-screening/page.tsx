@@ -9,6 +9,11 @@ type FlippedSymbol = {
   oldHalal: boolean;
   newHalal: boolean;
   usersAffected: number;
+  // 2026-05-18 release-polish: backend now includes the actual notified
+  // user IDs (capped at 50 per flip) so admin can correlate "user reported
+  // X" with the exact symbol flip that emailed them.
+  userIds?: number[];
+  userIdsTruncated?: boolean;
   reason?: string;
 };
 
@@ -75,6 +80,16 @@ export default function AdminHalalScreeningPage() {
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // 2026-05-18 release-polish: data-freshness timestamp + manual trigger state
+  const [fetchedAt, setFetchedAt] = useState<number | null>(null);
+  const [triggering, setTriggering] = useState(false);
+  const [triggerResult, setTriggerResult] = useState<string | null>(null);
+  // Tick every 15s so the "X seconds ago" caption stays live without a refetch.
+  const [, setNowTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(n => n + 1), 15000);
+    return () => clearInterval(id);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -87,6 +102,7 @@ export default function AdminHalalScreeningPage() {
         setError(String(r.error));
       } else {
         setData(r as Response);
+        setFetchedAt(Date.now());
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load');
@@ -94,6 +110,28 @@ export default function AdminHalalScreeningPage() {
       setLoading(false);
     }
   }, []);
+
+  const trigger = useCallback(async () => {
+    if (!confirm('Run halal-screening scan now? This takes 15-60 seconds and writes to FMP API.')) return;
+    setTriggering(true);
+    setTriggerResult(null);
+    try {
+      const r = await api.triggerAdminHalalScreening();
+      if (r?.error) {
+        setTriggerResult(`Trigger failed: ${String(r.error)}`);
+      } else {
+        const checks = (r as { symbolsChecked?: number })?.symbolsChecked ?? 0;
+        const flips = (r as { statusChanges?: number })?.statusChanges ?? 0;
+        const users = (r as { usersNotified?: number })?.usersNotified ?? 0;
+        setTriggerResult(`✓ Scan complete: ${checks} symbols checked, ${flips} flips, ${users} users notified.`);
+        await load();
+      }
+    } catch (e: unknown) {
+      setTriggerResult(`Trigger error: ${e instanceof Error ? e.message : 'unknown'}`);
+    } finally {
+      setTriggering(false);
+    }
+  }, [load]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -124,14 +162,37 @@ export default function AdminHalalScreeningPage() {
             the scan is broken.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={load}
-          className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-        >
-          ↻ Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={trigger}
+            disabled={triggering || loading}
+            className="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
+            title="Trigger a halal-screen run now without waiting for the 6 AM UTC cron. Takes 15-60s."
+          >
+            {triggering ? '⏳ Running scan…' : '▶ Run scan now'}
+          </button>
+          <button
+            type="button"
+            onClick={load}
+            disabled={loading || triggering}
+            className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+          >
+            ↻ Refresh
+          </button>
+        </div>
       </div>
+
+      {/* Manual-trigger result banner */}
+      {triggerResult && (
+        <div className={`mb-4 rounded-lg p-3 text-sm ${
+          triggerResult.startsWith('✓')
+            ? 'bg-green-50 border border-green-200 text-green-800'
+            : 'bg-red-50 border border-red-200 text-red-800'
+        }`}>
+          {triggerResult}
+        </div>
+      )}
 
       {loading && <p className="text-gray-500">Loading…</p>}
       {error && <p className="text-red-600">Error: {error}</p>}
@@ -182,6 +243,15 @@ export default function AdminHalalScreeningPage() {
             )}
           </div>
 
+          {/* 2026-05-18 release-polish: data-freshness signal — admin can
+              tell at a glance whether they're looking at fresh data or a
+              cached snapshot. Re-ticks via setNowTick every 15s. */}
+          {fetchedAt && (
+            <p className="text-xs text-gray-400 mb-3">
+              Data fetched {fmtAge(fetchedAt)} ({fmtDateTime(fetchedAt)}) — click ↻ Refresh to reload.
+            </p>
+          )}
+
           {/* Run history */}
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100">
@@ -221,14 +291,41 @@ export default function AdminHalalScreeningPage() {
                             <summary className="cursor-pointer text-primary text-xs">
                               {r.flippedSymbols.length} flip{r.flippedSymbols.length === 1 ? '' : 's'}
                             </summary>
-                            <ul className="mt-1.5 space-y-1 text-xs text-gray-700">
+                            <ul className="mt-1.5 space-y-2 text-xs text-gray-700">
                               {r.flippedSymbols.map(f => (
-                                <li key={f.symbol}>
+                                <li key={f.symbol} className="border-l-2 border-gray-200 pl-2">
                                   <strong>{f.symbol}</strong>:{' '}
                                   {f.oldHalal ? 'halal' : 'haram'} → {f.newHalal ? 'halal' : 'haram'}
                                   {' · '}
                                   {f.usersAffected} user{f.usersAffected === 1 ? '' : 's'}
                                   {f.reason && <span className="text-gray-500"> · {f.reason}</span>}
+                                  {/* 2026-05-18 release-polish: notified user IDs
+                                      so admin can correlate user reports with the
+                                      exact flip that emailed them. Each ID links
+                                      to the admin Users tab with focusUser= so
+                                      one click opens the user detail modal. */}
+                                  {f.userIds && f.userIds.length > 0 && (
+                                    <div className="mt-1 text-[11px] text-gray-500">
+                                      Notified:{' '}
+                                      {f.userIds.map((uid, i) => (
+                                        <span key={uid}>
+                                          <Link
+                                            href={`/dashboard/admin?focusUser=${uid}`}
+                                            className="text-primary hover:underline"
+                                            title={`Open user ${uid} detail`}
+                                          >
+                                            {uid}
+                                          </Link>
+                                          {i < f.userIds!.length - 1 ? ', ' : ''}
+                                        </span>
+                                      ))}
+                                      {f.userIdsTruncated && (
+                                        <span className="text-gray-400 italic">
+                                          {' '}(+{f.usersAffected - f.userIds.length} more — capped at 50)
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
                                 </li>
                               ))}
                             </ul>

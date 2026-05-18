@@ -1726,6 +1726,15 @@ export const api = {
    */
   getAdminHalalScreening: () =>
     apiFetch('/admin/halal-screening', {}, API_TIMEOUT, true),
+  /**
+   * 2026-05-18 release-polish: manual trigger so admins can verify the
+   * scheduler is healthy without waiting for the 6 AM UTC cron. Returns
+   * the freshly-written run row so the caller can render results inline.
+   * Synchronous on the server — call can take 15-60s depending on symbol
+   * count + backfill size. Use a longer timeout client-side.
+   */
+  triggerAdminHalalScreening: () =>
+    apiFetch('/admin/halal-screening/trigger', { method: 'POST' }, 180_000, true),
   getAdminOnboardingTrialSettings: () =>
     apiFetch('/admin/settings/onboarding-trial', {}, API_TIMEOUT, true),
   updateAdminOnboardingTrialSettings: (settings: { enabled: boolean; plan: string; durationDays: number }) =>
