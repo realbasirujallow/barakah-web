@@ -1749,6 +1749,23 @@ export const api = {
       180_000,
       true,
     ),
+  /**
+   * 2026-05-18 release-polish (admin gap #1): per-user audit trail.
+   * Reads AdminAuditLog entries where this user was the target —
+   * "who did what to this user, when". Default limit 20 (cap 200).
+   * Renders on user detail modal under a new 'Audit trail' section.
+   */
+  getAdminUserAuditLog: (userId: number, limit = 20) =>
+    apiFetch(`/admin/audit/user/${userId}?limit=${limit}`, {}, API_TIMEOUT, true),
+  /**
+   * 2026-05-18 release-polish (admin gap #5): cross-job failure feed.
+   * UNIONs failed/abandoned rows from halal_screening_runs +
+   * email_retry_queue + lifecycle_campaign_deliveries. Default window
+   * 24h, limit 50/source. Renders on a new admin Overview "Job Health"
+   * card so admin can spot what broke in the last day at a glance.
+   */
+  getAdminJobFailures: (hours = 24, limit = 50) =>
+    apiFetch(`/admin/jobs/failures?hours=${hours}&limit=${limit}`, {}, API_TIMEOUT, true),
   getAdminOnboardingTrialSettings: () =>
     apiFetch('/admin/settings/onboarding-trial', {}, API_TIMEOUT, true),
   updateAdminOnboardingTrialSettings: (settings: { enabled: boolean; plan: string; durationDays: number }) =>

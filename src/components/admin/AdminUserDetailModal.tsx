@@ -25,6 +25,7 @@ import type { AdminUser, ActivityCountKey, UserActivity, UsersResponse } from '.
 import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDate, fmtDateTimeMs, fmtFullTs, daysUntil } from './adminFormatting';
 import AdminUserDrilldownSheet, { type DrilldownKind } from './AdminUserDrilldownSheet';
 import AdminUserNotesPanel from './AdminUserNotesPanel';
+import AdminUserAuditTrail from './AdminUserAuditTrail';
 
 export interface AdminUserDetailModalProps {
   selected: AdminUser;
@@ -885,6 +886,12 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
                 Delete User
               </button>
             )}
+          </div>
+
+          {/* 2026-05-18 — per-user audit trail (admin-robustness gap #1).
+              Renders nothing for admins without admin.audit.view permission. */}
+          <div className="mt-4">
+            <AdminUserAuditTrail userId={selected.id} />
           </div>
 
           {/* 2026-05-06 — Founder-CRM notes panel. Captures conversation

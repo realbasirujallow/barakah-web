@@ -31,6 +31,10 @@ interface CommunicationPreferences {
   dailyBalanceEmailsOptIn: boolean;
   seasonalGreetingsOptIn: boolean;
   pushMarketingOptIn: boolean;
+  // 2026-05-18 release-polish: mute the halal-screening status-change
+  // alert (email + push that fires when a held stock flips halal/haram).
+  // Default true so existing users retain current behavior.
+  halalAlertOptIn: boolean;
   timeZone: string;
   quietHoursStart: number;
   quietHoursEnd: number;
@@ -869,6 +873,7 @@ export default function ProfilePage() {
               ['dailyBalanceEmailsOptIn', 'Daily balance emails', 'Optional account activity digests after synced balances or unusual items are detected.'],
               ['seasonalGreetingsOptIn', 'Ramadan and Eid greetings', 'Seasonal messages and holiday check-ins.'],
               ['pushMarketingOptIn', 'Push nudges', 'Push reminders about balances, net worth, and setup progress.'],
+              ['halalAlertOptIn', 'Halal screening alerts', 'Email + push when a stock you hold flips halal or haram. Turn off if you prefer to check status manually from your portfolio.'],
             ].map(([key, title, subtitle]) => (
               <label key={key} className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 px-4 py-3">
                 <div>

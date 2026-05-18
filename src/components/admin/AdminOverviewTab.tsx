@@ -12,6 +12,7 @@
 
 import type { AdminUser, Overview, OnboardingTrialSettings, UserFilter, AdminTab } from './adminTypes';
 import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDateMs } from './adminFormatting';
+import AdminJobHealthCard from './AdminJobHealthCard';
 
 export interface AdminOverviewTabProps {
   overview: Overview | null;
@@ -224,6 +225,10 @@ export function AdminOverviewTab({
           </div>
         </div>
       )}
+
+      {/* 2026-05-18 — Cross-job failure feed (admin-robustness gap #5).
+          Renders nothing for non-admin viewers. */}
+      <AdminJobHealthCard />
 
       {onboardingTrial && (
         <div className="bg-white rounded-2xl p-5 border">
