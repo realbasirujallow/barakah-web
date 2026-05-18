@@ -32,6 +32,7 @@ import { logError } from '../../../../lib/logError';
 import { useCurrency } from '../../../../lib/useCurrency';
 import type { Overview } from '../../../../components/admin/adminTypes';
 import DataFreshness from '../../../../components/admin/DataFreshness';
+import KpiTrendCard from '../../../../components/admin/KpiTrendCard';
 import type { GrowthResponse } from '../../../../components/admin/GrowthSnapshot';
 
 interface FunnelResponse {
@@ -203,6 +204,13 @@ export default function ScorecardPage() {
                 truly paid accounts (Stripe + RevenueCat only).
               </p>
             </section>
+
+            {/* ── 2026-05-18: 8-week trend card (admin gap #9). Wraps the
+                4-core-KPI grid below with WoW deltas + sparklines. The
+                grid stays beneath for the full point-in-time view. ── */}
+            <div className="mb-6">
+              <KpiTrendCard />
+            </div>
 
             {/* ── Four core KPIs ──────────────────────────────────────── */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

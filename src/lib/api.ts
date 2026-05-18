@@ -1727,6 +1727,15 @@ export const api = {
       API_TIMEOUT,
       true,
     ),
+  /**
+   * 2026-05-18 release-polish (admin gap #9): daily KPI snapshots feed.
+   * Returns trailing weeks×7 daily rows + WoW deltas (latest vs
+   * 7-days-prior) for totalUsers / paidUsers / activeCount / trialCount /
+   * mrrCents / arrCents. UI uses it for the scorecard sparkline + WoW
+   * delta chips.
+   */
+  getAdminKpiSnapshots: (weeks = 8) =>
+    apiFetch(`/admin/kpi-snapshots?weeks=${weeks}`, {}, API_TIMEOUT, true),
   getAdminGrowth: (days = 30, since?: number, until?: number) => {
     const qs = new URLSearchParams();
     qs.set('days', String(days));
