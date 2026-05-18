@@ -7,6 +7,7 @@ import { api } from '../../../../lib/api';
 import { useAuth } from '../../../../context/AuthContext';
 import { useToast } from '../../../../lib/toast';
 import { logError } from '../../../../lib/logError';
+import DataFreshness from '../../../../components/admin/DataFreshness';
 
 /**
  * Acquisition-channel breakdown + retargeting cohort puller.
@@ -70,6 +71,7 @@ export default function AcquisitionPage() {
   const [until, setUntil] = useState<string>('');
   const [cohort, setCohort] = useState<CohortResponse | null>(null);
   const [cohortLoading, setCohortLoading] = useState<string | null>(null);
+  const [fetchedAt, setFetchedAt] = useState<number | null>(null);
   const isAdmin = user?.isAdmin === true;
   const isAdminKnown = typeof user?.isAdmin === 'boolean';
 
@@ -88,6 +90,7 @@ export default function AcquisitionPage() {
       const untilMs = until ? new Date(until).getTime() : undefined;
       const res = await api.getAdminAcquisition(days, sinceMs, untilMs) as AcquisitionResponse;
       setData(res);
+      setFetchedAt(Date.now());
     } catch (err) {
       logError(err, { context: 'Failed to load acquisition breakdown' });
       toast('Failed to load acquisition data. Admin access required?', 'error');
@@ -148,6 +151,7 @@ export default function AcquisitionPage() {
           <p className="text-sm text-gray-600 mt-1">
             Signups grouped by the channel that drove them (UTM tags + referral codes + Referer heuristics). Click any row to pull the user-ID cohort for retargeting.
           </p>
+          <DataFreshness fetchedAt={fetchedAt} onRefresh={reload} refreshing={loading} className="mt-2" />
         </div>
 
         <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">

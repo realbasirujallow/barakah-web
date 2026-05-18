@@ -8,6 +8,7 @@ import { useToast } from '../../../../lib/toast';
 import { logError } from '../../../../lib/logError';
 import { useAuth } from '../../../../context/AuthContext';
 import GrowthSnapshot, { type GrowthResponse } from '../../../../components/admin/GrowthSnapshot';
+import DataFreshness from '../../../../components/admin/DataFreshness';
 
 /**
  * Dedicated growth KPIs page — DAU/WAU/MAU, trial conversion, revenue
@@ -24,6 +25,7 @@ export default function GrowthPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [growth, setGrowth] = useState<GrowthResponse | null>(null);
+  const [fetchedAt, setFetchedAt] = useState<number | null>(null);
   const isAdmin = user?.isAdmin === true;
   // Tri-state — see funnel/page.tsx for the rationale. isAdmin === undefined
   // means AuthContext is still reconciling the cached profile with the
@@ -47,7 +49,7 @@ export default function GrowthPage() {
       setLoading(true);
       try {
         const res = await api.getAdminGrowth() as GrowthResponse;
-        if (!cancelled) setGrowth(res);
+        if (!cancelled) { setGrowth(res); setFetchedAt(Date.now()); }
       } catch (err) {
         logError(err, { context: 'Failed to load growth metrics' });
         if (!cancelled) toast('Failed to load growth metrics. Admin access required?', 'error');
@@ -92,6 +94,7 @@ export default function GrowthPage() {
               Active users, trial conversion, MRR / ARR, and revenue by subscription source.
               All numbers are live — no caching — and roll up the same way as <code className="text-xs bg-white px-1 py-0.5 rounded">GET /admin/growth</code>.
             </p>
+            <DataFreshness fetchedAt={fetchedAt} className="mt-2" />
           </div>
           <Link
             href="/dashboard/admin/funnel"

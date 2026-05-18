@@ -8,6 +8,7 @@ import { useToast } from '../../../../lib/toast';
 import { logError } from '../../../../lib/logError';
 import { useAuth } from '../../../../context/AuthContext';
 import GrowthSnapshot, { type GrowthResponse } from '../../../../components/admin/GrowthSnapshot';
+import DataFreshness from '../../../../components/admin/DataFreshness';
 
 /**
  * Conversion funnel dashboard — distinct-user counts at each lifecycle
@@ -51,6 +52,8 @@ export default function FunnelPage() {
   const [data, setData] = useState<FunnelResponse | null>(null);
   const [growth, setGrowth] = useState<GrowthResponse | null>(null);
   const [days, setDays] = useState<number>(30);
+  // 2026-05-18 release-polish (admin gap #6): data-freshness signal.
+  const [fetchedAt, setFetchedAt] = useState<number | null>(null);
   const isAdmin = user?.isAdmin === true;
   // Tri-state: `undefined` means the cached profile predates the isAdmin flag
   // and is still being reconciled by AuthContext (syncPlan on mount). We MUST
@@ -75,7 +78,7 @@ export default function FunnelPage() {
       setLoading(true);
       try {
         const res = await api.getAdminFunnel(days) as FunnelResponse;
-        if (!cancelled) setData(res);
+        if (!cancelled) { setData(res); setFetchedAt(Date.now()); }
       } catch (err) {
         logError(err, { context: 'Failed to load funnel' });
         if (!cancelled) toast('Failed to load funnel. Admin access required?', 'error');
@@ -139,6 +142,7 @@ export default function FunnelPage() {
             <p className="text-sm text-gray-600 mt-1">
               Distinct users reaching each lifecycle stage in the rolling window. Drop-off shows how many fell off between adjacent stages.
             </p>
+            <DataFreshness fetchedAt={fetchedAt} className="mt-2" />
           </div>
           <div className="flex gap-2 items-center flex-wrap">
             {WINDOW_OPTIONS.map(d => (

@@ -31,6 +31,7 @@ import { useToast } from '../../../../lib/toast';
 import { logError } from '../../../../lib/logError';
 import { useCurrency } from '../../../../lib/useCurrency';
 import type { Overview } from '../../../../components/admin/adminTypes';
+import DataFreshness from '../../../../components/admin/DataFreshness';
 import type { GrowthResponse } from '../../../../components/admin/GrowthSnapshot';
 
 interface FunnelResponse {
@@ -77,6 +78,7 @@ export default function ScorecardPage() {
   const [growth, setGrowth] = useState<GrowthResponse | null>(null);
   const [dropoff, setDropoff] = useState<DropoffResponse | null>(null);
   const [expandedTimelineUserId, setExpandedTimelineUserId] = useState<number | null>(null);
+  const [fetchedAt, setFetchedAt] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isAuthLoading && user && isAdminKnown && !isAdmin) {
@@ -97,6 +99,7 @@ export default function ScorecardPage() {
       setFunnel(f);
       setGrowth(g);
       setDropoff(d);
+      setFetchedAt(Date.now());
     } catch (err) {
       logError(err, { context: 'ScorecardPage.load' });
       toast('Failed to load scorecard data — admin access required?', 'error');
@@ -147,6 +150,7 @@ export default function ScorecardPage() {
               Monday-morning 10-minute view. The numbers here are the source-of-truth
               signals for the $1M ARR glide path.
             </p>
+            <DataFreshness fetchedAt={fetchedAt} className="mt-2" />
           </div>
           <button
             onClick={load}
