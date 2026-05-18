@@ -25,6 +25,7 @@ import { useToast } from '../../../lib/toast';
 import { useCurrency } from '../../../lib/useCurrency';
 import { LifecycleCampaignCenter } from '../../../components/admin/LifecycleCampaignCenter';
 import { AdminOverviewTab } from '../../../components/admin/AdminOverviewTab';
+import DataFreshness from '../../../components/admin/DataFreshness';
 import { AdminUsersTab } from '../../../components/admin/AdminUsersTab';
 import { AdminAlertsTab } from '../../../components/admin/AdminAlertsTab';
 import { AdminUnverifiedTab } from '../../../components/admin/AdminUnverifiedTab';
@@ -281,6 +282,10 @@ export default function AdminPage() {
     try {
       await api.adminResetPassword(selected.id);
       toast(`Password reset email sent to ${selected.email}`, 'success');
+      // 2026-05-18 release-polish (admin gap #4): refresh badges immediately
+      // so Email-log + Unverified counts update without waiting for the
+      // 30-min refresh cycle or a tab switch.
+      refreshBadgeCounts();
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to send reset email', 'error');
     } finally {
@@ -294,6 +299,7 @@ export default function AdminPage() {
     try {
       await api.adminResendVerification(selected.id);
       toast(`Verification email sent to ${selected.email}`, 'success');
+      refreshBadgeCounts();
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to send verification email', 'error');
     } finally {
@@ -312,6 +318,9 @@ export default function AdminPage() {
       });
       setSelected(prev => prev ? { ...prev, plan: draftPlan } : null);
       toast(`Plan updated to ${draftPlan}`, 'success');
+      // Plan change shifts MRR / past-due / trial counters across multiple
+      // overview tiles. Refresh badges so admin sees the new state.
+      refreshBadgeCounts();
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to update plan', 'error');
     } finally {
@@ -330,6 +339,9 @@ export default function AdminPage() {
       toast(`Trial granted: ${trialPlan} for ${trialDurationDays} days`, 'success');
       closeTrialModal();
       loadData(page);
+      // Trial grant flips this user's plan + active state and shifts the
+      // Trials Expiring tile. Refresh badges (gap #4).
+      refreshBadgeCounts();
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to grant trial', 'error');
     } finally {
@@ -431,7 +443,16 @@ export default function AdminPage() {
       {/* Header */}
       <PageHeader
         title="Admin Dashboard"
-        subtitle={`Last updated: ${lastRefreshed.toLocaleTimeString()} · Auto-refreshes every 30 minutes`}
+        subtitle={
+          <span className="flex items-center gap-2">
+            <DataFreshness
+              fetchedAt={lastRefreshed.getTime()}
+              onRefresh={() => loadData(page)}
+              refreshing={loading}
+            />
+            <span>· Auto-refreshes every 30 minutes</span>
+          </span>
+        }
         actions={
           <>
             <Link
