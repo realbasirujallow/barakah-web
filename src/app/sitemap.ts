@@ -172,11 +172,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/ambassadors`, changeFrequency: 'monthly', priority: 0.75, lastModified: now },
 
     // ── Auth pages ───────────────────────────────────────────────────────────
-    // 2026-05-18 release-polish: /login is an auth surface — no public content
-    // to rank. /signup stays in the sitemap but at low priority since the page
-    // is intent-to-convert (the home page already deep-links to it for ranking
-    // signals). Keeps Googlebot focused on the educational learn-page cluster.
-    { url: `${baseUrl}/signup`,     changeFrequency: 'monthly', priority: 0.30, lastModified: now },
+    // 2026-05-18: /login and /signup both removed from sitemap. Both layouts
+    // set `robots: { index: false, follow: false }`, so listing them caused
+    // GSC "Submitted URL marked 'noindex'" errors ("New reasons prevent pages
+    // from being indexed" alerts on 2026-05-17). Auth surfaces don't need to
+    // rank — the homepage already deep-links to /signup for ranking signals.
 
     // ── About / founder ──────────────────────────────────────────────────────
     // 2026-05-11 (SEO-4): /about/founder exists in source and is linked from
@@ -192,7 +192,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/hawl-reset-rules`,                   changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/islamic-will-checklist`,             changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/nisab-gold-vs-silver`,               changeFrequency: 'monthly', priority: 0.88, lastModified: now },
-    { url: `${baseUrl}/learn/sadaqah-distribution`,               changeFrequency: 'monthly', priority: 0.85, lastModified: now },
+    // 2026-05-18: /learn/sadaqah-distribution removed — page is intentionally
+    // `robots: { index: false, follow: true }` (placeholder until full
+    // sadaqah/waqf disclosure ships). Listing it caused a GSC noindex error.
+    // Re-add to sitemap when the full disclosure ships and noindex is lifted.
     { url: `${baseUrl}/learn/zakat-on-401k-methodology`,          changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/zakat-on-business-inventory`,        changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/zakat-recipients-2026`,              changeFrequency: 'monthly', priority: 0.88, lastModified: now },
