@@ -145,7 +145,7 @@ export default function HalalInvestingGuidePage() {
           {/* Screener CTA */}
           <div className="bg-[#1B5E20] text-white rounded-2xl p-6 mb-10">
             <p className="font-bold text-xl mb-1">✅ Screen 30,000+ Stocks for Free</p>
-            <p className="text-green-200 text-sm mb-4">Barakah&apos;s halal stock screener checks every stock against AAOIFI Standard 21. Know in seconds if your investments are halal.</p>
+            <p className="text-green-200 text-sm mb-4">Barakah&apos;s halal stock screener runs each ticker against AAOIFI Standard 21 ratio tests. Get a methodology-aware screening signal in seconds — review with a qualified scholar for personal rulings.</p>
             <Link href="/signup" className="inline-block bg-white text-[#1B5E20] font-bold px-6 py-3 rounded-xl hover:bg-green-50 transition dark:bg-gray-800">
               Start Free Account →
             </Link>
@@ -268,7 +268,7 @@ export default function HalalInvestingGuidePage() {
           {/* CTA */}
           <div className="bg-[#1B5E20] text-white rounded-2xl p-8 text-center">
             <h2 className="text-2xl font-bold mb-2">Screen your portfolio for free</h2>
-            <p className="text-green-200 mb-6">Barakah screens 30,000+ stocks against AAOIFI Standard 21. Create a free account and see your portfolio&apos;s AAOIFI Standard 21 screening result in seconds.</p>
+            <p className="text-green-200 mb-6">Barakah runs AAOIFI Standard 21 ratio tests across a 30,000+ stock library. Create a free account to see screening signals for your holdings — review with a qualified scholar for personal rulings.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup" className="bg-white text-[#1B5E20] px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">
                 Start Free — Screen My Portfolio

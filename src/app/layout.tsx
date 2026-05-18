@@ -81,7 +81,7 @@ export const metadata: Metadata = {
     "islamic will wasiyyah",
     "faraid calculator",
     "mint alternative for muslims",
-    "best islamic finance app",
+    "muslim finance app",
   ],
   openGraph: {
     title: "Try Barakah — Free Islamic Finance App: Zakat, Halal Budgeting & Muslim Money Tracker",

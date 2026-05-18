@@ -184,8 +184,8 @@ export default function HalalRoboAdvisorComparisonPage() {
           </div>
 
           <div className="mt-10 bg-[#1B5E20] text-white rounded-2xl p-8 text-center">
-            <h2 className="text-2xl font-bold mb-2">Verify any portfolio in seconds</h2>
-            <p className="text-green-200 mb-6">Use Barakah&apos;s free screener to verify your holdings — no matter which platform you use.</p>
+            <h2 className="text-2xl font-bold mb-2">Screen any portfolio in seconds</h2>
+            <p className="text-green-200 mb-6">Use Barakah&apos;s free screener to run AAOIFI Standard 21 ratio tests against your holdings — no matter which platform you use.</p>
             <Link href="/signup" className="inline-block bg-white text-[#1B5E20] px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition dark:bg-gray-800">
               Start Free →
             </Link>

@@ -789,7 +789,7 @@ export default function InvestmentsPage() {
         <EmptyState
           illustration="savings"
           title="Track your halal investments"
-          description="Add a brokerage account or import from Plaid. Every holding is auto-screened against AAOIFI Standard 21 — you'll see a halal/haram tag next to each ticker."
+          description="Add a brokerage account or import from Plaid. Each holding is run through an AAOIFI Standard 21 ratio screen, with a passes/review/fails signal next to each ticker for you to verify."
           actions={[
             { label: '+ Add account', onClick: () => setShowAccountForm(true), primary: true },
             { label: 'Add 401(k) / IRA', href: '/dashboard/assets' },
