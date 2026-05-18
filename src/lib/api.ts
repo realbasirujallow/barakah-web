@@ -1735,6 +1735,20 @@ export const api = {
    */
   triggerAdminHalalScreening: () =>
     apiFetch('/admin/halal-screening/trigger', { method: 'POST' }, 180_000, true),
+  /**
+   * 2026-05-18 release-polish: one-time seed of halal_screening_cache
+   * from FMP /api/v3/stock/list. Fetches ~30k entries, filters to
+   * US-exchange common stock (~7k), bulk-inserts. Idempotent via
+   * ON CONFLICT DO NOTHING. Guarded against double-bootstrap unless
+   * force=true. See AdminHalalScreeningController.bootstrapCache.
+   */
+  bootstrapAdminHalalScreeningCache: (force = false) =>
+    apiFetch(
+      `/admin/halal-screening/bootstrap-cache${force ? '?force=true' : ''}`,
+      { method: 'POST' },
+      180_000,
+      true,
+    ),
   getAdminOnboardingTrialSettings: () =>
     apiFetch('/admin/settings/onboarding-trial', {}, API_TIMEOUT, true),
   updateAdminOnboardingTrialSettings: (settings: { enabled: boolean; plan: string; durationDays: number }) =>

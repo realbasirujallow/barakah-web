@@ -84,6 +84,8 @@ export default function AdminHalalScreeningPage() {
   const [fetchedAt, setFetchedAt] = useState<number | null>(null);
   const [triggering, setTriggering] = useState(false);
   const [triggerResult, setTriggerResult] = useState<string | null>(null);
+  const [bootstrapping, setBootstrapping] = useState(false);
+  const [bootstrapResult, setBootstrapResult] = useState<string | null>(null);
   // Tick every 15s so the "X seconds ago" caption stays live without a refetch.
   const [, setNowTick] = useState(0);
   useEffect(() => {
@@ -108,6 +110,38 @@ export default function AdminHalalScreeningPage() {
       setError(e instanceof Error ? e.message : 'Failed to load');
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  const bootstrap = useCallback(async (force = false) => {
+    const msg = force
+      ? 'Force re-run cache bootstrap? Pulls FMP /stock/list again and adds any newly-IPO\'d tickers. ~30k FMP entries → ~7k US common stock inserted (idempotent).'
+      : 'Bootstrap halal-screening cache from FMP /stock/list? Pulls ~30k entries, filters to US common stock (~7k), bulk-inserts. One-time op (refuses if cache already > 5000 rows without force).';
+    if (!confirm(msg)) return;
+    setBootstrapping(true);
+    setBootstrapResult(null);
+    try {
+      const r = await api.bootstrapAdminHalalScreeningCache(force);
+      if (r?.error) {
+        const code = (r as { existingCount?: number })?.existingCount;
+        setBootstrapResult(
+          code !== undefined
+            ? `${String(r.error)} (existing: ${code}). Click "Force bootstrap" to add new tickers anyway.`
+            : `Bootstrap failed: ${String(r.error)}`,
+        );
+      } else {
+        const inserted = (r as { inserted?: number })?.inserted ?? 0;
+        const filtered = (r as { filtered?: number })?.filtered ?? 0;
+        const fmpTotal = (r as { fmpTotal?: number })?.fmpTotal ?? 0;
+        const finalCount = (r as { finalCount?: number })?.finalCount ?? 0;
+        setBootstrapResult(
+          `✓ Cache bootstrapped: ${inserted} inserted (filtered ${filtered} of ${fmpTotal} FMP entries). Cache now has ${finalCount} symbols.`,
+        );
+      }
+    } catch (e: unknown) {
+      setBootstrapResult(`Bootstrap error: ${e instanceof Error ? e.message : 'unknown'}`);
+    } finally {
+      setBootstrapping(false);
     }
   }, []);
 
@@ -162,11 +196,20 @@ export default function AdminHalalScreeningPage() {
             the scan is broken.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => bootstrap(false)}
+            disabled={bootstrapping || triggering || loading}
+            className="px-3 py-1.5 text-sm bg-white border border-primary text-primary rounded-lg hover:bg-primary/5 disabled:opacity-50"
+            title="One-time seed of halal_screening_cache from FMP /stock/list. ~7k US common stock symbols, idempotent."
+          >
+            {bootstrapping ? '⏳ Bootstrapping…' : '⬇ Bootstrap cache'}
+          </button>
           <button
             type="button"
             onClick={trigger}
-            disabled={triggering || loading}
+            disabled={triggering || bootstrapping || loading}
             className="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
             title="Trigger a halal-screen run now without waiting for the 6 AM UTC cron. Takes 15-60s."
           >
@@ -175,13 +218,33 @@ export default function AdminHalalScreeningPage() {
           <button
             type="button"
             onClick={load}
-            disabled={loading || triggering}
+            disabled={loading || triggering || bootstrapping}
             className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
           >
             ↻ Refresh
           </button>
         </div>
       </div>
+
+      {/* Bootstrap-result banner */}
+      {bootstrapResult && (
+        <div className={`mb-4 rounded-lg p-3 text-sm ${
+          bootstrapResult.startsWith('✓')
+            ? 'bg-green-50 border border-green-200 text-green-800'
+            : 'bg-amber-50 border border-amber-200 text-amber-800'
+        }`}>
+          {bootstrapResult}
+          {bootstrapResult.includes('existing:') && (
+            <button
+              type="button"
+              onClick={() => bootstrap(true)}
+              className="ml-3 px-2 py-0.5 text-xs bg-white border border-amber-300 rounded hover:bg-amber-50"
+            >
+              Force bootstrap
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Manual-trigger result banner */}
       {triggerResult && (
