@@ -118,6 +118,10 @@ export default function RibaTermPage() {
               purification amount to dispose of incidentally earned riba, and tracks your
               <em> riba elimination</em> journey.
             </p>
+            <p className="mt-3 text-xs leading-6 text-amber-800">
+              This is a screening tool, not a fatwa. For personal rulings on specific contracts,
+              transactions, or purification amounts, review with a qualified scholar.
+            </p>
           </section>
 
           <section className="mb-6">
