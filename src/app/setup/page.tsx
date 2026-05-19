@@ -47,7 +47,8 @@ interface PlaidAccount {
   lastSyncedAt: number | null;
 }
 
-const STEP_LABELS = ['Connect Accounts', 'Choose Plan', 'Pick Your Focus'] as const;
+// 2026-05-19 (audit Bug #20): STEP_LABELS removed — replaced by the locale-
+// aware stepLabelsI18n local in SetupPageInner, fed by t('setupStep1..3').
 
 function formatPlaidBalance(value: number | null | undefined, currencyCode = 'USD') {
   if (value == null || Number.isNaN(Number(value))) return null;
