@@ -243,15 +243,31 @@ export default function HalalInvestingGuidePage() {
           {/* Purification */}
           <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-3 dark:text-gray-100">Purification of Haram Income</h2>
           <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
-            If a company you own stock in earns some income from haram activities (even below the 5% threshold), scholars recommend <strong>purifying</strong> your investment returns. The process:
+            If a company you own stock in earns some income from haram activities (even below the 5% threshold), <strong>many scholars recommend</strong> purifying your investment returns. The process generally followed:
           </p>
           <ol className="list-decimal list-inside space-y-2 text-gray-700 mb-4 pl-2 dark:text-gray-300">
             <li>Calculate the proportion of haram revenue as a percentage of total revenue</li>
             <li>Multiply your dividend or capital gain by that percentage</li>
-            <li>Donate that amount to charity (sadaqah) — not as zakat, but as purification</li>
+            <li>Donate that amount to charity (sadaqah) — not as zakat, but as supplementary purification</li>
           </ol>
+          {/*
+            2026-05-19 (audit Bug #13): scholarly-variance disclaimer. The
+            prior copy presented purification as a single agreed-upon
+            obligation. In reality scholars differ: some hold it is
+            recommended supplementary sadaqah, others view it as the
+            shareholder's personal choice. Stating the variance avoids
+            overclaim and protects users following different positions.
+          */}
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-100">
+            <strong>Scholarly variance.</strong> Purification is treated by
+            many scholars as <em>recommended supplementary sadaqah</em> — not
+            zakat, not a replacement for zakat, and not universally mandated.
+            Other scholars hold it is the shareholder&apos;s personal choice.
+            Consult your own scholar or fatwa to confirm whether and how
+            purification applies to your portfolio.
+          </div>
           <p className="text-gray-700 leading-relaxed mb-6 dark:text-gray-300">
-            Barakah tracks the halal ratio of your portfolio and can calculate how much to donate for purification.
+            Barakah tracks the halal ratio of your portfolio and can calculate the optional purification amount for those who choose to donate.
           </p>
 
           {/* FAQ */}

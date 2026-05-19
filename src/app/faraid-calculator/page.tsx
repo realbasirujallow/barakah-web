@@ -169,6 +169,25 @@ export default function FaraidCalculatorPage() {
         </nav>
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/*
+            2026-05-19 (audit Bug #15): explicit "not a fatwa" entry banner.
+            The general /disclaimer page covers this, but inheritance is high-
+            stakes — a user may compute shares and treat them as legally
+            binding for probate. The entry-point warning makes the boundary
+            explicit before any calculation begins.
+          */}
+          <div
+            className="mb-8 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            role="note"
+          >
+            <strong className="font-bold">⚠️ Not a fatwa.</strong>{' '}
+            This is a calculation tool, not legal or Shariah advice. Faraid
+            (Islamic inheritance) overrides civil law in some jurisdictions and
+            is subject to local probate law in others. For your specific
+            situation, consult a qualified Islamic scholar <em>and</em> an
+            estate attorney licensed where you live.
+          </div>
+
           {/* Hero Section */}
           <header className="text-center mb-12">
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 leading-tight">

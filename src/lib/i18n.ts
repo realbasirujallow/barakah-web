@@ -20,6 +20,44 @@ import { useSyncExternalStore } from 'react';
 type Translations = Record<string, string>;
 
 const en: Translations = {
+  // 2026-05-19 (audit Bug #10): public landing-page hero strings for the
+  // HomeV2 layout (src/app/page.tsx). Founder will author ar/fr/ur
+  // translations in this file's mirror dictionaries. Until then those
+  // locales fall through to the English value (per t() fallback).
+  // (Keys are `homeV2*` to avoid colliding with the older `home*` keys
+  // that target a different landing layout.)
+  homeV2HeroBrand: 'BARAKAH',
+  homeV2HeroHeadline: 'Calculate zakat. Screen halal stocks. Plan your Islamic estate.',
+  homeV2HeroSubtitle: 'For Muslim households who want their money tracked, planned, and given the way Islam intends.',
+  homeV2HeroCtaPrimary: 'Start free',
+  homeV2HeroCtaSecondary: 'See how it works ↓',
+  homeV2HeroFootnote: 'No credit card. No setup. Free forever for tracking up to 10 transactions/month.',
+  homeV2Strap1: 'No credit card trial',
+  homeV2Strap2: 'iOS & Android',
+  homeV2Strap3: '4 madhabs supported',
+  homeV2Strap4: 'Secure bank sync via Plaid',
+  homeV2FirstSessionWins: 'FIRST-SESSION WINS',
+  // 2026-05-19 (audit Bug #20): /setup wizard chrome. Founder to review
+  // ar/fr/ur mirror dictionaries below.
+  setupBack: 'Set up later',
+  setupGuidedEyebrow: 'Guided Setup',
+  setupTitle: 'Set up your financial home in a few calm steps.',
+  setupIntro: 'Choose how you want to start, connect your accounts securely, and land inside Barakah with a clear next action instead of an empty dashboard.',
+  setupStepLabel: 'Step',
+  setupStep1: 'Connect Accounts',
+  setupStep2: 'Choose Plan',
+  setupStep3: 'Pick Your Focus',
+  setupConnectHeading: 'Bring your day-to-day finances into Barakah.',
+  setupConnectIntro: 'Connect supported bank and card accounts securely through Plaid. Your login credentials stay with your bank, and you can always finish the rest later.',
+  setupReadOnly: 'Read-only',
+  setupReadOnlyBody: 'Barakah can review balances and transactions, not move money.',
+  setupPoweredByPlaid: 'Powered by Plaid',
+  setupPoweredByPlaidBody: 'A familiar bank-connection flow users already trust.',
+  setupFlexibleLater: 'Flexible later',
+  setupFlexibleLaterBody: 'You can still import CSVs or fine-tune everything afterward.',
+  setupNoAccountsLinked: 'No accounts linked yet',
+  setupNoAccountsBody: 'Connect your first bank or card account here. You can always manage categories and import details after setup.',
+  setupImportLater: 'Need to import a CSV or fine-tune accounts later? You can always handle that from the dashboard import center after setup.',
   // 2026-05-12 (QA-2026-05-12, Bug #17): trial-banner keys added so ar/ur/fr
   // users see the banner in their language. Tokens {plan} / {time} are
   // substituted at render time via .replace(). Mirror keys exist in all
@@ -423,6 +461,40 @@ const en: Translations = {
 };
 
 const ar: Translations = {
+  // 2026-05-19 (audit Bug #10): homeV2 landing-page strings. First-pass
+  // Arabic by claude; FOUNDER TO REVIEW for fluency, register, and dialect
+  // (Modern Standard Arabic chosen as the safest default for cross-GCC reach).
+  homeV2HeroBrand: 'بَرَكَة',
+  homeV2HeroHeadline: 'احسب الزكاة. افحص الأسهم الحلال. خطّط لميراثك الإسلامي.',
+  homeV2HeroSubtitle: 'للأُسر المسلمة التي تريد إدارة أموالها وتخطيطها وإنفاقها كما يأمر الإسلام.',
+  homeV2HeroCtaPrimary: 'ابدأ مجانًا',
+  homeV2HeroCtaSecondary: 'شاهد كيف يعمل ↓',
+  homeV2HeroFootnote: 'بدون بطاقة ائتمان. بدون إعداد. مجاني للأبد لتتبّع حتى 10 معاملات شهريًا.',
+  homeV2Strap1: 'تجربة مجانية بدون بطاقة',
+  homeV2Strap2: 'iOS وأندرويد',
+  homeV2Strap3: 'دعم 4 مذاهب',
+  homeV2Strap4: 'مزامنة بنكية آمنة عبر Plaid',
+  homeV2FirstSessionWins: 'مكاسب أول جلسة',
+  // 2026-05-19 (audit Bug #20): /setup wizard chrome — Arabic. FOUNDER TO REVIEW.
+  setupBack: 'الإعداد لاحقًا',
+  setupGuidedEyebrow: 'إعداد موجَّه',
+  setupTitle: 'أعدّ منزلك المالي في خطوات بسيطة وهادئة.',
+  setupIntro: 'اختر طريقة البدء، اربط حساباتك بأمان، وادخل بركة وأمامك خطوة واضحة بدلًا من لوحة فارغة.',
+  setupStepLabel: 'الخطوة',
+  setupStep1: 'ربط الحسابات',
+  setupStep2: 'اختيار الخطة',
+  setupStep3: 'تحديد التركيز',
+  setupConnectHeading: 'أحضِر معاملاتك اليومية إلى بركة.',
+  setupConnectIntro: 'اربط حسابات البنوك وبطاقاتك بأمان عبر Plaid. تبقى بيانات تسجيل دخولك مع بنكك، ويمكنك إكمال الباقي لاحقًا متى شئت.',
+  setupReadOnly: 'قراءة فقط',
+  setupReadOnlyBody: 'بإمكان بركة عرض الأرصدة والمعاملات فقط، دون تحريك أي أموال.',
+  setupPoweredByPlaid: 'مدعوم بـ Plaid',
+  setupPoweredByPlaidBody: 'تدفق ربط بنكي مألوف يثق به المستخدمون بالفعل.',
+  setupFlexibleLater: 'مرونة لاحقة',
+  setupFlexibleLaterBody: 'يمكنك دائمًا استيراد ملفات CSV أو تعديل كل شيء بعد ذلك.',
+  setupNoAccountsLinked: 'لا توجد حسابات مرتبطة بعد',
+  setupNoAccountsBody: 'اربط أول حساب بنكي أو بطاقة هنا. يمكنك إدارة التصنيفات وتفاصيل الاستيراد بعد الإعداد.',
+  setupImportLater: 'تحتاج إلى استيراد CSV أو ضبط الحسابات لاحقًا؟ يمكنك دائمًا فعل ذلك من مركز الاستيراد في لوحة التحكم بعد الإعداد.',
   // QA-2026-05-12 Bug #17: trial-banner translations
   trialBannerTitle: 'تجربة {plan} من بركة — {time}',
   trialBannerBody: 'احتفظ بالمعاملات غير المحدودة ومزامنة البنك والتقارير المميزة بعد انتهاء التجربة.',
@@ -807,6 +879,40 @@ const ar: Translations = {
 };
 
 const ur: Translations = {
+  // 2026-05-19 (audit Bug #10): homeV2 landing-page strings. First-pass
+  // Urdu by claude; FOUNDER TO REVIEW for tone (formal Urdu chosen for
+  // marketing voice; less colloquial than spoken register).
+  homeV2HeroBrand: 'برکہ',
+  homeV2HeroHeadline: 'زکات کا حساب لگائیں۔ حلال اسٹاکس کی جانچ کریں۔ اپنی اسلامی وراثت کی منصوبہ بندی کریں۔',
+  homeV2HeroSubtitle: 'مسلم گھرانوں کے لیے جو اپنا پیسہ اسلام کے بتائے ہوئے طریقے پر ٹریک، منصوبہ بند، اور خرچ کرنا چاہتے ہیں۔',
+  homeV2HeroCtaPrimary: 'مفت میں شروع کریں',
+  homeV2HeroCtaSecondary: 'دیکھیں یہ کیسے کام کرتا ہے ↓',
+  homeV2HeroFootnote: 'کریڈٹ کارڈ کی ضرورت نہیں۔ کوئی سیٹ اپ نہیں۔ ہمیشہ کے لیے مفت — 10 ٹرانزیکشنز فی مہینہ تک۔',
+  homeV2Strap1: 'بغیر کریڈٹ کارڈ ٹرائل',
+  homeV2Strap2: 'iOS اور اینڈرائڈ',
+  homeV2Strap3: '4 مذاہب کی سپورٹ',
+  homeV2Strap4: 'Plaid کے ذریعے محفوظ بینک سنک',
+  homeV2FirstSessionWins: 'پہلے سیشن کی کامیابیاں',
+  // 2026-05-19 (audit Bug #20): /setup wizard chrome — Urdu. FOUNDER TO REVIEW.
+  setupBack: 'بعد میں سیٹ اپ کریں',
+  setupGuidedEyebrow: 'گائیڈڈ سیٹ اپ',
+  setupTitle: 'اپنا مالی گھر چند پر سکون مراحل میں ترتیب دیں۔',
+  setupIntro: 'منتخب کریں کہ کیسے شروع کرنا ہے، اپنے اکاؤنٹس کو محفوظ طریقے سے جوڑیں، اور بَرَکَہ میں واضح اگلی کارروائی کے ساتھ پہنچیں — خالی ڈیش بورڈ کے بجائے۔',
+  setupStepLabel: 'مرحلہ',
+  setupStep1: 'اکاؤنٹس جوڑیں',
+  setupStep2: 'پلان منتخب کریں',
+  setupStep3: 'اپنی توجہ چنیں',
+  setupConnectHeading: 'اپنے روزمرہ کے مالی معاملات کو بَرَکَہ میں لائیں۔',
+  setupConnectIntro: 'Plaid کے ذریعے اپنے بینک اور کارڈ اکاؤنٹس کو محفوظ طریقے سے جوڑیں۔ آپ کی لاگ ان معلومات آپ کے بینک کے پاس رہتی ہیں، اور آپ باقی کام بعد میں مکمل کر سکتے ہیں۔',
+  setupReadOnly: 'صرف پڑھنے کے لیے',
+  setupReadOnlyBody: 'بَرَکَہ بیلنس اور ٹرانزیکشنز دیکھ سکتا ہے، پیسے منتقل نہیں کر سکتا۔',
+  setupPoweredByPlaid: 'Plaid کے ذریعے',
+  setupPoweredByPlaidBody: 'ایک مانوس بینک کنکشن فلو جس پر صارفین پہلے ہی اعتماد کرتے ہیں۔',
+  setupFlexibleLater: 'بعد میں لچک',
+  setupFlexibleLaterBody: 'آپ بعد میں CSV درآمد کر سکتے ہیں یا ہر چیز کو فائن ٹیون کر سکتے ہیں۔',
+  setupNoAccountsLinked: 'ابھی کوئی اکاؤنٹ نہیں جڑا',
+  setupNoAccountsBody: 'یہاں اپنا پہلا بینک یا کارڈ اکاؤنٹ جوڑیں۔ آپ سیٹ اپ کے بعد کیٹگریز اور درآمد کی تفصیلات کا انتظام کر سکتے ہیں۔',
+  setupImportLater: 'بعد میں CSV درآمد کرنا یا اکاؤنٹس کو فائن ٹیون کرنا چاہتے ہیں؟ آپ ہمیشہ ڈیش بورڈ امپورٹ سینٹر سے یہ سنبھال سکتے ہیں۔',
   // QA-2026-05-12 Bug #17: trial-banner translations
   trialBannerTitle: 'برکہ {plan} ٹرائل — {time}',
   trialBannerBody: 'ٹرائل ختم ہونے کے بعد بھی لامحدود ٹرانزیکشنز، بینک سنک، اور پریمیم رپورٹس برقرار رکھیں۔',
@@ -1191,6 +1297,40 @@ const ur: Translations = {
 };
 
 const fr: Translations = {
+  // 2026-05-19 (audit Bug #10): homeV2 landing-page strings. First-pass
+  // French by claude; FOUNDER TO REVIEW. Voice matches existing Tarifs/
+  // Comparer/Apprendre header tone (formal-but-warm, not Quebec slang).
+  homeV2HeroBrand: 'BARAKAH',
+  homeV2HeroHeadline: 'Calculez la zakat. Filtrez les actions halal. Planifiez votre succession islamique.',
+  homeV2HeroSubtitle: 'Pour les foyers musulmans qui veulent suivre, planifier et dépenser leur argent selon les principes de l’islam.',
+  homeV2HeroCtaPrimary: 'Commencer gratuitement',
+  homeV2HeroCtaSecondary: 'Voir comment ça marche ↓',
+  homeV2HeroFootnote: 'Sans carte bancaire. Sans configuration. Gratuit à vie pour le suivi de 10 transactions par mois.',
+  homeV2Strap1: 'Essai sans carte bancaire',
+  homeV2Strap2: 'iOS et Android',
+  homeV2Strap3: '4 madhabs pris en charge',
+  homeV2Strap4: 'Synchronisation bancaire sécurisée via Plaid',
+  homeV2FirstSessionWins: 'GAINS DÈS LA PREMIÈRE SESSION',
+  // 2026-05-19 (audit Bug #20): /setup wizard chrome — French. FOUNDER TO REVIEW.
+  setupBack: 'Configurer plus tard',
+  setupGuidedEyebrow: 'Configuration guidée',
+  setupTitle: 'Mettez en place votre foyer financier en quelques étapes paisibles.',
+  setupIntro: 'Choisissez comment démarrer, connectez vos comptes en toute sécurité et entrez dans Barakah avec une prochaine action claire plutôt qu’un tableau de bord vide.',
+  setupStepLabel: 'Étape',
+  setupStep1: 'Connecter les comptes',
+  setupStep2: 'Choisir un plan',
+  setupStep3: 'Définir votre priorité',
+  setupConnectHeading: 'Importez vos finances quotidiennes dans Barakah.',
+  setupConnectIntro: 'Connectez vos comptes bancaires et cartes en toute sécurité via Plaid. Vos identifiants restent chez votre banque, et vous pouvez toujours terminer le reste plus tard.',
+  setupReadOnly: 'Lecture seule',
+  setupReadOnlyBody: 'Barakah peut consulter les soldes et les transactions, sans déplacer d’argent.',
+  setupPoweredByPlaid: 'Propulsé par Plaid',
+  setupPoweredByPlaidBody: 'Un parcours de connexion bancaire familier auquel les utilisateurs font déjà confiance.',
+  setupFlexibleLater: 'Flexible plus tard',
+  setupFlexibleLaterBody: 'Vous pouvez toujours importer des CSV ou affiner les détails par la suite.',
+  setupNoAccountsLinked: 'Aucun compte connecté pour le moment',
+  setupNoAccountsBody: 'Connectez ici votre premier compte bancaire ou carte. Vous pouvez gérer les catégories et les détails d’importation après la configuration.',
+  setupImportLater: 'Besoin d’importer un CSV ou d’ajuster les comptes plus tard ? Vous pouvez le faire depuis le centre d’importation du tableau de bord, à tout moment.',
   // QA-2026-05-12 Bug #17: trial-banner translations
   trialBannerTitle: 'Votre essai Barakah {plan} — {time}',
   trialBannerBody: 'Conservez les transactions illimitées, la synchronisation bancaire et les rapports premium après la fin de votre essai.',

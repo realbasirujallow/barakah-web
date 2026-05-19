@@ -7,6 +7,7 @@ import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { Coins, Shield, ScrollText, Check, AlertCircle } from 'lucide-react';
 import { PRICING } from '../lib/pricing';
+import { useI18n } from '../lib/i18n';
 
 /**
  * Phase 20 (2026-04-30) — Homepage v2, founder-approved.
@@ -30,7 +31,9 @@ import { PRICING } from '../lib/pricing';
 // "Screen halal stocks." which (a) names the object, (b) matches the
 // "halal stock screener" search keyword the /halal-stocks page targets,
 // (c) keeps the same 3-3-3 verb-phrase rhythm of the hero.
-const HERO_LINE = 'Calculate zakat. Screen halal stocks. Plan your Islamic estate.';
+// 2026-05-19 (audit Bug #10): HERO_LINE removed — string now lives in
+// src/lib/i18n.ts under homeHeroHeadline so ar/fr/ur users get a
+// translated hero. The constant is dead.
 
 // Phase 20 (Apr 30 2026): three crafted product mockups. Each mockup is
 // a tiny React component that renders Tailwind cards mimicking the real
@@ -182,6 +185,10 @@ const OUTCOME_BLOCKS: Array<{
 export default function HomeV2() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  // 2026-05-19 (audit Bug #10): wire hero/strap/footnote to the locale-aware
+  // translation system. English defaults are in src/lib/i18n.ts; founder
+  // will author ar/fr/ur translations in the mirror dictionaries.
+  const { t } = useI18n();
 
   // Auth—redirect path same as current homepage.
   useEffect(() => {
@@ -198,49 +205,49 @@ export default function HomeV2() {
       <section className="px-6 py-20 md:py-24 text-center">
         <div className="max-w-3xl mx-auto">
           <p className="text-sm uppercase tracking-wider text-[#1B5E20] font-semibold mb-4">
-            🌙 Barakah
+            🌙 {t('homeV2HeroBrand')}
           </p>
           <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] leading-tight mb-5">
-            {HERO_LINE}
+            {t('homeV2HeroHeadline')}
           </h1>
           <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-2xl mx-auto leading-relaxed">
-            For Muslim households who want their money tracked, planned, and given the way Islam intends.
+            {t('homeV2HeroSubtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/signup"
               className="inline-flex items-center justify-center bg-[#1B5E20] text-white px-7 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition shadow-lg"
             >
-              Start free
+              {t('homeV2HeroCtaPrimary')}
             </Link>
             <a
               href="#how-it-works"
               className="inline-flex items-center justify-center bg-white border-2 border-[#1B5E20] text-[#1B5E20] px-7 py-3.5 rounded-xl font-bold hover:bg-green-50 transition"
             >
-              See how it works ↓
+              {t('homeV2HeroCtaSecondary')}
             </a>
           </div>
-          <p className="text-xs text-gray-500 mt-4">No credit card. No setup. Free forever for tracking up to 10 transactions/month.</p>
+          <p className="text-xs text-gray-500 mt-4">{t('homeV2HeroFootnote')}</p>
         </div>
       </section>
 
       {/* ── 2. Trust strip (logos + ratings) ──────────────────────────── */}
       <section className="bg-white py-6 px-6 border-y border-gray-100">
         <div className="max-w-5xl mx-auto flex items-center justify-center gap-6 flex-wrap text-xs text-gray-500">
-          <span>No credit card trial</span>
+          <span>{t('homeV2Strap1')}</span>
           <span>·</span>
-          <span>iOS &amp; Android</span>
+          <span>{t('homeV2Strap2')}</span>
           <span>·</span>
-          <span>4 madhabs supported</span>
+          <span>{t('homeV2Strap3')}</span>
           <span>·</span>
-          <span>Secure bank sync via Plaid</span>
+          <span>{t('homeV2Strap4')}</span>
         </div>
       </section>
 
       <section className="bg-[#FFF8E1] px-6 py-10 border-b border-amber-100">
         <div className="max-w-5xl mx-auto">
           <p className="text-center text-xs uppercase tracking-wider text-[#1B5E20] font-semibold mb-5">
-            First-session wins
+            {t('homeV2FirstSessionWins')}
           </p>
           <div className="grid md:grid-cols-3 gap-4">
             {[

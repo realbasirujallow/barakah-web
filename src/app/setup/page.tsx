@@ -23,6 +23,7 @@ import { PRICING } from '../../lib/pricing';
 import { isSetupComplete, markGuidedSetupComplete } from '../../lib/setup';
 import { hasPaidSyncAccess } from '../../lib/subscription';
 import { validateStripeUrl } from '../../lib/validateUrl';
+import { useI18n } from '../../lib/i18n';
 
 type BillingCycle = 'monthly' | 'yearly';
 
@@ -102,6 +103,9 @@ function SetupPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading, refreshPlan } = useAuth();
+  // 2026-05-19 (audit Bug #20): wire wizard chrome to locale-aware strings.
+  const { t } = useI18n();
+  const stepLabelsI18n = [t('setupStep1'), t('setupStep2'), t('setupStep3')] as const;
 
   const initialStep = searchParams.get('step') === 'connect' || searchParams.get('checkout') === 'success'
     ? 1
@@ -459,21 +463,21 @@ function SetupPageInner() {
             onClick={() => finishSetup('/dashboard', { skipped: true, skipFromStep: `step_${step}` })}
             className="text-sm font-medium text-gray-500 hover:text-[#1B5E20]"
           >
-            Set up later
+            {t('setupBack')}
           </button>
         </div>
 
         <div className="bg-white border border-green-100 rounded-[32px] shadow-sm overflow-hidden">
           <div className="bg-gradient-to-r from-[#1B5E20] via-[#2E7D32] to-[#3C9B55] text-white px-8 py-10">
             <div className="max-w-3xl">
-              <p className="text-sm uppercase tracking-[0.25em] text-green-100 mb-3">Guided Setup</p>
-              <h1 className="text-4xl font-bold leading-tight">Set up your financial home in a few calm steps.</h1>
+              <p className="text-sm uppercase tracking-[0.25em] text-green-100 mb-3">{t('setupGuidedEyebrow')}</p>
+              <h1 className="text-4xl font-bold leading-tight">{t('setupTitle')}</h1>
               <p className="text-green-100 mt-4 max-w-2xl">
-                Choose how you want to start, connect your accounts securely, and land inside Barakah with a clear next action instead of an empty dashboard.
+                {t('setupIntro')}
               </p>
             </div>
             <div className="grid sm:grid-cols-3 gap-3 mt-8">
-              {STEP_LABELS.map((label, index) => {
+              {stepLabelsI18n.map((label, index) => {
                 const active = index === step;
                 const completed = index < step;
                 return (
@@ -487,7 +491,7 @@ function SetupPageInner() {
                           : 'bg-black/10 border-white/10 text-green-100'
                     }`}
                   >
-                    <p className="text-xs uppercase tracking-wide opacity-80">Step {index + 1}</p>
+                    <p className="text-xs uppercase tracking-wide opacity-80">{t('setupStepLabel')} {index + 1}</p>
                     <p className="font-semibold mt-1">{label}</p>
                   </div>
                 );
@@ -584,24 +588,24 @@ function SetupPageInner() {
             {step === 0 && ( /* Connect accounts — first step */
               <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
                 <div className="rounded-3xl border border-green-100 bg-[#F9FCF9] p-6">
-                  <p className="text-sm font-semibold text-[#1B5E20]">Connect your accounts</p>
-                  <h2 className="text-3xl font-bold text-gray-900 mt-1">Bring your day-to-day finances into Barakah.</h2>
+                  <p className="text-sm font-semibold text-[#1B5E20]">{t('setupStep1')}</p>
+                  <h2 className="text-3xl font-bold text-gray-900 mt-1">{t('setupConnectHeading')}</h2>
                   <p className="text-gray-600 mt-3 max-w-xl">
-                    Connect supported bank and card accounts securely through Plaid. Your login credentials stay with your bank, and you can always finish the rest later.
+                    {t('setupConnectIntro')}
                   </p>
 
                   <div className="grid gap-3 sm:grid-cols-3 mt-6">
                     <div className="rounded-2xl bg-white border border-green-100 px-4 py-4">
-                      <p className="text-sm font-semibold text-gray-900">Read-only</p>
-                      <p className="text-xs text-gray-500 mt-1">Barakah can review balances and transactions, not move money.</p>
+                      <p className="text-sm font-semibold text-gray-900">{t('setupReadOnly')}</p>
+                      <p className="text-xs text-gray-500 mt-1">{t('setupReadOnlyBody')}</p>
                     </div>
                     <div className="rounded-2xl bg-white border border-green-100 px-4 py-4">
-                      <p className="text-sm font-semibold text-gray-900">Powered by Plaid</p>
-                      <p className="text-xs text-gray-500 mt-1">A familiar bank-connection flow users already trust.</p>
+                      <p className="text-sm font-semibold text-gray-900">{t('setupPoweredByPlaid')}</p>
+                      <p className="text-xs text-gray-500 mt-1">{t('setupPoweredByPlaidBody')}</p>
                     </div>
                     <div className="rounded-2xl bg-white border border-green-100 px-4 py-4">
-                      <p className="text-sm font-semibold text-gray-900">Flexible later</p>
-                      <p className="text-xs text-gray-500 mt-1">You can still import CSVs or fine-tune everything afterward.</p>
+                      <p className="text-sm font-semibold text-gray-900">{t('setupFlexibleLater')}</p>
+                      <p className="text-xs text-gray-500 mt-1">{t('setupFlexibleLaterBody')}</p>
                     </div>
                   </div>
 
@@ -662,7 +666,7 @@ function SetupPageInner() {
                       <p className="text-sm font-semibold text-[#1B5E20]">Connection status</p>
                       <h3 className="text-2xl font-bold text-gray-900 mt-1">
                         {plaidAccounts.length === 0
-                          ? 'No accounts linked yet'
+                          ? t('setupNoAccountsLinked')
                           : `${plaidAccounts.length} account${plaidAccounts.length === 1 ? '' : 's'} linked`}
                       </h3>
                     </div>
@@ -672,7 +676,7 @@ function SetupPageInner() {
                   <div className="mt-6 space-y-3">
                     {plaidAccounts.length === 0 && (
                       <div className="rounded-2xl bg-[#F7FAF7] border border-dashed border-green-200 px-4 py-5 text-sm text-gray-500">
-                        Connect your first bank or card account here. You can always manage categories and import details after setup.
+                        {t('setupNoAccountsBody')}
                       </div>
                     )}
 
@@ -701,7 +705,7 @@ function SetupPageInner() {
                   </div>
 
                   <p className="mt-6 text-xs leading-6 text-gray-500">
-                    Need to import a CSV or fine-tune accounts later? You can always handle that from the dashboard import center after setup.
+                    {t('setupImportLater')}
                   </p>
                 </div>
               </div>

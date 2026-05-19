@@ -28,6 +28,13 @@ interface RibaFlag {
   riskScore: number;
   flagDetails: string[];
   islamicAlternatives: string[];
+  // 2026-05-19 (audit Bug #16): true when the matched keyword is a loan-
+  // payment pattern (mortgage/student/auto/personal loan payment). Such
+  // tx contain principal (halal — paying back what you borrowed) + interest
+  // (riba) in unknown proportions. The full amount is NOT riba; backend
+  // excludes it from totalRibaAmount. UI must NOT show the full amount
+  // as a purifiable riba figure.
+  principalContaminated?: boolean;
 }
 
 interface RibaResult {
@@ -61,6 +68,8 @@ interface RibaApiTransaction {
   flags?: string[];
   flagDetails?: string[];
   islamicAlternatives?: string[] | Record<string, string>;
+  // 2026-05-19 (audit Bug #16): see RibaFlag.principalContaminated.
+  principalContaminated?: boolean;
 }
 
 interface RibaScanResponse {
@@ -258,6 +267,7 @@ export default function RibaPage() {
               islamicAlternatives: tx.islamicAlternatives
                 ? Object.values(tx.islamicAlternatives)
                 : [],
+              principalContaminated: tx.principalContaminated ?? false,
             })),
           });
         }
@@ -689,7 +699,16 @@ export default function RibaPage() {
                       <p className="text-sm text-gray-500">{tx.date && !isNaN(new Date(tx.date).getTime()) ? new Date(tx.date).toLocaleDateString(dateLocale) : ''}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-red-600">{fmt(tx.amount)}</p>
+                      {tx.principalContaminated ? (
+                        <>
+                          <p className="text-sm font-semibold text-amber-700" title="Contains principal (halal) plus interest (riba) in unknown proportions. Only the interest portion is riba; check your lender statement.">
+                            Contains riba
+                          </p>
+                          <p className="text-xs text-gray-500">{fmt(tx.amount)} total</p>
+                        </>
+                      ) : (
+                        <p className="text-lg font-bold text-red-600">{fmt(tx.amount)}</p>
+                      )}
                       <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                         tx.riskLevel === 'HIGH' ? 'bg-red-100 text-red-700' :
                         tx.riskLevel === 'MEDIUM' ? 'bg-orange-100 text-orange-700' :
@@ -726,11 +745,20 @@ export default function RibaPage() {
                       without forcing the user to navigate + retype. */}
                   <div className="mt-4 pt-3 border-t border-red-100 flex items-center justify-between gap-3 flex-wrap">
                     <p className="text-xs text-gray-500">
-                      Scholars agree interest income must be donated to charity — not kept.
+                      {tx.principalContaminated
+                        ? 'Loan payments contain principal (halal) + interest (riba). Only the interest portion needs purification — check your lender statement for the breakdown.'
+                        : 'Scholars agree interest income must be donated to charity — not kept.'}
                     </p>
                     {purifiedTxnIds.has(tx.transactionId) ? (
                       <span className="text-sm font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-lg">
                         ✓ Marked purified
+                      </span>
+                    ) : tx.principalContaminated ? (
+                      <span
+                        className="text-xs font-medium text-amber-700 bg-amber-50 px-3 py-1.5 rounded-lg whitespace-nowrap"
+                        title="Purify only the interest portion from your lender statement, not the full payment."
+                      >
+                        Verify interest portion
                       </span>
                     ) : (
                       <button
