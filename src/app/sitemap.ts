@@ -145,6 +145,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/halal-stocks/googl`,      changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
     { url: `${baseUrl}/halal-stocks/meta`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
     { url: `${baseUrl}/halal-stocks/nflx`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    // 2026-05-20 (SEO-6): four new tickers
+    { url: `${baseUrl}/halal-stocks/orcl`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/halal-stocks/crm`,        changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/halal-stocks/amd`,        changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/halal-stocks/adbe`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
 
 
     // ── Fiqh Terms Glossary ──────────────────────────────────────────────────

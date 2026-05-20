@@ -35,6 +35,13 @@ const tickers = [
   { symbol: 'AMZN', name: 'Amazon.com', sector: 'Consumer / Tech', note: 'Verify ratios' },
   { symbol: 'NVDA', name: 'NVIDIA Corporation', sector: 'Technology', note: 'Generally halal' },
   { symbol: 'TSLA', name: 'Tesla, Inc.', sector: 'Automotive / Tech', note: 'Historically varied' },
+  { symbol: 'GOOGL', name: 'Alphabet Inc.', sector: 'Technology', note: 'Verify ratios' },
+  { symbol: 'META', name: 'Meta Platforms', sector: 'Technology', note: 'Verify ratios' },
+  { symbol: 'NFLX', name: 'Netflix, Inc.', sector: 'Media / Tech', note: 'Verify ratios' },
+  { symbol: 'ORCL', name: 'Oracle Corporation', sector: 'Technology', note: 'Verify debt ratio' },
+  { symbol: 'CRM', name: 'Salesforce, Inc.', sector: 'Technology', note: 'Generally halal' },
+  { symbol: 'AMD', name: 'Advanced Micro Devices', sector: 'Technology', note: 'Generally halal' },
+  { symbol: 'ADBE', name: 'Adobe Inc.', sector: 'Technology', note: 'Generally halal' },
 ];
 
 export default function HalalStocksHub() {
