@@ -84,15 +84,19 @@ function numberLocaleForUi(
   uiLocale: string | null | undefined,
   country: string | null | undefined,
 ): string {
+  // The digit SCRIPT must follow the UI language in BOTH directions:
+  //   English UI  → Latin digits   (en-*)
+  //   Arabic UI   → Arabic digits  (ar-*)
+  //   Urdu UI     → Urdu digits    (ur-*)
+  // Country is used only as the REGION subtag (date order / grouping) and
+  // only when its language already matches the UI — otherwise the UI
+  // language wins the script and we keep the region.
   const regional = dateLocaleForCountry(country); // e.g. 'en-GB','ar-SA','ur-PK','fr-FR'
-  const uiBase = (uiLocale || 'en').toLowerCase().split('-')[0];
-  const regionalBase = regional.toLowerCase().split('-')[0];
-  const nativeDigits = (b: string) => b === 'ar' || b === 'ur' || b === 'fa';
-  if (nativeDigits(regionalBase) && !nativeDigits(uiBase)) {
-    const region = regional.split('-')[1];
-    return region ? `${uiBase}-${region}` : uiBase; // e.g. Saudi + English UI → 'en-SA'
-  }
-  return regional;
+  const ui = (uiLocale || 'en').toLowerCase().split('-')[0];
+  const regionalLang = regional.toLowerCase().split('-')[0];
+  const region = regional.split('-')[1];
+  if (ui === regionalLang) return regional;       // scripts agree → best of both
+  return region ? `${ui}-${region}` : ui;          // UI wins script, keep region (e.g. 'en-SA', 'ar-US')
 }
 
 // Dev-only trace hook. In production these traces would add noise to
