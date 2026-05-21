@@ -10164,6 +10164,15 @@ export function setLocale(locale: string) {
     } catch {
       /* DOM not ready — pre-paint script has us covered */
     }
+    // LOC-1 (2026-05-21): number/date formatting now follows the UI language
+    // (see useCurrency.localeSnapshot). Notify useCurrency subscribers in this
+    // tab so amounts/dates repaint immediately on a language switch, not just
+    // on the next reload.
+    try {
+      window.dispatchEvent(new Event('barakah:currency-change'));
+    } catch {
+      /* SSR safety */
+    }
   }
   emitLocaleChange();
 }

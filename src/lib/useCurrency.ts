@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useSyncExternalStore } from 'react';
+import { getLocale } from './i18n';
 
 const CURRENCY_KEY = 'barakah_preferred_currency';
 /**
@@ -34,7 +35,9 @@ const CURRENCY_CHANGE_EVENT = 'barakah:currency-change';
 function subscribe(cb: () => void): () => void {
   if (typeof window === 'undefined') return () => {};
   const onStorage = (e: StorageEvent) => {
-    if (e.key === CURRENCY_KEY || e.key === NUMBER_LOCALE_KEY) cb();
+    // LOC-1: also repaint when the UI language changes (now drives number/
+    // date formatting) — covers cross-tab language switches.
+    if (e.key === CURRENCY_KEY || e.key === NUMBER_LOCALE_KEY || e.key === 'barakah_locale') cb();
   };
   window.addEventListener('storage', onStorage);
   window.addEventListener(CURRENCY_CHANGE_EVENT, cb);
@@ -55,17 +58,27 @@ function serverSnapshot(): string {
 
 function localeSnapshot(): string | undefined {
   if (typeof window === 'undefined') return undefined;
-  // Round 27 (Apr 27 2026): priority is now
+  // LOC-1 fix (2026-05-21): priority is now
   //   1. `barakah_number_locale` (explicit user override for numbers)
-  //   2. `navigator.language` (browser default — matches OS locale)
-  //   3. undefined → `Intl.NumberFormat` picks the user-agent default
+  //   2. `barakah_locale` (the active UI language) — matches mobile, which
+  //      formats numbers/dates from the app locale via Localizations.localeOf.
+  //   3. `navigator.language` (browser/OS default)
+  //   4. undefined → Intl picks the user-agent default
   //
-  // We do NOT read `barakah_locale` anymore — that's the UI translation
-  // locale, which should not control number formatting. (Previously
-  // they were aliased and a user picking French in the language switcher
-  // got "0,00 $US" everywhere they expected "$0.00".)
+  // Why this changed from Round 27 (which used navigator.language at #2):
+  // an English-UI user on an Arabic/Urdu *browser* saw Arabic-Indic digits
+  // and Arabic Gregorian dates ("٤ ذو الحجة ١٤٤٧", net worth "٠٫٠٠ US$")
+  // — looked broken/inconsistent. Tying formatting to the chosen UI language
+  // makes English UI render Latin digits, Arabic UI render Arabic digits, and
+  // brings web to parity with mobile. Explicit `barakah_number_locale` still
+  // wins for the "Spanish UI, en-US numbers" power-user case.
+  // getLocale() is the i18n module's ACTIVE UI locale and defaults to 'en'
+  // even when nothing is persisted (a default-English user never writes
+  // barakah_locale). Using it — rather than localStorage or navigator.language
+  // — guarantees English UI → Latin digits, Arabic UI → Arabic digits.
   return (
     localStorage.getItem(NUMBER_LOCALE_KEY) ||
+    getLocale() ||
     (typeof navigator !== 'undefined' ? navigator.language : undefined) ||
     undefined
   );

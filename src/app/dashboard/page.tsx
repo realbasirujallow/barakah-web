@@ -520,7 +520,10 @@ export default function DashboardPage() {
     <div>
       {/* Onboarding Wizard for first-time users */}
       {showOnboarding && <OnboardingWizard onComplete={() => setShowOnboarding(false)} />}
-      {!showOnboarding && showReferralPrompt && <ReferralPromptModal onDismiss={dismissReferralPrompt} />}
+      {/* REF-1 (2026-05-21): don't ask for referrals before the user has
+          experienced any value. Gated on !hasNoData so a brand-new empty
+          account never sees the modal; it surfaces once they have data. */}
+      {!showOnboarding && !hasNoData && showReferralPrompt && <ReferralPromptModal onDismiss={dismissReferralPrompt} />}
 
       {/* Trial Expired Banner */}
       {isTrialExpired && (
@@ -664,7 +667,12 @@ export default function DashboardPage() {
           data is already fetched by the dashboard's main load — no
           new API calls. The card hides itself when there's nothing
           worth showing (no insights AND no usable deltas). */}
-      {(insights.length > 0 || widgets?.netWorthMini || widgets?.spending) && (
+      {/* EMPTY-1 (2026-05-21): hide the weekly recap for brand-new accounts
+          with no data — a recap of $0.00 / "—" reads as empty/fake. The
+          existing condition was too loose (netWorthMini is a non-null object
+          even at zero). The "Connect your bank" advice card below is the right
+          first-run call to action. */}
+      {!hasNoData && (insights.length > 0 || widgets?.netWorthMini || widgets?.spending) && (
         <WeeklyRecap
           netWorthChangeAmount={widgets?.netWorthMini?.changeAmount ?? null}
           netWorthChangePercent={widgets?.netWorthMini?.changePercent ?? null}
@@ -686,7 +694,7 @@ export default function DashboardPage() {
           a 50% discount on their FIRST PAID month after the trial.
           Founder feedback: "this is fake since everyone gets 1 month
           free of family plan." Closing the dishonesty gap. */}
-      {!referralBannerDismissed && !showReferralPrompt && (
+      {!referralBannerDismissed && !showReferralPrompt && !hasNoData && (
         // 2026-05-12 overnight QA (UI-005): the floating "Ask Barakah" +
         // "Feedback" FAB pills at fixed bottom-right used to overlap the
         // banner's right-edge Share button + dismiss × on shorter

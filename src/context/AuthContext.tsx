@@ -71,6 +71,30 @@ function dateLocaleForCountry(country: string | null | undefined): string {
   }
 }
 
+// LOC-1 (2026-05-21): the number/date formatting locale must follow the UI
+// LANGUAGE's script. An English (or French/German…) UI must NEVER render
+// Arabic-Indic digits or Arabic month names — even for a user whose COUNTRY
+// is in the Gulf — because that reads as "broken/inconsistent" (founder
+// report: English dashboard showing "٤ ذو الحجة ١٤٤٧" and "٠٫٠٠ US$").
+// We keep the country as the region subtag (preserves date order + grouping)
+// but coerce the language tag to the UI's when the country locale would
+// otherwise flip the digit script under a Latin-script UI. Mirrors mobile,
+// which formats from the app locale (Localizations.localeOf), not country.
+function numberLocaleForUi(
+  uiLocale: string | null | undefined,
+  country: string | null | undefined,
+): string {
+  const regional = dateLocaleForCountry(country); // e.g. 'en-GB','ar-SA','ur-PK','fr-FR'
+  const uiBase = (uiLocale || 'en').toLowerCase().split('-')[0];
+  const regionalBase = regional.toLowerCase().split('-')[0];
+  const nativeDigits = (b: string) => b === 'ar' || b === 'ur' || b === 'fa';
+  if (nativeDigits(regionalBase) && !nativeDigits(uiBase)) {
+    const region = regional.split('-')[1];
+    return region ? `${uiBase}-${region}` : uiBase; // e.g. Saudi + English UI → 'en-SA'
+  }
+  return regional;
+}
+
 // Dev-only trace hook. In production these traces would add noise to
 // DevTools and pollute any UI/infra log capture; Sentry already receives
 // the exceptional paths via the 401 handler + getSentry() pipeline.
@@ -190,9 +214,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user?.preferredCurrency) {
       saveCurrencyPreference(user.preferredCurrency);
     }
-    if (user?.country) {
-      saveLocalePreference(dateLocaleForCountry(user.country));
-    }
     // 2026-05-10 (B-RTL-DIR + B-L10N-NO-SWITCH): also auto-derive the UI
     // translation locale from country so an SA / PK / AE user lands on
     // RTL Arabic / Urdu by default instead of English. The pre-paint
@@ -225,6 +246,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch { /* SSR / private mode — pre-paint script and CSS still cover the basics */ }
+    // LOC-1 (2026-05-21): set the number/date formatting locale AFTER the UI
+    // locale is finalized above, and base it on that FINAL UI locale's script
+    // (getI18nLocale) — not navigator.language or raw country. English UI →
+    // Latin digits even for a Gulf-country user; Arabic UI → Arabic digits.
+    // Set unconditionally so a stale value left by a previous user on a shared
+    // device (e.g. 'ar-SA') is overwritten on every login. Mirrors mobile.
+    if (user) {
+      saveLocalePreference(numberLocaleForUi(getI18nLocale(), user.country));
+    }
   }, [user?.preferredCurrency, user?.country]);
 
   useEffect(() => {
