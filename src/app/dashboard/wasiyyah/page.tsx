@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import ModalShell from '../../../components/ui/ModalShell';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n } from '../../../lib/i18n';
@@ -655,7 +656,7 @@ function WasiyyahPageContent() {
 
       {/* ── Islamic Shares Info Modal ── */}
       {showSharesInfo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowSharesInfo(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-2xl">📖</span>
@@ -691,12 +692,12 @@ function WasiyyahPageContent() {
               {t('wasClose')}
             </button>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* ── Add Beneficiary Modal ── */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowForm(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-primary mb-4">{t('wasAddBenefTitle')}</h2>
             {formError && (
@@ -809,12 +810,12 @@ function WasiyyahPageContent() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* ── Add Obligation Modal ── */}
       {showObForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowObForm(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-primary mb-1">{t('wasRecordObTitle')}</h2>
             <p className="text-sm text-gray-500 mb-4">{t('wasRecordObSubtitle')}</p>
@@ -905,12 +906,12 @@ function WasiyyahPageContent() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* ── Delete Confirmation Modal ── */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setDeleteConfirmId(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <div className="flex items-start gap-3 mb-4">
               <span className="text-2xl">🗑️</span>
@@ -924,7 +925,7 @@ function WasiyyahPageContent() {
               <button onClick={confirmDeleteItem} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('wasRemove')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </div>
   );

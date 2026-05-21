@@ -9,6 +9,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
+import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n, t as tStandalone, tFmt as tFmtStandalone } from '../../../lib/i18n';
 import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon } from 'lucide-react';
@@ -1309,7 +1310,7 @@ export default function TransactionsPage() {
            handles the page-scroll-behind-modal complaint without any
            structural change. */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowForm(false)}>
           <div
             ref={formModalRef}
             role="dialog"
@@ -1441,12 +1442,12 @@ export default function TransactionsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* ── Delete confirmation modal ─────────────────────────────────────── */}
       {deleteConfirmation && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setDeleteConfirmation(null)}>
           <div
             ref={deleteModalRef}
             role="dialog"
@@ -1487,7 +1488,7 @@ export default function TransactionsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* ── Split transaction modal (2026-05-10) ─────────────────────────── */}
@@ -1627,13 +1628,12 @@ function SplitTransactionModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <ModalShell onClose={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="split-modal-title"
         className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
-        onClick={e => e.stopPropagation()}
       >
         <div className="p-5 border-b">
           <div className="flex items-start justify-between gap-3">
@@ -1754,6 +1754,6 @@ function SplitTransactionModal({
           </div>
         </div>
       </div>
-    </div>
+    </ModalShell>
   );
 }

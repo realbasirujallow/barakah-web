@@ -9,6 +9,7 @@ import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
+import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { SkeletonPage } from '../SkeletonCard';
 import EmptyState from '../../../components/EmptyState';
@@ -678,7 +679,7 @@ export default function AssetsPage() {
       )}
 
       {confirmAction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setConfirmAction(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <p className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
@@ -686,11 +687,11 @@ export default function AssetsPage() {
               <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <ModalShell onClose={() => setShowForm(false)} className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md my-4">
             <h2 className="text-xl font-bold text-primary mb-4">{editItem ? 'Edit Asset' : 'Add Asset'}</h2>
             <div className="space-y-4">
@@ -855,7 +856,7 @@ export default function AssetsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </div>
   );

@@ -936,8 +936,9 @@ export default function ProfilePage() {
           role="dialog"
           aria-modal="true"
           aria-labelledby={showDeleteConfirm ? 'delete-account-final-title' : 'delete-account-title'}
+          onClick={() => setShowRetentionModal(false)}
         >
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
             {!showDeleteConfirm ? (
               <div className="p-6">
                 <div className="text-center mb-4">

@@ -7,6 +7,7 @@ import { useToast } from '../../../lib/toast';
 import { useCurrency } from '../../../lib/useCurrency';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import EmptyState from '../../../components/EmptyState';
+import ModalShell from '../../../components/ui/ModalShell';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
@@ -822,7 +823,7 @@ export default function InvestmentsPage() {
 
       {/* Add Account Modal */}
       {showAccountForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowAccountForm(false)}>
           <div
             ref={accountModalRef}
             role="dialog"
@@ -878,12 +879,12 @@ export default function InvestmentsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* Add Holding Modal */}
       {addHoldingFor !== null && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setAddHoldingFor(null)}>
           <div
             ref={holdingModalRef}
             role="dialog"
@@ -963,10 +964,10 @@ export default function InvestmentsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
       {confirmAction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setConfirmAction(null)}>
           <div
             ref={confirmModalRef}
             role="dialog"
@@ -980,7 +981,7 @@ export default function InvestmentsPage() {
               <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </div>
   );

@@ -8,6 +8,7 @@ import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 import { safeParse, safeParseWithFallback, validateZakatCalculation, validateZakatPaymentsResponse, validateNisabInfo, formatTimeAgo } from '../../../lib/schemas';
 import ShareReceiptButton from '../../../components/ShareReceiptButton';
+import ModalShell from '../../../components/ui/ModalShell';
 import HistoricalZakatModal from '../../../components/HistoricalZakatModal';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n } from '../../../lib/i18n';
@@ -1548,7 +1549,7 @@ export default function ZakatPage() {
 
       {/* Eligibility Checklist Modal */}
       {showChecklist && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowChecklist(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-primary mb-4">{t('zktChecklistTitle')}</h2>
             <p className="text-sm text-gray-600 mb-4">{t('zktChecklistDesc')}</p>
@@ -1622,12 +1623,12 @@ export default function ZakatPage() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* Payment Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <ModalShell onClose={() => setShowForm(false)} className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md my-8">
             <h2 className="text-xl font-bold text-primary mb-2">{tFmt('zktRecordPaymentTitleFmt', [lunarYear])}</h2>
 
@@ -1713,12 +1714,12 @@ export default function ZakatPage() {
               <button onClick={handleSavePayment} disabled={saving || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? t('zktSaving') : t('zktRecord')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* Mabrook Dialog */}
       {showMabrook && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowMabrook(false)}>
           <div className="bg-white rounded-2xl p-8 w-full max-w-sm text-center">
             <p className="text-6xl mb-4">🌟</p>
             <h2 className="text-2xl font-bold text-primary mb-2">{t('zktMabrook')}</h2>
@@ -1727,10 +1728,10 @@ export default function ZakatPage() {
             <p className="text-gray-400 italic mb-6">تقبل الله منك</p>
             <button onClick={() => setShowMabrook(false)} className="w-full bg-primary text-primary-foreground rounded-lg py-3 hover:bg-primary/90 font-medium">{t('zktJazakallah')}</button>
           </div>
-        </div>
+        </ModalShell>
       )}
       {confirmAction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setConfirmAction(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <p className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
@@ -1738,7 +1739,7 @@ export default function ZakatPage() {
               <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('zktConfirm')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
       <HistoricalZakatModal
         currentLunarYear={lunarYear}

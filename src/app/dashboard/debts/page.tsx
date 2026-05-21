@@ -8,6 +8,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
+import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { SkeletonPage } from '../SkeletonCard';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
@@ -875,7 +876,7 @@ export default function DebtsPage() {
 
       {/* Add / Edit Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowForm(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-primary mb-4">{editDebt ? t('debtModalEdit') : t('debtModalAdd')}</h2>
             <div className="space-y-4">
@@ -905,12 +906,12 @@ export default function DebtsPage() {
               <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.totalAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? t('debtFormSaving') : editDebt ? t('debtFormUpdate') : t('debtFormSave')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* Pay Modal */}
       {payModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setPayModal(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <h2 className="text-xl font-bold text-primary mb-2">{t('debtPayModalTitle')}</h2>
             <p className="text-gray-500 text-sm mb-4">{tFmt('debtPayModalSubtitleFmt', [payModal.name, fmt(payModal.remainingAmount)])}</p>
@@ -922,10 +923,10 @@ export default function DebtsPage() {
               <button type="button" onClick={handlePay} disabled={saving || !payAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? t('debtPayProcessing') : t('debtPayBtnGo')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
       {confirmAction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setConfirmAction(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <p className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
@@ -933,7 +934,7 @@ export default function DebtsPage() {
               <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('debtConfirmBtn')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </div>
   );

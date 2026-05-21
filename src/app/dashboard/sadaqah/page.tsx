@@ -7,6 +7,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import ModalShell from '../../../components/ui/ModalShell';
 import { useI18n } from '../../../lib/i18n';
 import { SkeletonPage } from '../SkeletonCard';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
@@ -356,7 +357,7 @@ function SadaqahContent() {
 
       {/* Add Sadaqah modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowForm(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-primary mb-4">{t('sadaqahModalTitle')}</h2>
             <div className="space-y-4">
@@ -380,12 +381,12 @@ function SadaqahContent() {
               <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? t('sadaqahSaving') : t('sadaqahRecord')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* ── Delete confirmation modal ─────────────────────────────────── */}
       {deleteConfirmId !== null && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setDeleteConfirmId(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <div className="flex items-start gap-3 mb-4">
               <span className="text-2xl">🗑️</span>
@@ -399,7 +400,7 @@ function SadaqahContent() {
               <button onClick={confirmDeleteSadaqah} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('sadaqahDelete')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </div>
   );

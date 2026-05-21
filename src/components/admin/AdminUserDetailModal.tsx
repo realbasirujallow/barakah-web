@@ -16,7 +16,7 @@
  * updates still roll in without prop drilling the whole response shape.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
 import ViewAsUserButton from '../ViewAsUserButton';
 import { useBodyScrollLock } from '../../lib/useBodyScrollLock';
@@ -255,6 +255,14 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
     setSelected,
     setUsersData,
     onClose,
+  } = props;
+  // Escape-key closes (backdrop click + stopPropagation already handled below).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  const {
     onSavePlan,
     onResetPassword,
     onResendVerification,

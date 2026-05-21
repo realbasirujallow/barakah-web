@@ -19,6 +19,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../../lib/api';
 import { useToast } from '../../lib/toast';
+import ModalShell from '../ui/ModalShell';
 import type {
   AdminFeatureFlag,
   FeatureFlagResults,
@@ -427,14 +428,11 @@ function CreateModal({
   };
 
   return (
-    // 2026-05-02 (revert): centered pattern restored, see
-    // AdminUserDetailModal for context.
-    <div
-      onClick={onClose}
+    <ModalShell
+      onClose={onClose}
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
     >
       <div
-        onClick={e => e.stopPropagation()}
         className="bg-white rounded-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto"
       >
         <h3 className="text-xl font-bold text-[#1B5E20] mb-4">New experiment</h3>
@@ -570,7 +568,7 @@ function CreateModal({
           </button>
         </div>
       </div>
-    </div>
+    </ModalShell>
   );
 }
 

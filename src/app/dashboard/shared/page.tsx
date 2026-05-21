@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import ModalShell from '../../../components/ui/ModalShell';
 import EmptyState from '../../../components/EmptyState';
 
 interface Group {
@@ -829,7 +830,7 @@ export default function SharedPage() {
 
         {/* Add Transaction Modal */}
         {showAddTx && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <ModalShell onClose={() => setShowAddTx(false)}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
               <h2 className="text-xl font-bold text-primary mb-4">Add Transaction</h2>
               <div className="space-y-4">
@@ -879,12 +880,12 @@ export default function SharedPage() {
                 </button>
               </div>
             </div>
-          </div>
+          </ModalShell>
         )}
 
         {/* Add Budget Modal */}
         {showAddBudget && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <ModalShell onClose={() => setShowAddBudget(false)}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
               <h2 className="text-xl font-bold text-primary mb-4">Add Budget</h2>
               <div className="space-y-4">
@@ -924,12 +925,12 @@ export default function SharedPage() {
                 </button>
               </div>
             </div>
-          </div>
+          </ModalShell>
         )}
 
         {/* Add Goal Modal */}
         {showAddGoal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <ModalShell onClose={() => setShowAddGoal(false)}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
               <h2 className="text-xl font-bold text-primary mb-4">Add Goal</h2>
               <div className="space-y-4">
@@ -988,12 +989,12 @@ export default function SharedPage() {
                 </button>
               </div>
             </div>
-          </div>
+          </ModalShell>
         )}
 
         {/* Contribute to Goal Modal */}
         {showContributeGoal !== null && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <ModalShell onClose={() => setShowContributeGoal(null)}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
               <h2 className="text-xl font-bold text-primary mb-4">Contribute to Goal</h2>
               <div>
@@ -1022,7 +1023,7 @@ export default function SharedPage() {
                 </button>
               </div>
             </div>
-          </div>
+          </ModalShell>
         )}
       </div>
     );
@@ -1084,7 +1085,7 @@ export default function SharedPage() {
 
       {/* Create Group Modal */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowCreateForm(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-primary mb-4">Create Shared Group</h2>
             <div className="space-y-4">
@@ -1123,12 +1124,12 @@ export default function SharedPage() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* Join Group Modal */}
       {showJoinForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowJoinForm(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-primary mb-4">Join a Group</h2>
             <div>
@@ -1157,10 +1158,10 @@ export default function SharedPage() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
       {confirmAction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setConfirmAction(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <p className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
@@ -1168,7 +1169,7 @@ export default function SharedPage() {
               <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </div>
   );

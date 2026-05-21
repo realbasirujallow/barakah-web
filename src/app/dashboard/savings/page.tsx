@@ -8,6 +8,7 @@ import { useToast } from '../../../lib/toast';
 import { SkeletonPage } from '../SkeletonCard';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import EmptyState from '../../../components/EmptyState';
+import ModalShell from '../../../components/ui/ModalShell';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
@@ -398,7 +399,7 @@ export default function SavingsPage() {
 
       {/* ── New goal modal ─────────────────────────────────────────────────── */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowForm(false)}>
           <div
             ref={formModalRef}
             role="dialog"
@@ -434,12 +435,12 @@ export default function SavingsPage() {
               <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.targetAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Create'}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* ── Contribute modal ───────────────────────────────────────────────── */}
       {contModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setContModal(null)}>
           <div
             ref={contModalRef}
             role="dialog"
@@ -457,10 +458,10 @@ export default function SavingsPage() {
               <button type="button" onClick={handleContribute} disabled={saving || !contAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Contribute'}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
       {confirmAction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setConfirmAction(null)}>
           <div
             ref={confirmModalRef}
             role="dialog"
@@ -474,7 +475,7 @@ export default function SavingsPage() {
               <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </div>
   );

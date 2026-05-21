@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
+import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n } from '../../../lib/i18n';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
@@ -403,7 +404,7 @@ export default function WaqfPage() {
 
       {/* Contribution modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowForm(false)}>
           <div
             ref={formModalRef}
             role="dialog"
@@ -434,12 +435,12 @@ export default function WaqfPage() {
               <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? t('waqfSaving') : editItem ? t('waqfUpdate') : t('waqfAdd')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* Beneficiary modal */}
       {showBenefForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowBenefForm(false)}>
           <div
             ref={benefModalRef}
             role="dialog"
@@ -471,10 +472,10 @@ export default function WaqfPage() {
               <button onClick={handleSaveBenef} disabled={savingBenef || !benefForm.name || !benefForm.percentage} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{savingBenef ? t('waqfSaving') : editBenef ? t('waqfUpdate') : t('waqfAdd')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
       {confirmAction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setConfirmAction(null)}>
           <div
             ref={confirmModalRef}
             role="dialog"
@@ -488,7 +489,7 @@ export default function WaqfPage() {
               <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('waqfConfirm')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </div>
   );

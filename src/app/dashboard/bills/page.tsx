@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
+import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n, t as tStandalone, tFmt as tFmtStandalone } from '../../../lib/i18n';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
@@ -618,7 +619,7 @@ export default function BillsPage() {
 
       {/* Add / Edit Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowForm(false)}>
           <div
             ref={formModalRef}
             role="dialog"
@@ -700,12 +701,12 @@ export default function BillsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* ── Delete confirmation modal ─────────────────────────────────────── */}
       {deleteConfirmation !== null && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setDeleteConfirmation(null)}>
           <div
             ref={deleteModalRef}
             role="dialog"
@@ -739,7 +740,7 @@ export default function BillsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </div>
   );

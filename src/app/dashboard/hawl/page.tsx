@@ -5,6 +5,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { toHijri } from '../../../lib/format';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import ModalShell from '../../../components/ui/ModalShell';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n } from '../../../lib/i18n';
@@ -715,7 +716,7 @@ function HawlPageContent() {
       </div>
 
       {confirmAction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setConfirmAction(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <p className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
@@ -723,12 +724,12 @@ function HawlPageContent() {
               <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('hawlConfirm')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* Reset with Reason Modal */}
       {resetModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setResetModal(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <h3 className="text-lg font-bold text-gray-900 mb-2">{t('hawlResetTitle')}</h3>
             <p className="text-sm text-gray-600 mb-4">{t('hawlResetDesc')}</p>
@@ -754,11 +755,11 @@ function HawlPageContent() {
               <button type="button" onClick={handleResetConfirm} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('hawlResetBtn')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalShell onClose={() => setShowForm(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-primary mb-4">{t('hawlModalTitle')}</h2>
             <div className="space-y-4">
@@ -781,7 +782,7 @@ function HawlPageContent() {
               <button type="button" onClick={handleSave} disabled={saving || !form.assetName || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? t('hawlSavingBtn') : t('hawlTrackBtn')}</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </div>
   );
