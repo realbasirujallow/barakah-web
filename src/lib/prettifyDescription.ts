@@ -76,6 +76,15 @@ const PATTERNS: Pattern[] = [
     regex: /^(?:Payment\s+to|Sent\s+to|Transfer\s+to)\s+([^]+?)(?:\s+REF|\s+ID[:=]|$)/i,
     extract: m => m[1],
   },
+  // 8. "<servicer> MTG PYMT[S] WEB ID:..." mortgage ACH debits, e.g.
+  //    "FREEDOM MTG PYMTS WEB ID: 1234" → "Freedom Mortgage". Without this the
+  //    blob has no extractable merchant and the row falls back to the funding
+  //    bank ("Chase").
+  {
+    name: 'MTG PYMT',
+    regex: /^([A-Z][A-Z\s.&'-]+?)\s+MTG\s+(?:PYMTS?|PMT|PAYMENT)\b/i,
+    extract: m => `${titleCase(m[1])} Mortgage`,
+  },
 ];
 
 /**

@@ -19,6 +19,11 @@ describe('prettifyDescription', () => {
     ).toBe('IN 529');
   });
 
+  it('compresses mortgage MTG PYMT ACH blob to "<Name> Mortgage"', () => {
+    expect(prettifyDescription('FREEDOM MTG PYMTS WEB ID: 1234567890')).toBe('Freedom Mortgage');
+    expect(prettifyDescription('ROCKET MTG PMT WEB ID: 9')).toBe('Rocket Mortgage');
+  });
+
   it('extracts merchant from EXTERNAL TRANSFER FROM', () => {
     expect(prettifyDescription('EXTERNAL TRANSFER FROM CHASE COLLEGE *5335 ON 05/01')).toBe(
       'CHASE COLLEGE',
