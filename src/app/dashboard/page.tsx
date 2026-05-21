@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { trackDemoDataLoaded } from '../../lib/analytics';
 import { useCurrency } from '../../lib/useCurrency';
+import { useI18n } from '../../lib/i18n';
 import { formatHijriLocalized } from '../../lib/format';
 import { useToast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
-import { useI18n } from '../../lib/i18n';
 import Link from 'next/link';
 import OnboardingWizard from '../../components/OnboardingWizard';
 import ReferralPromptModal, { useReferralPrompt } from '../../components/ReferralPromptModal';
@@ -45,7 +45,7 @@ interface RecentTransactionsWidget { transactions: MiniTransaction[]; totalCount
 interface BillItem { id: number; name: string; amount: number; category: string; dueDay: number; frequency: string; paid: boolean; nextDueDate: number; overdue: boolean; dueInDays: number; }
 interface UpcomingBillsWidget { bills: BillItem[]; upcomingItems: Array<Record<string, unknown>>; totalMonthlyBills: number; upcomingCount: number; overdueCount: number; }
 interface NetWorthHistoryPoint { date: number; netWorth: number; }
-interface NetWorthMiniWidget { currentNetWorth: number; totalAssets: number; totalDebts: number; changeAmount: number; changePercent: number; history: NetWorthHistoryPoint[]; }
+interface NetWorthMiniWidget { currentNetWorth: number; totalAssets: number; totalDebts: number; changeAmount: number; changePercent: number; dayChangeAmount?: number; dayChangePercent?: number; history: NetWorthHistoryPoint[]; }
 interface InvestmentMover {
   symbol: string;
   name: string;
@@ -100,6 +100,8 @@ function timeAgo(timestamp: number): string {
 
 export default function DashboardPage() {
   const { fmt, locale: dateLocale } = useCurrency();
+  // 2026-05-19 Round 8 (audit Bug #20): single useI18n hook below is reused
+  // for both the existing greeting i18n AND the dashboard chrome additions.
   const [totals, setTotals] = useState<AssetTotal | null>(null);
   const [loading, setLoading] = useState(true);
   // Round 18: these four flags used to read localStorage inside the
@@ -200,7 +202,9 @@ export default function DashboardPage() {
   // greeting respects the active locale. The hook subscribes to locale
   // changes via useSyncExternalStore so switching language live re-renders
   // the greeting without a reload.
-  const { t } = useI18n();
+  // 2026-05-19 Round 8: extended to also pull tFmt for dashboard chrome
+  // pluralization ("in N day{s}").
+  const { t, tFmt } = useI18n();
   const { show: showReferralPrompt, dismiss: dismissReferralPrompt } = useReferralPrompt();
   const [referralBannerDismissed, setReferralBannerDismissed] = useState(false);
 
@@ -402,10 +406,10 @@ export default function DashboardPage() {
   // removed "Explore Features" grid in Phase 10) is gone — sidebar
   // is the canonical feature index.
   const quickActions: Array<{ href: string; icon: LucideIcon; label: string; desc: string }> = [
-    { href: '/dashboard/zakat',        icon: Coins,           label: 'Calculate Zakat',  desc: 'Lunar-year wealth review' },
-    { href: '/dashboard/transactions', icon: ArrowLeftRight,  label: 'Add Transaction',  desc: 'Income & expenses' },
-    { href: '/dashboard/import',       icon: Upload,          label: 'Connect Accounts', desc: 'Link a bank' },
-    { href: '/dashboard/budget',       icon: PieChart,        label: 'View Budget',      desc: 'Monthly spending limits' },
+    { href: '/dashboard/zakat',        icon: Coins,           label: t('dashCalculateZakat'),    desc: t('dashCalculateZakatDesc') },
+    { href: '/dashboard/transactions', icon: ArrowLeftRight,  label: t('dashAddTransaction'),    desc: t('dashAddTransactionDesc') },
+    { href: '/dashboard/import',       icon: Upload,          label: t('dashConnectAccounts'),   desc: t('dashConnectAccountsDesc') },
+    { href: '/dashboard/budget',       icon: PieChart,        label: t('dashViewBudget'),        desc: t('dashViewBudgetDesc') },
   ];
 
   const hasInvestmentPulse = (portfolioSummary?.totalValue || 0) > 0;
@@ -566,7 +570,7 @@ export default function DashboardPage() {
         <div className="bg-gradient-to-br from-[#1B5E20] to-emerald-700 rounded-2xl p-5 text-white mb-6 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <span aria-hidden="true" className="text-lg">📅</span>
-            <p className="text-sm font-semibold uppercase tracking-wide opacity-90">Islamic Calendar</p>
+            <p className="text-sm font-semibold uppercase tracking-wide opacity-90">{t('dashIslamicCalendar')}</p>
           </div>
           {/* 2026-05-08 (Bug D): wrap Hijri date in <bdi> so RTL document
               direction (ar/ur) keeps the day-month-year token order
@@ -582,14 +586,34 @@ export default function DashboardPage() {
           </p>
           {hijri.upcomingEvents && hijri.upcomingEvents.length > 0 && (
             <div className="mt-4 pt-4 border-t border-white/15">
-              <p className="text-xs font-semibold uppercase tracking-wide opacity-80 mb-2">Upcoming events</p>
+              <p className="text-xs font-semibold uppercase tracking-wide opacity-80 mb-2">{t('dashUpcomingEvents')}</p>
               <ul className="space-y-1.5">
-                {hijri.upcomingEvents.slice(0, 3).map((e, i) => (
-                  <li key={`${e.name}-${i}`} className="flex items-center justify-between text-sm">
-                    <span>{e.name}</span>
-                    <span className="text-emerald-100">in {e.daysAway} day{e.daysAway === 1 ? '' : 's'}</span>
-                  </li>
-                ))}
+                {hijri.upcomingEvents.slice(0, 3).map((e, i) => {
+                  // 2026-05-19 Round 9: backend returns English event names
+                  // (e.name). Map to a known i18n key so ar/fr/ur dashboards
+                  // show the localized name. Unknown event names fall
+                  // through to the raw backend string.
+                  const HIJRI_EVENT_KEYS: Record<string, string> = {
+                    'Day of Arafah': 'hijriEventDayOfArafah',
+                    'Eid al-Adha': 'hijriEventEidAlAdha',
+                    'Islamic New Year': 'hijriEventIslamicNewYear',
+                    'Ashura': 'hijriEventAshura',
+                    'Mawlid an-Nabi': 'hijriEventMawlid',
+                    'Isra and Miraj': 'hijriEventIsraMiraj',
+                    "Isra and Mi'raj": 'hijriEventIsraMiraj',
+                    'First of Ramadan': 'hijriEventRamadanStart',
+                    'Laylat al-Qadr': 'hijriEventLaylatAlQadr',
+                    'Eid al-Fitr': 'hijriEventEidAlFitr',
+                  };
+                  const k = HIJRI_EVENT_KEYS[e.name];
+                  const label = k ? t(k) : e.name;
+                  return (
+                    <li key={`${e.name}-${i}`} className="flex items-center justify-between text-sm">
+                      <span>{label}</span>
+                      <span className="text-emerald-100">{tFmt(e.daysAway === 1 ? 'dashInNDaysOne' : 'dashInNDaysMany', [e.daysAway])}</span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
@@ -607,7 +631,12 @@ export default function DashboardPage() {
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground flex items-center gap-2">
             <span aria-hidden="true">{greeting.emoji}</span>
             <span>
-              {greeting.text}
+              {/* QA 2026-05-20 COPY-1: some greeting copy (e.g. the late-night
+                  `welcomeBack` blessing) is a full sentence ending in a period.
+                  Appending ", {name}" produced "…barakah., Yusuf". Strip any
+                  trailing sentence punctuation before the name so it reads
+                  "…barakah, Yusuf". */}
+              {user?.name ? greeting.text.replace(/[.!\s]+$/, '') : greeting.text}
               {user?.name ? <span className="text-muted-foreground font-normal">, </span> : null}
               {user?.name ? user.name : null}
             </span>
@@ -676,12 +705,24 @@ export default function DashboardPage() {
                 browser pick direction from the first strong-LTR char in the
                 English text so the punctuation lands at the visual end. */}
             <p dir="auto" className="text-sm text-green-800 font-medium">
-              Earn a <strong>free extra month</strong> for every friend who joins Barakah.
+              {/* Render dashReferralEarn with {strong}…{/strong} marker so
+                  translators can keep the bold inline. */}
+              {(() => {
+                const raw = t('dashReferralEarn');
+                const parts = raw.split(/\{strong\}|\{\/strong\}/);
+                return (
+                  <>
+                    {parts[0]}
+                    {parts[1] != null && <strong>{parts[1]}</strong>}
+                    {parts[2]}
+                  </>
+                );
+              })()}
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <Link href="/dashboard/referral" className="bg-primary text-primary-foreground px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-primary/90 transition">
-              Share
+              {t('dashShare')}
             </Link>
             <button
               onClick={() => { safeSetItem('barakah_referral_banner_dismissed', 'true'); setReferralBannerDismissed(true); }}
@@ -754,25 +795,23 @@ export default function DashboardPage() {
             <span aria-hidden="true">🏦</span>
           </div>
           <h3 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
-            Set up Barakah in 60 seconds
+            {t('dashSetupHeadline')}
           </h3>
           <p className="text-muted-foreground text-sm mb-5 max-w-md mx-auto leading-relaxed">
-            Connect a bank to auto-import transactions, or start with sample data
-            and explore every feature first. Either way: zero setup, halal-aware
-            from minute one.
+            {t('dashSetupBody')}
           </p>
 
           {/* 3 outcomes as small chips — Monarch's pattern of telling
               users what they actually get, not what the action does. */}
           <div className="flex flex-wrap gap-2 justify-center mb-5">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
-              <span aria-hidden="true">📊</span> Spending sorted automatically
+              <span aria-hidden="true">📊</span> {t('dashSetupPillSorted')}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
-              <span aria-hidden="true">🕌</span> Zakat calculated automatically
+              <span aria-hidden="true">🕌</span> {t('dashSetupPillZakat')}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-medium">
-              <span aria-hidden="true">🛡️</span> Riba flagged on every charge
+              <span aria-hidden="true">🛡️</span> {t('dashSetupPillRiba')}
             </span>
           </div>
 
@@ -781,7 +820,7 @@ export default function DashboardPage() {
               href="/dashboard/import"
               className="inline-flex items-center justify-center bg-primary text-primary-foreground px-6 py-3 rounded-md font-semibold hover:bg-primary/90 transition-colors"
             >
-              Connect a bank
+              {t('dashSetupConnectBank')}
             </Link>
             <button
               type="button"
@@ -797,13 +836,13 @@ export default function DashboardPage() {
               }}
               className="inline-flex items-center justify-center border border-border bg-card text-foreground px-6 py-3 rounded-md font-semibold hover:bg-accent transition-colors"
             >
-              Try with sample data
+              {t('dashSetupTrySample')}
             </button>
           </div>
           <p className="text-muted-foreground text-xs mt-4">
-            Prefer manual?{' '}
+            {t('dashSetupPreferManual')}{' '}
             <Link href="/dashboard/transactions" className="text-primary hover:underline font-medium">
-              Add your first transaction →
+              {t('dashAddFirstTransaction')}
             </Link>
           </p>
         </div>
@@ -901,6 +940,22 @@ export default function DashboardPage() {
           }
           footer={
             !hideNetWorth ? (
+              <div className="flex flex-col gap-1">
+                {/* 2026-05-21 (founder request): daily net-worth change —
+                    "how your holdings are doing for the particular day".
+                    Shown for ALL users (not just stock holders). Only when
+                    we have >= 2 daily snapshots so it's never a fake 0. */}
+                {typeof widgets?.netWorthMini?.dayChangeAmount === 'number' && (
+                  <p className="flex items-center gap-1.5 text-sm">
+                    <span className={widgets.netWorthMini.dayChangeAmount >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
+                      {widgets.netWorthMini.dayChangeAmount >= 0 ? '↗' : '↘'} {fmt(Math.abs(widgets.netWorthMini.dayChangeAmount))}
+                      {typeof widgets.netWorthMini.dayChangePercent === 'number'
+                        ? ` (${widgets.netWorthMini.dayChangePercent >= 0 ? '+' : ''}${widgets.netWorthMini.dayChangePercent.toFixed(2)}%)`
+                        : ''}
+                    </span>
+                    <span className="text-muted-foreground">Today</span>
+                  </p>
+                )}
               <div className="flex items-center justify-between gap-2">
                 <KpiChange
                   amount={widgets?.netWorthMini?.changeAmount}
@@ -920,6 +975,7 @@ export default function DashboardPage() {
                 >
                   {netWorthDrilldownOpen ? 'Hide details' : "What changed?"}
                 </button>
+              </div>
               </div>
             ) : null
           }
@@ -988,7 +1044,7 @@ export default function DashboardPage() {
           }
           footer={
             !hideZakat && !loading && totals && totals.zakatEligible === false
-              ? <span title="Zakat is owed once your zakatable wealth (cash, gold, stocks, savings — excluding your home and personal-use assets) crosses the nisab threshold. Visit /dashboard/zakat to see the breakdown.">Below nisab</span>
+              ? <span title="Zakat is owed once your zakatable wealth (cash, gold, stocks, savings — excluding your home and personal-use assets) crosses the nisab threshold. Visit /dashboard/zakat to see the breakdown.">{t('dashBelowNisab')}</span>
             : !hideZakat && !loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid)
               ? <>Paid {fmt((totals?.zakatPaid as number) || 0)} · Remaining {fmt((totals?.zakatRemaining as number) ?? Math.max(0, ((totals?.zakatDue as number) || 0) - ((totals?.zakatPaid as number) || 0)))}</>
               : null
@@ -997,7 +1053,7 @@ export default function DashboardPage() {
         <KpiCard
           label="Zakat Eligible"
           tone={totals?.zakatEligible ? 'positive' : 'muted'}
-          value={loading ? '…' : (totals?.zakatEligible ? 'Yes' : 'Not Yet')}
+          value={loading ? '…' : (totals?.zakatEligible ? t('dashYes') : t('dashNotYet'))}
         />
         {hasInvestmentPulse && (
           <KpiCard
@@ -1226,7 +1282,7 @@ export default function DashboardPage() {
             <p className="text-gray-400 text-sm mt-2">No spending recorded yet this month.</p>
           )}
           <span className="inline-block mt-3 text-sm font-medium text-primary">
-            See breakdown →
+            {t('dashSeeBreakdown')}
           </span>
         </button>
 
@@ -1275,9 +1331,9 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="text-center py-4">
-              <p className="text-gray-400 text-sm">No budgets set up yet.</p>
+              <p className="text-gray-400 text-sm">{t('dashNoBudgetsYet')}</p>
               <HeroLink href="/dashboard/budget" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
-                Create your first budget →
+                {t('dashCreateFirstBudget')}
               </HeroLink>
             </div>
           )}
@@ -1301,7 +1357,7 @@ export default function DashboardPage() {
               {fmt(safeToSpend.dailySafeToSpend ?? (safeToSpend.daysRemainingInMonth > 0 ? safeToSpend.safeToSpend / safeToSpend.daysRemainingInMonth : 0))} per day for {safeToSpend.daysRemainingInMonth} days remaining
             </p>
           ) : safeToSpend.totalIncome <= 0 && safeToSpend.totalSpent <= 0 && safeToSpend.totalBillsDue <= 0 ? (
-            <p className="text-sm text-gray-500 mt-1">Add income or transactions to see your safe-to-spend</p>
+            <p className="text-sm text-gray-500 mt-1">{t('dashSafeToSpendEmpty')}</p>
           ) : (
             <p className="text-sm text-red-500 mt-1 font-medium">You&apos;ve exceeded your budget this month</p>
           )}
@@ -1385,7 +1441,7 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 uppercase tracking-wide">{t('recentTransactions')}</p>
-            <HeroLink href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline">View all</HeroLink>
+            <HeroLink href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline">{t('dashViewAll')}</HeroLink>
           </div>
           {widgets?.recentTransactions?.transactions && widgets.recentTransactions.transactions.length > 0 ? (
             <div className="divide-y divide-gray-50">
@@ -1406,9 +1462,9 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="text-center py-4">
-              <p className="text-gray-400 text-sm">No transactions yet.</p>
+              <p className="text-gray-400 text-sm">{t('dashNoTransactionsYet')}</p>
               <HeroLink href="/dashboard/transactions" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
-                Add your first transaction →
+                {t('dashAddFirstTransaction')}
               </HeroLink>
             </div>
           )}
@@ -1430,7 +1486,7 @@ export default function DashboardPage() {
                 </p>
               )}
             </div>
-            <HeroLink href="/dashboard/bills" className="text-sm text-primary font-medium hover:underline">View all</HeroLink>
+            <HeroLink href="/dashboard/bills" className="text-sm text-primary font-medium hover:underline">{t('dashViewAll')}</HeroLink>
           </div>
           {widgets?.upcomingBills?.bills && widgets.upcomingBills.bills.length > 0 ? (
             <div className="space-y-2">
@@ -1451,9 +1507,9 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="text-center py-4">
-              <p className="text-gray-400 text-sm">No upcoming bills.</p>
+              <p className="text-gray-400 text-sm">{t('dashNoUpcomingBills')}</p>
               <HeroLink href="/dashboard/bills" className="text-sm text-primary font-medium hover:underline mt-1 inline-block">
-                Add your first bill →
+                {t('dashAddFirstBill')}
               </HeroLink>
             </div>
           )}
@@ -1483,7 +1539,7 @@ export default function DashboardPage() {
                     {fmt(recurringSummary.income + recurringSummary.expense)} <span className="text-xs text-gray-500 font-normal">/month</span>
                   </p>
                 </div>
-                <Link href="/dashboard/recurring" className="text-sm text-primary font-medium hover:underline">View all</Link>
+                <Link href="/dashboard/recurring" className="text-sm text-primary font-medium hover:underline">{t('dashViewAll')}</Link>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900 p-3">

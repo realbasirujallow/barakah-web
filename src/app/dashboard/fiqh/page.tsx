@@ -5,6 +5,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 
 interface FiqhConfig {
   madhab?: string;
@@ -29,6 +30,7 @@ interface FiqhSchool {
 export default function FiqhSettingsPage() {
   const { toast } = useToast();
   const { fmt } = useCurrency();
+  const { t, tFmt } = useI18n();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<FiqhConfig>({});
@@ -83,12 +85,15 @@ export default function FiqhSettingsPage() {
         }
       } catch (err) {
         logError(err, { context: 'Failed to load fiqh config' });
-        toast('Failed to load fiqh settings. Please try refreshing.', 'error');
+        toast(t('fiqhLoadError'), 'error');
       }
       setLoading(false);
     };
 
     loadData();
+    // `t` is a fresh identity each render; including it here would refire the
+    // mount fetch on every render → infinite refetch loop. Keep only `toast`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
 
   const handleMadhabChange = async (madhab: string) => {
@@ -130,12 +135,9 @@ export default function FiqhSettingsPage() {
             setNisabThresholdUsd(result.nisabThreshold);
           }
           const nisabPretty = naturalNisabLabel(result.nisabMethodology);
-          toast(
-            `Madhab updated. Nisab methodology switched to ${nisabPretty} to match — you can override this below if needed.`,
-            'success',
-          );
+          toast(tFmt('fiqhMadhabAutoNisabFmt', [nisabPretty]), 'success');
         } else {
-          toast('Madhab updated successfully! Detailed rules have been updated to match.', 'success');
+          toast(t('fiqhMadhabUpdatedToast'), 'success');
         }
 
         // HIGH BUG FIX (H-3): broadcast so other open tabs/pages (zakat,
@@ -147,7 +149,7 @@ export default function FiqhSettingsPage() {
       }
     } catch (err) {
       logError(err, { context: 'Failed to update madhab' });
-      toast('Failed to update Madhab. Please try again.', 'error');
+      toast(t('fiqhMadhabUpdateError'), 'error');
       setSelectedMadhab(config.madhab || '');
     }
     setSaving(false);
@@ -165,14 +167,9 @@ export default function FiqhSettingsPage() {
   };
 
   const naturalNisabLabel = (key: string): string => {
-    if (key === 'CLASSICAL_SILVER') return 'Silver Standard (Classical Hanafi)';
-    if (key === 'LOWER_OF_TWO') return 'Lower of Gold/Silver (Al-Qaradawi)';
-    // 2026-05-12 (QA-2026-05-12, Finding I5): label changed from
-    // "Gold Standard (AMJA)" to "Gold Standard (85g)". Per the no-overclaim
-    // copy stance, putting "AMJA" in the label reads as "AMJA-endorsed".
-    // The actual choice is the 85g-of-gold nisab — that's what the user
-    // is selecting, and "85g" is unambiguous and verifiable.
-    return 'Gold Standard (85g)';
+    if (key === 'CLASSICAL_SILVER') return t('fiqhNisabSilver');
+    if (key === 'LOWER_OF_TWO') return t('fiqhNisabLower');
+    return t('fiqhNisabGold');
   };
 
   const handleNisabChange = async (methodology: string) => {
@@ -184,11 +181,11 @@ export default function FiqhSettingsPage() {
       if (result && typeof result.nisabThreshold === 'number') {
         setNisabThresholdUsd(result.nisabThreshold);
       }
-      toast('Nisab methodology updated.', 'success');
+      toast(t('fiqhNisabUpdatedToast'), 'success');
     } catch (err) {
       logError(err, { context: 'Failed to update nisab methodology' });
       setNisabMethodology(previous);
-      toast('Failed to update nisab methodology. Please try again.', 'error');
+      toast(t('fiqhNisabUpdateError'), 'error');
     }
     setSavingNisab(false);
   };
@@ -203,11 +200,11 @@ export default function FiqhSettingsPage() {
       const result = await api.updateFiqhRules(rules);
       if (result) {
         setConfig(prev => ({ ...prev, ...rules }));
-        toast('Fiqh rules updated successfully!', 'success');
+        toast(t('fiqhRulesUpdatedToast'), 'success');
       }
     } catch (err) {
       logError(err, { context: 'Failed to update fiqh rules' });
-      toast('Failed to update rules. Please try again.', 'error');
+      toast(t('fiqhRulesUpdateError'), 'error');
     }
     setSaving(false);
   };
@@ -217,7 +214,7 @@ export default function FiqhSettingsPage() {
       <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] p-4 sm:p-8">
         <div className="max-w-2xl mx-auto">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <p className="text-gray-600">Loading Fiqh settings...</p>
+            <p className="text-gray-600">{t('fiqhLoading')}</p>
           </div>
         </div>
       </div>
@@ -229,8 +226,8 @@ export default function FiqhSettingsPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <PageHeader
-          title="Fiqh Settings"
-          subtitle="Configure your Islamic finance preferences and interpretation methodology"
+          title={t('fiqhTitle')}
+          subtitle={t('fiqhSubtitle')}
           className="mb-8"
         />
 
@@ -244,7 +241,7 @@ export default function FiqhSettingsPage() {
                 : 'bg-white text-green-700 border-2 border-green-700 hover:bg-green-50'
             }`}
           >
-            Madhab
+            {t('fiqhTabMadhab')}
           </button>
           <button
             onClick={() => setActiveTab('rules')}
@@ -254,14 +251,14 @@ export default function FiqhSettingsPage() {
                 : 'bg-white text-green-700 border-2 border-green-700 hover:bg-green-50'
             }`}
           >
-            Detailed Rules
+            {t('fiqhTabRules')}
           </button>
         </div>
 
         {/* Madhab Tab */}
         {activeTab === 'madhab' && (
           <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-            <h2 className="text-2xl font-bold text-primary mb-6">Select Your School of Thought</h2>
+            <h2 className="text-2xl font-bold text-primary mb-6">{t('fiqhSchoolHeading')}</h2>
 
             {schools.length > 0 ? (
               <div className="space-y-4">
@@ -296,7 +293,7 @@ export default function FiqhSettingsPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-600">No schools of thought available.</p>
+              <p className="text-gray-600">{t('fiqhNoSchools')}</p>
             )}
 
             {/* Nisab suggestion banner — appears when the user's current
@@ -307,14 +304,14 @@ export default function FiqhSettingsPage() {
               naturalNisabFor(selectedMadhab) !== nisabMethodology && (
               <div className="mt-6 p-4 border border-amber-300 bg-amber-50 rounded-lg">
                 <p className="text-sm text-amber-900 font-medium">
-                  Your nisab methodology ({naturalNisabLabel(nisabMethodology)}) doesn&apos;t match the
-                  classical position for {selectedMadhab === 'GENERAL' ? 'AMJA' : selectedMadhab.charAt(0) + selectedMadhab.slice(1).toLowerCase()}
-                  {' '}({naturalNisabLabel(naturalNisabFor(selectedMadhab))}).
+                  {tFmt('fiqhNisabMismatchFmt', [
+                    naturalNisabLabel(nisabMethodology),
+                    selectedMadhab === 'GENERAL' ? 'AMJA' : selectedMadhab.charAt(0) + selectedMadhab.slice(1).toLowerCase(),
+                    naturalNisabLabel(naturalNisabFor(selectedMadhab)),
+                  ])}
                 </p>
                 <p className="text-xs text-amber-800 mt-1">
-                  {selectedMadhab === 'HANAFI'
-                    ? 'Classical Hanafi position uses 200 dirhams of silver as the operative nisab.'
-                    : 'AMJA, ISNA, and the Fiqh Council of North America recommend 85g gold for North American Muslims.'}
+                  {selectedMadhab === 'HANAFI' ? t('fiqhNisabHanafiNote') : t('fiqhNisabAmjaNote')}
                 </p>
                 <button
                   type="button"
@@ -322,22 +319,20 @@ export default function FiqhSettingsPage() {
                   disabled={savingNisab}
                   className="mt-3 px-4 py-2 bg-amber-700 text-white rounded-lg text-sm font-medium hover:bg-amber-800 disabled:opacity-50"
                 >
-                  Switch to {naturalNisabLabel(naturalNisabFor(selectedMadhab))}
+                  {tFmt('fiqhSwitchToFmt', [naturalNisabLabel(naturalNisabFor(selectedMadhab))])}
                 </button>
               </div>
             )}
 
             {/* Nisab Methodology — has a Hanafi ↔ silver auto-link with madhab */}
             <div className="mt-8 pt-8 border-t border-gray-200">
-              <h2 className="text-2xl font-bold text-primary mb-2">Nisab Threshold Methodology</h2>
+              <h2 className="text-2xl font-bold text-primary mb-2">{t('fiqhNisabHeading')}</h2>
               <p className="text-sm text-gray-600 mb-2">
-                Choose how Barakah calculates the nisab threshold (the minimum wealth above which zakat becomes obligatory).
-                Switching your madhab to <strong>Hanafi</strong> auto-selects the classical silver standard here, and switching back to
-                any other school restores the gold standard — you can still override either choice below at any time.
+                {t('fiqhNisabIntro')}
               </p>
               {nisabThresholdUsd != null && (
                 <p className="text-sm text-emerald-700 mb-4">
-                  Current nisab: <span className="font-bold">{fmt(nisabThresholdUsd)}</span>
+                  {tFmt('fiqhCurrentNisabFmt', [fmt(nisabThresholdUsd)])}
                 </p>
               )}
               <div className="space-y-3">
@@ -349,15 +344,8 @@ export default function FiqhSettingsPage() {
                   // Abidin, al-Qaradawi (Fiqh al-Zakat), Bukhari, Abu Dawud.
                   {
                     value: 'AMJA_GOLD',
-                    // 2026-05-12 (QA-2026-05-12, Finding I5): title softened
-                    // from "Gold Standard (AMJA)" to "Gold Standard (85g)" so
-                    // the chip doesn't read as "AMJA-endorsed by Barakah".
-                    // The descriptive citation below still mentions AMJA as
-                    // one of the bodies that recommends 85g — that's a
-                    // factual claim about *AMJA's* published guidance, not a
-                    // claim about Barakah's endorsement.
-                    title: 'Gold Standard (85g)',
-                    desc: '85g gold nisab. This is the threshold AMJA, ISNA, and the Fiqh Council of North America cite for North American Muslims, and the AAOIFI Shariah Standard 35 codifies the same 85g threshold. Most contemporary scholars.',
+                    title: t('fiqhNisabGold'),
+                    desc: t('fiqhNisabGoldDesc'),
                     citations: {
                       primary: 'Sahih Abu Dawud 1573 — the Prophet ﷺ prescribed zakat on gold at 20 mithqals (~85g)',
                       classical: 'Ibn Qudamah, Al-Mughni — gold nisab as 20 mithqals',
@@ -368,8 +356,8 @@ export default function FiqhSettingsPage() {
                   },
                   {
                     value: 'CLASSICAL_SILVER',
-                    title: 'Silver Standard (Classical Hanafi)',
-                    desc: '595g silver. Classical Hanafi position — more conservative; lower threshold means more people qualify to pay zakat.',
+                    title: t('fiqhNisabSilver'),
+                    desc: t('fiqhNisabSilverDesc'),
                     citations: {
                       primary: 'Sahih al-Bukhari 1454 — "No zakat is due on less than five uqiyah (200 dirhams ~595g) of silver"',
                       classical: 'Al-Kasani, Bada’i al-Sana’i — Hanafi codification of silver nisab',
@@ -381,8 +369,8 @@ export default function FiqhSettingsPage() {
                   },
                   {
                     value: 'LOWER_OF_TWO',
-                    title: 'Lower of Gold/Silver (Al-Qaradawi)',
-                    desc: 'Whichever is lower at current market prices. Most conservative — typically follows silver since silver is much cheaper per gram than gold.',
+                    title: t('fiqhNisabLower'),
+                    desc: t('fiqhNisabLowerDesc'),
                     citations: {
                       primary: 'Combined Bukhari 1454 + Abu Dawud 1573 — take whichever protects the poor most',
                       classical: 'Some Hanbali scholars on maslahah grounds',
@@ -415,23 +403,23 @@ export default function FiqhSettingsPage() {
                       {opt.citations && (
                         <details className="mt-2 text-xs">
                           <summary className="cursor-pointer text-[#1B5E20] font-semibold hover:underline">
-                            View sources ({Object.keys(opt.citations).length} citations)
+                            {tFmt('fiqhViewSourcesFmt', [Object.keys(opt.citations).length])}
                           </summary>
                           <dl className="mt-2 space-y-1 bg-white/80 border border-green-100 rounded p-2">
                             {opt.citations.primary && (
-                              <div><dt className="font-semibold text-gray-700 inline">Primary: </dt><dd className="inline text-gray-600">{opt.citations.primary}</dd></div>
+                              <div><dt className="font-semibold text-gray-700 inline">{t('fiqhCitePrimary')} </dt><dd className="inline text-gray-600">{opt.citations.primary}</dd></div>
                             )}
                             {opt.citations.classical && (
-                              <div><dt className="font-semibold text-gray-700 inline">Classical: </dt><dd className="inline text-gray-600">{opt.citations.classical}</dd></div>
+                              <div><dt className="font-semibold text-gray-700 inline">{t('fiqhCiteClassical')} </dt><dd className="inline text-gray-600">{opt.citations.classical}</dd></div>
                             )}
                             {opt.citations.secondaryClassical && (
-                              <div><dt className="font-semibold text-gray-700 inline">Also: </dt><dd className="inline text-gray-600">{opt.citations.secondaryClassical}</dd></div>
+                              <div><dt className="font-semibold text-gray-700 inline">{t('fiqhCiteAlso')} </dt><dd className="inline text-gray-600">{opt.citations.secondaryClassical}</dd></div>
                             )}
                             {opt.citations.contemporary && (
-                              <div><dt className="font-semibold text-gray-700 inline">Contemporary: </dt><dd className="inline text-gray-600">{opt.citations.contemporary}</dd></div>
+                              <div><dt className="font-semibold text-gray-700 inline">{t('fiqhCiteContemporary')} </dt><dd className="inline text-gray-600">{opt.citations.contemporary}</dd></div>
                             )}
                             {opt.citations.school && (
-                              <div><dt className="font-semibold text-gray-700 inline">School: </dt><dd className="inline text-gray-600">{opt.citations.school}</dd></div>
+                              <div><dt className="font-semibold text-gray-700 inline">{t('fiqhCiteSchool')} </dt><dd className="inline text-gray-600">{opt.citations.school}</dd></div>
                             )}
                             {opt.citations.note && (
                               <div className="text-gray-500 italic">{opt.citations.note}</div>
@@ -450,14 +438,14 @@ export default function FiqhSettingsPage() {
         {/* Rules Tab */}
         {activeTab === 'rules' && (
           <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-            <h2 className="text-2xl font-bold text-primary mb-6">Fiqh Rules</h2>
+            <h2 className="text-2xl font-bold text-primary mb-6">{t('fiqhRulesHeading')}</h2>
 
             <div className="space-y-6">
               {/* Jewelry Zakatable */}
               <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div>
-                  <p className="font-semibold text-primary">Jewelry is Zakatable</p>
-                  <p className="text-sm text-gray-600 mt-1">Count jewelry toward Zakat calculation</p>
+                  <p className="font-semibold text-primary">{t('fiqhRuleJewelryLabel')}</p>
+                  <p className="text-sm text-gray-600 mt-1">{t('fiqhRuleJewelryDesc')}</p>
                 </div>
                 <input
                   type="checkbox"
@@ -470,8 +458,8 @@ export default function FiqhSettingsPage() {
               {/* Hawl Reset on Nisab Drop */}
               <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div>
-                  <p className="font-semibold text-primary">Reset Hawl on Nisab Drop</p>
-                  <p className="text-sm text-gray-600 mt-1">Reset the lunar year counter if wealth drops below Nisab</p>
+                  <p className="font-semibold text-primary">{t('fiqhRuleHawlLabel')}</p>
+                  <p className="text-sm text-gray-600 mt-1">{t('fiqhRuleHawlDesc')}</p>
                 </div>
                 <input
                   type="checkbox"
@@ -484,8 +472,8 @@ export default function FiqhSettingsPage() {
               {/* Wasiyyah Exceed Third with Consent */}
               <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div>
-                  <p className="font-semibold text-primary">Wasiyyah Exceed Third with Consent</p>
-                  <p className="text-sm text-gray-600 mt-1">Allow bequests exceeding 1/3 with heirs&apos; consent</p>
+                  <p className="font-semibold text-primary">{t('fiqhRuleWasiyyahLabel')}</p>
+                  <p className="text-sm text-gray-600 mt-1">{t('fiqhRuleWasiyyahDesc')}</p>
                 </div>
                 <input
                   type="checkbox"
@@ -498,8 +486,8 @@ export default function FiqhSettingsPage() {
               {/* Radd Includes Spouse */}
               <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div>
-                  <p className="font-semibold text-primary">Radd Includes Spouse</p>
-                  <p className="text-sm text-gray-600 mt-1">Include spouse in inheritance distribution through Radd</p>
+                  <p className="font-semibold text-primary">{t('fiqhRuleRaddLabel')}</p>
+                  <p className="text-sm text-gray-600 mt-1">{t('fiqhRuleRaddDesc')}</p>
                 </div>
                 <input
                   type="checkbox"
@@ -511,47 +499,47 @@ export default function FiqhSettingsPage() {
 
               {/* Fitr Type */}
               <div className="p-4 border border-gray-200 rounded-lg">
-                <label className="block font-semibold text-primary mb-2">Zakat al-Fitr Type</label>
+                <label className="block font-semibold text-primary mb-2">{t('fiqhFitrLabel')}</label>
                 <select
                   value={rules.fitrType}
                   onChange={(e) => handleRuleChange('fitrType', e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
                 >
-                  <option value="">Select Fitr Type</option>
-                  <option value="food">Staple Food</option>
-                  <option value="money">Cash / Monetary Value</option>
+                  <option value="">{t('fiqhFitrSelectPlaceholder')}</option>
+                  <option value="food">{t('fiqhFitrOptFood')}</option>
+                  <option value="money">{t('fiqhFitrOptMoney')}</option>
                 </select>
-                <p className="text-sm text-gray-600 mt-2">Choose how you prefer to calculate Zakat al-Fitr</p>
+                <p className="text-sm text-gray-600 mt-2">{t('fiqhFitrHint')}</p>
               </div>
 
               {/* Debt Method */}
               <div className="p-4 border border-gray-200 rounded-lg">
-                <label className="block font-semibold text-primary mb-2">Debt Calculation Method</label>
+                <label className="block font-semibold text-primary mb-2">{t('fiqhDebtLabel')}</label>
                 <select
                   value={rules.debtMethod}
                   onChange={(e) => handleRuleChange('debtMethod', e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
                 >
-                  <option value="">Select Method</option>
-                  <option value="full_balance">Deduct Full Balance (Hanafi)</option>
-                  <option value="annual_installment">Deduct Annual Installment Only (Majority)</option>
+                  <option value="">{t('fiqhDebtSelectPlaceholder')}</option>
+                  <option value="full_balance">{t('fiqhDebtOptFull')}</option>
+                  <option value="annual_installment">{t('fiqhDebtOptAnnual')}</option>
                 </select>
-                <p className="text-sm text-gray-600 mt-2">Choose how debts affect your Zakat calculation</p>
+                <p className="text-sm text-gray-600 mt-2">{t('fiqhDebtHint')}</p>
               </div>
 
               {/* Retirement Method */}
               <div className="p-4 border border-gray-200 rounded-lg">
-                <label className="block font-semibold text-primary mb-2">Retirement Account Zakat Method</label>
+                <label className="block font-semibold text-primary mb-2">{t('fiqhRetirementLabel')}</label>
                 <select
                   value={rules.retirementMethod}
                   onChange={(e) => handleRuleChange('retirementMethod', e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
                 >
-                  <option value="full_accessible">Accessible Balance Method (AMJA/FCNA)</option>
-                  <option value="employer_match_only">Employer Match Only</option>
-                  <option value="on_withdrawal_only">On Withdrawal Only</option>
+                  <option value="full_accessible">{t('fiqhRetirementOptFull')}</option>
+                  <option value="employer_match_only">{t('fiqhRetirementOptMatch')}</option>
+                  <option value="on_withdrawal_only">{t('fiqhRetirementOptWithdrawal')}</option>
                 </select>
-                <p className="text-sm text-gray-600 mt-2">Choose the scholarly opinion for retirement account zakat calculations</p>
+                <p className="text-sm text-gray-600 mt-2">{t('fiqhRetirementHint')}</p>
               </div>
             </div>
 
@@ -561,7 +549,7 @@ export default function FiqhSettingsPage() {
               disabled={saving}
               className="mt-8 w-full bg-green-700 hover:bg-green-800 disabled:bg-gray-400 text-white font-bold py-3 rounded-lg transition"
             >
-              {saving ? 'Saving...' : 'Save Rules'}
+              {saving ? t('fiqhSavingBtn') : t('fiqhSaveBtn')}
             </button>
           </div>
         )}

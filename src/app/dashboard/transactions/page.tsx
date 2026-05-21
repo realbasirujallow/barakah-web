@@ -10,6 +10,7 @@ import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n, t as tStandalone, tFmt as tFmtStandalone } from '../../../lib/i18n';
 import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon } from 'lucide-react';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
@@ -85,6 +86,16 @@ function txAmount(tx: Tx, fmt: (n: number) => string): string {
   return fmt(tx.amount);
 }
 
+// Localized display label for a static UI category code. Falls back to a
+// title-cased version of the raw code if no translation key exists (e.g.
+// for categories surfaced from data that aren't in our static list).
+function categoryLabel(code: string): string {
+  const key = `txnCat_${code}`;
+  const translated = tStandalone(key);
+  if (translated !== key) return translated;
+  return code.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
+}
+
 function categoriesForType(type: string) {
   if (type === 'income') return CATEGORIES.filter(c => ['income', 'investment', 'savings', 'transfer', 'business', 'other', 'charity', 'gift', 'gifts', 'taxes'].includes(c) || ['salary'].includes(c));
   if (type === 'transfer') return TRANSFER_CATEGORIES;
@@ -93,7 +104,7 @@ function categoriesForType(type: string) {
 
 function txPresentation(tx: Tx) {
   if (tx.type === 'income') {
-    return { amountClass: 'text-green-600', badgeClass: 'bg-green-100 text-green-700', badge: 'Income', sign: '+' };
+    return { amountClass: 'text-green-600', badgeClass: 'bg-green-100 text-green-700', badge: tStandalone('txnBadgeIncome'), sign: '+' };
   }
   if (tx.type === 'transfer') {
     const inflow = tx.direction === 'inflow';
@@ -101,11 +112,11 @@ function txPresentation(tx: Tx) {
     return {
       amountClass: 'text-cyan-700',
       badgeClass: 'bg-cyan-100 text-cyan-700',
-      badge: inflow ? 'Transfer In' : outflow ? 'Transfer Out' : 'Transfer',
+      badge: inflow ? tStandalone('txnBadgeTransferIn') : outflow ? tStandalone('txnBadgeTransferOut') : tStandalone('txnBadgeTransfer'),
       sign: inflow ? '↔ +' : outflow ? '↔ −' : '↔',
     };
   }
-  return { amountClass: 'text-red-600', badgeClass: 'bg-red-100 text-red-700', badge: 'Expense', sign: '−' };
+  return { amountClass: 'text-red-600', badgeClass: 'bg-red-100 text-red-700', badge: tStandalone('txnBadgeExpense'), sign: '−' };
 }
 
 export default function TransactionsPage() {
@@ -198,6 +209,7 @@ export default function TransactionsPage() {
 
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t, tFmt } = useI18n();
 
   // ── Modal accessibility: focus trap + Escape close ──────────────────────
   const formModalRef = useRef<HTMLDivElement>(null);
@@ -313,8 +325,8 @@ export default function TransactionsPage() {
         }
       })
       .catch(() => {
-        toast('Failed to load transactions', 'error');
-        setError('Failed to load transactions. Please try again.');
+        toast(t('txnLoadFailed'), 'error');
+        setError(t('txnLoadFailedRetry'));
       })
       .finally(() => setLoading(false));
   };
@@ -351,7 +363,7 @@ export default function TransactionsPage() {
     try {
       const amt = parseFloat(form.amount);
       if (!amt || amt <= 0) {
-        const msg = 'Transaction amount must be greater than zero';
+        const msg = t('txnAmountGtZero');
         setFormError(msg);
         toast(msg, 'error');
         setSaving(false);
@@ -364,7 +376,7 @@ export default function TransactionsPage() {
         // text bled the dollar sign into a non-USD user's UI. The
         // backend's USD-equivalent sanity layer ($1M USD-equiv) is the
         // primary defense for fat-finger typos.
-        const msg = 'Transaction amount cannot exceed 100,000,000.';
+        const msg = t('txnAmountMax');
         setFormError(msg);
         toast(msg, 'error');
         setSaving(false);
@@ -382,17 +394,17 @@ export default function TransactionsPage() {
       const payload = { ...formWithoutDate, amount: amt, timestamp };
       if (editTx) {
         await api.updateTransaction(editTx.id, payload);
-        toast('Transaction updated', 'success');
+        toast(t('txnUpdated'), 'success');
       } else {
         await api.addTransaction(payload);
-        toast('Transaction added', 'success');
+        toast(t('txnAdded'), 'success');
       }
       setShowForm(false);
       setEditTx(null);
       setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '' });
       load();
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : (editTx ? 'Failed to update transaction' : 'Failed to add transaction');
+      const errorMsg = err instanceof Error ? err.message : (editTx ? t('txnUpdateFailed') : t('txnAddFailed'));
       setFormError(errorMsg);
       toast(errorMsg, 'error');
     }
@@ -420,12 +432,12 @@ export default function TransactionsPage() {
     setEditTx(prev => prev && prev.id === tx.id ? { ...prev, isRecurring: next } : prev);
     try {
       await api.toggleRecurring(tx.id);
-      toast(next ? 'Marked as recurring' : 'Recurring removed', 'success');
+      toast(next ? t('txnMarkedRecurring') : t('txnRecurringRemoved'), 'success');
     } catch {
       // Revert optimistic update on both states.
       setTxs(prev => prev.map(t => t.id === tx.id ? { ...t, isRecurring: !next } : t));
       setEditTx(prev => prev && prev.id === tx.id ? { ...prev, isRecurring: !next } : prev);
-      toast('Failed to update recurring status', 'error');
+      toast(t('txnRecurringUpdateFailed'), 'error');
     }
   };
 
@@ -436,10 +448,10 @@ export default function TransactionsPage() {
     try {
       await api.deleteTransaction(id);
       setTxs(prev => prev.filter(t => t.id !== id));
-      toast('Transaction deleted', 'success');
+      toast(t('txnDeleted'), 'success');
       load();
     } catch {
-      toast('Failed to delete transaction', 'error');
+      toast(t('txnDeleteFailed'), 'error');
     }
   };
 
@@ -483,23 +495,23 @@ export default function TransactionsPage() {
   const confirmBulkDelete = async () => {
     if (!deleteConfirmation || deleteConfirmation.type !== 'bulk') return;
     const count = deleteConfirmation.count ?? 0;
-    const noun = count === 1 ? 'transaction' : 'transactions';
+    const noun = count === 1 ? t('txnNounSingular') : t('txnNounPlural');
     setDeleteConfirmation(null);
     setBulkDeleting(true);
     try {
       if (selectAllPages) {
         const typeParam = filter === 'all' ? undefined : filter;
         const result = await api.deleteAllTransactions(typeParam);
-        toast(`${result?.deleted ?? count} ${noun} deleted`, 'success');
+        toast(tFmt('txnDeletedCountFmt', [result?.deleted ?? count, noun]), 'success');
       } else {
         const result = await api.bulkDeleteTransactions(Array.from(selectedIds));
-        toast(`${result?.deleted ?? count} ${noun} deleted`, 'success');
+        toast(tFmt('txnDeletedCountFmt', [result?.deleted ?? count, noun]), 'success');
       }
       exitSelectMode();
       setPage(0);
       load();
     } catch {
-      toast('Failed to delete transactions', 'error');
+      toast(t('txnDeleteBulkFailed'), 'error');
     } finally {
       setBulkDeleting(false);
     }
@@ -519,12 +531,12 @@ export default function TransactionsPage() {
     try {
       const result = await api.bulkCategorize(ids, category);
       const updated = (result as { updated?: number })?.updated ?? ids.length;
-      const noun = updated === 1 ? 'transaction' : 'transactions';
-      toast(`${updated} ${noun} recategorized as ${category.replace(/_/g, ' ')}`, 'success');
+      const noun = updated === 1 ? t('txnNounSingular') : t('txnNounPlural');
+      toast(tFmt('txnRecategorizedFmt', [updated, noun, categoryLabel(category)]), 'success');
       exitSelectMode();
       load();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Failed to recategorize transactions', 'error');
+      toast(err instanceof Error ? err.message : t('txnRecategorizeFailed'), 'error');
     } finally {
       setBulkCategorizing(false);
     }
@@ -542,12 +554,12 @@ export default function TransactionsPage() {
     try {
       const result = await api.markReviewed(ids);
       const updated = (result as { updated?: number })?.updated ?? ids.length;
-      const noun = updated === 1 ? 'transaction' : 'transactions';
-      toast(`${updated} ${noun} marked as reviewed`, 'success');
+      const noun = updated === 1 ? t('txnNounSingular') : t('txnNounPlural');
+      toast(tFmt('txnMarkedReviewedFmt', [updated, noun]), 'success');
       if (selectMode) exitSelectMode();
       load();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Failed to mark reviewed', 'error');
+      toast(err instanceof Error ? err.message : t('txnMarkReviewedFailed'), 'error');
     } finally {
       setBulkCategorizing(false);
     }
@@ -560,7 +572,7 @@ export default function TransactionsPage() {
     // signal. Backend also emits metrics.recordExport('csv').
     try { trackFeatureUse('export_transactions_csv'); } catch { /* GA4 unavailable */ }
     try { await api.downloadTransactionsCsv(); }
-    catch (err) { logError(err, { context: 'transactions.exportCsv' }); toast('CSV export failed', 'error'); setExportError('CSV export failed. Please try again.'); }
+    catch (err) { logError(err, { context: 'transactions.exportCsv' }); toast(t('txnCsvFailed'), 'error'); setExportError(t('txnCsvFailedRetry')); }
     setExportingCsv(false);
   };
 
@@ -568,7 +580,7 @@ export default function TransactionsPage() {
     setExportingPdf(true); setExportError(null);
     try { trackFeatureUse('export_transactions_pdf'); } catch { /* GA4 unavailable */ }
     try { await api.downloadTransactionsPdf(); }
-    catch (err) { logError(err, { context: 'transactions.exportPdf' }); toast('PDF export failed', 'error'); setExportError('PDF export failed. Please try again.'); }
+    catch (err) { logError(err, { context: 'transactions.exportPdf' }); toast(t('txnPdfFailed'), 'error'); setExportError(t('txnPdfFailedRetry')); }
     setExportingPdf(false);
   };
 
@@ -580,7 +592,7 @@ export default function TransactionsPage() {
       <p className="text-4xl mb-3">⚠️</p>
       <p className="text-red-600 font-medium mb-4">{error}</p>
       <button onClick={load} className="bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:bg-primary/90 text-sm font-medium">
-        Retry
+        {t('txnRetry')}
       </button>
     </div>
   );
@@ -604,25 +616,25 @@ export default function TransactionsPage() {
   return (
     <div>
       <PageHeader
-        title="Transactions"
-        subtitle="Income, expenses, and transfers across every linked account"
+        title={t('txTitle')}
+        subtitle={t('txSubtitle')}
         actions={
           <>
-            <SyncBanksButton onSynced={load} label="Sync banks" />
+            <SyncBanksButton onSynced={load} label={t('txnSyncBanks')} />
             <button onClick={handleExportCsv} disabled={exportingCsv}
               className="border border-primary text-primary px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1">
-              {exportingCsv ? <span className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full inline-block" /> : '📥'} CSV
+              {exportingCsv ? <span className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full inline-block" /> : '📥'} {t('txnExportCsv')}
             </button>
             <button onClick={handleExportPdf} disabled={exportingPdf}
               className="border border-primary text-primary px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium disabled:opacity-50 flex items-center gap-1">
-              {exportingPdf ? <span className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full inline-block" /> : '📄'} PDF
+              {exportingPdf ? <span className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full inline-block" /> : '📄'} {t('txnExportPdf')}
             </button>
             {txs.length > 0 && (
               selectMode
-                ? <button onClick={exitSelectMode} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">Cancel</button>
-                : <button onClick={() => setSelectMode(true)} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">Select</button>
+                ? <button onClick={exitSelectMode} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">{t('txnCancel')}</button>
+                : <button onClick={() => setSelectMode(true)} className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">{t('txnSelect')}</button>
             )}
-            <button onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add</button>
+            <button onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">{t('txnAdd')}</button>
           </>
         }
       />
@@ -635,17 +647,17 @@ export default function TransactionsPage() {
         <div>
           <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-primary' : 'text-amber-900'}`}>
             {hasLinkedPlaidTransactions
-              ? (plaidSyncAccess ? 'Keep your transaction feed alive.' : 'Your imported feed is visible, but syncing is paused.')
-              : 'Connect your accounts to stop manual ledger work.'}
+              ? (plaidSyncAccess ? t('txnBannerKeepAlive') : t('txnBannerSyncPaused'))
+              : t('txnBannerConnect')}
           </p>
           <p className={`text-sm mt-1 ${plaidSyncAccess ? 'text-gray-600' : 'text-amber-800'}`}>
             {hasLinkedPlaidTransactions
               ? (plaidSyncAccess
-                ? 'Open Import to resync fresh bank activity, salaries, subscriptions, and transfers.'
-                : 'Upgrade to Plus or Family to keep your linked activity syncing after trial access ends.')
+                ? t('txnBannerResync')
+                : t('txnBannerUpgradeBody'))
               : (plaidSyncAccess
-                ? 'Plaid turns this page into a live ledger instead of a manual list.'
-                : 'Plaid syncing now lives on Plus and Family. Upgrade when you want fresh balances and transaction flow here.')}
+                ? t('txnBannerLiveLedger')
+                : t('txnBannerPlaidPaid'))}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -655,14 +667,14 @@ export default function TransactionsPage() {
               plaidSyncAccess ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
             }`}
           >
-            {hasLinkedPlaidTransactions ? 'Manage Linked Accounts' : 'Connect Accounts'}
+            {hasLinkedPlaidTransactions ? t('txnManageLinked') : t('txnConnectAccounts')}
           </Link>
           {!plaidSyncAccess && (
             <Link
               href="/dashboard/billing"
               className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
             >
-              Upgrade to Keep Syncing
+              {t('txnUpgradeToSync')}
             </Link>
           )}
         </div>
@@ -683,19 +695,19 @@ export default function TransactionsPage() {
         style={{ viewTransitionName: 'transactions-hero' }}
       >
         <div className="bg-gradient-to-br from-[#1B5E20] to-green-500 rounded-xl p-4 text-white shadow-sm">
-          <p className="text-green-200 text-[10px] uppercase tracking-wide font-semibold">Income · This month</p>
+          <p className="text-green-200 text-[10px] uppercase tracking-wide font-semibold">{t('txnKpiIncome')}</p>
           <p className="text-xl font-bold mt-1">{fmt(income)}</p>
         </div>
         <div className="bg-gradient-to-br from-red-600 to-red-400 rounded-xl p-4 text-white shadow-sm">
-          <p className="text-red-200 text-[10px] uppercase tracking-wide font-semibold">Expenses · This month</p>
+          <p className="text-red-200 text-[10px] uppercase tracking-wide font-semibold">{t('txnKpiExpenses')}</p>
           <p className="text-xl font-bold mt-1">{fmt(expense)}</p>
         </div>
         <div className="bg-gradient-to-br from-cyan-600 to-cyan-500 rounded-xl p-4 text-white shadow-sm">
-          <p className="text-cyan-100 text-[10px] uppercase tracking-wide font-semibold">Transfers · This month</p>
+          <p className="text-cyan-100 text-[10px] uppercase tracking-wide font-semibold">{t('txnKpiTransfers')}</p>
           <p className="text-xl font-bold mt-1">{fmt(transfers)}</p>
         </div>
         <div className={`rounded-xl p-4 text-white shadow-sm bg-gradient-to-br ${income - expense >= 0 ? 'from-teal-600 to-cyan-500' : 'from-orange-600 to-amber-500'}`}>
-          <p className="opacity-80 text-[10px] uppercase tracking-wide font-semibold">Net · This month</p>
+          <p className="opacity-80 text-[10px] uppercase tracking-wide font-semibold">{t('txnKpiNet')}</p>
           <p className="text-xl font-bold mt-1">{fmt(income - expense)}</p>
         </div>
       </div>
@@ -704,7 +716,7 @@ export default function TransactionsPage() {
           "broken" to a user mid-month with rich historical data. */}
       {income === 0 && expense === 0 && transfers === 0 && totalElements > 0 && (
         <p className="text-xs text-gray-500 -mt-3 mb-4">
-          No activity yet this month. Showing {totalElements} historical transactions below.
+          {tFmt('txnNoActivityMonthFmt', [totalElements])}
         </p>
       )}
       {/* 2026-05-08 (Bug B): only surface the mixed-currency note when the
@@ -718,7 +730,7 @@ export default function TransactionsPage() {
           message only appears when it's actually true. */}
       {mixedCurrencyCount > 0 && sameCurrencyTxns.length > 0 && (
         <p className="text-xs text-gray-500 mb-4 -mt-2">
-          {mixedCurrencyCount} transaction{mixedCurrencyCount === 1 ? '' : 's'} in other currencies not included in totals above. Switch display currency in Settings to view them.
+          {tFmt('txnMixedCurrencyFmt', [mixedCurrencyCount, mixedCurrencyCount === 1 ? '' : 's'])}
         </p>
       )}
 
@@ -740,18 +752,18 @@ export default function TransactionsPage() {
           <input
             id="tx-search"
             type="text"
-            placeholder="Search by merchant, description, category, tag, or notes…"
+            placeholder={t('txnSearchPlaceholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-10 pr-20 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-shadow shadow-sm"
-            aria-label="Search transactions"
+            aria-label={t('txnSearchAria')}
           />
           {search ? (
             <button
               type="button"
               onClick={() => setSearch('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 text-sm"
-              aria-label="Clear search"
+              aria-label={t('txnClearSearch')}
             >
               ✕
             </button>
@@ -793,8 +805,8 @@ export default function TransactionsPage() {
                   type="button"
                   onClick={() => shiftMonth(-1)}
                   className="p-1 rounded-full hover:bg-emerald-100 text-emerald-800"
-                  aria-label="Previous month"
-                  title="Previous month (←)"
+                  aria-label={t('txnPrevMonth')}
+                  title={t('txnPrevMonthTitle')}
                 >
                   ←
                 </button>
@@ -803,8 +815,8 @@ export default function TransactionsPage() {
                   type="button"
                   onClick={() => shiftMonth(1)}
                   className="p-1 rounded-full hover:bg-emerald-100 text-emerald-800"
-                  aria-label="Next month"
-                  title="Next month (→)"
+                  aria-label={t('txnNextMonth')}
+                  title={t('txnNextMonthTitle')}
                 >
                   →
                 </button>
@@ -814,7 +826,7 @@ export default function TransactionsPage() {
           {urlCategory && urlMonth && <span className="text-emerald-400">·</span>}
           {urlCategory && (
             <span className="font-medium">
-              Category: <span className="font-bold capitalize">{urlCategory.replace(/_/g, ' ')}</span>
+              {t('txnCategoryLabelFmt').split('{0}')[0]}<span className="font-bold capitalize">{categoryLabel(urlCategory)}</span>{t('txnCategoryLabelFmt').split('{0}')[1] ?? ''}
             </span>
           )}
           <div className="ml-auto flex items-center gap-3">
@@ -823,7 +835,7 @@ export default function TransactionsPage() {
                 href={`/dashboard/transactions${urlMonth ? `?month=${urlMonth}` : ''}`}
                 className="text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline text-xs"
               >
-                Clear category
+                {t('txnClearCategory')}
               </a>
             )}
             {urlMonth && (
@@ -831,7 +843,7 @@ export default function TransactionsPage() {
                 href={`/dashboard/transactions${urlCategory ? `?category=${urlCategory}` : ''}`}
                 className="text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline text-xs"
               >
-                Clear month
+                {t('txnClearMonth')}
               </a>
             )}
             {(urlCategory || urlMonth) && (
@@ -839,7 +851,7 @@ export default function TransactionsPage() {
                 href="/dashboard/transactions"
                 className="text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline text-xs font-medium"
               >
-                Clear all
+                {t('txnClearAll')}
               </a>
             )}
           </div>
@@ -848,22 +860,22 @@ export default function TransactionsPage() {
 
       {/* ── Filter + page-size row ──────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-2 mb-4 items-center">
-        {['all', 'income', 'expense', 'transfer'].map(f => (
+        {([['all', 'txnFilterAll'], ['income', 'txnFilterIncome'], ['expense', 'txnFilterExpense'], ['transfer', 'txnFilterTransfer']] as const).map(([f, key]) => (
           <button key={f} onClick={() => { setFilter(f); setPage(0); exitSelectMode(); }}
-            className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${filter === f ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>{f}</button>
+            className={`px-3 py-1 rounded-lg text-sm font-medium ${filter === f ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>{t(key)}</button>
         ))}
         <button onClick={() => { setFilter('needs_review'); setPage(0); exitSelectMode(); }}
           className={`px-3 py-1 rounded-lg text-sm font-medium flex items-center gap-1.5 ${filter === 'needs_review' ? 'bg-amber-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>
-          Needs Review
+          {t('txnFilterNeedsReview')}
           {reviewCount > 0 && (
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${filter === 'needs_review' ? 'bg-white text-amber-700' : 'bg-amber-100 text-amber-700'}`}>
               {reviewCount}
             </span>
           )}
         </button>
-        {totalElements > 0 && <span className="text-sm text-gray-500">{totalElements} total</span>}
+        {totalElements > 0 && <span className="text-sm text-gray-500">{tFmt('txnTotalCountFmt', [totalElements])}</span>}
         <div className="ml-auto flex items-center gap-1.5">
-          <span className="text-xs text-gray-500">Show:</span>
+          <span className="text-xs text-gray-500">{t('txnShow')}</span>
           {PAGE_SIZE_OPTIONS.map(n => (
             <button key={n} onClick={() => handlePageSizeChange(n)}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition ${pageSize === n ? 'bg-primary text-primary-foreground border-primary' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>{n}</button>
@@ -877,9 +889,9 @@ export default function TransactionsPage() {
           <div className="flex items-center gap-3 p-3">
             <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
               <input type="checkbox" checked={allPageSelected} onChange={toggleSelectAll} className="w-4 h-4 accent-[#1B5E20] rounded" />
-              {allPageSelected ? 'Deselect page' : 'Select page'}
+              {allPageSelected ? t('txnDeselectPage') : t('txnSelectPage')}
             </label>
-            <span className="text-sm text-gray-500">{selectAllPages ? `All ${totalElements} selected` : `${selectedIds.size} selected`}</span>
+            <span className="text-sm text-gray-500">{selectAllPages ? tFmt('txnAllSelectedFmt', [totalElements]) : tFmt('txnNSelectedFmt', [selectedIds.size])}</span>
             {/* 2026-05-03 (Monarch parity): bulk recategorize. The
                 walkthrough showed Monarch's "Edit multiple" toolbar
                 surfaces a category picker in this position. Hidden when
@@ -896,7 +908,7 @@ export default function TransactionsPage() {
                   aria-expanded={bulkCategoryMenuOpen}
                 >
                   {bulkCategorizing ? <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" /> : '🏷️'}
-                  Recategorize ({selectedIds.size})
+                  {tFmt('txnRecategorizeFmt', [selectedIds.size])}
                 </button>
                 {bulkCategoryMenuOpen && (
                   <>
@@ -917,9 +929,9 @@ export default function TransactionsPage() {
                           type="button"
                           role="menuitem"
                           onClick={() => handleBulkCategorize(cat)}
-                          className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 capitalize"
+                          className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
                         >
-                          {cat.replace(/_/g, ' ')}
+                          {categoryLabel(cat)}
                         </button>
                       ))}
                     </div>
@@ -941,32 +953,32 @@ export default function TransactionsPage() {
                 onClick={() => handleMarkReviewed(Array.from(selectedIds))}
                 disabled={bulkCategorizing}
                 className="bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-40 flex items-center gap-1.5"
-                aria-label={`Mark ${selectedIds.size} transactions as reviewed`}
+                aria-label={tFmt('txnMarkNReviewedAria', [selectedIds.size])}
               >
                 {bulkCategorizing ? <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" /> : '✓'}
-                Mark reviewed ({selectedIds.size})
+                {tFmt('txnMarkReviewedBtnFmt', [selectedIds.size])}
               </button>
             )}
             <button onClick={handleBulkDelete}
               disabled={(selectAllPages ? totalElements : selectedIds.size) === 0 || bulkDeleting}
               className={`${selectedIds.size > 0 && !selectAllPages ? '' : 'ml-auto'} bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5`}>
               {bulkDeleting ? <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" /> : '🗑️'}
-              Delete {selectAllPages ? `all ${totalElements}` : selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
+              {selectAllPages ? tFmt('txnDeleteAllFmt', [totalElements]) : selectedIds.size > 0 ? tFmt('txnDeleteNFmt', [selectedIds.size]) : t('txnDelete')}
             </button>
           </div>
           {allPageSelected && hasMorePages && !selectAllPages && (
             <div className="bg-blue-50 border-t border-blue-100 px-3 py-2 flex items-center gap-2 text-sm text-blue-800">
-              <span>All {txs.length} transactions on this page are selected.</span>
+              <span>{tFmt('txnAllPageSelectedFmt', [txs.length])}</span>
               <button onClick={() => setSelectAllPages(true)} className="font-semibold underline hover:no-underline">
-                Select all {totalElements} transactions
+                {tFmt('txnSelectAllFmt', [totalElements])}
               </button>
             </div>
           )}
           {selectAllPages && (
             <div className="bg-blue-50 border-t border-blue-100 px-3 py-2 flex items-center gap-2 text-sm text-blue-800">
-              <span>All {totalElements} transactions are selected.</span>
+              <span>{tFmt('txnAllSelectedBannerFmt', [totalElements])}</span>
               <button onClick={() => { setSelectAllPages(false); setSelectedIds(new Set(txs.map(t => t.id))); }} className="font-semibold underline hover:no-underline">
-                Select only this page
+                {t('txnSelectOnlyPage')}
               </button>
             </div>
           )}
@@ -981,7 +993,7 @@ export default function TransactionsPage() {
         // users who had data in the DB.
         <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 text-gray-500">
           <p className="text-4xl mb-3">⏳</p>
-          Loading your transactions…
+          {t('txnLoadingList')}
         </div>
       ) : txs.length > 0 ? (
         // R44 (2026-05-01): group rows by date with a daily-total
@@ -1023,9 +1035,9 @@ export default function TransactionsPage() {
               // would fall back to browser default which on most QA
               // machines is en-US.
               const label = diffDays === 0
-                ? `Today, ${d.toLocaleDateString(dateLocale, { month: 'long', day: 'numeric' })}`
+                ? tFmt('txnTodayFmt', [d.toLocaleDateString(dateLocale, { month: 'long', day: 'numeric' })])
                 : diffDays === 1
-                  ? `Yesterday, ${d.toLocaleDateString(dateLocale, { month: 'long', day: 'numeric' })}`
+                  ? tFmt('txnYesterdayFmt', [d.toLocaleDateString(dateLocale, { month: 'long', day: 'numeric' })])
                   : d.toLocaleDateString(dateLocale, { weekday: 'long', month: 'long', day: 'numeric', year: today.getFullYear() === d.getFullYear() ? undefined : 'numeric' });
               g = { key, label, rows: [], net: 0 };
               groups.push(g);
@@ -1063,13 +1075,13 @@ export default function TransactionsPage() {
                   if (selectMode) toggleSelect(tx.id); else openEdit(tx);
                 }
               }}
-              aria-label={`${tx.description || tx.category} — click to ${selectMode ? 'select' : 'edit'}`}
+              aria-label={tFmt('txnRowAria', [tx.description || categoryLabel(tx.category), selectMode ? t('txnRowActionSelect') : t('txnRowActionEdit')])}
               className={`group bg-card rounded-xl p-4 flex justify-between items-center cursor-pointer border border-transparent transition-all hover:border-primary/20 hover:bg-accent/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
               <div className="flex items-center gap-3">
                 {selectMode && (
                   <input type="checkbox" checked={selectedIds.has(tx.id) || selectAllPages}
                     onChange={() => toggleSelect(tx.id)} onClick={e => e.stopPropagation()}
-                    aria-label={`Select ${tx.description || tx.category}`}
+                    aria-label={tFmt('txnSelectRowFmt', [tx.description || categoryLabel(tx.category)])}
                     className="w-4 h-4 accent-[#1B5E20] rounded flex-shrink-0" />
                 )}
                 {/* 2026-05-06 (founder report): row avatar shows the MERCHANT
@@ -1106,7 +1118,7 @@ export default function TransactionsPage() {
                               ? <span className="font-normal text-gray-500 text-sm ml-1">— {prettifyDescription(tx.description)}</span>
                               : ''}
                           </>
-                        : (prettifyDescription(tx.description) || tx.category)}
+                        : (prettifyDescription(tx.description) || categoryLabel(tx.category))}
                       {tx.notes && <span className="ml-1 text-sm" title={tx.notes}>📝</span>}
                     </p>
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${presentation.badgeClass}`}>
@@ -1114,12 +1126,12 @@ export default function TransactionsPage() {
                     </span>
                     {tx.reviewStatus === 'needs_review' && (
                       <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                        Review
+                        {t('txnReviewPill')}
                       </span>
                     )}
                     {tx.importSource === 'plaid' && (
                       <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                        Linked via Plaid
+                        {t('txnLinkedViaPlaid')}
                       </span>
                     )}
                     {tx.isRecurring && (
@@ -1128,7 +1140,7 @@ export default function TransactionsPage() {
                       // set, mirrors the bills/recurring page styling.
                       <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 inline-flex items-center gap-1">
                         <RefreshCw className="w-3 h-3" />
-                        Recurring
+                        {t('txnRecurringPill')}
                       </span>
                     )}
                   </div>
@@ -1142,7 +1154,7 @@ export default function TransactionsPage() {
                         subtitle for transfers — the pill already says
                         what it is — and just show the date. */}
                     {tx.type !== 'transfer' && (
-                      <>{tx.category?.replace(/_/g, ' ')} • </>
+                      <>{categoryLabel(tx.category)} • </>
                     )}
                     {new Date(tx.timestamp).toLocaleDateString(dateLocale)}
                     {tx.currency && tx.currency !== preferredCurrency && (
@@ -1187,8 +1199,8 @@ export default function TransactionsPage() {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); handleMarkReviewed([tx.id]); }}
-                        aria-label={`Mark ${tx.description || tx.category} as reviewed`}
-                        title="Mark as reviewed (auto-tag is correct)"
+                        aria-label={tFmt('txnMarkRowReviewedAria', [tx.description || categoryLabel(tx.category)])}
+                        title={t('txnMarkRowReviewedTitle')}
                         className="p-1.5 rounded-md text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
                       >
                         <CheckCircle2 className="w-4 h-4" />
@@ -1202,8 +1214,8 @@ export default function TransactionsPage() {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setSplitTx(tx); }}
-                        aria-label={`Split ${tx.description || tx.category}`}
-                        title={txnIdsWithSplits.has(tx.id) ? 'Edit splits' : 'Split into multiple categories'}
+                        aria-label={tFmt('txnSplitRowAria', [tx.description || categoryLabel(tx.category)])}
+                        title={txnIdsWithSplits.has(tx.id) ? t('txnEditSplitsTitle') : t('txnSplitIntoTitle')}
                         className={`p-1.5 rounded-md transition-colors ${
                           txnIdsWithSplits.has(tx.id)
                             ? 'text-amber-700 bg-amber-50 hover:bg-amber-100'
@@ -1216,8 +1228,8 @@ export default function TransactionsPage() {
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); handleToggleRecurring(tx); }}
-                      aria-label={tx.isRecurring ? `Remove recurring on ${tx.description || tx.category}` : `Mark ${tx.description || tx.category} as recurring`}
-                      title={tx.isRecurring ? 'Remove recurring' : 'Mark as recurring'}
+                      aria-label={tx.isRecurring ? tFmt('txnRemoveRecurringAria', [tx.description || categoryLabel(tx.category)]) : tFmt('txnMarkRecurringAria', [tx.description || categoryLabel(tx.category)])}
+                      title={tx.isRecurring ? t('txnRemoveRecurringTitle') : t('txnMarkRecurringTitle')}
                       className={`p-1.5 rounded-md transition-colors ${tx.isRecurring ? 'text-violet-700 bg-violet-50 hover:bg-violet-100' : 'text-muted-foreground hover:text-violet-700 hover:bg-violet-50'}`}
                     >
                       <RefreshCw className="w-4 h-4" />
@@ -1225,8 +1237,8 @@ export default function TransactionsPage() {
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); openEdit(tx); }}
-                      aria-label={`Edit ${tx.description || tx.category}`}
-                      title="Edit"
+                      aria-label={tFmt('txnEditRowAria', [tx.description || categoryLabel(tx.category)])}
+                      title={t('txnEditTitle')}
                       className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                     >
                       <Pencil className="w-4 h-4" />
@@ -1234,8 +1246,8 @@ export default function TransactionsPage() {
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); handleDelete(tx.id); }}
-                      aria-label={`Delete ${tx.description || tx.category}`}
-                      title="Delete"
+                      aria-label={tFmt('txnDeleteRowAria', [tx.description || categoryLabel(tx.category)])}
+                      title={t('txnDeleteTitle')}
                       className="p-1.5 rounded-md text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -1255,18 +1267,18 @@ export default function TransactionsPage() {
       ) : (
         <EmptyState
           illustration="receipt"
-          title="No transactions yet"
-          description="Add your first income, expense, or transfer manually — or connect your bank to import the last 90 days automatically."
+          title={t('txnEmptyTitle')}
+          description={t('txnEmptyDesc')}
           actions={[
-            { label: '+ Add transaction', onClick: openAdd, primary: true },
-            { label: 'Connect bank', href: '/dashboard/import' },
+            { label: t('txnEmptyAddBtn'), onClick: openAdd, primary: true },
+            { label: t('txnEmptyConnectBtn'), href: '/dashboard/import' },
           ]}
           preview={
             <div className="space-y-2">
               {[
-                { desc: 'Whole Foods Market', cat: 'Groceries', amt: `−${fmt(84.31)}`, date: 'Today' },
-                { desc: 'Salary — Acme Corp', cat: 'Income', amt: `+${fmt(5400)}`, date: 'Apr 25' },
-                { desc: 'Sadaqah · Local masjid', cat: 'Sadaqah', amt: `−${fmt(50)}`, date: 'Apr 24' },
+                { desc: 'Whole Foods Market', cat: categoryLabel('groceries'), amt: `−${fmt(84.31)}`, date: t('txnSampleToday') },
+                { desc: 'Salary — Acme Corp', cat: categoryLabel('income'), amt: `+${fmt(5400)}`, date: 'Apr 25' },
+                { desc: 'Sadaqah · Local masjid', cat: categoryLabel('sadaqah'), amt: `−${fmt(50)}`, date: 'Apr 24' },
               ].map((t, i) => (
                 <div key={i} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                   <div>
@@ -1285,10 +1297,10 @@ export default function TransactionsPage() {
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-6">
           <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-            className="px-3 py-1 rounded-lg text-sm font-medium bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">← Prev</button>
-          <span className="text-sm text-gray-600">Page {page + 1} of {totalPages}</span>
+            className="px-3 py-1 rounded-lg text-sm font-medium bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">{t('txnPagePrev')}</button>
+          <span className="text-sm text-gray-600">{tFmt('txnPageOfFmt', [page + 1, totalPages])}</span>
           <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
-            className="px-3 py-1 rounded-lg text-sm font-medium bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">Next →</button>
+            className="px-3 py-1 rounded-lg text-sm font-medium bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">{t('txnPageNext')}</button>
         </div>
       )}
 
@@ -1305,11 +1317,11 @@ export default function TransactionsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editTx ? 'Edit Transaction' : 'Add Transaction'}</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editTx ? t('txnModalEditTitle') : t('txnModalAddTitle')}</h2>
             <div className="space-y-4">
               {/* Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldType')}</label>
                 <select value={form.type} onChange={e => {
                   const nextType = e.target.value;
                   setForm({
@@ -1319,26 +1331,26 @@ export default function TransactionsPage() {
                     category: categoriesForType(nextType).includes(form.category) ? form.category : categoriesForType(nextType)[0],
                   });
                 }} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                  <option value="income">Income</option>
-                  <option value="expense">Expense</option>
-                  <option value="transfer">Transfer</option>
+                  <option value="income">{t('txnTypeIncome')}</option>
+                  <option value="expense">{t('txnTypeExpense')}</option>
+                  <option value="transfer">{t('txnTypeTransfer')}</option>
                 </select>
               </div>
               {form.type === 'transfer' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Direction</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldDirection')}</label>
                   <select value={form.direction} onChange={e => setForm({ ...form, direction: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                    <option value="inflow">Transfer In</option>
-                    <option value="outflow">Transfer Out</option>
-                    <option value="neutral">Internal / Neutral</option>
+                    <option value="inflow">{t('txnDirInflow')}</option>
+                    <option value="outflow">{t('txnDirOutflow')}</option>
+                    <option value="neutral">{t('txnDirNeutral')}</option>
                   </select>
                 </div>
               )}
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldCategory')}</label>
                 <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                  {categoriesForType(form.type).map(c => <option key={c} value={c}>{c.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase())}</option>)}
+                  {categoriesForType(form.type).map(c => <option key={c} value={c}>{categoryLabel(c)}</option>)}
                 </select>
               </div>
               {/* Inline form error */}
@@ -1350,12 +1362,12 @@ export default function TransactionsPage() {
               {/* Amount + Currency (side by side) */}
               <div className="grid grid-cols-5 gap-3">
                 <div className="col-span-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldAmount')}</label>
                   <input type="number" step="0.01" min="0.01" value={form.amount} onChange={e => { setForm({ ...form, amount: e.target.value }); setFormError(null); }}
-                    className={`w-full border rounded-lg px-3 py-2 text-gray-900 ${formError ? 'border-red-400' : ''}`} placeholder="0.00" />
+                    className={`w-full border rounded-lg px-3 py-2 text-gray-900 ${formError ? 'border-red-400' : ''}`} placeholder={t('txnAmountPlaceholder')} />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldCurrency')}</label>
                   <select value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm">
                     {CURRENCIES.map(c => (
                       <option key={c} value={c}>{CURRENCY_SYMBOLS[c] || ''} {c} — {CURRENCY_NAMES[c]}</option>
@@ -1365,29 +1377,29 @@ export default function TransactionsPage() {
               </div>
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldDescription')}</label>
                 <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Groceries" />
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('txnDescPlaceholder')} />
               </div>
               {/* Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldDate')}</label>
                 <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
                   max={localToday()}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" />
               </div>
               {/* Tags */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldTags')}</label>
                 <input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="Tags (comma-separated, e.g. ramadan, groceries)" />
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('txnTagsPlaceholder')} />
               </div>
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldNotes')}</label>
                 <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
                   rows={2}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none" placeholder="Notes (optional)" />
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none" placeholder={t('txnNotesPlaceholder')} />
               </div>
               {/* Mark as recurring (edit mode only — doesn't make sense for
                   a transaction that doesn't exist yet). 2026-05-01: founder
@@ -1406,15 +1418,15 @@ export default function TransactionsPage() {
                     />
                     <span className="flex-1">
                       <span className="block text-sm font-medium text-gray-900">
-                        Mark as recurring
+                        {t('txnMarkRecurringLabel')}
                       </span>
                       <span className="block text-xs text-gray-500 mt-0.5">
-                        Adds this to your Recurring view (Bills + subscriptions). Toggle off any time.
+                        {t('txnMarkRecurringHint')}
                       </span>
                     </span>
                     {Boolean(editTx.isRecurring) && (
                       <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 flex-shrink-0">
-                        Recurring
+                        {t('txnRecurringPill')}
                       </span>
                     )}
                   </label>
@@ -1422,10 +1434,10 @@ export default function TransactionsPage() {
               )}
             </div>
             <div className="flex gap-3 mt-6">
-              <button aria-label="Close add transaction modal" onClick={() => { setShowForm(false); setEditTx(null); setFormError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button aria-label={t('txnCloseAddModalAria')} onClick={() => { setShowForm(false); setEditTx(null); setFormError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('txnCancel')}</button>
               <button onClick={handleSave} disabled={saving || !form.amount}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">
-                {saving ? 'Saving...' : (editTx ? 'Save Changes' : 'Add')}
+                {saving ? t('txnSaving') : (editTx ? t('txnSaveChanges') : t('txnAddBtn'))}
               </button>
             </div>
           </div>
@@ -1445,33 +1457,33 @@ export default function TransactionsPage() {
             <div className="flex items-start gap-3 mb-4">
               <span className="text-2xl">🗑️</span>
               <div className="flex-1">
-                <h3 id="modal-title" className="font-bold text-gray-900">Delete transaction?</h3>
+                <h3 id="modal-title" className="font-bold text-gray-900">{t('txnDeleteConfirmTitle')}</h3>
                 {deleteConfirmation.type === 'single' && (
-                  <p className="text-sm text-gray-600 mt-1">This transaction will be permanently deleted and cannot be undone.</p>
+                  <p className="text-sm text-gray-600 mt-1">{t('txnDeleteSingleBody')}</p>
                 )}
                 {deleteConfirmation.type === 'bulk' && (
                   <p className="text-sm text-gray-600 mt-1">
                     {selectAllPages
-                      ? `This will permanently delete ALL ${totalElements} transaction${totalElements !== 1 ? 's' : ''} across all pages and cannot be undone.`
-                      : `This will permanently delete ${deleteConfirmation.count} selected transaction${(deleteConfirmation.count ?? 0) > 1 ? 's' : ''} and cannot be undone.`}
+                      ? tFmt('txnDeleteAllBodyFmt', [totalElements, totalElements !== 1 ? 's' : ''])
+                      : tFmt('txnDeleteBulkBodyFmt', [deleteConfirmation.count ?? 0, (deleteConfirmation.count ?? 0) > 1 ? 's' : ''])}
                   </p>
                 )}
               </div>
             </div>
             <div className="flex gap-3">
               <button
-                aria-label="Close delete confirmation modal"
+                aria-label={t('txnCloseDeleteModalAria')}
                 onClick={() => setDeleteConfirmation(null)}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50 font-medium"
               >
-                Cancel
+                {t('txnCancel')}
               </button>
               <button
                 onClick={deleteConfirmation.type === 'single' ? confirmDelete : confirmBulkDelete}
                 disabled={bulkDeleting}
                 className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700 disabled:opacity-50 font-medium"
               >
-                {bulkDeleting ? 'Deleting...' : 'Delete'}
+                {bulkDeleting ? t('txnDeleting') : t('txnDelete')}
               </button>
             </div>
           </div>
@@ -1491,7 +1503,7 @@ export default function TransactionsPage() {
               return next;
             });
             setSplitTx(null);
-            toast(hadSplits ? 'Splits saved' : 'Splits cleared', 'success');
+            toast(hadSplits ? t('txnSplitsSaved') : t('txnSplitsCleared'), 'success');
           }}
           onError={(msg) => toast(msg, 'error')}
         />
@@ -1523,6 +1535,7 @@ function SplitTransactionModal({
   onSaved: (hadSplits: boolean) => void;
   onError: (msg: string) => void;
 }) {
+  const { t, tFmt } = useI18n();
   const [lines, setLines] = useState<SplitLine[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -1554,7 +1567,7 @@ function SplitTransactionModal({
           setLines(existing);
         }
       })
-      .catch(() => onError('Failed to load splits'))
+      .catch(() => onError(t('txnSplitLoadFailed')))
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1607,7 +1620,7 @@ function SplitTransactionModal({
       if (r?.error) { onError(r.error); return; }
       onSaved(payload.length > 0);
     } catch (e) {
-      onError(e instanceof Error ? e.message : 'Save failed');
+      onError(e instanceof Error ? e.message : t('txnSplitSaveFailed'));
     } finally {
       setSaving(false);
     }
@@ -1625,25 +1638,25 @@ function SplitTransactionModal({
         <div className="p-5 border-b">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 id="split-modal-title" className="font-bold text-gray-900 text-lg">Split transaction</h3>
+              <h3 id="split-modal-title" className="font-bold text-gray-900 text-lg">{t('txnSplitTitle')}</h3>
               <p className="text-xs text-gray-500 mt-1 max-w-md">
-                Divide <strong>{tx.description || tx.category}</strong> across multiple categories. Splits replace the single-category attribution in your budgets.
+                {t('txnSplitDescPre')} <strong>{tx.description || categoryLabel(tx.category)}</strong> {t('txnSplitDescPost')}
               </p>
             </div>
-            <button onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            <button onClick={onClose} aria-label={t('txnClose')} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
           </div>
         </div>
 
         <div className="p-5 space-y-3">
           {loading ? (
-            <p className="text-center text-gray-400 py-6">Loading splits…</p>
+            <p className="text-center text-gray-400 py-6">{t('txnLoadingSplits')}</p>
           ) : (
             <>
               {lines.map((line, i) => (
                 <div key={i} className="grid grid-cols-12 gap-2 items-center">
                   <input
                     type="text"
-                    placeholder="Category"
+                    placeholder={t('txnSplitCategoryPlaceholder')}
                     value={line.category}
                     onChange={e => updateLine(i, { category: e.target.value })}
                     className="col-span-4 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
@@ -1652,14 +1665,14 @@ function SplitTransactionModal({
                     type="number"
                     step="0.01"
                     min="0"
-                    placeholder="0.00"
+                    placeholder={t('txnAmountPlaceholder')}
                     value={line.amount}
                     onChange={e => updateLine(i, { amount: e.target.value })}
                     className="col-span-3 px-3 py-2 border border-gray-300 rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
                   />
                   <input
                     type="text"
-                    placeholder="Note (optional)"
+                    placeholder={t('txnSplitNotePlaceholder')}
                     value={line.description}
                     onChange={e => updateLine(i, { description: e.target.value })}
                     className="col-span-4 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"
@@ -1667,7 +1680,7 @@ function SplitTransactionModal({
                   <button
                     type="button"
                     onClick={() => removeLine(i)}
-                    aria-label="Remove split"
+                    aria-label={t('txnRemoveSplit')}
                     className="col-span-1 text-gray-400 hover:text-rose-600 text-lg leading-none"
                   >×</button>
                 </div>
@@ -1678,7 +1691,7 @@ function SplitTransactionModal({
                   onClick={addLine}
                   className="text-xs font-semibold text-[#1B5E20] hover:underline"
                 >
-                  + Add split
+                  {t('txnAddSplit')}
                 </button>
                 {!balanced && diff !== 0 && (
                   <button
@@ -1686,27 +1699,27 @@ function SplitTransactionModal({
                     onClick={autoBalance}
                     className="text-xs font-semibold text-blue-600 hover:underline"
                   >
-                    Auto-balance ({diff > 0 ? '+' : ''}{fmt(diff)})
+                    {tFmt('txnAutoBalanceFmt', [`${diff > 0 ? '+' : ''}${fmt(diff)}`])}
                   </button>
                 )}
               </div>
               <div className={`mt-4 rounded-lg p-3 text-sm ${balanced ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'}`}>
                 <div className="flex justify-between">
-                  <span>Parent total</span>
+                  <span>{t('txnParentTotal')}</span>
                   <strong>{fmt(parentAmount)}</strong>
                 </div>
                 <div className="flex justify-between">
-                  <span>Split total</span>
+                  <span>{t('txnSplitTotal')}</span>
                   <strong>{fmt(sum)}</strong>
                 </div>
                 {!balanced && (
                   <div className="flex justify-between mt-1 border-t border-amber-200 pt-1">
-                    <span>{diff > 0 ? 'Remaining' : 'Over by'}</span>
+                    <span>{diff > 0 ? t('txnRemaining') : t('txnOverBy')}</span>
                     <strong>{fmt(Math.abs(diff))}</strong>
                   </div>
                 )}
                 {balanced && (
-                  <p className="mt-1 text-xs">✓ Splits sum to parent amount</p>
+                  <p className="mt-1 text-xs">{t('txnSplitsBalanced')}</p>
                 )}
               </div>
             </>
@@ -1720,7 +1733,7 @@ function SplitTransactionModal({
             disabled={saving}
             className="text-xs text-rose-700 hover:text-rose-900 disabled:opacity-40"
           >
-            Clear all splits
+            {t('txnClearAllSplits')}
           </button>
           <div className="flex gap-2">
             <button
@@ -1728,7 +1741,7 @@ function SplitTransactionModal({
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
             >
-              Cancel
+              {t('txnCancel')}
             </button>
             <button
               type="button"
@@ -1736,7 +1749,7 @@ function SplitTransactionModal({
               disabled={!canSubmit}
               className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-semibold hover:bg-[#1B5E20]/90 disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {saving ? 'Saving…' : 'Save splits'}
+              {saving ? t('txnSavingEllipsis') : t('txnSaveSplits')}
             </button>
           </div>
         </div>

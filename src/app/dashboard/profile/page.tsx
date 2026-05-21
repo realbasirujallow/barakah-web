@@ -5,6 +5,7 @@ import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n, t as tStandalone } from '../../../lib/i18n';
 import { useAuth } from '../../../context/AuthContext';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { saveCurrencyPreference } from '../../../lib/useCurrency';
@@ -40,10 +41,10 @@ interface CommunicationPreferences {
   quietHoursEnd: number;
 }
 
-const PLAN_INFO: Record<string, { label: string; color: string; bg: string; desc: string }> = {
-  free:   { label: 'Free',   color: 'text-gray-600',   bg: 'bg-gray-100',    desc: 'Basic features, up to 10 transactions/month.' },
-  plus:   { label: 'Plus',   color: 'text-blue-700',   bg: 'bg-blue-100',    desc: 'Unlimited transactions, all Islamic finance tools.' },
-  family: { label: 'Family', color: 'text-purple-700', bg: 'bg-purple-100',  desc: 'Everything in Plus, shared finances for up to 6 members.' },
+const PLAN_INFO_KEYS: Record<string, { labelKey: string; color: string; bg: string; descKey: string }> = {
+  free:   { labelKey: 'profPlanFree',   color: 'text-gray-600',   bg: 'bg-gray-100',    descKey: 'profPlanFreeDesc' },
+  plus:   { labelKey: 'profPlanPlus',   color: 'text-blue-700',   bg: 'bg-blue-100',    descKey: 'profPlanPlusDesc' },
+  family: { labelKey: 'profPlanFamily', color: 'text-purple-700', bg: 'bg-purple-100',  descKey: 'profPlanFamilyDesc' },
 };
 
 export default function ProfilePage() {
@@ -54,6 +55,7 @@ export default function ProfilePage() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t, tFmt } = useI18n();
 
   const handleUpgrade = async (plan: 'plus' | 'family') => {
     setUpgradingPlan(plan);
@@ -63,18 +65,18 @@ export default function ProfilePage() {
         if (validateStripeUrl(result.url)) {
           window.location.href = result.url; // Free → Stripe Checkout
         } else {
-          toast('Invalid Stripe URL. Please contact support.', 'error');
+          toast(t('profInvalidStripeUrl'), 'error');
           setUpgradingPlan(null);
         }
       } else if (result?.success) {
-        toast('Plan updated successfully!', 'success');
+        toast(t('profPlanUpdated'), 'success');
         await refreshPlan(); // Existing subscriber — plan switched
       } else {
-        toast('Something went wrong. Please try again.', 'error');
+        toast(t('profSomethingWrong'), 'error');
         setUpgradingPlan(null);
       }
     } catch {
-      toast('Something went wrong. Please try again.', 'error');
+      toast(t('profSomethingWrong'), 'error');
       setUpgradingPlan(null);
     }
   };
@@ -105,32 +107,19 @@ export default function ProfilePage() {
   const [preferences, setPreferences] = useState<CommunicationPreferences | null>(null);
   const [savingPreferences, setSavingPreferences] = useState(false);
 
-  // Dark mode — read via useSyncExternalStore so we stay in sync with the
-  // dashboard layout's toggle (which mutates the class on <html> directly).
   const darkMode = useDarkMode();
   const toggleDarkMode = () => {
-    // Mutate the DOM; the MutationObserver in darkModeSubscribe wakes the
-    // useSyncExternalStore subscribers so React re-renders with the new value.
     toggleDarkModeShared();
   };
 
-
-
-  // Delete account — two-step: retention modal → final confirmation (no password required)
+  // Delete account — two-step
   const [showRetentionModal, setShowRetentionModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  // 2026-05-10 (SEC-001 v2): typed-phrase confirmation only — Apple/
-  // Google policies forbid putting a password between the user and
-  // account deletion. The typed phrase ("DELETE") is the sole gate
-  // against accidental taps + CSRF/XSS one-shot payloads.
   const [deleteConfirmPhrase, setDeleteConfirmPhrase] = useState('');
-  // 2026-05-02: lock body scroll while any deletion modal is open.
   useBodyScrollLock(showRetentionModal || showDeleteConfirm);
 
-  // Round 26: Escape-key closes the destructive retention modal (keyboard-only
-  // users previously had no way to dismiss). Matches the sitewide modal pattern.
   useEffect(() => {
     if (!showRetentionModal) return;
     const onKey = (e: KeyboardEvent) => {
@@ -144,9 +133,6 @@ export default function ProfilePage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [showRetentionModal]);
 
-  // Round 27: trap Tab focus inside the destructive modal so keyboard
-  // users don't tab out to the page behind and accidentally click a
-  // "Continue Deleting" that was never intended.
   const retentionModalRef = useRef<HTMLDivElement>(null);
   useFocusTrap(retentionModalRef, showRetentionModal);
 
@@ -154,7 +140,7 @@ export default function ProfilePage() {
     setLoading(true);
     Promise.allSettled([
       api.getProfile(),
-      api.getSupportedCurrencies().catch(() => []), // FEATURE 4: Load supported currencies
+      api.getSupportedCurrencies().catch(() => []),
       api.getPreferences().catch(() => null),
     ])
       .then((results) => {
@@ -168,10 +154,9 @@ export default function ProfilePage() {
           setNameForm({ fullName: d.fullName || '', email: d.email || '' });
           setLocationForm({ country: d.country || '', state: d.state || '' });
           setSelectedCurrency(d.preferredCurrency || 'USD');
-          // Sync currency preference to localStorage so useCurrency() hook picks it up app-wide
           if (d.preferredCurrency) saveCurrencyPreference(d.preferredCurrency);
         } else {
-          toast('Failed to load profile', 'error');
+          toast(tStandalone('profLoadFailed'), 'error');
         }
 
         if (currenciesResult.status === 'fulfilled' && Array.isArray(currenciesResult.value)) {
@@ -194,12 +179,9 @@ export default function ProfilePage() {
 
   const handleSaveName = async () => {
     setNameMsg(null);
-    // Round 21: client-side email format check. Server normalizes +
-    // validates, but without a pre-flight check the UX is a confused
-    // round-trip with a generic error.
     const trimmedEmail = nameForm.email.trim();
     if (trimmedEmail && !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmedEmail)) {
-      setNameMsg({ type: 'error', text: 'Please enter a valid email address.' });
+      setNameMsg({ type: 'error', text: t('profInvalidEmail') });
       return;
     }
     setSavingName(true);
@@ -213,9 +195,9 @@ export default function ProfilePage() {
       } else {
         loadProfile();
       }
-      setNameMsg({ type: 'success', text: 'Profile updated successfully.' });
+      setNameMsg({ type: 'success', text: t('profUpdated') });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Failed to update profile.';
+      const msg = e instanceof Error ? e.message : t('profUpdateFailed');
       setNameMsg({ type: 'error', text: msg });
     }
     setSavingName(false);
@@ -234,9 +216,9 @@ export default function ProfilePage() {
       } else {
         loadProfile();
       }
-      setLocationMsg({ type: 'success', text: 'Location updated successfully.' });
+      setLocationMsg({ type: 'success', text: t('profLocationUpdated') });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Failed to update location.';
+      const msg = e instanceof Error ? e.message : t('profLocationUpdateFailed');
       setLocationMsg({ type: 'error', text: msg });
     }
     setSavingLocation(false);
@@ -245,27 +227,22 @@ export default function ProfilePage() {
   const handleChangePassword = async () => {
     setPwMsg(null);
     if (pwForm.newPassword !== pwForm.confirmPassword) {
-      setPwMsg({ type: 'error', text: 'New passwords do not match.' });
+      setPwMsg({ type: 'error', text: t('profPwMismatchFull') });
       return;
     }
     if (pwForm.newPassword.length < 8) {
-      setPwMsg({ type: 'error', text: 'New password must be at least 8 characters.' });
+      setPwMsg({ type: 'error', text: t('profPwTooShort') });
       return;
     }
-    // Round 21: reject re-use of the same password AND enforce the
-    // same complexity rules shown on signup (upper + lower + digit).
-    // Without these, a user can "change" password to the exact same
-    // string (no-op with an encouraging toast), or to a weak all-
-    // lowercase string that signup explicitly flags.
     if (pwForm.currentPassword && pwForm.currentPassword === pwForm.newPassword) {
-      setPwMsg({ type: 'error', text: 'New password must differ from your current password.' });
+      setPwMsg({ type: 'error', text: t('profPwSameAsOld') });
       return;
     }
     const hasUpper = /[A-Z]/.test(pwForm.newPassword);
     const hasLower = /[a-z]/.test(pwForm.newPassword);
     const hasDigit = /\d/.test(pwForm.newPassword);
     if (!hasUpper || !hasLower || !hasDigit) {
-      setPwMsg({ type: 'error', text: 'New password must include an uppercase letter, a lowercase letter, and a number.' });
+      setPwMsg({ type: 'error', text: t('profPwComplexity') });
       return;
     }
     setSavingPw(true);
@@ -275,21 +252,17 @@ export default function ProfilePage() {
         newPassword: pwForm.newPassword,
       });
       setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setPwMsg({ type: 'success', text: 'Password changed successfully.' });
+      setPwMsg({ type: 'success', text: t('profPwChanged') });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Failed to change password.';
+      const msg = e instanceof Error ? e.message : t('profPwChangeFailed');
       setPwMsg({ type: 'error', text: msg });
     }
     setSavingPw(false);
   };
 
   const handleDeleteAccount = async () => {
-    // 2026-05-10 (SEC-001 v2): client-side gating mirrors the
-    // backend validation so the user gets a fast "type DELETE"
-    // prompt without a round-trip. The server is the authoritative
-    // gate either way. No password — App Store / Play Store policies.
     if (deleteConfirmPhrase !== 'DELETE') {
-      setDeleteMsg({ type: 'error', text: 'Type DELETE in the confirmation field.' });
+      setDeleteMsg({ type: 'error', text: t('profTypeDeleteError') });
       return;
     }
     setDeleting(true);
@@ -299,9 +272,9 @@ export default function ProfilePage() {
         confirmPhrase: deleteConfirmPhrase,
       });
       setDeleteConfirmPhrase('');
-      await logout('deleted'); // BUG FIX: await async logout to prevent stale auth state
+      await logout('deleted');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Failed to delete account.';
+      const msg = e instanceof Error ? e.message : t('profDeleteFailed');
       setDeleteMsg({ type: 'error', text: msg });
     }
     setDeleting(false);
@@ -309,12 +282,6 @@ export default function ProfilePage() {
 
   const formatDate = (ts?: number) => {
     if (!ts) return '—';
-    // 2026-04-25 BUG FIX: previous code did `new Date(ts * 1000)` assuming
-    // the API returned createdAt in epoch SECONDS. The backend persists
-    // `users.created_at = System.currentTimeMillis()` and the API forwards
-    // it untouched, so it's MILLISECONDS — multiplying by 1000 again
-    // pushed the rendered date to the year 58244 (live E2E surfaced this
-    // on the apple-review account's "Member since" line).
     return new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
@@ -324,9 +291,9 @@ export default function ProfilePage() {
     try {
       const updated = await api.updatePreferences(preferences as unknown as Record<string, unknown>);
       setPreferences(updated as CommunicationPreferences);
-      toast('Communication preferences updated.', 'success');
+      toast(t('profPrefsUpdated'), 'success');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Failed to update preferences.';
+      const msg = e instanceof Error ? e.message : t('profPrefsUpdateFailed');
       toast(msg, 'error');
     } finally {
       setSavingPreferences(false);
@@ -339,11 +306,21 @@ export default function ProfilePage() {
     </div>
   );
 
+  const commPrefRows: Array<{ key: keyof CommunicationPreferences; titleKey: string; descKey: string }> = [
+    { key: 'notificationsEnabled',     titleKey: 'profCommCoreTitle',         descKey: 'profCommCoreDesc' },
+    { key: 'zakatReminders',           titleKey: 'profCommZakatTitle',        descKey: 'profCommZakatDesc' },
+    { key: 'emailMarketingOptIn',      titleKey: 'profCommEmailMktTitle',     descKey: 'profCommEmailMktDesc' },
+    { key: 'dailyBalanceEmailsOptIn',  titleKey: 'profCommDailyBalanceTitle', descKey: 'profCommDailyBalanceDesc' },
+    { key: 'seasonalGreetingsOptIn',   titleKey: 'profCommSeasonalTitle',     descKey: 'profCommSeasonalDesc' },
+    { key: 'pushMarketingOptIn',       titleKey: 'profCommPushTitle',         descKey: 'profCommPushDesc' },
+    { key: 'halalAlertOptIn',          titleKey: 'profCommHalalAlertTitle',   descKey: 'profCommHalalAlertDesc' },
+  ];
+
   return (
     <div className="max-w-2xl mx-auto">
       <PageHeader
-        title="Profile & Settings"
-        subtitle="Account info, locale, currency, and security"
+        title={t('profileTitle')}
+        subtitle={t('profileSubtitle')}
       />
 
       {/* Account summary card */}
@@ -355,31 +332,31 @@ export default function ProfilePage() {
           <div>
             <p className="text-xl font-bold">{profile?.fullName}</p>
             <p className="text-green-200 text-sm">{profile?.email}</p>
-            <p className="text-green-300 text-xs mt-1">Member since {formatDate(profile?.createdAt)}</p>
+            <p className="text-green-300 text-xs mt-1">{tFmt('profMemberSinceFmt', [formatDate(profile?.createdAt)])}</p>
           </div>
         </div>
       </div>
 
       {/* Subscription Plan */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-        <h2 className="text-lg font-bold text-primary mb-2">Subscription Plan</h2>
+        <h2 className="text-lg font-bold text-primary mb-2">{t('profSubscriptionPlan')}</h2>
         {(() => {
           const planKey = profile?.plan ?? 'free';
-          const info = PLAN_INFO[planKey] ?? PLAN_INFO.free;
+          const info = PLAN_INFO_KEYS[planKey] ?? PLAN_INFO_KEYS.free;
           return (
             <>
               <div className="flex items-center gap-3 mb-4">
                 <span className={`px-3 py-1 rounded-full text-sm font-bold ${info.bg} ${info.color}`}>
-                  {info.label}
+                  {t(info.labelKey)}
                 </span>
-                <span className="text-sm text-gray-500">{info.desc}</span>
+                <span className="text-sm text-gray-500">{t(info.descKey)}</span>
               </div>
 
               {(planKey === 'free' || planKey === 'plus') && (
                 <>
                   {/* Billing toggle */}
                   <div className="flex items-center gap-3 mb-4">
-                    <span className={`text-xs font-medium ${billingPeriod === 'monthly' ? 'text-primary' : 'text-gray-400'}`}>Monthly</span>
+                    <span className={`text-xs font-medium ${billingPeriod === 'monthly' ? 'text-primary' : 'text-gray-400'}`}>{t('profBillingMonthly')}</span>
                     <button
                       type="button"
                       onClick={() => setBillingPeriod(b => b === 'monthly' ? 'yearly' : 'monthly')}
@@ -387,9 +364,9 @@ export default function ProfilePage() {
                     >
                       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${billingPeriod === 'yearly' ? 'translate-x-5' : ''}`} />
                     </button>
-                    <span className={`text-xs font-medium ${billingPeriod === 'yearly' ? 'text-primary' : 'text-gray-400'}`}>Yearly</span>
+                    <span className={`text-xs font-medium ${billingPeriod === 'yearly' ? 'text-primary' : 'text-gray-400'}`}>{t('profBillingYearly')}</span>
                     {billingPeriod === 'yearly' && (
-                      <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save 17%</span>
+                      <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">{t('profSave17')}</span>
                     )}
                   </div>
 
@@ -397,27 +374,27 @@ export default function ProfilePage() {
                     {/* Plus Plan */}
                     {planKey === 'free' && (
                       <div className="border-2 border-primary rounded-xl p-5 relative">
-                        <span className="absolute -top-3 left-4 bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">Most Popular</span>
-                        <h3 className="text-lg font-bold text-primary">Barakah Plus</h3>
+                        <span className="absolute -top-3 left-4 bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{t('profMostPopular')}</span>
+                        <h3 className="text-lg font-bold text-primary">{t('profPlusName')}</h3>
                         <ProfilePlanPrice
                           usdPrice={billingPeriod === 'yearly' ? PRICING.plus.yearly : PRICING.plus.monthly}
-                          period={billingPeriod === 'yearly' ? '/year' : '/month'}
+                          period={billingPeriod === 'yearly' ? t('profPerYear') : t('profPerMonth')}
                         />
                         {billingPeriod === 'yearly' && (
-                          <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save 17%</span>
+                          <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">{t('profSave17')}</span>
                         )}
                         <ul className="mt-3 space-y-1.5 text-sm text-gray-700">
-                          <li>&#10003; Unlimited transactions</li>
-                          <li>&#10003; Full Zakat calculator</li>
-                          <li>&#10003; Halal stock screener (30,000+)</li>
-                          <li>&#10003; Riba &amp; subscription detector</li>
-                          <li>&#10003; Wasiyyah &amp; Waqf planning</li>
-                          <li>&#10003; Investments &amp; net worth</li>
-                          <li>&#10003; Debt Payoff Projector</li>
-                          <li>&#10003; Ramadan Mode</li>
-                          <li>&#10003; Analytics &amp; Year-over-Year</li>
-                          <li>&#10003; Recurring transactions</li>
-                          <li>&#10003; CSV &amp; PDF export</li>
+                          <li>&#10003; {t('profFeatUnlimitedTx')}</li>
+                          <li>&#10003; {t('profFeatFullZakat')}</li>
+                          <li>&#10003; {t('profFeatHalalScreener')}</li>
+                          <li>&#10003; {t('profFeatRibaDetector')}</li>
+                          <li>&#10003; {t('profFeatWasiyyahWaqf')}</li>
+                          <li>&#10003; {t('profFeatInvestmentsNetworth')}</li>
+                          <li>&#10003; {t('profFeatDebtProjector')}</li>
+                          <li>&#10003; {t('profFeatRamadanMode')}</li>
+                          <li>&#10003; {t('profFeatAnalyticsYoY')}</li>
+                          <li>&#10003; {t('profFeatRecurringTx')}</li>
+                          <li>&#10003; {t('profFeatCsvPdfExport')}</li>
                         </ul>
                         <button
                           onClick={() => handleUpgrade('plus')}
@@ -425,29 +402,29 @@ export default function ProfilePage() {
                           className="mt-4 w-full bg-primary text-primary-foreground py-2 rounded-lg font-semibold hover:bg-primary/90 transition disabled:opacity-60"
                           type="button"
                         >
-                          {upgradingPlan === 'plus' ? 'Redirecting...' : 'Upgrade to Plus'}
+                          {upgradingPlan === 'plus' ? t('profRedirecting') : t('profUpgradeToPlus')}
                         </button>
                       </div>
                     )}
 
                     {/* Family Plan */}
                     <div className={`border rounded-xl p-5 ${planKey === 'plus' ? 'border-2 border-purple-300' : 'border-purple-200'}`}>
-                      <h3 className="text-lg font-bold text-purple-700">Barakah Family</h3>
+                      <h3 className="text-lg font-bold text-purple-700">{t('profFamilyName')}</h3>
                       <ProfilePlanPrice
                         usdPrice={billingPeriod === 'yearly' ? PRICING.family.yearly : PRICING.family.monthly}
-                        period={billingPeriod === 'yearly' ? '/year' : '/month'}
+                        period={billingPeriod === 'yearly' ? t('profPerYear') : t('profPerMonth')}
                       />
                       {billingPeriod === 'yearly' && (
-                        <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Save 17%</span>
+                        <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">{t('profSave17')}</span>
                       )}
                       <ul className="mt-3 space-y-1.5 text-sm text-gray-700">
-                        <li>&#10003; Everything in Plus</li>
-                        <li>&#10003; Up to 6 family members</li>
-                        <li>&#10003; Shared budgets &amp; goals</li>
-                        <li>&#10003; Family Estate Visibility</li>
-                        <li>&#10003; Family financial summary</li>
-                        <li>&#10003; Shared expense splitting</li>
-                        <li>&#10003; Priority support</li>
+                        <li>&#10003; {t('profFeatEverythingInPlus')}</li>
+                        <li>&#10003; {t('profFeatUpTo6Members')}</li>
+                        <li>&#10003; {t('profFeatSharedBudgets')}</li>
+                        <li>&#10003; {t('profFeatFamilyEstate')}</li>
+                        <li>&#10003; {t('profFeatFamilySummary')}</li>
+                        <li>&#10003; {t('profFeatExpenseSplitting')}</li>
+                        <li>&#10003; {t('profFeatPrioritySupport')}</li>
                       </ul>
                       <button
                         onClick={() => handleUpgrade('family')}
@@ -455,7 +432,7 @@ export default function ProfilePage() {
                         className="mt-4 w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-60"
                         type="button"
                       >
-                        {upgradingPlan === 'family' ? 'Redirecting...' : 'Upgrade to Family'}
+                        {upgradingPlan === 'family' ? t('profRedirecting') : t('profUpgradeToFamily')}
                       </button>
                     </div>
                   </div>
@@ -463,7 +440,7 @@ export default function ProfilePage() {
               )}
 
               {planKey === 'family' && (
-                <p className="text-sm text-gray-500">You&apos;re on the top-tier plan. Thank you for supporting Barakah!</p>
+                <p className="text-sm text-gray-500">{t('profFamilyTopTier')}</p>
               )}
             </>
           );
@@ -472,27 +449,27 @@ export default function ProfilePage() {
 
       {/* Personal Info */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-        <h2 className="text-lg font-bold text-primary mb-4">Personal Information</h2>
+        <h2 className="text-lg font-bold text-primary mb-4">{t('profPersonalInfo')}</h2>
         <div className="space-y-4">
           <div>
-            <label htmlFor="profile-full-name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <label htmlFor="profile-full-name" className="block text-sm font-medium text-gray-700 mb-1">{t('profFullName')}</label>
             <input
               id="profile-full-name"
               value={nameForm.fullName}
               onChange={e => setNameForm({ ...nameForm, fullName: e.target.value })}
               className="w-full border rounded-lg px-3 py-2 text-gray-900"
-              placeholder="Your full name"
+              placeholder={t('profFullNamePlaceholder')}
             />
           </div>
           <div>
-            <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700 mb-1">{t('profEmail')}</label>
             <input
               id="profile-email"
               type="email"
               value={nameForm.email}
               onChange={e => setNameForm({ ...nameForm, email: e.target.value })}
               className="w-full border rounded-lg px-3 py-2 text-gray-900"
-              placeholder="you@example.com"
+              placeholder={t('profEmailPlaceholder')}
             />
           </div>
         </div>
@@ -512,37 +489,29 @@ export default function ProfilePage() {
             disabled={savingName || !nameForm.fullName || !nameForm.email}
             className="bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
           >
-            {savingName ? 'Saving...' : 'Save Changes'}
+            {savingName ? t('profSaving') : t('profSaveChanges')}
           </button>
         </div>
       </div>
 
       {/* Location */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-        <h2 className="text-lg font-bold text-primary mb-4">Location</h2>
-        {/* Only show the prompt when no country has been set yet. Showing
-            "Moved recently? Update your location to ensure accurate tax
-            calculations for Zakat." after the user has already saved a
-            location is confusing — they just saved it; the warning then
-            implies "you didn't" which erodes trust. Once a location
-            exists, the success toast on save is sufficient feedback;
-            the section heading + populated field already communicates
-            state. (QA flagged 2026-04-25.) */}
+        <h2 className="text-lg font-bold text-primary mb-4">{t('profLocation')}</h2>
         {!locationForm.country && (
           <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
-            Set your country (and US state, if applicable) so we can apply the right Zakat tax rules. You can update this any time you move.
+            {t('profLocationHint')}
           </p>
         )}
         <div className="space-y-4">
           <div>
-            <label htmlFor="profile-country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+            <label htmlFor="profile-country" className="block text-sm font-medium text-gray-700 mb-1">{t('profCountry')}</label>
             <select
               id="profile-country"
               value={locationForm.country}
               onChange={e => setLocationForm({ ...locationForm, country: e.target.value, state: e.target.value !== 'US' ? '' : locationForm.state })}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm"
             >
-              <option value="">Select country</option>
+              <option value="">{t('profSelectCountry')}</option>
               {[
                 {code:'AF',name:'Afghanistan'},{code:'AL',name:'Albania'},{code:'DZ',name:'Algeria'},{code:'AD',name:'Andorra'},{code:'AO',name:'Angola'},
                 {code:'AG',name:'Antigua and Barbuda'},{code:'AR',name:'Argentina'},{code:'AM',name:'Armenia'},{code:'AU',name:'Australia'},{code:'AT',name:'Austria'},
@@ -593,14 +562,14 @@ export default function ProfilePage() {
 
           {locationForm.country === 'US' && (
             <div>
-              <label htmlFor="profile-state" className="block text-sm font-medium text-gray-700 mb-1">State</label>
+              <label htmlFor="profile-state" className="block text-sm font-medium text-gray-700 mb-1">{t('profState')}</label>
               <select
                 id="profile-state"
                 value={locationForm.state}
                 onChange={e => setLocationForm({ ...locationForm, state: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm"
               >
-                <option value="">Select state</option>
+                <option value="">{t('profSelectState')}</option>
                 {[
                   'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware',
                   'District of Columbia','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa',
@@ -613,7 +582,7 @@ export default function ProfilePage() {
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
-              <p className="text-xs text-gray-400 mt-1">Used for state income tax calculations on retirement account Zakat.</p>
+              <p className="text-xs text-gray-400 mt-1">{t('profStateTaxHelp')}</p>
             </div>
           )}
         </div>
@@ -633,24 +602,22 @@ export default function ProfilePage() {
             disabled={savingLocation || !locationForm.country}
             className="bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
           >
-            {savingLocation ? 'Saving...' : 'Update Location'}
+            {savingLocation ? t('profSaving') : t('profUpdateLocation')}
           </button>
         </div>
       </div>
 
-      {/* Household — spouse, dependents, gender, DOB, marital status.
-          Drives Faraid inheritance prefill and the zakat classifier's
-          women's-personal-jewelry exemption (Shafi'i/Maliki). */}
+      {/* Household */}
       <div className="mb-4">
         <HouseholdSection />
       </div>
 
       {/* Change Password */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-        <h2 className="text-lg font-bold text-primary mb-4">Change Password</h2>
+        <h2 className="text-lg font-bold text-primary mb-4">{t('profChangePassword')}</h2>
         <div className="space-y-4">
           <div>
-            <label htmlFor="profile-current-password" className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+            <label htmlFor="profile-current-password" className="block text-sm font-medium text-gray-700 mb-1">{t('profCurrentPassword')}</label>
             <div className="relative">
               <input
                 id="profile-current-password"
@@ -658,7 +625,7 @@ export default function ProfilePage() {
                 value={pwForm.currentPassword}
                 onChange={e => setPwForm({ ...pwForm, currentPassword: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 pr-10 text-gray-900"
-                placeholder="Your current password"
+                placeholder={t('profCurrentPasswordPlaceholder')}
                 autoComplete="current-password"
               />
               <button
@@ -666,12 +633,12 @@ export default function ProfilePage() {
                 onClick={() => setShowCurrentPw(!showCurrentPw)}
                 className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-sm"
               >
-                {showCurrentPw ? 'Hide' : 'Show'}
+                {showCurrentPw ? t('profHide') : t('profShow')}
               </button>
             </div>
           </div>
           <div>
-            <label htmlFor="profile-new-password" className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <label htmlFor="profile-new-password" className="block text-sm font-medium text-gray-700 mb-1">{t('profNewPassword')}</label>
             <div className="relative">
               <input
                 id="profile-new-password"
@@ -679,7 +646,7 @@ export default function ProfilePage() {
                 value={pwForm.newPassword}
                 onChange={e => setPwForm({ ...pwForm, newPassword: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 pr-10 text-gray-900"
-                placeholder="At least 8 characters"
+                placeholder={t('profNewPasswordPlaceholder')}
                 autoComplete="new-password"
               />
               <button
@@ -687,23 +654,23 @@ export default function ProfilePage() {
                 onClick={() => setShowNewPw(!showNewPw)}
                 className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-sm"
               >
-                {showNewPw ? 'Hide' : 'Show'}
+                {showNewPw ? t('profHide') : t('profShow')}
               </button>
             </div>
           </div>
           <div>
-            <label htmlFor="profile-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+            <label htmlFor="profile-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">{t('profConfirmPassword')}</label>
             <input
               id="profile-confirm-password"
               type="password"
               value={pwForm.confirmPassword}
               onChange={e => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
               className="w-full border rounded-lg px-3 py-2 text-gray-900"
-              placeholder="Repeat new password"
+              placeholder={t('profConfirmPasswordPlaceholder')}
               autoComplete="new-password"
             />
             {pwForm.confirmPassword && pwForm.newPassword !== pwForm.confirmPassword && (
-              <p className="text-xs text-red-500 mt-1">Passwords do not match.</p>
+              <p className="text-xs text-red-500 mt-1">{t('profPwMismatch')}</p>
             )}
           </div>
         </div>
@@ -723,38 +690,20 @@ export default function ProfilePage() {
             disabled={savingPw || !pwForm.currentPassword || !pwForm.newPassword || !pwForm.confirmPassword}
             className="bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
           >
-            {savingPw ? 'Updating...' : 'Update Password'}
+            {savingPw ? t('profUpdating') : t('profUpdatePassword')}
           </button>
         </div>
       </div>
 
-      {/* Language Preference - 2026-05-10 (B-L10N-NO-SWITCH).
-          The audit found there was no app-language switcher anywhere in
-          the UI: an SA / PK user signing up on a fresh device saw English
-          even though we knew their country. This picker hands the user
-          control AND sets a manual-override flag so the auto-derivation
-          in AuthContext (country → ar/ur/fr) doesn't keep flipping back.
-          Page-level setLocale also updates `<html dir>` so RTL/LTR
-          repaints immediately without a refresh. */}
+      {/* Language */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-        <h2 className="text-lg font-bold text-primary mb-4">Language</h2>
+        <h2 className="text-lg font-bold text-primary mb-4">{t('profLanguage')}</h2>
         <p className="text-sm text-gray-500 mb-3">
-          {/* 2026-05-12 overnight QA (RTL-001): the previous copy
-              ("Choose the app interface language") over-promised what
-              the locale switch actually does. Today it only flips the
-              layout direction + date/number formats — the dashboard
-              chrome (sidebar labels, KPI labels, hero events) is still
-              hardcoded English. Honest copy until the full i18n sweep
-              ships. */}
-          Switches the layout direction (right-to-left for Arabic and
-          Urdu) and the date and number formats to match your country.
-          Full dashboard translations are still in progress — most
-          labels currently appear in English regardless of the
-          selected language.
+          {t('profLanguageDesc')}
         </p>
         <div className="flex items-center gap-3">
           <select
-            aria-label="App language"
+            aria-label={t('profAppLanguageAria')}
             defaultValue={(typeof window !== 'undefined' && localStorage.getItem('barakah_locale')) || 'en'}
             onChange={async (e) => {
               const next = e.target.value;
@@ -762,28 +711,28 @@ export default function ProfilePage() {
                 const { setLocale } = await import('../../../lib/i18n');
                 setLocale(next);
                 localStorage.setItem('barakah_locale_manual_override', 'true');
-                toast('Language updated.', 'success');
+                toast(tStandalone('profLanguageUpdated'), 'success');
               } catch {
-                toast('Failed to update language.', 'error');
+                toast(tStandalone('profLanguageUpdateFailed'), 'error');
               }
             }}
             className="border rounded-lg px-3 py-2 text-gray-900 text-sm flex-1 max-w-xs"
           >
-            <option value="en">English</option>
-            <option value="ar">العربية (Arabic)</option>
-            <option value="ur">اردو (Urdu)</option>
-            <option value="fr">Français (French)</option>
+            <option value="en">{t('profLangEnglish')}</option>
+            <option value="ar">{t('profLangArabic')}</option>
+            <option value="ur">{t('profLangUrdu')}</option>
+            <option value="fr">{t('profLangFrench')}</option>
           </select>
         </div>
       </div>
 
-      {/* Currency Preference - FEATURE 4 */}
+      {/* Currency */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-        <h2 className="text-lg font-bold text-primary mb-4">Currency</h2>
-        <p className="text-sm text-gray-500 mb-3">Choose your preferred currency for displaying amounts across Barakah.</p>
+        <h2 className="text-lg font-bold text-primary mb-4">{t('profCurrency')}</h2>
+        <p className="text-sm text-gray-500 mb-3">{t('profCurrencyDesc')}</p>
         <div className="flex items-center gap-3">
           <select
-            aria-label="Preferred currency"
+            aria-label={t('profPreferredCurrencyAria')}
             value={selectedCurrency}
             onChange={e => setSelectedCurrency(e.target.value)}
             className="border rounded-lg px-3 py-2 text-gray-900 text-sm flex-1 max-w-xs"
@@ -812,30 +761,30 @@ export default function ProfilePage() {
                 await api.updateProfile({ preferredCurrency: selectedCurrency });
                 saveCurrencyPreference(selectedCurrency);
                 setProfile(prev => prev ? { ...prev, preferredCurrency: selectedCurrency } : prev);
-                toast('Currency updated!', 'success');
+                toast(t('profCurrencyUpdated'), 'success');
               } catch {
-                toast('Failed to update currency.', 'error');
+                toast(t('profCurrencyUpdateFailed'), 'error');
               }
               setSavingCurrency(false);
             }}
             disabled={savingCurrency || selectedCurrency === (profile?.preferredCurrency || 'USD')}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
           >
-            {savingCurrency ? 'Saving...' : 'Save'}
+            {savingCurrency ? t('profSaving') : t('profSave')}
           </button>
         </div>
       </div>
 
       {/* Account Info (read-only) */}
       <div className="bg-white rounded-2xl shadow-sm p-6">
-        <h2 className="text-lg font-bold text-primary mb-4">Account Details</h2>
+        <h2 className="text-lg font-bold text-primary mb-4">{t('profAccountDetails')}</h2>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between py-2 border-b border-gray-50">
-            <span className="text-gray-500">User ID</span>
+            <span className="text-gray-500">{t('profUserId')}</span>
             <span className="font-mono text-gray-700">#{profile?.userId}</span>
           </div>
           <div className="flex justify-between py-2">
-            <span className="text-gray-500">Member Since</span>
+            <span className="text-gray-500">{t('profMemberSince')}</span>
             <span className="text-gray-700">{formatDate(profile?.createdAt)}</span>
           </div>
         </div>
@@ -843,11 +792,11 @@ export default function ProfilePage() {
 
       {/* Appearance */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mt-4">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">Appearance</h2>
+        <h2 className="text-lg font-bold text-gray-800 mb-4">{t('profAppearance')}</h2>
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-medium text-gray-700 text-sm">Dark Mode</p>
-            <p className="text-xs text-gray-500 mt-0.5">Switch to a dark theme for low-light environments</p>
+            <p className="font-medium text-gray-700 text-sm">{t('profDarkMode')}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{t('profDarkModeDesc')}</p>
           </div>
           <button
             type="button"
@@ -861,31 +810,23 @@ export default function ProfilePage() {
 
       {preferences && (
         <div className="bg-white rounded-2xl shadow-sm p-6 mt-4 border border-gray-100">
-          <h2 className="text-lg font-bold text-gray-800 mb-2">Communication Preferences</h2>
+          <h2 className="text-lg font-bold text-gray-800 mb-2">{t('profCommPrefs')}</h2>
           <p className="text-sm text-gray-500 mb-4">
-            Control onboarding emails, optional daily balance digests, Ramadan and Eid greetings, push nudges, and your quiet hours.
+            {t('profCommPrefsDesc')}
           </p>
           <div className="space-y-3">
-            {[
-              ['notificationsEnabled', 'Core notifications', 'Important account, billing, and in-app alerts.'],
-              ['zakatReminders', 'Zakat reminders', 'Operational reminders tied to zakat and Hawl readiness.'],
-              ['emailMarketingOptIn', 'Email journeys', 'Helpful onboarding, inactivity, and upgrade emails.'],
-              ['dailyBalanceEmailsOptIn', 'Daily balance emails', 'Optional account activity digests after synced balances or unusual items are detected.'],
-              ['seasonalGreetingsOptIn', 'Ramadan and Eid greetings', 'Seasonal messages and holiday check-ins.'],
-              ['pushMarketingOptIn', 'Push nudges', 'Push reminders about balances, net worth, and setup progress.'],
-              ['halalAlertOptIn', 'Halal screening alerts', 'Email + push when a stock you hold flips halal or haram. Turn off if you prefer to check status manually from your portfolio.'],
-            ].map(([key, title, subtitle]) => (
-              <label key={key} className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 px-4 py-3">
+            {commPrefRows.map(row => (
+              <label key={row.key} className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 px-4 py-3">
                 <div>
-                  <p className="font-medium text-gray-700 text-sm">{title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
+                  <p className="font-medium text-gray-700 text-sm">{t(row.titleKey)}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t(row.descKey)}</p>
                 </div>
                 <input
                   type="checkbox"
-                  checked={Boolean(preferences[key as keyof CommunicationPreferences])}
+                  checked={Boolean(preferences[row.key])}
                   onChange={e => setPreferences(prev => prev ? {
                     ...prev,
-                    [key]: e.target.checked,
+                    [row.key]: e.target.checked,
                   } : prev)}
                   className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
@@ -894,7 +835,7 @@ export default function ProfilePage() {
           </div>
           <div className="grid md:grid-cols-3 gap-4 mt-5">
             <label className="text-sm text-gray-600">
-              <span className="block mb-2 font-medium text-gray-800">Time Zone</span>
+              <span className="block mb-2 font-medium text-gray-800">{t('profTimeZone')}</span>
               <input
                 type="text"
                 value={preferences.timeZone}
@@ -904,7 +845,7 @@ export default function ProfilePage() {
               />
             </label>
             <label className="text-sm text-gray-600">
-              <span className="block mb-2 font-medium text-gray-800">Quiet Hours Start</span>
+              <span className="block mb-2 font-medium text-gray-800">{t('profQuietStart')}</span>
               <select
                 value={preferences.quietHoursStart}
                 onChange={e => setPreferences(prev => prev ? { ...prev, quietHoursStart: Number(e.target.value) } : prev)}
@@ -916,7 +857,7 @@ export default function ProfilePage() {
               </select>
             </label>
             <label className="text-sm text-gray-600">
-              <span className="block mb-2 font-medium text-gray-800">Quiet Hours End</span>
+              <span className="block mb-2 font-medium text-gray-800">{t('profQuietEnd')}</span>
               <select
                 value={preferences.quietHoursEnd}
                 onChange={e => setPreferences(prev => prev ? { ...prev, quietHoursEnd: Number(e.target.value) } : prev)}
@@ -935,7 +876,7 @@ export default function ProfilePage() {
               disabled={savingPreferences}
               className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
             >
-              {savingPreferences ? 'Saving...' : 'Save Preferences'}
+              {savingPreferences ? t('profSaving') : t('profSavePrefs')}
             </button>
           </div>
         </div>
@@ -943,9 +884,9 @@ export default function ProfilePage() {
 
       {/* Data Privacy — GDPR Export */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mt-4 border border-gray-100">
-        <h2 className="text-lg font-bold text-gray-800 mb-2">Your Data</h2>
+        <h2 className="text-lg font-bold text-gray-800 mb-2">{t('profYourData')}</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Download a complete copy of all your Barakah data (transactions, budgets, savings goals, zakat, sadaqah and more) as a JSON file.
+          {t('profYourDataDesc')}
         </p>
         <button
           type="button"
@@ -959,39 +900,35 @@ export default function ProfilePage() {
               const a = document.createElement('a');
               a.href = url; a.download = 'barakah-data-export.json'; a.click();
               URL.revokeObjectURL(url);
-            } catch { toast('Failed to export data. Please try again.', 'error'); } finally { setDownloadingData(false); }
+            } catch { toast(t('profExportFailed'), 'error'); } finally { setDownloadingData(false); }
           }}
           className="text-primary border border-primary px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition disabled:opacity-50"
         >
-          {downloadingData ? 'Downloading...' : '📥 Download My Data'}
+          {downloadingData ? t('profDownloading') : t('profDownloadMyData')}
         </button>
       </div>
 
-      {/* Danger Zone — hidden behind toggle to prevent accidental deletion */}
+      {/* Danger Zone */}
       <details className="bg-white rounded-2xl shadow-sm mt-4 border border-gray-100 group">
         <summary className="p-4 cursor-pointer text-sm text-gray-400 hover:text-red-500 transition list-none flex items-center justify-between">
-          <span>Danger Zone</span>
+          <span>{t('profDangerZone')}</span>
           <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
         </summary>
         <div className="px-6 pb-6 pt-2 border-t border-red-100">
           <p className="text-sm text-gray-500 mb-4">
-            Permanently delete your account and all associated data. This action cannot be undone.
+            {t('profDangerZoneDesc')}
           </p>
           <button
             type="button"
             onClick={() => setShowRetentionModal(true)}
             className="text-red-600 border border-red-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition"
           >
-            Delete My Account
+            {t('profDeleteAccount')}
           </button>
         </div>
       </details>
 
-      {/* Retention Modal — asks the user to reconsider before showing password form */}
-      {/* Round 26: added role/aria-modal/aria-labelledby + Escape handler to match
-          the sitewide modal pattern (ReferralPrompt/AnnualUpgrade/SessionTimeout/
-          Onboarding). Destructive two-step flow that previously had no
-          keyboard-dismiss and no screen-reader modal signal. */}
+      {/* Retention Modal */}
       {showRetentionModal && (
         <div
           ref={retentionModalRef}
@@ -1002,24 +939,23 @@ export default function ProfilePage() {
         >
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
             {!showDeleteConfirm ? (
-              /* Step 1: Retention — give them a reason to stay */
               <div className="p-6">
                 <div className="text-center mb-4">
                   <p className="text-4xl mb-3">&#128546;</p>
-                  <h3 id="delete-account-title" className="text-xl font-bold text-gray-800">We&apos;re sad to see you go</h3>
+                  <h3 id="delete-account-title" className="text-xl font-bold text-gray-800">{t('profSadToSeeYouGo')}</h3>
                 </div>
                 <p className="text-sm text-gray-600 mb-4 text-center">
-                  Deleting your account will permanently remove all your data, including:
+                  {t('profDeleteIntro')}
                 </p>
                 <ul className="text-sm text-gray-600 space-y-2 mb-6">
-                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> Your zakat calculations and payment history</li>
-                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> Debt tracking and payment progress</li>
-                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> Budgets, savings goals, and financial data</li>
-                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> Sadaqah records and waqf contributions</li>
-                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> Your Wasiyyah (Islamic will)</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> {t('profDeleteBullet1')}</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> {t('profDeleteBullet2')}</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> {t('profDeleteBullet3')}</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> {t('profDeleteBullet4')}</li>
+                  <li className="flex items-start gap-2"><span className="text-red-400">&#10005;</span> {t('profDeleteBullet5')}</li>
                 </ul>
                 <p className="text-xs text-gray-500 mb-6 text-center">
-                  This cannot be undone. If you&apos;re having issues, we&apos;d love to help — reach out to us before leaving.
+                  {t('profDeleteCannotUndo')}
                 </p>
                 <div className="flex gap-3">
                   <button
@@ -1027,36 +963,35 @@ export default function ProfilePage() {
                     onClick={() => { setShowRetentionModal(false); setShowDeleteConfirm(false); setDeleteMsg(null); }}
                     className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-lg font-semibold hover:bg-green-800 transition text-sm"
                   >
-                    I&apos;ll Stay
+                    {t('profIllStay')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
                     className="flex-1 text-red-600 border border-red-300 py-2.5 rounded-lg font-medium hover:bg-red-50 transition text-sm"
                   >
-                    Continue Deleting
+                    {t('profContinueDeleting')}
                   </button>
                 </div>
               </div>
             ) : (
-              // Step 2: Final confirmation with typed-phrase challenge
-              // (SEC-001 v2). NO password — Apple/Google policies forbid
-              // gating account deletion behind a password. Typed phrase
-              // is the sole accidental-click safeguard.
               <div className="p-6">
-                <h3 id="delete-account-final-title" className="text-lg font-bold text-red-600 mb-4">Final Confirmation</h3>
+                <h3 id="delete-account-final-title" className="text-lg font-bold text-red-600 mb-4">{t('profFinalConfirmation')}</h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Permanently deleting your account removes every transaction,
-                  asset, debt, zakat record, sadaqah ledger, and family link.
-                  This cannot be undone. To confirm, type <span className="font-mono font-semibold text-red-600">DELETE</span> below.
+                  {tFmt('profFinalConfirmBody', ['DELETE']).split('DELETE').map((part, i, arr) => (
+                    <span key={i}>
+                      {part}
+                      {i < arr.length - 1 && <span className="font-mono font-semibold text-red-600">DELETE</span>}
+                    </span>
+                  ))}
                 </p>
                 <div className="space-y-3 mb-4">
                   <input
                     type="text"
                     value={deleteConfirmPhrase}
                     onChange={(e) => setDeleteConfirmPhrase(e.target.value)}
-                    placeholder='Type DELETE to confirm'
-                    aria-label='Type DELETE to confirm'
+                    placeholder={t('profTypeDeletePlaceholder')}
+                    aria-label={t('profTypeDeletePlaceholder')}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 font-mono focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                   />
                 </div>
@@ -1074,7 +1009,7 @@ export default function ProfilePage() {
                     disabled={deleting || deleteConfirmPhrase !== 'DELETE'}
                     className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 text-sm"
                   >
-                    {deleting ? 'Deleting...' : 'Permanently Delete'}
+                    {deleting ? t('profDeleting') : t('profPermanentlyDelete')}
                   </button>
                   <button
                     type="button"
@@ -1086,7 +1021,7 @@ export default function ProfilePage() {
                     }}
                     className="flex-1 text-gray-600 border border-gray-300 py-2.5 rounded-lg text-sm hover:bg-gray-50"
                   >
-                    Cancel
+                    {t('profCancel')}
                   </button>
                 </div>
               </div>
@@ -1100,13 +1035,10 @@ export default function ProfilePage() {
 
 /**
  * Renders a plan price with locale-aware approximate conversion.
- * 2026-05-08 (item K): non-USD users now see an approximate local-
- * currency price ("~£7.91/month") with a "Charged in your local currency
- * at checkout" caption to keep the visible number coherent with what
- * Stripe actually charges.
  */
 function ProfilePlanPrice({ usdPrice, period }: { usdPrice: string; period: string }) {
   const { localized, approximate, loading } = useLocalizedPrice(usdPrice);
+  const { t } = useI18n();
   return (
     <>
       <p className="text-2xl font-extrabold text-gray-900 mt-1">
@@ -1114,7 +1046,7 @@ function ProfilePlanPrice({ usdPrice, period }: { usdPrice: string; period: stri
         <span className="text-sm font-normal text-gray-500">{period}</span>
       </p>
       {approximate && !loading && (
-        <p className="text-[11px] text-gray-500 mt-0.5">Charged in your local currency at checkout.</p>
+        <p className="text-[11px] text-gray-500 mt-0.5">{t('profChargedLocal')}</p>
       )}
     </>
   );

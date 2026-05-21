@@ -294,6 +294,11 @@ const nextConfig: NextConfig = {
         destination: "/dashboard/halal",
         permanent: true,
       },
+      {
+        source: "/dashboard/halal-screener",
+        destination: "/dashboard/halal",
+        permanent: true,
+      },
       // PC-2 (2026-05-06 release-triage): the sidebar label is
       // "Auto-Categorize" — the obvious slug to type/share — but the
       // route lives at the shorter /dashboard/categorize. Hand-typed

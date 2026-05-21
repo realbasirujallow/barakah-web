@@ -8,6 +8,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 import { SkeletonPage } from '../SkeletonCard';
 
 /**
@@ -63,6 +64,7 @@ function formatDate(ms: number | null | undefined): string {
 export default function FamilyPage() {
   const { user, refreshPlan } = useAuth();
   const { toast } = useToast();
+  const { t, tFmt } = useI18n();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<FamilyResponse | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -75,10 +77,13 @@ export default function FamilyPage() {
       setData(res);
     } catch (err) {
       logError(err, { context: 'Failed to load family' });
-      toast('Could not load your family plan. Please try again.', 'error');
+      toast(t('familyLoadError'), 'error');
     } finally {
       setLoading(false);
     }
+    // `t` is a fresh identity each render; including it would make `load` a new
+    // function every render and the `[load]` effect refire forever. Keep `toast`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
 
   useEffect(() => { load(); }, [load]);
@@ -93,9 +98,12 @@ export default function FamilyPage() {
     if (joinedToastShown.current) return;
     if (searchParams.get('joined') === '1') {
       joinedToastShown.current = true;
-      toast('Welcome to the household! You\u2019re all set.', 'success');
+      toast(t('familyJoinedToast'), 'success');
       router.replace('/dashboard/family');
     }
+    // `t` is a fresh identity each render; the `joinedToastShown` ref already
+    // guards against re-firing, but excluding `t` avoids per-render churn.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, router, toast]);
 
   const isOwner = Boolean(data?.isOwner);
@@ -105,21 +113,18 @@ export default function FamilyPage() {
     e.preventDefault();
     const trimmed = inviteEmail.trim();
     if (!trimmed || sending) return;
-    // Round 21: client-side email format check before wasting a
-    // round-trip + rate-limit token on a typo like "ahmad@" or
-    // "ahmad@gmail". Mirrors the regex used in forgot-password.
     if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmed)) {
-      toast('Please enter a valid email address', 'error');
+      toast(t('familyInvalidEmail'), 'error');
       return;
     }
     setSending(true);
     try {
       await api.createFamilyInvite(trimmed);
-      toast(`Invite sent to ${trimmed}`, 'success');
+      toast(tFmt('familyInviteSentFmt', [trimmed]), 'success');
       setInviteEmail('');
       await load();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Could not send invite';
+      const msg = err instanceof Error ? err.message : t('familyInviteError');
       toast(msg, 'error');
     } finally {
       setSending(false);
@@ -127,78 +132,70 @@ export default function FamilyPage() {
   };
 
   const handleCancelInvite = async (inviteId: number, email: string) => {
-    if (!confirm(`Cancel the pending invite to ${email}?`)) return;
+    if (!confirm(tFmt('familyCancelInviteConfirmFmt', [email]))) return;
     try {
       await api.cancelFamilyInvite(inviteId);
-      toast('Invite canceled', 'success');
+      toast(t('familyInviteCanceled'), 'success');
       await load();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not cancel invite', 'error');
+      toast(err instanceof Error ? err.message : t('familyCancelInviteError'), 'error');
     }
   };
 
   const handleRemoveMember = async (userId: number, name: string) => {
-    if (!confirm(`Remove ${name} from your family plan? They'll drop back to the Free plan.`)) return;
+    if (!confirm(tFmt('familyRemoveMemberConfirmFmt', [name]))) return;
     try {
       await api.removeFamilyMember(userId);
-      toast(`${name} removed`, 'success');
+      toast(tFmt('familyMemberRemovedFmt', [name]), 'success');
       await load();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not remove member', 'error');
+      toast(err instanceof Error ? err.message : t('familyRemoveMemberError'), 'error');
     }
   };
 
   const handleLeave = async () => {
-    if (!confirm('Leave this family plan? You will drop back to the Free plan.')) return;
+    if (!confirm(t('familyLeaveConfirm'))) return;
     try {
       await api.leaveFamily();
-      toast('You have left the family plan', 'success');
+      toast(t('familyLeftToast'), 'success');
       await refreshPlan();
       await load();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not leave family', 'error');
+      toast(err instanceof Error ? err.message : t('familyLeaveError'), 'error');
     }
   };
 
-  // R38 (2026-04-30): SkeletonPage shimmer instead of bare text loader.
   if (loading) return <SkeletonPage />;
 
-  // ── No family: prompt to upgrade ────────────────────────────────────────
   if (!hasFamily) {
     return (
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-primary mb-2">Family plan</h1>
-        <p className="text-gray-600 mb-8">
-          Family gives up to 6 household members shared access to all Plus features — one subscription, one household, shared budgets, estate visibility, and zakat tracking.
-        </p>
+        <h1 className="text-2xl font-bold text-primary mb-2">{t('familyPlanHeading')}</h1>
+        <p className="text-gray-600 mb-8">{t('familyUpgradeIntro')}</p>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
           <p className="text-6xl mb-4">👨‍👩‍👧‍👦</p>
           {user?.plan === 'family' ? (
             <>
-              <p className="text-gray-700 mb-6">
-                Your Family plan is active — setting up your household now. Refresh this page in a moment to invite members.
-              </p>
+              <p className="text-gray-700 mb-6">{t('familyProvisioning')}</p>
               <button
                 type="button"
                 onClick={() => load()}
                 className="inline-block bg-primary text-primary-foreground py-3 px-6 rounded-xl font-semibold hover:bg-primary/90 transition"
               >
-                Refresh household
+                {t('familyRefreshHousehold')}
               </button>
             </>
           ) : (
             <>
               <p className="text-gray-700 mb-6">
-                {user?.plan === 'free'
-                  ? 'You\u2019re on the Free plan today.'
-                  : 'You\u2019re on Barakah Plus today.'}
-                {' '}Upgrade to Family to invite up to 5 household members.
+                {user?.plan === 'free' ? t('familyOnFreeToday') : t('familyOnPlusToday')}
+                {' '}{t('familyUpgradeNudge')}
               </p>
               <Link
                 href="/dashboard/billing"
                 className="inline-block bg-primary text-primary-foreground py-3 px-6 rounded-xl font-semibold hover:bg-primary/90 transition"
               >
-                Upgrade to Family — $14.99/mo
+                {t('familyUpgradeCta')}
               </Link>
             </>
           )}
@@ -208,16 +205,6 @@ export default function FamilyPage() {
   }
 
   const members = data?.members ?? [];
-  // 2026-05-12 overnight QA (FM-001): the backend keeps an invite's
-  // `status` as 'pending' even after its expiresAt has passed (no
-  // server-side sweep). The "Pending invites" list was showing invites
-  // that the recipient could no longer click — admin's account had a
-  // pending invite for mariyamou.diallo@gmail.com that expired on May
-  // 7 (today is May 12) still shown as "pending". Split the list:
-  // truly pending (status===pending AND expiresAt in the future) vs
-  // expired (status===pending AND expiresAt in the past). Expired
-  // ones drop into the "Previous invites" details fold below where
-  // they're labeled with their status, and the owner can resend.
   const nowMs = Date.now();
   const pendingInvitesRaw = (data?.invites ?? []).filter(i => i.status === 'pending');
   const pendingInvites = pendingInvitesRaw.filter(i => (i.expiresAt ?? 0) > nowMs);
@@ -227,24 +214,29 @@ export default function FamilyPage() {
     ...expiredInvites,
     ...(data?.invites ?? []).filter(i => i.status !== 'pending'),
   ];
-  // Seat accounting: count only invites that haven't expired (the
-  // expired ones don't actually consume a seat).
   const seatsUsed = members.length + pendingInvites.length;
   const seatsTotal = data?.memberLimit ?? 6;
 
-  // ── Member (not owner) view ─────────────────────────────────────────────
+  const statusLabel = (s: Invite['status']) => {
+    switch (s) {
+      case 'accepted': return t('familyStatusAccepted');
+      case 'canceled': return t('familyStatusCanceled');
+      case 'expired': return t('familyStatusExpired');
+      default: return t('familyStatusPending');
+    }
+  };
+
   if (!isOwner) {
     const ownerMember = members.find(m => m.role === 'owner');
     return (
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-primary mb-2">Your family plan</h1>
+        <h1 className="text-2xl font-bold text-primary mb-2">{t('familyYourPlanHeading')}</h1>
         <p className="text-gray-600 mb-8">
-          You&rsquo;re a member of {ownerMember?.fullName ?? 'this'}&apos;s Barakah Family household.
-          All Plus features are covered by their subscription.
+          {tFmt('familyMemberIntroFmt', [ownerMember?.fullName ?? t('familyThis')])}
         </p>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h2 className="font-semibold text-primary mb-4">Household members ({members.length})</h2>
+          <h2 className="font-semibold text-primary mb-4">{tFmt('familyHouseholdMembersFmt', [members.length])}</h2>
           <ul className="divide-y divide-gray-100">
             {members.map(m => (
               <li key={m.userId} className="py-3 flex items-center justify-between">
@@ -253,7 +245,7 @@ export default function FamilyPage() {
                   <p className="text-sm text-gray-500">{m.email}</p>
                 </div>
                 <span className={`text-xs uppercase font-semibold px-2 py-1 rounded ${m.role === 'owner' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-700'}`}>
-                  {m.role}
+                  {m.role === 'owner' ? t('familyRoleOwner') : t('familyRoleMember')}
                 </span>
               </li>
             ))}
@@ -264,50 +256,42 @@ export default function FamilyPage() {
           onClick={handleLeave}
           className="w-full text-red-700 border border-red-200 rounded-xl py-3 font-medium hover:bg-red-50 transition"
         >
-          Leave family plan
+          {t('familyLeaveBtn')}
         </button>
       </div>
     );
   }
 
-  // ── Owner view ──────────────────────────────────────────────────────────
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Phrasing matches the seat counter below: owner + N invitees = total
-          seats. Earlier copy said "Invite up to 5" while the counter showed
-          "Total seats: 6" — same number, two different ways of saying it,
-          easy for users to second-guess. We compute the inviteable count
-          from the actual seatsTotal so the marketing copy can never drift
-          from what the seat math reports. (QA flagged 2026-04-25.) */}
       <PageHeader
-        title="Your family plan"
-        subtitle={`Up to ${seatsTotal} household members on one plan, including you. One subscription covers everyone — members get full Plus access at no extra cost.`}
+        title={t('familyPageTitle')}
+        subtitle={tFmt('familyPageSubtitleFmt', [seatsTotal])}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] text-white rounded-2xl p-5 text-center">
           <p className="text-3xl font-bold">{seatsUsed}</p>
-          <p className="text-green-100 text-sm mt-1">Seats used</p>
+          <p className="text-green-100 text-sm mt-1">{t('familySeatsUsed')}</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
           <p className="text-3xl font-bold text-primary">{seatsTotal - seatsUsed}</p>
-          <p className="text-gray-500 text-sm mt-1">Seats left</p>
+          <p className="text-gray-500 text-sm mt-1">{t('familySeatsLeft')}</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
           <p className="text-3xl font-bold text-primary">{seatsTotal}</p>
-          <p className="text-gray-500 text-sm mt-1">Total seats</p>
+          <p className="text-gray-500 text-sm mt-1">{t('familyTotalSeats')}</p>
         </div>
       </div>
 
-      {/* Invite form */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h2 className="font-semibold text-primary mb-2">Invite a household member</h2>
-        <p className="text-sm text-gray-500 mb-4">They&apos;ll receive a link that expires in 7 days.</p>
+        <h2 className="font-semibold text-primary mb-2">{t('familyInviteHeading')}</h2>
+        <p className="text-sm text-gray-500 mb-4">{t('familyInviteHelper')}</p>
         <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-2">
           <input
             type="email"
             required
-            placeholder="spouse@example.com"
+            placeholder={t('familyInvitePlaceholder')}
             value={inviteEmail}
             onChange={e => setInviteEmail(e.target.value)}
             disabled={seatsUsed >= seatsTotal || sending}
@@ -318,17 +302,16 @@ export default function FamilyPage() {
             disabled={seatsUsed >= seatsTotal || sending || !inviteEmail.trim()}
             className="bg-primary text-primary-foreground rounded-xl px-6 py-3 text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {sending ? 'Sending…' : 'Send invite'}
+            {sending ? t('familySending') : t('familySendInvite')}
           </button>
         </form>
         {seatsUsed >= seatsTotal && (
-          <p className="text-xs text-amber-700 mt-3">All seats filled — cancel a pending invite or remove a member to invite someone new.</p>
+          <p className="text-xs text-amber-700 mt-3">{t('familySeatsFull')}</p>
         )}
       </div>
 
-      {/* Members list */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h2 className="font-semibold text-primary mb-4">Members ({members.length})</h2>
+        <h2 className="font-semibold text-primary mb-4">{tFmt('familyMembersHeadingFmt', [members.length])}</h2>
         <ul className="divide-y divide-gray-100">
           {members.map(m => (
             <li key={m.userId} className="py-3 flex items-center justify-between gap-3">
@@ -338,14 +321,14 @@ export default function FamilyPage() {
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {m.role === 'owner' && (
-                  <span className="text-xs uppercase font-semibold bg-primary text-primary-foreground px-2 py-1 rounded">Owner</span>
+                  <span className="text-xs uppercase font-semibold bg-primary text-primary-foreground px-2 py-1 rounded">{t('familyRoleOwner')}</span>
                 )}
                 {m.role === 'member' && (
                   <button
                     onClick={() => handleRemoveMember(m.userId, m.fullName ?? m.email)}
                     className="text-xs text-red-700 border border-red-200 rounded-lg px-3 py-1 hover:bg-red-50 transition"
                   >
-                    Remove
+                    {t('familyRemoveBtn')}
                   </button>
                 )}
               </div>
@@ -354,22 +337,21 @@ export default function FamilyPage() {
         </ul>
       </div>
 
-      {/* Pending invites */}
       {pendingInvites.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h2 className="font-semibold text-primary mb-4">Pending invites ({pendingInvites.length})</h2>
+          <h2 className="font-semibold text-primary mb-4">{tFmt('familyPendingHeadingFmt', [pendingInvites.length])}</h2>
           <ul className="divide-y divide-gray-100">
             {pendingInvites.map(inv => (
               <li key={inv.id} className="py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-medium text-gray-900 truncate">{inv.email}</p>
-                  <p className="text-xs text-gray-500">Expires {formatDate(inv.expiresAt)}</p>
+                  <p className="text-xs text-gray-500">{tFmt('familyExpiresFmt', [formatDate(inv.expiresAt)])}</p>
                 </div>
                 <button
                   onClick={() => handleCancelInvite(inv.id, inv.email)}
                   className="text-xs text-gray-600 border border-gray-200 rounded-lg px-3 py-1 hover:bg-gray-50 transition flex-shrink-0"
                 >
-                  Cancel
+                  {t('familyCancelBtn')}
                 </button>
               </li>
             ))}
@@ -377,10 +359,9 @@ export default function FamilyPage() {
         </div>
       )}
 
-      {/* Past invites */}
       {pastInvites.length > 0 && (
         <details className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <summary className="cursor-pointer font-semibold text-primary">Previous invites ({pastInvites.length})</summary>
+          <summary className="cursor-pointer font-semibold text-primary">{tFmt('familyPreviousHeadingFmt', [pastInvites.length])}</summary>
           <ul className="divide-y divide-gray-100 mt-3">
             {pastInvites.map(inv => (
               <li key={inv.id} className="py-3 flex items-center justify-between">
@@ -393,7 +374,7 @@ export default function FamilyPage() {
                   : inv.status === 'canceled' ? 'text-gray-500'
                   : inv.status === 'expired' ? 'text-gray-500'
                   : 'text-amber-700'
-                }`}>{inv.status}</span>
+                }`}>{statusLabel(inv.status)}</span>
               </li>
             ))}
           </ul>
@@ -401,7 +382,7 @@ export default function FamilyPage() {
       )}
 
       <p className="text-xs text-gray-400 text-center mt-6">
-        To cancel the Family plan itself, head to <Link href="/dashboard/billing" className="underline">Billing</Link>.
+        {t('familyCancelPlanPrefix')} <Link href="/dashboard/billing" className="underline">{t('familyCancelPlanLink')}</Link>.
       </p>
     </div>
   );

@@ -6,6 +6,7 @@ import { logError } from '../../../lib/logError';
 import { useCurrency } from '../../../lib/useCurrency';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 // 2026-05-03 (Step 5): in-page drilldown — clicking a month/quarter/year
 // now expands an inline breakdown right below the chart instead of
 // routing to /dashboard/cash-flow. Mirrors Monarch — "you stay where
@@ -57,14 +58,15 @@ const COLORS = [
   '#FFA000', '#FF6F00', '#F57C00', '#FB8C00', '#FFB300',
 ];
 
-const periods = [
-  { value: 'week', label: 'This Week' },
-  { value: 'month', label: 'This Month' },
-  { value: 'year', label: 'This Year' },
-];
-
 function AnalyticsPageContent() {
   const { fmt, symbol } = useCurrency();
+  const { t, tFmt } = useI18n();
+
+  const periods = [
+    { value: 'week', label: t('analyticsPeriodWeek') },
+    { value: 'month', label: t('analyticsPeriodMonth') },
+    { value: 'year', label: t('analyticsPeriodYear') },
+  ];
   const router = useRouter();
   const [period, setPeriod] = useState('month');
   const [allPeriods, setAllPeriods] = useState<{ week: Summary | null; month: Summary | null; year: Summary | null }>({
@@ -135,9 +137,9 @@ function AnalyticsPageContent() {
     : [];
 
   const overviewData = [
-    { name: 'Income', amount: summary?.totalIncome || 0 },
-    { name: 'Expenses', amount: summary?.totalExpenses || 0 },
-    { name: 'Net', amount: summary?.netIncome || 0 },
+    { name: t('analyticsLegendIncome'), amount: summary?.totalIncome || 0 },
+    { name: t('analyticsLegendExpenses'), amount: summary?.totalExpenses || 0 },
+    { name: t('analyticsLegendNet'), amount: summary?.netIncome || 0 },
   ];
 
   const netIncome = summary?.netIncome || 0;
@@ -203,30 +205,30 @@ function AnalyticsPageContent() {
   return (
     <div role="main">
       <PageHeader
-        title="Analytics"
-        subtitle="Income vs spending trends across periods, with halal/haram breakdowns"
+        title={t('analyticsTitle')}
+        subtitle={t('analyticsSubtitle')}
       />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-gradient-to-br from-[#1B5E20] to-green-600 rounded-2xl p-5 text-white">
-          <p className="text-green-200 text-xs font-medium uppercase tracking-wide">Total Income</p>
+          <p className="text-green-200 text-xs font-medium uppercase tracking-wide">{t('analyticsKpiTotalIncome')}</p>
           <p className="text-2xl font-bold mt-1">{fmt(summary?.totalIncome || 0)}</p>
         </div>
         <div className="bg-gradient-to-br from-red-600 to-red-400 rounded-2xl p-5 text-white">
-          <p className="text-red-200 text-xs font-medium uppercase tracking-wide">Total Expenses</p>
+          <p className="text-red-200 text-xs font-medium uppercase tracking-wide">{t('analyticsKpiTotalExpenses')}</p>
           <p className="text-2xl font-bold mt-1">{fmt(summary?.totalExpenses || 0)}</p>
         </div>
         <div className={`bg-gradient-to-br rounded-2xl p-5 text-white ${
           netIncome >= 0 ? 'from-teal-600 to-cyan-500' : 'from-orange-600 to-amber-500'
         }`}>
-          <p className="text-xs font-medium uppercase tracking-wide opacity-80">Net Income</p>
+          <p className="text-xs font-medium uppercase tracking-wide opacity-80">{t('analyticsKpiNetIncome')}</p>
           <p className="text-2xl font-bold mt-1">{fmt(netIncome)}</p>
         </div>
         <div className="bg-gradient-to-br from-purple-600 to-indigo-500 rounded-2xl p-5 text-white">
-          <p className="text-purple-200 text-xs font-medium uppercase tracking-wide">Savings Rate</p>
+          <p className="text-purple-200 text-xs font-medium uppercase tracking-wide">{t('analyticsKpiSavingsRate')}</p>
           <p className="text-2xl font-bold mt-1">{savingsRate}%</p>
-          <p className="text-purple-200 text-xs mt-1">{summary?.transactionCount || 0} transactions</p>
+          <p className="text-purple-200 text-xs mt-1">{tFmt('analyticsTransactionsCountFmt', [summary?.transactionCount || 0])}</p>
         </div>
       </div>
 
@@ -234,27 +236,27 @@ function AnalyticsPageContent() {
       <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-lg font-semibold text-primary">Month-over-Month</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Last 13 months — income vs spending trends</p>
+            <h2 className="text-lg font-semibold text-primary">{t('analyticsMomTitle')}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">{t('analyticsMomSubtitle')}</p>
           </div>
-          <div className="flex gap-2" role="tablist" aria-label="Chart type selection">
+          <div className="flex gap-2" role="tablist" aria-label={t('analyticsAriaChartTypeSelection')}>
             <button
               onClick={() => setActiveChart('mom')}
               role="tab"
               aria-selected={activeChart === 'mom'}
-              aria-label="Bar chart view"
+              aria-label={t('analyticsAriaBarChart')}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'mom' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
-              Bar
+              {t('analyticsChartBar')}
             </button>
             <button
               onClick={() => setActiveChart('trend')}
               role="tab"
               aria-selected={activeChart === 'trend'}
-              aria-label="Line chart view"
+              aria-label={t('analyticsAriaLineChart')}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${activeChart === 'trend' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
-              Line
+              {t('analyticsChartLine')}
             </button>
           </div>
         </div>
@@ -263,14 +265,14 @@ function AnalyticsPageContent() {
             founder feedback: KPI cards on top reflect the picked period,
             so the picker belongs visually adjacent to the trend chart
             it steers, not floating in the page header. */}
-        <div className="flex flex-wrap gap-2 mb-4" role="tablist" aria-label="Period selection">
+        <div className="flex flex-wrap gap-2 mb-4" role="tablist" aria-label={t('analyticsAriaPeriodSelection')}>
           {periods.map((p) => (
             <button
               key={p.value}
               onClick={() => setPeriod(p.value)}
               role="tab"
               aria-selected={period === p.value}
-              aria-label={`Select ${p.label}`}
+              aria-label={tFmt('analyticsAriaSelectPeriodFmt', [p.label])}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                 period === p.value
                   ? 'bg-primary text-primary-foreground'
@@ -294,27 +296,30 @@ function AnalyticsPageContent() {
             if (currExp === 0 && prevExp > 0) {
               return (
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-gray-50 text-gray-700">
-                  No spending yet this month — add a transaction to start the trend
+                  {t('analyticsMomNoSpendingThisMonth')}
                 </div>
               );
             }
             if (currExp === 0 && prevExp === 0) {
               return (
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-gray-50 text-gray-700">
-                  → No spending recorded yet
+                  {t('analyticsMomNoSpendingYet')}
                 </div>
               );
             }
+            const pctNum = momPct.replace(/^[<>-]/, '');
             return (
               <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
                 momChange <= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
               }`}>
-                {momChange <= 0 ? '↓' : '↑'} Expenses {momChange <= 0 ? 'down' : 'up'} {momPct.replace(/^[<>-]/, '')}% vs last month
+                {momChange <= 0
+                  ? tFmt('analyticsMomBadgeDownFmt', [pctNum])
+                  : tFmt('analyticsMomBadgeUpFmt', [pctNum])}
               </div>
             );
           })()}
           <span className="text-xs text-gray-500">
-            Tap any bar to drill into the full breakdown by category &amp; merchant →
+            {t('analyticsMomDrillHint')}
           </span>
         </div>
 

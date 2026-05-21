@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { Suspense, useState, useRef, useEffect, useCallback, DragEvent } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -14,32 +14,33 @@ import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useCurrency } from '../../../lib/useCurrency';
 import { trackFirstAccountLink, trackOnce } from '../../../lib/analytics';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n, t as tStandalone } from '../../../lib/i18n';
 
 /* -- Asset / Debt type options (match the assets + debts pages) ------------ */
-const ASSET_TYPES = [
-  { value: 'cash', label: 'Cash' },
-  { value: 'savings', label: 'Savings' },
-  { value: 'investment', label: 'Investment' },
-  { value: 'real_estate', label: 'Real Estate' },
-  { value: 'vehicle', label: 'Vehicle' },
-  { value: '401k', label: '401(k)' },
-  { value: 'roth_ira', label: 'Roth IRA' },
-  { value: 'ira', label: 'Traditional IRA' },
-  { value: 'hsa', label: 'HSA' },
-  { value: '529', label: '529 Education' },
-  { value: 'crypto', label: 'Crypto' },
-  { value: 'gold', label: 'Gold' },
-  { value: 'other', label: 'Other' },
+const ASSET_TYPES: ReadonlyArray<{ value: string; labelKey: string }> = [
+  { value: 'cash', labelKey: 'importAssetTypeCash' },
+  { value: 'savings', labelKey: 'importAssetTypeSavings' },
+  { value: 'investment', labelKey: 'importAssetTypeInvestment' },
+  { value: 'real_estate', labelKey: 'importAssetTypeRealEstate' },
+  { value: 'vehicle', labelKey: 'importAssetTypeVehicle' },
+  { value: '401k', labelKey: 'importAssetType401k' },
+  { value: 'roth_ira', labelKey: 'importAssetTypeRothIra' },
+  { value: 'ira', labelKey: 'importAssetTypeIra' },
+  { value: 'hsa', labelKey: 'importAssetTypeHsa' },
+  { value: '529', labelKey: 'importAssetType529' },
+  { value: 'crypto', labelKey: 'importAssetTypeCrypto' },
+  { value: 'gold', labelKey: 'importAssetTypeGold' },
+  { value: 'other', labelKey: 'importAssetTypeOther' },
 ];
 
-const DEBT_TYPES = [
-  { value: 'credit_card', label: 'Credit Card' },
-  { value: 'conventional_mortgage', label: 'Mortgage' },
-  { value: 'car_loan', label: 'Car Loan' },
-  { value: 'student_loan', label: 'Student Loan' },
-  { value: 'personal_loan', label: 'Personal Loan' },
-  { value: 'islamic_mortgage', label: 'Islamic Mortgage' },
-  { value: 'other', label: 'Other' },
+const DEBT_TYPES: ReadonlyArray<{ value: string; labelKey: string }> = [
+  { value: 'credit_card', labelKey: 'importDebtTypeCreditCard' },
+  { value: 'conventional_mortgage', labelKey: 'importDebtTypeMortgage' },
+  { value: 'car_loan', labelKey: 'importDebtTypeCarLoan' },
+  { value: 'student_loan', labelKey: 'importDebtTypeStudentLoan' },
+  { value: 'personal_loan', labelKey: 'importDebtTypePersonalLoan' },
+  { value: 'islamic_mortgage', labelKey: 'importDebtTypeIslamicMortgage' },
+  { value: 'other', labelKey: 'importDebtTypeOther' },
 ];
 
 interface ExistingAccount {
@@ -152,6 +153,7 @@ function formatPlaidBalance(value: number | null | undefined, currencyCode = 'US
 
 function ImportPageInner() {
   const { fmt, locale: dateLocale } = useCurrency();
+  const { t, tFmt } = useI18n();
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -203,9 +205,6 @@ function ImportPageInner() {
       setSubscriptionStatus(data as SubscriptionStatus);
     } catch {
       // Retry once after a short delay — the first call can fail during token refresh.
-      // Round 21: mounted check BEFORE the retry await and again after so we
-      // don't schedule work for a component that's already gone. Prior code
-      // left the 2s delay running past unmount.
       if (!mountedRef.current) return;
       try {
         await new Promise(r => setTimeout(r, 2000));
@@ -233,25 +232,27 @@ function ImportPageInner() {
     if (!plaidStatus) return;
 
     if (plaidStatus === 'linked') {
-      setPlaidMessage(rawMessage || 'Bank linked successfully. Balances now appear in Assets or Debts, and synced activity shows in Transactions.');
+      setPlaidMessage(rawMessage || t('importPlaidLinkedDefault'));
       loadPlaidAccounts();
     } else if (plaidStatus === 'error') {
-      setError(rawMessage || 'Plaid authentication did not complete.');
+      setError(rawMessage || t('importPlaidAuthIncomplete'));
     }
 
     router.replace('/dashboard/import');
+    // `t` is a fresh identity each render; including it would refire this effect
+    // (which calls loadPlaidAccounts) on every render. The plaid-status branches
+    // read `t` lazily and the effect no-ops without a `?plaid` param.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadPlaidAccounts, router, searchParams]);
 
   const [plaidLoading, setPlaidLoading] = useState(false);
-  // Primary: check subscription status API. Fallback: check user plan from auth context.
-  // This prevents paid users from seeing upgrade prompts if the /api/stripe/status call fails.
   const plaidAccess = hasPaidSyncAccess(subscriptionStatus)
     || (user?.plan === 'plus' || user?.plan === 'family');
 
   const handlePlaidConnect = async () => {
     if (statusLoading) return;
     if (!plaidAccess) {
-      setError('Plaid bank sync is available on Plus and Family. Upgrade to connect new accounts.');
+      setError(t('importPlaidNotPaid'));
       return;
     }
     clearPendingPlaidLinkToken();
@@ -260,12 +261,6 @@ function ImportPageInner() {
     setError('');
     setPlaidMessage('');
     try {
-      // 2026-05-13 (EU Plaid fix): if the user.country is blank, prompt
-      // for an ISO-3166 alpha-2 country code BEFORE asking the backend
-      // for a Plaid link token. Without this the backend fell back to
-      // ["US"] in PlaidCountryCodes.codesFor("") and European users
-      // saw a US-only institution list ("No results found"). 47 of 50
-      // active users today have blank user.country.
       let countryHint: string | undefined;
       const storedCountry = (user?.country ?? '').trim().toUpperCase();
       if (!storedCountry) {
@@ -281,7 +276,7 @@ function ImportPageInner() {
         savePendingPlaidLinkToken(data.linkToken);
         setPlaidLinkToken(data.linkToken);
       } else {
-        throw new Error("We couldn't start secure bank linking right now. Please try again in a few minutes.");
+        throw new Error(t('importLinkTokenFailed'));
       }
     } catch (err) {
       clearPendingPlaidLinkToken();
@@ -292,17 +287,11 @@ function ImportPageInner() {
     }
   };
 
-  /**
-   * 2026-05-13: minimal blocking country prompt for users whose
-   * `user.country` is blank. Uses `window.prompt` for simplicity —
-   * a richer custom modal can land later. Returns the ISO-3166 alpha-2
-   * the user picked, or `null` if they cancelled.
-   */
   function promptForCountry(): Promise<string | null> {
     return new Promise((resolve) => {
       const supported = 'US, CA, GB, FR, IE, ES, NL, DE, IT, PT, BE, DK, NO, SE, EE, LT, LV, PL, AU';
       const answer = window.prompt(
-        `Plaid needs to know your country to show the right bank list.\n\nEnter your two-letter country code (ISO-3166 alpha-2).\n\nSupported: ${supported}\n\nExample: GB for the United Kingdom, DE for Germany.`,
+        tStandalone('importCountryPromptFmt').replace('{0}', supported),
         '',
       );
       if (answer === null) {
@@ -311,7 +300,7 @@ function ImportPageInner() {
       }
       const cleaned = answer.trim().toUpperCase();
       if (!/^[A-Z]{2}$/.test(cleaned)) {
-        window.alert('Please enter a valid two-letter country code (e.g. GB, US, DE).');
+        window.alert(tStandalone('importInvalidCountry'));
         resolve(null);
         return;
       }
@@ -325,10 +314,6 @@ function ImportPageInner() {
       clearPendingPlaidLinkToken();
       setPlaidLinkToken(null);
       setPlaidLoading(false);
-      // First-ever Plaid link fires the GA4 activation event once per
-      // browser. Mirrors /setup + /plaid/oauth so paid-acquisition
-      // attribution picks up the moment regardless of which surface the
-      // user linked from.
       try {
         trackOnce('first_account_link', () =>
           trackFirstAccountLink(metadata?.institution?.name || 'unknown'));
@@ -336,8 +321,8 @@ function ImportPageInner() {
       const imported = Number(result?.transactionsImported || 0);
       setPlaidMessage(
         imported > 0
-          ? `Bank linked and ${imported} transaction(s) imported. Balances now appear in Assets or Debts, and activity shows in Transactions.`
-          : 'Bank linked successfully. Balances now appear in Assets or Debts, and you can sync again anytime from here.',
+          ? tFmt('importPlaidLinkedImportedFmt', [imported])
+          : t('importPlaidLinkedNoneDefault'),
       );
       await loadPlaidAccounts();
     } catch (err) {
@@ -346,7 +331,7 @@ function ImportPageInner() {
       setPlaidLoading(false);
       setError(getPlaidUiErrorMessage(err, 'exchange'));
     }
-  }, [loadPlaidAccounts]);
+  }, [loadPlaidAccounts, t, tFmt]);
 
   const onPlaidExit = useCallback((exitError: { display_message?: string | null } | null) => {
     clearPendingPlaidLinkToken();
@@ -375,7 +360,7 @@ function ImportPageInner() {
     setPlaidMessage('');
     try {
       const result = await api.plaidSync(accountId);
-      setPlaidMessage(`Imported ${result?.added || 0} new transaction(s)`);
+      setPlaidMessage(tFmt('importImportedTxnCountFmt', [result?.added || 0]));
       loadPlaidAccounts();
     } catch (err) {
       setError(getPlaidUiErrorMessage(err, 'sync'));
@@ -394,8 +379,8 @@ function ImportPageInner() {
       const total = result?.totalAdded ?? 0;
       setPlaidMessage(
         total > 0
-          ? `Synced all accounts — ${total} new transaction(s) imported`
-          : 'All accounts synced — no new transactions'
+          ? tFmt('importSyncedAllFmt', [total])
+          : t('importSyncedAllNone')
       );
       loadPlaidAccounts();
     } catch (err) {
@@ -406,11 +391,11 @@ function ImportPageInner() {
   };
 
   const handlePlaidUnlink = async (accountId: number) => {
-    if (!confirm('Unlink this bank account? Your imported transactions will remain.')) return;
+    if (!confirm(t('importUnlinkConfirm'))) return;
     try {
       await api.plaidUnlinkAccount(accountId);
       loadPlaidAccounts();
-      setPlaidMessage('Account unlinked');
+      setPlaidMessage(t('importAccountUnlinked'));
     } catch (err) {
       setError(getPlaidUiErrorMessage(err, 'unlink'));
     }
@@ -422,7 +407,7 @@ function ImportPageInner() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
-    if (!file.name.endsWith('.csv')) { setError('Please upload a CSV file.'); return; }
+    if (!file.name.endsWith('.csv')) { setError(t('importPleaseUploadCsv')); return; }
     setError('');
     setUploading(true);
     try {
@@ -433,11 +418,6 @@ function ImportPageInner() {
       setCsvFormat(format);
 
       if (format === 'transactions') {
-        // Round 20: typed the API-payload shape as Partial<PreviewTransaction>
-        // so downstream spreads stay safe and the eslint disable comment
-        // is no longer needed. The `skip: false` default is applied after
-        // the spread so clients can't inject a truthy `skip` into the
-        // preview list and bypass import.
         const parsed: PreviewTransaction[] = ((data.transactions || []) as Partial<PreviewTransaction>[]).map((t) => ({
           date: '',
           merchant: '',
@@ -479,7 +459,7 @@ function ImportPageInner() {
       }
       setStep('preview');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Upload failed');
+      setError(e instanceof Error ? e.message : t('importUploadFailed'));
     } finally {
       setUploading(false);
     }
@@ -524,7 +504,7 @@ function ImportPageInner() {
       setResult(data as ImportResult);
       setStep('done');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Import failed');
+      setError(e instanceof Error ? e.message : t('importImportFailed'));
     } finally {
       setImporting(false);
     }
@@ -555,8 +535,8 @@ function ImportPageInner() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <PageHeader
-        title="Import Data"
-        subtitle="Connect banks via Plaid or upload CSV statements to populate your ledger"
+        title={t('importTitle')}
+        subtitle={t('importSubtitle')}
         className="mb-0"
       />
 
@@ -564,8 +544,8 @@ function ImportPageInner() {
       <div className="bg-white border border-green-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-bold text-primary">Connect Your Bank</h2>
-            <p className="text-sm text-gray-500">Automatically import balances and transactions from supported institutions.</p>
+            <h2 className="text-lg font-bold text-primary">{t('importConnectBankTitle')}</h2>
+            <p className="text-sm text-gray-500">{t('importConnectBankSubtitle')}</p>
           </div>
           <div className="flex items-center gap-2">
             {plaidAccounts.length > 1 && plaidAccess && (
@@ -575,9 +555,9 @@ function ImportPageInner() {
                 className="border border-primary text-primary px-4 py-2.5 rounded-lg font-semibold hover:bg-green-50 transition text-sm disabled:opacity-50 flex items-center gap-1.5"
               >
                 {plaidSyncingAll ? (
-                  <><span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-green-700 border-t-transparent rounded-full" />Syncing all…</>
+                  <><span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-green-700 border-t-transparent rounded-full" />{t('importSyncingAll')}</>
                 ) : (
-                  <>🔄 Sync All</>
+                  <>{t('importSyncAll')}</>
                 )}
               </button>
             )}
@@ -586,7 +566,7 @@ function ImportPageInner() {
                 disabled
                 className="bg-gray-200 text-gray-500 px-5 py-2.5 rounded-lg font-semibold text-sm cursor-not-allowed"
               >
-                Checking access...
+                {t('importCheckingAccess')}
               </button>
             ) : plaidAccess ? (
               <button
@@ -594,14 +574,14 @@ function ImportPageInner() {
                 disabled={plaidLoading}
                 className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-semibold hover:bg-primary/90 transition text-sm disabled:opacity-50"
               >
-                {plaidLoading ? 'Opening Plaid...' : '+ Link Bank Account'}
+                {plaidLoading ? t('importOpeningPlaid') : t('importLinkBankAccount')}
               </button>
             ) : (
               <Link
                 href="/dashboard/billing"
                 className="border border-primary text-primary px-5 py-2.5 rounded-lg font-semibold hover:bg-green-50 transition text-sm"
               >
-                Upgrade for Plaid
+                {t('importUpgradeForPlaid')}
               </Link>
             )}
           </div>
@@ -609,22 +589,22 @@ function ImportPageInner() {
 
         {!statusLoading && !plaidAccess && (
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5 mb-4">
-            <h3 className="text-lg font-bold text-primary mb-2">Upgrade to Connect Your Bank</h3>
+            <h3 className="text-lg font-bold text-primary mb-2">{t('importUpgradePromptTitle')}</h3>
             <p className="text-sm text-gray-600 mb-3">
-              Automatically sync balances, transactions, and bills from your bank accounts.
+              {t('importUpgradePromptDesc')}
             </p>
             <div className="grid grid-cols-2 gap-2 mb-4">
               <div className="flex items-center gap-2 text-sm text-gray-700">
-                <span className="text-green-600">&#10003;</span> Auto-sync balances daily
+                <span className="text-green-600">&#10003;</span> {t('importBenefitSync')}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-700">
-                <span className="text-green-600">&#10003;</span> Import transactions
+                <span className="text-green-600">&#10003;</span> {t('importBenefitTxn')}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-700">
-                <span className="text-green-600">&#10003;</span> Track bills &amp; due dates
+                <span className="text-green-600">&#10003;</span> {t('importBenefitBills')}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-700">
-                <span className="text-green-600">&#10003;</span> Detect subscriptions
+                <span className="text-green-600">&#10003;</span> {t('importBenefitSubs')}
               </div>
             </div>
             <div className="flex gap-3">
@@ -632,11 +612,10 @@ function ImportPageInner() {
                 href="/dashboard/billing"
                 className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-primary/90 transition"
               >
-                View Plans &amp; Upgrade
+                {t('importViewPlansUpgrade')}
               </Link>
             </div>
-            {/* Existing accounts accessible below */}
-            <p className="text-xs text-gray-400 mt-3">If you linked accounts during a trial, you can still view or unlink them below.</p>
+            <p className="text-xs text-gray-400 mt-3">{t('importTrialNote')}</p>
           </div>
         )}
 
@@ -655,19 +634,19 @@ function ImportPageInner() {
                           </p>
                           {acct.accountRole && (
                             <p className="text-xs text-emerald-700 mt-1 font-medium capitalize">
-                              Appears as a linked {acct.accountRole === 'debt' ? 'debt' : 'asset'} inside Barakah
+                              {acct.accountRole === 'debt' ? t('importAcctRoleDebt') : t('importAcctRoleAsset')}
                             </p>
                           )}
                           <p className="text-sm font-semibold text-gray-900 mt-2">
-                            Current balance {formatPlaidBalance(acct.currentBalance, acct.currencyCode) ?? 'Unavailable'}
+                            {tFmt('importAcctCurrentBalanceFmt', [formatPlaidBalance(acct.currentBalance, acct.currencyCode) ?? t('importAcctUnavailable')])}
                           </p>
                           {acct.availableBalance != null && (
                             <p className="text-xs text-gray-500">
-                              Available {formatPlaidBalance(acct.availableBalance, acct.currencyCode)}
+                              {tFmt('importAcctAvailableFmt', [formatPlaidBalance(acct.availableBalance, acct.currencyCode) ?? ''])}
                             </p>
                           )}
                           {acct.lastSyncedAt && (
-                            <p className="text-xs text-gray-400">Last synced: {new Date(acct.lastSyncedAt).toLocaleDateString(dateLocale)}</p>
+                            <p className="text-xs text-gray-400">{tFmt('importAcctLastSyncedFmt', [new Date(acct.lastSyncedAt).toLocaleDateString(dateLocale)])}</p>
                           )}
                         </div>
                 <div className="flex gap-2">
@@ -676,28 +655,28 @@ function ImportPageInner() {
                     disabled={plaidSyncing === acct.id || plaidSyncingAll || !plaidAccess}
                     className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition disabled:opacity-50"
                   >
-                    {plaidSyncing === acct.id ? 'Syncing...' : plaidAccess ? 'Sync' : 'Upgrade to Sync'}
+                    {plaidSyncing === acct.id ? t('importSyncing') : plaidAccess ? t('importSync') : t('importUpgradeToSync')}
                   </button>
                   <button
                     onClick={() => handlePlaidUnlink(acct.id)}
                     className="border border-red-300 text-red-600 px-3 py-2 rounded-lg text-sm hover:bg-red-50 transition"
                   >
-                    Unlink
+                    {t('importUnlink')}
                   </button>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400">No bank accounts linked yet. Click &quot;Link Bank Account&quot; to get started.</p>
+          <p className="text-sm text-gray-400">{t('importNoAccountsLinked')}</p>
         )}
       </div>
 
       {/* ── CSV Import ─────────────────────────────────────────────────── */}
       <div className="border-t pt-6">
-        <h2 className="text-lg font-bold text-gray-700 mb-2">Or Import via CSV</h2>
+        <h2 className="text-lg font-bold text-gray-700 mb-2">{t('importOrCsv')}</h2>
         <p className="text-gray-600 text-sm mb-4">
-          Upload a <strong>CSV export</strong> from your bank or budgeting app (Monarch Money, YNAB, Mint, and others).
+          {t('importCsvUploadHelp')}
         </p>
       </div>
 
@@ -715,18 +694,18 @@ function ImportPageInner() {
             dragActive ? 'border-primary bg-green-50' : 'border-gray-300 hover:border-primary hover:bg-green-50/50'
           }`}
         >
-          <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={onFileChange} aria-label="Upload CSV file" />
+          <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={onFileChange} aria-label={t('importAriaUploadCsv')} />
           {uploading ? (
-            <p className="text-gray-500 animate-pulse text-lg">Detecting format &amp; parsing CSV...</p>
+            <p className="text-gray-500 animate-pulse text-lg">{t('importDetectingCsv')}</p>
           ) : (
             <>
               <p className="text-5xl mb-4">&#128196;</p>
-              <p className="text-lg font-medium text-gray-700">Drag &amp; drop your CSV here</p>
-              <p className="text-gray-400 mt-2">or click to browse</p>
+              <p className="text-lg font-medium text-gray-700">{t('importDragDropCsv')}</p>
+              <p className="text-gray-400 mt-2">{t('importOrClickBrowse')}</p>
               <p className="text-gray-400 text-sm mt-3">
-                Supports: Balances CSV (accounts &amp; net worth) · Transactions CSV (income &amp; expenses)
+                {t('importSupportsLine')}
               </p>
-              <p className="text-gray-400 text-xs mt-1">Compatible with Monarch Money, YNAB, Mint, and bank statement exports</p>
+              <p className="text-gray-400 text-xs mt-1">{t('importCompatibleLine')}</p>
             </>
           )}
         </div>
@@ -735,15 +714,15 @@ function ImportPageInner() {
       {step === 'preview' && csvFormat === 'balances' && (
         <>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
-            Detected <strong>Balances</strong> CSV &mdash; This will import your accounts as assets, debts &amp; investment accounts.
+            {t('importDetectedBalances')}
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-            <Stat label="Balance Records" value={meta.totalRecords.toLocaleString()} />
-            <Stat label="Accounts Found" value={String(meta.totalAccounts)} />
-            <Stat label="Assets" value={String(assetCount)} color="text-green-700" />
-            <Stat label="Debts" value={String(debtCount)} color="text-red-600" />
-            {updateCount > 0 && <Stat label="Updates" value={String(updateCount)} color="text-blue-600" />}
+            <Stat label={t('importBalanceRecords')} value={meta.totalRecords.toLocaleString()} />
+            <Stat label={t('importAccountsFound')} value={String(meta.totalAccounts)} />
+            <Stat label={t('importAssetsLabel')} value={String(assetCount)} color="text-green-700" />
+            <Stat label={t('importDebtsLabel')} value={String(debtCount)} color="text-red-600" />
+            {updateCount > 0 && <Stat label={t('importUpdatesLabel')} value={String(updateCount)} color="text-blue-600" />}
           </div>
 
           {deltaStats.derivedTransactionCount > 0 && (
@@ -757,43 +736,43 @@ function ImportPageInner() {
                 />
                 <div>
                   <span className="text-sm font-medium text-amber-900">
-                    Also estimate transactions from daily balance changes
+                    {t('importEstimateTxnLabel')}
                   </span>
                   <p className="text-xs text-amber-700 mt-0.5">
-                    ⚠️ These are <strong>estimated</strong> — not real transactions. Only enable if you don&apos;t have a separate Transactions CSV. Real transactions imported from a Transactions CSV are always more accurate.
+                    {t('importEstimateTxnHelp')}
                   </p>
                 </div>
               </label>
               {generateTransactions && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 ml-8">
-                  <Stat label="Transactions" value={deltaStats.derivedTransactionCount.toLocaleString()} />
-                  <Stat label="Income" value={String(deltaStats.derivedIncomeCount)} color="text-green-700" />
-                  <Stat label="Expenses" value={String(deltaStats.derivedExpenseCount)} color="text-red-600" />
-                  <Stat label="Net Flow" value={fmt(deltaStats.derivedTotalIncome - deltaStats.derivedTotalExpense)} color={deltaStats.derivedTotalIncome >= deltaStats.derivedTotalExpense ? 'text-green-700' : 'text-red-600'} />
+                  <Stat label={t('importTransactionsLabel')} value={deltaStats.derivedTransactionCount.toLocaleString()} />
+                  <Stat label={t('importIncomeLabel')} value={String(deltaStats.derivedIncomeCount)} color="text-green-700" />
+                  <Stat label={t('importExpensesLabel')} value={String(deltaStats.derivedExpenseCount)} color="text-red-600" />
+                  <Stat label={t('importNetFlowLabel')} value={fmt(deltaStats.derivedTotalIncome - deltaStats.derivedTotalExpense)} color={deltaStats.derivedTotalIncome >= deltaStats.derivedTotalExpense ? 'text-green-700' : 'text-red-600'} />
                 </div>
               )}
             </div>
           )}
 
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-gray-500">{activeCount} of {accounts.length} accounts selected</span>
+            <span className="text-gray-500">{tFmt('importSelectedAccountsFmt', [activeCount, accounts.length])}</span>
             {updateCount > 0 && (
-              <span className="text-blue-600 font-medium">({updateCount} updating existing, {createCount} new)</span>
+              <span className="text-blue-600 font-medium">{tFmt('importUpdatingNewCountFmt', [updateCount, createCount])}</span>
             )}
-            <button onClick={() => setAccounts(prev => prev.map(a => ({ ...a, skip: false })))} className="text-primary hover:underline">Select all</button>
-            <button onClick={() => setAccounts(prev => prev.map(a => ({ ...a, skip: true })))} className="text-red-600 hover:underline">Deselect all</button>
+            <button onClick={() => setAccounts(prev => prev.map(a => ({ ...a, skip: false })))} className="text-primary hover:underline">{t('importSelectAll')}</button>
+            <button onClick={() => setAccounts(prev => prev.map(a => ({ ...a, skip: true })))} className="text-red-600 hover:underline">{t('importDeselectAll')}</button>
           </div>
 
           <div className="bg-white rounded-xl border shadow-sm overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-left">
                 <tr>
-                  <th className="p-3 w-10">Import</th>
-                  <th className="p-3">Account</th>
-                  <th className="p-3 text-right">Latest Balance</th>
-                  <th className="p-3">Category</th>
-                  <th className="p-3">Type</th>
-                  <th className="p-3">Action</th>
+                  <th className="p-3 w-10">{t('importColImport')}</th>
+                  <th className="p-3">{t('importColAccount')}</th>
+                  <th className="p-3 text-right">{t('importColLatestBalance')}</th>
+                  <th className="p-3">{t('importColCategory')}</th>
+                  <th className="p-3">{t('importColType')}</th>
+                  <th className="p-3">{t('importColAction')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -804,37 +783,37 @@ function ImportPageInner() {
                   return (
                     <tr key={`${a.accountName}-${a.type}-${a.latestBalance}-${i}`} className={`border-t ${a.skip ? 'opacity-40' : ''}`}>
                       <td className="p-3">
-                        <input type="checkbox" checked={!a.skip} onChange={() => updateAccount(i, { skip: !a.skip })} className="accent-[#1B5E20] w-4 h-4" aria-label={`Import ${a.accountName}`} />
+                        <input type="checkbox" checked={!a.skip} onChange={() => updateAccount(i, { skip: !a.skip })} className="accent-[#1B5E20] w-4 h-4" aria-label={tFmt('importAriaImportAccountFmt', [a.accountName])} />
                       </td>
                       <td className="p-3 max-w-xs">
                         <div className="font-medium truncate" title={a.accountName}>{a.accountName}</div>
                         {matchedExisting && (
-                          <div className="text-xs text-blue-600 mt-0.5">Merging with: {matchedExisting.name} ({fmt(matchedExisting.value ?? matchedExisting.remainingAmount ?? 0)})</div>
+                          <div className="text-xs text-blue-600 mt-0.5">{tFmt('importMergingFmt', [matchedExisting.name, fmt(matchedExisting.value ?? matchedExisting.remainingAmount ?? 0)])}</div>
                         )}
                       </td>
                       <td className={`p-3 text-right font-mono ${a.isDebt ? 'text-red-600' : 'text-green-700'}`}>{fmt(a.latestBalance)}</td>
                       <td className="p-3">
-                        <select value={a.isDebt ? 'debt' : 'asset'} disabled={a.skip} aria-label="Category"
+                        <select value={a.isDebt ? 'debt' : 'asset'} disabled={a.skip} aria-label={t('importColCategory')}
                           onChange={e => { const isDebt = e.target.value === 'debt'; updateAccount(i, { isDebt, type: 'other', action: 'create', existingId: null }); }}
                           className="px-2 py-1 border rounded text-sm bg-white">
-                          <option value="asset">Asset</option>
-                          <option value="debt">Debt</option>
+                          <option value="asset">{t('importCatAsset')}</option>
+                          <option value="debt">{t('importCatDebt')}</option>
                         </select>
                       </td>
                       <td className="p-3">
-                        <select value={a.type} disabled={a.skip} onChange={e => updateAccount(i, { type: e.target.value })} className="px-2 py-1 border rounded text-sm bg-white" aria-label="Type">
-                          {(a.isDebt ? DEBT_TYPES : ASSET_TYPES).map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                        <select value={a.type} disabled={a.skip} onChange={e => updateAccount(i, { type: e.target.value })} className="px-2 py-1 border rounded text-sm bg-white" aria-label={t('importColType')}>
+                          {(a.isDebt ? DEBT_TYPES : ASSET_TYPES).map(typ => <option key={typ.value} value={typ.value}>{t(typ.labelKey)}</option>)}
                         </select>
                       </td>
                       <td className="p-3">
                         <select
-                          value={a.action === 'update' && a.existingId ? `update-${a.existingId}` : 'create'} disabled={a.skip} aria-label="Action"
+                          value={a.action === 'update' && a.existingId ? `update-${a.existingId}` : 'create'} disabled={a.skip} aria-label={t('importColAction')}
                           onChange={e => { const val = e.target.value; if (val === 'create') { updateAccount(i, { action: 'create', existingId: null }); } else { updateAccount(i, { action: 'update', existingId: parseInt(val.replace('update-', '')) }); } }}
                           className={`px-2 py-1 border rounded text-sm bg-white ${a.action === 'update' ? 'border-blue-400 text-blue-700' : ''}`}>
-                          <option value="create">+ Create New</option>
+                          <option value="create">{t('importActionCreateNew')}</option>
                           {existingList.length > 0 && (
-                            <optgroup label="Update Existing">
-                              {existingList.map(ex => <option key={ex.id} value={`update-${ex.id}`}>Update: {ex.name} ({fmt(ex.value ?? ex.remainingAmount ?? 0)})</option>)}
+                            <optgroup label={t('importActionUpdateExisting')}>
+                              {existingList.map(ex => <option key={ex.id} value={`update-${ex.id}`}>{tFmt('importActionUpdateFmt', [ex.name, fmt(ex.value ?? ex.remainingAmount ?? 0)])}</option>)}
                             </optgroup>
                           )}
                         </select>
@@ -847,10 +826,10 @@ function ImportPageInner() {
           </div>
 
           <div className="flex gap-4 justify-end">
-            <button onClick={resetAll} className="px-5 py-2.5 border rounded-lg text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button onClick={resetAll} className="px-5 py-2.5 border rounded-lg text-gray-600 hover:bg-gray-50">{t('importCancel')}</button>
             <button onClick={executeImport} disabled={importing || activeCount === 0}
               className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-green-800 disabled:opacity-50 flex items-center gap-2">
-              {importing ? <span className="animate-pulse">Importing...</span> : <>Import {activeCount} Account{activeCount !== 1 ? 's' : ''}</>}
+              {importing ? <span className="animate-pulse">{t('importImporting')}</span> : <>{tFmt('importImportNAccountsFmt', [activeCount, activeCount !== 1 ? 's' : ''])}</>}
             </button>
           </div>
         </>
@@ -859,65 +838,65 @@ function ImportPageInner() {
       {step === 'preview' && csvFormat === 'transactions' && (
         <>
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm text-purple-700">
-            Detected <strong>Transactions</strong> CSV &mdash; This will import your income &amp; expense records.
+            {t('importDetectedTransactions')}
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-            <Stat label="Transactions" value={String(txnMeta.totalTransactions)} />
-            <Stat label="Income" value={String(txnMeta.incomeCount)} color="text-green-700" />
-            <Stat label="Expenses" value={String(txnMeta.expenseCount)} color="text-red-600" />
-            <Stat label="Total Income" value={fmt(txnMeta.totalIncome)} color="text-green-700" />
-            <Stat label="Total Expenses" value={fmt(txnMeta.totalExpense)} color="text-red-600" />
+            <Stat label={t('importTransactionsLabel')} value={String(txnMeta.totalTransactions)} />
+            <Stat label={t('importIncomeLabel')} value={String(txnMeta.incomeCount)} color="text-green-700" />
+            <Stat label={t('importExpensesLabel')} value={String(txnMeta.expenseCount)} color="text-red-600" />
+            <Stat label={t('importTotalIncomeLabel')} value={fmt(txnMeta.totalIncome)} color="text-green-700" />
+            <Stat label={t('importTotalExpensesLabel')} value={fmt(txnMeta.totalExpense)} color="text-red-600" />
           </div>
 
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-gray-500">{activeTxnCount} of {transactions.length} transactions selected</span>
-            <button onClick={() => setTransactions(prev => prev.map(t => ({ ...t, skip: false })))} className="text-primary hover:underline">Select all</button>
-            <button onClick={() => setTransactions(prev => prev.map(t => ({ ...t, skip: true })))} className="text-red-600 hover:underline">Deselect all</button>
+            <span className="text-gray-500">{tFmt('importSelectedTxnFmt', [activeTxnCount, transactions.length])}</span>
+            <button onClick={() => setTransactions(prev => prev.map(t => ({ ...t, skip: false })))} className="text-primary hover:underline">{t('importSelectAll')}</button>
+            <button onClick={() => setTransactions(prev => prev.map(t => ({ ...t, skip: true })))} className="text-red-600 hover:underline">{t('importDeselectAll')}</button>
           </div>
 
           <div className="bg-white rounded-xl border shadow-sm overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-left">
                 <tr>
-                  <th className="p-3 w-10">Import</th>
-                  <th className="p-3">Date</th>
-                  <th className="p-3">Merchant</th>
-                  <th className="p-3">Category</th>
-                  <th className="p-3">Account</th>
-                  <th className="p-3 text-right">Amount</th>
+                  <th className="p-3 w-10">{t('importColImport')}</th>
+                  <th className="p-3">{t('importColDate')}</th>
+                  <th className="p-3">{t('importColMerchant')}</th>
+                  <th className="p-3">{t('importColCategory')}</th>
+                  <th className="p-3">{t('importColAccount')}</th>
+                  <th className="p-3 text-right">{t('importColAmount')}</th>
                 </tr>
               </thead>
               <tbody>
-                {transactions.slice(0, 200).map((t, i) => (
-                  <tr key={`${t.date}-${t.merchant}-${t.amount}-${i}`} className={`border-t ${t.skip ? 'opacity-40' : ''}`}>
+                {transactions.slice(0, 200).map((txn, i) => (
+                  <tr key={`${txn.date}-${txn.merchant}-${txn.amount}-${i}`} className={`border-t ${txn.skip ? 'opacity-40' : ''}`}>
                     <td className="p-3">
-                      <input type="checkbox" checked={!t.skip} onChange={() => updateTransaction(i, { skip: !t.skip })} className="accent-[#1B5E20] w-4 h-4" aria-label={`Import transaction ${t.merchant || t.category}`} />
+                      <input type="checkbox" checked={!txn.skip} onChange={() => updateTransaction(i, { skip: !txn.skip })} className="accent-[#1B5E20] w-4 h-4" aria-label={tFmt('importAriaImportTxnFmt', [txn.merchant || txn.category])} />
                     </td>
-                    <td className="p-3 text-gray-600 whitespace-nowrap">{t.date}</td>
+                    <td className="p-3 text-gray-600 whitespace-nowrap">{txn.date}</td>
                     <td className="p-3 max-w-xs">
-                      <div className="font-medium truncate" title={t.merchant}>{t.merchant || '\u2014'}</div>
-                      {t.notes && <div className="text-xs text-gray-400 truncate">{t.notes}</div>}
+                      <div className="font-medium truncate" title={txn.merchant}>{txn.merchant || '—'}</div>
+                      {txn.notes && <div className="text-xs text-gray-400 truncate">{txn.notes}</div>}
                     </td>
-                    <td className="p-3 text-gray-600">{t.category}</td>
-                    <td className="p-3 text-gray-500 text-xs truncate max-w-[150px]" title={t.account}>{t.account}</td>
-                    <td className={`p-3 text-right font-mono ${t.amount >= 0 ? 'text-green-700' : 'text-red-600'}`}>{fmt(t.amount)}</td>
+                    <td className="p-3 text-gray-600">{txn.category}</td>
+                    <td className="p-3 text-gray-500 text-xs truncate max-w-[150px]" title={txn.account}>{txn.account}</td>
+                    <td className={`p-3 text-right font-mono ${txn.amount >= 0 ? 'text-green-700' : 'text-red-600'}`}>{fmt(txn.amount)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
             {transactions.length > 200 && (
               <div className="p-3 text-center text-gray-400 text-sm border-t">
-                Showing first 200 of {transactions.length} transactions. All will be imported.
+                {tFmt('importTxnRowsCapFmt', [transactions.length])}
               </div>
             )}
           </div>
 
           <div className="flex gap-4 justify-end">
-            <button onClick={resetAll} className="px-5 py-2.5 border rounded-lg text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button onClick={resetAll} className="px-5 py-2.5 border rounded-lg text-gray-600 hover:bg-gray-50">{t('importCancel')}</button>
             <button onClick={executeImport} disabled={importing || activeTxnCount === 0}
               className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-green-800 disabled:opacity-50 flex items-center gap-2">
-              {importing ? <span className="animate-pulse">Importing...</span> : <>Import {activeTxnCount} Transaction{activeTxnCount !== 1 ? 's' : ''}</>}
+              {importing ? <span className="animate-pulse">{t('importImporting')}</span> : <>{tFmt('importImportNTxnFmt', [activeTxnCount, activeTxnCount !== 1 ? 's' : ''])}</>}
             </button>
           </div>
         </>
@@ -926,31 +905,31 @@ function ImportPageInner() {
       {step === 'done' && result && (
         <div className="bg-white rounded-xl border shadow-sm p-8 text-center space-y-4">
           <p className="text-5xl">&#127881;</p>
-          <h2 className="text-xl font-bold text-primary">Import Complete!</h2>
+          <h2 className="text-xl font-bold text-primary">{t('importImportComplete')}</h2>
 
           {result.format === 'balances' && (() => { const r = result as BalancesResult; return (
             <div className="flex justify-center gap-6 text-lg flex-wrap">
-              {r.assetsCreated > 0 && <span className="text-green-700">{r.assetsCreated} asset{r.assetsCreated !== 1 ? 's' : ''} created</span>}
-              {r.assetsUpdated > 0 && <span className="text-blue-600">{r.assetsUpdated} asset{r.assetsUpdated !== 1 ? 's' : ''} updated</span>}
-              {r.debtsCreated > 0 && <span className="text-red-600">{r.debtsCreated} debt{r.debtsCreated !== 1 ? 's' : ''} created</span>}
-              {r.debtsUpdated > 0 && <span className="text-orange-600">{r.debtsUpdated} debt{r.debtsUpdated !== 1 ? 's' : ''} updated</span>}
-              {r.investmentAccountsCreated > 0 && <span className="text-purple-600">{r.investmentAccountsCreated} investment account{r.investmentAccountsCreated !== 1 ? 's' : ''} created</span>}
-              {r.transactionsCreated > 0 && <span className="text-indigo-600">{r.transactionsCreated} transaction{r.transactionsCreated !== 1 ? 's' : ''} generated</span>}
-              {r.assetsCreated === 0 && r.assetsUpdated === 0 && r.debtsCreated === 0 && r.debtsUpdated === 0 && r.transactionsCreated === 0 && <span className="text-gray-500">No changes made</span>}
+              {r.assetsCreated > 0 && <span className="text-green-700">{tFmt('importAssetsCreatedFmt', [r.assetsCreated, r.assetsCreated !== 1 ? 's' : ''])}</span>}
+              {r.assetsUpdated > 0 && <span className="text-blue-600">{tFmt('importAssetsUpdatedFmt', [r.assetsUpdated, r.assetsUpdated !== 1 ? 's' : ''])}</span>}
+              {r.debtsCreated > 0 && <span className="text-red-600">{tFmt('importDebtsCreatedFmt', [r.debtsCreated, r.debtsCreated !== 1 ? 's' : ''])}</span>}
+              {r.debtsUpdated > 0 && <span className="text-orange-600">{tFmt('importDebtsUpdatedFmt', [r.debtsUpdated, r.debtsUpdated !== 1 ? 's' : ''])}</span>}
+              {r.investmentAccountsCreated > 0 && <span className="text-purple-600">{tFmt('importInvestmentsCreatedFmt', [r.investmentAccountsCreated, r.investmentAccountsCreated !== 1 ? 's' : ''])}</span>}
+              {r.transactionsCreated > 0 && <span className="text-indigo-600">{tFmt('importTransactionsGeneratedFmt', [r.transactionsCreated, r.transactionsCreated !== 1 ? 's' : ''])}</span>}
+              {r.assetsCreated === 0 && r.assetsUpdated === 0 && r.debtsCreated === 0 && r.debtsUpdated === 0 && r.transactionsCreated === 0 && <span className="text-gray-500">{t('importNoChanges')}</span>}
             </div>
           ); })()}
 
           {result.format === 'transactions' && (() => { const r = result as TransactionsResult; return (
             <div className="flex justify-center gap-6 text-lg flex-wrap">
-              {r.transactionsCreated > 0 && <span className="text-green-700">{r.transactionsCreated} transaction{r.transactionsCreated !== 1 ? 's' : ''} imported</span>}
-              {r.skipped > 0 && <span className="text-gray-500">{r.skipped} skipped</span>}
-              {r.transactionsCreated === 0 && <span className="text-gray-500">No transactions imported</span>}
+              {r.transactionsCreated > 0 && <span className="text-green-700">{tFmt('importTransactionsImportedFmt', [r.transactionsCreated, r.transactionsCreated !== 1 ? 's' : ''])}</span>}
+              {r.skipped > 0 && <span className="text-gray-500">{tFmt('importSkippedFmt', [r.skipped])}</span>}
+              {r.transactionsCreated === 0 && <span className="text-gray-500">{t('importNoTxnImported')}</span>}
             </div>
           ); })()}
 
           {result.errors && result.errors.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-left text-sm text-red-700">
-              <p className="font-semibold mb-1">Some items failed:</p>
+              <p className="font-semibold mb-1">{t('importSomeFailed')}</p>
               <ul className="list-disc list-inside">
                 {result.errors.map((e, i) => <li key={i}>{e}</li>)}
               </ul>
@@ -960,20 +939,20 @@ function ImportPageInner() {
           <div className="flex justify-center gap-4 pt-4 flex-wrap">
             {result.format === 'balances' && (
               <>
-                <Link href="/dashboard/assets" className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-green-800">View Assets</Link>
-                <Link href="/dashboard/debts" className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-50">View Debts</Link>
+                <Link href="/dashboard/assets" className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-green-800">{t('importViewAssets')}</Link>
+                <Link href="/dashboard/debts" className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-50">{t('importViewDebts')}</Link>
                 {(result as BalancesResult).investmentAccountsCreated > 0 && (
-                  <Link href="/dashboard/investments" className="px-5 py-2.5 border border-purple-300 rounded-lg text-purple-700 hover:bg-purple-50">View Investments</Link>
+                  <Link href="/dashboard/investments" className="px-5 py-2.5 border border-purple-300 rounded-lg text-purple-700 hover:bg-purple-50">{t('importViewInvestments')}</Link>
                 )}
                 {(result as BalancesResult).transactionsCreated > 0 && (
-                  <Link href="/dashboard/transactions" className="px-5 py-2.5 border border-indigo-300 rounded-lg text-indigo-700 hover:bg-indigo-50">View Transactions</Link>
+                  <Link href="/dashboard/transactions" className="px-5 py-2.5 border border-indigo-300 rounded-lg text-indigo-700 hover:bg-indigo-50">{t('importViewTransactions')}</Link>
                 )}
               </>
             )}
             {result.format === 'transactions' && (
-              <Link href="/dashboard/transactions" className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-green-800">View Transactions</Link>
+              <Link href="/dashboard/transactions" className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-green-800">{t('importViewTransactions')}</Link>
             )}
-            <button onClick={resetAll} className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-50">Import Another</button>
+            <button onClick={resetAll} className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-50">{t('importImportAnother')}</button>
           </div>
         </div>
       )}
@@ -983,7 +962,7 @@ function ImportPageInner() {
 
 export default function ImportPage() {
   return (
-    <Suspense fallback={<div className="p-8 animate-pulse text-gray-400">Loading...</div>}>
+    <Suspense fallback={<div className="p-8 animate-pulse text-gray-400">{tStandalone('importLoading')}</div>}>
       <ImportPageInner />
     </Suspense>
   );

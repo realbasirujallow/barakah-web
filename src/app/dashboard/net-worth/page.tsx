@@ -346,6 +346,19 @@ export default function NetWorthPage() {
             {changePositive ? '▲' : '▼'} {fmt(Math.abs(changeAmount))} ({changePercent.toFixed(1)}%) over {periodLabel.toLowerCase()}
           </p>
         )}
+        {/* MOB-5 (2026-05-21): daily change ("Today") for parity with the
+            mobile net-worth detail + dashboard hero. From the last two
+            chronological history points; hidden until there are >= 2. */}
+        {history.length >= 2 && (() => {
+          const dc = history[history.length - 1].netWorth - history[history.length - 2].netWorth;
+          const prev = history[history.length - 2].netWorth;
+          const dcp = prev !== 0 ? (dc / prev) * 100 : 0;
+          return (
+            <p className={`text-sm ${dc >= 0 ? 'text-green-200' : 'text-red-300'}`}>
+              {dc >= 0 ? '↗' : '↘'} {fmt(Math.abs(dc))} ({dc >= 0 ? '+' : ''}{dcp.toFixed(2)}%) Today
+            </p>
+          );
+        })()}
 
         <div className="grid grid-cols-3 gap-4 mt-4">
           <div className="bg-white/10 rounded-xl p-3">

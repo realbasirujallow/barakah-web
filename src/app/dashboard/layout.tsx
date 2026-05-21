@@ -9,6 +9,7 @@ import { useCurrency } from '../../lib/useCurrency';
 import { formatHijriLocalized } from '../../lib/format';
 import { useDarkMode, toggleDarkMode as toggleDarkModeShared } from '../../lib/useDarkMode';
 import { recordVisit } from '../../lib/lastVisit';
+import { useI18n } from '../../lib/i18n';
 import {
   LayoutDashboard, Wallet, BookOpen, CreditCard, Receipt, PieChart, Landmark,
   Users, Scale, BookMarked, CalendarClock, Heart, Upload, LineChart, Bell,
@@ -98,6 +99,68 @@ const navItems: { href: string; icon: LucideIcon; label: string; gate?: 'plus' |
   { href: '/dashboard/admin/scorecard', icon: Award, label: 'Scorecard', adminOnly: true },
 ];
 
+// 2026-05-19 (audit Bug #20 continuation): map English nav labels → i18n keys.
+// Keep `label` as the canonical English/lookup key (used by sectionConfig
+// items[] cross-reference + a11y aria-label). At render, call
+// `t(NAV_LABEL_KEYS[item.label])` to surface the user's locale.
+const NAV_LABEL_KEYS: Record<string, string> = {
+  'Dashboard': 'navDashboard',
+  'Assets': 'navAssets',
+  'Audit Ledger': 'navAuditLedger',
+  'Billing & Plans': 'navBillingPlans',
+  'Bills': 'navBills',
+  'Budget': 'navBudget',
+  'Debts': 'navDebts',
+  'Family': 'navFamily',
+  'Inheritance Calculator': 'navInheritanceCalculator',
+  'Fiqh Settings': 'navFiqhSettings',
+  'Zakat Anniversary': 'navZakatAnniversary',
+  'Ibadah Finance': 'navIbadahFinance',
+  'Import Data': 'navImportData',
+  'Market Prices': 'navMarketPrices',
+  'Notifications': 'navNotifications',
+  'Profile & Settings': 'navProfileSettings',
+  'Ramadan Mode': 'navRamadanMode',
+  'Recurring': 'navRecurring',
+  'Refer a Friend': 'navReferAFriend',
+  'Reports': 'navReports',
+  'Retirement Zakat': 'navRetirementZakat',
+  'Sadaqah': 'navSadaqah',
+  'Savings Goals': 'navSavingsGoals',
+  'Cash Flow': 'navCashFlow',
+  'Transactions': 'navTransactions',
+  'Zakat': 'navZakat',
+  'Analytics': 'navAnalytics',
+  'Transaction sorting': 'navTransactionSorting',
+  'Barakah Score': 'navBarakahScore',
+  'Financial Summary': 'navFinancialSummary',
+  'Stock Screener': 'navStockScreener',
+  'Investments': 'navInvestments',
+  'Net Worth': 'navNetWorth',
+  'Riba Detector': 'navRibaDetector',
+  'Subscription Detector': 'navSubscriptionDetector',
+  'Shared Finances': 'navSharedFinances',
+  'Endowment': 'navEndowment',
+  'Islamic Will': 'navIslamicWill',
+  'Admin Home': 'navAdminHome',
+  'Halal Screening': 'navHalalScreening',
+  'Email Locales': 'navEmailLocales',
+  'Email Preview': 'navEmailPreview',
+  'Acquisition': 'navAcquisition',
+  'Growth': 'navGrowth',
+  'Funnel': 'navFunnel',
+  'Scorecard': 'navScorecard',
+};
+
+const NAV_SECTION_KEYS: Record<string, string> = {
+  'Spending': 'navSectionSpending',
+  'Plan': 'navSectionPlan',
+  'Islamic': 'navSectionIslamic',
+  'Family': 'navSectionFamily',
+  'Profile': 'navSectionProfile',
+  'Admin': 'navSectionAdmin',
+};
+
 // Dark-mode external store helpers live in lib/useDarkMode.ts so that both
 // the layout and the profile page stay in sync with the same DOM-backed
 // state. Reading the `dark` class directly (rather than mirroring it in
@@ -167,6 +230,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, logout, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  // 2026-05-19 (audit Bug #20 continuation): wire sidebar nav to locale-aware
+  // strings. Helper closes over t() so render sites stay tidy.
+  const { t } = useI18n();
+  const tNavLabel = (label: string) => t(NAV_LABEL_KEYS[label] || label);
+  const tSectionLabel = (label: string) => t(NAV_SECTION_KEYS[label] || label);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Dark-mode flag is a view over the `dark` class on <html> — the authoritative
   // source of truth (set before hydration by a bootstrap script to avoid FOUC).
@@ -336,7 +404,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         key={item.href}
         href={item.href}
         onBeforeNavigate={() => setSidebarOpen(false)}
-        aria-label={item.label}
+        aria-label={tNavLabel(item.label)}
         aria-current={pathname === item.href ? 'page' : undefined}
         className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
           pathname === item.href
@@ -347,7 +415,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         }`}
       >
         <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-        <span className="flex-1 truncate">{item.label}</span>
+        <span className="flex-1 truncate">{tNavLabel(item.label)}</span>
         {locked && (
           <span className="text-[10px] uppercase tracking-wider opacity-60 font-semibold" aria-label="Premium only">
             Plus
@@ -380,7 +448,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <span className={`transition-transform text-[8px] ${isExpanded ? 'rotate-90' : ''}`} aria-hidden="true">
             ▶
           </span>
-          {config.label}
+          {tSectionLabel(config.label)}
         </button>
         {isExpanded && (
           <div className="space-y-0.5 mt-0.5">
@@ -435,14 +503,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             <span aria-hidden="true">{darkMode ? '☀️' : '🌙'}</span>
-            <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+            <span>{darkMode ? t('navLightMode') : t('navDarkMode')}</span>
           </button>
           <button
             onClick={() => logout('logout')}
             className="w-full text-left px-3 py-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md text-sm transition-colors flex items-center gap-2"
           >
             <span aria-hidden="true">→</span>
-            <span>Sign Out</span>
+            <span>{t('navSignOut')}</span>
           </button>
         </div>
       </aside>

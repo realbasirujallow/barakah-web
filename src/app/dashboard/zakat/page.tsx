@@ -10,6 +10,7 @@ import { safeParse, safeParseWithFallback, validateZakatCalculation, validateZak
 import ShareReceiptButton from '../../../components/ShareReceiptButton';
 import HistoricalZakatModal from '../../../components/HistoricalZakatModal';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 import { KpiCard } from '../../../components/dashboard/KpiCard';
 import { trackFirstZakatCalc, trackFeatureUse, trackOnce } from '../../../lib/analytics';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
@@ -91,6 +92,7 @@ export default function ZakatPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { fmt, symbol, currency, locale: dateLocale } = useCurrency();
+  const { t, tFmt } = useI18n();
   const mountedRef = useRef(true);
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [data, setData] = useState<ZakatCalculation | null>(null);
@@ -255,14 +257,14 @@ export default function ZakatPage() {
       if (!zakatData && zakatRaw?.error) {
         logError(new Error(zakatRaw.error as string), { context: 'Zakat API error' });
         if (!mountedRef.current) return;
-        setLoadError(String(zakatRaw.error) || 'Failed to load zakat data. Please try refreshing.');
+        setLoadError(String(zakatRaw.error) || t('zktLoadFailed'));
         setLoading(false);
         return;
       }
       if (zakatRaw?.error) {
         logError(new Error(zakatRaw.error as string), { context: 'Zakat API error' });
         if (!mountedRef.current) return;
-        setLoadError(String(zakatRaw.error) || 'Failed to load zakat data. Please try refreshing.');
+        setLoadError(String(zakatRaw.error) || t('zktLoadFailed'));
         setLoading(false);
         return;
       }
@@ -322,7 +324,7 @@ export default function ZakatPage() {
     } catch (err) {
       logError(err, { context: 'Failed to load zakat data' });
       if (!mountedRef.current) return;
-      setLoadError('Failed to load zakat data. Please try refreshing.');
+      setLoadError(t('zktLoadFailed'));
     }
     if (!mountedRef.current) return;
     setLoading(false);
@@ -397,21 +399,21 @@ export default function ZakatPage() {
       // Calculate new total directly without relying on stale state
       await load();
       // Don't manually compute totalPaid — let it come from the server
-    } catch { toast('Failed to save payment. Please try again.', 'error'); }
+    } catch { toast(t('zktSavePaymentFailed'), 'error'); }
     setSaving(false);
   };
 
   const handleDeletePayment = (id: number) => {
     // BUG FIX: removed redundant window.confirm() — single confirmation via custom modal below
     setConfirmAction({
-      message: 'Delete this payment? This cannot be undone.',
+      message: t('zktDeleteConfirm'),
       action: async () => {
         try {
           await api.deleteZakatPayment(id);
-          toast('Payment deleted', 'success');
+          toast(t('zktPaymentDeleted'), 'success');
           await load(); // BUG FIX: await so errors surface and state updates correctly
         } catch (err) {
-          toast(err instanceof Error ? err.message : 'Failed to delete payment', 'error');
+          toast(err instanceof Error ? err.message : t('zktDeleteFailed'), 'error');
         }
       }
     });
@@ -422,7 +424,7 @@ export default function ZakatPage() {
     // Validate methodology
     const validMethodologies = ['AMJA_GOLD', 'CLASSICAL_SILVER', 'LOWER_OF_TWO'];
     if (!validMethodologies.includes(methodology)) {
-      toast('Invalid methodology selected', 'error');
+      toast(t('zktInvalidMethodology'), 'error');
       return;
     }
     const previous = selectedMethodology;
@@ -430,10 +432,10 @@ export default function ZakatPage() {
     setSavingMethodology(true);
     try {
       await api.setNisabMethodology(methodology);
-      toast('Nisab methodology updated', 'success');
+      toast(t('zktMethodologyUpdated'), 'success');
       await load();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Failed to update methodology', 'error');
+      toast(err instanceof Error ? err.message : t('zktMethodologyUpdateFailed'), 'error');
       setSelectedMethodology(previous); // revert on failure
     } finally {
       setSavingMethodology(false);
@@ -464,11 +466,11 @@ export default function ZakatPage() {
       if (data) {
         setReceipt(data as Record<string, unknown>);
       } else {
-        toast('No receipt data available', 'error');
+        toast(t('zktNoReceiptData'), 'error');
       }
     } catch (err) {
       logError(err, { context: 'Failed to load zakat receipt' });
-      toast('Failed to load receipt. Please try again.', 'error');
+      toast(t('zktReceiptLoadFailed'), 'error');
     }
     setReceiptLoading(false);
   };
@@ -488,13 +490,13 @@ export default function ZakatPage() {
       setExporting(true);
       const report = await api.exportZakatReport();
       if (!report) {
-        toast('No report data available', 'error');
+        toast(t('zktNoReportData'), 'error');
         return;
       }
 
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
-        toast('Please allow popups to export', 'error');
+        toast(t('zktAllowPopups'), 'error');
         return;
       }
 
@@ -503,7 +505,7 @@ export default function ZakatPage() {
         <!DOCTYPE html>
         <html>
           <head>
-            <title>Zakat Report - Barakah</title>
+            <title>${escHtml(t('zktReceiptTitle'))} - Barakah</title>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
@@ -524,45 +526,45 @@ export default function ZakatPage() {
             </style>
           </head>
           <body>
-            <h1>${escHtml(report.title) || 'Zakat Report'}</h1>
-            <p><strong>Prepared for:</strong> ${escHtml(report.generatedFor) || 'User'}</p>
-            <p><strong>Lunar Year:</strong> ${escHtml(report.lunarYear) || lunarYear} AH</p>
-            <p><strong>Generated:</strong> ${new Date().toLocaleDateString(dateLocale)}</p>
+            <h1>${escHtml(report.title) || escHtml(t('zktPdfReportTitle'))}</h1>
+            <p><strong>${escHtml(t('zktPdfPreparedFor'))}</strong> ${escHtml(report.generatedFor) || escHtml(t('zktPdfUser'))}</p>
+            <p><strong>${escHtml(t('zktPdfLunarYear'))}</strong> ${escHtml(report.lunarYear) || lunarYear} AH</p>
+            <p><strong>${escHtml(t('zktPdfGenerated'))}</strong> ${new Date().toLocaleDateString(dateLocale)}</p>
 
             <div class="summary-box">
-              <h2>Zakat Summary</h2>
+              <h2>${escHtml(t('zktPdfSummary'))}</h2>
               <table>
                 <tr>
-                  <td>Total Wealth</td>
+                  <td>${escHtml(t('zktTotalWealth'))}</td>
                   <td class="amount">${escHtml(symbol)}${(summary.totalWealth as number)?.toFixed(2) || '0.00'}</td>
                 </tr>
                 <tr>
-                  <td>Zakatable Wealth</td>
+                  <td>${escHtml(t('zktZakatableWealth'))}</td>
                   <td class="amount">${escHtml(symbol)}${(summary.zakatableWealth as number)?.toFixed(2) || '0.00'}</td>
                 </tr>
                 <tr>
-                  <td>Nisab Threshold</td>
+                  <td>${escHtml(t('zktNisabThreshold'))}</td>
                   <td>${escHtml(symbol)}${((summary.nisab ?? summary.nisabThreshold) as number)?.toFixed(2) || '0.00'} (${escHtml(summary.nisabMethodology) || 'AMJA_GOLD'})</td>
                 </tr>
                 <tr>
-                  <td>Zakat Due (2.5%)</td>
+                  <td>${escHtml(t('zktHeroDue'))}</td>
                   <td class="amount">${escHtml(symbol)}${(summary.zakatDue as number)?.toFixed(2) || '0.00'}</td>
                 </tr>
                 <tr>
-                  <td>Total Paid</td>
+                  <td>${escHtml(t('zktPdfTotalPaid'))}</td>
                   <td>${escHtml(symbol)}${(summary.totalPaid as number)?.toFixed(2) || '0.00'}</td>
                 </tr>
                 <tr>
-                  <td>Remaining</td>
+                  <td>${escHtml(t('zktRemainingLabel'))}</td>
                   <td class="amount">${escHtml(symbol)}${(summary.remaining as number)?.toFixed(2) || '0.00'}</td>
                 </tr>
               </table>
             </div>
 
             <p class="citation">${escHtml(report.complianceStatement)}</p>
-            <p class="disclaimer">${escHtml(report.disclaimer) || 'This report is for informational purposes. Consult a scholar for your specific zakat obligation.'}</p>
+            <p class="disclaimer">${escHtml(report.disclaimer) || escHtml(t('zktPdfDisclaimer'))}</p>
             <div class="footer">
-              <p>Generated by Barakah Islamic Finance Platform — trybarakah.com</p>
+              <p>${escHtml(t('zktPdfFooter'))}</p>
             </div>
           </body>
         </html>
@@ -578,7 +580,7 @@ export default function ZakatPage() {
       printWindow.document.write(printContent);
       printWindow.document.close();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Failed to export report', 'error');
+      toast(err instanceof Error ? err.message : t('zktExportFailed'), 'error');
     } finally {
       setExporting(false);
     }
@@ -587,8 +589,8 @@ export default function ZakatPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div role="status" aria-label="Loading zakat data..." className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full">
-          <span className="sr-only">Loading...</span>
+        <div role="status" aria-label={t('zktLoadingData')} className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full">
+          <span className="sr-only">{t('zktLoadingShort')}</span>
         </div>
       </div>
     );
@@ -598,12 +600,12 @@ export default function ZakatPage() {
     return (
       <div className="max-w-2xl mx-auto py-12 px-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-600 font-semibold mb-4">Failed to load zakat data.</p>
+          <p className="text-red-600 font-semibold mb-4">{t('zktLoadFailed')}</p>
           <button
             onClick={load}
             className="px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 font-medium"
           >
-            Retry
+            {t('zktRetry')}
           </button>
         </div>
       </div>
@@ -613,8 +615,8 @@ export default function ZakatPage() {
   return (
     <div>
       <PageHeader
-        title="Zakat Calculator"
-        subtitle="Calculate gross zakat due across cash, gold, stocks, and savings"
+        title={t('zakatPageTitle')}
+        subtitle={t('zakatPageSubtitle')}
         // 2026-05-12 (QA-2026-05-12, Finding F7): the chip just said "1448 AH"
         // while the dashboard's Islamic calendar widget said "25 Dhul Qadah
         // 1447" — looks like an off-by-one bug. It's not: the backend returns
@@ -624,8 +626,8 @@ export default function ZakatPage() {
         icon={
           <span
             className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium"
-            title={`Hijri year of your next zakat anniversary (${lunarYear} AH)`}
-            aria-label={`Zakat anniversary year ${lunarYear} AH`}
+            title={tFmt('zktAnnivTooltipFmt', [lunarYear])}
+            aria-label={tFmt('zktAnnivAriaFmt', [lunarYear])}
           >
             {lunarYear} AH
           </span>
@@ -636,41 +638,41 @@ export default function ZakatPage() {
               onClick={toggleHideZakat}
               className="text-sm text-gray-500 hover:text-gray-700 underline"
             >
-              {hideZakat ? 'Show' : 'Hide'}
+              {hideZakat ? t('zktShow') : t('zktHide')}
             </button>
             {tab === 'calculator' && (
               <>
                 <button
                   onClick={() => setHistoricalModalOpen(true)}
                   className="text-sm bg-amber-100 text-amber-800 px-3 py-1 rounded-lg hover:bg-amber-200 font-medium"
-                  title="Record zakat you paid before joining Barakah"
+                  title={t('zktHistoricalPaidTitle')}
                 >
-                  Historical Paid
+                  {t('zktHistoricalPaid')}
                 </button>
                 <button
                   onClick={handleViewReceipt}
                   disabled={receiptLoading}
                   className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-lg hover:bg-green-200 disabled:opacity-50 font-medium"
-                  title="View calculation receipt"
+                  title={t('zktViewReceiptTitle')}
                 >
-                  {receiptLoading ? 'Loading...' : 'View Receipt'}
+                  {receiptLoading ? t('zktLoadingShort') : t('zktViewReceipt')}
                 </button>
                 <button
                   onClick={handleExportPDF}
                   disabled={exporting}
                   className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 disabled:opacity-50 font-medium"
-                  title="Export as PDF"
+                  title={t('zktExportPdfTitle')}
                 >
-                  {exporting ? 'Exporting...' : 'Export PDF'}
+                  {exporting ? t('zktExporting') : t('zktExportPdf')}
                 </button>
               </>
             )}
             <div className="flex bg-gray-100 rounded-lg p-1 flex-wrap">
-              <button onClick={() => setTab('calculator')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'calculator' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>Overview</button>
-              <button onClick={() => setTab('assets')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'assets' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>Asset Calc</button>
-              <button onClick={() => setTab('payments')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'payments' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>Payments</button>
-              <button onClick={() => setTab('fitr')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'fitr' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>Al-Fitr</button>
-              <button onClick={() => { setTab('references'); loadScholarlyReferences(); }} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'references' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>Sources</button>
+              <button onClick={() => setTab('calculator')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'calculator' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>{t('zktTabOverview')}</button>
+              <button onClick={() => setTab('assets')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'assets' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>{t('zktTabAssetCalc')}</button>
+              <button onClick={() => setTab('payments')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'payments' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>{t('zktTabPayments')}</button>
+              <button onClick={() => setTab('fitr')} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'fitr' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>{t('zktTabAlFitr')}</button>
+              <button onClick={() => { setTab('references'); loadScholarlyReferences(); }} className={`px-4 py-2 rounded-md text-sm font-medium transition ${tab === 'references' ? 'bg-white shadow text-primary' : 'text-gray-500'}`}>{t('zktTabSources')}</button>
             </div>
           </>
         }
@@ -687,7 +689,7 @@ export default function ZakatPage() {
             style={{ viewTransitionName: 'zakat-hero' }}
           >
             <p className="text-4xl mb-2">{fulfilled ? '🌟' : zakatEligible ? '✅' : 'ℹ️'}</p>
-            <p className="text-amber-100 mb-2">{fulfilled ? 'Zakat Fulfilled!' : 'Zakat Due (2.5%)'}</p>
+            <p className="text-amber-100 mb-2">{fulfilled ? t('zktHeroFulfilled') : t('zktHeroDue')}</p>
             {/* B-ZK-CCY (2026-05-10): the headline number is now the user-
                 currency conversion (verifiable against the wallet) when
                 available; falls back to the legacy fmt(zakatDue) USD figure
@@ -715,7 +717,7 @@ export default function ZakatPage() {
                   Pre-fix this said "Your wealth is below Nisab" while the
                   Total Wealth card visibly showed 4749g >> 85g nisab,
                   creating a confusing contradiction. */}
-              {fulfilled ? 'Mabrook! May Allah accept your Zakat. تقبل الله منك' : zakatEligible ? 'Your zakatable wealth exceeds Nisab — Zakat is obligatory' : 'Your zakatable wealth is below Nisab threshold'}
+              {fulfilled ? t('zktHeroMabrook') : zakatEligible ? t('zktHeroEligible') : t('zktHeroBelowNisab')}
             </p>
             {/* 2026-05-12 (QA-2026-05-12, Finding F6): a brand-new user with
                 no connected accounts saw "$0.00 — below Nisab" on the Overview
@@ -726,13 +728,13 @@ export default function ZakatPage() {
                 wealth is zero). */}
             {!fulfilled && !zakatEligible && ((data?.totalWealth as number | undefined) ?? 0) === 0 && tab === 'calculator' && (
               <p className="mt-3 text-xs text-amber-100/90">
-                No connected accounts yet —{' '}
+                {t('zktNoAccountsYet')}{' '}
                 <button
                   type="button"
                   onClick={() => setTab('assets')}
                   className="underline font-semibold hover:text-white"
                 >
-                  enter your assets manually →
+                  {t('zktEnterAssetsManually')}
                 </button>
               </p>
             )}
@@ -742,7 +744,7 @@ export default function ZakatPage() {
                   <div className={`h-3 rounded-full transition-all ${fulfilled ? 'bg-blue-300' : 'bg-white'}`} style={{ width: `${fulfillmentPct * 100}%` }} />
                 </div>
                 <p className="text-white/70 text-xs mt-2">
-                  {fulfilled ? 'Fully paid ✓' : `Paid: ${fmt(totalPaid)} / Remaining: ${fmt(remaining)}`}
+                  {fulfilled ? t('zktFullyPaid') : tFmt('zktPaidRemainingFmt', [fmt(totalPaid), fmt(remaining)])}
                 </p>
               </div>
             )}
@@ -760,11 +762,11 @@ export default function ZakatPage() {
                 backend hasn't shipped the new fields yet (forward compat
                 across the deploy window).                                  */}
             <KpiCard
-              label="Total Wealth"
+              label={t('zktTotalWealth')}
               value={hideZakat
                 ? '••••••'
                 : (data?.totalWealthGoldGrams != null
-                    ? `${(data.totalWealthGoldGrams as number).toFixed(2)} g gold`
+                    ? tFmt('zktGramsGoldFmt', [(data.totalWealthGoldGrams as number).toFixed(2)])
                     : fmt((data?.totalWealth as number) || 0))}
               footer={hideZakat || data?.totalWealthUserCurrency == null
                 ? undefined
@@ -776,15 +778,15 @@ export default function ZakatPage() {
                   </span>}
             />
             <KpiCard
-              label="Zakatable Wealth"
+              label={t('zktZakatableWealth')}
               value={hideZakat
                 ? '••••••'
                 : (data?.zakatableWealthGoldGrams != null
-                    ? `${(data.zakatableWealthGoldGrams as number).toFixed(2)} g gold`
+                    ? tFmt('zktGramsGoldFmt', [(data.zakatableWealthGoldGrams as number).toFixed(2)])
                     : fmt((data?.zakatableWealth as number) || 0))}
               footer={
                 <span className="text-xs text-gray-500">
-                  After deductions &amp; exemptions
+                  {t('zktAfterDeductions')}
                   {!hideZakat && data?.zakatableWealth != null && (
                     <> · ≈ {fmt(data.zakatableWealth as number)}</>
                   )}
@@ -793,15 +795,15 @@ export default function ZakatPage() {
             />
             <div className="bg-white rounded-xl p-5">
               <p className="text-gray-500 text-sm flex items-center gap-1">
-                Nisab Threshold
+                {t('zktNisabThreshold')}
                 <span
                   className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"
                   title={
                     selectedMethodology === 'CLASSICAL_SILVER'
-                      ? 'Live silver price'
+                      ? t('zktLiveSilverPrice')
                       : selectedMethodology === 'LOWER_OF_TWO'
-                      ? 'Live gold + silver prices'
-                      : 'Live gold price'
+                      ? t('zktLiveGoldSilverPrices')
+                      : t('zktLiveGoldPrice')
                   }
                 />
               </p>
@@ -819,10 +821,10 @@ export default function ZakatPage() {
                   // silver) — confusing and wrong unit label.
                   if (selectedMethodology === 'CLASSICAL_SILVER') {
                     const silver = nisabInfo?.nisabSilverGrams ?? 595;
-                    return `${silver.toFixed(2)} g silver`;
+                    return tFmt('zktGramsSilverFmt', [silver.toFixed(2)]);
                   }
                   if (data?.nisabGoldGrams != null) {
-                    return `${(data.nisabGoldGrams as number).toFixed(2)} g gold`;
+                    return tFmt('zktGramsGoldFmt', [(data.nisabGoldGrams as number).toFixed(2)]);
                   }
                   return data?.nisab ? fmt(data.nisab as number) : '—';
                 })()}
@@ -844,14 +846,14 @@ export default function ZakatPage() {
                       explicit "USD" suffix so non-USD users aren't misled
                       into thinking the figure is already localized. */}
                   {selectedMethodology === 'CLASSICAL_SILVER' && nisabInfo.silverPricePerGram ? (
-                    <>Silver: ${nisabInfo.silverPricePerGram.toFixed(2)} USD/g · {nisabInfo.nisabSilverGrams ?? 595}g standard</>
+                    tFmt('zktNisabSilverInfoFmt', [nisabInfo.silverPricePerGram.toFixed(2), String(nisabInfo.nisabSilverGrams ?? 595)])
                   ) : selectedMethodology === 'LOWER_OF_TWO' && nisabInfo.goldPricePerGram && nisabInfo.silverPricePerGram ? (
-                    <>Gold ${nisabInfo.goldPricePerGram.toFixed(2)} / Silver ${nisabInfo.silverPricePerGram.toFixed(2)} USD/g · whichever is lower</>
+                    tFmt('zktNisabLowerInfoFmt', [nisabInfo.goldPricePerGram.toFixed(2), nisabInfo.silverPricePerGram.toFixed(2)])
                   ) : nisabInfo.goldPricePerGram ? (
-                    <>Gold: ${nisabInfo.goldPricePerGram.toFixed(2)} USD/g · {nisabInfo.nisabGoldGrams ?? 85}g standard</>
+                    tFmt('zktNisabGoldInfoFmt', [nisabInfo.goldPricePerGram.toFixed(2), String(nisabInfo.nisabGoldGrams ?? 85)])
                   ) : null}
                   {nisabInfo.priceAgeMs !== undefined && (
-                    <span className="ml-1">· updated {formatTimeAgo(nisabInfo.priceAgeMs)}</span>
+                    <span className="ml-1">{tFmt('zktUpdatedAgoFmt', [formatTimeAgo(nisabInfo.priceAgeMs)])}</span>
                   )}
                 </p>
               )}
@@ -859,9 +861,9 @@ export default function ZakatPage() {
                 {/* 2026-05-12 (QA-2026-05-12, Finding I5): label softened from
                     "Gold Standard (AMJA)" to "Gold Standard (85g)" so the
                     chip doesn't read as AMJA-endorsed by Barakah. */}
-                {selectedMethodology === 'CLASSICAL_SILVER' ? 'Silver Standard (Classical Hanafi)' :
-                 selectedMethodology === 'LOWER_OF_TWO' ? 'Lower of Gold/Silver (Al-Qaradawi)' :
-                 'Gold Standard (85g)'} · <button onClick={() => { const el = document.getElementById('methodology-section'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="underline">Change</button>
+                {selectedMethodology === 'CLASSICAL_SILVER' ? t('zktStdSilver') :
+                 selectedMethodology === 'LOWER_OF_TWO' ? t('zktStdLower') :
+                 t('zktStdGold')} · <button onClick={() => { const el = document.getElementById('methodology-section'); el?.scrollIntoView({ behavior: 'smooth' }); }} className="underline">{t('zktChange')}</button>
               </p>
             </div>
           </div>
@@ -869,13 +871,13 @@ export default function ZakatPage() {
           {/* How Your Zakat Is Calculated — Asset Breakdown */}
           {!hideZakat && data?.breakdown && Array.isArray(data.breakdown) && (data.breakdown as Record<string, unknown>[]).length > 0 && (
             <div className="mt-6 bg-white rounded-xl p-5">
-              <h3 className="text-sm font-semibold text-primary mb-3">How Your Zakat Is Calculated</h3>
-              <p className="text-xs text-gray-500 mb-4">Each asset you&apos;ve added is classified as zakatable or exempt. Here&apos;s the breakdown:</p>
+              <h3 className="text-sm font-semibold text-primary mb-3">{t('zktHowCalculated')}</h3>
+              <p className="text-xs text-gray-500 mb-4">{t('zktHowCalculatedDesc')}</p>
               <div className="space-y-2">
                 {(data.breakdown as Record<string, unknown>[]).map((item, i) => (
                   <div key={i} className={`flex items-start gap-3 py-2.5 px-3 rounded-lg ${item.zakatable ? 'bg-green-50' : 'bg-gray-50'}`}>
                     <span className={`mt-0.5 text-xs font-bold px-1.5 py-0.5 rounded ${item.zakatable ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}`}>
-                      {item.zakatable ? 'Zakatable' : 'Exempt'}
+                      {item.zakatable ? t('zktZakatableTag') : t('zktExemptTag')}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline">
@@ -883,7 +885,7 @@ export default function ZakatPage() {
                         <div className="text-right shrink-0 ml-3">
                           <p className="text-sm font-bold text-gray-800">{fmt(Number(item.value) || 0)}</p>
                           {Boolean(item.zakatable) && Number(item.zakatableValue) !== Number(item.value) && (
-                            <p className="text-xs text-green-600">{fmt(Number(item.zakatableValue) || 0)} zakatable</p>
+                            <p className="text-xs text-green-600">{tFmt('zktZakatableValueFmt', [fmt(Number(item.zakatableValue) || 0)])}</p>
                           )}
                         </div>
                       </div>
@@ -894,18 +896,18 @@ export default function ZakatPage() {
               </div>
               {(data.totalDebts as number) > 0 && (
                 <div className="mt-3 flex items-start gap-3 py-2.5 px-3 rounded-lg bg-red-50">
-                  <span className="mt-0.5 text-xs font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700">Deduction</span>
+                  <span className="mt-0.5 text-xs font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700">{t('zktDeductionTag')}</span>
                   <div className="flex-1">
                     <div className="flex justify-between items-baseline">
-                      <p className="text-sm font-medium text-gray-800">Debt Deductions</p>
+                      <p className="text-sm font-medium text-gray-800">{t('zktDebtDeductions')}</p>
                       <p className="text-sm font-bold text-red-600">-{fmt(data.totalDebts as number)}</p>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">Active debts deducted per your fiqh settings</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{t('zktDebtDeductionsDesc')}</p>
                   </div>
                 </div>
               )}
               <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-baseline">
-                <p className="text-sm font-medium text-gray-700">Net Zakatable Wealth</p>
+                <p className="text-sm font-medium text-gray-700">{t('zktNetZakatableWealth')}</p>
                 <p className="text-lg font-bold text-primary">{fmt((data?.zakatableWealth as number) || 0)}</p>
               </div>
             </div>
@@ -914,10 +916,10 @@ export default function ZakatPage() {
           {/* No assets message */}
           {!hideZakat && (!data?.breakdown || (data.breakdown as Record<string, unknown>[]).length === 0) && (
             <div className="mt-6 bg-blue-50 border border-blue-100 rounded-xl p-5 text-center">
-              <p className="text-blue-800 text-sm font-medium mb-1">No assets found</p>
-              <p className="text-blue-600 text-xs">Add your assets in the Assets page so Barakah can automatically calculate your zakat obligation.</p>
+              <p className="text-blue-800 text-sm font-medium mb-1">{t('zktNoAssetsFound')}</p>
+              <p className="text-blue-600 text-xs">{t('zktNoAssetsDesc')}</p>
               <button onClick={() => router.push('/dashboard/assets')} className="mt-3 text-sm bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90">
-                Go to Assets
+                {t('zktGoToAssets')}
               </button>
             </div>
           )}
@@ -925,10 +927,10 @@ export default function ZakatPage() {
           {nisabMethodologies.length > 0 && (
             <div id="methodology-section" className="mt-6 bg-white rounded-xl p-5">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nisab Methodology
+                {t('zktNisabMethodology')}
               </label>
-              <p className="text-xs text-gray-400 mb-2">Choose how the minimum zakat threshold is calculated</p>
-              <p className="text-xs text-blue-600 bg-blue-50 rounded px-2 py-1 mb-3">💡 This sets your <strong>nisab threshold</strong> only. For madhab-specific rules (jewelry exemption, debt deduction), go to <a href="/dashboard/fiqh" className="underline font-semibold">Fiqh Settings</a>.</p>
+              <p className="text-xs text-gray-400 mb-2">{t('zktNisabMethodologyDesc')}</p>
+              <p className="text-xs text-blue-600 bg-blue-50 rounded px-2 py-1 mb-3">{t('zktNisabMethodologyHint1')} <strong>{t('zktNisabMethodologyHintBold')}</strong> {t('zktNisabMethodologyHint2')} <a href="/dashboard/fiqh" className="underline font-semibold">{t('zktFiqhSettings')}</a>.</p>
               <div className="space-y-2">
                 {nisabMethodologies.map((m) => (
                   <label
@@ -958,7 +960,7 @@ export default function ZakatPage() {
               {savingMethodology && (
                 <div className="flex items-center gap-2 mt-3">
                   <div className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full" />
-                  <p className="text-xs text-gray-500">Updating methodology...</p>
+                  <p className="text-xs text-gray-500">{t('zktUpdatingMethodology')}</p>
                 </div>
               )}
             </div>
@@ -967,21 +969,19 @@ export default function ZakatPage() {
           {nisabInfo?.staleWarning && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4 mt-4">
               <p className="text-amber-800 text-sm font-medium">
-                ⚠ Price data may be outdated (last updated {formatTimeAgo(nisabInfo.priceAgeMs)}).
-                Gold and silver prices are used to calculate your Nisab threshold.
-                Consider refreshing or verifying current prices before making zakat decisions.
+                {tFmt('zktStaleWarningFmt', [formatTimeAgo(nisabInfo.priceAgeMs)])}
               </p>
             </div>
           )}
 
           <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-            <strong>Reminder:</strong> Zakat is 2.5% of wealth held for one Islamic lunar year (Hawl) above the Nisab threshold.
+            <strong>{t('zktReminderLabel')}</strong> {t('zktReminderBase')}
             {selectedMethodology === 'CLASSICAL_SILVER'
-              ? ' The Nisab is based on the live silver price (595g, Classical Hanafi standard) and updates hourly — small changes are normal.'
+              ? t('zktReminderSilver')
               : selectedMethodology === 'LOWER_OF_TWO'
-              ? ' The Nisab tracks whichever of the live gold (85g) or silver (595g) thresholds is lower today (Al-Qaradawi precautionary position) and updates hourly — small changes are normal.'
-              : ' The Nisab is based on the live gold price (85g, AMJA standard) and updates hourly — small changes are normal.'}
-            {' '}Use the Hawl Tracker to track when each asset becomes eligible.
+              ? t('zktReminderLower')
+              : t('zktReminderGold')}
+            {' '}{t('zktReminderHawlTracker')}
           </div>
         </>
 
@@ -989,14 +989,15 @@ export default function ZakatPage() {
         <>
           {/* Manual Zakat Asset Calculator */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-sm text-amber-800">
-            <p className="font-semibold mb-1">📌 Manual Asset Breakdown</p>
-            <p>Enter each zakatable asset below. This calculator is independent of your connected accounts and uses the Nisab ({data?.nisab ? fmt(data.nisab as number) : '…'}) from{' '}
-              {selectedMethodology === 'CLASSICAL_SILVER'
-                ? 'live silver prices'
+            <p className="font-semibold mb-1">{t('zktManualHeading')}</p>
+            <p>{tFmt('zktManualIntroFmt', [
+              data?.nisab ? fmt(data.nisab as number) : '…',
+              selectedMethodology === 'CLASSICAL_SILVER'
+                ? t('zktSrcSilverPrices')
                 : selectedMethodology === 'LOWER_OF_TWO'
-                ? 'the lower of live gold / silver prices'
-                : 'live gold prices'}.
-            </p>
+                ? t('zktSrcLowerPrices')
+                : t('zktSrcGoldPrices'),
+            ])}</p>
           </div>
 
           {(() => {
@@ -1011,7 +1012,7 @@ export default function ZakatPage() {
             if (!nisab || nisab <= 0) {
               return (
                 <div className="text-amber-600 bg-amber-50 p-4 rounded-lg border border-amber-200">
-                  Unable to determine nisab threshold. Gold/silver prices may be unavailable. Please try again later.
+                  {t('zktNisabUnavailable')}
                 </div>
               );
             }
@@ -1022,8 +1023,8 @@ export default function ZakatPage() {
             const setAsset = (key: string, val: number) =>
               setManualAssets(prev => ({ ...prev, [key]: Math.max(0, val) }));
 
-            const AssetRow = ({ label, icon, fieldKey, hint }: { label: string; icon: string; fieldKey: string; hint?: string }) => (
-              <div className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-b-0">
+            const renderAssetRow = ({ label, icon, fieldKey, hint }: { label: string; icon: string; fieldKey: string; hint?: string }) => (
+              <div key={fieldKey} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-b-0">
                 <span className="text-xl w-7 text-center shrink-0">{icon}</span>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-800">{label}</p>
@@ -1045,35 +1046,35 @@ export default function ZakatPage() {
             return (
               <>
                 <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
-                  <h3 className="font-semibold text-primary mb-3">Assets (Zakatable)</h3>
-                  <AssetRow label="Cash & Bank Accounts" icon="💵" fieldKey="cash" hint="Checking, savings, and cash on hand" />
-                  <AssetRow label="Gold" icon="🥇" fieldKey="gold" hint="Market value of gold owned" />
-                  <AssetRow label="Silver" icon="🥈" fieldKey="silver" hint="Market value of silver owned" />
-                  <AssetRow label="Stocks & Investments" icon="📈" fieldKey="stocks" hint="Halal stocks, ETFs, mutual funds (market value)" />
-                  <AssetRow label="Business Inventory" icon="📦" fieldKey="businessGoods" hint="Stock / goods held for trade" />
-                  <AssetRow label="Money Owed to You" icon="🤝" fieldKey="receivables" hint="Loans given that are likely to be returned" />
-                  <AssetRow label="Rental Income Saved" icon="🏠" fieldKey="rentalIncome" hint="Net rental income received this hawl" />
-                  <AssetRow label="Other Assets" icon="💼" fieldKey="otherAssets" hint="Any other zakatable wealth" />
+                  <h3 className="font-semibold text-primary mb-3">{t('zktAssetsZakatable')}</h3>
+                  {renderAssetRow({ label: t('zktAssetCash'), icon: "💵", fieldKey: "cash", hint: t('zktAssetCashHint') })}
+                  {renderAssetRow({ label: t('zktAssetGold'), icon: "🥇", fieldKey: "gold", hint: t('zktAssetGoldHint') })}
+                  {renderAssetRow({ label: t('zktAssetSilver'), icon: "🥈", fieldKey: "silver", hint: t('zktAssetSilverHint') })}
+                  {renderAssetRow({ label: t('zktAssetStocks'), icon: "📈", fieldKey: "stocks", hint: t('zktAssetStocksHint') })}
+                  {renderAssetRow({ label: t('zktAssetBusiness'), icon: "📦", fieldKey: "businessGoods", hint: t('zktAssetBusinessHint') })}
+                  {renderAssetRow({ label: t('zktAssetReceivables'), icon: "🤝", fieldKey: "receivables", hint: t('zktAssetReceivablesHint') })}
+                  {renderAssetRow({ label: t('zktAssetRental'), icon: "🏠", fieldKey: "rentalIncome", hint: t('zktAssetRentalHint') })}
+                  {renderAssetRow({ label: t('zktAssetOther'), icon: "💼", fieldKey: "otherAssets", hint: t('zktAssetOtherHint') })}
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
-                  <h3 className="font-semibold text-red-600 mb-3">Deductions</h3>
-                  <AssetRow label="Outstanding Debts Due" icon="💳" fieldKey="debts" hint="Debts that are immediately due" />
-                  <AssetRow label="Essential Expenses" icon="📋" fieldKey="expenses" hint="Unavoidable expenses due within this month" />
+                  <h3 className="font-semibold text-red-600 mb-3">{t('zktDeductions')}</h3>
+                  {renderAssetRow({ label: t('zktDeductDebts'), icon: "💳", fieldKey: "debts", hint: t('zktDeductDebtsHint') })}
+                  {renderAssetRow({ label: t('zktDeductExpenses'), icon: "📋", fieldKey: "expenses", hint: t('zktDeductExpensesHint') })}
                 </div>
 
                 {/* Result */}
                 <div className={`rounded-2xl p-6 text-white text-center mb-4 ${isEligible ? 'bg-gradient-to-r from-amber-600 to-yellow-500' : 'bg-gradient-to-r from-gray-500 to-gray-400'}`}>
-                  <p className="text-amber-100 text-sm mb-1">Net Zakatable Wealth</p>
+                  <p className="text-amber-100 text-sm mb-1">{t('zktNetZakatableWealth')}</p>
                   <p className="text-4xl font-bold">{fmt(netWealth)}</p>
                   <p className="text-amber-200 text-sm mt-2">
                     {isEligible
-                      ? `Above nisab (${fmt(nisab)}) — Zakat is obligatory`
-                      : nisab > 0 ? `Below nisab (${fmt(nisab)}) — Zakat not obligatory` : 'Loading nisab…'}
+                      ? tFmt('zktAboveNisabFmt', [fmt(nisab)])
+                      : nisab > 0 ? tFmt('zktBelowNisabFmt', [fmt(nisab)]) : t('zktLoadingNisab')}
                   </p>
                   {isEligible && (
                     <div className="mt-4 bg-white/20 rounded-xl p-4">
-                      <p className="text-xs text-amber-100 mb-1">Zakat Due (2.5%)</p>
+                      <p className="text-xs text-amber-100 mb-1">{t('zktHeroDue')}</p>
                       <p className="text-3xl font-bold">{fmt(zakatAmt)}</p>
                     </div>
                   )}
@@ -1081,27 +1082,27 @@ export default function ZakatPage() {
 
                 <div className="grid grid-cols-3 gap-3 text-center">
                   <div className="bg-white rounded-xl p-3 shadow-sm">
-                    <p className="text-xs text-gray-500">Total Assets</p>
+                    <p className="text-xs text-gray-500">{t('zktTotalAssets')}</p>
                     <p className="font-bold text-green-600">{fmt(totalIn)}</p>
                   </div>
                   <div className="bg-white rounded-xl p-3 shadow-sm">
-                    <p className="text-xs text-gray-500">Deductions</p>
+                    <p className="text-xs text-gray-500">{t('zktDeductions')}</p>
                     <p className="font-bold text-red-500">−{fmt(totalOut)}</p>
                   </div>
                   <div className="bg-white rounded-xl p-3 shadow-sm">
-                    <p className="text-xs text-gray-500">Net Wealth</p>
+                    <p className="text-xs text-gray-500">{t('zktNetWealth')}</p>
                     <p className="font-bold text-primary">{fmt(netWealth)}</p>
                   </div>
                 </div>
 
                 {totalOut > totalIn && (
                   <p className="text-sm text-gray-500 mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    Note: Your debts exceed your assets. Net zakatable wealth is capped at $0 — no zakat is due when debts exceed assets.
+                    {t('zktDebtsExceedNote')}
                   </p>
                 )}
 
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-4 text-xs text-blue-800">
-                  <strong>Note:</strong> Stocks: many scholars say to use the market value of shares in companies whose primary business is halal. For mixed companies, apply the purification ratio. Consult a scholar for your specific situation.
+                  <strong>{t('zktStocksNoteLabel')}</strong> {t('zktStocksNote')}
                 </div>
               </>
             );
@@ -1111,19 +1112,19 @@ export default function ZakatPage() {
         <>
           {/* Payment Progress Summary */}
           <div className={`rounded-2xl p-6 text-white mb-6 ${fulfilled ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gradient-to-r from-[#1B5E20] to-[#2E7D32]'}`}>
-            <p className="text-lg font-bold mb-4">{fulfilled ? '🌟 Zakat Fulfilled' : '📊 Zakat Progress'} — {lunarYear} AH</p>
+            <p className="text-lg font-bold mb-4">{fulfilled ? t('zktProgressFulfilled') : t('zktProgressTitle')} — {lunarYear} AH</p>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <p className="text-2xl font-bold">{hideZakat ? '••••' : fmt(zakatDue ?? 0)}</p>
-                <p className="text-white/60 text-xs">Due</p>
+                <p className="text-white/60 text-xs">{t('zktDueLabel')}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-amber-300">{hideZakat ? '••••' : fmt(totalPaid)}</p>
-                <p className="text-white/60 text-xs">Paid</p>
+                <p className="text-white/60 text-xs">{t('zktPaidLabel')}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-white/70">{hideZakat ? '••••' : fmt(remaining)}</p>
-                <p className="text-white/60 text-xs">Remaining</p>
+                <p className="text-white/60 text-xs">{t('zktRemainingLabel')}</p>
               </div>
             </div>
             {(zakatDue ?? 0) > 0 && !hideZakat && (
@@ -1131,22 +1132,22 @@ export default function ZakatPage() {
                 <div className="w-full bg-white/20 rounded-full h-3">
                   <div className={`h-3 rounded-full ${fulfilled ? 'bg-blue-300' : 'bg-amber-400'}`} style={{ width: `${Math.min(100, fulfillmentPct * 100)}%` }} />
                 </div>
-                <p className="text-white/60 text-xs mt-2 text-center">{(fulfillmentPct * 100).toFixed(0)}% of zakat paid for {lunarYear} AH</p>
+                <p className="text-white/60 text-xs mt-2 text-center">{tFmt('zktPctPaidFmt', [(fulfillmentPct * 100).toFixed(0), lunarYear])}</p>
               </div>
             )}
           </div>
 
           {/* Payment History */}
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-primary">Payment History</h2>
-            <button onClick={handleShowPaymentForm} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm">+ Record Payment</button>
+            <h2 className="text-lg font-semibold text-primary">{t('zktPaymentHistory')}</h2>
+            <button onClick={handleShowPaymentForm} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm">{t('zktRecordPayment')}</button>
           </div>
 
           {payments.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
               <p className="text-4xl mb-3">🕌</p>
-              <p>No payments recorded for {lunarYear} AH</p>
-              <p className="text-sm mt-1">Tap &quot;Record Payment&quot; to log your Zakat</p>
+              <p>{tFmt('zktNoPaymentsFmt', [lunarYear])}</p>
+              <p className="text-sm mt-1">{t('zktTapToLog')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -1174,8 +1175,8 @@ export default function ZakatPage() {
           {/* Pay Your Zakat Card */}
           <div className="mt-6 bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] rounded-2xl p-6 text-white">
             <div className="mb-4">
-              <h3 className="text-xl font-bold mb-1">Ready to Pay Your Zakat?</h3>
-              <p className="text-green-100 text-sm">Pay directly to trusted platforms</p>
+              <h3 className="text-xl font-bold mb-1">{t('zktReadyToPay')}</h3>
+              <p className="text-green-100 text-sm">{t('zktPayDirectly')}</p>
             </div>
             <div className="grid md:grid-cols-3 gap-3 mb-4">
               <a
@@ -1204,7 +1205,7 @@ export default function ZakatPage() {
               </a>
             </div>
             <p className="text-xs text-green-100">
-              Barakah is not affiliated with these organizations. Verify zakat eligibility with a qualified scholar.
+              {t('zktNotAffiliated')}
             </p>
           </div>
         </>
@@ -1212,12 +1213,12 @@ export default function ZakatPage() {
         <>
           {/* Zakat al-Fitr Calculator */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-sm text-amber-800">
-            <p className="font-semibold mb-1">🌙 Zakat al-Fitr Calculator</p>
-            <p>Zakat al-Fitr is a charity given at the end of Ramadan, before the Eid prayer. It is mandatory on all Muslims and purifies those who fasted.</p>
+            <p className="font-semibold mb-1">{t('zktFitrHeading')}</p>
+            <p>{t('zktFitrIntro')}</p>
           </div>
 
           <div className="bg-white rounded-xl p-5 mb-5">
-            <label htmlFor="household-size" className="block text-sm font-medium text-gray-700 mb-3">Household Size</label>
+            <label htmlFor="household-size" className="block text-sm font-medium text-gray-700 mb-3">{t('zktHouseholdSize')}</label>
             <input
               id="household-size"
               type="number"
@@ -1227,7 +1228,7 @@ export default function ZakatPage() {
               onChange={(e) => handleHouseholdSizeChange(parseInt(e.target.value) || 1)}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
             />
-            <p className="text-xs text-gray-500 mt-2">Enter the number of people in your household (1-100)</p>
+            <p className="text-xs text-gray-500 mt-2">{t('zktHouseholdHint')}</p>
           </div>
 
           {loadingFitr ? (
@@ -1237,53 +1238,53 @@ export default function ZakatPage() {
           ) : fitrData ? (
             <>
               <div className="bg-gradient-to-r from-amber-600 to-yellow-500 rounded-2xl p-6 text-white text-center mb-6">
-                <p className="text-amber-100 mb-2">Zakat al-Fitr Due</p>
+                <p className="text-amber-100 mb-2">{t('zktFitrDue')}</p>
                 <p className="text-4xl font-bold">{fmt((fitrData.totalDue as number) || 0)}</p>
-                <p className="text-amber-200 text-sm mt-2">For {householdSize} person{householdSize > 1 ? 's' : ''}</p>
+                <p className="text-amber-200 text-sm mt-2">{tFmt('zktFitrForPersonsFmt', [householdSize])}</p>
               </div>
 
               <div className="grid md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white rounded-xl p-4 shadow-sm">
-                  <p className="text-gray-500 text-xs">Minimum</p>
+                  <p className="text-gray-500 text-xs">{t('zktFitrMinimum')}</p>
                   <p className="text-xl font-bold text-primary">{fmt((fitrData.minimumAmount as number) || 0)}</p>
-                  <p className="text-xs text-gray-400 mt-1">Per person</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('zktPerPerson')}</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm">
-                  <p className="text-gray-500 text-xs">Recommended</p>
+                  <p className="text-gray-500 text-xs">{t('zktFitrRecommended')}</p>
                   <p className="text-xl font-bold text-primary">{fmt((fitrData.recommendedAmount as number) || 0)}</p>
-                  <p className="text-xs text-gray-400 mt-1">Per person</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('zktPerPerson')}</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm">
-                  <p className="text-gray-500 text-xs">Generous</p>
+                  <p className="text-gray-500 text-xs">{t('zktFitrGenerous')}</p>
                   <p className="text-xl font-bold text-primary">{fmt((fitrData.generousAmount as number) || 0)}</p>
-                  <p className="text-xs text-gray-400 mt-1">Per person</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('zktPerPerson')}</p>
                 </div>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                <p className="font-semibold text-blue-900 mb-2">Key Information</p>
+                <p className="font-semibold text-blue-900 mb-2">{t('zktKeyInfo')}</p>
                 <ul className="text-sm text-blue-800 space-y-2">
-                  <li><strong>Deadline:</strong> {String(fitrData.deadline ?? 'Before Eid al-Fitr prayer')}</li>
-                  <li><strong>Eligible Recipients:</strong> {String(fitrData.eligibleRecipients ?? 'The poor and needy')}</li>
-                  {fitrData.hadithCitation ? <li><strong>Hadith:</strong> {String(fitrData.hadithCitation)}</li> : null}
+                  <li><strong>{t('zktDeadlineLabel')}</strong> {String(fitrData.deadline ?? t('zktDeadlineDefault'))}</li>
+                  <li><strong>{t('zktEligibleRecipientsLabel')}</strong> {String(fitrData.eligibleRecipients ?? t('zktEligibleRecipientsDefault'))}</li>
+                  {fitrData.hadithCitation ? <li><strong>{t('zktHadithLabel')}</strong> {String(fitrData.hadithCitation)}</li> : null}
                 </ul>
               </div>
 
               <div className="bg-white rounded-xl p-5">
-                <p className="font-semibold text-primary mb-3">Purpose & Reward</p>
+                <p className="font-semibold text-primary mb-3">{t('zktPurposeReward')}</p>
                 <p className="text-sm text-gray-700">
-                  Zakat al-Fitr is prescribed to purify those who fasted from any indecent act or speech during Ramadan. It is an obligation and a form of charity that should be given before the Eid prayer for it to be accepted. All Muslims must give Zakat al-Fitr, including children, the elderly, and the sick.
+                  {t('zktPurposeRewardDesc')}
                 </p>
               </div>
             </>
           ) : (
             <div className="text-center py-12 text-gray-400">
-              <p className="text-lg mb-2">Unable to load Zakat al-Fitr information</p>
+              <p className="text-lg mb-2">{t('zktFitrLoadFailed')}</p>
               <button
                 onClick={loadZakatAlFitr}
                 className="text-primary font-medium hover:underline text-sm"
               >
-                Try again
+                {t('zktTryAgain')}
               </button>
             </div>
           )}
@@ -1292,14 +1293,14 @@ export default function ZakatPage() {
         <>
           {/* Scholarly Sources */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5 text-sm text-blue-800">
-            <p className="font-semibold mb-1">📚 Scholarly Sources</p>
-            <p>All zakat calculations are based on established Islamic jurisprudence from multiple madhabs (schools of thought) and contemporary scholarly research.</p>
+            <p className="font-semibold mb-1">{t('zktSourcesHeading')}</p>
+            <p>{t('zktSourcesIntro')}</p>
           </div>
 
           {loadingReferences ? (
             <div className="flex justify-center py-12">
-              <div role="status" aria-label="Loading scholarly references..." className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full">
-                <span className="sr-only">Loading...</span>
+              <div role="status" aria-label={t('zktLoadingReferences')} className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full">
+                <span className="sr-only">{t('zktLoadingShort')}</span>
               </div>
             </div>
           ) : Array.isArray(scholarlyReferences) && scholarlyReferences.length > 0 ? (
@@ -1312,17 +1313,17 @@ export default function ZakatPage() {
                       <h3 className="font-semibold text-primary text-sm">{String(ref.ruling ?? '')}</h3>
                       {ref.source ? (
                         <p className="text-xs text-gray-600 mt-1">
-                          <strong>Source:</strong> {String(ref.source)}
+                          <strong>{t('zktSourceLabel')}</strong> {String(ref.source)}
                         </p>
                       ) : null}
                       {ref.verse ? (
                         <p className="text-xs text-gray-600">
-                          <strong>Qur&apos;an:</strong> {String(ref.verse)}
+                          <strong>{t('zktQuranLabel')}</strong> {String(ref.verse)}
                         </p>
                       ) : null}
                       {ref.hadith ? (
                         <p className="text-xs text-gray-600">
-                          <strong>Hadith:</strong> {String(ref.hadith)}
+                          <strong>{t('zktHadithLabel')}</strong> {String(ref.hadith)}
                         </p>
                       ) : null}
                       {ref.opinion ? (
@@ -1332,7 +1333,7 @@ export default function ZakatPage() {
                       ) : null}
                       {ref.madhabs ? (
                         <p className="text-xs text-gray-500 mt-2">
-                          <strong>Madhabs:</strong> {String(ref.madhabs)}
+                          <strong>{t('zktMadhabsLabel')}</strong> {String(ref.madhabs)}
                         </p>
                       ) : null}
                     </div>
@@ -1342,18 +1343,18 @@ export default function ZakatPage() {
             </div>
           ) : (
             <div className="text-center py-12 text-gray-400">
-              <p className="text-lg mb-2">No scholarly references available.</p>
+              <p className="text-lg mb-2">{t('zktNoReferences')}</p>
             </div>
           )}
 
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-6 text-sm text-amber-800">
-            <p className="font-semibold mb-2">Disclaimer</p>
-            <p>While these references represent established Islamic scholarship, zakat is a complex matter that may vary based on individual circumstances. We strongly recommend consulting with a qualified Islamic scholar (mufti) regarding your specific zakat obligation.</p>
+            <p className="font-semibold mb-2">{t('zktDisclaimer')}</p>
+            <p>{t('zktDisclaimerBody')}</p>
           </div>
         </>
       ) : (
         <div className="text-center py-12">
-          <p className="text-gray-400">Unknown tab</p>
+          <p className="text-gray-400">{t('zktUnknownTab')}</p>
         </div>
       )}
 
@@ -1364,12 +1365,12 @@ export default function ZakatPage() {
           <div className="bg-gradient-to-r from-[#1B5E20] to-[#2E7D32] px-6 py-5 text-white">
             <div className="flex justify-between items-start">
               <div>
-                <h2 className="text-xl font-bold">Zakat Calculation Receipt</h2>
-                <p className="text-green-100 text-sm mt-1">Barakah Islamic Finance Platform</p>
+                <h2 className="text-xl font-bold">{t('zktReceiptTitle')}</h2>
+                <p className="text-green-100 text-sm mt-1">{t('zktReceiptPlatform')}</p>
               </div>
               <div className="text-right text-sm text-green-100">
-                <p>Lunar Year: {((receipt.paymentStatus as Record<string, unknown>)?.currentLunarYear as number) || lunarYear} AH</p>
-                <p>Generated: {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p>{tFmt('zktReceiptLunarYearFmt', [((receipt.paymentStatus as Record<string, unknown>)?.currentLunarYear as number) || lunarYear])}</p>
+                <p>{tFmt('zktReceiptGeneratedFmt', [new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })])}</p>
               </div>
             </div>
           </div>
@@ -1378,14 +1379,14 @@ export default function ZakatPage() {
             {/* Methodology Section */}
             {receipt.methodology ? (
               <div>
-                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">Methodology</h3>
+                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">{t('zktMethodology')}</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
-                    { label: 'Madhab', value: String((receipt.methodology as Record<string, unknown>)?.madhab ?? 'N/A') },
-                    { label: 'Nisab Method', value: String((receipt.methodology as Record<string, unknown>)?.nisabMethodology ?? 'N/A').replace(/_/g, ' ') },
-                    { label: 'Gold Threshold', value: (receipt.methodology as Record<string, unknown>)?.goldThreshold != null ? fmt(Number((receipt.methodology as Record<string, unknown>).goldThreshold)) : 'N/A' },
-                    { label: 'Silver Threshold', value: (receipt.methodology as Record<string, unknown>)?.silverThreshold != null ? fmt(Number((receipt.methodology as Record<string, unknown>).silverThreshold)) : 'N/A' },
-                    { label: 'Zakat Rate', value: (receipt.methodology as Record<string, unknown>)?.zakatRate != null ? `${(Number((receipt.methodology as Record<string, unknown>).zakatRate) * 100).toFixed(1)}%` : '2.5%' },
+                    { label: t('zktMethMadhab'), value: String((receipt.methodology as Record<string, unknown>)?.madhab ?? 'N/A') },
+                    { label: t('zktMethNisabMethod'), value: String((receipt.methodology as Record<string, unknown>)?.nisabMethodology ?? 'N/A').replace(/_/g, ' ') },
+                    { label: t('zktMethGoldThreshold'), value: (receipt.methodology as Record<string, unknown>)?.goldThreshold != null ? fmt(Number((receipt.methodology as Record<string, unknown>).goldThreshold)) : 'N/A' },
+                    { label: t('zktMethSilverThreshold'), value: (receipt.methodology as Record<string, unknown>)?.silverThreshold != null ? fmt(Number((receipt.methodology as Record<string, unknown>).silverThreshold)) : 'N/A' },
+                    { label: t('zktMethZakatRate'), value: (receipt.methodology as Record<string, unknown>)?.zakatRate != null ? `${(Number((receipt.methodology as Record<string, unknown>).zakatRate) * 100).toFixed(1)}%` : '2.5%' },
                   ].map((item, idx) => (
                     <div key={idx} className="bg-green-50 rounded-lg p-3">
                       <p className="text-xs text-gray-500 font-medium">{item.label}</p>
@@ -1399,13 +1400,13 @@ export default function ZakatPage() {
             {/* Fiqh Rules Applied */}
             {receipt.fiqhRules ? (
               <div>
-                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">Fiqh Rules Applied</h3>
+                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">{t('zktFiqhRulesApplied')}</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
-                    { label: 'Jewelry Zakatable', value: (receipt.fiqhRules as Record<string, unknown>)?.jewelryZakatable ? 'Yes' : 'No' },
-                    { label: 'Fitr Type', value: String((receipt.fiqhRules as Record<string, unknown>)?.fitrType ?? 'N/A').replace(/_/g, ' ') },
-                    { label: 'Debt Deduction', value: String((receipt.fiqhRules as Record<string, unknown>)?.debtDeductionMethod ?? 'N/A').replace(/_/g, ' ') },
-                    { label: 'Retirement Method', value: String((receipt.fiqhRules as Record<string, unknown>)?.retirementMethod ?? 'N/A').replace(/_/g, ' ') },
+                    { label: t('zktJewelryZakatable'), value: (receipt.fiqhRules as Record<string, unknown>)?.jewelryZakatable ? t('zktYes') : t('zktNo') },
+                    { label: t('zktFitrType'), value: String((receipt.fiqhRules as Record<string, unknown>)?.fitrType ?? 'N/A').replace(/_/g, ' ') },
+                    { label: t('zktDebtDeduction'), value: String((receipt.fiqhRules as Record<string, unknown>)?.debtDeductionMethod ?? 'N/A').replace(/_/g, ' ') },
+                    { label: t('zktRetirementMethod'), value: String((receipt.fiqhRules as Record<string, unknown>)?.retirementMethod ?? 'N/A').replace(/_/g, ' ') },
                   ].map((item, idx) => (
                     <div key={idx} className="bg-amber-50 rounded-lg p-3">
                       <p className="text-xs text-gray-500 font-medium">{item.label}</p>
@@ -1420,26 +1421,26 @@ export default function ZakatPage() {
             {receipt.calculationTrace ? (() => {
               const trace = receipt.calculationTrace as Record<string, unknown>;
               const steps = [
-                { num: 1, label: 'Total Wealth', key: 'step1_totalWealth' },
-                { num: 2, label: 'Non-Zakatable Wealth', key: 'step2_nonZakatableWealth' },
-                { num: 3, label: 'Gross Zakatable', key: 'step3_grossZakatable' },
-                { num: 4, label: 'Deductible Debt', key: 'step4_deductibleDebt' },
-                { num: 5, label: 'Net Zakatable', key: 'step5_netZakatable' },
-                { num: 6, label: 'Nisab Threshold', key: 'step6_nisabThreshold' },
-                { num: 7, label: 'Zakat Eligible', key: 'step7_zakatEligible', isBool: true },
-                { num: 8, label: 'Zakat Due', key: 'step8_zakatDue' },
-                { num: 9, label: 'Paid', key: 'step9_paid' },
-                { num: 10, label: 'Remaining', key: 'step10_remaining' },
+                { num: 1, label: t('zktStep1'), key: 'step1_totalWealth' },
+                { num: 2, label: t('zktStep2'), key: 'step2_nonZakatableWealth' },
+                { num: 3, label: t('zktStep3'), key: 'step3_grossZakatable' },
+                { num: 4, label: t('zktStep4'), key: 'step4_deductibleDebt' },
+                { num: 5, label: t('zktStep5'), key: 'step5_netZakatable' },
+                { num: 6, label: t('zktStep6'), key: 'step6_nisabThreshold' },
+                { num: 7, label: t('zktStep7'), key: 'step7_zakatEligible', isBool: true },
+                { num: 8, label: t('zktStep8'), key: 'step8_zakatDue' },
+                { num: 9, label: t('zktStep9'), key: 'step9_paid' },
+                { num: 10, label: t('zktStep10'), key: 'step10_remaining' },
               ];
               return (
                 <div>
-                  <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">10-Step Calculation Trace</h3>
+                  <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">{t('zktStepTrace')}</h3>
                   <div className="bg-gray-50 rounded-xl overflow-hidden">
                     {steps.map((step, idx) => {
                       const raw = trace[step.key];
                       let displayValue: string;
                       if (step.isBool) {
-                        displayValue = raw ? 'Yes' : 'No';
+                        displayValue = raw ? t('zktYes') : t('zktNo');
                       } else {
                         displayValue = raw != null ? fmt(Number(raw)) : '--';
                       }
@@ -1469,18 +1470,18 @@ export default function ZakatPage() {
             {/* Payment Status */}
             {receipt.paymentStatus ? (
               <div>
-                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">Payment Status</h3>
+                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">{t('zktPaymentStatus')}</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-green-50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-500 font-medium">Lunar Year</p>
+                    <p className="text-xs text-gray-500 font-medium">{t('zktLunarYear')}</p>
                     <p className="text-lg font-bold text-primary mt-1">{String((receipt.paymentStatus as Record<string, unknown>)?.currentLunarYear ?? lunarYear)} AH</p>
                   </div>
                   <div className="bg-green-50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-500 font-medium">Zakat Paid</p>
+                    <p className="text-xs text-gray-500 font-medium">{t('zktZakatPaid')}</p>
                     <p className="text-lg font-bold text-primary mt-1">{fmt(Number((receipt.paymentStatus as Record<string, unknown>)?.zakatPaid) || 0)}</p>
                   </div>
                   <div className="bg-amber-50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-500 font-medium">Remaining</p>
+                    <p className="text-xs text-gray-500 font-medium">{t('zktRemainingLabel')}</p>
                     <p className="text-lg font-bold text-amber-700 mt-1">{fmt(Number((receipt.paymentStatus as Record<string, unknown>)?.zakatRemaining ?? (receipt.paymentStatus as Record<string, unknown>)?.remaining) || 0)}</p>
                   </div>
                 </div>
@@ -1490,17 +1491,17 @@ export default function ZakatPage() {
             {/* References */}
             {receipt.references ? (
               <div>
-                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">References</h3>
+                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3 border-b border-green-200 pb-2">{t('zktReferences')}</h3>
                 <div className="space-y-2">
                   {Array.isArray((receipt.references as Record<string, unknown>)?.quran) && ((receipt.references as Record<string, unknown>).quran as string[]).map((verse: string, idx: number) => (
                     <div key={idx} className="flex items-start gap-2 bg-green-50 rounded-lg p-3">
-                      <span className="text-green-700 font-bold text-sm shrink-0">Quran</span>
+                      <span className="text-green-700 font-bold text-sm shrink-0">{t('zktQuranTag')}</span>
                       <p className="text-sm text-gray-700 italic">{String(verse)}</p>
                     </div>
                   ))}
                   {(receipt.references as Record<string, unknown>)?.hadith ? (
                     <div className="flex items-start gap-2 bg-amber-50 rounded-lg p-3">
-                      <span className="text-amber-700 font-bold text-sm shrink-0">Hadith</span>
+                      <span className="text-amber-700 font-bold text-sm shrink-0">{t('zktHadithTag')}</span>
                       <p className="text-sm text-gray-700 italic">{String((receipt.references as Record<string, unknown>).hadith)}</p>
                     </div>
                   ) : null}
@@ -1513,8 +1514,8 @@ export default function ZakatPage() {
 
             {/* Footer / Disclaimer */}
             <div className="border-t border-gray-200 pt-4 text-center">
-              <p className="text-xs text-gray-400">This receipt is generated by Barakah Islamic Finance Platform for informational purposes.</p>
-              <p className="text-xs text-gray-400 mt-1">Consult a qualified Islamic scholar (mufti) regarding your specific zakat obligation.</p>
+              <p className="text-xs text-gray-400">{t('zktReceiptFooter')}</p>
+              <p className="text-xs text-gray-400 mt-1">{t('zktReceiptFooterConsult')}</p>
             </div>
 
             {/* Action Buttons */}
@@ -1523,22 +1524,22 @@ export default function ZakatPage() {
                 onClick={() => setReceipt(null)}
                 className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium text-sm"
               >
-                Close Receipt
+                {t('zktCloseReceipt')}
               </button>
               <button
                 onClick={() => window.print()}
                 className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-medium text-sm"
               >
-                Print Receipt
+                {t('zktPrintReceipt')}
               </button>
               {/* Viral loop: zakat is often paid once a year and Muslims naturally
                   share the act with family. Offering a share right on the receipt
                   captures that intent with the user's referral code attached. */}
               <ShareReceiptButton
                 source="zakat_receipt"
-                title="I just calculated my zakat with Barakah"
-                pitch="Assalamu alaykum — I just calculated my zakat with Barakah. Nisab, hawl, retirement accounts, deductible debt — all handled. It made something I used to dread feel easy, and there's a free trial."
-                label="Share with family"
+                title={t('zktShareTitle')}
+                pitch={t('zktSharePitch')}
+                label={t('zktShareLabel')}
               />
             </div>
           </div>
@@ -1549,8 +1550,8 @@ export default function ZakatPage() {
       {showChecklist && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-primary mb-4">Zakat Eligibility Checklist</h2>
-            <p className="text-sm text-gray-600 mb-4">Before recording your zakat payment, please confirm the following:</p>
+            <h2 className="text-xl font-bold text-primary mb-4">{t('zktChecklistTitle')}</h2>
+            <p className="text-sm text-gray-600 mb-4">{t('zktChecklistDesc')}</p>
 
             <div className="space-y-3 mb-6">
               <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-green-50 cursor-pointer">
@@ -1562,8 +1563,8 @@ export default function ZakatPage() {
                   disabled={!zakatEligible}
                 />
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900 text-sm">My wealth exceeds the nisab threshold</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{fmt((data?.totalWealth as number) || 0)} {zakatEligible ? '✓' : '(not yet)'}</p>
+                  <p className="font-medium text-gray-900 text-sm">{t('zktCheckWealth')}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{fmt((data?.totalWealth as number) || 0)} {zakatEligible ? '✓' : t('zktCheckNotYet')}</p>
                 </div>
               </label>
 
@@ -1575,8 +1576,8 @@ export default function ZakatPage() {
                   className="mt-1 w-4 h-4"
                 />
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900 text-sm">I have held this wealth for one full lunar year (Hawl)</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Islamic requirement: wealth must be held 12 lunar months</p>
+                  <p className="font-medium text-gray-900 text-sm">{t('zktCheckHawl')}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('zktCheckHawlDesc')}</p>
                 </div>
               </label>
 
@@ -1588,8 +1589,8 @@ export default function ZakatPage() {
                   className="mt-1 w-4 h-4"
                 />
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900 text-sm">I have deducted all eligible debts from my calculation</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Debts reduce your zakatable wealth</p>
+                  <p className="font-medium text-gray-900 text-sm">{t('zktCheckDebts')}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('zktCheckDebtsDesc')}</p>
                 </div>
               </label>
 
@@ -1601,14 +1602,14 @@ export default function ZakatPage() {
                   className="mt-1 w-4 h-4"
                 />
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900 text-sm">I understand this is my religious obligation (Qur&apos;an 9:60)</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Zakat is a pillar of Islam — give with sincere intention</p>
+                  <p className="font-medium text-gray-900 text-sm">{t('zktCheckQuranic')}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('zktCheckQuranicDesc')}</p>
                 </div>
               </label>
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => { setShowChecklist(false); setShowForm(false); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50 font-medium text-sm">Back</button>
+              <button onClick={() => { setShowChecklist(false); setShowForm(false); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50 font-medium text-sm">{t('zktBack')}</button>
               <button
                 onClick={() => {
                   setShowChecklist(false);
@@ -1617,7 +1618,7 @@ export default function ZakatPage() {
                 disabled={!checklist.wealth || !checklist.hawl || !checklist.debts || !checklist.quranic}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50 font-medium text-sm"
               >
-                Continue to Payment
+                {t('zktContinueToPayment')}
               </button>
             </div>
           </div>
@@ -1628,7 +1629,7 @@ export default function ZakatPage() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md my-8">
-            <h2 className="text-xl font-bold text-primary mb-2">Record Zakat Payment — {lunarYear} AH</h2>
+            <h2 className="text-xl font-bold text-primary mb-2">{tFmt('zktRecordPaymentTitleFmt', [lunarYear])}</h2>
 
             {/* 2026-05-10 founder ask: "no charity rails — we compute the
                 obligation, then dump them back to Google." Curated partner
@@ -1639,39 +1640,39 @@ export default function ZakatPage() {
                 tracks who they paid through. */}
             <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
               <p className="text-xs font-semibold text-emerald-800 mb-2">
-                Pay through a partner (opens new tab)
+                {t('zktPayThroughPartner')}
               </p>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   {
                     name: 'NZF (USA / UK)',
                     url: 'https://nzf.org.uk/donate-zakat/',
-                    note: 'National Zakat Foundation — 100% distributed locally',
+                    note: t('zktPartnerNzfNote'),
                   },
                   {
                     name: 'LaunchGood Zakat',
                     url: 'https://www.launchgood.com/zakat',
-                    note: 'Verified projects, scholar-reviewed',
+                    note: t('zktPartnerLaunchgoodNote'),
                   },
                   {
                     name: 'Islamic Relief',
                     url: 'https://www.islamic-relief.org/zakat/',
-                    note: 'Global 8-asnaf distribution',
+                    note: t('zktPartnerIslamicReliefNote'),
                   },
                   {
                     name: 'Penny Appeal',
                     url: 'https://www.pennyappeal.org/appeal/zakat',
-                    note: 'UK-based, scholar-audited',
+                    note: t('zktPartnerPennyNote'),
                   },
                   {
                     name: 'Helping Hand',
                     url: 'https://www.hhrd.org/Donate?cause=Zakat',
-                    note: 'US 501(c)(3), tax-deductible',
+                    note: t('zktPartnerHelpingHandNote'),
                   },
                   {
                     name: 'Zakat Foundation US',
                     url: 'https://www.zakat.org/donate',
-                    note: 'US-based, Shariah board',
+                    note: t('zktPartnerZakatFoundationNote'),
                   },
                 ].map(p => (
                   <a
@@ -1689,27 +1690,27 @@ export default function ZakatPage() {
                 ))}
               </div>
               <p className="text-[10px] text-emerald-700/70 mt-2">
-                Tap any partner → opens their giving page + auto-fills the recipient below so this entry is logged in your ledger.
+                {t('zktPartnerTapNote')}
               </p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{`Amount (${currency})`}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{tFmt('zktAmountLabelFmt', [currency])}</label>
                 <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="0.00" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Recipient (optional)</label>
-                <input value={form.recipient} onChange={e => setForm({ ...form, recipient: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Local Masjid, Islamic Relief" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('zktRecipientOptional')}</label>
+                <input value={form.recipient} onChange={e => setForm({ ...form, recipient: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('zktRecipientPlaceholder')} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
-                <input value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="Add a comment..." />
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('zktNotesOptional')}</label>
+                <input value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('zktNotesPlaceholder')} />
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50" disabled={saving}>Cancel</button>
-              <button onClick={handleSavePayment} disabled={saving || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Record'}</button>
+              <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50" disabled={saving}>{t('zktCancel')}</button>
+              <button onClick={handleSavePayment} disabled={saving || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? t('zktSaving') : t('zktRecord')}</button>
             </div>
           </div>
         </div>
@@ -1720,11 +1721,11 @@ export default function ZakatPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 w-full max-w-sm text-center">
             <p className="text-6xl mb-4">🌟</p>
-            <h2 className="text-2xl font-bold text-primary mb-2">Mabrook!</h2>
+            <h2 className="text-2xl font-bold text-primary mb-2">{t('zktMabrook')}</h2>
             <p className="text-xl text-amber-600 font-bold mb-4">مبروك</p>
-            <p className="text-gray-600 mb-2">You have fulfilled your Zakat obligation for {lunarYear} AH. May Allah accept it from you and bless your wealth.</p>
+            <p className="text-gray-600 mb-2">{tFmt('zktMabrookBodyFmt', [lunarYear])}</p>
             <p className="text-gray-400 italic mb-6">تقبل الله منك</p>
-            <button onClick={() => setShowMabrook(false)} className="w-full bg-primary text-primary-foreground rounded-lg py-3 hover:bg-primary/90 font-medium">Jazakallah Khayran</button>
+            <button onClick={() => setShowMabrook(false)} className="w-full bg-primary text-primary-foreground rounded-lg py-3 hover:bg-primary/90 font-medium">{t('zktJazakallah')}</button>
           </div>
         </div>
       )}
@@ -1733,8 +1734,8 @@ export default function ZakatPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <p className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('zktCancel')}</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('zktConfirm')}</button>
             </div>
           </div>
         </div>
@@ -1745,7 +1746,7 @@ export default function ZakatPage() {
         onClose={(savedYear) => {
           setHistoricalModalOpen(false);
           if (savedYear !== null) {
-            toast(`Zakat for ${savedYear} AH recorded as paid. Permanent locked record created.`, 'success');
+            toast(tFmt('zktHistoricalSavedFmt', [savedYear]), 'success');
             // Refresh payments / snapshot state by dispatching the same event
             // other tabs listen for.
             try { window.dispatchEvent(new Event('barakah:zakat-change')); } catch { /* no-op */ }

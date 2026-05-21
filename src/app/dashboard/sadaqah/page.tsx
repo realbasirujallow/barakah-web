@@ -7,6 +7,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 import { SkeletonPage } from '../SkeletonCard';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
@@ -55,6 +56,14 @@ const PRESET_AMOUNTS = [5, 10, 25, 50, 100];
 
 function SadaqahContent() {
   const { fmt, locale: dateLocale } = useCurrency();
+  const { t, tFmt } = useI18n();
+  const CAT_KEY: Record<string, string> = {
+    food: 'sadaqahCatFood', clothing: 'sadaqahCatClothing', education: 'sadaqahCatEducation',
+    medical: 'sadaqahCatMedical', shelter: 'sadaqahCatShelter', water: 'sadaqahCatWater',
+    general: 'sadaqahCatGeneral', orphan: 'sadaqahCatOrphan', mosque: 'sadaqahCatMosque',
+    disaster_relief: 'sadaqahCatDisasterRelief', dawah: 'sadaqahCatDawah', other: 'sadaqahCatOther',
+  };
+  const catLabel = (c: string) => t(CAT_KEY[c] || 'sadaqahCatOther');
   const [items, setItems] = useState<SadaqahItem[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [giving, setGiving] = useState<GivingInsights | null>(null);
@@ -89,15 +98,21 @@ function SadaqahContent() {
         setStats(mapStats(s));
         setGiving(g && !g.error ? (g as GivingInsights) : null);
       })
-      .catch(() => { toast('Failed to load sadaqah records', 'error'); }).finally(() => setLoading(false));
+      .catch(() => { toast(t('sadaqahLoadError'), 'error'); }).finally(() => setLoading(false));
+    // `t` is a fresh identity each render; including it would make `load` a new
+    // function every render and the `[load]` effect refire forever. Keep `toast`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
   useEffect(() => { load(); }, [load]);
 
   // Show success toast if redirected back from Stripe
   useEffect(() => {
     if (searchParams.get('donated') === 'true') {
-      toast('JazakAllahu Khayran! Your sadaqah has been received. May Allah accept it.', 'success');
+      toast(t('sadaqahDonatedToast'), 'success');
     }
+    // `t` is a fresh identity each render; including it would refire this toast
+    // effect every render. It depends only on the `donated` search param.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, toast]);
 
   const handleSave = async () => {
@@ -106,15 +121,15 @@ function SadaqahContent() {
     // Matches the contact-form ordering fix from Round 18.
     const amt = parseFloat(form.amount);
     if (!Number.isFinite(amt) || amt <= 0) {
-      toast('Amount must be a positive number', 'error');
+      toast(t('sadaqahAmountError'), 'error');
       return;
     }
     setSaving(true);
     try {
       await api.addSadaqah({ ...form, amount: amt });
       setShowForm(false); setForm({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false }); load();
-      toast('Sadaqah recorded', 'success');
-    } catch (err: unknown) { toast(err instanceof Error ? err.message : 'Failed to save sadaqah', 'error'); }
+      toast(t('sadaqahRecordedToast'), 'success');
+    } catch (err: unknown) { toast(err instanceof Error ? err.message : t('sadaqahSaveError'), 'error'); }
     setSaving(false);
   };
 
@@ -128,34 +143,34 @@ function SadaqahContent() {
     setDeleteConfirmId(null);
     try {
       await api.deleteSadaqah(id);
-      toast('Sadaqah record deleted', 'success');
+      toast(t('sadaqahDeletedToast'), 'success');
       load();
     } catch {
-      toast('Failed to delete record', 'error');
+      toast(t('sadaqahDeleteError'), 'error');
     }
   };
 
   const handleDonate = async () => {
     const dollars = donateAmount ?? parseFloat(donateCustom);
-    if (!Number.isFinite(dollars) || dollars <= 0) { toast('Please enter a valid amount', 'error'); return; }
+    if (!Number.isFinite(dollars) || dollars <= 0) { toast(t('sadaqahAmountValidError'), 'error'); return; }
     const cents = Math.round(dollars * 100);
     setDonating(true);
     try {
-      const purposeLabel = donatePurpose.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
-      const res = await api.donateToBarakah(cents, `Sadaqah – ${purposeLabel}`);
+      const purposeLabel = catLabel(donatePurpose);
+      const res = await api.donateToBarakah(cents, `${t('sadaqahSadaqahPrefix')}${purposeLabel}`);
       if (res?.url) {
         // Validate the redirect URL against the Stripe domain whitelist
         // (prevents open-redirect attacks via a malicious API response).
         if (!validateStripeUrl(res.url)) {
-          toast('Invalid checkout URL received. Please contact support.', 'error');
+          toast(t('sadaqahCheckoutError'), 'error');
           return;
         }
         window.location.href = res.url;
       } else {
-        toast('Could not initiate donation. Please try again.', 'error');
+        toast(t('sadaqahInitError'), 'error');
       }
     } catch (err: unknown) {
-      toast(err instanceof Error ? err.message : 'Failed to process donation', 'error');
+      toast(err instanceof Error ? err.message : t('sadaqahProcessError'), 'error');
     } finally {
       setDonating(false);
     }
@@ -169,23 +184,23 @@ function SadaqahContent() {
   return (
     <div>
       <PageHeader
-        title="Sadaqah Tracker"
-        subtitle="Voluntary charity log with Ramadan and tax categories"
+        title={t('sadaqahTitle')}
+        subtitle={t('sadaqahSubtitle')}
         actions={
-          <button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Give Sadaqah</button>
+          <button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">{t('sadaqahGiveBtn')}</button>
         }
       />
 
       <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-sm text-green-900 mb-6 space-y-3">
-        <h3 className="font-bold text-base">📖 Islamic Guidance on Sadaqah</h3>
+        <h3 className="font-bold text-base">{t('sadaqahGuidanceHeading')}</h3>
         <p>
-          <strong>What is Sadaqah?</strong> Voluntary charity beyond the obligatory zakat, given purely for the sake of Allah.
+          <strong>{t('sadaqahWhatIsLabel')}</strong> {t('sadaqahWhatIsBody')}
         </p>
         <p>
-          The Prophet (&#65018;) said: <em>&quot;Charity does not decrease wealth.&quot;</em> — <strong>Sahih Muslim 2588</strong>
+          {t('sadaqahHadithIntro')} <em>{t('sadaqahHadith1Text')}</em> — <strong>{t('sadaqahHadith1Citation')}</strong>
         </p>
         <p>
-          The Prophet (&#65018;) said: <em>&quot;The most beloved deed to Allah is the most consistent one, even if it is small.&quot;</em> — <strong>Sahih al-Bukhari 6464</strong>
+          {t('sadaqahHadithIntro')} <em>{t('sadaqahHadith2Text')}</em> — <strong>{t('sadaqahHadith2Citation')}</strong>
         </p>
       </div>
 
@@ -206,13 +221,13 @@ function SadaqahContent() {
         return (
           <div className="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-2xl p-6 text-white mb-6">
             <p className="text-teal-100 text-sm">
-              {insightsYearTotal > manualTotal ? 'Given this year (manual + linked)' : 'Total Donated'}
+              {insightsYearTotal > manualTotal ? t('sadaqahHeroGivenYear') : t('sadaqahHeroTotalDonated')}
             </p>
             <p className="text-4xl font-bold">{fmt(headline)}</p>
             <div className="grid grid-cols-3 gap-4 mt-4">
-              <div><p className="text-teal-200 text-xs">Manual donations</p><p className="text-xl font-semibold">{stats?.donationCount || 0}</p></div>
-              <div><p className="text-teal-200 text-xs">This Month</p><p className="text-xl font-semibold">{fmt(thisMonth)}</p></div>
-              <div><p className="text-teal-200 text-xs">Top Category</p><p className="text-xl font-semibold capitalize">{stats?.topCategory || (giving?.topRecipients?.length ? 'See below' : 'N/A')}</p></div>
+              <div><p className="text-teal-200 text-xs">{t('sadaqahHeroManual')}</p><p className="text-xl font-semibold">{stats?.donationCount || 0}</p></div>
+              <div><p className="text-teal-200 text-xs">{t('sadaqahHeroThisMonth')}</p><p className="text-xl font-semibold">{fmt(thisMonth)}</p></div>
+              <div><p className="text-teal-200 text-xs">{t('sadaqahHeroTopCategory')}</p><p className="text-xl font-semibold">{stats?.topCategory ? catLabel(stats.topCategory) : (giving?.topRecipients?.length ? t('sadaqahSeeBelow') : t('sadaqahNA'))}</p></div>
             </div>
           </div>
         );
@@ -222,7 +237,7 @@ function SadaqahContent() {
           history (manual sadaqah + bank-synced giving). Only shown when
           there's something meaningful to surface. */}
       {giving && (giving.givingStreakMonths > 0 || giving.recurringGiving.length > 0 || giving.topRecipients.length > 0) && (
-        <GivingPatternsPanel giving={giving} fmt={fmt} />
+        <GivingPatternsPanel giving={giving} fmt={fmt} t={t} tFmt={tFmt} />
       )}
 
       {/* ── Donate via Barakah ────────────────────────────────────────────── */}
@@ -230,24 +245,24 @@ function SadaqahContent() {
         <div className="flex items-center gap-3 mb-4">
           <span className="text-3xl">🌿</span>
           <div>
-            <h2 className="text-lg font-bold text-primary">Give Sadaqah via Barakah</h2>
-            <p className="text-sm text-gray-500">We collect your donation and distribute it to verified causes on your behalf. Secure payment via Stripe.</p>
+            <h2 className="text-lg font-bold text-primary">{t('sadaqahDonateTitle')}</h2>
+            <p className="text-sm text-gray-500">{t('sadaqahDonateSubtitle')}</p>
           </div>
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Cause</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t('sadaqahCauseLabel')}</label>
           <select
             value={donatePurpose}
             onChange={e => setDonatePurpose(e.target.value)}
             className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm"
           >
-            {CATS.map(c => <option key={c} value={c}>{c.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase())}</option>)}
+            {CATS.map(c => <option key={c} value={c}>{catLabel(c)}</option>)}
           </select>
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t('sadaqahAmountLabel')}</label>
           <div className="flex flex-wrap gap-2 mb-3">
             {PRESET_AMOUNTS.map(amt => (
               <button
@@ -270,7 +285,7 @@ function SadaqahContent() {
                   : 'bg-white text-gray-700 border-gray-300 hover:border-primary'
               }`}
             >
-              Custom
+              {t('sadaqahCustomBtn')}
             </button>
           </div>
           {donateAmount === null && (
@@ -280,7 +295,7 @@ function SadaqahContent() {
                 type="number"
                 step="1"
                 min="1"
-                placeholder="Enter amount"
+                placeholder={t('sadaqahCustomPlaceholder')}
                 value={donateCustom}
                 onChange={e => setDonateCustom(e.target.value)}
                 className="w-full border rounded-lg pl-8 pr-3 py-2 text-gray-900"
@@ -294,31 +309,31 @@ function SadaqahContent() {
           disabled={donating || effectiveAmount <= 0}
           className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-50"
         >
-          {donating ? 'Redirecting to payment…' : `Donate ${effectiveAmount > 0 ? fmt(effectiveAmount) : ''} via Barakah`}
+          {donating ? t('sadaqahRedirectingBtn') : (effectiveAmount > 0 ? tFmt('sadaqahDonateBtnFmt', [fmt(effectiveAmount)]) : t('sadaqahDonateBtnNoAmt'))}
         </button>
 
         <p className="text-xs text-gray-400 text-center mt-2">
-          Processed securely by Stripe · Barakah distributes to verified Islamic causes
+          {t('sadaqahDonateDisclaimer')}
         </p>
       </div>
 
       {/* ── My Sadaqah records ────────────────────────────────────────────── */}
-      <h3 className="text-lg font-semibold text-gray-700 mb-3">My Sadaqah Records</h3>
+      <h3 className="text-lg font-semibold text-gray-700 mb-3">{t('sadaqahMyRecords')}</h3>
       {items.length > 0 ? (
         <>
           <div className="space-y-2">
             {items.slice(0, displayCount).map(item => (
               <div key={item.id} className="bg-white rounded-xl p-4 flex justify-between items-center">
                 <div>
-                  <p className="font-semibold text-primary">{item.recipientName || item.category}</p>
-                  <p className="text-sm text-gray-500 capitalize">{item.category} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString(dateLocale)}
-                    {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">Recurring</span>}
-                    {item.anonymous && <span className="ml-1 bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">Anonymous</span>}
+                  <p className="font-semibold text-primary">{item.recipientName || catLabel(item.category)}</p>
+                  <p className="text-sm text-gray-500">{catLabel(item.category)} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString(dateLocale)}
+                    {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">{t('sadaqahRecurringBadge')}</span>}
+                    {item.anonymous && <span className="ml-1 bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">{t('sadaqahAnonymousBadge')}</span>}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <p className="text-lg font-bold text-primary">{fmt(item.amount)}</p>
-                  <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                  <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600 text-sm">{t('sadaqahDeleteBtn')}</button>
                 </div>
               </div>
             ))}
@@ -330,39 +345,39 @@ function SadaqahContent() {
                 onClick={() => setDisplayCount(displayCount + 10)}
                 className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm"
               >
-                Show More
+                {t('sadaqahShowMore')}
               </button>
             </div>
           )}
         </>
       ) : (
-        <div className="text-center py-12 text-gray-400"><p className="text-4xl mb-3">💝</p><p>No sadaqah recorded. Every act of kindness is sadaqah.</p></div>
+        <div className="text-center py-12 text-gray-400"><p className="text-4xl mb-3">💝</p><p>{t('sadaqahEmptyBody')}</p></div>
       )}
 
       {/* Add Sadaqah modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-primary mb-4">Record Sadaqah</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">{t('sadaqahModalTitle')}</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="50.00" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Recipient</label>
-                <input value={form.recipientName} onChange={e => setForm({ ...form, recipientName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Local Masjid" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldAmount')}</label>
+                <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('sadaqahAmountPlaceholder')} /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldRecipient')}</label>
+                <input value={form.recipientName} onChange={e => setForm({ ...form, recipientName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('sadaqahRecipientPlaceholder')} /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldCategory')}</label>
                 <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                  {CATS.map(c => <option key={c} value={c}>{c.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase())}</option>)}
+                  {CATS.map(c => <option key={c} value={c}>{catLabel(c)}</option>)}
                 </select></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldDescription')}</label>
                 <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
               <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.anonymous} onChange={e => setForm({ ...form, anonymous: e.target.checked })} className="w-4 h-4" /> Anonymous</label>
-                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.recurring} onChange={e => setForm({ ...form, recurring: e.target.checked })} className="w-4 h-4" /> Recurring</label>
+                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.anonymous} onChange={e => setForm({ ...form, anonymous: e.target.checked })} className="w-4 h-4" /> {t('sadaqahCheckAnonymous')}</label>
+                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.recurring} onChange={e => setForm({ ...form, recurring: e.target.checked })} className="w-4 h-4" /> {t('sadaqahCheckRecurring')}</label>
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowForm(false)} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Record'}</button>
+              <button onClick={() => setShowForm(false)} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('sadaqahCancel')}</button>
+              <button onClick={handleSave} disabled={saving || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? t('sadaqahSaving') : t('sadaqahRecord')}</button>
             </div>
           </div>
         </div>
@@ -375,13 +390,13 @@ function SadaqahContent() {
             <div className="flex items-start gap-3 mb-4">
               <span className="text-2xl">🗑️</span>
               <div className="flex-1">
-                <h3 className="font-bold text-gray-900">Delete sadaqah record?</h3>
-                <p className="text-sm text-gray-600 mt-1">This record will be permanently deleted.</p>
+                <h3 className="font-bold text-gray-900">{t('sadaqahDeleteTitle')}</h3>
+                <p className="text-sm text-gray-600 mt-1">{t('sadaqahDeleteBody')}</p>
               </div>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteConfirmId(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={confirmDeleteSadaqah} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Delete</button>
+              <button onClick={() => setDeleteConfirmId(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('sadaqahCancel')}</button>
+              <button onClick={confirmDeleteSadaqah} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('sadaqahDelete')}</button>
             </div>
           </div>
         </div>
@@ -411,29 +426,32 @@ export default function SadaqahPage() {
 function GivingPatternsPanel({
   giving,
   fmt,
+  t,
+  tFmt,
 }: {
   giving: GivingInsights;
   fmt: (n: number) => string;
+  t: (key: string) => string;
+  tFmt: (key: string, args: ReadonlyArray<string | number>) => string;
 }) {
   // SAD-2 fix: when this-month is exactly 0, the trend comparison reads
   // "below average" or worse — but the more accurate copy is "haven't
-  // given yet this month". Previously a $0 this-month with $0 last-month
-  // could surface "Above your average" which is confusing.
+  // given yet this month".
   const trendLabel =
     giving.thisMonthTotal === 0
-      ? "Haven't given this month yet"
-      : giving.trend === 'up' ? 'Above your average' :
-        giving.trend === 'down' ? 'Below your average' :
-        giving.trend === 'flat' ? 'In line with your average' :
+      ? t('sadaqahTrendNone')
+      : giving.trend === 'up' ? t('sadaqahTrendUp') :
+        giving.trend === 'down' ? t('sadaqahTrendDown') :
+        giving.trend === 'flat' ? t('sadaqahTrendFlat') :
         null;
   const fmtDay = (ms: number) =>
     ms ? new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' }) : '';
 
   return (
     <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-6 mb-6">
-      <h2 className="text-lg font-bold text-primary mb-1">Your giving patterns</h2>
+      <h2 className="text-lg font-bold text-primary mb-1">{t('sadaqahPatternsTitle')}</h2>
       <p className="text-sm text-gray-500 mb-4">
-        Detected automatically from your logged sadaqah and bank-synced giving.
+        {t('sadaqahPatternsSubtitle')}
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
@@ -441,39 +459,41 @@ function GivingPatternsPanel({
           <div className="rounded-xl bg-amber-50 border border-amber-200 p-3">
             <p className="text-2xl font-bold text-amber-700">🔥 {giving.givingStreakMonths}</p>
             <p className="text-xs text-amber-800 mt-0.5">
-              month{giving.givingStreakMonths === 1 ? '' : 's'} giving streak
+              {giving.givingStreakMonths === 1
+                ? tFmt('sadaqahStreakSingleFmt', [giving.givingStreakMonths])
+                : tFmt('sadaqahStreakPluralFmt', [giving.givingStreakMonths])}
             </p>
           </div>
         )}
         <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
           <p className="text-2xl font-bold text-gray-800">{fmt(giving.thisMonthTotal)}</p>
-          <p className="text-xs text-gray-600 mt-0.5">given this month</p>
+          <p className="text-xs text-gray-600 mt-0.5">{t('sadaqahGivenThisMonth')}</p>
         </div>
         <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
           <p className="text-2xl font-bold text-gray-800">{giving.monthsActiveLast12}<span className="text-base text-gray-500">/12</span></p>
-          <p className="text-xs text-gray-600 mt-0.5">months active (past year)</p>
+          <p className="text-xs text-gray-600 mt-0.5">{t('sadaqahMonthsActive')}</p>
         </div>
         <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
           <p className="text-2xl font-bold text-gray-800">{fmt(giving.monthlyAverage)}</p>
-          <p className="text-xs text-gray-600 mt-0.5">monthly average</p>
+          <p className="text-xs text-gray-600 mt-0.5">{t('sadaqahMonthlyAvg')}</p>
         </div>
       </div>
 
       {trendLabel && (
         <p className="text-sm text-gray-600 mb-4">
-          This month is <span className="font-semibold text-gray-800">{trendLabel.toLowerCase()}</span>.
+          {tFmt('sadaqahTrendLineFmt', [trendLabel.toLowerCase()])}
         </p>
       )}
 
       {giving.recurringGiving.length > 0 && (
         <div className="mb-4">
-          <p className="text-sm font-semibold text-gray-700 mb-2">Recurring giving</p>
+          <p className="text-sm font-semibold text-gray-700 mb-2">{t('sadaqahRecurringHeading')}</p>
           <ul className="space-y-1.5">
             {giving.recurringGiving.map((r, i) => (
               <li key={`${r.recipient}-${i}`} className="flex items-center justify-between gap-3 text-sm">
                 <span className="text-gray-800 truncate capitalize">{r.recipient}</span>
                 <span className="text-gray-500 flex-shrink-0 tabular-nums">
-                  {fmt(r.averageAmount)}/mo · next ~{fmtDay(r.nextExpected)}
+                  {tFmt('sadaqahRecurringDetailFmt', [fmt(r.averageAmount), fmtDay(r.nextExpected)])}
                 </span>
               </li>
             ))}
@@ -483,13 +503,15 @@ function GivingPatternsPanel({
 
       {giving.topRecipients.length > 0 && (
         <div>
-          <p className="text-sm font-semibold text-gray-700 mb-2">Where you give most</p>
+          <p className="text-sm font-semibold text-gray-700 mb-2">{t('sadaqahTopHeading')}</p>
           <ul className="space-y-1.5">
             {giving.topRecipients.map((r, i) => (
               <li key={`${r.recipient}-${i}`} className="flex items-center justify-between gap-3 text-sm">
                 <span className="text-gray-800 truncate capitalize">{r.recipient}</span>
                 <span className="text-gray-500 flex-shrink-0 tabular-nums">
-                  {fmt(r.total)} · {r.count} gift{r.count === 1 ? '' : 's'}
+                  {r.count === 1
+                    ? tFmt('sadaqahTopDetailSingleFmt', [fmt(r.total), r.count])
+                    : tFmt('sadaqahTopDetailPluralFmt', [fmt(r.total), r.count])}
                 </span>
               </li>
             ))}

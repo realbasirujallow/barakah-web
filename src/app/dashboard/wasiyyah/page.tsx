@@ -6,6 +6,7 @@ import { useToast } from '../../../lib/toast';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 import { safeParse, validateWasiyyahBeneficiary } from '../../../lib/schemas';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
@@ -14,7 +15,7 @@ interface Beneficiary {
   beneficiaryName: string;
   relationship: string;
   sharePercentage: number;
-  shareType: 'fixed' | 'voluntary' | 'percentage';
+  shareType: 'fixed' | 'voluntary';
   notes: string;
   assetDescription?: string;
 }
@@ -58,9 +59,44 @@ function relEmoji(rel: string) {
   return RELATIONSHIPS.find(r => r.value === rel)?.emoji ?? '🤝';
 }
 
+const OB_TYPE_LABEL_KEYS: Record<string, string> = {
+  ZAKAT: 'wasObZakatLabel',
+  KAFFARAH: 'wasObKaffLabel',
+  UNPAID_LOAN: 'wasObLoanLabel',
+  PROMISED_SADAQAH: 'wasObSadaqahLabel',
+  MISSED_PRAYER_FIDYA: 'wasObFidyaLabel',
+  CUSTOM: 'wasObCustomLabel',
+};
+const OB_TYPE_DESC_KEYS: Record<string, string> = {
+  ZAKAT: 'wasObZakatDesc',
+  KAFFARAH: 'wasObKaffDesc',
+  UNPAID_LOAN: 'wasObLoanDesc',
+  PROMISED_SADAQAH: 'wasObSadaqahDesc',
+  MISSED_PRAYER_FIDYA: 'wasObFidyaDesc',
+  CUSTOM: 'wasObCustomDesc',
+};
+function obTypeLabelKey(v: string) { return OB_TYPE_LABEL_KEYS[v] ?? 'wasObCustomLabel'; }
+function obTypeDescKey(v: string) { return OB_TYPE_DESC_KEYS[v] ?? 'wasObCustomDesc'; }
+
+const REL_LABEL_KEYS: Record<string, string> = {
+  spouse: 'wasRelSpouse',
+  son: 'wasRelSon',
+  daughter: 'wasRelDaughter',
+  father: 'wasRelFather',
+  mother: 'wasRelMother',
+  brother: 'wasRelBrother',
+  sister: 'wasRelSister',
+  grandchild: 'wasRelGrandchild',
+  uncle: 'wasRelUncle',
+  aunt: 'wasRelAunt',
+  other: 'wasRelOther',
+};
+function relLabelKey(v: string) { return REL_LABEL_KEYS[v] ?? 'wasRelOther'; }
+
 function WasiyyahPageContent() {
   const { toast } = useToast();
   const { currency: currencyCode, fmt } = useCurrency();
+  const { t, tFmt } = useI18n();
   const [items, setItems]           = useState<Beneficiary[]>([]);
   const [obligations, setObligations] = useState<Obligation[]>([]);
   const [islamicShares, setIslamicShares] = useState<IslamicSharesMap>({});
@@ -134,7 +170,7 @@ function WasiyyahPageContent() {
               beneficiaryName: result.name,
               relationship: result.relationship,
               sharePercentage: result.sharePercentage,
-              shareType: (result.shareType as 'fixed' | 'voluntary' | 'percentage') || 'voluntary',
+              shareType: (result.shareType as 'fixed' | 'voluntary') || 'voluntary',
               notes: result.notes || '',
               assetDescription: item.assetDescription,
             });
@@ -151,7 +187,7 @@ function WasiyyahPageContent() {
       setItems(validatedBeneficiaries);
       setObligations(Array.isArray(oList) ? oList : []);
       setIslamicShares(sharesMap);
-    }).catch(() => toast('Failed to load wasiyyah data', 'error'))
+    }).catch(() => toast(t('wasToastLoadFail'), 'error'))
       .finally(() => {
         setLoading(false);
         loadingRef.current = false;
@@ -174,16 +210,16 @@ function WasiyyahPageContent() {
     try {
       const share = parseFloat(form.sharePercentage);
       if (!share || share <= 0) {
-        const msg = 'Share percentage must be greater than 0';
+        const msg = t('wasErrShareGtZero');
         setFormError(msg); toast(msg, 'error'); setSaving(false); return;
       }
       if (form.shareType === 'voluntary') {
         if (share > 33.33) {
-          const msg = 'Voluntary bequests are limited to 33.33% (1/3 of estate) per Islamic law';
+          const msg = t('wasErrVolMax');
           setFormError(msg); toast(msg, 'error'); setSaving(false); return;
         }
         if (voluntaryShareTotal + share > 33.33) {
-          const msg = `Total voluntary share would be ${(voluntaryShareTotal + share).toFixed(2)}%, exceeding the 1/3 limit. You have ${voluntaryRemaining.toFixed(2)}% remaining.`;
+          const msg = tFmt('wasErrVolExceedFmt', [(voluntaryShareTotal + share).toFixed(2), voluntaryRemaining.toFixed(2)]);
           setFormError(msg); toast(msg, 'error'); setSaving(false); return;
         }
       }
@@ -195,7 +231,7 @@ function WasiyyahPageContent() {
         assetDescription: form.assetDescription || undefined,
         notes: form.notes || undefined,
       });
-      toast('Beneficiary added', 'success');
+      toast(t('wasToastBenefAdded'), 'success');
       setShowForm(false);
       setForm({ beneficiaryName: '', relationship: 'spouse', sharePercentage: '', shareType: 'voluntary', assetDescription: '', notes: '' });
       load();
@@ -204,7 +240,7 @@ function WasiyyahPageContent() {
       // of the generic "Failed to add beneficiary". Same pattern as the
       // auto-category fix — a swallowed error masks the actual reason
       // (validation, plan gate, etc.) and frustrates support triage.
-      const msg = err instanceof Error ? err.message : 'Failed to add beneficiary';
+      const msg = err instanceof Error ? err.message : t('wasToastBenefAddFail');
       toast(msg, 'error');
     }
     setSaving(false);
@@ -217,14 +253,15 @@ function WasiyyahPageContent() {
     try {
       if (type === 'beneficiary') {
         await api.deleteWasiyyah(id);
-        toast('Beneficiary removed', 'success');
+        toast(t('wasToastBenefRemoved'), 'success');
       } else {
         await api.deleteWasiyyahObligation(id);
-        toast('Obligation removed', 'success');
+        toast(t('wasToastObRemoved'), 'success');
       }
       load();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : `Failed to remove ${type}`;
+      const localizedType = type === 'beneficiary' ? t('wasDelBenefType') : t('wasDelObType');
+      const msg = err instanceof Error ? err.message : tFmt('wasToastRemoveFailFmt', [localizedType]);
       toast(msg, 'error');
     }
   };
@@ -233,14 +270,14 @@ function WasiyyahPageContent() {
     setSaving(true);
     try {
       const obAmt = parseFloat(obForm.amount);
-      if (!obAmt || obAmt <= 0) { toast('Amount must be greater than zero', 'error'); setSaving(false); return; }
+      if (!obAmt || obAmt <= 0) { toast(t('wasToastAmountGtZero'), 'error'); setSaving(false); return; }
       await api.addWasiyyahObligation({ ...obForm, amount: obAmt });
-      toast('Obligation recorded', 'success');
+      toast(t('wasToastObRecorded'), 'success');
       setShowObForm(false);
       setObForm({ type: 'ZAKAT', amount: '', currency: currencyCode, description: '', recipient: '', notes: '' });
       load();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to record obligation';
+      const msg = err instanceof Error ? err.message : t('wasToastObRecordFail');
       toast(msg, 'error');
     }
     setSaving(false);
@@ -248,7 +285,7 @@ function WasiyyahPageContent() {
 
   const markFulfilled = async (ob: Obligation) => {
     await api.updateWasiyyahObligation(ob.id, { status: ob.status === 'pending' ? 'fulfilled' : 'pending' })
-      .catch(() => toast('Failed to update status', 'error'));
+      .catch(() => toast(t('wasToastStatusFail'), 'error'));
     load();
   };
 
@@ -267,29 +304,29 @@ function WasiyyahPageContent() {
       <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-start gap-3">
         <span className="text-xl">👨‍👩‍👧‍👦</span>
         <div className="flex-1">
-          <p className="text-sm text-green-800 font-medium">Share your Wasiyyah with family</p>
+          <p className="text-sm text-green-800 font-medium">{t('wasShareBannerTitle')}</p>
           <p className="text-xs text-green-600 mt-1">
-            Family plan members can view each other&apos;s wills and estate plans through Shared Finances.
+            {t('wasShareBannerBody')}
           </p>
         </div>
         <a href="/dashboard/shared" className="text-xs text-primary font-semibold hover:underline whitespace-nowrap self-center">
-          Go to Shared Finances &rarr;
+          {t('wasShareBannerLink')}
         </a>
       </div>
 
       <PageHeader
-        title="Islamic Will"
-        subtitle="Wasiyyah — the 1/3 bequest within Qur&apos;anic estate-planning rules"
+        title={t('wasiyyahTitle')}
+        subtitle={t('wasiyyahSubtitle')}
         actions={
           <>
             {/* Islamic Shares Info button */}
             <button
               type="button"
               onClick={() => setShowSharesInfo(true)}
-              title="Islamic Inheritance Guide"
+              title={t('wasGuideBtnTitle')}
               className="border border-primary text-primary px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium"
             >
-              📖 Guide
+              {t('wasGuideBtn')}
             </button>
             {/* 2026-05-10 — PDF export with jurisdiction picker. Click
                 "PDF" opens a small popover; selecting a jurisdiction
@@ -303,21 +340,21 @@ function WasiyyahPageContent() {
                 onClick={() => setExportPickerOpen(prev => !prev)}
                 className="border border-primary text-primary px-3 py-2 rounded-lg hover:bg-green-50 text-sm font-medium flex items-center gap-1 disabled:opacity-50"
               >
-                {exporting ? 'Exporting...' : '📄 PDF ▾'}
+                {exporting ? t('wasPdfExporting') : t('wasPdfBtn')}
               </button>
               {exportPickerOpen && (
                 <div className="absolute right-0 mt-1 z-20 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-2">
                   <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide px-2 py-1">
-                    Jurisdiction
+                    {t('wasJurisdictionLabel')}
                   </p>
                   {[
-                    { code: 'US', label: '🇺🇸 United States' },
-                    { code: 'UK', label: '🇬🇧 United Kingdom' },
-                    { code: 'CA', label: '🇨🇦 Canada' },
-                    { code: 'AU', label: '🇦🇺 Australia' },
-                    { code: 'AE', label: '🇦🇪 UAE (DIFC/ADGM aware)' },
-                    { code: 'SA', label: '🇸🇦 Saudi Arabia / GCC' },
-                    { code: 'OTHER', label: '🌍 Other / Generic' },
+                    { code: 'US', label: t('wasJurisdictionUS') },
+                    { code: 'UK', label: t('wasJurisdictionUK') },
+                    { code: 'CA', label: t('wasJurisdictionCA') },
+                    { code: 'AU', label: t('wasJurisdictionAU') },
+                    { code: 'AE', label: t('wasJurisdictionAE') },
+                    { code: 'SA', label: t('wasJurisdictionSA') },
+                    { code: 'OTHER', label: t('wasJurisdictionOther') },
                   ].map(j => (
                     <button
                       key={j.code}
@@ -330,7 +367,7 @@ function WasiyyahPageContent() {
                         try {
                           await api.downloadWasiyyahPdf(j.code);
                         } catch (err) {
-                          toast(err instanceof Error ? err.message : 'Failed to export PDF', 'error');
+                          toast(err instanceof Error ? err.message : t('wasExportFailed'), 'error');
                         } finally {
                           setExporting(false);
                         }
@@ -343,7 +380,7 @@ function WasiyyahPageContent() {
                     </button>
                   ))}
                   <p className="text-[10px] text-gray-400 px-2 py-1 mt-1 border-t border-gray-100 leading-tight">
-                    Pick the jurisdiction the testator lives in — we&apos;ll append the matching wills-law warnings. Not legal advice; review with a local solicitor.
+                    {t('wasJurisdictionHelp')}
                   </p>
                 </div>
               )}
@@ -353,29 +390,34 @@ function WasiyyahPageContent() {
               onClick={() => tab === 'beneficiaries' ? setShowForm(true) : setShowObForm(true)}
               className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm"
             >
-              {tab === 'beneficiaries' ? '+ Add Beneficiary' : '+ Record Obligation'}
+              {tab === 'beneficiaries' ? t('wasAddBeneficiaryBtn') : t('wasRecordObligationBtn')}
             </button>
           </>
         }
       />
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6" role="tablist" aria-label="Wasiyyah sections">
-        {(['beneficiaries', 'obligations'] as const).map(t => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            role="tab"
-            aria-selected={tab === t}
-            className={`px-5 py-2 rounded-full text-sm font-semibold transition ${tab === t ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-          >
-            {t === 'beneficiaries'
-              ? `📜 Beneficiaries (${items.length})`
-              : `⚖️ Obligations${obligations.filter(o => o.status === 'pending').length > 0 ? ` (${obligations.filter(o => o.status === 'pending').length})` : ''}`
-            }
-          </button>
-        ))}
+      <div className="flex gap-2 mb-6" role="tablist" aria-label={t('wasTabsAria')}>
+        {(['beneficiaries', 'obligations'] as const).map(tabKey => {
+          const pendingCount = obligations.filter(o => o.status === 'pending').length;
+          return (
+            <button
+              key={tabKey}
+              type="button"
+              onClick={() => setTab(tabKey)}
+              role="tab"
+              aria-selected={tab === tabKey}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition ${tab === tabKey ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            >
+              {tabKey === 'beneficiaries'
+                ? tFmt('wasTabBeneficiariesFmt', [items.length])
+                : pendingCount > 0
+                  ? tFmt('wasTabObligationsFmt', [pendingCount])
+                  : t('wasTabObligations')
+              }
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Beneficiaries Tab ── */}
@@ -383,21 +425,21 @@ function WasiyyahPageContent() {
         <>
           {/* Estate Distribution Summary — mirrors Flutter 3-column card */}
           <div className="bg-gradient-to-r from-[#1B5E20] to-teal-700 rounded-2xl p-6 text-white mb-6">
-            <p className="text-green-200 text-sm mb-3">Estate Distribution</p>
+            <p className="text-green-200 text-sm mb-3">{t('wasEstateDistribution')}</p>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <p className="text-2xl font-bold">{fixedShareTotal.toFixed(1)}%</p>
-                <p className="text-green-200 text-xs mt-0.5">Fixed (Fard)</p>
+                <p className="text-green-200 text-xs mt-0.5">{t('wasFixedFard')}</p>
               </div>
               <div className="border-x border-white/30">
                 <p className="text-2xl font-bold">{voluntaryShareTotal.toFixed(1)}%</p>
-                <p className="text-green-200 text-xs mt-0.5">Voluntary</p>
+                <p className="text-green-200 text-xs mt-0.5">{t('wasVoluntary')}</p>
               </div>
               <div>
                 <p className={`text-2xl font-bold ${voluntaryRemaining <= 0 ? 'text-red-300' : ''}`}>
                   {voluntaryRemaining.toFixed(1)}%
                 </p>
-                <p className="text-green-200 text-xs mt-0.5">Vol. Remaining</p>
+                <p className="text-green-200 text-xs mt-0.5">{t('wasVolRemaining')}</p>
               </div>
             </div>
             <div className="w-full bg-white/20 rounded-full h-2 mt-4">
@@ -407,7 +449,7 @@ function WasiyyahPageContent() {
               />
             </div>
             <p className="text-green-200 text-xs mt-1 text-right">
-              {(fixedShareTotal + voluntaryShareTotal).toFixed(1)}% allocated total
+              {tFmt('wasAllocatedTotalFmt', [(fixedShareTotal + voluntaryShareTotal).toFixed(1)])}
             </p>
           </div>
 
@@ -416,8 +458,7 @@ function WasiyyahPageContent() {
             <div className="flex items-start gap-2">
               <span className="text-amber-600 mt-0.5">ℹ️</span>
               <div className="text-sm text-amber-900">
-                <strong>Voluntary bequests are limited to 1/3 (33.33%)</strong> of your estate per Islamic law (Sahih al-Bukhari 2742).
-                Fixed (Fard) shares follow the Quranic schedule and are not capped.
+                <strong>{t('wasOneThirdLimitTitle')}</strong> {t('wasOneThirdLimitBody')}
               </div>
             </div>
           </div>
@@ -425,31 +466,31 @@ function WasiyyahPageContent() {
           {/* Hadith guidance (collapsible) */}
           <details className="bg-amber-50 border border-amber-200 rounded-xl mb-6 group">
             <summary className="flex items-center justify-between px-5 py-4 cursor-pointer select-none">
-              <span className="font-bold text-amber-900 text-sm">📖 Islamic Guidance on Wasiyyah</span>
+              <span className="font-bold text-amber-900 text-sm">{t('wasGuidanceTitle')}</span>
               <span className="text-amber-600 group-open:rotate-180 transition-transform">▾</span>
             </summary>
             <div className="px-5 pb-5 space-y-3 text-sm text-amber-900">
               <p>
-                <strong>The 1/3 Rule:</strong> Sa&apos;d ibn Abi Waqqas (رضي الله عنه) said: <em>&quot;I was ill and the Prophet (ﷺ) visited me. I said, &apos;O Messenger of Allah, may I bequeath all my wealth?&apos; He said, &apos;No.&apos; I said, &apos;Then half?&apos; He said, &apos;No.&apos; I said, &apos;Then one-third?&apos; He said, &apos;One-third, and one-third is a lot.&apos;&quot;</em> — <strong>Sahih al-Bukhari 2742</strong>
+                <strong>{t('wasGuidanceOneThirdRule')}</strong> <em>{t('wasGuidanceOneThirdHadith')}</em> — <strong>{t('wasGuidanceOneThirdSource')}</strong>
               </p>
               <p>
-                <strong>No Bequest to Heirs:</strong> <em>&quot;Allah has given every deserving person his right, so there is no bequest for an heir.&quot;</em> — <strong>Sunan Abu Dawud 2870</strong>
+                <strong>{t('wasGuidanceNoHeirTitle')}</strong> <em>{t('wasGuidanceNoHeirHadith')}</em> — <strong>{t('wasGuidanceNoHeirSource')}</strong>
               </p>
               <p>
-                <strong>Obligation:</strong> <em>&quot;It is not right for a Muslim who has something to bequeath to sleep two nights without having his will written down.&quot;</em> — <strong>Sahih al-Bukhari 2738</strong>
+                <strong>{t('wasGuidanceObligationTitle')}</strong> <em>{t('wasGuidanceObligationHadith')}</em> — <strong>{t('wasGuidanceObligationSource')}</strong>
               </p>
-              <p className="text-xs text-amber-700">Fixed-share heirs (spouse, children, parents) receive their Quranic portions (Surah An-Nisa 4:11-12) automatically. Voluntary bequests are only for non-heirs.</p>
+              <p className="text-xs text-amber-700">{t('wasGuidanceFootnote')}</p>
             </div>
           </details>
 
           {/* Over-limit warning */}
           {voluntaryShareTotal > 33.33 && items.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-800 mb-6">
-              <strong>Over voluntary limit:</strong> {voluntaryShareTotal.toFixed(1)}% is {(voluntaryShareTotal - 33.33).toFixed(1)}% over the 1/3 Sunnah limit.
+              <strong>{t('wasOverLimitTitle')}</strong> {tFmt('wasOverLimitBodyFmt', [voluntaryShareTotal.toFixed(1), (voluntaryShareTotal - 33.33).toFixed(1)])}
               {(() => {
                 const largest = [...items.filter(b => b.shareType !== 'fixed')].sort((a, b) => b.sharePercentage - a.sharePercentage)[0];
                 const excess = voluntaryShareTotal - 33.33;
-                return largest ? ` Reduce "${largest.beneficiaryName}" (${largest.sharePercentage}%) by at least ${excess.toFixed(1)}%.` : '';
+                return largest ? tFmt('wasOverLimitReduceFmt', [largest.beneficiaryName, largest.sharePercentage, excess.toFixed(1)]) : '';
               })()}
             </div>
           )}
@@ -468,11 +509,11 @@ function WasiyyahPageContent() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-semibold text-primary">{b.beneficiaryName}</p>
                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isFixed ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
-                          {isFixed ? 'FARD' : 'VOLUNTARY'}
+                          {isFixed ? t('wasBadgeFard') : t('wasBadgeVoluntary')}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 capitalize">
-                        {b.relationship}{b.assetDescription ? ` · ${b.assetDescription}` : ''}{b.notes ? ` · ${b.notes}` : ''}
+                      <p className="text-sm text-gray-500">
+                        {t(relLabelKey(b.relationship))}{b.assetDescription ? ` · ${b.assetDescription}` : ''}{b.notes ? ` · ${b.notes}` : ''}
                       </p>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
@@ -482,7 +523,7 @@ function WasiyyahPageContent() {
                       <button
                         type="button"
                         onClick={() => setDeleteConfirmId({ type: 'beneficiary', id: b.id })}
-                        aria-label={`Delete beneficiary ${b.beneficiaryName}`}
+                        aria-label={tFmt('wasDeleteBeneficiaryAriaFmt', [b.beneficiaryName])}
                         className="text-gray-300 hover:text-red-500 transition text-lg"
                       >
                         ✕
@@ -495,18 +536,18 @@ function WasiyyahPageContent() {
           ) : (
             <EmptyState
               illustration="mosque"
-              title="Write your wasiyyah today"
-              description="The Prophet (ﷺ) said a Muslim should not sleep two nights without their will written. Add beneficiaries and your family will know exactly what was intended."
+              title={t('wasEmptyBenefTitle')}
+              description={t('wasEmptyBenefDesc')}
               actions={[
-                { label: '+ Add beneficiary', onClick: () => setShowForm(true), primary: true },
-                { label: '📖 Read the guide', onClick: () => setShowSharesInfo(true) },
+                { label: t('wasEmptyBenefAddBtn'), onClick: () => setShowForm(true), primary: true },
+                { label: t('wasEmptyBenefGuideBtn'), onClick: () => setShowSharesInfo(true) },
               ]}
               preview={
                 <div className="space-y-2">
                   {[
-                    { name: 'Spouse', rel: 'Wife', share: '1/8 (12.5%)', tag: 'FARD' },
-                    { name: 'Sons (×2)', rel: 'Children', share: '5/12 each', tag: 'FARD' },
-                    { name: 'Daughter', rel: 'Child', share: '5/24 (20.8%)', tag: 'FARD' },
+                    { name: t('wasSampleSpouse'), rel: t('wasSampleSpouseRel'), share: t('wasSampleSpouseShare'), tag: t('wasBadgeFard') },
+                    { name: t('wasSampleSons'), rel: t('wasSampleSonsRel'), share: t('wasSampleSonsShare'), tag: t('wasBadgeFard') },
+                    { name: t('wasSampleDaughter'), rel: t('wasSampleDaughterRel'), share: t('wasSampleDaughterShare'), tag: t('wasBadgeFard') },
                   ].map((b) => (
                     <div key={b.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                       <div>
@@ -530,16 +571,15 @@ function WasiyyahPageContent() {
       {tab === 'obligations' && (
         <>
           <div className="bg-gradient-to-r from-amber-700 to-orange-600 rounded-2xl p-6 text-white mb-6">
-            <p className="text-amber-200 text-sm">Total Pending Obligations</p>
+            <p className="text-amber-200 text-sm">{t('wasTotalPending')}</p>
             <p className="text-4xl font-bold">{fmt(totalPending)}</p>
             <p className="text-amber-200 text-sm mt-1">
-              {obligations.filter(o => o.status === 'pending').length} obligation(s) to be settled from estate
+              {tFmt('wasPendingCountFmt', [obligations.filter(o => o.status === 'pending').length])}
             </p>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 mb-6">
-            <strong>What are Obligations?</strong> Islamic duties (Wajibat) — unpaid Zakat, Kaffarah, loans etc. — that must be settled
-            in full from your estate <em>before</em> any inheritance is distributed. Not subject to the 1/3 limit.
+            <strong>{t('wasWhatAreObligationsTitle')}</strong> {t('wasWhatAreObligationsBody')}
           </div>
 
           {obligations.length > 0 ? (
@@ -552,8 +592,8 @@ function WasiyyahPageContent() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className="text-lg">{typeInfo.emoji}</span>
-                          <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-0.5 rounded-full">{typeInfo.label}</span>
-                          {ob.status === 'fulfilled' && <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">✓ Fulfilled</span>}
+                          <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-0.5 rounded-full">{t(obTypeLabelKey(typeInfo.value)) || typeInfo.label}</span>
+                          {ob.status === 'fulfilled' && <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">{t('wasFulfilled')}</span>}
                         </div>
                         <p className="font-semibold text-gray-800 truncate">{ob.description}</p>
                         {ob.recipient && <p className="text-sm text-gray-500">→ {ob.recipient}</p>}
@@ -564,14 +604,14 @@ function WasiyyahPageContent() {
                             onClick={() => markFulfilled(ob)}
                             className="text-xs text-primary hover:underline font-medium"
                           >
-                            {ob.status === 'pending' ? '✓ Mark fulfilled' : '↩ Mark pending'}
+                            {ob.status === 'pending' ? t('wasMarkFulfilled') : t('wasMarkPending')}
                           </button>
                           <button
                             type="button"
                             onClick={() => setDeleteConfirmId({ type: 'obligation', id: ob.id })}
                             className="text-xs text-gray-400 hover:text-red-600"
                           >
-                            Delete
+                            {t('wasDelete')}
                           </button>
                         </div>
                       </div>
@@ -586,17 +626,17 @@ function WasiyyahPageContent() {
           ) : (
             <EmptyState
               icon="⚖️"
-              title="Record your Islamic obligations"
-              description="Unpaid Zakat, kaffarah, or loans must be settled from your estate before inheritance is divided. Recording them here makes that easier on your family."
+              title={t('wasEmptyObTitle')}
+              description={t('wasEmptyObDesc')}
               actions={[
-                { label: '+ Record obligation', onClick: () => setShowObForm(true), primary: true },
+                { label: t('wasEmptyObAddBtn'), onClick: () => setShowObForm(true), primary: true },
               ]}
               preview={
                 <div className="space-y-2">
                   {[
-                    { type: '🕌 Unpaid Zakat', desc: 'Zakat for 2024 owed', amt: fmt(640) },
-                    { type: '💰 Unpaid loan', desc: 'Borrowed from Yusuf in 2023', amt: fmt(1200) },
-                    { type: '📿 Kaffarah', desc: 'Broken oath atonement', amt: fmt(60) },
+                    { type: t('wasSampleObZakatType'), desc: t('wasSampleObZakatDesc'), amt: fmt(640) },
+                    { type: t('wasSampleObLoanType'), desc: t('wasSampleObLoanDesc'), amt: fmt(1200) },
+                    { type: t('wasSampleObKaffType'), desc: t('wasSampleObKaffDesc'), amt: fmt(60) },
                   ].map((o) => (
                     <div key={o.type} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                       <div>
@@ -619,10 +659,10 @@ function WasiyyahPageContent() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-2xl">📖</span>
-              <h2 className="text-xl font-bold text-primary">Islamic Inheritance Guide</h2>
+              <h2 className="text-xl font-bold text-primary">{t('wasInheritanceGuideTitle')}</h2>
             </div>
             <p className="text-sm font-semibold text-primary mb-3">
-              Qur&apos;anic Inheritance Shares (Surah An-Nisa 4:11-12)
+              {t('wasQuranicShares')}
             </p>
             {Object.keys(islamicShares).length > 0 ? (
               <div className="space-y-2 mb-4">
@@ -630,28 +670,25 @@ function WasiyyahPageContent() {
                   <div key={rel} className="flex gap-3 items-start py-2 border-b border-gray-100 last:border-0">
                     <span className="text-xl flex-shrink-0">{relEmoji(rel)}</span>
                     <div>
-                      <p className="font-semibold text-gray-800 capitalize">{rel}</p>
+                      <p className="font-semibold text-gray-800">{t(relLabelKey(rel))}</p>
                       <p className="text-sm text-gray-600">{desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500 mb-4">Quranic share data unavailable.</p>
+              <p className="text-sm text-gray-500 mb-4">{t('wasSharesUnavailable')}</p>
             )}
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-800 mb-4">
-              <strong className="block mb-1">Important Disclaimer</strong>
-              These calculations provide general guidance based on Qur&apos;anic shares (Surah An-Nisa 4:11-12).
-              Actual inheritance depends on: (1) complete family composition, (2) presence of &apos;Asaba (male residuary heirs),
-              (3) your madhab, (4) local laws. <strong>Consult a qualified Islamic scholar (Mufti) and legal
-              professional for your specific situation before finalizing any estate distribution.</strong>
+              <strong className="block mb-1">{t('wasDisclaimerTitle')}</strong>
+              {t('wasDisclaimerBody')} <strong>{t('wasDisclaimerCta')}</strong>
             </div>
             <button
               type="button"
               onClick={() => setShowSharesInfo(false)}
               className="w-full bg-primary text-primary-foreground rounded-lg py-2.5 font-medium hover:bg-primary/90"
             >
-              Close
+              {t('wasClose')}
             </button>
           </div>
         </div>
@@ -661,7 +698,7 @@ function WasiyyahPageContent() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-primary mb-4">Add Beneficiary</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">{t('wasAddBenefTitle')}</h2>
             {formError && (
               <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg mb-4">
                 ⚠️ {formError}
@@ -670,19 +707,19 @@ function WasiyyahPageContent() {
             <div className="space-y-4">
               {/* Name */}
               <div>
-                <label htmlFor="ben-name" className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <label htmlFor="ben-name" className="block text-sm font-medium text-gray-700 mb-1">{t('wasFieldNameLabel')}</label>
                 <input
                   id="ben-name"
                   value={form.beneficiaryName}
                   onChange={e => setForm({ ...form, beneficiaryName: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                  placeholder="Full name"
+                  placeholder={t('wasFieldNamePh')}
                 />
               </div>
 
               {/* Relationship dropdown with emoji */}
               <div>
-                <label htmlFor="ben-rel" className="block text-sm font-medium text-gray-700 mb-1">Relationship *</label>
+                <label htmlFor="ben-rel" className="block text-sm font-medium text-gray-700 mb-1">{t('wasFieldRelLabel')}</label>
                 <select
                   id="ben-rel"
                   value={form.relationship}
@@ -690,7 +727,7 @@ function WasiyyahPageContent() {
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
                 >
                   {RELATIONSHIPS.map(r => (
-                    <option key={r.value} value={r.value}>{r.emoji} {r.label}</option>
+                    <option key={r.value} value={r.value}>{r.emoji} {t(relLabelKey(r.value))}</option>
                   ))}
                 </select>
               </div>
@@ -698,7 +735,7 @@ function WasiyyahPageContent() {
               {/* Share type + percentage in a row */}
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label htmlFor="ben-share" className="block text-sm font-medium text-gray-700 mb-1">Share % *</label>
+                  <label htmlFor="ben-share" className="block text-sm font-medium text-gray-700 mb-1">{t('wasFieldShareLabel')}</label>
                   <input
                     id="ben-share"
                     type="number"
@@ -708,49 +745,49 @@ function WasiyyahPageContent() {
                     value={form.sharePercentage}
                     onChange={e => setForm({ ...form, sharePercentage: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                    placeholder="10"
+                    placeholder={t('wasFieldSharePh')}
                   />
                 </div>
                 <div className="w-44">
-                  <label htmlFor="ben-type" className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                  <label htmlFor="ben-type" className="block text-sm font-medium text-gray-700 mb-1">{t('wasFieldTypeLabel')}</label>
                   <select
                     id="ben-type"
                     value={form.shareType}
                     onChange={e => setForm({ ...form, shareType: e.target.value as 'fixed' | 'voluntary' })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm"
                   >
-                    <option value="fixed">Fixed (Fard)</option>
-                    <option value="voluntary">Voluntary</option>
+                    <option value="fixed">{t('wasTypeFixed')}</option>
+                    <option value="voluntary">{t('wasTypeVoluntary')}</option>
                   </select>
                 </div>
               </div>
               {form.shareType === 'voluntary' && (
                 <p className="text-xs text-orange-600 -mt-2">
-                  Remaining voluntary: <strong>{voluntaryRemaining.toFixed(1)}%</strong>
+                  {tFmt('wasRemainingVolFmt', [voluntaryRemaining.toFixed(1)])}
                 </p>
               )}
 
               {/* Asset Description */}
               <div>
-                <label htmlFor="ben-asset" className="block text-sm font-medium text-gray-700 mb-1">Asset Description (optional)</label>
+                <label htmlFor="ben-asset" className="block text-sm font-medium text-gray-700 mb-1">{t('wasFieldAssetLabel')}</label>
                 <input
                   id="ben-asset"
                   value={form.assetDescription}
                   onChange={e => setForm({ ...form, assetDescription: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                  placeholder="e.g. Property at 12 Oak Street, savings account"
+                  placeholder={t('wasFieldAssetPh')}
                 />
               </div>
 
               {/* Notes */}
               <div>
-                <label htmlFor="ben-notes" className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                <label htmlFor="ben-notes" className="block text-sm font-medium text-gray-700 mb-1">{t('wasFieldNotesLabel')}</label>
                 <input
                   id="ben-notes"
                   value={form.notes}
                   onChange={e => setForm({ ...form, notes: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                  placeholder="Any additional instructions"
+                  placeholder={t('wasFieldNotesPh')}
                 />
               </div>
             </div>
@@ -760,7 +797,7 @@ function WasiyyahPageContent() {
                 onClick={() => { setShowForm(false); setFormError(null); }}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
               >
-                Cancel
+                {t('wasCancel')}
               </button>
               <button
                 type="button"
@@ -768,7 +805,7 @@ function WasiyyahPageContent() {
                 disabled={saving || !form.beneficiaryName || !form.sharePercentage}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
-                {saving ? 'Saving...' : 'Add Beneficiary'}
+                {saving ? t('wasSaving') : t('wasAddBenefSubmit')}
               </button>
             </div>
           </div>
@@ -779,38 +816,38 @@ function WasiyyahPageContent() {
       {showObForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-primary mb-1">Record an Obligation</h2>
-            <p className="text-sm text-gray-500 mb-4">An Islamic duty to be settled from your estate</p>
+            <h2 className="text-xl font-bold text-primary mb-1">{t('wasRecordObTitle')}</h2>
+            <p className="text-sm text-gray-500 mb-4">{t('wasRecordObSubtitle')}</p>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type of Obligation</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('wasObTypeLabel')}</label>
                 <div className="flex flex-wrap gap-2">
-                  {OBLIGATION_TYPES.map(t => (
+                  {OBLIGATION_TYPES.map(ot => (
                     <button
-                      key={t.value}
+                      key={ot.value}
                       type="button"
-                      onClick={() => setObForm({ ...obForm, type: t.value })}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium transition ${obForm.type === t.value ? 'bg-primary border-primary text-white' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                      onClick={() => setObForm({ ...obForm, type: ot.value })}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium transition ${obForm.type === ot.value ? 'bg-primary border-primary text-white' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
                     >
-                      <span>{t.emoji}</span> {t.label}
+                      <span>{ot.emoji}</span> {t(obTypeLabelKey(ot.value))}
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-2 italic">{OBLIGATION_TYPES.find(t => t.value === obForm.type)?.desc}</p>
+                <p className="text-xs text-gray-500 mt-2 italic">{t(obTypeDescKey(obForm.type))}</p>
               </div>
               <div>
-                <label htmlFor="ob-desc" className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                <label htmlFor="ob-desc" className="block text-sm font-medium text-gray-700 mb-1">{t('wasObDescLabel')}</label>
                 <input
                   id="ob-desc"
                   value={obForm.description}
                   onChange={e => setObForm({ ...obForm, description: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                  placeholder={obForm.type === 'ZAKAT' ? 'e.g. Zakat for 2024 — held back due to illness' : obForm.type === 'UNPAID_LOAN' ? 'e.g. £500 borrowed from Ahmed in 2022' : 'Brief description'}
+                  placeholder={obForm.type === 'ZAKAT' ? t('wasObDescPhZakat') : obForm.type === 'UNPAID_LOAN' ? t('wasObDescPhLoan') : t('wasObDescPhGeneric')}
                 />
               </div>
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label htmlFor="ob-amount" className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+                  <label htmlFor="ob-amount" className="block text-sm font-medium text-gray-700 mb-1">{t('wasObAmountLabel')}</label>
                   <input
                     id="ob-amount"
                     type="number"
@@ -819,11 +856,11 @@ function WasiyyahPageContent() {
                     value={obForm.amount}
                     onChange={e => setObForm({ ...obForm, amount: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                    placeholder="0.00"
+                    placeholder={t('wasObAmountPh')}
                   />
                 </div>
                 <div className="w-28">
-                  <label htmlFor="ob-currency" className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                  <label htmlFor="ob-currency" className="block text-sm font-medium text-gray-700 mb-1">{t('wasObCurrencyLabel')}</label>
                   <select
                     id="ob-currency"
                     value={obForm.currency}
@@ -835,36 +872,36 @@ function WasiyyahPageContent() {
                 </div>
               </div>
               <div>
-                <label htmlFor="ob-recipient" className="block text-sm font-medium text-gray-700 mb-1">Who should receive this? (optional)</label>
+                <label htmlFor="ob-recipient" className="block text-sm font-medium text-gray-700 mb-1">{t('wasObRecipientLabel')}</label>
                 <input
                   id="ob-recipient"
                   value={obForm.recipient}
                   onChange={e => setObForm({ ...obForm, recipient: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                  placeholder="e.g. Local mosque, Ahmed ibn Ibrahim"
+                  placeholder={t('wasObRecipientPh')}
                 />
               </div>
               <div>
-                <label htmlFor="ob-notes" className="block text-sm font-medium text-gray-700 mb-1">Notes for family (optional)</label>
+                <label htmlFor="ob-notes" className="block text-sm font-medium text-gray-700 mb-1">{t('wasObNotesLabel')}</label>
                 <textarea
                   id="ob-notes"
                   value={obForm.notes}
                   onChange={e => setObForm({ ...obForm, notes: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none"
                   rows={3}
-                  placeholder="Any context your family needs to fulfil this obligation..."
+                  placeholder={t('wasObNotesPh')}
                 />
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button type="button" onClick={() => setShowObForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => setShowObForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('wasCancel')}</button>
               <button
                 type="button"
                 onClick={handleObSave}
                 disabled={saving || !obForm.description || !obForm.amount}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
-                {saving ? 'Saving...' : 'Record Obligation'}
+                {saving ? t('wasSaving') : t('wasObSubmit')}
               </button>
             </div>
           </div>
@@ -878,13 +915,13 @@ function WasiyyahPageContent() {
             <div className="flex items-start gap-3 mb-4">
               <span className="text-2xl">🗑️</span>
               <div>
-                <h3 className="font-bold text-gray-900">Remove {deleteConfirmId.type}?</h3>
-                <p className="text-sm text-gray-600 mt-1">This will be permanently removed from your wasiyyah.</p>
+                <h3 className="font-bold text-gray-900">{tFmt('wasDelTitleFmt', [deleteConfirmId.type === 'beneficiary' ? t('wasDelBenefType') : t('wasDelObType')])}</h3>
+                <p className="text-sm text-gray-600 mt-1">{t('wasDelBody')}</p>
               </div>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteConfirmId(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={confirmDeleteItem} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Remove</button>
+              <button onClick={() => setDeleteConfirmId(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('wasCancel')}</button>
+              <button onClick={confirmDeleteItem} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('wasRemove')}</button>
             </div>
           </div>
         </div>

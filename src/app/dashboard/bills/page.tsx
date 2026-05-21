@@ -5,6 +5,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n, t as tStandalone, tFmt as tFmtStandalone } from '../../../lib/i18n';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
@@ -28,18 +29,23 @@ interface BillItem {
 
 const FREQS = ['weekly', 'monthly', 'quarterly', 'yearly', 'one_time'];
 
-const CATEGORIES: { value: string; label: string; icon: string }[] = [
-  { value: 'utilities',      label: 'Utilities',       icon: '💡' },
-  { value: 'housing',        label: 'Housing / Rent',  icon: '🏠' },
-  { value: 'internet',       label: 'Internet / Phone',icon: '📡' },
-  { value: 'insurance',      label: 'Insurance',       icon: '🛡️' },
-  { value: 'subscriptions',  label: 'Subscriptions',   icon: '📱' },
-  { value: 'healthcare',     label: 'Healthcare',      icon: '🏥' },
-  { value: 'education',      label: 'Education',       icon: '📚' },
-  { value: 'transport',      label: 'Transport',       icon: '🚗' },
-  { value: 'debt',           label: 'Debt Payment',    icon: '💳' },
-  { value: 'charity',        label: 'Charity / Zakat', icon: '🤲' },
-  { value: 'other',          label: 'Other',           icon: '📋' },
+const FREQ_KEY_MAP: Record<string, string> = {
+  weekly: 'billsFreqWeekly', monthly: 'billsFreqMonthly', quarterly: 'billsFreqQuarterly',
+  yearly: 'billsFreqYearly', one_time: 'billsFreqOneTime', 'one-time': 'billsFreqOneTime',
+};
+
+const CATEGORIES: { value: string; labelKey: string; icon: string }[] = [
+  { value: 'utilities',      labelKey: 'billsCatUtilities',     icon: '💡' },
+  { value: 'housing',        labelKey: 'billsCatHousing',       icon: '🏠' },
+  { value: 'internet',       labelKey: 'billsCatInternet',      icon: '📡' },
+  { value: 'insurance',      labelKey: 'billsCatInsurance',     icon: '🛡️' },
+  { value: 'subscriptions',  labelKey: 'billsCatSubscriptions', icon: '📱' },
+  { value: 'healthcare',     labelKey: 'billsCatHealthcare',    icon: '🏥' },
+  { value: 'education',      labelKey: 'billsCatEducation',     icon: '📚' },
+  { value: 'transport',      labelKey: 'billsCatTransport',     icon: '🚗' },
+  { value: 'debt',           labelKey: 'billsCatDebt',          icon: '💳' },
+  { value: 'charity',        labelKey: 'billsCatCharity',       icon: '🤲' },
+  { value: 'other',          labelKey: 'billsCatOther',         icon: '📋' },
 ];
 
 const CAT_MAP = Object.fromEntries(CATEGORIES.map(c => [c.value, c]));
@@ -59,7 +65,7 @@ function getDaysUntilDue(bill: BillItem): number | null {
 }
 
 function formatDueDate(bill: BillItem): string {
-  if (!bill.nextDueDate) return `Day ${bill.dueDay}`;
+  if (!bill.nextDueDate) return tFmtStandalone('billsDayPrefixFmt', [bill.dueDay]);
   const dueDate = new Date(bill.nextDueDate);
   // Use UTC to prevent local timezone shifting the day backwards (off-by-one fix)
   return dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' });
@@ -104,18 +110,18 @@ function BillRow({ b, now, deletingId, dismissingName, onPaid, onEdit, onDelete,
         <span className="text-2xl">{getCatIcon(b.category)}</span>
         <div>
           <p className="font-semibold text-gray-900">{b.name}</p>
-          <p className="text-sm text-gray-500 capitalize">
-            {CAT_MAP[b.category]?.label ?? b.category} • {b.frequency}
+          <p className="text-sm text-gray-500">
+            {CAT_MAP[b.category] ? tStandalone(CAT_MAP[b.category].labelKey) : b.category} • {tStandalone(FREQ_KEY_MAP[b.frequency] ?? '') || b.frequency}
             {b.nextDueDate && !b.paid && (
               <span className={`ml-2 font-medium ${isOverdue ? 'text-red-600' : isUpcoming ? 'text-orange-600' : 'text-gray-500'}`}>
-                • {isOverdue ? `Overdue (${formatDueDate(b)})` : days === 0 ? `Due today (${formatDueDate(b)})` : `Due ${formatDueDate(b)}${days !== null && days <= 7 ? ` (${days}d)` : ''}`}
+                • {isOverdue ? tFmtStandalone('billsOverduePrefixFmt', [formatDueDate(b)]) : days === 0 ? tFmtStandalone('billsDueTodayPrefixFmt', [formatDueDate(b)]) : (days !== null && days <= 7 ? tFmtStandalone('billsDueWithDaysFmt', [formatDueDate(b), days]) : tFmtStandalone('billsDuePrefixFmt', [formatDueDate(b)]))}
               </span>
             )}
-            {b.paid && <span className="ml-2 text-green-600 font-medium">✓ Paid</span>}
+            {b.paid && <span className="ml-2 text-green-600 font-medium">{tStandalone('billsPaidBadge')}</span>}
           </p>
           {b.readOnly && (
             <p className="text-xs text-gray-400 mt-1">
-              {b.sourceLabel ?? 'Linked reminder'}{b.description ? ` • ${b.description}` : ''}
+              {b.sourceLabel ?? tStandalone('billsLinkedReminder')}{b.description ? ` • ${b.description}` : ''}
             </p>
           )}
         </div>
@@ -126,11 +132,11 @@ function BillRow({ b, now, deletingId, dismissingName, onPaid, onEdit, onDelete,
         </p>
         {!b.paid && !b.readOnly && (
           <button type="button" onClick={() => onPaid(b.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 whitespace-nowrap">
-            ✓ Paid
+            {tStandalone('billsPaidBtn')}
           </button>
         )}
         {!b.readOnly && <button type="button" onClick={() => onEdit(b)} className="text-gray-400 hover:text-primary text-sm px-1">✏️</button>}
-        {!b.readOnly && <button type="button" onClick={() => onDelete(b.id)} disabled={deletingId === b.id} className="text-gray-400 hover:text-red-600 text-sm px-1 disabled:opacity-50" title={deletingId === b.id ? 'Deleting...' : 'Delete'}>{deletingId === b.id ? '⏳' : '🗑️'}</button>}
+        {!b.readOnly && <button type="button" onClick={() => onDelete(b.id)} disabled={deletingId === b.id} className="text-gray-400 hover:text-red-600 text-sm px-1 disabled:opacity-50" title={deletingId === b.id ? tStandalone('billsDeleting') : tStandalone('billsDeleteTitleSimple')}>{deletingId === b.id ? '⏳' : '🗑️'}</button>}
         {/* 2026-05-13: dismiss action for detected-subscription rows. Tells
             the backend to add this merchant to dismissed_subscriptions so
             the detector stops surfacing it under Bills / Subscriptions on
@@ -141,9 +147,9 @@ function BillRow({ b, now, deletingId, dismissingName, onPaid, onEdit, onDelete,
             onClick={() => onDismissDetected(b)}
             disabled={isDismissing}
             className="text-xs text-gray-500 border border-gray-200 rounded-lg px-2.5 py-1 hover:border-red-300 hover:text-red-600 transition disabled:opacity-50 whitespace-nowrap"
-            title="Tell Barakah this isn't actually a subscription so it stops appearing under Bills."
+            title={tStandalone('billsDismissTitle')}
           >
-            {isDismissing ? 'Removing…' : 'Not a subscription'}
+            {isDismissing ? tStandalone('billsDismissingBtn') : tStandalone('billsDismissBtn')}
           </button>
         )}
       </div>
@@ -222,8 +228,8 @@ function FrequencyBreakdownCard({
   return (
     <div className="bg-white rounded-2xl shadow-sm mb-5 overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-100">
-        <h2 className="font-semibold text-gray-900">Breakdown by frequency</h2>
-        <p className="text-xs text-gray-500 mt-0.5">Click a row to see the bills that make up that frequency.</p>
+        <h2 className="font-semibold text-gray-900">{tStandalone('billsBreakdownHeading')}</h2>
+        <p className="text-xs text-gray-500 mt-0.5">{tStandalone('billsBreakdownSubtitle')}</p>
       </div>
       <ul className="divide-y divide-gray-100">
         {entries.map(([freq, entry]) => {
@@ -242,7 +248,7 @@ function FrequencyBreakdownCard({
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{freqLabels[freq] ?? freq}</p>
-                    <p className="text-xs text-gray-500">{entry.count} bill{entry.count === 1 ? '' : 's'} · ~{fmt(entry.monthlyEquivalent)}/mo</p>
+                    <p className="text-xs text-gray-500">{entry.count === 1 ? tFmtStandalone('billsBreakdownBillSingularFmt', [entry.count, fmt(entry.monthlyEquivalent)]) : tFmtStandalone('billsBreakdownBillPluralFmt', [entry.count, fmt(entry.monthlyEquivalent)])}</p>
                   </div>
                 </div>
                 <p className="text-sm font-bold text-gray-900 whitespace-nowrap">{fmt(entry.total)}</p>
@@ -254,7 +260,7 @@ function FrequencyBreakdownCard({
                     .sort((a, b) => (b.amount ?? 0) - (a.amount ?? 0))
                     .map((b) => (
                       <li key={b.id} className="flex justify-between items-center py-1.5">
-                        <span className="text-sm text-gray-700">{b.name || '(unnamed bill)'}</span>
+                        <span className="text-sm text-gray-700">{b.name || tStandalone('billsUnnamed')}</span>
                         <span className="text-sm font-medium text-gray-900">{fmt(b.amount)}</span>
                       </li>
                     ))}
@@ -285,6 +291,7 @@ export default function BillsPage() {
   // 2026-05-02: lock body scroll while any modal is open.
   useBodyScrollLock(showForm || deleteConfirmation !== null);
   const { toast } = useToast();
+  const { t, tFmt } = useI18n();
 
   // ── Modal accessibility: focus trap + Escape close ──────────────────────
   const formModalRef = useRef<HTMLDivElement>(null);
@@ -318,8 +325,11 @@ export default function BillsPage() {
         }
         setBills(Array.isArray(d?.bills) ? d.bills : Array.isArray(d) ? d : []);
       })
-      .catch(() => toast('Failed to load bills', 'error'))
+      .catch(() => toast(t('billsLoadError'), 'error'))
       .finally(() => setLoading(false));
+    // `t` is a fresh identity each render; including it would make `load` a new
+    // function every render and the `[load]` effect refire forever. Keep `toast`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
 
   useEffect(() => { load(); }, [load]);
@@ -341,31 +351,31 @@ export default function BillsPage() {
     try {
       const amt = parseFloat(form.amount);
       // Validate amount: must be finite, positive, and reasonable
-      if (!Number.isFinite(amt) || amt <= 0) { toast('Bill amount must be a positive number', 'error'); setSaving(false); return; }
+      if (!Number.isFinite(amt) || amt <= 0) { toast(t('billsAmountPositiveError'), 'error'); setSaving(false); return; }
       const MAX_VALUE = 1_000_000_000; // 1 billion max
-      if (amt > MAX_VALUE) { toast(`Bill amount cannot exceed $${MAX_VALUE.toLocaleString()}`, 'error'); setSaving(false); return; }
+      if (amt > MAX_VALUE) { toast(tFmt('billsAmountMaxErrorFmt', [`$${MAX_VALUE.toLocaleString()}`]), 'error'); setSaving(false); return; }
       // Check decimal precision (max 2 decimal places for currency)
       if (!/^\d+(\.\d{1,2})?$/.test(form.amount.trim())) {
-        toast('Please enter an amount with up to 2 decimal places', 'error');
+        toast(t('billsDecimalError'), 'error');
         setSaving(false);
         return;
       }
       const day = parseInt(form.dueDay, 10);
-      if (isNaN(day) || day < 1 || day > 31) { toast('Due day must be between 1 and 31', 'error'); setSaving(false); return; }
+      if (isNaN(day) || day < 1 || day > 31) { toast(t('billsDueDayError'), 'error'); setSaving(false); return; }
       const payload = { ...form, amount: amt, dueDay: day };
       if (editBill) {
         await api.updateBill(editBill.id, payload);
-        toast('Bill updated', 'success');
+        toast(t('billsUpdated'), 'success');
       } else {
         await api.addBill(payload);
-        toast('Bill added', 'success');
+        toast(t('billsAdded'), 'success');
       }
       setShowForm(false);
       setEditBill(null);
       setForm(emptyForm);
       load();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to save bill';
+      const msg = err instanceof Error ? err.message : t('billsSaveError');
       toast(msg, 'error');
     }
     setSaving(false);
@@ -374,10 +384,10 @@ export default function BillsPage() {
   const handlePaid = async (id: number) => {
     try {
       await api.markBillPaid(id);
-      toast('Bill marked as paid', 'success');
+      toast(t('billsPaidToast'), 'success');
       load();
     } catch {
-      toast('Failed to mark bill as paid', 'error');
+      toast(t('billsPaidError'), 'error');
     }
   };
 
@@ -392,9 +402,9 @@ export default function BillsPage() {
     setDeletingId(id);
     try {
       await api.deleteBill(id);
-      toast('Bill deleted', 'success');
+      toast(t('billsDeletedToast'), 'success');
     } catch {
-      toast('Failed to delete bill', 'error');
+      toast(t('billsDeleteError'), 'error');
     } finally {
       setDeletingId(null);
       load();
@@ -423,10 +433,10 @@ export default function BillsPage() {
       // responses that don't yet expose dismissKey.
       const keyForDismissal = b.dismissKey ?? b.name;
       await api.dismissSubscription(keyForDismissal, 'user_marked_not_a_subscription');
-      toast(`Stopped tracking '${b.name}' as a subscription.`, 'success');
+      toast(tFmt('billsDismissSuccessFmt', [b.name]), 'success');
       load();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to dismiss subscription';
+      const msg = err instanceof Error ? err.message : t('billsDismissError');
       toast(msg, 'error');
     } finally {
       setDismissingName(null);
@@ -475,12 +485,12 @@ export default function BillsPage() {
   // amounts." Group bills by frequency, sort by monthly equivalent
   // descending. The card below the stats row exposes this.
   const FREQ_LABELS: Record<string, string> = {
-    weekly:     'Weekly',
-    monthly:    'Monthly',
-    quarterly:  'Quarterly',
-    yearly:     'Yearly',
-    one_time:   'One-time',
-    'one-time': 'One-time',
+    weekly:     t('billsFreqWeekly'),
+    monthly:    t('billsFreqMonthly'),
+    quarterly:  t('billsFreqQuarterly'),
+    yearly:     t('billsFreqYearly'),
+    one_time:   t('billsFreqOneTime'),
+    'one-time': t('billsFreqOneTime'),
   };
   function freqMonthlyEquivalent(amount: number, frequency: string): number {
     if (frequency === 'monthly')    return amount;
@@ -504,10 +514,10 @@ export default function BillsPage() {
   return (
     <div>
       <PageHeader
-        title="Bills & Reminders"
-        subtitle="Upcoming dues with overdue alerts and recurring schedules"
+        title={t('billsTitle')}
+        subtitle={t('billsSubtitle')}
         actions={
-          <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Bill</button>
+          <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">{t('billsAddBtn')}</button>
         }
       />
 
@@ -519,19 +529,19 @@ export default function BillsPage() {
         style={{ viewTransitionName: 'bills-hero' }}
       >
         <div className="bg-white rounded-xl p-4">
-          <p className="text-gray-500 text-xs">Total Bills</p>
+          <p className="text-gray-500 text-xs">{t('billsTotalBills')}</p>
           <p className="text-2xl font-bold text-primary">{bills.length}</p>
         </div>
         <div className="bg-white rounded-xl p-4">
-          <p className="text-gray-500 text-xs">Overdue</p>
+          <p className="text-gray-500 text-xs">{t('billsOverdueLabel')}</p>
           <p className={`text-2xl font-bold ${overdue.length > 0 ? 'text-red-600' : 'text-gray-400'}`}>{overdue.length}</p>
         </div>
         <div className="bg-white rounded-xl p-4">
-          <p className="text-gray-500 text-xs">Due this Week</p>
+          <p className="text-gray-500 text-xs">{t('billsDueThisWeek')}</p>
           <p className={`text-2xl font-bold ${upcoming.length > 0 ? 'text-orange-500' : 'text-gray-400'}`}>{upcoming.length}</p>
         </div>
         <div className="bg-white rounded-xl p-4">
-          <p className="text-gray-500 text-xs">Est. Monthly</p>
+          <p className="text-gray-500 text-xs">{t('billsEstMonthly')}</p>
           <p className="text-2xl font-bold text-gray-700">{fmt(monthlyTotal)}</p>
         </div>
       </div>
@@ -562,38 +572,36 @@ export default function BillsPage() {
                 producing "You have 1 overdue bill / Mark them as paid once
                 you've settled them." for single-bill accounts. Mirror the
                 title's pluralisation in the body pronoun. */}
-            <p className="font-semibold text-red-800">You have {overdue.length} overdue bill{overdue.length > 1 ? 's' : ''}</p>
+            <p className="font-semibold text-red-800">{overdue.length > 1 ? tFmt('billsOverdueTitlePluralFmt', [overdue.length]) : tFmt('billsOverdueTitleSingFmt', [overdue.length])}</p>
             <p className="text-sm text-red-700 mt-0.5">
-              {overdue.length === 1
-                ? <>Mark it as paid once you&apos;ve settled it.</>
-                : <>Mark them as paid once you&apos;ve settled them.</>}
+              {overdue.length === 1 ? t('billsOverdueBodySingle') : t('billsOverdueBodyPlural')}
             </p>
           </div>
         </div>
       )}
 
       {/* Sections */}
-      <Section title="🔴 Overdue"      items={overdue}   color="text-red-700"    now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
-      <Section title="🟠 Due This Week" items={upcoming}  color="text-orange-600" now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
-      <Section title="🗓️ Upcoming"     items={future}    color="text-gray-700"   now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
-      <Section title="📋 Scheduled"    items={noDueDate} color="text-gray-500"   now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
-      <Section title="✅ Paid"          items={paid}      color="text-green-700"  now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+      <Section title={t('billsSectionOverdue')}      items={overdue}   color="text-red-700"    now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+      <Section title={t('billsSectionDueWeek')} items={upcoming}  color="text-orange-600" now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+      <Section title={t('billsSectionUpcoming')}     items={future}    color="text-gray-700"   now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+      <Section title={t('billsSectionScheduled')}    items={noDueDate} color="text-gray-500"   now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+      <Section title={t('billsSectionPaid')}          items={paid}      color="text-green-700"  now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
 
       {bills.length === 0 && (
         <EmptyState
           illustration="receipt"
-          title="No bills added yet"
-          description="Track your recurring bills so you never miss a due date — Barakah sends a reminder 3 days before each one."
+          title={t('billsEmptyTitle')}
+          description={t('billsEmptyDesc')}
           actions={[
-            { label: '+ Add bill', onClick: openAdd, primary: true },
-            { label: 'Auto-detect from bank', href: '/dashboard/import' },
+            { label: t('billsEmptyAddBtn'), onClick: openAdd, primary: true },
+            { label: t('billsEmptyAutoDetect'), href: '/dashboard/import' },
           ]}
           preview={
             <div className="space-y-2">
               {[
-                { name: 'Mortgage', amt: fmt(1840), due: 'Due in 5 days', status: 'upcoming' },
-                { name: 'Internet', amt: fmt(79.99), due: 'Due tomorrow', status: 'soon' },
-                { name: 'Phone', amt: fmt(45), due: 'Paid', status: 'paid' },
+                { name: t('billsSampleName1'), amt: fmt(1840), due: t('billsSampleDue1'), status: 'upcoming' },
+                { name: t('billsSampleName2'), amt: fmt(79.99), due: t('billsSampleDue2'), status: 'soon' },
+                { name: t('billsSampleName3'), amt: fmt(45), due: t('billsSampleDue3'), status: 'paid' },
               ].map((b) => (
                 <div key={b.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                   <div>
@@ -618,52 +626,52 @@ export default function BillsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editBill ? 'Edit Bill' : 'Add Bill'}</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editBill ? t('billsModalEditTitle') : t('billsModalAddTitle')}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldName')}</label>
                 <input
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
-                  placeholder="e.g. Electric Bill"
+                  placeholder={t('billsNamePlaceholder')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldCategory')}</label>
                 <select
                   value={form.category}
                   onChange={e => setForm({ ...form, category: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
                 >
                   {CATEGORIES.map(c => (
-                    <option key={c.value} value={c.value}>{c.icon} {c.label}</option>
+                    <option key={c.value} value={c.value}>{c.icon} {t(c.labelKey)}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldAmount')}</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={form.amount}
                   onChange={e => setForm({ ...form, amount: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
-                  placeholder="0.00"
+                  placeholder={t('billsAmountPlaceholder')}
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldFrequency')}</label>
                   <select
                     value={form.frequency}
                     onChange={e => setForm({ ...form, frequency: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
                   >
-                    {FREQS.map(f => <option key={f} value={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</option>)}
+                    {FREQS.map(f => <option key={f} value={f}>{t(FREQ_KEY_MAP[f] || 'billsFreqMonthly')}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Due Day (1-31)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldDueDay')}</label>
                   <input
                     type="number" min="1" max="31"
                     value={form.dueDay}
@@ -676,11 +684,11 @@ export default function BillsPage() {
             <div className="flex gap-3 mt-6">
               <button
                 type="button"
-                aria-label="Close add bill modal"
+                aria-label={t('billsCloseAddAria')}
                 onClick={() => { setShowForm(false); setEditBill(null); }}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
               >
-                Cancel
+                {t('billsCancel')}
               </button>
               <button
                 type="button"
@@ -688,7 +696,7 @@ export default function BillsPage() {
                 disabled={saving || !form.name || !form.amount}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
-                {saving ? 'Saving...' : (editBill ? 'Save Changes' : 'Add Bill')}
+                {saving ? t('billsSaving') : (editBill ? t('billsSaveChanges') : t('billsAddBtnFull'))}
               </button>
             </div>
           </div>
@@ -708,18 +716,18 @@ export default function BillsPage() {
             <div className="flex items-start gap-3 mb-4">
               <span className="text-2xl">🗑️</span>
               <div className="flex-1">
-                <h3 id="modal-title" className="font-bold text-gray-900">Delete bill?</h3>
-                <p className="text-sm text-gray-600 mt-1">This bill will be permanently deleted and cannot be undone.</p>
+                <h3 id="modal-title" className="font-bold text-gray-900">{t('billsDeleteTitle')}</h3>
+                <p className="text-sm text-gray-600 mt-1">{t('billsDeleteBody')}</p>
               </div>
             </div>
             <div className="flex gap-3">
               <button
                 type="button"
-                aria-label="Close delete bill modal"
+                aria-label={t('billsCloseDeleteAria')}
                 onClick={() => setDeleteConfirmation(null)}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50 font-medium"
               >
-                Cancel
+                {t('billsCancel')}
               </button>
               <button
                 type="button"
@@ -727,7 +735,7 @@ export default function BillsPage() {
                 disabled={deletingId === deleteConfirmation}
                 className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700 font-medium disabled:opacity-50"
               >
-                {deletingId === deleteConfirmation ? 'Deleting...' : 'Delete'}
+                {deletingId === deleteConfirmation ? t('billsDeletingBtn') : t('billsDelete')}
               </button>
             </div>
           </div>

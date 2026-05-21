@@ -11,6 +11,7 @@ import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { SkeletonPage } from '../SkeletonCard';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
+import { useI18n, t as tStandalone, tFmt as tFmtStandalone } from '../../../lib/i18n';
 
 interface DebtItem {
   id: number;
@@ -34,9 +35,16 @@ interface DebtItem {
 
 const TYPES = ['islamic_mortgage', 'conventional_mortgage', 'personal_loan', 'student_loan', 'car_loan', 'qard_hasan', 'credit_card', 'business_loan', 'other'];
 const ISLAMIC_TYPES = ['islamic_mortgage', 'qard_hasan'];
-const TYPE_LABELS: Record<string, string> = {
-  islamic_mortgage: 'Islamic Mortgage', conventional_mortgage: 'Conventional Mortgage', personal_loan: 'Personal Loan', student_loan: 'Student Loan',
-  car_loan: 'Car Loan', qard_hasan: "Qard Hasan (Interest-Free)", credit_card: 'Credit Card', business_loan: 'Business Loan', other: 'Other',
+const TYPE_LABEL_KEYS: Record<string, string> = {
+  islamic_mortgage: 'debtTypeIslamicMortgage',
+  conventional_mortgage: 'debtTypeConventionalMortgage',
+  personal_loan: 'debtTypePersonalLoan',
+  student_loan: 'debtTypeStudentLoan',
+  car_loan: 'debtTypeCarLoan',
+  qard_hasan: 'debtTypeQardHasan',
+  credit_card: 'debtTypeCreditCard',
+  business_loan: 'debtTypeBusinessLoan',
+  other: 'debtTypeOther',
 };
 
 const emptyForm = { name: '', type: 'qard_hasan', totalAmount: '', remainingAmount: '', monthlyPayment: '', interestRate: '0', lender: '', ribaFree: true };
@@ -104,15 +112,6 @@ interface BackendStrategiesResponse {
 function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' | 'snowball' = 'avalanche') {
   if (!rawDebts.length) return { months: 0, totalInterest: 0, schedule: [] };
 
-  // R6-C3 (2026-04-18): accumulate in integer cents instead of floats.
-  // The previous implementation ran up to 600 iterations of
-  //   d.balance = parseFloat((d.balance + parseFloat(interest.toFixed(2))).toFixed(2))
-  // which looked rounded to the cent each month but actually threaded
-  // IEEE-754 float drift through every single accumulation. Over a
-  // 30-year loan (360 months) the totalInterest could drift by $10–$100
-  // from what any real lender's amortization schedule produces — enough
-  // to make the payoff projection misleading for the customer. Integer
-  // cents with Math.round eliminates the class of errors.
   type SimDebtCents = { id: number; name: string; balanceCents: number; monthlyPaymentCents: number; rate: number };
   let debts: SimDebtCents[] = rawDebts.map(d => ({
     id: d.id,
@@ -124,8 +123,6 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
 
   const extraCents = Math.round(extra * 100);
 
-  // BUG FIX: if total monthly capacity is zero, the loop makes no progress —
-  // skip all 600 iterations and report as "unknown" (months: 0).
   const capacityCents = debts.reduce((s, d) => s + d.monthlyPaymentCents, 0) + extraCents;
   if (capacityCents <= 0) return { months: 0, totalInterest: 0 };
 
@@ -134,13 +131,11 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
 
   let month = 0;
   let totalInterestCents = 0;
-  const MAX = 600; // 50 years cap
+  const MAX = 600;
 
   while (debts.some(d => d.balanceCents > 0) && month < MAX) {
     month++;
     let paidCentsThisMonth = 0;
-    // Accrue monthly interest. rate is a %/year, so monthly rate is rate/1200.
-    // Math.round -> nearest cent matches real-lender behavior.
     debts.forEach(d => {
       if (d.balanceCents > 0) {
         const interestCents = Math.round((d.balanceCents * d.rate) / 1200);
@@ -148,7 +143,6 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
         totalInterestCents += interestCents;
       }
     });
-    // Pay minimums
     debts.forEach(d => {
       if (d.balanceCents > 0) {
         const payCents = Math.min(d.monthlyPaymentCents, d.balanceCents);
@@ -156,7 +150,6 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
         paidCentsThisMonth += payCents;
       }
     });
-    // Apply extra to first debt in sorted order
     let leftCents = extraCents;
     for (const d of debts) {
       if (d.balanceCents > 0 && leftCents > 0) {
@@ -166,8 +159,6 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
         paidCentsThisMonth += payCents;
       }
     }
-    // BUG FIX: if no payment was applied this month, balances will never
-    // decrease — break early rather than burning 600 - month iterations.
     if (paidCentsThisMonth <= 0) break;
   }
   return { months: month, totalInterest: totalInterestCents / 100 };
@@ -175,11 +166,11 @@ function simulatePayoff(rawDebts: DebtItem[], extra = 0, strategy: 'avalanche' |
 
 function calcPayoffMonths(balance: number, monthlyPayment: number, annualRate: number): number {
   if (balance <= 0 || monthlyPayment <= 0) return 0;
-  const r = annualRate / 100 / 12; // monthly rate
+  const r = annualRate / 100 / 12;
   if (r === 0 || monthlyPayment >= balance) {
     return Math.ceil(balance / monthlyPayment);
   }
-  if (monthlyPayment <= balance * r) return Infinity; // payment doesn't cover interest
+  if (monthlyPayment <= balance * r) return Infinity;
   return Math.ceil(-Math.log(1 - (r * balance) / monthlyPayment) / Math.log(1 + r));
 }
 
@@ -191,12 +182,11 @@ function addMonths(n: number) {
 
 /* ── Component ─────────────────────────────────────────────────── */
 export default function DebtsPage() {
+  const { t, tFmt } = useI18n();
   const [debts, setDebts] = useState<DebtItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editDebt, setEditDebt] = useState<DebtItem | null>(null);
-  // 2026-05-02: lock body scroll while the add/edit form is open.
-  // See src/lib/useBodyScrollLock for full rationale.
   useBodyScrollLock(showForm);
   const [payModal, setPayModal] = useState<DebtItem | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -211,7 +201,6 @@ export default function DebtsPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
-  // Debt-burden intelligence — additive, fails quiet (the page works without it).
   const [burden, setBurden] = useState<DebtBurden | null>(null);
   const { toast } = useToast();
   const { symbol, fmt, locale: dateLocale } = useCurrency();
@@ -236,7 +225,7 @@ export default function DebtsPage() {
         }
         setDebts(Array.isArray(debtResult?.debts) ? debtResult.debts : Array.isArray(debtResult) ? debtResult : []);
       })
-      .catch(() => { toast('Failed to load debts', 'error'); })
+      .catch(() => { toast(tStandalone('debtFailedLoad'), 'error'); })
       .finally(() => setLoading(false));
   }, [toast]);
   useEffect(() => { load(); }, [load]);
@@ -255,38 +244,36 @@ export default function DebtsPage() {
     setSaving(true); setSaveError(null);
     try {
       const totalAmt = parseFloat(form.totalAmount);
-      if (!Number.isFinite(totalAmt) || totalAmt <= 0) { const msg = 'Total amount must be a positive number'; setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
+      if (!Number.isFinite(totalAmt) || totalAmt <= 0) { const msg = tStandalone('debtValTotalPositive'); setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
       const MAX_VALUE = 1_000_000_000;
-      if (totalAmt > MAX_VALUE) { const msg = `Debt amount cannot exceed ${symbol}${MAX_VALUE.toLocaleString()}`; setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
+      if (totalAmt > MAX_VALUE) { const msg = tFmtStandalone('debtValMaxFmt', [`${symbol}${MAX_VALUE.toLocaleString()}`]); setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
       if (!/^\d+(\.\d{1,2})?$/.test(form.totalAmount.trim())) {
-        const msg = 'Please enter an amount with up to 2 decimal places';
+        const msg = tStandalone('debtValDecimals');
         setSaveError(msg); toast(msg, 'error');
         setSaving(false);
         return;
       }
       const monthlyPay = parseFloat(form.monthlyPayment || '0');
-      if (!Number.isFinite(monthlyPay) || monthlyPay < 0) { const msg = 'Monthly payment must be a non-negative number'; setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
+      if (!Number.isFinite(monthlyPay) || monthlyPay < 0) { const msg = tStandalone('debtValMonthlyNonNeg'); setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
       const remainingAmt = parseFloat(form.remainingAmount || form.totalAmount);
-      if (!Number.isFinite(remainingAmt) || remainingAmt < 0) { const msg = 'Remaining amount must be non-negative'; setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
+      if (!Number.isFinite(remainingAmt) || remainingAmt < 0) { const msg = tStandalone('debtValRemainingNonNeg'); setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
       const intRate = parseFloat(form.interestRate || '0');
-      if (!Number.isFinite(intRate) || intRate < 0) { const msg = 'Interest rate must be non-negative'; setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
+      if (!Number.isFinite(intRate) || intRate < 0) { const msg = tStandalone('debtValInterestNonNeg'); setSaveError(msg); toast(msg, 'error'); setSaving(false); return; }
       const payload = { ...form, totalAmount: totalAmt, remainingAmount: remainingAmt, monthlyPayment: monthlyPay, interestRate: intRate, ribaFree: isHalal };
       const result = editDebt ? await api.updateDebt(editDebt.id, payload) : await api.addDebt(payload);
       if (result?.error) throw new Error(result.error);
       setShowForm(false); setForm(emptyForm); load();
-    } catch (err: unknown) { setSaveError(err instanceof Error ? err.message : 'Failed to save debt. Please try again.'); }
+    } catch (err: unknown) { setSaveError(err instanceof Error ? err.message : tStandalone('debtValFailedSave')); }
     setSaving(false);
   };
 
-  // Debounce ref prevents double-clicks on the Pay button from creating
-  // duplicate transactions (BUG 4 in QA report).
   const payingRef = React.useRef(false);
 
   const handlePay = async () => {
     if (!payModal || payingRef.current) return;
     const amount = parseFloat(payAmount);
     if (!Number.isFinite(amount) || amount <= 0) {
-      setPayError('Please enter a valid positive amount');
+      setPayError(tStandalone('debtValAmountPositive'));
       return;
     }
     payingRef.current = true;
@@ -295,28 +282,27 @@ export default function DebtsPage() {
       const result = await api.makeDebtPayment(payModal.id, amount);
       if (result?.error) throw new Error(result.error);
       setPayModal(null); setPayAmount(''); load();
-    } catch (err: unknown) { setPayError(err instanceof Error ? err.message : 'Failed to record payment. Please try again.'); }
+    } catch (err: unknown) { setPayError(err instanceof Error ? err.message : tStandalone('debtValFailedPay')); }
     setSaving(false);
-    // Allow another payment after a 2-second cooldown
     setTimeout(() => { payingRef.current = false; }, 2000);
   };
 
   const handleDelete = (id: number) => {
     const debt = debts.find(item => item.id === id);
     if (debt?.readOnly) {
-      toast('Linked Plaid liabilities are read-only here. Manage them from Import instead.', 'error');
+      toast(tStandalone('debtPlaidReadOnlyToast'), 'error');
       return;
     }
     setConfirmAction({
-      message: 'Delete this debt?',
+      message: tStandalone('debtConfirmDelete'),
       action: async () => {
         setDeletingId(id);
         try {
           await api.deleteDebt(id);
-          toast('Debt deleted', 'success');
+          toast(tStandalone('debtDeleted'), 'success');
         } catch (err) {
           logError(err, { context: 'Failed to delete debt' });
-          toast('Failed to delete debt', 'error');
+          toast(tStandalone('debtFailedDelete'), 'error');
         } finally {
           setDeletingId(null);
           load();
@@ -340,16 +326,16 @@ export default function DebtsPage() {
   const handleBulkDelete = () => {
     const count = selectedIds.size;
     setConfirmAction({
-      message: `Delete ${count} debt${count !== 1 ? 's' : ''}? This cannot be undone.`,
+      message: count === 1 ? tFmtStandalone('debtConfirmBulkDeleteSingularFmt', [count]) : tFmtStandalone('debtConfirmBulkDeletePluralFmt', [count]),
       action: async () => {
         setBulkDeleting(true);
         try {
           await api.bulkDeleteDebts(Array.from(selectedIds));
           setSelectedIds(new Set());
           load();
-          toast(`${count} debt${count !== 1 ? 's' : ''} deleted`, 'success');
+          toast(count === 1 ? tFmtStandalone('debtBulkDeletedSingularFmt', [count]) : tFmtStandalone('debtBulkDeletedPluralFmt', [count]), 'success');
         } catch (err) {
-          const msg = err instanceof Error ? err.message : 'Failed to delete debts';
+          const msg = err instanceof Error ? err.message : tStandalone('debtFailedBulkDelete');
           toast(msg, 'error');
         }
         setBulkDeleting(false);
@@ -359,16 +345,16 @@ export default function DebtsPage() {
 
   const handleDeleteAll = () => {
     setConfirmAction({
-      message: `Delete ALL ${debts.length} debts? This cannot be undone.`,
+      message: tFmtStandalone('debtConfirmDeleteAllFmt', [debts.length]),
       action: async () => {
         setBulkDeleting(true);
         try {
           await api.deleteAllDebts();
           setSelectedIds(new Set());
           load();
-          toast('All debts deleted', 'success');
+          toast(tStandalone('debtAllDeleted'), 'success');
         } catch (err) {
-          const msg = err instanceof Error ? err.message : 'Failed to delete all debts';
+          const msg = err instanceof Error ? err.message : tStandalone('debtFailedDeleteAll');
           toast(msg, 'error');
         }
         setBulkDeleting(false);
@@ -376,23 +362,18 @@ export default function DebtsPage() {
     });
   };
 
-  // Projector calculations
   const totalMinPayment = useMemo(() => debts.reduce((s, d) => s + (d.monthlyPayment || 0), 0), [debts]);
   const clientProjBase       = useMemo(() => simulatePayoff(debts, 0, 'avalanche'), [debts]);
   const clientProjAvalanche  = useMemo(() => simulatePayoff(debts, extra, 'avalanche'), [debts, extra]);
   const clientProjSnowball   = useMemo(() => simulatePayoff(debts, extra, 'snowball'), [debts, extra]);
 
-  // 2026-05-10 — backend cross-debt sim with proper snowball cascade
-  // (freed-up minimums roll into next target). Fetched whenever
-  // `extra` or `debts.length` changes; debounced via setTimeout so
-  // the user can type a target like 350 → 3500 without N requests.
   const [backendStrategies, setBackendStrategies] = useState<BackendStrategiesResponse | null>(null);
   useEffect(() => {
     if (!debts.some(d => d.remainingAmount > 0 && d.monthlyPayment > 0)) {
       setBackendStrategies(null);
       return;
     }
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       api.getDebtPayoffStrategies(extra)
         .then((r: BackendStrategiesResponse & { error?: string }) => {
           if (r?.error) return;
@@ -400,12 +381,10 @@ export default function DebtsPage() {
         })
         .catch(() => { /* fall back to client-side sim */ });
     }, 400);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extra, debts.length]);
 
-  // Prefer backend numbers (correct cascade math) when available; fall
-  // back to the client-side sim while the request is in flight.
   const projBase = clientProjBase;
   const projAvalanche = backendStrategies?.avalanche
     ? {
@@ -420,7 +399,6 @@ export default function DebtsPage() {
       }
     : clientProjSnowball;
 
-  // R38 (2026-04-30): SkeletonPage instead of bare animate-spin.
   if (loading) return <SkeletonPage />;
 
   const totalDebt  = debts.reduce((s, d) => s + d.remainingAmount, 0);
@@ -438,19 +416,19 @@ export default function DebtsPage() {
   return (
     <div>
       <PageHeader
-        title="Debt Tracker"
-        subtitle="Riba-aware payoff plan — distinguishes haram interest from halal financing"
+        title={t('debtPageTitle')}
+        subtitle={t('debtPageSubtitle')}
         className="mb-4"
         actions={
-          <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Debt</button>
+          <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">{t('debtAddBtn')}</button>
         }
       />
 
       <div className="flex gap-2 mb-6">
-        {(['debts', 'projector'] as const).map(t => (
-          <button key={t} type="button" onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tab === t ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>
-            {t === 'debts' ? '📋 My Debts' : '🔮 Payoff Projector'}
+        {(['debts', 'projector'] as const).map(tabKey => (
+          <button key={tabKey} type="button" onClick={() => setTab(tabKey)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tab === tabKey ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>
+            {tabKey === 'debts' ? `📋 ${t('debtTabMyDebts')}` : `🔮 ${t('debtTabProjector')}`}
           </button>
         ))}
       </div>
@@ -461,17 +439,17 @@ export default function DebtsPage() {
         <div>
           <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-primary' : 'text-amber-900'}`}>
             {hasLinkedPlaidDebts
-              ? (plaidSyncAccess ? 'Keep card and loan balances fresh.' : 'Your linked liabilities are visible, but syncing is paused.')
-              : 'Connect cards and loans for a fuller debt view.'}
+              ? (plaidSyncAccess ? t('debtPlaidKeepFresh') : t('debtPlaidPaused'))
+              : t('debtPlaidConnectPrompt')}
           </p>
           <p className={`text-sm mt-1 ${plaidSyncAccess ? 'text-gray-600' : 'text-amber-800'}`}>
             {hasLinkedPlaidDebts
               ? (plaidSyncAccess
-                ? 'Use Import to refresh due dates, statement balances, and new liability activity.'
-                : 'Upgrade to Plus or Family to keep synced due dates and liability updates flowing in.')
+                ? t('debtPlaidRefreshHelp')
+                : t('debtPlaidUpgradeHelp'))
               : (plaidSyncAccess
-                ? 'Link credit cards and loans so balances and upcoming dues stay current without manual entry.'
-                : 'Plaid syncing now lives on Plus and Family. Upgrade when you want automatic liability tracking.')}
+                ? t('debtPlaidLinkHelp')
+                : t('debtPlaidNowOnPaid'))}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -481,14 +459,14 @@ export default function DebtsPage() {
               plaidSyncAccess ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
             }`}
           >
-            {hasLinkedPlaidDebts ? 'Manage Linked Accounts' : 'Connect Accounts'}
+            {hasLinkedPlaidDebts ? t('debtPlaidManageBtn') : t('debtPlaidConnectBtn')}
           </Link>
           {!plaidSyncAccess && (
             <Link
               href="/dashboard/billing"
               className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
             >
-              Upgrade to Keep Syncing
+              {t('debtPlaidUpgradeBtn')}
             </Link>
           )}
         </div>
@@ -499,19 +477,19 @@ export default function DebtsPage() {
         <>
           {ribaDebts.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 text-sm text-red-700">
-              ⚠️ <strong>{ribaDebts.length} debt(s)</strong> involve riba (interest). Consider Islamic alternatives.
+              ⚠️ {tFmt('debtRibaWarningFmt', [ribaDebts.length])}
             </div>
           )}
 
           {debts.some(d => d.linkedSource === 'plaid') && (
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4 text-sm text-emerald-800">
-              Linked Plaid credit and loan balances now appear here as read-only liabilities. Use <Link href="/dashboard/import" className="font-semibold underline">Import</Link> to resync or manage linked accounts.
+              {t('debtPlaidReadOnlyNotePrefix')} <Link href="/dashboard/import" className="font-semibold underline">{t('debtImportLinkText')}</Link> {t('debtPlaidReadOnlyNoteSuffix')}
             </div>
           )}
 
           <div className="grid md:grid-cols-2 gap-4 mb-6">
-            <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Remaining</p><p className="text-2xl font-bold text-red-600">{fmt(totalDebt)}</p></div>
-            <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Monthly Payments</p><p className="text-2xl font-bold text-orange-600">{fmt(totalMinPayment)}</p></div>
+            <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">{t('debtTotalRemaining')}</p><p className="text-2xl font-bold text-red-600">{fmt(totalDebt)}</p></div>
+            <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">{t('debtMonthlyPayments')}</p><p className="text-2xl font-bold text-orange-600">{fmt(totalMinPayment)}</p></div>
           </div>
 
           {burden && burden.debtCount > 0 && (
@@ -521,7 +499,7 @@ export default function DebtsPage() {
           {totalMinPayment === 0 && debts.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-700 flex items-start gap-2">
               <span className="mt-0.5">💡</span>
-              <span>Add monthly payment amounts to your debts to unlock the <strong>Payoff Projector</strong> and see when you&apos;ll be debt-free.</span>
+              <span>{t('debtAddMonthlyHint')}</span>
             </div>
           )}
 
@@ -529,19 +507,19 @@ export default function DebtsPage() {
             <div className="flex items-center gap-3 mb-3 flex-wrap">
               <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
                 <input type="checkbox" checked={selectedIds.size === deletableActiveDebts.length && deletableActiveDebts.length > 0} onChange={toggleSelectAll} className="w-4 h-4 accent-[#1B5E20] rounded" />
-                {selectedIds.size === deletableActiveDebts.length && deletableActiveDebts.length > 0 ? 'Deselect all' : 'Select all'}
+                {selectedIds.size === deletableActiveDebts.length && deletableActiveDebts.length > 0 ? t('debtDeselectAll') : t('debtSelectAll')}
               </label>
               {selectedIds.size > 0 && (
                 <>
-                  <span className="text-sm text-gray-500">{selectedIds.size} selected</span>
+                  <span className="text-sm text-gray-500">{tFmt('debtSelectedCountFmt', [selectedIds.size])}</span>
                   <button type="button" onClick={handleBulkDelete} disabled={bulkDeleting} className="bg-red-600 text-white text-sm px-3 py-1 rounded-lg hover:bg-red-700 disabled:opacity-50">
-                    {bulkDeleting ? 'Deleting...' : `Delete ${selectedIds.size}`}
+                    {bulkDeleting ? t('debtBulkDeleting') : tFmt('debtBulkDeleteFmt', [selectedIds.size])}
                   </button>
-                  <button type="button" onClick={() => setSelectedIds(new Set())} className="text-sm text-gray-500 hover:text-gray-700 border border-gray-300 px-3 py-1 rounded-lg">Clear</button>
+                  <button type="button" onClick={() => setSelectedIds(new Set())} className="text-sm text-gray-500 hover:text-gray-700 border border-gray-300 px-3 py-1 rounded-lg">{t('debtClear')}</button>
                 </>
               )}
               {selectedIds.size === 0 && deletableActiveDebts.length > 1 && (
-                <button type="button" onClick={handleDeleteAll} disabled={bulkDeleting} className="ml-auto text-xs text-red-500 hover:text-red-700 disabled:opacity-50">Delete all</button>
+                <button type="button" onClick={handleDeleteAll} disabled={bulkDeleting} className="ml-auto text-xs text-red-500 hover:text-red-700 disabled:opacity-50">{t('debtDeleteAll')}</button>
               )}
             </div>
           )}
@@ -558,63 +536,51 @@ export default function DebtsPage() {
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-semibold text-gray-900">{d.name}</p>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${halal ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{halal ? 'Halal' : 'Riba'}</span>
-                          {d.readOnly && <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Linked via Plaid</span>}
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${halal ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{halal ? t('debtHalalBadge') : t('debtRibaBadge')}</span>
+                          {d.readOnly && <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">{t('debtLinkedPlaidBadge')}</span>}
                         </div>
-                        <p className="text-sm text-gray-500">{TYPE_LABELS[d.type] || d.type}{d.lender ? ` • ${d.lender}` : ''} • {fmt(d.monthlyPayment)}/mo</p>
+                        <p className="text-sm text-gray-500">{TYPE_LABEL_KEYS[d.type] ? t(TYPE_LABEL_KEYS[d.type]) : d.type}{d.lender ? ` • ${d.lender}` : ''} • {tFmt('debtMonthlyPerMoFmt', [fmt(d.monthlyPayment)])}</p>
                         {d.readOnly && (
                           <p className="text-xs text-gray-500">
                             {[d.accountSubtype, d.accountMask ? `••${d.accountMask}` : null].filter(Boolean).join(' • ')}
-                            {d.lastSyncedAt ? ` • Synced ${new Date(d.lastSyncedAt).toLocaleDateString(dateLocale)}` : ''}
+                            {d.lastSyncedAt ? ` • ${tFmt('debtSyncedAtFmt', [new Date(d.lastSyncedAt).toLocaleDateString(dateLocale)])}` : ''}
                           </p>
                         )}
                         {d.monthlyPayment > 0 && d.remainingAmount > 0 && (
                           <p className="text-xs text-blue-600 font-medium mt-1">
                             {(() => {
                               const mo = calcPayoffMonths(d.remainingAmount, d.monthlyPayment, d.interestRate || 0);
-                              return mo === Infinity ? 'Payment too low to cover interest' : `~${mo} months to payoff`;
+                              return mo === Infinity ? t('debtPaymentTooLow') : tFmt('debtMonthsToPayoffFmt', [mo]);
                             })()}
                           </p>
                         )}
                         {d.interestRate > 0 && (
                           <p className={`text-xs font-bold mt-0.5 ${halal ? 'text-green-700' : 'text-red-700'}`}>
-                            {ISLAMIC_TYPES.includes(d.type) ? `Profit Rate: ${d.interestRate}% (Halal)` : `Interest: ${d.interestRate}% (Riba)`}
+                            {ISLAMIC_TYPES.includes(d.type) ? tFmt('debtProfitRateFmt', [d.interestRate]) : tFmt('debtInterestRateFmt', [d.interestRate])}
                           </p>
                         )}
-                        {/* 2026-05-11 (Bug-A5 founder follow-up): conventional credit cards
-                            tagged Halal are halal ONLY when paid in full within the grace
-                            period and outside any 0% intro rate. Once interest accrues, it
-                            becomes riba. Surface that conditionality so users don't read the
-                            green pill as a blanket blessing. */}
                         {halal && d.type === 'credit_card' && !ISLAMIC_TYPES.includes(d.type) && (
-                          // 2026-05-13: the previous `<em>only</em>` markup
-                          // rendered as "Halal onlyif" on some browsers/
-                          // fonts — the trailing space adjacent to the
-                          // closing `</em>` got eaten by JSX whitespace
-                          // collapse / italic kerning. Drop the `<em>` and
-                          // bold "only" via `<strong>` so the surrounding
-                          // text stays plain-roman with reliable spacing.
                           <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 mt-1.5 leading-snug">
                             <span aria-hidden="true">⚠️ </span>
-                            Halal <strong className="font-semibold">only</strong> if you pay the statement in full within the grace period and the card isn&apos;t carrying a 0% intro balance that will retroactively bill interest. If interest posts, it becomes riba.
+                            {t('debtCreditCardHalalCaveat')}
                           </p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
                         {!d.readOnly ? (
                           <>
-                            <button type="button" onClick={() => { setPayModal(d); setPayAmount(String(d.monthlyPayment)); }} className="bg-primary text-primary-foreground px-3 py-1 rounded-lg text-sm hover:bg-primary/90">Pay</button>
-                            <button type="button" onClick={() => openEdit(d)} className="text-gray-500 hover:text-primary text-sm border border-gray-300 px-3 py-1 rounded-lg">Edit</button>
-                            <button type="button" onClick={() => handleDelete(d.id)} disabled={deletingId === d.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === d.id ? 'Deleting...' : 'Del'}</button>
+                            <button type="button" onClick={() => { setPayModal(d); setPayAmount(String(d.monthlyPayment)); }} className="bg-primary text-primary-foreground px-3 py-1 rounded-lg text-sm hover:bg-primary/90">{t('debtPayBtn')}</button>
+                            <button type="button" onClick={() => openEdit(d)} className="text-gray-500 hover:text-primary text-sm border border-gray-300 px-3 py-1 rounded-lg">{t('debtEditBtn')}</button>
+                            <button type="button" onClick={() => handleDelete(d.id)} disabled={deletingId === d.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === d.id ? t('debtDeleting') : t('debtDeleteShort')}</button>
                           </>
                         ) : (
-                          <Link href="/dashboard/import" className="text-gray-500 hover:text-primary text-sm border border-gray-300 px-3 py-1 rounded-lg">Manage</Link>
+                          <Link href="/dashboard/import" className="text-gray-500 hover:text-primary text-sm border border-gray-300 px-3 py-1 rounded-lg">{t('debtManageBtn')}</Link>
                         )}
                       </div>
                     </div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-500">Paid: {fmt(d.totalAmount - d.remainingAmount)}</span>
-                      <span className="text-gray-700 font-medium">{fmt(d.remainingAmount)} left • {pct.toFixed(0)}%</span>
+                      <span className="text-gray-500">{tFmt('debtPaidFmt', [fmt(d.totalAmount - d.remainingAmount)])}</span>
+                      <span className="text-gray-700 font-medium">{tFmt('debtRemainingLeftFmt', [fmt(d.remainingAmount), pct.toFixed(0)])}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div className="bg-primary h-2 rounded-full" style={{ width: `${pct}%` }} />
@@ -625,25 +591,20 @@ export default function DebtsPage() {
               })}
             </div>
           ) : paidOffDebts.length > 0 ? (
-            <div className="text-center py-8 text-gray-400"><p className="text-3xl mb-2">🎉</p><p className="text-lg font-semibold text-green-700">No active debts!</p><p className="text-sm mt-1">See paid-off debts below</p></div>
+            <div className="text-center py-8 text-gray-400"><p className="text-3xl mb-2">🎉</p><p className="text-lg font-semibold text-green-700">{t('debtNoActiveDebts')}</p><p className="text-sm mt-1">{t('debtSeePaidOffBelow')}</p></div>
           ) : (
-            // R38 (2026-04-30): replace plain text "No debts" with the
-            // shared EmptyState. Even though zero-debt is a celebratory
-            // state, an explicit description framing what tracking
-            // *does* gives the user a reason to come back if they ever
-            // take on a debt (mortgage, financed appliance, etc).
             <EmptyState
               icon="🎉"
-              title="No debts — Alhamdulillah!"
-              description="Track car loans, student loans, mortgages, and credit cards here. Barakah flags riba-bearing debts and helps you build a payoff plan that prioritises the haram-flagged ones."
+              title={t('debtEmptyTitle')}
+              description={t('debtEmptyDesc')}
               variant="bare"
             />
           )}
 
           {paidOffDebts.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-lg font-bold text-green-700 mb-3">Paid Off</h2>
-              <p className="text-sm text-gray-600 mb-4">Congratulations on completing these debts!</p>
+              <h2 className="text-lg font-bold text-green-700 mb-3">{t('debtPaidOffHeading')}</h2>
+              <p className="text-sm text-gray-600 mb-4">{t('debtPaidOffCongrats')}</p>
               <div className="space-y-3">
                 {paidOffDebts.map((d: DebtItem) => {
                   const halal = d.ribaFree || ISLAMIC_TYPES.includes(d.type);
@@ -654,17 +615,17 @@ export default function DebtsPage() {
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-semibold text-gray-600 line-through">{d.name}</p>
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Paid Off</span>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${halal ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{halal ? 'Halal' : 'Riba'}</span>
-                              {d.readOnly && <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Linked via Plaid</span>}
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">{t('debtPaidOffBadge')}</span>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${halal ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{halal ? t('debtHalalBadge') : t('debtRibaBadge')}</span>
+                              {d.readOnly && <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">{t('debtLinkedPlaidBadge')}</span>}
                             </div>
-                            <p className="text-sm text-gray-500">{TYPE_LABELS[d.type] || d.type}{d.lender ? ` • ${d.lender}` : ''}</p>
+                            <p className="text-sm text-gray-500">{TYPE_LABEL_KEYS[d.type] ? t(TYPE_LABEL_KEYS[d.type]) : d.type}{d.lender ? ` • ${d.lender}` : ''}</p>
                           </div>
                           {!d.readOnly && (
-                            <button type="button" onClick={() => handleDelete(d.id)} disabled={deletingId === d.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === d.id ? 'Deleting...' : 'Del'}</button>
+                            <button type="button" onClick={() => handleDelete(d.id)} disabled={deletingId === d.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === d.id ? t('debtDeleting') : t('debtDeleteShort')}</button>
                           )}
                         </div>
-                        <div className="text-sm text-gray-500">Total paid: <span className="font-semibold text-gray-700">{fmt(d.totalAmount)}</span></div>
+                        <div className="text-sm text-gray-500">{t('debtTotalPaidLabel')} <span className="font-semibold text-gray-700">{fmt(d.totalAmount)}</span></div>
                       </div>
                     </div>
                   );
@@ -681,18 +642,18 @@ export default function DebtsPage() {
           {debts.length === 0 ? (
             <EmptyState
               icon="🔮"
-              title="No debts to project"
-              description="Add a debt and Barakah projects how long it takes to pay off — including how much faster an extra monthly payment gets you to riba-free."
-              actions={[{ label: 'Add a debt', href: '#', primary: true }]}
+              title={t('debtProjEmptyTitle')}
+              description={t('debtProjEmptyDesc')}
+              actions={[{ label: t('debtProjAddCta'), href: '#', primary: true }]}
               preview={
                 <div className="space-y-2">
                   {[
-                    { name: 'Auto loan (riba)', balance: fmt(18400), payoff: `38 months → 26 with ${fmt(200)}/mo extra` },
-                    { name: 'Credit card', balance: fmt(3200), payoff: `14 months → 8 with ${fmt(200)}/mo extra` },
+                    { name: t('debtProjSample1Name'), balance: fmt(18400), payoff: tFmt('debtProjSample1PayoffFmt', [fmt(200)]) },
+                    { name: t('debtProjSample2Name'), balance: fmt(3200), payoff: tFmt('debtProjSample2PayoffFmt', [fmt(200)]) },
                   ].map((d) => (
                     <div key={d.name} className="bg-white rounded-xl p-3 text-left text-sm">
                       <p className="font-medium text-gray-700">{d.name}</p>
-                      <p className="text-xs text-gray-400">Balance: {d.balance} · {d.payoff}</p>
+                      <p className="text-xs text-gray-400">{tFmt('debtProjSampleBalanceFmt', [d.balance, d.payoff])}</p>
                     </div>
                   ))}
                 </div>
@@ -702,20 +663,20 @@ export default function DebtsPage() {
             <>
               {/* Extra payment slider */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <h2 className="font-bold text-primary text-lg mb-1">Extra Monthly Payment</h2>
-                <p className="text-sm text-gray-500 mb-4">How much extra can you put toward debt each month, beyond minimums?</p>
+                <h2 className="font-bold text-primary text-lg mb-1">{t('debtProjExtraTitle')}</h2>
+                <p className="text-sm text-gray-500 mb-4">{t('debtProjExtraSubtitle')}</p>
                 <div className="flex items-center gap-4">
                   <input type="range" min={0} max={2000} step={25} value={extra}
                     onChange={e => setExtra(Number(e.target.value))}
-                    className="flex-1 accent-[#1B5E20]" />
+                    className="flex-1 accent-[#1B5E20]"
+                    aria-label={t('debtProjExtraTitle')} />
                   <span className="text-xl font-bold text-primary w-24 text-right">{fmt(extra)}</span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-400 mt-1">
                   <span>{symbol}0</span><span>{symbol}500</span><span>{symbol}1,000</span><span>{symbol}1,500</span><span>{symbol}2,000</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-3">
-                  Total monthly payment: <strong className="text-gray-700">{fmt(totalMinPayment + extra)}</strong>
-                  &nbsp;({fmt(totalMinPayment)} minimums + {fmt(extra)} extra)
+                  {tFmt('debtProjTotalMonthlyFmt', [fmt(totalMinPayment + extra), fmt(totalMinPayment), fmt(extra)])}
                 </p>
               </div>
 
@@ -726,31 +687,31 @@ export default function DebtsPage() {
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-2xl">🏔️</span>
                     <div>
-                      <p className="font-bold text-primary">Avalanche</p>
-                      <p className="text-xs text-gray-500">Highest interest rate first — saves the most money</p>
+                      <p className="font-bold text-primary">{t('debtProjAvalanche')}</p>
+                      <p className="text-xs text-gray-500">{t('debtProjAvalancheSub')}</p>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Debt-free date</span>
+                      <span className="text-sm text-gray-600">{t('debtProjDebtFreeDate')}</span>
                       <span className="font-bold text-gray-900">{projAvalanche.months === 0 ? '—' : addMonths(projAvalanche.months)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Months to payoff</span>
+                      <span className="text-sm text-gray-600">{t('debtProjMonthsPayoff')}</span>
                       <span className="font-bold text-gray-900">{projAvalanche.months}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Total interest</span>
+                      <span className="text-sm text-gray-600">{t('debtProjTotalInterest')}</span>
                       <span className="font-bold text-red-600">{fmt(projAvalanche.totalInterest)}</span>
                     </div>
                     {extra > 0 && (
                       <div className="bg-green-50 rounded-xl p-3 mt-2 space-y-1">
                         <div className="flex justify-between text-sm">
-                          <span className="text-green-700">Months saved</span>
-                          <span className="font-bold text-green-700">{monthsSavedAvalanche > 0 ? `${monthsSavedAvalanche} months` : '—'}</span>
+                          <span className="text-green-700">{t('debtProjMonthsSaved')}</span>
+                          <span className="font-bold text-green-700">{monthsSavedAvalanche > 0 ? tFmt('debtProjMonthsCountFmt', [monthsSavedAvalanche]) : '—'}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-green-700">Interest saved</span>
+                          <span className="text-green-700">{t('debtProjInterestSaved')}</span>
                           <span className="font-bold text-green-700">{interestSavedAvalanche > 0 ? fmt(interestSavedAvalanche) : '—'}</span>
                         </div>
                       </div>
@@ -763,49 +724,44 @@ export default function DebtsPage() {
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-2xl">⛄</span>
                     <div>
-                      <p className="font-bold text-blue-600">Snowball</p>
-                      <p className="text-xs text-gray-500">Smallest balance first — builds momentum &amp; motivation</p>
+                      <p className="font-bold text-blue-600">{t('debtProjSnowball')}</p>
+                      <p className="text-xs text-gray-500">{t('debtProjSnowballSub')}</p>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Debt-free date</span>
+                      <span className="text-sm text-gray-600">{t('debtProjDebtFreeDate')}</span>
                       <span className="font-bold text-gray-900">{projSnowball.months === 0 ? '—' : addMonths(projSnowball.months)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Months to payoff</span>
+                      <span className="text-sm text-gray-600">{t('debtProjMonthsPayoff')}</span>
                       <span className="font-bold text-gray-900">{projSnowball.months}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Total interest</span>
+                      <span className="text-sm text-gray-600">{t('debtProjTotalInterest')}</span>
                       <span className="font-bold text-red-600">{fmt(projSnowball.totalInterest)}</span>
                     </div>
                     {extra > 0 && (
                       <div className="bg-blue-50 rounded-xl p-3 mt-2 space-y-1">
                         <div className="flex justify-between text-sm">
-                          <span className="text-blue-700">Months saved</span>
-                          <span className="font-bold text-blue-700">{monthsSavedSnowball > 0 ? `${monthsSavedSnowball} months` : '—'}</span>
+                          <span className="text-blue-700">{t('debtProjMonthsSaved')}</span>
+                          <span className="font-bold text-blue-700">{monthsSavedSnowball > 0 ? tFmt('debtProjMonthsCountFmt', [monthsSavedSnowball]) : '—'}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-blue-700">Interest saved</span>
+                          <span className="text-blue-700">{t('debtProjInterestSaved')}</span>
                           <span className="font-bold text-blue-700">{interestSavedSnowball > 0 ? fmt(interestSavedSnowball) : '—'}</span>
                         </div>
                       </div>
                     )}
                     {extra > 0 && projAvalanche.months < projSnowball.months && (
                       <div className="mt-2 text-xs text-gray-400">
-                        ℹ️ Avalanche finishes {projSnowball.months - projAvalanche.months} month(s) sooner and saves {fmt(projSnowball.totalInterest - projAvalanche.totalInterest)} more interest
+                        ℹ️ {tFmt('debtProjAvalancheBeatsFmt', [projSnowball.months - projAvalanche.months, fmt(projSnowball.totalInterest - projAvalanche.totalInterest)])}
                       </div>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* 2026-05-10 — Payoff Timeline. Stacked-bar chart using
-                  backend monthlySeries (correct snowball cascade). Shows
-                  total remaining debt over time + per-debt segments,
-                  highlighting "Debt 1 cleared at month X" markers. Only
-                  renders once backend data lands. */}
               {backendStrategies && (
                 <PayoffTimelineChart
                   result={backendStrategies[backendStrategies.comparison.recommended] || backendStrategies.avalanche}
@@ -816,7 +772,7 @@ export default function DebtsPage() {
 
               {/* Per-debt breakdown */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <h2 className="font-bold text-primary mb-4">Your Debts at a Glance</h2>
+                <h2 className="font-bold text-primary mb-4">{t('debtProjGlanceTitle')}</h2>
                 <div className="space-y-3">
                   {[...debts].sort((a, b) => b.interestRate - a.interestRate).map(d => {
                     const monthsLeft = d.monthlyPayment > 0 && d.remainingAmount > 0
@@ -828,21 +784,20 @@ export default function DebtsPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="font-medium text-gray-900 truncate">{d.name}</p>
-                            {!halal && <span className="text-xs bg-red-100 text-red-700 px-1.5 rounded">Riba</span>}
+                            {!halal && <span className="text-xs bg-red-100 text-red-700 px-1.5 rounded">{t('debtRibaBadge')}</span>}
                           </div>
-                          <p className="text-xs text-gray-500">{fmt(d.monthlyPayment)}/mo · {d.interestRate}% rate</p>
+                          <p className="text-xs text-gray-500">{tFmt('debtProjGlanceRateFmt', [fmt(d.monthlyPayment), d.interestRate])}</p>
                         </div>
                         <div className="text-right shrink-0">
                           <p className="font-bold text-gray-900">{fmt(d.remainingAmount)}</p>
-                          <p className="text-xs text-gray-500">{monthsLeft === null ? '—' : monthsLeft === Infinity ? '∞' : `~${monthsLeft} mo`}</p>
+                          <p className="text-xs text-gray-500">{monthsLeft === null ? '—' : monthsLeft === Infinity ? '∞' : tFmt('debtProjGlanceMonthsFmt', [monthsLeft])}</p>
                         </div>
                       </div>
                     );
                   })}
                 </div>
                 <p className="text-xs text-gray-400 mt-4">
-                  ⚠️ Projections are estimates based on current balances and payment amounts. Actual payoff dates may vary.
-                  For Islamic debts, the &quot;interest&quot; figure represents profit rate payments, which are halal.
+                  ⚠️ {t('debtProjGlanceFootnote')}
                 </p>
               </div>
             </>
@@ -854,32 +809,32 @@ export default function DebtsPage() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-primary mb-4">{editDebt ? 'Edit Debt' : 'Add Debt'}</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">{editDebt ? t('debtModalEdit') : t('debtModalAdd')}</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Home Mortgage" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormName')}</label>
+                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('debtFormNamePh')} /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormType')}</label>
                 <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value, ribaFree: ISLAMIC_TYPES.includes(e.target.value) ? true : form.ribaFree })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                  {TYPES.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
+                  {TYPES.map(typeKey => <option key={typeKey} value={typeKey}>{t(TYPE_LABEL_KEYS[typeKey])}</option>)}
                 </select></div>
-              {isIslamic && <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700">✅ This type uses a profit rate, not interest. It is Halal.</div>}
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Total Amount</label>
+              {isIslamic && <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700">✅ {t('debtFormIslamicHalal')}</div>}
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormTotal')}</label>
                 <input type="number" step="0.01" value={form.totalAmount} onChange={e => setForm({ ...form, totalAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Remaining Amount</label>
-                <input type="number" step="0.01" value={form.remainingAmount} onChange={e => setForm({ ...form, remainingAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="Same as total if new" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Monthly Payment</label>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormRemaining')}</label>
+                <input type="number" step="0.01" value={form.remainingAmount} onChange={e => setForm({ ...form, remainingAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('debtFormRemainingPh')} /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormMonthlyPayment')}</label>
                 <input type="number" step="0.01" value={form.monthlyPayment} onChange={e => setForm({ ...form, monthlyPayment: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{isIslamic ? 'Profit Rate (%)' : 'Interest Rate (%)'}</label>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{isIslamic ? t('debtFormProfitRate') : t('debtFormInterestRate')}</label>
                 <input type="number" step="0.1" value={form.interestRate} onChange={e => setForm({ ...form, interestRate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Lender</label>
-                <input value={form.lender} onChange={e => setForm({ ...form, lender: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Islamic Bank" /></div>
-              {!isIslamic && <div className="flex items-center gap-2"><input type="checkbox" checked={form.ribaFree} onChange={e => setForm({ ...form, ribaFree: e.target.checked })} className="w-4 h-4" /><label className="text-sm text-gray-700">Riba-Free (Halal)</label></div>}
-              {!isHalal && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">⚠️ This debt involves Riba (interest), which is prohibited in Islam. Consider refinancing with an Islamic alternative.</div>}
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormLender')}</label>
+                <input value={form.lender} onChange={e => setForm({ ...form, lender: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('debtFormLenderPh')} /></div>
+              {!isIslamic && <div className="flex items-center gap-2"><input type="checkbox" checked={form.ribaFree} onChange={e => setForm({ ...form, ribaFree: e.target.checked })} className="w-4 h-4" /><label className="text-sm text-gray-700">{t('debtFormRibaFree')}</label></div>}
+              {!isHalal && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">⚠️ {t('debtFormRibaWarning')}</div>}
             </div>
             {saveError && <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{saveError}</div>}
             <div className="flex gap-3 mt-4">
-              <button type="button" onClick={() => { setShowForm(false); setForm(emptyForm); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.totalAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : editDebt ? 'Update' : 'Add'}</button>
+              <button type="button" onClick={() => { setShowForm(false); setForm(emptyForm); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('debtFormCancel')}</button>
+              <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.totalAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? t('debtFormSaving') : editDebt ? t('debtFormUpdate') : t('debtFormSave')}</button>
             </div>
           </div>
         </div>
@@ -889,14 +844,14 @@ export default function DebtsPage() {
       {payModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-            <h2 className="text-xl font-bold text-primary mb-2">Make Payment</h2>
-            <p className="text-gray-500 text-sm mb-4">{payModal.name} • Remaining: {fmt(payModal.remainingAmount)}</p>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
+            <h2 className="text-xl font-bold text-primary mb-2">{t('debtPayModalTitle')}</h2>
+            <p className="text-gray-500 text-sm mb-4">{tFmt('debtPayModalSubtitleFmt', [payModal.name, fmt(payModal.remainingAmount)])}</p>
+            <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtPayAmount')}</label>
               <input type="number" step="0.01" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             {payError && <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{payError}</div>}
             <div className="flex gap-3 mt-4">
-              <button type="button" onClick={() => { setPayModal(null); setPayError(null); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handlePay} disabled={saving || !payAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Processing...' : 'Pay'}</button>
+              <button type="button" onClick={() => { setPayModal(null); setPayError(null); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('debtFormCancel')}</button>
+              <button type="button" onClick={handlePay} disabled={saving || !payAmount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? t('debtPayProcessing') : t('debtPayBtnGo')}</button>
             </div>
           </div>
         </div>
@@ -906,8 +861,8 @@ export default function DebtsPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <p className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('debtFormCancel')}</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('debtConfirmBtn')}</button>
             </div>
           </div>
         </div>
@@ -916,16 +871,6 @@ export default function DebtsPage() {
   );
 }
 
-/**
- * 2026-05-10 — Stacked-bar payoff timeline using the backend
- * `monthlySeries`. Shows total-remaining curve + per-debt segments so
- * the user can see "Debt A clears at month 6, Debt B at month 14" in
- * one glance.
- *
- * No chart library — pure HTML/CSS bars to keep bundle slim. The
- * chart auto-samples to ~36 ticks (3-year horizon) so longer payoffs
- * stay readable.
- */
 function PayoffTimelineChart({
   result,
   recommended,
@@ -938,8 +883,6 @@ function PayoffTimelineChart({
   const series = result.monthlySeries || [];
   if (series.length === 0) return null;
 
-  // Sample to ~36 ticks for readability — over a 10-yr payoff that's
-  // every ~3.3 months; for a 12-mo payoff every tick is shown.
   const TICKS = 36;
   const step = Math.max(1, Math.ceil(series.length / TICKS));
   const sampled = series.filter((_, i) => i % step === 0 || i === series.length - 1);
@@ -949,16 +892,18 @@ function PayoffTimelineChart({
   const debtColors = new Map<number, string>();
   result.debts.forEach((d, i) => debtColors.set(d.id, palette[i % palette.length]));
 
+  const recommendedLabel = recommended === 'avalanche' ? tStandalone('debtProjAvalanche') : tStandalone('debtProjSnowball');
+
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm">
       <div className="flex items-baseline justify-between mb-3 flex-wrap gap-2">
         <div>
-          <h2 className="font-bold text-primary">Payoff Timeline</h2>
+          <h2 className="font-bold text-primary">{tStandalone('debtTimelineTitle')}</h2>
           <p className="text-xs text-gray-500">
-            Recommended strategy: <strong className="capitalize">{recommended}</strong>
+            {tFmtStandalone('debtTimelineRecommendedPrefixFmt', [recommendedLabel])}
             {result.monthsToDebtFree
-              ? ` — clears in ${result.monthsToDebtFree} months (${fmt(result.totalInterestPaid)} total interest)`
-              : ' — would take longer than 50 years at current minimums; increase your extra-monthly to clear faster.'}
+              ? tFmtStandalone('debtTimelineClearsInFmt', [result.monthsToDebtFree, fmt(result.totalInterestPaid)])
+              : tStandalone('debtTimelineTooLong')}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -980,7 +925,7 @@ function PayoffTimelineChart({
               key={tick.month}
               className="flex-1 flex flex-col-reverse justify-end relative group min-w-[3px]"
               style={{ height: `${heightPct}%` }}
-              title={`Month ${tick.month} — ${fmt(tick.totalRemaining)} remaining`}
+              title={tFmtStandalone('debtTimelineHoverFmt', [tick.month, fmt(tick.totalRemaining)])}
             >
               {segs.map(s => {
                 const segHeight = tick.totalRemaining > 0 ? (s.remaining / tick.totalRemaining) * 100 : 0;
@@ -1000,11 +945,10 @@ function PayoffTimelineChart({
         })}
       </div>
       <div className="flex justify-between text-[10px] text-gray-500 mt-1">
-        <span>Month 1</span>
-        <span>Month {result.monthsToDebtFree ?? result.monthsSimulated}</span>
+        <span>{tFmtStandalone('debtTimelineMonthFmt', [1])}</span>
+        <span>{tFmtStandalone('debtTimelineMonthFmt', [result.monthsToDebtFree ?? result.monthsSimulated])}</span>
       </div>
 
-      {/* Per-debt payoff month markers */}
       <div className="mt-4 space-y-1">
         {result.perDebtPayoffMonth
           .filter(p => p.monthPaidOff !== null)
@@ -1013,7 +957,7 @@ function PayoffTimelineChart({
             <div key={p.id} className="flex items-center gap-2 text-xs text-gray-700">
               <span className="w-3 h-3 rounded-sm" style={{ background: debtColors.get(p.id) || '#9ca3af' }} />
               <span className="font-medium">{p.name}</span>
-              <span className="text-gray-500">cleared at month {p.monthPaidOff}</span>
+              <span className="text-gray-500">{tFmtStandalone('debtTimelineClearedAtFmt', [p.monthPaidOff ?? 0])}</span>
             </div>
           ))}
       </div>
@@ -1021,17 +965,6 @@ function PayoffTimelineChart({
   );
 }
 
-/**
- * Debt-burden panel — the two numbers a secular budgeting app won't give a
- * Muslim household: how heavy the debt load is against *detected* income
- * (debt-to-income ratio), and how much of that monthly burden is
- * riba-bearing vs. riba-free.
- *
- * DTI is shown only when income could actually be detected — a fabricated
- * ratio is worse than none. The riba split is always shown when there's a
- * monthly payment, because that's the number that motivates the journey
- * out of riba.
- */
 function DebtBurdenPanel({
   burden,
   fmt,
@@ -1041,62 +974,60 @@ function DebtBurdenPanel({
 }) {
   const dtiPct = burden.debtToIncomeRatio != null ? Math.round(burden.debtToIncomeRatio * 100) : null;
   const ribaPct = Math.round(burden.ribaShareOfPayments * 100);
-  const bandStyle: Record<DebtBurden['dtiBand'], { label: string; cls: string }> = {
-    healthy: { label: 'Healthy', cls: 'text-emerald-700' },
-    moderate: { label: 'Moderate', cls: 'text-amber-700' },
-    elevated: { label: 'Elevated', cls: 'text-red-600' },
-    unknown: { label: '', cls: '' },
+  const bandStyle: Record<DebtBurden['dtiBand'], { labelKey: string; cls: string }> = {
+    healthy: { labelKey: 'debtBurdenHealthy', cls: 'text-emerald-700' },
+    moderate: { labelKey: 'debtBurdenModerate', cls: 'text-amber-700' },
+    elevated: { labelKey: 'debtBurdenElevated', cls: 'text-red-600' },
+    unknown: { labelKey: '', cls: '' },
   };
   const band = bandStyle[burden.dtiBand];
+  const bandLabel = band.labelKey ? tStandalone(band.labelKey) : '';
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
-      <h2 className="text-lg font-bold text-primary mb-1">Debt burden</h2>
+      <h2 className="text-lg font-bold text-primary mb-1">{tStandalone('debtBurdenHeading')}</h2>
       <p className="text-sm text-gray-500 mb-4">
-        How your debt load measures up — against your income, and against riba.
+        {tStandalone('debtBurdenSubtitle')}
       </p>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        {/* Debt-to-income */}
         <div className="rounded-xl bg-gray-50 border border-gray-200 p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500 font-medium mb-1">Debt-to-income</p>
+          <p className="text-xs uppercase tracking-wide text-gray-500 font-medium mb-1">{tStandalone('debtBurdenDTI')}</p>
           {dtiPct != null && burden.dtiBand !== 'unknown' ? (
             <>
               <p className="text-3xl font-bold text-gray-900">
-                {dtiPct}% <span className={`text-base font-semibold ${band.cls}`}>· {band.label}</span>
+                {dtiPct}% <span className={`text-base font-semibold ${band.cls}`}>· {bandLabel}</span>
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {fmt(burden.totalMonthlyDebtPayment)}/mo of debt against {fmt(burden.detectedMonthlyIncome)}/mo detected income.
-                Lenders treat under 36% as comfortable.
+                {tFmtStandalone('debtBurdenDTIDetailFmt', [fmt(burden.totalMonthlyDebtPayment), fmt(burden.detectedMonthlyIncome)])}
+                {' '}{tStandalone('debtBurdenDTIComfortable')}
               </p>
             </>
           ) : (
             <p className="text-sm text-gray-500 mt-1">
-              We&apos;ll show your debt-to-income ratio once we can detect a regular income stream from your transactions.
+              {tStandalone('debtBurdenDTIUnknown')}
             </p>
           )}
         </div>
 
-        {/* Riba split */}
         <div className="rounded-xl bg-gray-50 border border-gray-200 p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500 font-medium mb-1">Riba in your monthly payments</p>
+          <p className="text-xs uppercase tracking-wide text-gray-500 font-medium mb-1">{tStandalone('debtBurdenRibaHeading')}</p>
           {burden.ribaBearingDebtCount === 0 ? (
             <p className="text-sm text-emerald-700 mt-1 font-medium">
-              All your tracked debt is riba-free — Alhamdulillah.
+              {tStandalone('debtBurdenAllRibaFree')}
             </p>
           ) : (
             <>
               <p className="text-3xl font-bold text-gray-900">
-                {ribaPct}% <span className="text-base font-semibold text-red-600">riba-bearing</span>
+                {ribaPct}% <span className="text-base font-semibold text-red-600">{tStandalone('debtBurdenRibaBearingLabel')}</span>
               </p>
-              {/* Proportion bar */}
               <div className="mt-2 flex h-2 rounded-full overflow-hidden bg-gray-200">
                 <div className="bg-red-500" style={{ width: `${ribaPct}%` }} />
                 <div className="bg-emerald-500" style={{ width: `${100 - ribaPct}%` }} />
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                {fmt(burden.ribaBearingMonthly)}/mo riba-bearing · {fmt(burden.ribaFreeMonthly)}/mo riba-free.
-                {' '}<Link href="/dashboard/riba" className="text-primary underline">See your riba-elimination journey</Link>.
+                {tFmtStandalone('debtBurdenRibaSplitFmt', [fmt(burden.ribaBearingMonthly), fmt(burden.ribaFreeMonthly)])}
+                {' '}<Link href="/dashboard/riba" className="text-primary underline">{tStandalone('debtBurdenRibaJourneyLink')}</Link>.
               </p>
             </>
           )}

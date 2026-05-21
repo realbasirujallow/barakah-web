@@ -7,6 +7,7 @@ import { toHijri } from '../../../lib/format';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
 interface HawlItem {
@@ -42,6 +43,18 @@ const DATE_FORMAT: Intl.DateTimeFormatOptions = {
 
 function HawlPageContent() {
   const { fmt } = useCurrency();
+  const { t, tFmt } = useI18n();
+  const typeLabel = (ty: string) => {
+    switch (ty) {
+      case 'cash': return t('hawlTypeCash');
+      case 'gold': return t('hawlTypeGold');
+      case 'silver': return t('hawlTypeSilver');
+      case 'crypto': return t('hawlTypeCrypto');
+      case 'stocks': return t('hawlTypeStocks');
+      case 'business': return t('hawlTypeBusiness');
+      default: return t('hawlTypeOther');
+    }
+  };
   const [items, setItems] = useState<HawlItem[]>([]);
   const [nextDueDate, setNextDueDate] = useState<number | null>(null);
   const [nextDueAsset, setNextDueAsset] = useState<string>('');
@@ -112,7 +125,10 @@ function HawlPageContent() {
       setLastRecoveryDate(typeof d?.lastRecoveryDate === 'number' ? d.lastRecoveryDate : null);
       setNisabMethodology(typeof d?.nisabMethodology === 'string' ? d.nisabMethodology : '');
       setWealthSource(typeof d?.wealthSource === 'string' ? d.wealthSource : '');
-    }).catch(() => { toast('Failed to load hawl trackers', 'error'); }).finally(() => setLoading(false));
+    }).catch(() => { toast(t('hawlLoadError'), 'error'); }).finally(() => setLoading(false));
+    // `t` is a fresh identity each render; including it would make `load` a new
+    // function every render and the `[load]` effect refire forever. Keep `toast`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
@@ -129,9 +145,9 @@ function HawlPageContent() {
     setSaveError(null);
     const amt = parseFloat(form.amount);
     const nisab = parseFloat(form.nisabThreshold);
-    if (!form.assetName.trim()) { setSaveError('Asset name is required'); setSaving(false); return; }
-    if (isNaN(amt) || amt <= 0) { setSaveError('Amount must be a positive number'); setSaving(false); return; }
-    if (isNaN(nisab) || nisab <= 0) { setSaveError('Nisab threshold must be a positive number'); setSaving(false); return; }
+    if (!form.assetName.trim()) { setSaveError(t('hawlAssetNameRequired')); setSaving(false); return; }
+    if (isNaN(amt) || amt <= 0) { setSaveError(t('hawlAmountPositiveError')); setSaving(false); return; }
+    if (isNaN(nisab) || nisab <= 0) { setSaveError(t('hawlNisabPositiveError')); setSaving(false); return; }
 
     const data: Record<string, unknown> = { assetName: form.assetName, assetType: form.assetType, amount: amt, nisabThreshold: nisab };
     // Custom start date (noon UTC to avoid timezone edge cases)
@@ -140,7 +156,7 @@ function HawlPageContent() {
       // HIGH BUG FIX (H-4): reject future start dates. Hawl is backdated only —
       // you cannot begin a lunar year that hasn't happened yet.
       if ((data.hawlStartDate as number) > Date.now()) {
-        setSaveError('Start date cannot be in the future');
+        setSaveError(t('hawlStartFutureError'));
         setSaving(false);
         return;
       }
@@ -148,8 +164,8 @@ function HawlPageContent() {
     try {
       await api.addHawl(data);
       setShowForm(false); setForm({ assetName: '', assetType: 'cash', amount: '', nisabThreshold: defaultNisabThreshold, startDate: '' }); load();
-      toast('Asset tracker added', 'success');
-    } catch (e: unknown) { const msg = e instanceof Error ? e.message : 'Failed to save tracker'; setSaveError(msg); toast(msg, 'error'); }
+      toast(t('hawlTrackerAdded'), 'success');
+    } catch (e: unknown) { const msg = e instanceof Error ? e.message : t('hawlSaveError'); setSaveError(msg); toast(msg, 'error'); }
     setSaving(false);
   };
 
@@ -157,11 +173,11 @@ function HawlPageContent() {
     try {
       const result = await api.markHawlPaid(id);
       if (result?.allZakatPaid) {
-        setAllPaidMessage(result.allPaidMessage || 'MashaAllah! All zakat obligations fulfilled!');
+        setAllPaidMessage(result.allPaidMessage || t('hawlAllPaidFallback'));
       }
       load();
     } catch {
-      toast('Failed to mark as paid', 'error');
+      toast(t('hawlMarkPaidError'), 'error');
     }
   };
 
@@ -183,11 +199,11 @@ function HawlPageContent() {
     if (!resetModal) return;
     try {
       await api.resetHawl(resetModal.id, resetReason, resetNote || undefined);
-      toast('Hawl reset — new cycle started', 'success');
+      toast(t('hawlResetSuccess'), 'success');
       setResetModal(null);
       load();
     } catch {
-      toast('Failed to reset hawl', 'error');
+      toast(t('hawlResetError'), 'error');
     }
   };
 
@@ -197,7 +213,7 @@ function HawlPageContent() {
       const d = await api.getHawlHistory();
       setHistoryItems(Array.isArray(d?.history) ? d.history : []);
     } catch {
-      toast('Failed to load history', 'error');
+      toast(t('hawlHistoryError'), 'error');
     } finally {
       setHistoryLoading(false);
     }
@@ -206,16 +222,16 @@ function HawlPageContent() {
   const handleManualWealth = async () => {
     const amount = parseFloat(manualWealth);
     if (isNaN(amount) || amount < 0) {
-      toast('Enter a valid amount', 'error');
+      toast(t('hawlInvalidAmountError'), 'error');
       return;
     }
     setManualWealthSaving(true);
     try {
       await api.setHawlManualWealth(amount, manualWealthNote || undefined);
-      toast('External wealth recorded — nisab recalculated', 'success');
+      toast(t('hawlManualWealthSuccess'), 'success');
       load();
     } catch {
-      toast('Failed to save', 'error');
+      toast(t('hawlManualWealthError'), 'error');
     } finally {
       setManualWealthSaving(false);
     }
@@ -223,14 +239,14 @@ function HawlPageContent() {
 
   const handleDelete = (id: number) => {
     setConfirmAction({
-      message: 'Delete this tracker?',
+      message: t('hawlDeleteConfirm'),
       action: async () => {
         setDeletingId(id);
         try {
           await api.deleteHawl(id);
-          toast('Tracker deleted', 'success');
+          toast(t('hawlTrackerDeleted'), 'success');
         } catch {
-          toast('Failed to delete tracker', 'error');
+          toast(t('hawlTrackerDeleteError'), 'error');
         } finally {
           setDeletingId(null);
           load();
@@ -242,23 +258,23 @@ function HawlPageContent() {
   const handleLockZakat = async (id: number) => {
     try {
       const result = await api.lockHawlZakat(id);
-      toast(result?.message || 'Zakat amount locked at current prices', 'success');
+      toast(result?.message || t('hawlLockedToast'), 'success');
       load();
     } catch {
-      toast('Failed to lock zakat', 'error');
+      toast(t('hawlLockError'), 'error');
     }
   };
 
   const handleUnlockZakat = (id: number) => {
     setConfirmAction({
-      message: 'Unlock zakat? Your obligation will revert to live gold/silver prices.',
+      message: t('hawlUnlockConfirm'),
       action: async () => {
         try {
           const result = await api.unlockHawlZakat(id);
-          toast(result?.message || 'Zakat lock removed', 'success');
+          toast(result?.message || t('hawlUnlockedToast'), 'success');
           load();
         } catch {
-          toast('Failed to unlock zakat', 'error');
+          toast(t('hawlUnlockError'), 'error');
         }
       }
     });
@@ -269,10 +285,10 @@ function HawlPageContent() {
     try {
       const result = await api.importAssetsToHawl();
       if (result?.error) { toast(result.error, 'error'); return; }
-      toast(result?.message || `Imported ${result?.importedCount || 0} assets`, 'success');
+      toast(result?.message || tFmt('hawlImportSuccessFmt', [result?.importedCount || 0]), 'success');
       load();
     } catch {
-      toast('Failed to import assets', 'error');
+      toast(t('hawlImportError'), 'error');
     } finally {
       setImporting(false);
     }
@@ -282,32 +298,26 @@ function HawlPageContent() {
     try {
       let data: Record<string, unknown>;
       if (dateInputMode === 'gregorian') {
-        if (!newStartDate) { toast('Please select a date', 'error'); return; }
+        if (!newStartDate) { toast(t('hawlSelectDate'), 'error'); return; }
         const startMs = new Date(newStartDate + 'T12:00:00Z').getTime();
-        // HIGH BUG FIX (H-4): reject future dates here too. Matches the
-        // validation in handleSave so both entry points can't create a hawl
-        // whose start is in the future.
         if (startMs > Date.now()) {
-          toast('Start date cannot be in the future', 'error');
+          toast(t('hawlStartFutureError'), 'error');
           return;
         }
         data = { hawlStartDate: startMs };
       } else {
         const y = parseInt(hijriInput.year), m = parseInt(hijriInput.month), d = parseInt(hijriInput.day);
-        if (!y || !m || !d) { toast('Invalid Hijri date', 'error'); return; }
-        // Range-only check. Dhu al-Hijjah (month 12) can be 29 OR 30 days in
-        // leap years; rather than hardcode month lengths (which varies by
-        // calendar system), let the backend reject invalid day/month combos.
-        if (d < 1 || d > 30) { toast('Day must be 1-30', 'error'); return; }
-        if (m < 1 || m > 12) { toast('Month must be 1-12', 'error'); return; }
+        if (!y || !m || !d) { toast(t('hawlInvalidHijri'), 'error'); return; }
+        if (d < 1 || d > 30) { toast(t('hawlDayRangeError'), 'error'); return; }
+        if (m < 1 || m > 12) { toast(t('hawlMonthRangeError'), 'error'); return; }
         data = { hijriYear: y, hijriMonth: m, hijriDay: d };
       }
       const result = await api.updateHawlStartDate(id, data);
-      toast(result?.message || 'Start date updated', 'success');
+      toast(result?.message || t('hawlStartDateUpdated'), 'success');
       resetDateEditor();
       load();
     } catch {
-      toast('Failed to update start date', 'error');
+      toast(t('hawlStartDateError'), 'error');
     }
   };
 
@@ -353,35 +363,35 @@ function HawlPageContent() {
             <span className="text-3xl">🎉</span>
             <div>
               <p className="font-bold text-lg">{allPaidMessage}</p>
-              <p className="text-white/80 text-sm mt-1">May Allah accept your zakat and increase your barakah.</p>
+              <p className="text-white/80 text-sm mt-1">{t('hawlAllPaidSubtitle')}</p>
             </div>
           </div>
         </div>
       )}
 
       <PageHeader
-        title="Zakat Anniversary"
-        subtitle="Track the lunar-year holding period (hawl) for each zakatable asset"
+        title={t('hawlTitle')}
+        subtitle={t('hawlSubtitle')}
         actions={
           <>
             <button type="button" onClick={handleImportAssets} disabled={importing} className="border border-primary text-primary px-4 py-2 rounded-lg hover:bg-green-50 font-medium disabled:opacity-50 text-sm">
-              {importing ? 'Importing...' : 'Import Assets'}
+              {importing ? t('hawlImportingBtn') : t('hawlImportBtn')}
             </button>
-            <button type="button" onClick={() => { setForm(prev => ({ ...prev, nisabThreshold: defaultNisabThreshold })); setShowForm(true); }} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Track Asset</button>
+            <button type="button" onClick={() => { setForm(prev => ({ ...prev, nisabThreshold: defaultNisabThreshold })); setShowForm(true); }} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">{t('hawlAddBtn')}</button>
           </>
         }
       />
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm text-amber-900 mb-6 space-y-3">
-        <h3 className="font-bold text-base">📖 Islamic Guidance on Hawl</h3>
+        <h3 className="font-bold text-base">{t('hawlGuidanceHeading')}</h3>
         <p>
-          <strong>What is Hawl?</strong> The Islamic lunar year (354 days) after which zakat becomes due on wealth above nisab.
+          <strong>{t('hawlWhatIsLabel')}</strong> {t('hawlWhatIsBody')}
         </p>
         <p>
-          Ibn Umar reported that the Prophet (&#65018;) said: <em>&quot;No zakat is due on wealth until a year has passed.&quot;</em> — <strong>Abu Dawud 1573</strong>
+          {t('hawlHadithIntro')} <em>{t('hawlHadithText')}</em> — <strong>{t('hawlHadithCitation')}</strong>
         </p>
         <p>
-          <strong>How it works:</strong> When your wealth exceeds the nisab threshold, your hawl begins. Barakah now records daily continuity so mid-year drops below nisab can pause or restart the hawl according to your fiqh setting.
+          <strong>{t('hawlHowItWorksLabel')}</strong> {t('hawlHowItWorksBody')}
         </p>
       </div>
 
@@ -389,34 +399,30 @@ function HawlPageContent() {
         <div className="bg-white border border-emerald-200 rounded-xl p-5 mb-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-emerald-700">Daily Nisab Continuity</p>
+              <p className="text-sm font-semibold text-emerald-700">{t('hawlContinuityHeading')}</p>
               <p className="text-sm text-gray-600 mt-1">
-                Current zakatable wealth: <span className="font-semibold text-gray-900">{fmt(currentZakatableWealth)}</span>
-                {' '}against a live nisab of <span className="font-semibold text-gray-900">{fmt(liveNisab)}</span>.
+                {tFmt('hawlContinuityBodyFmt', [fmt(currentZakatableWealth), fmt(liveNisab)])}
               </p>
               {nisabMethodology && (
-                <p className="text-xs text-gray-500 mt-1">Method: {/* 2026-05-12 (QA-2026-05-12, Bug #14): pretty-print the raw
-                    enum code into the user-facing displayName so the chip
-                    matches /dashboard/zakat and /dashboard/fiqh. Mirrors
-                    naturalNisabLabel() in dashboard/fiqh/page.tsx. */
-                  nisabMethodology === 'CLASSICAL_SILVER' ? 'Silver Standard (Classical Hanafi)'
-                  : nisabMethodology === 'LOWER_OF_TWO' ? 'Lower of Gold/Silver (Al-Qaradawi)'
-                  : nisabMethodology === 'AMJA_GOLD' ? 'Gold Standard (85g)'
-                  : nisabMethodology}{wealthSource ? ` • Source: ${wealthSource.replace('_', ' ')}` : ''}</p>
+                <p className="text-xs text-gray-500 mt-1">{t('hawlMethodLabel')} {
+                  nisabMethodology === 'CLASSICAL_SILVER' ? t('fiqhNisabSilver')
+                  : nisabMethodology === 'LOWER_OF_TWO' ? t('fiqhNisabLower')
+                  : nisabMethodology === 'AMJA_GOLD' ? t('fiqhNisabGold')
+                  : nisabMethodology}{wealthSource ? tFmt('hawlMethodSourceFmt', [wealthSource.replace('_', ' ')]) : ''}</p>
               )}
             </div>
             <div className="text-right">
-              {continuityResetCount > 0 && <p className="text-sm font-semibold text-emerald-700">{continuityResetCount} auto-reset this load</p>}
-              {pausedTrackerCount > 0 && <p className="text-sm font-semibold text-red-600">{pausedTrackerCount} awaiting recovery</p>}
+              {continuityResetCount > 0 && <p className="text-sm font-semibold text-emerald-700">{tFmt('hawlAutoResetCountFmt', [continuityResetCount])}</p>}
+              {pausedTrackerCount > 0 && <p className="text-sm font-semibold text-red-600">{tFmt('hawlAwaitingRecoveryFmt', [pausedTrackerCount])}</p>}
             </div>
           </div>
           {continuityMessage && <p className="text-sm text-emerald-700 mt-3">{continuityMessage}</p>}
           {nisabWarning && <p className="text-sm text-red-700 mt-3">{nisabWarning}</p>}
           {(lastBelowNisabDate || lastRecoveryDate) && (
             <p className="text-xs text-gray-500 mt-3">
-              {lastBelowNisabDate && `Last drop below nisab: ${formatDate(lastBelowNisabDate)}`}
+              {lastBelowNisabDate && tFmt('hawlLastBelowFmt', [formatDate(lastBelowNisabDate)])}
               {lastBelowNisabDate && lastRecoveryDate && ' • '}
-              {lastRecoveryDate && `Last recovery above nisab: ${formatDate(lastRecoveryDate)}`}
+              {lastRecoveryDate && tFmt('hawlLastRecoveryFmt', [formatDate(lastRecoveryDate)])}
             </p>
           )}
         </div>
@@ -424,15 +430,12 @@ function HawlPageContent() {
 
       {!loading && items.length === 0 && currentZakatableWealth > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-sm text-amber-900">
-          <p className="font-semibold mb-1">Why the Dashboard and this page can show different numbers</p>
+          <p className="font-semibold mb-1">{t('hawlMismatchTitle')}</p>
           <p className="mb-2">
-            Your <strong>Dashboard</strong> zakat figure is 2.5% of your zakatable wealth — an estimate
-            of your total obligation assuming every asset has already completed its 354-day lunar (hawl) cycle.
+            <strong>{t('hawlMismatchDashLabel')}</strong> {t('hawlMismatchBody1')}
           </p>
           <p>
-            This <strong>Hawl Tracker</strong>{' '}counts only the assets where you&apos;ve actually started the
-            countdown, which is what Islamic fiqh uses to decide when each asset&apos;s zakat is individually due.
-            Tap <strong>Import from your Assets</strong>{' '}below to begin — your Dashboard number does not change.
+            <strong>{t('hawlMismatchTrackerLabel')}</strong>{' '}{t('hawlMismatchBody2a')} <strong>{t('hawlImportFromAssetsBold')}</strong>{' '}{t('hawlMismatchBody2b')}
           </p>
         </div>
       )}
@@ -441,21 +444,21 @@ function HawlPageContent() {
         {/* 2026-05-11 (Bug-A10): "Zakat Due 0" was ambiguous — is that
             $0 or 0 trackers? Suffix with units. */}
         <div className="bg-white rounded-xl p-5">
-          <p className="text-gray-500 text-sm">Tracking</p>
-          <p className="text-2xl font-bold text-primary">{items.length} <span className="text-sm font-medium text-gray-400">{items.length === 1 ? 'asset' : 'assets'}</span></p>
+          <p className="text-gray-500 text-sm">{t('hawlTracking')}</p>
+          <p className="text-2xl font-bold text-primary">{items.length} <span className="text-sm font-medium text-gray-400">{items.length === 1 ? t('hawlAssetSingular') : t('hawlAssetPlural')}</span></p>
         </div>
         <div className="bg-white rounded-xl p-5">
-          <p className="text-gray-500 text-sm">Zakat Due</p>
-          <p className="text-2xl font-bold text-amber-600">{zakatDue.length} <span className="text-sm font-medium text-gray-400">{zakatDue.length === 1 ? 'tracker' : 'trackers'}</span></p>
+          <p className="text-gray-500 text-sm">{t('hawlZakatDueLabel')}</p>
+          <p className="text-2xl font-bold text-amber-600">{zakatDue.length} <span className="text-sm font-medium text-gray-400">{zakatDue.length === 1 ? t('hawlTrackerSingular') : t('hawlTrackerPlural')}</span></p>
         </div>
-        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Current Zakatable Wealth</p><p className="text-2xl font-bold text-primary">{fmt(currentZakatableWealth)}</p></div>
+        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">{t('hawlCurrentWealth')}</p><p className="text-2xl font-bold text-primary">{fmt(currentZakatableWealth)}</p></div>
       </div>
 
       {nextDueDate && (
         <div className="bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl p-5 text-white mb-6">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-2xl">&#8987;</span>
-            <p className="font-bold text-lg">Next Zakat Due</p>
+            <p className="font-bold text-lg">{t('hawlNextDueTitle')}</p>
           </div>
           <div className="flex justify-between items-center">
             <div>
@@ -464,8 +467,8 @@ function HawlPageContent() {
               <p className="text-white/50 text-xs">{formatHijriDate(nextDueDate)}</p>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold">{nextDueDays}<span className="text-lg ml-1">days</span></p>
-              <p className="text-white/60 text-sm">Zakat: {fmt(nextDueAmount)}</p>
+              <p className="text-3xl font-bold">{nextDueDays}<span className="text-lg ml-1">{t('hawlDays')}</span></p>
+              <p className="text-white/60 text-sm">{tFmt('hawlZakatColonFmt', [fmt(nextDueAmount)])}</p>
             </div>
           </div>
         </div>
@@ -473,44 +476,44 @@ function HawlPageContent() {
 
       {zakatDue.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-amber-700 mb-3">Zakat Due — Hawl Complete</h2>
+          <h2 className="text-lg font-semibold text-amber-700 mb-3">{t('hawlZakatDueHeading')}</h2>
           <div className="space-y-2">
             {zakatDue.map(item => (
               <div key={item.id} className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="font-semibold text-primary">{item.assetName}</p>
-                    <p className="text-sm text-gray-500">{item.assetType} &bull; {fmt(item.amount)}</p>
-                    <p className="text-xs text-gray-400 mt-1">Hawl: {formatHijriDate(item.hawlStartDate)} &rarr; {formatHijriDate(item.hawlEndDate)}</p>
+                    <p className="text-sm text-gray-500">{typeLabel(item.assetType)} &bull; {fmt(item.amount)}</p>
+                    <p className="text-xs text-gray-400 mt-1">{tFmt('hawlHawlRangeFmt', [formatHijriDate(item.hawlStartDate), formatHijriDate(item.hawlEndDate)])}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <p className="text-lg font-bold text-amber-600">{fmt(item.effectiveZakatAmount || item.zakatAmount)}</p>
-                    <button type="button" onClick={() => handleMarkPaid(item.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm">Paid</button>
-                    <button type="button" onClick={() => openDateEditor(item)} className="text-purple-600 hover:text-purple-800 text-sm" title="Change Hawl date">&#128197;</button>
-                    <button type="button" onClick={() => handleReset(item.id)} className="text-blue-600 hover:text-blue-800 text-sm" title="Reset Hawl cycle">&#8635;</button>
-                    <button type="button" onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === item.id ? '...' : 'Del'}</button>
+                    <button type="button" onClick={() => handleMarkPaid(item.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm">{t('hawlPaidBtn')}</button>
+                    <button type="button" onClick={() => openDateEditor(item)} className="text-purple-600 hover:text-purple-800 text-sm" title={t('hawlChangeDateTitle')}>&#128197;</button>
+                    <button type="button" onClick={() => handleReset(item.id)} className="text-blue-600 hover:text-blue-800 text-sm" title={t('hawlResetCycleTitle')}>&#8635;</button>
+                    <button type="button" onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === item.id ? '...' : t('hawlDel')}</button>
                   </div>
                 </div>
                 {/* Date Editor */}
                 {editingDateId === item.id && (
                   <div className="mt-3 bg-white rounded-lg p-3 border border-gray-200">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Change Hawl Start Date</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">{t('hawlChangeStartHeading')}</p>
                     <div className="flex gap-2 mb-2">
-                      <button type="button" onClick={() => setDateInputMode('gregorian')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'gregorian' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600'}`}>Gregorian</button>
-                      <button type="button" onClick={() => setDateInputMode('hijri')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'hijri' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600'}`}>Hijri</button>
+                      <button type="button" onClick={() => setDateInputMode('gregorian')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'gregorian' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600'}`}>{t('hawlGregorian')}</button>
+                      <button type="button" onClick={() => setDateInputMode('hijri')} className={`text-xs px-2 py-1 rounded ${dateInputMode === 'hijri' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600'}`}>{t('hawlHijri')}</button>
                     </div>
                     {dateInputMode === 'gregorian' ? (
                       <input type="date" value={newStartDate} min={minBackdateInput} max={maxStartInput} onChange={e => setNewStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm text-gray-900 w-full" />
                     ) : (
                       <div className="flex gap-2">
-                        <input type="number" placeholder="Year (e.g. 1447)" value={hijriInput.year} onChange={e => setHijriInput({ ...hijriInput, year: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
-                        <input type="number" placeholder="Month (1-12)" min="1" max="12" value={hijriInput.month} onChange={e => setHijriInput({ ...hijriInput, month: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
-                        <input type="number" placeholder="Day (1-30)" min="1" max="30" value={hijriInput.day} onChange={e => setHijriInput({ ...hijriInput, day: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
+                        <input type="number" placeholder={t('hawlYearPlaceholder')} value={hijriInput.year} onChange={e => setHijriInput({ ...hijriInput, year: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
+                        <input type="number" placeholder={t('hawlMonthPlaceholder')} min="1" max="12" value={hijriInput.month} onChange={e => setHijriInput({ ...hijriInput, month: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
+                        <input type="number" placeholder={t('hawlDayPlaceholder')} min="1" max="30" value={hijriInput.day} onChange={e => setHijriInput({ ...hijriInput, day: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
                       </div>
                     )}
                     <div className="flex gap-2 mt-2">
-                      <button type="button" onClick={() => handleUpdateStartDate(item.id)} className="bg-primary text-primary-foreground px-3 py-1 rounded text-sm">Update</button>
-                      <button type="button" onClick={resetDateEditor} className="text-gray-500 text-sm">Cancel</button>
+                      <button type="button" onClick={() => handleUpdateStartDate(item.id)} className="bg-primary text-primary-foreground px-3 py-1 rounded text-sm">{t('hawlUpdate')}</button>
+                      <button type="button" onClick={resetDateEditor} className="text-gray-500 text-sm">{t('hawlCancel')}</button>
                     </div>
                   </div>
                 )}
@@ -518,14 +521,14 @@ function HawlPageContent() {
                   <div className="mt-2 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                     <div className="flex items-center gap-2 text-sm text-green-700">
                       <span>&#128274;</span>
-                      <span>Zakat locked: {fmt(item.lockedZakatAmount || item.zakatAmount)} ({item.assetType === 'silver' ? 'Silver' : 'Gold'}: ${(item.lockedGoldPrice ?? 0).toFixed(2)}/g on {new Date(item.zakatLockedDate).toLocaleDateString(undefined, DATE_FORMAT)})</span>
+                      <span>{tFmt('hawlLockedRowFmt', [fmt(item.lockedZakatAmount || item.zakatAmount), item.assetType === 'silver' ? t('hawlSilverLabel') : t('hawlGoldLabel'), (item.lockedGoldPrice ?? 0).toFixed(2), new Date(item.zakatLockedDate).toLocaleDateString(undefined, DATE_FORMAT)])}</span>
                     </div>
-                    <button type="button" onClick={() => handleUnlockZakat(item.id)} className="text-xs text-gray-500 hover:text-red-600 underline">Unlock</button>
+                    <button type="button" onClick={() => handleUnlockZakat(item.id)} className="text-xs text-gray-500 hover:text-red-600 underline">{t('hawlUnlockBtn')}</button>
                   </div>
                 ) : (
                   <div className="mt-2">
                     <button type="button" onClick={() => handleLockZakat(item.id)} className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                      <span>&#128275;</span> Lock zakat amount at today&apos;s {item.assetType === 'silver' ? 'silver' : item.assetType === 'gold' ? 'gold' : 'metal'} price
+                      {tFmt('hawlLockBtnFmt', [item.assetType === 'silver' ? t('hawlSilverLabel').toLowerCase() : item.assetType === 'gold' ? t('hawlGoldLabel').toLowerCase() : t('hawlMetalLabel')])}
                     </button>
                   </div>
                 )}
@@ -537,7 +540,7 @@ function HawlPageContent() {
 
       {pending.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-3">Pending</h2>
+          <h2 className="text-lg font-semibold text-gray-700 mb-3">{t('hawlPendingHeading')}</h2>
           <div className="space-y-2">
             {pending.map(item => {
               const start = item.hawlStartDate || Date.now();
@@ -557,20 +560,20 @@ function HawlPageContent() {
                   <div className="flex justify-between items-center mb-2">
                     <div>
                       <p className="font-semibold text-primary">{item.assetName}</p>
-                      <p className="text-sm text-gray-500">{item.assetType} &bull; {fmt(item.amount)}</p>
+                      <p className="text-sm text-gray-500">{typeLabel(item.assetType)} &bull; {fmt(item.amount)}</p>
                       {item.awaitingNisabRecovery && (
-                        <p className="text-xs text-red-600 mt-1">Paused until your zakatable wealth recovers above nisab.</p>
+                        <p className="text-xs text-red-600 mt-1">{t('hawlAwaitingRecoveryNote')}</p>
                       )}
                       {item.autoResetApplied && item.recoveryDate && (
-                        <p className="text-xs text-emerald-700 mt-1">Hawl automatically restarted on {formatDate(item.recoveryDate)}.</p>
+                        <p className="text-xs text-emerald-700 mt-1">{tFmt('hawlAutoResetNoteFmt', [formatDate(item.recoveryDate)])}</p>
                       )}
-                      <p className="text-xs text-gray-400">Hawl: {formatHijriDate(start)} &rarr; {formatHijriDate(end)}</p>
+                      <p className="text-xs text-gray-400">{tFmt('hawlHawlRangeFmt', [formatHijriDate(start), formatHijriDate(end)])}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{daysLeft}d left</span>
-                      <button type="button" onClick={() => openDateEditor(item)} className="text-purple-600 hover:text-purple-800 text-sm" title="Change Hawl date">&#128197;</button>
-                      <button type="button" onClick={() => handleReset(item.id)} className="text-blue-600 hover:text-blue-800 text-sm" title="Reset Hawl cycle">&#8635;</button>
-                      <button type="button" onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === item.id ? '...' : 'Del'}</button>
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{tFmt('hawlDaysLeftFmt', [daysLeft])}</span>
+                      <button type="button" onClick={() => openDateEditor(item)} className="text-purple-600 hover:text-purple-800 text-sm" title={t('hawlChangeDateTitle')}>&#128197;</button>
+                      <button type="button" onClick={() => handleReset(item.id)} className="text-blue-600 hover:text-blue-800 text-sm" title={t('hawlResetCycleTitle')}>&#8635;</button>
+                      <button type="button" onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-gray-400 hover:text-red-600 text-sm disabled:opacity-50">{deletingId === item.id ? '...' : t('hawlDel')}</button>
                     </div>
                   </div>
                   {/* Date Editor */}
@@ -585,9 +588,9 @@ function HawlPageContent() {
                         <input type="date" value={newStartDate} min={minBackdateInput} max={maxStartInput} onChange={e => setNewStartDate(e.target.value)} className="border rounded px-2 py-1 text-sm text-gray-900 w-full" />
                       ) : (
                         <div className="flex gap-2">
-                          <input type="number" placeholder="Year (e.g. 1447)" value={hijriInput.year} onChange={e => setHijriInput({ ...hijriInput, year: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
-                          <input type="number" placeholder="Month (1-12)" min="1" max="12" value={hijriInput.month} onChange={e => setHijriInput({ ...hijriInput, month: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
-                          <input type="number" placeholder="Day (1-30)" min="1" max="30" value={hijriInput.day} onChange={e => setHijriInput({ ...hijriInput, day: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
+                          <input type="number" placeholder={t('hawlYearPlaceholder')} value={hijriInput.year} onChange={e => setHijriInput({ ...hijriInput, year: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
+                          <input type="number" placeholder={t('hawlMonthPlaceholder')} min="1" max="12" value={hijriInput.month} onChange={e => setHijriInput({ ...hijriInput, month: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
+                          <input type="number" placeholder={t('hawlDayPlaceholder')} min="1" max="30" value={hijriInput.day} onChange={e => setHijriInput({ ...hijriInput, day: e.target.value })} className="border rounded px-2 py-1 text-sm text-gray-900 w-1/3" />
                         </div>
                       )}
                       <div className="flex gap-2 mt-2">
@@ -599,12 +602,12 @@ function HawlPageContent() {
                   <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-primary h-2 rounded-full" style={{ width: `${pct}%` }} /></div>
                   {item.zakatLocked ? (
                     <div className="mt-2 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs">
-                      <span className="text-green-700">&#128274; Zakat locked: {fmt(item.lockedZakatAmount)} ({item.assetType === 'silver' ? 'Silver' : 'Gold'}: ${(item.lockedGoldPrice ?? 0).toFixed(2)}/g on {new Date(item.zakatLockedDate).toLocaleDateString(undefined, DATE_FORMAT)})</span>
-                      <button type="button" onClick={() => handleUnlockZakat(item.id)} className="text-gray-500 hover:text-red-600 underline ml-2">Unlock</button>
+                      <span className="text-green-700">&#128274; {tFmt('hawlLockedRowFmt', [fmt(item.lockedZakatAmount), item.assetType === 'silver' ? t('hawlSilverLabel') : t('hawlGoldLabel'), (item.lockedGoldPrice ?? 0).toFixed(2), new Date(item.zakatLockedDate).toLocaleDateString(undefined, DATE_FORMAT)])}</span>
+                      <button type="button" onClick={() => handleUnlockZakat(item.id)} className="text-gray-500 hover:text-red-600 underline ml-2">{t('hawlUnlockBtn')}</button>
                     </div>
                   ) : (
                     <button type="button" onClick={() => handleLockZakat(item.id)} className="mt-2 text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                      &#128275; Lock zakat amount at today&apos;s {item.assetType === 'silver' ? 'silver' : item.assetType === 'gold' ? 'gold' : 'metal'} price
+                      {tFmt('hawlLockBtnFmt', [item.assetType === 'silver' ? t('hawlSilverLabel').toLowerCase() : item.assetType === 'gold' ? t('hawlGoldLabel').toLowerCase() : t('hawlMetalLabel')])}
                     </button>
                   )}
                 </div>
@@ -617,18 +620,18 @@ function HawlPageContent() {
       {items.length === 0 && (
         <EmptyState
           illustration="calendar"
-          title="Track your hawl for zakat"
-          description="Hawl is the 354-day Islamic lunar year your wealth must stay above nisab to be zakat-eligible. Import your assets and Barakah tracks the cycle daily."
+          title={t('hawlEmptyTitle')}
+          description={t('hawlEmptyDesc')}
           actions={[
-            { label: importing ? 'Importing…' : 'Import from Assets', onClick: handleImportAssets, primary: true },
-            { label: 'Add asset manually', href: '/dashboard/assets' },
+            { label: importing ? t('hawlEmptyImportingBtn') : t('hawlEmptyImportBtn'), onClick: handleImportAssets, primary: true },
+            { label: t('hawlEmptyAddManual'), href: '/dashboard/assets' },
           ]}
           preview={
             <div className="space-y-2">
               {[
-                { name: 'Chase Savings', start: 'Hawl began Dhul-Hijjah 1446', days: 'Day 187 of 354', status: 'on-track' },
-                { name: 'Apple stock (AAPL)', start: 'Hawl began Muharram 1447', days: 'Day 102 of 354', status: 'on-track' },
-                { name: 'Cash on hand', start: 'Below nisab — paused', days: '0 days', status: 'paused' },
+                { name: t('hawlSampleName1'), start: t('hawlSampleStart1'), days: t('hawlSampleDays1'), status: 'on-track' },
+                { name: t('hawlSampleName2'), start: t('hawlSampleStart2'), days: t('hawlSampleDays2'), status: 'on-track' },
+                { name: t('hawlSampleName3'), start: t('hawlSampleStart3'), days: t('hawlSampleDays3'), status: 'paused' },
               ].map((h) => (
                 <div key={h.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                   <div>
@@ -637,7 +640,7 @@ function HawlPageContent() {
                   </div>
                   <div className="text-right">
                     <p className={`text-xs font-semibold ${h.status === 'on-track' ? 'text-emerald-600' : 'text-gray-400'}`}>{h.days}</p>
-                    <span className={`text-[10px] uppercase tracking-wide ${h.status === 'on-track' ? 'text-emerald-500' : 'text-gray-400'}`}>{h.status === 'on-track' ? '✓ Counting' : '⏸ Paused'}</span>
+                    <span className={`text-[10px] uppercase tracking-wide ${h.status === 'on-track' ? 'text-emerald-500' : 'text-gray-400'}`}>{h.status === 'on-track' ? t('hawlSampleCounting') : t('hawlSamplePaused')}</span>
                   </div>
                 </div>
               ))}
@@ -648,12 +651,12 @@ function HawlPageContent() {
 
       {/* ── Manual Wealth Adjustment ── */}
       <div className="bg-white rounded-2xl p-6 border border-gray-200 mt-6">
-        <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3">External Wealth (Not Tracked in Barakah)</h3>
-        <p className="text-xs text-gray-500 mb-3">Cash at home, overseas accounts, or other wealth that affects whether you meet the nisab threshold.</p>
+        <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3">{t('hawlExternalHeading')}</h3>
+        <p className="text-xs text-gray-500 mb-3">{t('hawlExternalDesc')}</p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <input type="number" step="0.01" min="0" placeholder="Amount (e.g. 5000)" value={manualWealth} onChange={e => setManualWealth(e.target.value)} className="flex-1 border rounded-lg px-3 py-2 text-gray-900 text-sm" />
-          <input type="text" placeholder="Note (optional)" value={manualWealthNote} onChange={e => setManualWealthNote(e.target.value)} className="flex-1 border rounded-lg px-3 py-2 text-gray-900 text-sm" maxLength={200} />
-          <button type="button" onClick={handleManualWealth} disabled={manualWealthSaving || !manualWealth} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 whitespace-nowrap">{manualWealthSaving ? 'Saving...' : 'Update'}</button>
+          <input type="number" step="0.01" min="0" placeholder={t('hawlAmountPlaceholder')} value={manualWealth} onChange={e => setManualWealth(e.target.value)} className="flex-1 border rounded-lg px-3 py-2 text-gray-900 text-sm" />
+          <input type="text" placeholder={t('hawlNotePlaceholder')} value={manualWealthNote} onChange={e => setManualWealthNote(e.target.value)} className="flex-1 border rounded-lg px-3 py-2 text-gray-900 text-sm" maxLength={200} />
+          <button type="button" onClick={handleManualWealth} disabled={manualWealthSaving || !manualWealth} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 whitespace-nowrap">{manualWealthSaving ? t('hawlSavingBtn') : t('hawlUpdateBtn')}</button>
         </div>
       </div>
 
@@ -664,14 +667,14 @@ function HawlPageContent() {
           onClick={() => { setShowHistory(!showHistory); if (!showHistory && historyItems.length === 0) loadHistory(); }}
           className="text-sm font-semibold text-primary hover:underline flex items-center gap-1"
         >
-          {showHistory ? '▾' : '▸'} Past Hawl Cycles ({historyItems.length})
+          {showHistory ? '▾' : '▸'} {tFmt('hawlPastCyclesFmt', [historyItems.length])}
         </button>
         {showHistory && (
           <div className="mt-3 space-y-3">
             {historyLoading ? (
-              <p className="text-sm text-gray-400">Loading history...</p>
+              <p className="text-sm text-gray-400">{t('hawlLoadingHistory')}</p>
             ) : historyItems.length === 0 ? (
-              <p className="text-sm text-gray-400">No past cycles yet.</p>
+              <p className="text-sm text-gray-400">{t('hawlNoPastCycles')}</p>
             ) : (
               historyItems.map(item => {
                 const itemAny = item as unknown as Record<string, unknown>;
@@ -691,16 +694,16 @@ function HawlPageContent() {
                     <div className="flex items-center justify-between mb-2">
                       <div>
                         <span className="font-semibold text-gray-900 text-sm">{item.assetName}</span>
-                        <span className="text-xs text-gray-400 ml-2">{item.assetType}</span>
+                        <span className="text-xs text-gray-400 ml-2">{typeLabel(item.assetType)}</span>
                       </div>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusColors[status] || 'bg-gray-100 text-gray-500'}`}>
-                        {status === 'paid' ? 'Zakat Paid' : status === 'reset' ? 'Reset' : status === 'deleted' ? 'Deleted' : 'Ended'}
+                        {status === 'paid' ? t('hawlStatusPaid') : status === 'reset' ? t('hawlStatusReset') : status === 'deleted' ? t('hawlStatusDeleted') : t('hawlStatusEnded')}
                       </span>
                     </div>
                     <div className="text-xs text-gray-600 space-y-1">
-                      <p>{fmt(item.amount)} · Zakat: {fmt(item.zakatAmount)}</p>
+                      <p>{fmt(item.amount)} · {tFmt('hawlZakatColonFmt', [fmt(item.zakatAmount)])}</p>
                       <p>{startHijri.day} {startHijri.monthName} {startHijri.year} AH → {endHijri.day} {endHijri.monthName} {endHijri.year} AH</p>
-                      {reason && reason !== 'nisab_drop' && <p className="text-amber-600">Reason: {reason.replace(/_/g, ' ')}</p>}
+                      {reason && reason !== 'nisab_drop' && <p className="text-amber-600">{tFmt('hawlReasonFmt', [reason.replace(/_/g, ' ')])}</p>}
                       {note && <p className="italic text-gray-500">&ldquo;{note}&rdquo;</p>}
                     </div>
                   </div>
@@ -716,8 +719,8 @@ function HawlPageContent() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <p className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('hawlCancel')}</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('hawlConfirm')}</button>
             </div>
           </div>
         </div>
@@ -727,28 +730,28 @@ function HawlPageContent() {
       {resetModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Reset Hawl Cycle</h3>
-            <p className="text-sm text-gray-600 mb-4">This will start a new 354-day cycle from today. Why are you resetting?</p>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">{t('hawlResetTitle')}</h3>
+            <p className="text-sm text-gray-600 mb-4">{t('hawlResetDesc')}</p>
             <div className="space-y-3 mb-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Reason</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">{t('hawlReasonLabel')}</label>
                 <select value={resetReason} onChange={e => setResetReason(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm text-gray-900">
-                  <option value="nisab_drop">Wealth dropped below nisab</option>
-                  <option value="sold_asset">Sold the asset</option>
-                  <option value="gave_gift">Gave as gift / sadaqah</option>
-                  <option value="debt_paid">Paid off a debt</option>
-                  <option value="correction">Date/amount correction</option>
-                  <option value="other">Other</option>
+                  <option value="nisab_drop">{t('hawlReasonNisabDrop')}</option>
+                  <option value="sold_asset">{t('hawlReasonSold')}</option>
+                  <option value="gave_gift">{t('hawlReasonGift')}</option>
+                  <option value="debt_paid">{t('hawlReasonDebt')}</option>
+                  <option value="correction">{t('hawlReasonCorrection')}</option>
+                  <option value="other">{t('hawlReasonOther')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Note (optional)</label>
-                <textarea value={resetNote} onChange={e => setResetNote(e.target.value)} rows={2} maxLength={500} placeholder="e.g. Sold gold ring in March" className="w-full border rounded-lg px-3 py-2 text-sm text-gray-900" />
+                <label className="block text-xs font-medium text-gray-700 mb-1">{t('hawlNoteOptional')}</label>
+                <textarea value={resetNote} onChange={e => setResetNote(e.target.value)} rows={2} maxLength={500} placeholder={t('hawlResetNotePlaceholder')} className="w-full border rounded-lg px-3 py-2 text-sm text-gray-900" />
               </div>
             </div>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setResetModal(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handleResetConfirm} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Reset Hawl</button>
+              <button type="button" onClick={() => setResetModal(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('hawlCancel')}</button>
+              <button type="button" onClick={handleResetConfirm} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('hawlResetBtn')}</button>
             </div>
           </div>
         </div>
@@ -757,25 +760,25 @@ function HawlPageContent() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-primary mb-4">Track New Asset</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">{t('hawlModalTitle')}</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Asset Name</label>
-                <input value={form.assetName} onChange={e => setForm({ ...form, assetName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Gold Savings" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldAssetName')}</label>
+                <input value={form.assetName} onChange={e => setForm({ ...form, assetName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('hawlAssetNamePlaceholder')} /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldType')}</label>
                 <select value={form.assetType} onChange={e => setForm({ ...form, assetType: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                  {TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                  {TYPES.map(ty => <option key={ty} value={ty}>{typeLabel(ty)}</option>)}
                 </select></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Value</label>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldValue')}</label>
                 <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Nisab Threshold</label>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldNisab')}</label>
                 <input type="number" step="0.01" value={form.nisabThreshold} onChange={e => setForm({ ...form, nisabThreshold: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Hawl Start Date <span className="text-gray-400">(optional — defaults to today, backdate if you already held it)</span></label>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldStartDate')} <span className="text-gray-400">{t('hawlStartDateHint')}</span></label>
                 <input type="date" value={form.startDate} min={minBackdateInput} max={maxStartInput} onChange={e => setForm({ ...form, startDate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             </div>
             {saveError && <div className="text-sm text-red-600 bg-red-50 p-2 rounded mb-3 mt-3">{saveError}</div>}
             <div className="flex gap-3 mt-6">
-              <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handleSave} disabled={saving || !form.assetName || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Track'}</button>
+              <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('hawlCancel')}</button>
+              <button type="button" onClick={handleSave} disabled={saving || !form.assetName || !form.amount} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">{saving ? t('hawlSavingBtn') : t('hawlTrackBtn')}</button>
             </div>
           </div>
         </div>

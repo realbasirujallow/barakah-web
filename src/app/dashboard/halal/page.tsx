@@ -8,6 +8,7 @@ import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { trackFeatureUse, trackOnce } from '../../../lib/analytics';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 interface HalalResult { symbol: string; name: string; isHalal: boolean; reason: string; sector: string; debtRatio?: number; }
 interface StockStats { totalStocks: number; halalCount: number; haramCount: number; sectorCount: number; }
 interface DetailResult { symbol: string; name: string; status: string; reason: string; sector: string; debtRatio?: number; }
@@ -16,18 +17,18 @@ interface ScreeningStatus { lastSucceededAt: number | null; statusChanges: numbe
 /** Human-friendly "X minutes/hours/days ago" for the freshness badge.
  *  Capped at "30+ days" — beyond that the user should treat the data
  *  as stale and we want the wording to reflect that. */
-function formatTimeAgo(epochMs: number | null): string {
-  if (!epochMs) return 'never';
+function formatTimeAgo(epochMs: number | null, tr: (k: string) => string, tFmt: (k: string, args: (string|number)[]) => string): string {
+  if (!epochMs) return tr('halalAgoNever');
   const diff = Date.now() - epochMs;
-  if (diff < 0) return 'just now';
+  if (diff < 0) return tr('halalAgoJustNow');
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins} min ago`;
+  if (mins < 1) return tr('halalAgoJustNow');
+  if (mins < 60) return tFmt('halalAgoMinFmt', [mins]);
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return tFmt('halalAgoHrFmt', [hrs]);
   const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
-  return '30+ days ago';
+  if (days < 30) return tFmt('halalAgoDayFmt', [days]);
+  return tr('halalAgo30Plus');
 }
 
 const PAGE_SIZE = 50;
@@ -35,6 +36,7 @@ const PAGE_SIZE = 50;
 export default function HalalPage() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
+  const { t, tFmt } = useI18n();
   const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
 
   // GA4 feature-engagement event — fires once per browser when a user
@@ -88,12 +90,12 @@ export default function HalalPage() {
         haramCount: d.haramCount ?? 0,
         sectorCount: d.sectorCount ?? d.totalSectors ?? 0,
       });
-    }).catch(() => toast('Failed to load halal stats', 'error'));
+    }).catch(() => toast(t('halalLoadStatsError'), 'error'));
     api.getHalalSectors().then((d: { sectors?: { sector: string; count: number }[]; error?: string }) => {
       if (d?.error) return;
       const s = d?.sectors;
       setSectors(Array.isArray(s) ? s : []);
-    }).catch(() => toast('Failed to load sectors', 'error'));
+    }).catch(() => toast(t('halalLoadSectorsError'), 'error'));
     // Trust signal: surfaces last-successful-scan freshness so users
     // don't have to take the halal/haram statuses on faith. Silent on
     // error — a missing badge is far better than a broken page.
@@ -105,6 +107,9 @@ export default function HalalPage() {
         symbolsChecked: d?.symbolsChecked ?? 0,
       });
     }).catch(() => { /* badge is non-critical */ });
+    // `t` is a fresh identity each render; including it here would refire the
+    // mount fetch on every render → infinite refetch loop. Keep only `toast`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
 
   // Fetch stocks when filters or page change
@@ -154,14 +159,14 @@ export default function HalalPage() {
           symbol: r.symbol,
           name: r.name || '',
           status: !r.found ? 'UNKNOWN' : r.isHalal ? 'HALAL' : 'HARAM',
-          reason: !r.found ? 'Stock not found in our database' : (r.reason || ''),
+          reason: !r.found ? t('halalNotFound') : (r.reason || ''),
           sector: r.sector || '',
           debtRatio: r.debtRatio,
         });
       }
     } catch (err) {
       logError(err, { context: 'halal.stockLookup', ticker });
-      setDetailResult({ symbol: ticker, name: '', status: 'UNKNOWN', reason: 'Could not find stock data. Please check the ticker and try again.', sector: '' });
+      setDetailResult({ symbol: ticker, name: '', status: 'UNKNOWN', reason: t('halalLookupError'), sector: '' });
     }
     setChecking(false);
   };
@@ -183,14 +188,14 @@ export default function HalalPage() {
             paywall surface visually matches every other dashboard
             page (consistent typography + subtitle slot for context). */}
         <PageHeader
-          title="Halal Stock Screener"
-          subtitle="Live AAOIFI Standard 21 ratio screening on demand, plus a 30,000+ stock business-activity library"
+          title={t('halalTitlePaywall')}
+          subtitle={t('halalSubtitlePaywall')}
         />
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
-          <p className="text-amber-800 font-semibold mb-2">Plus or Family plan required</p>
-          <p className="text-amber-700 text-sm mb-4">Upgrade to screen stocks for Shariah compliance, view sector breakdowns, and more.</p>
+          <p className="text-amber-800 font-semibold mb-2">{t('halalPaywallTitle')}</p>
+          <p className="text-amber-700 text-sm mb-4">{t('halalPaywallBody')}</p>
           <Link href="/dashboard/billing" className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-lg font-semibold hover:bg-primary/90 transition-colors">
-            View Plans
+            {t('halalViewPlans')}
           </Link>
         </div>
       </div>
@@ -200,8 +205,8 @@ export default function HalalPage() {
   return (
     <div>
       <PageHeader
-        title="Stock Screener"
-        subtitle="Business-activity screening with live AAOIFI Standard 21 debt/interest ratio analysis"
+        title={t('halalTitle')}
+        subtitle={t('halalSubtitle')}
       />
 
       {/* Freshness badge — daily re-screen status. Surfaces the same data
@@ -211,18 +216,18 @@ export default function HalalPage() {
       {screeningStatus?.lastSucceededAt && (
         <div
           role="status"
-          aria-label={`Halal screening last ran ${formatTimeAgo(screeningStatus.lastSucceededAt)} with ${screeningStatus.statusChanges} status change${screeningStatus.statusChanges === 1 ? '' : 's'}`}
+          aria-label={tFmt('halalScreeningAriaFmt', [formatTimeAgo(screeningStatus.lastSucceededAt, t, tFmt), screeningStatus.statusChanges])}
           className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full text-xs text-green-800"
         >
           <span aria-hidden="true">✓</span>
           <span>
-            Re-screened {formatTimeAgo(screeningStatus.lastSucceededAt)}
+            {tFmt('halalRescreenedFmt', [formatTimeAgo(screeningStatus.lastSucceededAt, t, tFmt)])}
             {' · '}
             {screeningStatus.statusChanges === 0
-              ? 'no status changes'
-              : `${screeningStatus.statusChanges} status change${screeningStatus.statusChanges === 1 ? '' : 's'}`}
+              ? t('halalNoChanges')
+              : tFmt('halalStatusChangesFmt', [screeningStatus.statusChanges])}
             {screeningStatus.symbolsChecked > 0 && (
-              <span className="text-green-600"> · {screeningStatus.symbolsChecked.toLocaleString()} symbols</span>
+              <span className="text-green-600"> · {tFmt('halalSymbolsFmt', [screeningStatus.symbolsChecked.toLocaleString()])}</span>
             )}
           </span>
         </div>
@@ -233,19 +238,19 @@ export default function HalalPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <div className="bg-white rounded-xl p-4 text-center shadow-sm">
             <p className="text-2xl font-bold text-gray-900">{stats.totalStocks.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">Total Stocks</p>
+            <p className="text-xs text-gray-500">{t('halalStatTotal')}</p>
           </div>
           <div className="bg-green-50 rounded-xl p-4 text-center shadow-sm">
             <p className="text-2xl font-bold text-green-700">{stats.halalCount.toLocaleString()}</p>
-            <p className="text-xs text-green-600">Halal</p>
+            <p className="text-xs text-green-600">{t('halalStatHalal')}</p>
           </div>
           <div className="bg-red-50 rounded-xl p-4 text-center shadow-sm">
             <p className="text-2xl font-bold text-red-600">{stats.haramCount.toLocaleString()}</p>
-            <p className="text-xs text-red-500">Haram</p>
+            <p className="text-xs text-red-500">{t('halalStatHaram')}</p>
           </div>
           <div className="bg-blue-50 rounded-xl p-4 text-center shadow-sm">
             <p className="text-2xl font-bold text-blue-700">{stats.sectorCount}</p>
-            <p className="text-xs text-blue-500">Sectors</p>
+            <p className="text-xs text-blue-500">{t('halalStatSectors')}</p>
           </div>
         </div>
       )}
@@ -254,9 +259,9 @@ export default function HalalPage() {
       <div className="bg-white rounded-2xl p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
           <h2 className="text-lg font-semibold text-gray-700">
-            Stock Screener
+            {t('halalScreenerHeading')}
             <span className="text-sm font-normal text-gray-400 ml-2">
-              {totalFiltered.toLocaleString()} of {totalInDb.toLocaleString()} stocks
+              {tFmt('halalScreenerCountFmt', [totalFiltered.toLocaleString(), totalInDb.toLocaleString()])}
             </span>
           </h2>
 
@@ -275,7 +280,7 @@ export default function HalalPage() {
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                {c === 'all' ? 'All' : c === 'halal' ? 'Halal' : 'Haram'}
+                {c === 'all' ? t('halalToggleAll') : c === 'halal' ? t('halalToggleHalal') : t('halalToggleHaram')}
               </button>
             ))}
           </div>
@@ -293,8 +298,8 @@ export default function HalalPage() {
               }}
               onKeyDown={e => { if (e.key === 'Enter') handleQuickCheck(); }}
               className="w-full border rounded-lg px-4 py-2.5 text-gray-900 pr-20"
-              placeholder="Search by ticker, name, or sector... (Enter for quick check)"
-              aria-label="Search stocks or check a specific ticker"
+              placeholder={t('halalSearchPlaceholder')}
+              aria-label={t('halalSearchAria')}
             />
             {search.trim() && /^[A-Z]{1,5}$/i.test(search.trim()) && (
               <button
@@ -302,7 +307,7 @@ export default function HalalPage() {
                 disabled={checking}
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-md text-sm hover:bg-primary/90 disabled:opacity-50"
               >
-                {checking ? '...' : 'Check'}
+                {checking ? '...' : t('halalCheckBtn')}
               </button>
             )}
           </div>
@@ -314,7 +319,7 @@ export default function HalalPage() {
             }}
             className="border rounded-lg px-3 py-2 text-gray-900 text-sm min-w-[180px]"
           >
-            <option value="">All Sectors</option>
+            <option value="">{t('halalAllSectors')}</option>
             {sectors.map(s => (
               <option key={s.sector} value={s.sector}>{s.sector} ({s.count})</option>
             ))}
@@ -328,20 +333,20 @@ export default function HalalPage() {
               <span className="text-3xl">{detailResult.status === 'HALAL' ? '\u2705' : detailResult.status === 'HARAM' ? '\u274C' : '\u2753'}</span>
               <div>
                 <p className="text-lg font-bold text-gray-900">{detailResult.symbol}{detailResult.name ? ` \u2014 ${detailResult.name}` : ''}</p>
-                <p className={`font-semibold ${detailResult.status === 'HALAL' ? 'text-green-700' : detailResult.status === 'HARAM' ? 'text-red-700' : 'text-gray-600'}`}>{detailResult.status}</p>
+                <p className={`font-semibold ${detailResult.status === 'HALAL' ? 'text-green-700' : detailResult.status === 'HARAM' ? 'text-red-700' : 'text-gray-600'}`}>{detailResult.status === 'HALAL' ? t('halalStatusHalal') : detailResult.status === 'HARAM' ? t('halalStatusHaram') : t('halalStatusUnknown')}</p>
               </div>
               <button
                 onClick={() => setDetailResult(null)}
                 className="ml-auto text-gray-400 hover:text-gray-600 text-lg"
-                aria-label="Dismiss result"
+                aria-label={t('halalDismissResult')}
               >
                 &times;
               </button>
             </div>
             {detailResult.reason && <p className="text-gray-600 text-sm">{detailResult.reason}</p>}
             <div className="flex gap-4 mt-1 text-xs text-gray-500">
-              {detailResult.sector && <span>Sector: {detailResult.sector}</span>}
-              {detailResult.debtRatio !== undefined && <span>Debt Ratio: {(detailResult.debtRatio * 100).toFixed(1)}%</span>}
+              {detailResult.sector && <span>{tFmt('halalSectorLabelFmt', [detailResult.sector])}</span>}
+              {detailResult.debtRatio !== undefined && <span>{tFmt('halalDebtRatioFmt', [(detailResult.debtRatio * 100).toFixed(1)])}</span>}
             </div>
           </div>
         )}
@@ -369,7 +374,7 @@ export default function HalalPage() {
                   <p className="text-xs text-gray-400 truncate">{s.sector} &middot; {s.reason}</p>
                 </div>
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.isHalal ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                  {s.isHalal ? 'Halal' : 'Haram'}
+                  {s.isHalal ? t('halalToggleHalal') : t('halalToggleHaram')}
                 </span>
               </div>
             ))}
@@ -380,10 +385,10 @@ export default function HalalPage() {
           <EmptyState
             variant="bare"
             icon="🔎"
-            title="No stocks match these filters"
-            description="Try clearing the sector filter or switching the compliance toggle. You can also type a ticker like AAPL and press Enter for a quick check."
+            title={t('halalEmptyTitle')}
+            description={t('halalEmptyBody')}
             actions={[
-              { label: 'Clear filters', onClick: () => { setSearch(''); setSector(''); setCompliance('all'); setPage(0); }, primary: true },
+              { label: t('halalClearFilters'), onClick: () => { setSearch(''); setSector(''); setCompliance('all'); setPage(0); }, primary: true },
             ]}
             preview={
               <div className="space-y-2">
@@ -398,7 +403,7 @@ export default function HalalPage() {
                       <p className="text-xs text-gray-400">{s.name}</p>
                     </div>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.halal ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                      {s.halal ? '✅ Halal' : '❌ Haram'}
+                      {s.halal ? `✅ ${t('halalToggleHalal')}` : `❌ ${t('halalToggleHaram')}`}
                     </span>
                   </div>
                 ))}
@@ -415,17 +420,17 @@ export default function HalalPage() {
               disabled={page === 0}
               className="text-sm text-primary font-medium disabled:opacity-30"
             >
-              &larr; Previous
+              &larr; {t('halalPrev')}
             </button>
             <span className="text-sm text-gray-500">
-              Page {page + 1} of {totalPages}
+              {tFmt('halalPageOfFmt', [page + 1, totalPages])}
             </span>
             <button
               onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
               className="text-sm text-primary font-medium disabled:opacity-30"
             >
-              Next &rarr;
+              {t('halalNext')} &rarr;
             </button>
           </div>
         )}
@@ -433,17 +438,9 @@ export default function HalalPage() {
 
       {/* Methodology note */}
       <div className="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
-        <h3 className="font-semibold text-amber-800 mb-2">How We Screen Stocks</h3>
-        <p className="text-sm text-amber-700 leading-relaxed">
-          Our screening follows <strong>AAOIFI Shariah Standard 21</strong> guidelines used by major Islamic finance institutions.
-          A stock is considered <strong>Halal</strong> if: (1) the company&apos;s core business is permissible,
-          (2) interest-bearing debt ÷ trailing 12-month average market cap is below 30%, (3) interest-bearing securities and cash ÷ market cap is below 30%,
-          and (4) non-permissible revenue is less than 5% of total revenue. Industries like gambling, alcohol, tobacco,
-          conventional banking, weapons, and adult entertainment are excluded entirely.
-        </p>
-        <p className="text-xs text-amber-600 mt-2">
-          Screening data is updated periodically. Always consult a qualified Islamic finance scholar for personal investment decisions.
-        </p>
+        <h3 className="font-semibold text-amber-800 mb-2">{t('halalMethodologyHeading')}</h3>
+        <p className="text-sm text-amber-700 leading-relaxed">{t('halalMethodologyBody')}</p>
+        <p className="text-xs text-amber-600 mt-2">{t('halalMethodologyDisclaimer')}</p>
       </div>
     </div>
   );

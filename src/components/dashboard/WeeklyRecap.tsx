@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useCurrency } from '../../lib/useCurrency';
+import { useI18n } from '../../lib/i18n';
 
 /**
  * R45 (2026-05-01) — Monarch-style Weekly Recap card.
@@ -102,6 +103,7 @@ export function WeeklyRecap({
   spendingLastMonth,
   spendingChangePercent,
 }: WeeklyRecapProps) {
+  const { t, tFmt } = useI18n();
   // 2026-05-12 overnight QA (RTL-004): pull the app's selected locale so
   // the week-range string ("May 4–10" in en-US, "4–10 mai" in fr,
   // "٤–١٠ مايو" in ar) matches the rest of the UI.
@@ -142,17 +144,17 @@ export function WeeklyRecap({
                 `greeting`/`greetingEmoji` props are kept on the type so
                 callers don't break, but we no longer render them here. */}
             <p className="text-xs uppercase tracking-wide font-semibold text-emerald-700 dark:text-emerald-300 mb-0.5">
-              Your weekly recap
+              {t('dashYourWeeklyRecap')}
             </p>
             <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
-              Last week — {range}
+              {tFmt('dashLastWeekRange', [range])}
             </h2>
           </div>
           <Link
             href="/dashboard/analytics"
             className="text-xs text-primary font-semibold hover:underline flex-shrink-0 whitespace-nowrap pt-1"
           >
-            See all insights →
+            {t('dashSeeAllInsights')}
           </Link>
         </div>
       </div>
@@ -160,7 +162,7 @@ export function WeeklyRecap({
       {/* Stat strip — net worth + spending */}
       <div className="grid grid-cols-2 divide-x divide-border">
         <div className="px-5 py-3">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Net worth Δ (30d)</p>
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">{t('dashNetWorthDelta')}</p>
           {hasNetWorth ? (
             // 2026-05-12 overnight QA (RTL-003): wrap the entire numeric
             // stat in a <bdi dir="ltr"> so the bidi algorithm doesn't
@@ -190,7 +192,7 @@ export function WeeklyRecap({
           )}
         </div>
         <div className="px-5 py-3">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Spending vs last month</p>
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">{t('dashSpendingVsLastMonth')}</p>
           {hasSpending ? (
             <p className={`text-base sm:text-lg font-semibold tabular-nums ${spendingDown ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
               <bdi dir="ltr">

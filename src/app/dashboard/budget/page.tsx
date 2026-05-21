@@ -6,6 +6,7 @@ import { useToast } from '../../../lib/toast';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { SkeletonPage } from '../SkeletonCard';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 import { FormHelp } from '../../../components/dashboard/FormHelp';
 import EmptyState from '../../../components/EmptyState';
 
@@ -42,7 +43,7 @@ const CATEGORIES = [
   'charity', 'zakat', 'sadaqah',
   'business', 'other',
 ];
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_KEYS = ['budgetMonJan', 'budgetMonFeb', 'budgetMonMar', 'budgetMonApr', 'budgetMonMay', 'budgetMonJun', 'budgetMonJul', 'budgetMonAug', 'budgetMonSep', 'budgetMonOct', 'budgetMonNov', 'budgetMonDec'];
 
 function catLabel(cat: string) { return cat.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase()); }
 
@@ -65,6 +66,8 @@ function getCategoryIcon(cat: string): string {
 
 export default function BudgetPage() {
   const { fmt } = useCurrency();
+  const { t, tFmt } = useI18n();
+  const mon = (idx: number) => t(MONTH_KEYS[idx]);
   const now = new Date();
   const [budgets, setBudgets] = useState<BudgetItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,13 +139,13 @@ export default function BudgetPage() {
       );
       if (b.spent >= b.monthlyLimit) {
         if (isCharity) {
-          toast(`🤲 You gave ${fmt(b.spent - b.monthlyLimit)} above your ${catLabel(b.category)} budget. Mashā Allāh.`, 'success');
+          toast(tFmt('budgetGenerousToastFmt', [fmt(b.spent - b.monthlyLimit), catLabel(b.category)]), 'success');
         } else {
-          toast(`🚨 ${catLabel(b.category)} budget exceeded! (${fmt(b.spent)} / ${fmt(b.monthlyLimit)})`, 'error');
+          toast(tFmt('budgetExceededToastFmt', [catLabel(b.category), fmt(b.spent), fmt(b.monthlyLimit)]), 'error');
         }
         addAlertedKey(key);
       } else if (pct >= 80) {
-        toast(`⚠️ ${catLabel(b.category)} is at ${Math.round(pct)}% of budget`, 'info');
+        toast(tFmt('budgetWarnToastFmt', [catLabel(b.category), Math.round(pct)]), 'info');
         addAlertedKey(key);
       }
     });
@@ -163,7 +166,7 @@ export default function BudgetPage() {
         setBudgets(items);
         checkBudgetAlerts(items);
       })
-      .catch(() => { toast('Failed to load budgets', 'error'); })
+      .catch(() => { toast(t('budgetLoadError'), 'error'); })
       .finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, [viewMonth, viewYear]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -198,19 +201,19 @@ export default function BudgetPage() {
     try {
       const limit = parseFloat(form.monthlyLimit);
       if (!form.monthlyLimit.trim() || !Number.isFinite(limit) || limit <= 0) {
-        setSaveError('Monthly limit must be a positive number');
+        setSaveError(t('budgetLimitPositiveError'));
         setSaving(false);
         return;
       }
       const MAX_VALUE = 1_000_000_000; // 1 billion max
       if (limit > MAX_VALUE) {
-        setSaveError(`Budget limit cannot exceed $${MAX_VALUE.toLocaleString()}`);
+        setSaveError(tFmt('budgetLimitMaxErrorFmt', [`$${MAX_VALUE.toLocaleString()}`]));
         setSaving(false);
         return;
       }
       // Check decimal precision (max 2 decimal places for currency)
       if (!/^\d+(\.\d{1,2})?$/.test(form.monthlyLimit.trim())) {
-        setSaveError('Please enter a limit with up to 2 decimal places');
+        setSaveError(t('budgetDecimalError'));
         setSaving(false);
         return;
       }
@@ -228,16 +231,16 @@ export default function BudgetPage() {
       if (result?.error) throw new Error(result.error);
       setShowForm(false); load();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to save budget. Please try again.');
+      setSaveError(err instanceof Error ? err.message : t('budgetSaveError'));
     }
     setSaving(false);
   };
 
   const handleDelete = (id: number) => {
     setConfirmAction({
-      message: 'Delete this budget?',
+      message: t('budgetDeleteConfirm'),
       action: async () => {
-        await api.deleteBudget(id).catch(() => { toast('Failed to delete budget', 'error'); });
+        await api.deleteBudget(id).catch(() => { toast(t('budgetDeleteError'), 'error'); });
         load();
       }
     });
@@ -249,18 +252,22 @@ export default function BudgetPage() {
       ? { month: 12, year: viewYear - 1 }
       : { month: viewMonth - 1, year: viewYear };
     setConfirmAction({
-      message: `Copy all budgets from ${MONTHS[prev.month - 1]} ${prev.year} to ${MONTHS[viewMonth - 1]} ${viewYear}?`,
+      message: tFmt('budgetCopyConfirmFmt', [mon(prev.month - 1), prev.year, mon(viewMonth - 1), viewYear]),
       action: async () => {
         setCopyingMonth(true);
         try {
           const result = await api.copyBudget(prev.month, prev.year, viewMonth, viewYear);
           if (result?.copied === 0) {
-            toast(`No budget found for ${MONTHS[prev.month - 1]} ${prev.year}. Add a budget first, then copy it next month.`, 'error');
+            toast(tFmt('budgetNoneForCopyFmt', [mon(prev.month - 1), prev.year]), 'error');
           } else {
             load();
-            toast(`${result?.copied ?? 'All'} budget(s) copied from ${MONTHS[prev.month - 1]}`, 'success');
+            if (typeof result?.copied === 'number') {
+              toast(tFmt('budgetCopiedFmt', [result.copied, mon(prev.month - 1)]), 'success');
+            } else {
+              toast(tFmt('budgetCopiedAllFmt', [mon(prev.month - 1)]), 'success');
+            }
           }
-        } catch { toast('Failed to copy budgets', 'error'); }
+        } catch { toast(t('budgetCopyError'), 'error'); }
         setCopyingMonth(false);
       }
     });
@@ -300,26 +307,26 @@ export default function BudgetPage() {
   return (
     <div>
       <PageHeader
-        title="Budget Planning"
-        subtitle={`${MONTHS[viewMonth - 1]} ${viewYear} · category-level limits with auto rollover`}
+        title={t('budgetTitle')}
+        subtitle={tFmt('budgetSubtitleFmt', [mon(viewMonth - 1), viewYear])}
         actions={
           <>
             <button type="button" onClick={handleCopyMonth} disabled={copyingMonth}
               className="px-3 py-2 text-sm border border-primary text-primary rounded-lg hover:bg-green-50 transition disabled:opacity-50">
-              {copyingMonth ? 'Copying...' : '📋 Copy Last Month'}
+              {copyingMonth ? t('budgetCopyingBtn') : t('budgetCopyBtn')}
             </button>
-            <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">+ Add Budget</button>
+            <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">{t('budgetAddBtn')}</button>
           </>
         }
       />
 
       {/* ── Month Navigation ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-center gap-4 mb-6">
-        <button type="button" onClick={goToPrevMonth} className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">← Prev</button>
-        <span className="text-lg font-semibold text-gray-800">{MONTHS[viewMonth - 1]} {viewYear}</span>
+        <button type="button" onClick={goToPrevMonth} className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">{t('budgetPrev')}</button>
+        <span className="text-lg font-semibold text-gray-800">{mon(viewMonth - 1)} {viewYear}</span>
         <button type="button" onClick={goToNextMonth}
           disabled={viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear()}
-          className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed">Next →</button>
+          className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed">{t('budgetNext')}</button>
       </div>
 
       {/* ── Summary cards.
@@ -334,13 +341,13 @@ export default function BudgetPage() {
             state) the orange/green semantics read as "you spent zero (bad),
             remaining zero (good)" which is meaningless. Drop the semantic
             color in the empty state. */}
-        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">Total Budget</p><p className="text-2xl font-bold text-primary">{fmt(totalBudget)}</p></div>
+        <div className="bg-white rounded-xl p-5"><p className="text-gray-500 text-sm">{t('budgetTotal')}</p><p className="text-2xl font-bold text-primary">{fmt(totalBudget)}</p></div>
         <div className="bg-white rounded-xl p-5">
-          <p className="text-gray-500 text-sm">Total Spent</p>
+          <p className="text-gray-500 text-sm">{t('budgetSpent')}</p>
           <p className={`text-2xl font-bold ${totalBudget === 0 && totalSpent === 0 ? 'text-gray-400' : 'text-orange-600'}`}>{fmt(totalSpent)}</p>
         </div>
         <div className="bg-white rounded-xl p-5">
-          <p className="text-gray-500 text-sm">Remaining</p>
+          <p className="text-gray-500 text-sm">{t('budgetRemaining')}</p>
           <p className={`text-2xl font-bold ${
             totalBudget === 0 && totalSpent === 0
               ? 'text-gray-400'
@@ -383,18 +390,18 @@ export default function BudgetPage() {
               || charityCategorySlug.includes('masjid')
             );
             const isGenerous = over && isCharityCategory;
-            const kindLabel = b.categoryKind === 'FIXED' ? 'Fixed' : 'Flex';
+            const kindLabel = b.categoryKind === 'FIXED' ? t('budgetKindFixed') : t('budgetKindFlex');
             const strategyLabel = b.rolloverStrategy === 'ACCUMULATE'
-              ? 'Accumulating' : b.rolloverStrategy === 'NONE' ? 'No rollover' : 'Refills monthly';
+              ? t('budgetStrategyAccumulating') : b.rolloverStrategy === 'NONE' ? t('budgetStrategyNone') : t('budgetStrategyRefills');
             return (
               <div key={b.id} className={`bg-white rounded-xl p-4 ${isGenerous ? 'border-l-4 border-emerald-500' : over ? 'border-l-4 border-red-500' : criticalWarn ? 'border-l-4 border-red-400' : warn ? 'border-l-4 border-amber-400' : ''}`}>
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{getCategoryIcon(b.category)}</span>
                     <div>
-                      <p className="font-semibold text-gray-900 capitalize">{catLabel(b.category)}</p>
+                      <p className="font-semibold text-gray-900">{catLabel(b.category)}</p>
                       <p className="text-xs text-gray-500">
-                        {MONTHS[b.month - 1]} {b.year}
+                        {mon(b.month - 1)} {b.year}
                         <span className="ml-1.5 inline-flex items-center gap-1">
                           <span className={`text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded ${b.categoryKind === 'FIXED' ? 'bg-slate-100 text-slate-600' : 'bg-emerald-50 text-emerald-700'}`}>
                             {kindLabel}
@@ -408,17 +415,17 @@ export default function BudgetPage() {
                     {isGenerous && (
                       <span
                         className="text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 px-2 py-0.5 rounded-full font-medium"
-                        title="Exceeding a charity/sadaqah/zakat budget is praiseworthy — Barakah celebrates generosity rather than flagging it as overspending."
+                        title={t('budgetGenerousBadgeTitle')}
                       >
-                        + {fmt(overage)} generous
+                        {tFmt('budgetGenerousBadgeFmt', [fmt(overage)])}
                       </span>
                     )}
-                    {over && !isGenerous && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Over {fmt(overage)}</span>}
-                    {criticalWarn && !over && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">{Math.round(pct)}% - Critical</span>}
-                    {warn && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{Math.round(pct)}% - Warning</span>}
+                    {over && !isGenerous && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">{tFmt('budgetOverBadgeFmt', [fmt(overage)])}</span>}
+                    {criticalWarn && !over && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">{tFmt('budgetCriticalBadgeFmt', [Math.round(pct)])}</span>}
+                    {warn && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{tFmt('budgetWarningBadgeFmt', [Math.round(pct)])}</span>}
                     <p className="text-sm"><span className={isGenerous ? 'text-emerald-700 font-bold' : over ? 'text-red-600 font-bold' : criticalWarn ? 'text-red-600' : 'text-gray-700'}>{fmt(b.spent)}</span> / {fmt(effectiveLimit)}</p>
-                    <button type="button" onClick={() => openEdit(b)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
-                    <button type="button" onClick={() => handleDelete(b.id)} className="text-gray-400 hover:text-red-600 text-sm">Del</button>
+                    <button type="button" onClick={() => openEdit(b)} className="text-gray-400 hover:text-blue-600 text-sm">{t('budgetEdit')}</button>
+                    <button type="button" onClick={() => handleDelete(b.id)} className="text-gray-400 hover:text-red-600 text-sm">{t('budgetDel')}</button>
                   </div>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -430,8 +437,8 @@ export default function BudgetPage() {
                   // gray-700/600 auto-map to lighter shades in dark via globals.css.
                   // Emerald has no auto-map, so dark:text-emerald-400 is set explicitly.
                   <p className="text-xs text-gray-700 mt-1.5">
-                    Includes <span className="font-semibold text-emerald-700 dark:text-emerald-400">{fmt(rolled)}</span> rolled over from last month
-                    <span className="text-gray-600"> ({fmt(b.monthlyLimit)} base + {fmt(rolled)})</span>
+                    {tFmt('budgetRolledOverFmt', [fmt(rolled)])}
+                    <span className="text-gray-600">{tFmt('budgetRolledOverBaseFmt', [fmt(b.monthlyLimit), fmt(rolled)])}</span>
                   </p>
                 )}
               </div>
@@ -445,18 +452,18 @@ export default function BudgetPage() {
         // matches Monarch / Linear's "show, don't tell" empty UX.
         <EmptyState
           icon="📋"
-          title={viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear() ? 'No budgets set up yet' : 'No budgets for this month'}
+          title={viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear() ? t('budgetEmptyTitleCurrent') : t('budgetEmptyTitleOther')}
           description={
             viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear()
-              ? 'Set a monthly cap on a category and Barakah will warn you at 80% and 100%. No transactions are blocked — you stay in control.'
-              : 'You can copy last month\'s budgets in one click, or create a fresh one for this month.'
+              ? t('budgetEmptyDescCurrent')
+              : t('budgetEmptyDescOther')
           }
           actions={
             viewMonth === now.getMonth() + 1 && viewYear === now.getFullYear()
-              ? [{ label: 'Create Your First Budget', onClick: openAdd, primary: true }]
+              ? [{ label: t('budgetEmptyActionCreate'), onClick: openAdd, primary: true }]
               : [
-                  { label: 'Create Budget', onClick: openAdd, primary: true },
-                  { label: 'Copy Last Month', onClick: handleCopyMonth },
+                  { label: t('budgetEmptyActionCreateAlt'), onClick: openAdd, primary: true },
+                  { label: t('budgetEmptyActionCopy'), onClick: handleCopyMonth },
                 ]
           }
           preview={
@@ -465,8 +472,8 @@ export default function BudgetPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-base">🍽️</span>
                   <div>
-                    <p className="font-semibold text-gray-900 text-sm">Food</p>
-                    <p className="text-[10px] text-gray-500">{MONTHS[viewMonth - 1]} {viewYear}</p>
+                    <p className="font-semibold text-gray-900 text-sm">{t('budgetPreviewFood')}</p>
+                    <p className="text-[10px] text-gray-500">{mon(viewMonth - 1)} {viewYear}</p>
                   </div>
                 </div>
                 <p className="text-xs"><span className="text-gray-700">{fmt(320)}</span> / {fmt(500)}</p>
@@ -486,16 +493,13 @@ export default function BudgetPage() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-primary mb-4">{editItem ? 'Edit Budget' : 'Add Budget'}</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">{editItem ? t('budgetModalEditTitle') : t('budgetModalAddTitle')}</h2>
             <div className="space-y-4">
               <div>
                 <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
-                  Category
-                  <FormHelp ariaLabel="About budget categories">
-                    Pick the category this budget caps. Spending across all
-                    transactions tagged with this category counts toward
-                    the limit. Use multiple budgets to track several
-                    categories in parallel.
+                  {t('budgetFieldCategory')}
+                  <FormHelp ariaLabel={t('budgetHelpCategory')}>
+                    {t('budgetHelpCategoryBody')}
                   </FormHelp>
                 </label>
                 <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
@@ -504,12 +508,9 @@ export default function BudgetPage() {
               </div>
               <div>
                 <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
-                  Monthly Limit
-                  <FormHelp ariaLabel="About monthly limit">
-                    The maximum you intend to spend in this category for
-                    the selected month. You&apos;ll see a warning toast at 80%
-                    and 100% — Barakah doesn&apos;t block transactions, just
-                    warns.
+                  {t('budgetFieldMonthlyLimit')}
+                  <FormHelp ariaLabel={t('budgetHelpLimit')}>
+                    {t('budgetHelpLimitBody')}
                   </FormHelp>
                 </label>
                 {/*
@@ -532,17 +533,17 @@ export default function BudgetPage() {
                 <input type="text" inputMode="decimal" pattern="[0-9]*\.?[0-9]*"
                   value={form.monthlyLimit}
                   onChange={e => setForm({ ...form, monthlyLimit: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="500.00" />
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('budgetLimitPlaceholder')} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Month</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('budgetFieldMonth')}</label>
                   <select value={form.month} onChange={e => setForm({ ...form, month: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                    {MONTHS.map((m, i) => <option key={i} value={String(i + 1)}>{m}</option>)}
+                    {MONTH_KEYS.map((mk, i) => <option key={i} value={String(i + 1)}>{t(mk)}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('budgetFieldYear')}</label>
                   <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4}
                     value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900" />
@@ -559,14 +560,9 @@ export default function BudgetPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
-                    Category type
-                    <FormHelp ariaLabel="About category type">
-                      <strong>Fixed</strong> categories are predictable
-                      bills like rent or subscriptions — they don&apos;t
-                      need rollover. <strong>Flex</strong> categories
-                      are variable spending like groceries or dining
-                      where a frugal month can build a buffer for a
-                      heavier month.
+                    {t('budgetFieldCategoryType')}
+                    <FormHelp ariaLabel={t('budgetHelpType')}>
+                      <strong>{t('budgetHelpTypeBodyPrefix')}</strong> {t('budgetHelpTypeBodyMid')} <strong>{t('budgetHelpTypeBodyFlexLabel')}</strong> {t('budgetHelpTypeBodySuffix')}
                     </FormHelp>
                   </label>
                   <select
@@ -585,20 +581,17 @@ export default function BudgetPage() {
                     }}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
                   >
-                    <option value="FLEX">Flex (variable)</option>
-                    <option value="FIXED">Fixed (sticky)</option>
+                    <option value="FLEX">{t('budgetCatKindFlexOpt')}</option>
+                    <option value="FIXED">{t('budgetCatKindFixedOpt')}</option>
                   </select>
                 </div>
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
-                    Rollover
-                    <FormHelp ariaLabel="About rollover">
-                      <strong>Refill</strong> resets the budget every
-                      month to its limit — anything unspent is forfeit.
-                      <strong>Accumulate</strong> rolls leftover forward
-                      so you build a multi-month buffer.
-                      <strong>None</strong> behaves like Refill but
-                      hides the rollover row entirely.
+                    {t('budgetFieldRollover')}
+                    <FormHelp ariaLabel={t('budgetHelpRollover')}>
+                      <strong>{t('budgetHelpRolloverRefillLabel')}</strong> {t('budgetHelpRolloverRefillBody')}
+                      <strong> {t('budgetHelpRolloverAccumulateLabel')}</strong> {t('budgetHelpRolloverAccumulateBody')}
+                      <strong> {t('budgetHelpRolloverNoneLabel')}</strong> {t('budgetHelpRolloverNoneBody')}
                     </FormHelp>
                   </label>
                   <select
@@ -606,19 +599,19 @@ export default function BudgetPage() {
                     onChange={e => setForm({ ...form, rolloverStrategy: e.target.value as RolloverStrategy })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
                   >
-                    <option value="REFILL">Refill each month</option>
-                    <option value="ACCUMULATE">Accumulate</option>
-                    <option value="NONE">None</option>
+                    <option value="REFILL">{t('budgetRolloverRefillOpt')}</option>
+                    <option value="ACCUMULATE">{t('budgetRolloverAccumulateOpt')}</option>
+                    <option value="NONE">{t('budgetRolloverNoneOpt')}</option>
                   </select>
                 </div>
               </div>
             </div>
             {saveError && <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{saveError}</div>}
             <div className="flex gap-3 mt-4">
-              <button type="button" onClick={() => setShowForm(false)} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={() => setShowForm(false)} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('budgetCancel')}</button>
               <button type="button" onClick={handleSave} disabled={saving || !form.monthlyLimit}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">
-                {saving ? 'Saving...' : editItem ? 'Update' : 'Add'}
+                {saving ? t('budgetSaving') : editItem ? t('budgetUpdate') : t('budgetAdd')}
               </button>
             </div>
           </div>
@@ -629,8 +622,8 @@ export default function BudgetPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <p className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('budgetCancel')}</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('budgetConfirm')}</button>
             </div>
           </div>
         </div>

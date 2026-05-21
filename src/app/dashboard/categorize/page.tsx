@@ -4,6 +4,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 
 interface CategorySuggestion {
   transactionId: number;
@@ -35,27 +36,27 @@ interface TransactionRule {
 }
 
 const MATCH_FIELDS = [
-  { value: 'any_text', label: 'Any text' },
-  { value: 'description', label: 'Description' },
-  { value: 'merchant', label: 'Merchant' },
-  { value: 'category', label: 'Imported category' },
-  { value: 'account', label: 'Account name' },
-  { value: 'institution', label: 'Institution' },
-  { value: 'import_source', label: 'Import source' },
+  { value: 'any_text', labelKey: 'catMatchFieldAnyText' },
+  { value: 'description', labelKey: 'catMatchFieldDescription' },
+  { value: 'merchant', labelKey: 'catMatchFieldMerchant' },
+  { value: 'category', labelKey: 'catMatchFieldCategory' },
+  { value: 'account', labelKey: 'catMatchFieldAccount' },
+  { value: 'institution', labelKey: 'catMatchFieldInstitution' },
+  { value: 'import_source', labelKey: 'catMatchFieldImportSource' },
 ];
 
 const OPERATORS = [
-  { value: 'contains', label: 'Contains' },
-  { value: 'equals', label: 'Exactly matches' },
-  { value: 'starts_with', label: 'Starts with' },
-  { value: 'regex', label: 'Regex' },
+  { value: 'contains', labelKey: 'catOpContains' },
+  { value: 'equals', labelKey: 'catOpEquals' },
+  { value: 'starts_with', labelKey: 'catOpStartsWith' },
+  { value: 'regex', labelKey: 'catOpRegex' },
 ];
 
 const TYPE_OPTIONS = [
-  { value: '', label: 'Keep current type' },
-  { value: 'income', label: 'Income' },
-  { value: 'expense', label: 'Expense' },
-  { value: 'transfer', label: 'Transfer' },
+  { value: '', labelKey: 'catTypeKeep' },
+  { value: 'income', labelKey: 'catTypeIncome' },
+  { value: 'expense', labelKey: 'catTypeExpense' },
+  { value: 'transfer', labelKey: 'catTypeTransfer' },
 ];
 
 // Use canonical categories from DomainConstants (single source of truth)
@@ -76,16 +77,22 @@ const DEFAULT_RULE_FORM = {
   categoryOverride: '',
 };
 
-function formatType(value: string) {
-  return value ? value[0].toUpperCase() + value.slice(1) : 'Unknown';
-}
-
 function formatCategory(value: string) {
   return value.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
 }
 
 export default function CategorizePage() {
   const { fmt } = useCurrency();
+  const { t, tFmt } = useI18n();
+  const formatTypeLabel2 = (value: string) => {
+    switch (value) {
+      case 'income': return t('catTypeIncome');
+      case 'expense': return t('catTypeExpense');
+      case 'transfer': return t('catTypeTransfer');
+      case '': return t('catTypeKeep');
+      default: return t('catTypeUnknown');
+    }
+  };
   const [suggestions, setSuggestions] = useState<CategorySuggestion[]>([]);
   const [rules, setRules] = useState<TransactionRule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,16 +119,16 @@ export default function CategorizePage() {
     } else {
       const msg = reviewResult.reason instanceof Error
         ? reviewResult.reason.message
-        : 'Failed to load suggestions';
-      toast(`Suggestions: ${msg}`, 'error');
+        : t('catLoadSuggestionsFallback');
+      toast(`${t('catLoadSuggestionsErrorPrefix')}${msg}`, 'error');
     }
     if (ruleResult.status === 'fulfilled') {
       setRules(ruleResult.value?.rules || []);
     } else {
       const msg = ruleResult.reason instanceof Error
         ? ruleResult.reason.message
-        : 'Failed to load rules';
-      toast(`Rules: ${msg}`, 'error');
+        : t('catLoadRulesFallback');
+      toast(`${t('catLoadRulesErrorPrefix')}${msg}`, 'error');
     }
     setLoading(false);
   };
@@ -142,13 +149,9 @@ export default function CategorizePage() {
         return;
       }
       await loadAll();
-      toast(result?.message || 'Changes applied', 'success');
+      toast(result?.message || t('catApplied'), 'success');
     } catch (err) {
-      // 2026-05-02 fix: surface the actual error message (e.g. "Plus
-      // plan required", "Server unavailable, please try again later")
-      // instead of the generic "Failed to apply transaction rules"
-      // that masked every backend signal.
-      const msg = err instanceof Error ? err.message : 'Failed to apply transaction rules';
+      const msg = err instanceof Error ? err.message : t('catApplyError');
       toast(msg, 'error');
     } finally {
       setApplying(false);
@@ -170,15 +173,15 @@ export default function CategorizePage() {
       };
       if (editingRuleId) {
         await api.updateTransactionRule(editingRuleId, payload);
-        toast('Rule updated', 'success');
+        toast(t('catRuleUpdated'), 'success');
       } else {
         await api.createTransactionRule(payload);
-        toast('Rule saved', 'success');
+        toast(t('catRuleSaved'), 'success');
       }
       resetRuleForm();
       await loadAll();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Failed to save rule', 'error');
+      toast(err instanceof Error ? err.message : t('catRuleSaveError'), 'error');
     } finally {
       setSavingRule(false);
     }
@@ -201,14 +204,14 @@ export default function CategorizePage() {
   };
 
   const handleDeleteRule = async (id: number) => {
-    if (!confirm('Delete this transaction rule?')) return;
+    if (!confirm(t('catDeleteConfirm'))) return;
     try {
       await api.deleteTransactionRule(id);
-      toast('Rule deleted', 'success');
+      toast(t('catRuleDeleted'), 'success');
       if (editingRuleId === id) resetRuleForm();
       await loadAll();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to delete rule';
+      const msg = err instanceof Error ? err.message : t('catRuleDeleteError');
       toast(msg, 'error');
     }
   };
@@ -221,9 +224,9 @@ export default function CategorizePage() {
         type: suggestion.suggestedType,
       });
       await loadAll();
-      toast('Transaction updated', 'success');
+      toast(t('catTransactionUpdated'), 'success');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to update transaction';
+      const msg = err instanceof Error ? err.message : t('catTransactionUpdateError');
       toast(msg, 'error');
     } finally {
       setConfirming(null);
@@ -234,7 +237,7 @@ export default function CategorizePage() {
     const seedText = suggestion.description.split('—')[0].trim();
     setEditingRuleId(null);
     setRuleForm({
-      name: `${formatType(suggestion.suggestedType)} ${formatCategory(suggestion.suggestedCategory)} rule`,
+      name: `${formatTypeLabel2(suggestion.suggestedType)} ${formatCategory(suggestion.suggestedCategory)}${t('catRuleNameSuffix')}`,
       enabled: true,
       priority: 100,
       matchField: 'description',
@@ -245,7 +248,7 @@ export default function CategorizePage() {
       typeOverride: suggestion.suggestedType,
       categoryOverride: suggestion.suggestedCategory,
     });
-    toast('Rule form prefilled from transaction', 'success');
+    toast(t('catPrefillToast'), 'success');
   };
 
   const actionableSuggestions = useMemo(
@@ -277,15 +280,15 @@ export default function CategorizePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Transaction Rules"
-        subtitle="Review imported activity, save matching rules, and keep transfers, income, and expenses clean automatically."
+        title={t('categorizeTitle')}
+        subtitle={t('categorizeSubtitle')}
         className="mb-0"
         actions={
           <button
             onClick={loadAll}
             className="border border-primary text-primary px-4 py-2 rounded-xl hover:bg-green-50 font-medium text-sm"
           >
-            Refresh
+            {t('catRefresh')}
           </button>
         }
       />
@@ -293,15 +296,15 @@ export default function CategorizePage() {
       <div className="bg-gradient-to-r from-indigo-700 to-cyan-600 rounded-2xl p-8 text-white">
         <div className="flex justify-between items-start gap-6 flex-wrap">
           <div>
-            <p className="text-indigo-100 mb-1">Transactions Scanned</p>
+            <p className="text-indigo-100 mb-1">{t('catScannedLabel')}</p>
             <p className="text-4xl font-bold">{suggestions.length}</p>
             <p className="text-indigo-100 text-sm mt-2">
-              {actionableSuggestions.length} suggestions are ready to apply at {minConfidence}% confidence or higher.
+              {tFmt('catReadyMsgFmt', [actionableSuggestions.length, minConfidence])}
             </p>
           </div>
           <div className="min-w-[260px] bg-white/10 rounded-xl p-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-indigo-100 text-xs">Minimum confidence</span>
+              <span className="text-indigo-100 text-xs">{t('catMinConfidence')}</span>
               <span className="font-bold">{minConfidence}%</span>
             </div>
             <input
@@ -314,15 +317,15 @@ export default function CategorizePage() {
               className="w-full accent-white"
             />
             <div className="flex justify-between text-indigo-200 text-xs mt-1">
-              <span>Broader</span>
-              <span>Stricter</span>
+              <span>{t('catBroader')}</span>
+              <span>{t('catStricter')}</span>
             </div>
             <button
               onClick={handleApply}
               disabled={applying || actionableSuggestions.length === 0}
               className="mt-4 w-full bg-white text-indigo-700 px-4 py-3 rounded-xl font-semibold hover:bg-indigo-50 disabled:opacity-50"
             >
-              {applying ? 'Applying…' : `Apply ${actionableSuggestions.length} Suggestions`}
+              {applying ? t('catApplyingBtn') : tFmt('catApplyBtnFmt', [actionableSuggestions.length])}
             </button>
             {/* Round 32: backfill action — re-apply the Round 30 keyword
                 overrides (tax refund / interest / cashback / P2P / refund)
@@ -336,15 +339,15 @@ export default function CategorizePage() {
                 try {
                   const result = await api.recategorizeMyTransactions();
                   await loadAll();
-                  toast(result?.message || 'Re-categorization complete', 'success');
+                  toast(result?.message || t('catRecategorized'), 'success');
                 } catch (err) {
-                  toast(err instanceof Error ? err.message : 'Failed to re-categorize', 'error');
+                  toast(err instanceof Error ? err.message : t('catRecategorizeError'), 'error');
                 }
               }}
               className="mt-2 w-full bg-indigo-700/30 text-white px-4 py-2 rounded-xl text-sm hover:bg-indigo-700/40 border border-white/20"
-              title="Apply latest categorization rules to ALL existing transactions (tax refund, interest, cashback, P2P detection)"
+              title={t('catRecategorizeTitle')}
             >
-              🔄 Re-categorize my existing transactions
+              {t('catRecategorizeBtn')}
             </button>
           </div>
         </div>
@@ -354,56 +357,56 @@ export default function CategorizePage() {
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-semibold text-primary">Rule Builder</h2>
-              <p className="text-sm text-gray-500">Set one rule and Barakah will keep applying it to future matches.</p>
+              <h2 className="text-lg font-semibold text-primary">{t('catRuleBuilderHeading')}</h2>
+              <p className="text-sm text-gray-500">{t('catRuleBuilderSubtitle')}</p>
             </div>
             {editingRuleId && (
               <button onClick={resetRuleForm} className="text-sm text-gray-500 hover:text-gray-700">
-                Clear form
+                {t('catClearForm')}
               </button>
             )}
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <Field label="Rule name">
-              <input value={ruleForm.name} onChange={e => setRuleForm({ ...ruleForm, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. Incoming Zelle transfers" />
+            <Field label={t('catFieldRuleName')}>
+              <input value={ruleForm.name} onChange={e => setRuleForm({ ...ruleForm, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('catRuleNamePlaceholder')} />
             </Field>
-            <Field label="Priority">
+            <Field label={t('catFieldPriority')}>
               <input type="number" min={1} max={9999} value={ruleForm.priority} onChange={e => setRuleForm({ ...ruleForm, priority: Number(e.target.value) || 100 })} className="w-full border rounded-lg px-3 py-2 text-gray-900" />
             </Field>
-            <Field label="Match field">
+            <Field label={t('catFieldMatchField')}>
               <select value={ruleForm.matchField} onChange={e => setRuleForm({ ...ruleForm, matchField: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                {MATCH_FIELDS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                {MATCH_FIELDS.map(option => <option key={option.value} value={option.value}>{t(option.labelKey)}</option>)}
               </select>
             </Field>
-            <Field label="Operator">
+            <Field label={t('catFieldOperator')}>
               <select value={ruleForm.matchOperator} onChange={e => setRuleForm({ ...ruleForm, matchOperator: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                {OPERATORS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                {OPERATORS.map(option => <option key={option.value} value={option.value}>{t(option.labelKey)}</option>)}
               </select>
             </Field>
-            <Field label="Match text">
-              <input value={ruleForm.matchValue} onChange={e => setRuleForm({ ...ruleForm, matchValue: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. zelle payment from" />
+            <Field label={t('catFieldMatchText')}>
+              <input value={ruleForm.matchValue} onChange={e => setRuleForm({ ...ruleForm, matchValue: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('catMatchTextPlaceholder')} />
             </Field>
-            <Field label="Enabled">
+            <Field label={t('catFieldEnabled')}>
               <label className="flex items-center gap-3 border rounded-lg px-3 py-2 text-sm text-gray-700">
                 <input type="checkbox" checked={ruleForm.enabled} onChange={e => setRuleForm({ ...ruleForm, enabled: e.target.checked })} />
-                Apply this rule automatically
+                {t('catEnabledLabel')}
               </label>
             </Field>
-            <Field label="Minimum amount">
-              <input type="number" step="0.01" min="0" value={ruleForm.minAmount} onChange={e => setRuleForm({ ...ruleForm, minAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="Optional" />
+            <Field label={t('catFieldMinAmount')}>
+              <input type="number" step="0.01" min="0" value={ruleForm.minAmount} onChange={e => setRuleForm({ ...ruleForm, minAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('catOptional')} />
             </Field>
-            <Field label="Maximum amount">
-              <input type="number" step="0.01" min="0" value={ruleForm.maxAmount} onChange={e => setRuleForm({ ...ruleForm, maxAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="Optional" />
+            <Field label={t('catFieldMaxAmount')}>
+              <input type="number" step="0.01" min="0" value={ruleForm.maxAmount} onChange={e => setRuleForm({ ...ruleForm, maxAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('catOptional')} />
             </Field>
-            <Field label="Set type to">
+            <Field label={t('catFieldSetType')}>
               <select value={ruleForm.typeOverride} onChange={e => setRuleForm({ ...ruleForm, typeOverride: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                {TYPE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                {TYPE_OPTIONS.map(option => <option key={option.value} value={option.value}>{t(option.labelKey)}</option>)}
               </select>
             </Field>
-            <Field label="Set category to">
+            <Field label={t('catFieldSetCategory')}>
               <select value={ruleForm.categoryOverride} onChange={e => setRuleForm({ ...ruleForm, categoryOverride: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                {CATEGORY_OPTIONS.map(option => <option key={option || 'blank'} value={option}>{option ? formatCategory(option) : 'Keep current category'}</option>)}
+                {CATEGORY_OPTIONS.map(option => <option key={option || 'blank'} value={option}>{option ? formatCategory(option) : t('catKeepCategory')}</option>)}
               </select>
             </Field>
           </div>
@@ -414,31 +417,31 @@ export default function CategorizePage() {
               disabled={savingRule}
               className="bg-primary text-primary-foreground px-5 py-2.5 rounded-xl font-semibold hover:bg-primary/90 disabled:opacity-50"
             >
-              {savingRule ? 'Saving…' : editingRuleId ? 'Update Rule' : 'Save Rule'}
+              {savingRule ? t('catSavingBtn') : editingRuleId ? t('catUpdateRule') : t('catSaveRule')}
             </button>
             {editingRuleId && (
               <button onClick={resetRuleForm} className="border border-gray-300 px-5 py-2.5 rounded-xl font-semibold text-gray-700 hover:bg-gray-50">
-                Cancel
+                {t('catCancel')}
               </button>
             )}
           </div>
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-lg font-semibold text-primary mb-1">Saved Rules</h2>
-          <p className="text-sm text-gray-500 mb-4">Rules run from the smallest priority number to the largest.</p>
+          <h2 className="text-lg font-semibold text-primary mb-1">{t('catSavedRulesHeading')}</h2>
+          <p className="text-sm text-gray-500 mb-4">{t('catSavedRulesSubtitle')}</p>
           {rules.length === 0 ? (
             <EmptyState
               variant="bare"
               icon="🎯"
-              title="No transaction sorting rules yet"
-              description="Rules run on every new transaction. Use them for payroll, transfers, sadaqah patterns, or any recurring merchant."
+              title={t('catEmptyTitle')}
+              description={t('catEmptyDesc')}
               preview={
                 <div className="space-y-2">
                   {[
-                    { name: 'Payroll → Income', match: 'description contains "payroll"' },
-                    { name: 'Sadaqah → masjid', match: 'merchant equals "Local masjid"' },
-                    { name: 'Transfers → Internal', match: 'description starts with "Transfer to"' },
+                    { name: t('catSampleRule1Name'), match: t('catSampleRule1Match') },
+                    { name: t('catSampleRule2Name'), match: t('catSampleRule2Match') },
+                    { name: t('catSampleRule3Name'), match: t('catSampleRule3Match') },
                   ].map((r) => (
                     <div key={r.name} className="bg-white rounded-xl p-3 border border-gray-100 text-sm text-left">
                       <p className="font-medium text-gray-700">{r.name}</p>
@@ -457,23 +460,24 @@ export default function CategorizePage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-semibold text-gray-900">{rule.name}</p>
                         <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${rule.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                          {rule.enabled ? 'Active' : 'Paused'}
+                          {rule.enabled ? t('catActive') : t('catPaused')}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        {MATCH_FIELDS.find(option => option.value === rule.matchField)?.label || rule.matchField} {OPERATORS.find(option => option.value === rule.matchOperator)?.label?.toLowerCase() || rule.matchOperator} &quot;{rule.matchValue || 'any value'}&quot;
+                        {(() => { const f = MATCH_FIELDS.find(o => o.value === rule.matchField); return f ? t(f.labelKey) : rule.matchField; })()} {(() => { const o = OPERATORS.find(opt => opt.value === rule.matchOperator); return o ? t(o.labelKey).toLowerCase() : rule.matchOperator; })()} &quot;{rule.matchValue || t('catAnyValue')}&quot;
                       </p>
                       {(rule.typeOverride || rule.categoryOverride) && (
                         <p className="text-xs text-primary mt-1">
-                          Applies: {rule.typeOverride ? formatType(rule.typeOverride) : 'keep type'}
-                          {' • '}
-                          {rule.categoryOverride ? formatCategory(rule.categoryOverride) : 'keep category'}
+                          {tFmt('catAppliesFmt', [
+                            rule.typeOverride ? formatTypeLabel2(rule.typeOverride) : t('catKeepType'),
+                            rule.categoryOverride ? formatCategory(rule.categoryOverride) : t('catKeepCategoryShort'),
+                          ])}
                         </p>
                       )}
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => handleEditRule(rule)} className="text-sm text-primary hover:underline">Edit</button>
-                      <button onClick={() => handleDeleteRule(rule.id)} className="text-sm text-red-600 hover:underline">Delete</button>
+                      <button onClick={() => handleEditRule(rule)} className="text-sm text-primary hover:underline">{t('catEditAction')}</button>
+                      <button onClick={() => handleDeleteRule(rule.id)} className="text-sm text-red-600 hover:underline">{t('catDeleteAction')}</button>
                     </div>
                   </div>
                 </div>
@@ -486,13 +490,13 @@ export default function CategorizePage() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-primary">Review Suggestions</h2>
-            <p className="text-sm text-gray-500">Transfers, income, expenses, and saved-rule matches all show up here before you apply them.</p>
+            <h2 className="text-lg font-semibold text-primary">{t('catReviewHeading')}</h2>
+            <p className="text-sm text-gray-500">{t('catReviewSubtitle')}</p>
           </div>
           <span className="text-sm text-gray-500">
             {suggestions.length === 0
-              ? '0 scanned'
-              : `Showing ${visibleStart}–${visibleEnd} of ${suggestions.length}`}
+              ? t('catScannedFmt')
+              : tFmt('catShowingFmt', [visibleStart, visibleEnd, suggestions.length])}
           </span>
         </div>
 
@@ -502,24 +506,24 @@ export default function CategorizePage() {
               <div>
                 <p className="font-semibold text-gray-900">{s.icon} {s.description}</p>
                 <div className="flex items-center gap-2 mt-2 text-xs flex-wrap">
-                  <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{formatType(s.currentType)}</span>
+                  <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{formatTypeLabel2(s.currentType)}</span>
                   <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{formatCategory(s.currentCategory || 'other')}</span>
                   {s.wouldChange && (
                     <>
                       <span>→</span>
-                      <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-medium">{formatType(s.suggestedType)}</span>
+                      <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-medium">{formatTypeLabel2(s.suggestedType)}</span>
                       <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded font-medium">{formatCategory(s.suggestedCategory)}</span>
                     </>
                   )}
                   {s.matchedRuleName && (
-                    <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-medium">Rule: {s.matchedRuleName}</span>
+                    <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-medium">{t('catRulePrefix')}{s.matchedRuleName}</span>
                   )}
                 </div>
               </div>
               <div className="text-right flex flex-col items-end gap-2">
                 <p className="font-medium text-gray-700">{fmt(Math.abs(s.amount))}</p>
                 <span className={`text-xs ${s.confidence >= 80 ? 'text-green-600' : s.confidence >= 60 ? 'text-amber-600' : 'text-gray-400'}`}>
-                  {s.confidence}% confident
+                  {tFmt('catConfidenceFmt', [s.confidence])}
                 </span>
                 {s.wouldChange ? (
                   <div className="flex gap-2">
@@ -527,18 +531,18 @@ export default function CategorizePage() {
                       onClick={() => prefillRuleFromSuggestion(s)}
                       className="text-xs border border-indigo-200 text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-50"
                     >
-                      Make Rule
+                      {t('catMakeRule')}
                     </button>
                     <button
                       onClick={() => handleConfirmOne(s)}
                       disabled={confirming === s.transactionId}
                       className="text-xs bg-indigo-600 text-white px-2 py-1 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                     >
-                      {confirming === s.transactionId ? 'Saving…' : 'Confirm'}
+                      {confirming === s.transactionId ? t('catSavingShort') : t('catConfirm')}
                     </button>
                   </div>
                 ) : (
-                  <span className="text-xs text-green-600">✓ Already aligned</span>
+                  <span className="text-xs text-green-600">{t('catAligned')}</span>
                 )}
               </div>
             </div>
@@ -546,7 +550,7 @@ export default function CategorizePage() {
         )) : (
           <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-100">
             <p className="text-4xl mb-3">🏷️</p>
-            <p>No transactions to categorize yet.</p>
+            <p>{t('catNoTxEmpty')}</p>
           </div>
         )}
 
@@ -558,16 +562,16 @@ export default function CategorizePage() {
               disabled={page === 0}
               className="px-3 py-1 rounded-lg text-sm font-medium bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              ← Prev
+              {t('catPrev')}
             </button>
-            <span className="text-sm text-gray-600">Page {page + 1} of {totalPages}</span>
+            <span className="text-sm text-gray-600">{tFmt('catPageOfFmt', [page + 1, totalPages])}</span>
             <button
               type="button"
               onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
               className="px-3 py-1 rounded-lg text-sm font-medium bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Next →
+              {t('catNext')}
             </button>
           </div>
         )}

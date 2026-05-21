@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useI18n } from '../../lib/i18n';
 import {
   AlertTriangle, Clock, Receipt, Tags, Banknote, PieChart, Target,
   type LucideIcon,
@@ -81,7 +82,10 @@ const SEVERITY_TONE: Record<Advice['severity'], { container: string; iconBg: str
   },
 };
 
-function buildAdvice(p: AdviceQueueProps): Advice[] {
+// 2026-05-19 Round 9: accept a translator so advice copy can localize per
+// active locale. The function still runs outside React render via useMemo,
+// but we close over `t` from the caller's useI18n() hook.
+function buildAdvice(p: AdviceQueueProps, t: (key: string) => string = (k) => k): Advice[] {
   const advice: Advice[] = [];
 
   // ── Warnings (require action) ──────────────────────────────────────────
@@ -154,10 +158,10 @@ function buildAdvice(p: AdviceQueueProps): Advice[] {
       id: 'connect-bank',
       severity: 'suggestion',
       icon: Banknote,
-      title: 'Connect your bank',
-      body: 'Import the last 90 days automatically — zero manual entry, accurate from day one.',
+      title: t('adviceConnectBankTitle'),
+      body: t('adviceConnectBankBody'),
       href: '/dashboard/import',
-      cta: 'Connect bank',
+      cta: t('dashConnectBankCta'),
     });
   }
   if (p.budgetCount === 0 && p.transactionCount > 0) {
@@ -189,7 +193,8 @@ function buildAdvice(p: AdviceQueueProps): Advice[] {
 }
 
 export function AdviceQueue(props: AdviceQueueProps) {
-  const advice = React.useMemo(() => buildAdvice(props), [props]);
+  const { t } = useI18n();
+  const advice = React.useMemo(() => buildAdvice(props, t), [props, t]);
   if (advice.length === 0) return null;
 
   // Cap at 4 — Monarch's queue is short on purpose. The full advice
@@ -198,13 +203,13 @@ export function AdviceQueue(props: AdviceQueueProps) {
   const top = advice.slice(0, 4);
 
   return (
-    <section aria-label="Advice" className="mb-4">
+    <section aria-label={t('dashAdvice')} className="mb-4">
       <div className="flex items-center justify-between mb-2">
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-            Advice
+            {t('dashAdvice')}
           </p>
-          <h2 className="text-base font-bold text-foreground">Prioritized by you</h2>
+          <h2 className="text-base font-bold text-foreground">{t('dashPrioritizedByYou')}</h2>
         </div>
         {advice.length > top.length && (
           <span className="text-xs text-muted-foreground">{advice.length - top.length} more queued</span>

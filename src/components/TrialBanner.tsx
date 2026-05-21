@@ -130,12 +130,11 @@ export default function TrialBanner() {
   const hoursLeft = Math.max(0, Math.ceil(msLeft / (60 * 60 * 1000)));
   const planLabel = user.plan === 'family' ? 'Family' : 'Plus';
 
-  // Time-copy — emphasizes hours when <24h to sharpen urgency at the end.
-  const timeCopy = daysLeft > 1
-    ? `${daysLeft} days left`
-    : hoursLeft > 1
-      ? `${hoursLeft} hours left`
-      : 'ends soon';
+  // 2026-05-19 Round 9 (audit Bug #20 closure): time-copy formatting moved
+  // INTO TrialBannerInner so it can use the locale-aware tFmt. The outer
+  // function (which runs before the useI18n hook is in scope) now passes
+  // raw daysLeft + hoursLeft to the inner and lets it pick the right
+  // singular/plural/"ends soon" message in the active locale.
 
   const handleDismiss = () => {
     setDismissed(true);
@@ -144,8 +143,8 @@ export default function TrialBanner() {
 
   return (
     <TrialBannerInner
-      timeCopy={timeCopy}
       daysLeft={daysLeft}
+      hoursLeft={hoursLeft}
       planLabel={planLabel}
       onDismiss={handleDismiss}
     />
@@ -153,13 +152,13 @@ export default function TrialBanner() {
 }
 
 function TrialBannerInner({
-  timeCopy,
   daysLeft,
+  hoursLeft,
   planLabel,
   onDismiss,
 }: {
-  timeCopy: string;
   daysLeft: number;
+  hoursLeft: number;
   planLabel: string;
   onDismiss: () => void;
 }) {
@@ -173,7 +172,18 @@ function TrialBannerInner({
   // trial banner respects ar / ur / fr locales. Falls back to English keys
   // that already existed for the title + cancel actions; new keys
   // (trialBannerBody, trialBannerKeepPlan) added to lib/i18n.ts.
-  const { t } = useI18n();
+  const { t, tFmt } = useI18n();
+  // 2026-05-19 Round 9: format the trial time-copy using locale-aware keys.
+  // Picks day/hours/ends-soon plural variant from raw daysLeft + hoursLeft.
+  const timeCopy = daysLeft > 1
+    ? tFmt('dashTrialDaysLeftSuffix', [daysLeft])
+    : daysLeft === 1
+      ? tFmt('dashTrialDayLeftSuffix', [daysLeft])
+      : hoursLeft > 1
+        ? tFmt('dashTrialHoursLeftSuffix', [hoursLeft])
+        : hoursLeft === 1
+          ? tFmt('dashTrialHourLeftSuffix', [hoursLeft])
+          : t('dashTrialEndsSoon');
   // 2026-05-12 (QA-2026-05-12, audit A3): replace native window.alert()
   // with the in-app toast. alert() ships a blocking modal that locks the
   // event loop, can't be dismissed by VoiceOver consistently, and looks
