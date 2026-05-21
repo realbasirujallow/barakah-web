@@ -959,8 +959,9 @@ export const api = {
     apiFetch('/api/debts/add', { method: 'POST', body: JSON.stringify(data) }),
   updateDebt: (id: number, data: Record<string, unknown>) =>
     apiFetch(`/api/debts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  makeDebtPayment: (id: number, amount: number) =>
-    apiFetch(`/api/debts/${id}/payment`, { method: 'POST', body: JSON.stringify({ amount }) }),
+  makeDebtPayment: (id: number, amount: number, paymentDate?: number) =>
+    apiFetch(`/api/debts/${id}/payment`, { method: 'POST', body: JSON.stringify(paymentDate ? { amount, paymentDate } : { amount }) }),
+  getDebtPaymentSuggestions: () => apiFetch('/api/debts/payment-suggestions'),
   deleteDebt: (id: number) =>
     apiFetch(`/api/debts/${id}`, { method: 'DELETE' }),
   bulkDeleteDebts: (ids: number[]) =>

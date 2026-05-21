@@ -204,17 +204,22 @@ export default function DebtsPage() {
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [burden, setBurden] = useState<DebtBurden | null>(null);
+  const [suggestions, setSuggestions] = useState<Array<{ transactionId: number; debtId: number; debtName: string; amount: number; principalPreview: number; profitPreview: number; description?: string; date: number }>>([]);
+  const [applyingSug, setApplyingSug] = useState<number | null>(null);
+  const [dismissedSug, setDismissedSug] = useState<Set<number>>(new Set());
   const { toast } = useToast();
   const { symbol, fmt, locale: dateLocale } = useCurrency();
   const { user } = useAuth();
 
   const load = useCallback(() => {
     setLoading(true);
-    Promise.allSettled([api.getDebts(), api.subscriptionStatus(), api.getDebtBurden()])
+    Promise.allSettled([api.getDebts(), api.subscriptionStatus(), api.getDebtBurden(), api.getDebtPaymentSuggestions()])
       .then(results => {
         const debtResult = results[0].status === 'fulfilled' ? results[0].value : null;
         const subscriptionResult = results[1].status === 'fulfilled' ? results[1].value : null;
         const burdenResult = results[2].status === 'fulfilled' ? results[2].value : null;
+        const sugResult = results[3].status === 'fulfilled' ? results[3].value : null;
+        setSuggestions(Array.isArray(sugResult?.suggestions) ? sugResult.suggestions : []);
         setSubscriptionStatus(
           subscriptionResult
             ? (subscriptionResult as SubscriptionStatus)
@@ -237,6 +242,18 @@ export default function DebtsPage() {
     setEditDebt(d);
     setForm({ name: d.name, type: d.type, totalAmount: String(d.totalAmount), remainingAmount: String(d.remainingAmount), monthlyPayment: String(d.monthlyPayment), interestRate: String(d.interestRate), lender: d.lender || '', ribaFree: d.ribaFree });
     setSaveError(null); setShowForm(true);
+  };
+
+  const applySuggestion = async (s: { transactionId: number; debtId: number; debtName: string; amount: number; principalPreview: number; date: number }) => {
+    setApplyingSug(s.transactionId);
+    try {
+      const res = await api.makeDebtPayment(s.debtId, s.amount, s.date);
+      if (res?.error) { toast(res.error as string, 'error'); return; }
+      toast(tFmt('debtSuggestionAppliedFmt', [fmt(s.principalPreview), s.debtName]), 'success');
+      setDismissedSug(prev => new Set(prev).add(s.transactionId));
+      load();
+    } catch { toast(tStandalone('debtFailedLoad'), 'error'); }
+    finally { setApplyingSug(null); }
   };
 
   const isIslamic = ISLAMIC_TYPES.includes(form.type);
@@ -477,6 +494,33 @@ export default function DebtsPage() {
       {/* ── DEBTS TAB ── */}
       {tab === 'debts' && (
         <>
+          {/* 2026-05-21: auto-apply suggestions — detected debt_payment txns
+              matched to a manual debt, with the principal/profit split preview.
+              User confirms (Apply) → principal-split makePayment. */}
+          {suggestions.filter(s => !dismissedSug.has(s.transactionId)).length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+              <p className="text-sm font-semibold text-amber-900 mb-2">{t('debtSuggestionsHeading')}</p>
+              <div className="space-y-2">
+                {suggestions.filter(s => !dismissedSug.has(s.transactionId)).map(s => (
+                  <div key={s.transactionId} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="text-gray-800">
+                      {tFmt('debtSuggestionLineFmt', [fmt(s.amount), s.debtName, fmt(s.principalPreview), fmt(s.profitPreview)])}
+                    </span>
+                    <span className="flex items-center gap-2 flex-shrink-0">
+                      <button type="button" disabled={applyingSug === s.transactionId}
+                        onClick={() => applySuggestion(s)}
+                        className="bg-primary text-primary-foreground px-3 py-1 rounded-lg text-xs disabled:opacity-50">
+                        {applyingSug === s.transactionId ? '…' : t('debtSuggestionApplyBtn')}
+                      </button>
+                      <button type="button" aria-label="dismiss"
+                        onClick={() => setDismissedSug(prev => new Set(prev).add(s.transactionId))}
+                        className="text-gray-400 hover:text-gray-600 text-xs">✕</button>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {ribaDebts.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 text-sm text-red-700">
               ⚠️ {tFmt('debtRibaWarningFmt', [ribaDebts.length])}
