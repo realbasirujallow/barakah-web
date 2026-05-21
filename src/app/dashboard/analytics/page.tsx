@@ -129,8 +129,12 @@ function AnalyticsPageContent() {
     );
   }
 
+  // Guard: never render income/transfer buckets as "spending" rows, even if a
+  // mis-typed transaction leaks one through (backend also excludes these).
   const expenseData = summary
-    ? Object.entries(summary.expensesByCategory).map(([name, value]) => ({ name, value }))
+    ? Object.entries(summary.expensesByCategory)
+        .filter(([name]) => name !== 'income' && name !== 'transfer')
+        .map(([name, value]) => ({ name, value }))
     : [];
   const incomeData = summary
     ? Object.entries(summary.incomeByCategory).map(([name, value]) => ({ name, value }))
