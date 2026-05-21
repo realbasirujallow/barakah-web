@@ -26,6 +26,8 @@ interface DebtItem {
   status: string;
   linkedSource?: string | null;
   linkedAccountId?: number | null;
+  utilizationPercentage?: number;
+  revolving?: boolean;
   readOnly?: boolean;
   notes?: string | null;
   accountMask?: string | null;
@@ -527,6 +529,14 @@ export default function DebtsPage() {
             <div className="space-y-3">
               {activeDebts.map((d: DebtItem) => {
                 const pct = d.totalAmount > 0 ? ((d.totalAmount - d.remainingAmount) / d.totalAmount) * 100 : 0;
+                // 2026-05-21: revolving credit (cards) shows utilization
+                // (balance/limit, lower is better) instead of the always-0
+                // "% paid". Backend sends utilizationPercentage + revolving.
+                const isRevolving = !!d.revolving && typeof d.utilizationPercentage === 'number';
+                const barPct = isRevolving ? (d.utilizationPercentage as number) : pct;
+                const barColor = isRevolving
+                  ? (barPct >= 70 ? 'bg-red-500' : barPct >= 30 ? 'bg-amber-500' : 'bg-emerald-600')
+                  : 'bg-primary';
                 const halal = d.ribaFree || ISLAMIC_TYPES.includes(d.type);
                 return (
                   <div key={d.id} className="flex items-start gap-3">
@@ -579,11 +589,17 @@ export default function DebtsPage() {
                       </div>
                     </div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-500">{tFmt('debtPaidFmt', [fmt(d.totalAmount - d.remainingAmount)])}</span>
-                      <span className="text-gray-700 font-medium">{tFmt('debtRemainingLeftFmt', [fmt(d.remainingAmount), pct.toFixed(0)])}</span>
+                      {isRevolving ? (
+                        <span className="text-gray-700 font-medium">{tFmt('debtUtilizationFmt', [fmt(d.remainingAmount), barPct.toFixed(0)])}</span>
+                      ) : (
+                        <>
+                          <span className="text-gray-500">{tFmt('debtPaidFmt', [fmt(d.totalAmount - d.remainingAmount)])}</span>
+                          <span className="text-gray-700 font-medium">{tFmt('debtRemainingLeftFmt', [fmt(d.remainingAmount), pct.toFixed(0)])}</span>
+                        </>
+                      )}
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-primary h-2 rounded-full" style={{ width: `${pct}%` }} />
+                      <div className={`${barColor} h-2 rounded-full`} style={{ width: `${Math.min(barPct, 100)}%` }} />
                     </div>
                   </div>
                   </div>
