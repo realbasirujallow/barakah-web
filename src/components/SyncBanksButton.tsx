@@ -95,16 +95,58 @@ export function SyncBanksButton({
     if (syncing) return;
     setSyncing(true);
     try {
-      const result = await api.plaidSyncAll();
-      const total = (result as { totalAdded?: number } | null)?.totalAdded ?? 0;
-      toast(
-        total > 0
-          ? `Synced ${total} new transaction${total === 1 ? '' : 's'} across your banks`
-          : 'All banks synced — no new transactions',
-        'success',
-      );
-      setLastSyncedAt(Date.now());
-      onSynced?.();
+      // SYNC-1: sync-all is async now — POST kicks off a background job
+      // (returns 202 immediately) and we poll for the result instead of
+      // holding a 30s+ request open (which used to surface a false
+      // "Internal Server Error" on timeout for users with many accounts).
+      await api.plaidSyncAll();
+
+      // Poll up to ~2 minutes (40 × 3s). Real-time balance/get + holdings
+      // re-sync for a multi-account user can take ~60-90s server-side.
+      const POLL_INTERVAL_MS = 3000;
+      const MAX_POLLS = 40;
+      let settled = false;
+      for (let i = 0; i < MAX_POLLS; i++) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        let status: { status?: string; totalAdded?: number } | null = null;
+        try {
+          status = (await api.plaidSyncAllStatus()) as {
+            status?: string;
+            totalAdded?: number;
+          } | null;
+        } catch {
+          // Transient poll error — keep trying until the budget runs out.
+          continue;
+        }
+        const state = status?.status;
+        if (state === 'done' || state === 'idle') {
+          // 'idle' = server restarted mid-sync; treat as finished and let
+          // the parent refetch surface whatever landed.
+          const total = status?.totalAdded ?? 0;
+          toast(
+            total > 0
+              ? `Synced ${total} new transaction${total === 1 ? '' : 's'} across your banks`
+              : 'All banks synced — no new transactions',
+            'success',
+          );
+          setLastSyncedAt(Date.now());
+          onSynced?.();
+          settled = true;
+          break;
+        }
+        if (state === 'failed') {
+          toast(getPlaidUiErrorMessage(null, 'sync'), 'error');
+          settled = true;
+          break;
+        }
+        // state === 'running' → keep polling.
+      }
+      if (!settled) {
+        // Poll budget exhausted but the job is still running server-side.
+        // It will complete in the background; tell the user to refresh.
+        toast('Still syncing in the background — refresh in a moment to see updates.', 'success');
+        onSynced?.();
+      }
     } catch (err) {
       toast(getPlaidUiErrorMessage(err, 'sync'), 'error');
     } finally {

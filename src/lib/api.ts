@@ -1962,6 +1962,12 @@ export const api = {
     apiFetch(`/api/plaid/sync/${linkedAccountId}`, { method: 'POST', body: JSON.stringify({}) }),
   plaidSyncAll: () =>
     apiFetch('/api/plaid/sync-all', { method: 'POST', body: JSON.stringify({}) }),
+  // SYNC-1: sync-all is now async (returns 202 + {status:"started"}).
+  // Poll this for the final result. suppressUnauthorized=true so a
+  // transient 401 during the poll loop never force-logs-out the user
+  // (same rule as the other background/polling fetches).
+  plaidSyncAllStatus: () =>
+    apiFetch('/api/plaid/sync-all/status', {}, API_TIMEOUT, true),
   // R12 hotfix (2026-04-23): suppressUnauthorized=true.
   //
   // plaidGetAccounts fires on mount from SyncBanksButton on

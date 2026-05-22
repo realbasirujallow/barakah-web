@@ -375,14 +375,46 @@ function ImportPageInner() {
     setPlaidMessage('');
     setError('');
     try {
-      const result = await api.plaidSyncAll();
-      const total = result?.totalAdded ?? 0;
-      setPlaidMessage(
-        total > 0
-          ? tFmt('importSyncedAllFmt', [total])
-          : t('importSyncedAllNone')
-      );
-      loadPlaidAccounts();
+      // SYNC-1: sync-all is async (202 + background job). Kick it off, then
+      // poll for completion instead of holding a request open past the 30s
+      // client timeout (which surfaced a false error for multi-account users).
+      await api.plaidSyncAll();
+      const POLL_INTERVAL_MS = 3000;
+      const MAX_POLLS = 40;
+      let settled = false;
+      for (let i = 0; i < MAX_POLLS; i++) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        let status: { status?: string; totalAdded?: number } | null = null;
+        try {
+          status = (await api.plaidSyncAllStatus()) as {
+            status?: string;
+            totalAdded?: number;
+          } | null;
+        } catch {
+          continue;
+        }
+        const state = status?.status;
+        if (state === 'done' || state === 'idle') {
+          const total = status?.totalAdded ?? 0;
+          setPlaidMessage(
+            total > 0
+              ? tFmt('importSyncedAllFmt', [total])
+              : t('importSyncedAllNone')
+          );
+          loadPlaidAccounts();
+          settled = true;
+          break;
+        }
+        if (state === 'failed') {
+          setError(getPlaidUiErrorMessage(null, 'sync'));
+          settled = true;
+          break;
+        }
+      }
+      if (!settled) {
+        setPlaidMessage(t('importSyncedAllNone'));
+        loadPlaidAccounts();
+      }
     } catch (err) {
       setError(getPlaidUiErrorMessage(err, 'sync'));
     } finally {
