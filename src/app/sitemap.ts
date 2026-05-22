@@ -97,6 +97,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/halal-mortgage-san-antonio`,         changeFrequency: 'monthly', priority: 0.86, lastModified: now },
     { url: `${baseUrl}/learn/halal-mortgage-tulsa`,               changeFrequency: 'monthly', priority: 0.86, lastModified: now },
     { url: `${baseUrl}/learn/la-wasiyyata-li-warith`,             changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/learn/what-is-sukuk`,                      changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/islamic-estate-planning-tools`,      changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/diminishing-musharaka-explained`,    changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/riba-free-mortgage`,                 changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/riba-elimination`,                   changeFrequency: 'monthly', priority: 0.88, lastModified: now },
