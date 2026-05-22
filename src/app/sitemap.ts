@@ -144,6 +144,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // ── Halal Stocks — per-ticker ────────────────────────────────────────────
     { url: `${baseUrl}/halal-stocks`,            changeFrequency: 'weekly',  priority: 0.93, lastModified: now },
+    { url: `${baseUrl}/halal-stocks/list`,       changeFrequency: 'weekly',  priority: 0.92, lastModified: now },
     { url: `${baseUrl}/halal-stocks/aapl`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
     { url: `${baseUrl}/halal-stocks/msft`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
     { url: `${baseUrl}/halal-stocks/amzn`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },

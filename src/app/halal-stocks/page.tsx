@@ -108,6 +108,13 @@ export default function HalalStocksHub() {
             </p>
           </section>
 
+          <section className="mb-6 rounded-2xl bg-[#1B5E20] p-5">
+            <Link href="/halal-stocks/list" className="flex items-center justify-between gap-3 text-white">
+              <span className="text-base font-semibold">See the full Halal Stocks List 2026 — every screened ticker with AAOIFI status</span>
+              <span className="font-bold flex-shrink-0">View list →</span>
+            </Link>
+          </section>
+
           <section className="mb-10">
             <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Most-searched US tickers</h2>
             <div className="grid gap-4 md:grid-cols-2">
