@@ -89,6 +89,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/halal-investing-guide`,              changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/is-my-mortgage-halal`,               changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/halal-mortgage-providers-usa`,       changeFrequency: 'monthly', priority: 0.87, lastModified: now },
+    // 2026-05-22 (SEO-7): city-specific halal mortgage pages + wasiyyah hadith (search-demand gaps)
+    { url: `${baseUrl}/learn/halal-mortgage-chicago`,             changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-los-angeles`,         changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-houston`,             changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-atlanta`,             changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-san-antonio`,         changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-tulsa`,               changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/la-wasiyyata-li-warith`,             changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/diminishing-musharaka-explained`,    changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/riba-free-mortgage`,                 changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/riba-elimination`,                   changeFrequency: 'monthly', priority: 0.88, lastModified: now },
@@ -150,6 +158,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/halal-stocks/crm`,        changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
     { url: `${baseUrl}/halal-stocks/amd`,        changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
     { url: `${baseUrl}/halal-stocks/adbe`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    // 2026-05-22 (SEO-7): consumer-staples ticker (high search demand)
+    { url: `${baseUrl}/halal-stocks/ul`,         changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
 
 
     // ── Fiqh Terms Glossary ──────────────────────────────────────────────────

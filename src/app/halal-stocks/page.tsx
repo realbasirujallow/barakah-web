@@ -42,6 +42,7 @@ const tickers = [
   { symbol: 'CRM', name: 'Salesforce, Inc.', sector: 'Technology', note: 'Generally halal' },
   { symbol: 'AMD', name: 'Advanced Micro Devices', sector: 'Technology', note: 'Generally halal' },
   { symbol: 'ADBE', name: 'Adobe Inc.', sector: 'Technology', note: 'Generally halal' },
+  { symbol: 'UL', name: 'Unilever', sector: 'Consumer Staples', note: 'Verify debt ratio' },
 ];
 
 export default function HalalStocksHub() {
