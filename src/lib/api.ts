@@ -261,6 +261,21 @@ function deduplicatedRefresh(): Promise<RefreshResult> {
   return _activeRefreshPromise;
 }
 
+// 2026-05-23 (live E2E UI-5): concurrent 401s (the dashboard fires ~12 GETs at
+// once) each fell through to their OWN verifySessionStillValid() after sharing
+// the deduplicated refresh — producing a storm of identical GET /auth/profile
+// (and follow-on /auth/refresh) calls in milliseconds. Single-flight the
+// verification the same way refresh is deduplicated so concurrent callers share
+// one /auth/profile check.
+let _activeVerifyPromise: Promise<boolean> | null = null;
+function deduplicatedVerify(): Promise<boolean> {
+  if (_activeVerifyPromise) return _activeVerifyPromise;
+  _activeVerifyPromise = verifySessionStillValid().finally(() => {
+    _activeVerifyPromise = null;
+  });
+  return _activeVerifyPromise;
+}
+
 async function verifySessionStillValid(): Promise<boolean> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000);
@@ -507,7 +522,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
           if (retryRes.status !== 401) {
             throw new Error(await extractErrorMessage(retryRes, `API error ${retryRes.status}`));
           }
-          const sessionStillValid = await verifySessionStillValid();
+          const sessionStillValid = await deduplicatedVerify();
           if (sessionStillValid) {
             throw new Error(await extractErrorMessage(retryRes, 'We could not complete that request. Please try again.'));
           }
@@ -531,7 +546,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
         throw new Error('Too many requests right now. Please wait a moment and try again.');
       }
 
-      const sessionStillValid = await verifySessionStillValid();
+      const sessionStillValid = await deduplicatedVerify();
       if (sessionStillValid) {
         throw new Error(await extractErrorMessage(originalUnauthorizedResponse, 'We could not complete that request. Please try again.'));
       }

@@ -194,6 +194,12 @@ export function WeeklyRecap({
         <div className="px-5 py-3">
           <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">{t('dashSpendingVsLastMonth')}</p>
           {hasSpending ? (
+            // 2026-05-23 (live E2E UI-1): when spending is identical month-over-
+            // month the delta rounds to 0 and "▼ $0.00 (0.0%)" reads as broken.
+            // Show a plain "No change" instead of a misleading arrow.
+            Math.abs((spendingThisMonth ?? 0) - (spendingLastMonth ?? 0)) < 0.5 ? (
+              <p className="text-base sm:text-lg font-semibold text-muted-foreground">{t('dashNoChange')}</p>
+            ) : (
             <p className={`text-base sm:text-lg font-semibold tabular-nums ${spendingDown ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
               <bdi dir="ltr">
                 {spendingDown ? '▼' : '▲'} {fmt(Math.abs((spendingThisMonth ?? 0) - (spendingLastMonth ?? 0)))}
@@ -204,6 +210,7 @@ export function WeeklyRecap({
                 )}
               </bdi>
             </p>
+            )
           ) : (
             // 2026-05-11 (UX-3 fix): bare em-dash reads as "broken value".
             // Add a title attribute so hovering reveals the intent.
