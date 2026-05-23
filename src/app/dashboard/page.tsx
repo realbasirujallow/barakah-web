@@ -69,6 +69,8 @@ interface InvestmentsWidget {
   topMovers?: InvestmentMover[];
   topGainers?: InvestmentMover[];
   topLosers?: InvestmentMover[];
+  marketOpen?: boolean;
+  dayLabel?: string;
 }
 interface DashboardWidgets { spending: SpendingWidget | null; budgetOverview: BudgetWidget | null; recentTransactions: RecentTransactionsWidget | null; upcomingBills: UpcomingBillsWidget | null; netWorthMini: NetWorthMiniWidget | null; investments: InvestmentsWidget | null; }
 
@@ -1133,6 +1135,8 @@ export default function DashboardPage() {
         const todayAmt = widgets?.investments?.dayGainLoss ?? latestPortfolioSnapshot?.dayGainLoss;
         const todayPct = widgets?.investments?.dayGainLossPercent ?? latestPortfolioSnapshot?.dayGainLossPercent;
         const hasToday = typeof todayAmt === 'number' && typeof todayPct === 'number';
+        const marketOpen = widgets?.investments?.marketOpen !== false;
+        const dayLabel = widgets?.investments?.dayLabel ?? 'Today';
         const periodAmt = widgets?.investments?.periodGainLoss;
         const periodPct = widgets?.investments?.periodGainLossPercent;
         const periodDays = widgets?.investments?.periodDays;
@@ -1148,7 +1152,7 @@ export default function DashboardPage() {
                   <span className={todayAmt! >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
                     {todayAmt! >= 0 ? '↗' : '↘'} {fmt(Math.abs(todayAmt!))} ({todayPct! >= 0 ? '+' : ''}{todayPct!.toFixed(2)}%)
                   </span>
-                  <span className="text-gray-500">Today</span>
+                  <span className="text-gray-500">{dayLabel}</span>
                   <span className="text-gray-400">›</span>
                 </p>
               )}
@@ -1199,7 +1203,7 @@ export default function DashboardPage() {
                   {gainers.length > 0 && (
                     <div className="border-t border-gray-100">
                       <p className="text-xs text-gray-500 px-5 pt-3 pb-2 bg-gray-50">
-                        {allHaveDay ? 'Top movers today' : 'Top movers'}
+                        {allHaveDay && marketOpen ? 'Top movers today' : 'Top movers'}
                       </p>
                       <ul>{gainers.map(moverRow)}</ul>
                     </div>
@@ -1207,7 +1211,7 @@ export default function DashboardPage() {
                   {losers.length > 0 && (
                     <div className="border-t border-gray-100">
                       <p className="text-xs text-gray-500 px-5 pt-3 pb-2 bg-gray-50">
-                        {allHaveDay ? 'Low movers today' : 'Low movers'}
+                        {allHaveDay && marketOpen ? 'Low movers today' : 'Low movers'}
                       </p>
                       <ul>{losers.map(moverRow)}</ul>
                     </div>
