@@ -22,7 +22,7 @@ import ViewAsUserButton from '../ViewAsUserButton';
 import { useBodyScrollLock } from '../../lib/useBodyScrollLock';
 import { PRICING } from '../../lib/pricing';
 import type { AdminUser, ActivityCountKey, UserActivity, UsersResponse } from './adminTypes';
-import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDate, fmtDateTimeMs, fmtFullTs, daysUntil } from './adminFormatting';
+import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDate, fmtDateTimeMs, fmtFullTs, daysUntil, formatLocation } from './adminFormatting';
 import AdminUserDrilldownSheet, { type DrilldownKind } from './AdminUserDrilldownSheet';
 import AdminUserNotesPanel from './AdminUserNotesPanel';
 import AdminUserAuditTrail from './AdminUserAuditTrail';
@@ -321,7 +321,7 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs text-gray-400">📍</span>
                 <span className="text-xs text-gray-400">
-                  {selected.state && selected.country ? `${selected.state}, ${selected.country}` : selected.country || selected.state}
+                  {formatLocation(selected.state, selected.country)}
                 </span>
               </div>
             )}

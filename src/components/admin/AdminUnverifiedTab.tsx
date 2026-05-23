@@ -23,7 +23,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import type { AdminUser } from './adminTypes';
-import { fmtDateMs } from './adminFormatting';
+import { fmtDateMs, formatLocation } from './adminFormatting';
 
 export interface AdminUnverifiedTabProps {
   toast: (msg: string, kind?: 'success' | 'error' | 'info') => void;
@@ -191,7 +191,7 @@ export function AdminUnverifiedTab({ toast, loadData, page = 0, openUser }: Admi
                 </div>
                 <div className="text-sm text-gray-600">{fmtDateMs(u.createdAt)}</div>
                 <div className="text-sm text-gray-600">
-                  {u.country && u.state ? `${u.state}, ${u.country}` : u.country || u.state || '—'}
+                  {formatLocation(u.state, u.country)}
                 </div>
                 <div className="flex items-center gap-2">
                   <button

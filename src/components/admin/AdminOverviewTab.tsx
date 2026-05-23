@@ -11,7 +11,7 @@
  */
 
 import type { AdminUser, Overview, OnboardingTrialSettings, UserFilter, AdminTab } from './adminTypes';
-import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDateMs } from './adminFormatting';
+import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDateMs, formatCountry, formatLocation } from './adminFormatting';
 import AdminJobHealthCard from './AdminJobHealthCard';
 
 export interface AdminOverviewTabProps {
@@ -334,7 +334,7 @@ export function AdminOverviewTab({
                     return (
                       <div key={country}>
                         <div className="flex justify-between text-sm mb-1">
-                          <span className="text-gray-600">{country}</span>
+                          <span className="text-gray-600">{formatCountry(country)}</span>
                           <span className="font-medium text-gray-800">{count} ({pct.toFixed(1)}%)</span>
                         </div>
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -360,7 +360,7 @@ export function AdminOverviewTab({
                     return (
                       <div key={state}>
                         <div className="flex justify-between text-sm mb-1">
-                          <span className="text-gray-600">{state}</span>
+                          <span className="text-gray-600">{formatLocation(state, '')}</span>
                           <span className="font-medium text-gray-800">{count} ({pct.toFixed(1)}%)</span>
                         </div>
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">

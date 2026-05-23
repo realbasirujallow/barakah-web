@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '../../../../lib/api';
 import { useAuth } from '../../../../context/AuthContext';
 import { logError } from '../../../../lib/logError';
+import { formatLocation } from '../../../../components/admin/adminFormatting';
 
 /**
  * Admin → Activity: real human activity for founder-led growth.
@@ -19,6 +20,7 @@ interface SignIn {
   user_id: number | null; email: string | null; full_name: string | null;
   plan: string | null; email_verified: boolean | null;
   ip_address: string | null; user_agent: string | null; timestamp: number | null;
+  country: string | null; state: string | null;
 }
 interface TopReferrer {
   referral_code: string | null; email: string | null; full_name: string | null; referral_count: number | null;
@@ -166,7 +168,7 @@ export default function AdminActivityPage() {
                 <li key={i} className="flex items-center justify-between px-5 py-3 gap-3">
                   <div className="min-w-0">
                     <p className="font-semibold text-gray-900 truncate">{name(s.full_name, s.email)}</p>
-                    <p className="text-xs text-gray-500 truncate">{s.email} · {device(s.user_agent)}{s.ip_address ? ` · ${s.ip_address}` : ''}</p>
+                    <p className="text-xs text-gray-500 truncate">{s.email} · {device(s.user_agent)}{(s.country || s.state) ? ` · ${formatLocation(s.state, s.country)}` : ''}{s.ip_address ? ` · ${s.ip_address}` : ''}</p>
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-sm text-gray-900">{fmtTime(s.timestamp)}</p>

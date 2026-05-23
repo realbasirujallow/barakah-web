@@ -11,7 +11,7 @@
  */
 
 import type { AdminUser, UsersResponse, UserFilter } from './adminTypes';
-import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDateMs, fmtFullTs } from './adminFormatting';
+import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDateMs, fmtFullTs, formatLocation } from './adminFormatting';
 
 export interface AdminUsersTabProps {
   usersData: UsersResponse | null;
@@ -242,7 +242,7 @@ export function AdminUsersTab({
                         }
                       </td>
                       <td className="px-3 py-3 text-xs text-gray-500">
-                        {u.state && u.country ? `${u.state}, ${u.country}` : u.country || u.state || '—'}
+                        {formatLocation(u.state, u.country)}
                       </td>
                       <td className="px-3 py-3 text-gray-500 text-xs">
                         <p>{fmtFullTs(u.createdAt)}</p>
