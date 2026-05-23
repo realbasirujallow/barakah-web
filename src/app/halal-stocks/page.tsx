@@ -43,6 +43,8 @@ const tickers = [
   { symbol: 'AMD', name: 'Advanced Micro Devices', sector: 'Technology', note: 'Generally halal' },
   { symbol: 'ADBE', name: 'Adobe Inc.', sector: 'Technology', note: 'Generally halal' },
   { symbol: 'UL', name: 'Unilever', sector: 'Consumer Staples', note: 'Verify debt ratio' },
+  { symbol: 'PG', name: 'Procter & Gamble', sector: 'Consumer Staples', note: 'Verify ratios' },
+  { symbol: 'KO', name: 'Coca-Cola', sector: 'Consumer Staples', note: 'Borderline — verify' },
 ];
 
 export default function HalalStocksHub() {

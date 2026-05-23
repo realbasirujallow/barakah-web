@@ -96,6 +96,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/halal-mortgage-atlanta`,             changeFrequency: 'monthly', priority: 0.86, lastModified: now },
     { url: `${baseUrl}/learn/halal-mortgage-san-antonio`,         changeFrequency: 'monthly', priority: 0.86, lastModified: now },
     { url: `${baseUrl}/learn/halal-mortgage-tulsa`,               changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    // 2026-05-22 (SEO-8): more city halal-mortgage pages
+    { url: `${baseUrl}/learn/halal-mortgage-detroit`,             changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-dallas`,              changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-minneapolis`,         changeFrequency: 'monthly', priority: 0.86, lastModified: now },
     { url: `${baseUrl}/learn/la-wasiyyata-li-warith`,             changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/what-is-sukuk`,                      changeFrequency: 'monthly', priority: 0.86, lastModified: now },
     { url: `${baseUrl}/learn/islamic-estate-planning-tools`,      changeFrequency: 'monthly', priority: 0.85, lastModified: now },
@@ -163,6 +167,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/halal-stocks/adbe`,       changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
     // 2026-05-22 (SEO-7): consumer-staples ticker (high search demand)
     { url: `${baseUrl}/halal-stocks/ul`,         changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    // 2026-05-22 (SEO-8): more consumer-staples tickers
+    { url: `${baseUrl}/halal-stocks/pg`,         changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/halal-stocks/ko`,         changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
 
 
     // ── Fiqh Terms Glossary ──────────────────────────────────────────────────

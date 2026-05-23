@@ -40,6 +40,8 @@ const stocks: { symbol: string; name: string; sector: string; status: Status }[]
   { symbol: 'TSLA', name: 'Tesla', sector: 'Automotive / Tech', status: 'Verify ratios' },
   { symbol: 'ORCL', name: 'Oracle', sector: 'Technology', status: 'Borderline — verify debt' },
   { symbol: 'UL', name: 'Unilever', sector: 'Consumer Staples', status: 'Borderline — verify debt' },
+  { symbol: 'PG', name: 'Procter & Gamble', sector: 'Consumer Staples', status: 'Verify ratios' },
+  { symbol: 'KO', name: 'Coca-Cola', sector: 'Consumer Staples', status: 'Borderline — verify debt' },
 ];
 
 const commonlyNonCompliant = [
@@ -116,8 +118,11 @@ export default function HalalStocksListPage() {
 
           <p className="text-lg leading-8 text-gray-800 mb-6">
             A working list of widely-held <strong>Shariah-compliant stocks</strong>, each screened against AAOIFI&apos;s
-            business-activity and financial-ratio tests. Tap any ticker for the full review. Compliance is recalculated
-            every quarter, so treat this as a starting point and verify the live status before you buy.
+            business-activity and financial-ratio tests. Tap any ticker for the full review — popular checks include
+            whether <Link href="/halal-stocks/aapl" className="text-[#1B5E20] font-semibold hover:underline">Apple (AAPL) is halal</Link> or
+            whether <Link href="/halal-stocks/msft" className="text-[#1B5E20] font-semibold hover:underline">Microsoft (MSFT) is halal</Link>.
+            Compliance is recalculated every quarter, so treat this as a starting point and verify the live status before
+            you buy.
           </p>
 
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-sm text-amber-900">
