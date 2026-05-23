@@ -8,6 +8,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { ChevronRight } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useToast } from '../../../lib/toast';
 
 interface Snapshot {
@@ -377,6 +378,46 @@ export default function NetWorthPage() {
           </div>
         </div>
       </div>
+
+      {/* Monarch-parity: net-worth trend area chart over the selected period. */}
+      {history.length >= 2 && (() => {
+        const data = [...history].sort((a, b) => a.date - b.date).map(s => ({
+          date: s.date, netWorth: s.netWorth,
+        }));
+        return (
+          <div className="bg-white rounded-2xl p-4 border mb-6">
+            <div style={{ width: '100%', height: 220 }}>
+              <ResponsiveContainer>
+                <AreaChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="nwFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#1B5E20" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="#1B5E20" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="date" tickLine={false} axisLine={false}
+                    tick={{ fontSize: 11, fill: '#9ca3af' }} minTickGap={40}
+                    tickFormatter={(ms: number) => new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  />
+                  <YAxis
+                    width={52} tickLine={false} axisLine={false}
+                    tick={{ fontSize: 11, fill: '#9ca3af' }}
+                    tickFormatter={(v: number) => Math.abs(v) >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`}
+                    domain={['auto', 'auto']}
+                  />
+                  <Tooltip
+                    formatter={(value) => [fmt(Number(value ?? 0)), 'Net worth'] as [string, string]}
+                    labelFormatter={(label) => new Date(Number(label)).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                    contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb', fontSize: 13 }}
+                  />
+                  <Area type="monotone" dataKey="netWorth" stroke="#1B5E20" strokeWidth={2} fill="url(#nwFill)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Period selector */}
       <div className="flex gap-2 mb-6 flex-wrap">
