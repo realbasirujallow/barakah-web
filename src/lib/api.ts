@@ -782,6 +782,13 @@ export async function apiDownload(endpoint: string, filename: string): Promise<v
 let _subStatusInFlight: Promise<unknown> | null = null;
 
 export const api = {
+  // Admin → Activity (sign-ins / referrals / shares)
+  getAdminSignIns: (limit = 100, includeTest = false) =>
+    apiFetch(`/admin/activity/sign-ins?limit=${limit}&includeTest=${includeTest}`, {}, API_TIMEOUT, true),
+  getAdminReferralActivity: (includeTest = false) =>
+    apiFetch(`/admin/activity/referrals?includeTest=${includeTest}`, {}, API_TIMEOUT, true),
+  getAdminShares: (limit = 200) =>
+    apiFetch(`/admin/activity/shares?limit=${limit}`, {}, API_TIMEOUT, true),
   // Auth
   login: (email: string, password: string, rememberMe = false) =>
     apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, rememberMe }) }),

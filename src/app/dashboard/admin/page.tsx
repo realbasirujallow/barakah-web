@@ -456,6 +456,12 @@ export default function AdminPage() {
         actions={
           <>
             <Link
+              href="/dashboard/admin/activity"
+              className="px-3 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-medium"
+            >
+              👋 Activity
+            </Link>
+            <Link
               href="/dashboard/admin/funnel"
               className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
             >
