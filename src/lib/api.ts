@@ -2143,8 +2143,8 @@ export const api = {
 
   /** Aggregated dashboard widget data (spending, budget, transactions, bills, net worth). */
   // R14: mount-fired on /dashboard — suppress 401 default.
-  getDashboardWidgets: (suppressUnauthorized = true) =>
-    apiFetch('/api/dashboard/widgets', {}, API_TIMEOUT, suppressUnauthorized),
+  getDashboardWidgets: (period?: string, suppressUnauthorized = true) =>
+    apiFetch(`/api/dashboard/widgets${period ? `?period=${encodeURIComponent(period)}` : ''}`, {}, API_TIMEOUT, suppressUnauthorized),
 
   /** Personalized financial insights (spending trends, nisab streak, zakat estimates, etc.). */
   // R14: mount-fired on /dashboard — suppress 401 default.

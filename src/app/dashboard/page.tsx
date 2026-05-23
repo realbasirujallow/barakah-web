@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { trackDemoDataLoaded } from '../../lib/analytics';
 import { useCurrency } from '../../lib/useCurrency';
@@ -132,6 +132,25 @@ export default function DashboardPage() {
   // ranges this state becomes the request param. Defaults to "30D"
   // because that's what every Monarch/Rocket-Money user sees first.
   const [kpiPeriod, setKpiPeriod] = useState<Period>('30d');
+  // Keep the latest period in a ref so the initial full load fetches widgets
+  // for the picker's current value (no re-render race), while the dedicated
+  // effect below handles subsequent picker changes by refetching only widgets.
+  const periodRef = useRef<Period>(kpiPeriod);
+  useEffect(() => { periodRef.current = kpiPeriod; }, [kpiPeriod]);
+  // When the Overview period picker changes (after first mount), refetch only
+  // the widgets so the Net Worth KPI's change %/sparkline reflect the window.
+  const periodDidMount = useRef(false);
+  useEffect(() => {
+    if (!periodDidMount.current) { periodDidMount.current = true; return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.getDashboardWidgets(kpiPeriod) as DashboardWidgets;
+        if (!cancelled && res) setWidgets(res);
+      } catch { /* keep prior widgets on failure */ }
+    })();
+    return () => { cancelled = true; };
+  }, [kpiPeriod]);
   const [portfolioSummary, setPortfolioSummary] = useState<PortfolioSummary | null>(null);
   const [latestPortfolioSnapshot, setLatestPortfolioSnapshot] = useState<PortfolioHistorySnapshot | null>(null);
   const [widgets, setWidgets] = useState<DashboardWidgets | null>(null);
@@ -277,7 +296,7 @@ export default function DashboardPage() {
         api.getHawlDue(30),
         api.getPortfolioSummary(),
         api.getPortfolioHistory(2),
-        api.getDashboardWidgets(),
+        api.getDashboardWidgets(periodRef.current),
         api.getSafeToSpend(),
         api.getDashboardInsights(),
         // Phase 12.1 (2026-04-30): cheapest possible review-count fetch
