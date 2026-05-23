@@ -378,8 +378,17 @@ export default function DashboardPage() {
             allHoldings.push({ symbol: h.symbol, name: h.name, gainLossPct: pct, marketValue: mv, currentPrice: price });
           });
         });
-        allHoldings.sort((a, b) => Math.abs(b.gainLossPct) - Math.abs(a.gainLossPct));
-        setTopMovers(allHoldings);
+        // Dedup by symbol — a security held in multiple accounts must appear
+        // once in movers (sum its market value across accounts).
+        const bySymbol = new Map<string, { symbol: string; name: string; gainLossPct: number; marketValue: number; currentPrice: number }>();
+        for (const h of allHoldings) {
+          const existing = bySymbol.get(h.symbol);
+          if (existing) existing.marketValue += h.marketValue;
+          else bySymbol.set(h.symbol, { ...h });
+        }
+        const deduped = Array.from(bySymbol.values());
+        deduped.sort((a, b) => Math.abs(b.gainLossPct) - Math.abs(a.gainLossPct));
+        setTopMovers(deduped);
       }
       setLoading(false);
     };
