@@ -1112,20 +1112,24 @@ export default function DashboardPage() {
       {((portfolioSummary?.totalValue ?? 0) > 0 || linkedInvestmentsTotal > 0) && (() => {
         const hasPortfolio = (portfolioSummary?.totalValue ?? 0) > 0;
         const totalValue = hasPortfolio ? portfolioSummary!.totalValue : linkedInvestmentsTotal;
-        // Prefer backend-computed top movers (intraday from Finnhub, properly
-        // ranked by day %); fall back to client-computed lifetime ranking if
+        // Prefer backend-computed gainers/losers (intraday from Finnhub, ranked
+        // by day %); fall back to splitting the client-computed lifetime list if
         // the backend block is missing (e.g. user has no holding data).
-        const backendMovers = widgets?.investments?.topMovers ?? [];
-        const movers = backendMovers.length > 0
-          ? backendMovers.slice(0, 4)
-          : topMovers
-              .slice()
-              .sort((a, b) => Math.abs(b.gainLossPct) - Math.abs(a.gainLossPct))
-              .slice(0, 4)
-              .map(h => ({
-                symbol: h.symbol, name: h.name, currentPrice: h.currentPrice,
-                dayChangePercent: h.gainLossPct, hasDayData: false,
-              }));
+        const backendGainers = widgets?.investments?.topGainers ?? [];
+        const backendLosers = widgets?.investments?.topLosers ?? [];
+        const hasBackendMovers = backendGainers.length > 0 || backendLosers.length > 0;
+        const clientSorted = topMovers
+          .slice()
+          .map(h => ({ symbol: h.symbol, name: h.name, currentPrice: h.currentPrice, dayChangePercent: h.gainLossPct, hasDayData: false }));
+        const gainers = (hasBackendMovers
+          ? backendGainers
+          : clientSorted.filter(h => (h.dayChangePercent ?? 0) > 0).sort((a, b) => (b.dayChangePercent ?? 0) - (a.dayChangePercent ?? 0))
+        ).slice(0, 3);
+        const losers = (hasBackendMovers
+          ? backendLosers
+          : clientSorted.filter(h => (h.dayChangePercent ?? 0) < 0).sort((a, b) => (a.dayChangePercent ?? 0) - (b.dayChangePercent ?? 0))
+        ).slice(0, 3);
+        const allHaveDay = [...gainers, ...losers].length > 0 && [...gainers, ...losers].every(m => m.hasDayData);
         const todayAmt = widgets?.investments?.dayGainLoss ?? latestPortfolioSnapshot?.dayGainLoss;
         const todayPct = widgets?.investments?.dayGainLossPercent ?? latestPortfolioSnapshot?.dayGainLossPercent;
         const hasToday = typeof todayAmt === 'number' && typeof todayPct === 'number';
@@ -1174,31 +1178,41 @@ export default function DashboardPage() {
                 <p className="mt-1 text-xs text-gray-500">Sync banks to refresh today&apos;s prices</p>
               )}
             </Link>
-            {movers.length > 0 && (() => {
-              const allHaveDay = movers.every(m => m.hasDayData);
+            {(gainers.length > 0 || losers.length > 0) && (() => {
+              const moverRow = (h: InvestmentMover) => {
+                const pct = h.dayChangePercent ?? 0;
+                const price = h.currentPrice ?? 0;
+                return (
+                  <li key={h.symbol} className="flex items-center justify-between px-5 py-3 border-t border-gray-100 first:border-t-0">
+                    <p className="text-base font-semibold text-gray-900">{h.symbol}</p>
+                    <div className="flex items-center gap-3">
+                      <p className="text-base text-gray-900 tabular-nums">{price.toFixed(2)}</p>
+                      <span className={`text-sm font-bold tabular-nums px-3 py-1 rounded-full ${pct >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                        {pct >= 0 ? '↑' : '↓'} {Math.abs(pct).toFixed(2)}%
+                      </span>
+                    </div>
+                  </li>
+                );
+              };
               return (
-                <div className="border-t border-gray-100">
-                  <p className="text-xs text-gray-500 px-5 pt-3 pb-2 bg-gray-50">
-                    {allHaveDay ? 'Top movers today' : 'Top movers'}
-                  </p>
-                  <ul>
-                    {movers.map(h => {
-                      const pct = h.dayChangePercent ?? 0;
-                      const price = h.currentPrice ?? 0;
-                      return (
-                        <li key={h.symbol} className="flex items-center justify-between px-5 py-3 border-t border-gray-100 first:border-t-0">
-                          <p className="text-base font-semibold text-gray-900">{h.symbol}</p>
-                          <div className="flex items-center gap-3">
-                            <p className="text-base text-gray-900 tabular-nums">{price.toFixed(2)}</p>
-                            <span className={`text-sm font-bold tabular-nums px-3 py-1 rounded-full ${pct >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-                              {pct >= 0 ? '↑' : '↓'} {Math.abs(pct).toFixed(2)}%
-                            </span>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
+                <>
+                  {gainers.length > 0 && (
+                    <div className="border-t border-gray-100">
+                      <p className="text-xs text-gray-500 px-5 pt-3 pb-2 bg-gray-50">
+                        {allHaveDay ? 'Top movers today' : 'Top movers'}
+                      </p>
+                      <ul>{gainers.map(moverRow)}</ul>
+                    </div>
+                  )}
+                  {losers.length > 0 && (
+                    <div className="border-t border-gray-100">
+                      <p className="text-xs text-gray-500 px-5 pt-3 pb-2 bg-gray-50">
+                        {allHaveDay ? 'Low movers today' : 'Low movers'}
+                      </p>
+                      <ul>{losers.map(moverRow)}</ul>
+                    </div>
+                  )}
+                </>
               );
             })()}
           </div>
