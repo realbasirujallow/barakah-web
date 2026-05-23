@@ -290,6 +290,14 @@ export default function HalalEtfsPage() {
                   <strong>Halal stock screener →</strong>
                   <p className="mt-1 text-sm text-green-100">Barakah&apos;s 30k+ stock screener.</p>
                 </Link>
+                <Link href="/halal-stocks/list" className="rounded-lg bg-white/10 p-4 transition hover:bg-white/20">
+                  <strong>Halal stocks list 2026 →</strong>
+                  <p className="mt-1 text-sm text-green-100">Every screened ticker with AAOIFI status.</p>
+                </Link>
+                <Link href="/learn/what-is-sukuk" className="rounded-lg bg-white/10 p-4 transition hover:bg-white/20">
+                  <strong>What is sukuk? →</strong>
+                  <p className="mt-1 text-sm text-green-100">Islamic bonds explained.</p>
+                </Link>
               </div>
             </section>
           </div>

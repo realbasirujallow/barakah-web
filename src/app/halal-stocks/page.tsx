@@ -148,6 +148,28 @@ export default function HalalStocksHub() {
             </p>
           </section>
 
+          <section className="mb-10">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Related halal investing guides</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link href="/halal-stocks/list" className="block rounded-xl bg-white p-4 shadow-sm hover:shadow-md transition">
+                <p className="font-semibold text-[#1B5E20] text-sm">Halal Stocks List 2026 →</p>
+                <p className="text-xs text-gray-600 mt-1">Every screened ticker with its AAOIFI status in one table.</p>
+              </Link>
+              <Link href="/learn/halal-etfs" className="block rounded-xl bg-white p-4 shadow-sm hover:shadow-md transition">
+                <p className="font-semibold text-[#1B5E20] text-sm">Halal ETFs →</p>
+                <p className="text-xs text-gray-600 mt-1">Shariah-compliant funds compared for US &amp; UK investors.</p>
+              </Link>
+              <Link href="/learn/what-is-sukuk" className="block rounded-xl bg-white p-4 shadow-sm hover:shadow-md transition">
+                <p className="font-semibold text-[#1B5E20] text-sm">What Is Sukuk? →</p>
+                <p className="text-xs text-gray-600 mt-1">Islamic bonds explained — structures and halal status.</p>
+              </Link>
+              <Link href="/learn/halal-investing-for-beginners" className="block rounded-xl bg-white p-4 shadow-sm hover:shadow-md transition">
+                <p className="font-semibold text-[#1B5E20] text-sm">Halal Investing for Beginners →</p>
+                <p className="text-xs text-gray-600 mt-1">Start here if you&apos;re new to Shariah-compliant investing.</p>
+              </Link>
+            </div>
+          </section>
+
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">
             <h2 className="mb-3 text-xl font-bold">Screen any US/UK/GCC stock in seconds</h2>
             <p className="mb-4 text-sm leading-7 text-green-100">

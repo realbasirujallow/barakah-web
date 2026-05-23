@@ -201,6 +201,25 @@ export default function HalalStocksListPage() {
             </div>
           </section>
 
+          {/* Related reading */}
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">Related reading</h2>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Link href="/learn/halal-etfs" className="block rounded-xl bg-white p-4 shadow-sm hover:shadow-md transition">
+                <p className="font-semibold text-[#1B5E20] text-sm">Halal ETFs →</p>
+                <p className="text-xs text-gray-600 mt-1">Shariah-compliant funds compared.</p>
+              </Link>
+              <Link href="/learn/what-is-sukuk" className="block rounded-xl bg-white p-4 shadow-sm hover:shadow-md transition">
+                <p className="font-semibold text-[#1B5E20] text-sm">What Is Sukuk? →</p>
+                <p className="text-xs text-gray-600 mt-1">Islamic bonds explained.</p>
+              </Link>
+              <Link href="/learn/halal-investing-for-beginners" className="block rounded-xl bg-white p-4 shadow-sm hover:shadow-md transition">
+                <p className="font-semibold text-[#1B5E20] text-sm">Investing for Beginners →</p>
+                <p className="text-xs text-gray-600 mt-1">New to halal investing? Start here.</p>
+              </Link>
+            </div>
+          </section>
+
           {/* CTA */}
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">
             <h2 className="mb-3 text-xl font-bold">Screen any ticker live — not just this list</h2>
