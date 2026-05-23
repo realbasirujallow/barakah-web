@@ -1097,6 +1097,7 @@ export default function TransactionsPage() {
                   <MerchantLogo
                     merchantName={tx.merchantName ?? (tx.description ? prettifyDescription(tx.description) : null)}
                     institutionFallback={tx.sourceInstitutionName}
+                    category={tx.category}
                     size={32}
                   />
                 )}

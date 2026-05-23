@@ -24,8 +24,39 @@ interface MerchantLogoProps {
   /** Used only when no merchant maps. Lets bank-to-bank rows still show a
    *  logo (Zelle, internal transfer). */
   institutionFallback?: string | null;
+  /** Transaction category — drives a meaningful fallback icon (a house for
+   *  housing/mortgage, a car for transport, …) instead of the source bank. */
+  category?: string | null;
   size?: number;
   bubbleClassName?: string;
+}
+
+/**
+ * Category / merchant-keyword → emoji fallback. Checked when no brand logo
+ * resolves, so a "Freedom Mortgage" row shows a house — never the source
+ * bank's logo (which lies about where the money went). Keyword match on the
+ * merchant name wins (catches "* Mortgage", "* Insurance"), then category.
+ */
+function fallbackIcon(merchantName?: string | null, category?: string | null): string | null {
+  const m = (merchantName ?? '').toLowerCase();
+  const c = (category ?? '').toLowerCase();
+  const hay = `${m} ${c}`;
+  const has = (...keys: string[]) => keys.some(k => hay.includes(k));
+  if (has('mortgage', 'rent', 'housing', 'hoa', 'property tax', 'home loan')) return '🏠';
+  if (has('insurance', 'takaful')) return '🛡️';
+  if (has('gas', 'fuel', 'auto', 'car ', 'vehicle', 'transport', 'parking', 'toll')) return '🚗';
+  if (has('grocer', 'supermarket')) return '🛒';
+  if (has('restaurant', 'dining', 'food', 'coffee', 'cafe')) return '🍽️';
+  if (has('utilit', 'electric', 'water', 'internet', 'phone', 'cable')) return '💡';
+  if (has('health', 'medical', 'pharmacy', 'doctor', 'dental', 'clinic')) return '🏥';
+  if (has('zakat', 'sadaqah', 'charity', 'donation', 'waqf')) return '🤲';
+  if (has('education', 'tuition', 'school', 'student loan')) return '🎓';
+  if (has('travel', 'flight', 'hotel', 'airline')) return '✈️';
+  if (has('entertain', 'streaming', 'subscription', 'movie', 'music', 'game')) return '🎬';
+  if (has('salary', 'payroll', 'income', 'deposit', 'refund')) return '💰';
+  if (has('transfer', 'withdrawal', 'atm')) return '🔁';
+  if (has('shopping', 'retail', 'merchandise')) return '🛍️';
+  return null;
 }
 
 const MERCHANT_DOMAINS: Record<string, string[]> = {
@@ -125,6 +156,16 @@ const MERCHANT_DOMAINS: Record<string, string[]> = {
   'progressive.com':  ['progressive'],
   'statefarm.com':    ['state farm', 'statefarm'],
 
+  // Mortgage + home lenders / servicers
+  'freedommortgage.com': ['freedom mortgage'],
+  'rocketmortgage.com':  ['rocket mortgage', 'quicken loans'],
+  'mrcooper.com':        ['mr. cooper', 'mr cooper', 'nationstar'],
+  'chase.com':           ['chase mortgage'],
+  'wellsfargo.com':      ['wells fargo home', 'wells fargo mortgage'],
+  'pennymac.com':        ['pennymac'],
+  'newrez.com':          ['newrez', 'shellpoint'],
+  'lakeviewloanservicing.com': ['lakeview loan'],
+
   // Gas
   'chevron.com':      ['chevron'],
   'exxon.com':        ['exxon', 'exxonmobil', 'mobil station'],
@@ -163,6 +204,7 @@ function lookup(map: Record<string, string[]>, raw: string | null | undefined): 
 export function MerchantLogo({
   merchantName,
   institutionFallback,
+  category,
   size = 32,
   bubbleClassName = 'bg-emerald-600 text-white',
 }: MerchantLogoProps) {
@@ -191,14 +233,33 @@ export function MerchantLogo({
     lookup(MERCHANT_DOMAINS, merchantName)
     ?? lookup(BANK_FALLBACK, merchantName);
 
+  // A NAMED merchant must never borrow the source bank's logo (that mislabels
+  // where the money went — e.g. "Freedom Mortgage" showing the Chase logo).
+  // Only consult the source institution when there is genuinely no merchant.
+  const hasNamedMerchant = !!(merchantName && merchantName.trim());
+
   const domain =
     merchantDomain
-    ?? (isAmbiguousTransfer
-          ? null  // unknown transfer destination — initial bubble is more truthful
+    ?? ((isAmbiguousTransfer || hasNamedMerchant)
+          ? null
           : (lookup(MERCHANT_DOMAINS, institutionFallback)
               ?? lookup(BANK_FALLBACK, institutionFallback)));
 
   if (!domain || errored) {
+    // Prefer a meaningful category/keyword icon (🏠 for mortgage/housing) over
+    // an opaque initial bubble.
+    const icon = fallbackIcon(merchantName, category);
+    if (icon) {
+      return (
+        <div
+          className="flex items-center justify-center rounded-full bg-gray-100"
+          style={{ width: size, height: size, fontSize: size * 0.5 }}
+          aria-hidden="true"
+        >
+          {icon}
+        </div>
+      );
+    }
     const initial = ((merchantName ?? institutionFallback)?.trim()[0] ?? '?').toUpperCase();
     return (
       <div
