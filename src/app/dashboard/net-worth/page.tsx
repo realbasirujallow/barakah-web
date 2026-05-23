@@ -294,6 +294,8 @@ export default function NetWorthPage() {
 
   const totalLiabilities = debts.reduce((s, d) => s + d.remainingAmount, 0);
   const totalAssetsVal = assets.reduce((s, a) => s + a.value, 0);
+  // Monarch-style Assets-vs-Liabilities composition toggle.
+  const [compMode, setCompMode] = useState<'totals' | 'percent'>('totals');
 
   if (isLoading || (user && !hasPaidAccess)) {
     return (
@@ -393,6 +395,72 @@ export default function NetWorthPage() {
           </button>
         ))}
       </div>
+
+      {/* Monarch-parity: Assets vs Liabilities composition (colored bars +
+          Totals/Percent toggle). Uses the same grouped data as the accounts
+          list below so it always reconciles. */}
+      {(totalAssetsVal > 0 || totalLiabilities > 0) && (() => {
+        const ASSET_COLORS = ['#1B5E20', '#2E7D32', '#43A047', '#66BB6A', '#9CCC65', '#C5E1A5'];
+        const LIAB_COLORS = ['#C62828', '#E53935', '#EF5350', '#FF8A65', '#FFB74D'];
+        const assetGroups = accountGroups.filter(g => g.kind === 'asset' && g.total > 0);
+        const liabGroups = accountGroups.filter(g => g.kind === 'liability' && g.total > 0);
+        const seg = (groups: typeof accountGroups, total: number, colors: string[]) => (
+          <div className="flex h-3 rounded-full overflow-hidden bg-gray-100">
+            {groups.map((g, i) => (
+              <div key={g.key} title={`${g.key} · ${fmt(g.total)}`}
+                style={{ width: `${total > 0 ? (g.total / total) * 100 : 0}%`, backgroundColor: colors[i % colors.length] }} />
+            ))}
+          </div>
+        );
+        const legend = (groups: typeof accountGroups, total: number, colors: string[]) => (
+          <div className="mt-2 space-y-1">
+            {groups.map((g, i) => (
+              <div key={g.key} className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2 text-gray-600">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors[i % colors.length] }} />
+                  {g.key}
+                </span>
+                <span className="font-medium text-gray-800 tabular-nums">
+                  {compMode === 'percent' ? `${total > 0 ? ((g.total / total) * 100).toFixed(1) : '0'}%` : fmt(g.total)}
+                </span>
+              </div>
+            ))}
+          </div>
+        );
+        return (
+          <div className="bg-white rounded-2xl p-5 border mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-gray-700 text-sm">Composition</h2>
+              <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
+                {(['totals', 'percent'] as const).map(m => (
+                  <button key={m} type="button" onClick={() => setCompMode(m)}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${compMode === m ? 'bg-white text-primary shadow-sm' : 'text-gray-500'}`}>
+                    {m === 'totals' ? 'Totals' : 'Percent'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm font-semibold text-emerald-800">Assets</span>
+                  <span className="text-sm font-bold text-gray-900 tabular-nums">{fmt(totalAssetsVal)}</span>
+                </div>
+                {seg(assetGroups, totalAssetsVal, ASSET_COLORS)}
+                {legend(assetGroups, totalAssetsVal, ASSET_COLORS)}
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm font-semibold text-rose-800">Liabilities</span>
+                  <span className="text-sm font-bold text-gray-900 tabular-nums">{fmt(totalLiabilities)}</span>
+                </div>
+                {liabGroups.length > 0 ? (<>{seg(liabGroups, totalLiabilities, LIAB_COLORS)}{legend(liabGroups, totalLiabilities, LIAB_COLORS)}</>)
+                  : <p className="text-sm text-gray-400 py-2">No debts tracked — debt-free, alhamdulillah.</p>}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* How net worth is calculated */}
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-sm text-blue-800">
