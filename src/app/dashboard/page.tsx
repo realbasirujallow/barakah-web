@@ -995,11 +995,14 @@ export default function DashboardPage() {
                   </p>
                 )}
               <div className="flex items-center justify-between gap-2">
-                <KpiChange
-                  amount={widgets?.netWorthMini?.changeAmount}
-                  percent={widgets?.netWorthMini?.changePercent}
-                  format={fmt}
-                />
+                <span className="flex items-baseline gap-1.5">
+                  <KpiChange
+                    amount={widgets?.netWorthMini?.changeAmount}
+                    percent={widgets?.netWorthMini?.changePercent}
+                    format={fmt}
+                  />
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{kpiPeriod}</span>
+                </span>
                 {/* 2026-05-03 (Step 6): "What changed?" toggle expands an
                     inline NetWorthDrilldown panel below the KPI grid. */}
                 <button
