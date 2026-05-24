@@ -595,7 +595,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               Transactions, Ledger…). Reserve ~7rem of right-padding on the
               bottom of the main scroll container so the FAB never sits over
               clickable content. */}
-          <main id="dashboard-main" tabIndex={-1} className="flex-1 p-6 pb-28 overflow-auto">
+          {/* 2026-05-24 scroll fix: `overflow-auto` on this flex-1 item (with the
+              default min-height:auto) made it expand to its full content height
+              instead of capping to the viewport — so it became a dead scroll
+              target that swallowed wheel gestures over the content while never
+              scrolling itself (clientHeight === scrollHeight). The window is the
+              real scroll container here, so let content flow to it. Inner wide
+              tables keep their own `overflow-x-auto`. */}
+          <main id="dashboard-main" tabIndex={-1} className="flex-1 p-6 pb-28">
             {/* Lane 10 (2026-05-09): super-admin "View as user" support banner */}
             <SupportModeBanner />
             <TrialBanner />

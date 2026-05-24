@@ -2304,7 +2304,7 @@ const en: Translations = {
   txnCat_groceries: 'Groceries',
   txnCat_coffee: 'Coffee',
   txnCat_transportation: 'Transportation',
-  txnCat_fuel: 'Fuel',
+  txnCat_fuel: 'Gas / Fuel',
   txnCat_parking: 'Parking',
   txnCat_public_transit: 'Public Transit',
   txnCat_housing: 'Housing',
