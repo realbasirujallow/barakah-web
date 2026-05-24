@@ -23,7 +23,16 @@ export const metadata: Metadata = {
     'types of zakat',
     'how to pay zakat',
   ],
-  alternates: { canonical: 'https://trybarakah.com/learn/what-is-zakat' },
+  alternates: {
+    canonical: 'https://trybarakah.com/learn/what-is-zakat',
+    languages: {
+      en: 'https://trybarakah.com/learn/what-is-zakat',
+      fr: 'https://trybarakah.com/fr/learn/what-is-zakat',
+      ar: 'https://trybarakah.com/ar/learn/what-is-zakat',
+      ur: 'https://trybarakah.com/ur/learn/what-is-zakat',
+      'x-default': 'https://trybarakah.com/learn/what-is-zakat',
+    },
+  },
   openGraph: {
     title: 'What is Zakat? Complete 2026 Guide — Rules, Calculation & Who Must Pay',
     description: 'Everything you need to know about zakat: the conditions, nisab threshold, how to calculate 2.5%, types of zakatable assets, and when to pay.',
