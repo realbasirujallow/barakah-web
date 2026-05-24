@@ -439,7 +439,7 @@ function AnalyticsPageContent() {
                   );
                 }}
               />
-              <Legend wrapperStyle={{ color: legendColor }} />
+              <Legend formatter={(value) => <span style={{ color: legendColor }}>{value}</span>} />
               <Bar
                 dataKey="income"
                 name="Income"
@@ -552,7 +552,7 @@ function AnalyticsPageContent() {
                   );
                 }}
               />
-              <Legend wrapperStyle={{ color: legendColor }} />
+              <Legend formatter={(value) => <span style={{ color: legendColor }}>{value}</span>} />
               {/* Phase 24d: thicker strokes + animated draw-in for line charts */}
               <Line type="monotone" dataKey="income"   name="Income"   stroke="#1B5E20" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6 }} />
               <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#B91C1C" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6 }} />
@@ -711,7 +711,7 @@ function AnalyticsPageContent() {
                   formatter={(value) => fmt(Number(value))}
                   contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
                 />
-                <Legend wrapperStyle={{ color: legendColor }} />
+                <Legend formatter={(value) => <span style={{ color: legendColor }}>{value}</span>} />
                 <Bar dataKey="income"   name="Income"   fill="#1B5E20" radius={[4,4,0,0]} />
                 <Bar dataKey="expenses" name="Expenses" fill="#EF4444" radius={[4,4,0,0]} />
               </BarChart>
