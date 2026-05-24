@@ -7,6 +7,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n } from '../../../lib/i18n';
+import { useDarkMode } from '../../../lib/useDarkMode';
 // 2026-05-03 (Step 5): in-page drilldown — clicking a month/quarter/year
 // now expands an inline breakdown right below the chart instead of
 // routing to /dashboard/cash-flow. Mirrors Monarch — "you stay where
@@ -61,6 +62,13 @@ const COLORS = [
 function AnalyticsPageContent() {
   const { fmt, symbol } = useCurrency();
   const { t, tFmt } = useI18n();
+  // DARK-MODE-1 (2026-05-24): recharts hardcoded light colors made axis ticks /
+  // legend labels near-invisible on the dark chart cards. Derive theme-aware
+  // colors reactively (useDarkMode re-renders on the dark-class toggle).
+  const dark = useDarkMode();
+  const axisFill = dark ? '#9ca3af' : '#374151';   // gray-400 vs gray-700
+  const gridStroke = dark ? '#374151' : '#e5e7eb'; // gray-700 vs gray-200
+  const legendColor = dark ? '#e5e7eb' : '#374151';
 
   const periods = [
     { value: 'week', label: t('analyticsPeriodWeek') },
@@ -365,9 +373,9 @@ function AnalyticsPageContent() {
                   <stop offset="100%" stopColor="#B91C1C" stopOpacity={0.95} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="label" tick={{ fill: '#374151', fontSize: 11 }} />
-              <YAxis tickFormatter={fmtShort} tick={{ fill: '#374151', fontSize: 11 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+              <XAxis dataKey="label" tick={{ fill: axisFill, fontSize: 11 }} />
+              <YAxis tickFormatter={fmtShort} tick={{ fill: axisFill, fontSize: 11 }} />
               {/* 2026-05-03 (Monarch parity): "Explain this change"-
                   style tooltip. Hovering a month shows the income +
                   expense values, the delta vs the prior month for
@@ -431,7 +439,7 @@ function AnalyticsPageContent() {
                   );
                 }}
               />
-              <Legend />
+              <Legend wrapperStyle={{ color: legendColor }} />
               <Bar
                 dataKey="income"
                 name="Income"
@@ -485,9 +493,9 @@ function AnalyticsPageContent() {
               }}
               style={{ cursor: 'pointer' }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="label" tick={{ fill: '#374151', fontSize: 11 }} />
-              <YAxis tickFormatter={fmtShort} tick={{ fill: '#374151', fontSize: 11 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+              <XAxis dataKey="label" tick={{ fill: axisFill, fontSize: 11 }} />
+              <YAxis tickFormatter={fmtShort} tick={{ fill: axisFill, fontSize: 11 }} />
               {/* 2026-05-03: same "Explain this change"-style tooltip
                   as the BarChart variant above so the user gets the
                   same delta-vs-prior-month breakdown when they toggle
@@ -544,7 +552,7 @@ function AnalyticsPageContent() {
                   );
                 }}
               />
-              <Legend />
+              <Legend wrapperStyle={{ color: legendColor }} />
               {/* Phase 24d: thicker strokes + animated draw-in for line charts */}
               <Line type="monotone" dataKey="income"   name="Income"   stroke="#1B5E20" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6 }} />
               <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#B91C1C" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6 }} />
@@ -664,9 +672,9 @@ function AnalyticsPageContent() {
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={overviewData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="name" tick={{ fill: '#374151', fontSize: 13 }} />
-                <YAxis tick={{ fill: '#374151', fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                <XAxis dataKey="name" tick={{ fill: axisFill, fontSize: 13 }} />
+                <YAxis tick={{ fill: axisFill, fontSize: 12 }} />
                 <Tooltip
                   formatter={(value) => fmt(Number(value))}
                   contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
@@ -696,14 +704,14 @@ function AnalyticsPageContent() {
                 { name: 'Month', income: allPeriods.month?.totalIncome || 0, expenses: allPeriods.month?.totalExpenses || 0 },
                 { name: 'Year', income: allPeriods.year?.totalIncome || 0, expenses: allPeriods.year?.totalExpenses || 0 },
               ]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="name" tick={{ fill: '#374151', fontSize: 13 }} />
-                <YAxis tickFormatter={fmtShort} tick={{ fill: '#374151', fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                <XAxis dataKey="name" tick={{ fill: axisFill, fontSize: 13 }} />
+                <YAxis tickFormatter={fmtShort} tick={{ fill: axisFill, fontSize: 12 }} />
                 <Tooltip
                   formatter={(value) => fmt(Number(value))}
                   contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ color: legendColor }} />
                 <Bar dataKey="income"   name="Income"   fill="#1B5E20" radius={[4,4,0,0]} />
                 <Bar dataKey="expenses" name="Expenses" fill="#EF4444" radius={[4,4,0,0]} />
               </BarChart>
