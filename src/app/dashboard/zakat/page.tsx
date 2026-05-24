@@ -1081,7 +1081,7 @@ export default function ZakatPage() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
                   <div className="bg-white rounded-xl p-3 shadow-sm">
                     <p className="text-xs text-gray-500">{t('zktTotalAssets')}</p>
                     <p className="font-bold text-green-600">{fmt(totalIn)}</p>
@@ -1114,7 +1114,7 @@ export default function ZakatPage() {
           {/* Payment Progress Summary */}
           <div className={`rounded-2xl p-6 text-white mb-6 ${fulfilled ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gradient-to-r from-[#1B5E20] to-[#2E7D32]'}`}>
             <p className="text-lg font-bold mb-4">{fulfilled ? t('zktProgressFulfilled') : t('zktProgressTitle')} — {lunarYear} AH</p>
-            <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
               <div>
                 <p className="text-2xl font-bold">{hideZakat ? '••••' : fmt(zakatDue ?? 0)}</p>
                 <p className="text-white/60 text-xs">{t('zktDueLabel')}</p>

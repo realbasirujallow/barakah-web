@@ -835,7 +835,7 @@ export default function RibaPage() {
                   </div>
                 )}
                 {journey && journey.totalGoals > 0 && (
-                  <div className="grid grid-cols-3 gap-4 mt-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
                     <div className="text-center">
                       <p className="text-white/70 text-xs">Total Exposure</p>
                       <p className="text-xl font-bold">{fmt(journey.totalRibaExposure)}</p>
@@ -1115,7 +1115,7 @@ export default function RibaPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                 <div className="text-center bg-white rounded-lg p-3">
                   <p className="text-xs text-gray-500">Total Riba</p>
                   <p className="text-lg font-bold text-red-600">{fmt(purification.totalRibaDetected)}</p>

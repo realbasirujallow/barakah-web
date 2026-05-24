@@ -225,7 +225,7 @@ function SadaqahContent() {
               {insightsYearTotal > manualTotal ? t('sadaqahHeroGivenYear') : t('sadaqahHeroTotalDonated')}
             </p>
             <p className="text-4xl font-bold">{fmt(headline)}</p>
-            <div className="grid grid-cols-3 gap-4 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
               <div><p className="text-teal-200 text-xs">{t('sadaqahHeroManual')}</p><p className="text-xl font-semibold">{stats?.donationCount || 0}</p></div>
               <div><p className="text-teal-200 text-xs">{t('sadaqahHeroThisMonth')}</p><p className="text-xl font-semibold">{fmt(thisMonth)}</p></div>
               <div><p className="text-teal-200 text-xs">{t('sadaqahHeroTopCategory')}</p><p className="text-xl font-semibold">{stats?.topCategory ? catLabel(stats.topCategory) : (giving?.topRecipients?.length ? t('sadaqahSeeBelow') : t('sadaqahNA'))}</p></div>

@@ -363,7 +363,7 @@ export default function NetWorthPage() {
           );
         })()}
 
-        <div className="grid grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
           <div className="bg-white/10 rounded-xl p-3">
             <p className="text-green-100 text-xs">Total Assets</p>
             <p className="font-bold text-lg">{fmt(totalAssets)}</p>
