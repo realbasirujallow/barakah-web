@@ -18,6 +18,13 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://trybarakah.com/learn/nisab',
+    languages: {
+      en: 'https://trybarakah.com/learn/nisab',
+      fr: 'https://trybarakah.com/fr/learn/nisab',
+      ar: 'https://trybarakah.com/ar/learn/nisab',
+      ur: 'https://trybarakah.com/ur/learn/nisab',
+      'x-default': 'https://trybarakah.com/learn/nisab',
+    },
   },
   openGraph: {
     title: 'Nisab Threshold 2026 USD: Live Gold & Silver Calculator',

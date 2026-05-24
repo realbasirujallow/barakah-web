@@ -18,7 +18,16 @@ export const metadata: Metadata = {
     'nisab 2026',
     'zakat on gold and silver',
   ],
-  alternates: { canonical: 'https://trybarakah.com/learn/how-much-zakat-do-i-owe' },
+  alternates: {
+    canonical: 'https://trybarakah.com/learn/how-much-zakat-do-i-owe',
+    languages: {
+      en: 'https://trybarakah.com/learn/how-much-zakat-do-i-owe',
+      fr: 'https://trybarakah.com/fr/learn/how-much-zakat-do-i-owe',
+      ar: 'https://trybarakah.com/ar/learn/how-much-zakat-do-i-owe',
+      ur: 'https://trybarakah.com/ur/learn/how-much-zakat-do-i-owe',
+      'x-default': 'https://trybarakah.com/learn/how-much-zakat-do-i-owe',
+    },
+  },
   openGraph: {
     title: 'How Much Zakat Do I Owe? 2026 Step-by-Step Guide',
     description: 'Calculate your exact zakat obligation — nisab check, zakatable assets, deductible debts, and 2.5% calculation explained.',

@@ -18,6 +18,13 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://trybarakah.com/learn/types-of-zakat',
+    languages: {
+      en: 'https://trybarakah.com/learn/types-of-zakat',
+      fr: 'https://trybarakah.com/fr/learn/types-of-zakat',
+      ar: 'https://trybarakah.com/ar/learn/types-of-zakat',
+      ur: 'https://trybarakah.com/ur/learn/types-of-zakat',
+      'x-default': 'https://trybarakah.com/learn/types-of-zakat',
+    },
   },
   openGraph: {
     title: 'Zakat and Related Giving Obligations: Al-Mal, Al-Fitr, Fidyah & Kaffarah',

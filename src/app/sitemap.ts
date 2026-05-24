@@ -33,10 +33,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // ── Zakat: core guides ────────────────────────────────────────────────────
     { url: `${baseUrl}/learn/what-is-zakat`,              changeFrequency: 'monthly', priority: 0.92, lastModified: now },
-    // Localized (fr/ar/ur) — what-is-zakat flagship
+    // Localized (fr/ar/ur) — top zakat cluster
     { url: `${baseUrl}/fr/learn/what-is-zakat`,           changeFrequency: 'monthly', priority: 0.80, lastModified: now },
     { url: `${baseUrl}/ar/learn/what-is-zakat`,           changeFrequency: 'monthly', priority: 0.80, lastModified: now },
     { url: `${baseUrl}/ur/learn/what-is-zakat`,           changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/fr/learn/how-much-zakat-do-i-owe`, changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/ar/learn/how-much-zakat-do-i-owe`, changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/ur/learn/how-much-zakat-do-i-owe`, changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/fr/learn/nisab`,                   changeFrequency: 'weekly',  priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/ar/learn/nisab`,                   changeFrequency: 'weekly',  priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/ur/learn/nisab`,                   changeFrequency: 'weekly',  priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/fr/learn/types-of-zakat`,          changeFrequency: 'monthly', priority: 0.78, lastModified: now },
+    { url: `${baseUrl}/ar/learn/types-of-zakat`,          changeFrequency: 'monthly', priority: 0.78, lastModified: now },
+    { url: `${baseUrl}/ur/learn/types-of-zakat`,          changeFrequency: 'monthly', priority: 0.78, lastModified: now },
     { url: `${baseUrl}/learn/how-much-zakat-do-i-owe`,    changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/nisab`,                      changeFrequency: 'weekly',  priority: 0.93, lastModified: now },
     { url: `${baseUrl}/learn/hawl`,                       changeFrequency: 'monthly', priority: 0.90, lastModified: now },
