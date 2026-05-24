@@ -907,8 +907,10 @@ function AnalyticsPageContent() {
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
           <h2 className="text-lg font-semibold text-primary mb-4">Halal Spending Analysis</h2>
 
-          {/* Ratio Cards */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          {/* Ratio Cards — stack on phones; currency values (e.g. $28,166.16) in
+              text-xl overflow a ~100px-wide card when forced 3-across at 390px.
+              (2026-05-24 mobile UX pass) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div className="bg-green-50 rounded-xl p-4 text-center">
               <p className="text-3xl font-bold text-primary">{halalAnalysis.halalRatio}%</p>
               <p className="text-xs text-gray-600 mt-1">Halal Ratio</p>
