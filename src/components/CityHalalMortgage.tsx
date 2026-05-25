@@ -90,6 +90,11 @@ export default function CityHalalMortgage({ data }: { data: CityMortgageData }) 
             <Link href="/learn/halal-mortgage-providers-usa" className="text-sm text-[#1B5E20] font-semibold hover:underline">
               Compare all US halal mortgage providers →
             </Link>
+            <p className="text-xs text-gray-500 mt-3 dark:text-gray-400">
+              Other AMJA-permissible providers — <strong>Neeyah</strong> (a shared-equity model in a
+              growing number of states) and <strong>Mubarak Mortgage</strong> (murabaha) — may also
+              serve {data.state}; confirm current availability directly with each.
+            </p>
           </section>
 
           {/* Structures */}
