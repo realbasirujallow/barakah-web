@@ -24,12 +24,12 @@ const data: CityMortgageData = {
   marketNote:
     'Minneapolis–St. Paul is a mid-priced metro — more affordable than the coasts, with a stable market and solid suburban inventory. As in any cold-climate metro, budget for higher heating and maintenance costs alongside the purchase, and weigh them in a rent-versus-buy comparison.',
   providerNote:
-    'Minnesota is served by the national halal financiers. Guidance Residential and UIF Corporation operate in the state, with LARIBA and Devon Bank available to buyers across most US states. The Twin Cities have also seen community-led Islamic financing initiatives over the years, so ask locally as well — but confirm any program\'s Shariah review and current terms.',
-  providers: ['Guidance Residential', 'UIF Corporation', 'LARIBA', 'Devon Bank'],
+    'Minnesota is served by the national halal financiers. Guidance Residential and UIF Corporation operate in the state, with Devon Bank available to buyers across most US states. The Twin Cities have also seen community-led Islamic financing initiatives over the years, so ask locally as well — but confirm any program\'s Shariah review and current terms.',
+  providers: ['Guidance Residential', 'UIF Corporation', 'Devon Bank'],
   localFaq: [
     {
       q: 'Which halal mortgage providers serve the Twin Cities?',
-      a: 'The national providers Guidance Residential and UIF Corporation are the most commonly used in Minnesota, with LARIBA and Devon Bank also available in most states. Community-based programs have appeared locally over time, so it is worth asking within your community as well — just verify the Shariah review.',
+      a: 'The national providers Guidance Residential and UIF Corporation are the most commonly used in Minnesota, with Devon Bank also available in most states. Community-based programs have appeared locally over time, so it is worth asking within your community as well — just verify the Shariah review.',
     },
     {
       q: 'Is halal financing available across Minneapolis and St. Paul suburbs?',

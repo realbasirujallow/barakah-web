@@ -24,8 +24,8 @@ const data: CityMortgageData = {
   marketNote:
     'Dallas–Fort Worth is moderately priced for a large, high-growth metro — generally more affordable than the coasts but pricier than San Antonio, with rapid appreciation in the northern suburbs. Texas has no state income tax but relatively high property taxes, so factor the full property-tax bill into any rent-versus-buy comparison.',
   providerNote:
-    'As a Texas market, DFW is covered by the national halal financiers: Guidance Residential and UIF Corporation are active in the state, Ameen Housing has historically operated in Texas, and LARIBA serves buyers across most states. Compare structures and effective cost before committing.',
-  providers: ['Guidance Residential', 'UIF Corporation', 'Ameen Housing', 'LARIBA'],
+    'As a Texas market, DFW is covered by the national halal financiers: Guidance Residential and UIF Corporation are active in the state, and Ameen Housing has historically operated in Texas. Compare structures and effective cost before committing.',
+  providers: ['Guidance Residential', 'UIF Corporation', 'Ameen Housing'],
   localFaq: [
     {
       q: 'Which suburbs do halal mortgage providers cover around Dallas?',

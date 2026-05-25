@@ -24,8 +24,8 @@ const data: CityMortgageData = {
   marketNote:
     'Tulsa is among the most affordable metros in the US, with home prices well below the national median across much of the area. That low entry point means a halal down payment is reachable for many families relatively quickly, and the financed amount — and therefore the financier\'s profit charge — stays modest compared with coastal markets.',
   providerNote:
-    'Oklahoma is served by the national halal financiers rather than a local institution. Guidance Residential and UIF Corporation operate across most states, and LARIBA and Devon Bank are available to buyers nationwide. Confirm current Oklahoma licensing and terms with each provider before you apply.',
-  providers: ['Guidance Residential', 'UIF Corporation', 'LARIBA', 'Devon Bank'],
+    'Oklahoma is served by the national halal financiers rather than a local institution. Guidance Residential and UIF Corporation operate across most states, and Devon Bank is available to buyers nationwide. Confirm current Oklahoma licensing and terms with each provider before you apply.',
+  providers: ['Guidance Residential', 'UIF Corporation', 'Devon Bank'],
   localFaq: [
     {
       q: 'Can I get a halal mortgage in Tulsa if no provider is based there?',

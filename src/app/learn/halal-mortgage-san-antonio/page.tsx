@@ -24,8 +24,8 @@ const data: CityMortgageData = {
   marketNote:
     'San Antonio is typically more affordable than Austin, Dallas, or Houston, with home prices below the national median in many neighborhoods. As across Texas, there is no state income tax but property taxes run high — so even in an affordable market, build the full property-tax bill into your homeownership budget when comparing against renting.',
   providerNote:
-    'As a Texas market, San Antonio is covered by the national halal financiers: Guidance Residential and UIF Corporation are active in the state, Ameen Housing has historically operated in Texas, and LARIBA serves buyers across most states. Compare each provider\'s structure and effective cost before committing.',
-  providers: ['Guidance Residential', 'UIF Corporation', 'Ameen Housing', 'LARIBA'],
+    'As a Texas market, San Antonio is covered by the national halal financiers: Guidance Residential and UIF Corporation are active in the state, and Ameen Housing has historically operated in Texas. Compare each provider\'s structure and effective cost before committing.',
+  providers: ['Guidance Residential', 'UIF Corporation', 'Ameen Housing'],
   localFaq: [
     {
       q: 'Is San Antonio affordable enough to buy halal rather than rent?',

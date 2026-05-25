@@ -24,8 +24,8 @@ const data: CityMortgageData = {
   marketNote:
     'Detroit is one of the most affordable major metros in the country, with home prices well below the national median across much of the city and many inner-ring suburbs. That low entry point makes a halal down payment reachable relatively quickly, though buyers should weigh neighborhood-level differences in price, taxes, and resale carefully when comparing renting to buying.',
   providerNote:
-    'Michigan is the home state of UIF Corporation (University Islamic Financial), a subsidiary of Ann Arbor–based University Bank and one of the most established halal home financiers in the US. That local presence makes UIF a natural first stop for Detroit and Dearborn buyers. The national providers Guidance Residential and LARIBA, plus Devon Bank, also serve Michigan.',
-  providers: ['UIF Corporation (Michigan)', 'Guidance Residential', 'LARIBA', 'Devon Bank'],
+    'Michigan is the home state of UIF Corporation (University Islamic Financial), a subsidiary of Ann Arbor–based University Bank and one of the most established halal home financiers in the US. That local presence makes UIF a natural first stop for Detroit and Dearborn buyers. The national providers Guidance Residential and Devon Bank also serve Michigan.',
+  providers: ['UIF Corporation (Michigan)', 'Guidance Residential', 'Devon Bank'],
   localFaq: [
     {
       q: 'Is there a Michigan-based halal mortgage provider?',

@@ -4,7 +4,7 @@ import CityHalalMortgage, { type CityMortgageData } from '../../../components/Ci
 export const metadata: Metadata = {
   title: 'Halal Mortgage in Los Angeles, CA (2026) — Islamic Home Financing Guide',
   description:
-    'How to get a Shariah-compliant home loan in Los Angeles. Which halal mortgage providers serve California (including LA-area LARIBA), the structures offered, and how to manage a high-cost market.',
+    'How to get a Shariah-compliant home loan in Los Angeles. Which halal mortgage providers serve California (including the AMJA-permissible Ameen Housing Cooperative), the structures offered, and how to manage a high-cost market.',
   keywords: ['halal mortgage los angeles', 'islamic home loan los angeles', 'islamic mortgage california', 'muslim mortgage los angeles', 'sharia home loan la'],
   alternates: { canonical: 'https://trybarakah.com/learn/halal-mortgage-los-angeles' },
   openGraph: {
@@ -24,12 +24,12 @@ const data: CityMortgageData = {
   marketNote:
     'LA is consistently among the highest-cost metros in the US, with home prices well above the national median across most desirable neighborhoods. For many buyers that means a larger down payment and looking toward the Inland Empire or Antelope Valley for attainable entry points. Because the financed amount is large, even small differences in a provider\'s effective profit rate add up — compare carefully.',
   providerNote:
-    'California is served by LARIBA, whose affiliated Bank of Whittier sits in the LA metro and is one of the longest-running Islamic finance institutions in the country. Ameen Housing also has a long California track record, and the national providers Guidance Residential and UIF Corporation are licensed in the state. Between them, LA buyers have several Shariah-compliant routes to ownership.',
-  providers: ['LARIBA / Bank of Whittier', 'Ameen Housing', 'Guidance Residential', 'UIF Corporation'],
+    'AMJA\'s Resident Fatwa Committee found Guidance Residential\'s declining-balance co-ownership model and the California-based Ameen Housing Cooperative permissible. Ameen, a member-owned co-op with a long California track record, operates only in California, and Guidance is licensed across the state. AMJA permitted some other companies only in cases of dire need, and ruled that certain providers whose contracts contain disguised interest are not permissible — so confirm a provider\'s AMJA status and consult a qualified scholar before committing.',
+  providers: ['Guidance Residential — AMJA-permissible', 'Ameen Housing Cooperative, California — AMJA-permissible'],
   localFaq: [
     {
-      q: 'Is there a halal mortgage provider based in the LA area?',
-      a: 'LARIBA, affiliated with Bank of Whittier in the Los Angeles metro, is one of the oldest Islamic finance institutions in the US and uses a co-investment model. Ameen Housing has also operated in California for years. Both are worth comparing alongside the national providers.',
+      q: 'Is there a California-based halal home financing provider?',
+      a: 'Yes. The Ameen Housing Cooperative is a member-owned co-op based in California that uses a genuine co-ownership model, and AMJA\'s Resident Fatwa Committee found its contracts permissible. AMJA also found Guidance Residential\'s co-ownership model permissible. Compare Ameen\'s membership terms against Guidance before deciding.',
     },
     {
       q: 'How do I afford a halal home purchase in such an expensive market?',

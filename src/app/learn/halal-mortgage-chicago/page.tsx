@@ -24,8 +24,8 @@ const data: CityMortgageData = {
   marketNote:
     'Compared with coastal metros, Chicago remains one of the more attainable large US housing markets, with a wide range of price points between the city neighborhoods and the collar counties. That makes the down-payment math for a diminishing-musharaka purchase more reachable for many families — though property taxes in Cook County are notably high and should be built into any rent-versus-buy comparison.',
   providerNote:
-    'Devon Bank, a community bank headquartered on Chicago\'s North Side, has run Islamic financing programs for decades and is one of the most recognizable local options. Alongside it, the national providers — Guidance Residential, UIF Corporation, and LARIBA — are licensed to serve Illinois, and Ameen Housing has historically operated in the state. That gives Chicago buyers more competing halal options than most US cities.',
-  providers: ['Devon Bank (Chicago)', 'Guidance Residential', 'UIF Corporation', 'LARIBA', 'Ameen Housing'],
+    'Devon Bank, a community bank headquartered on Chicago\'s North Side, has run Islamic financing programs for decades and is one of the most recognizable local options. Alongside it, the national providers — Guidance Residential and UIF Corporation — are licensed to serve Illinois, and Ameen Housing has historically operated in the state. That gives Chicago buyers more competing halal options than most US cities.',
+  providers: ['Devon Bank (Chicago)', 'Guidance Residential', 'UIF Corporation', 'Ameen Housing'],
   localFaq: [
     {
       q: 'Is there a Chicago-based halal mortgage provider?',

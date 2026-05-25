@@ -144,7 +144,7 @@ export default function CityHalalMortgage({ data }: { data: CityMortgageData }) 
               <Link href="/learn/halal-mortgage-providers-usa" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition dark:border-gray-700">
                 <p className="text-xs text-green-700 font-semibold uppercase tracking-wide mb-1">Providers</p>
                 <h3 className="font-semibold text-gray-900 text-sm dark:text-gray-100">US Provider Comparison</h3>
-                <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">Guidance, UIF, Devon, LARIBA &amp; more.</p>
+                <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">AMJA-permissible providers compared.</p>
               </Link>
               <Link href="/learn/halal-mortgage-vs-rent-2026" className="block p-4 border border-gray-200 rounded-xl hover:border-green-700 transition dark:border-gray-700">
                 <p className="text-xs text-green-700 font-semibold uppercase tracking-wide mb-1">Decision</p>

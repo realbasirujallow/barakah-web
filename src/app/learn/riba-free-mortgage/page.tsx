@@ -5,7 +5,7 @@ import RamadanEmailCapture from '../../../components/RamadanEmailCapture';
 export const metadata: Metadata = {
   title: 'Riba-Free Mortgage 2026 — Halal Islamic Home Financing Options for Muslims',
   description:
-    'Complete guide to riba-free mortgage alternatives for Muslims in the US — murabaha, diminishing musharakah, ijara, and LARIBA. Compare providers and understand Islamic home finance.',
+    'Complete guide to riba-free mortgage alternatives for Muslims in the US — murabaha, diminishing musharakah, and ijara. Compare providers and understand Islamic home finance.',
   keywords: [
     'riba free mortgage',
     'halal mortgage',
@@ -16,7 +16,6 @@ export const metadata: Metadata = {
     'diminishing musharakah',
     'islamic home loan',
     'halal home loan usa',
-    'lariba financing',
   ],
   alternates: { canonical: 'https://trybarakah.com/learn/riba-free-mortgage' },
   openGraph: {
@@ -92,7 +91,7 @@ const faqSchema = {
       name: 'Who offers halal/Islamic home financing in the United States?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Major Islamic home financing providers in the US include: Guidance Residential (largest US Islamic home finance provider, diminishing musharakah), University Islamic Financial (UIF, diminishing musharakah), Devon Bank (Chicago, various Islamic structures), LARIBA (American Finance House, installment sale method). Availability varies by state. Always verify the Sharia compliance through the provider\'s Sharia board and consult your local Islamic scholar before signing.',
+        text: 'Major Islamic home financing providers in the US include: Guidance Residential (largest US Islamic home finance provider, diminishing musharakah), University Islamic Financial (UIF, diminishing musharakah), Devon Bank (Chicago, various Islamic structures). Availability varies by state. Always verify the Sharia compliance through the provider\'s Sharia board and consult your local Islamic scholar before signing.',
       },
     },
   ],
@@ -231,10 +230,9 @@ export default function RibaFreeMortgagePage() {
                 </thead>
                 <tbody>
                   {[
-                    { provider: 'Guidance Residential', structure: 'Diminishing Musharakah', coverage: 'All 50 states', notes: 'Largest US Islamic home finance provider — AAOIFI certified' },
+                    { provider: 'Guidance Residential', structure: 'Diminishing Musharakah', coverage: 'Most US states (30+)', notes: 'Largest US Islamic home finance provider — found permissible by AMJA' },
                     { provider: 'University Islamic Financial (UIF)', structure: 'Diminishing Musharakah', coverage: 'Most US states', notes: 'Wholly Sharia-compliant, Sharia supervisory board' },
                     { provider: 'Devon Bank', structure: 'Murabaha / Musharakah', coverage: 'Nationwide (Illinois-based)', notes: 'One of the oldest US Islamic mortgage providers' },
-                    { provider: 'LARIBA', structure: 'Installment Sale', coverage: 'Most US states', notes: 'American Finance House — unique declining balance method' },
                     { provider: 'Ameen Housing Cooperative', structure: 'Co-op / Musharakah', coverage: 'California', notes: 'Community-based model for California Muslims' },
                   ].map((row, i) => (
                     <tr key={row.provider} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>

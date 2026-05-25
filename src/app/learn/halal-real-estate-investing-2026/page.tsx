@@ -88,7 +88,6 @@ export default function HalalRealEstatePage() {
           <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4 pl-2 dark:text-gray-300">
             <li>All cash — the cleanest path, the slowest.</li>
             <li>Halal financing via Guidance Residential, UIF, or ICFAL using Diminishing Musharaka. These will finance investment properties in some states, with stricter terms and higher down payments than primary residence.</li>
-            <li>Lariba American Finance House, which offers profit-sharing structures for rental property in select markets.</li>
           </ul>
           <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
             One more catch: the tenants. Mufti Faraz Adam and other contemporary scholars recommend screening tenants and uses. Renting to a bar, casino, or interest-based business is impermissible because you are facilitating haram earning. Standard residential tenants are fine.

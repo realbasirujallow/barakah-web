@@ -113,6 +113,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/halal-mortgage-detroit`,             changeFrequency: 'monthly', priority: 0.86, lastModified: now },
     { url: `${baseUrl}/learn/halal-mortgage-dallas`,              changeFrequency: 'monthly', priority: 0.86, lastModified: now },
     { url: `${baseUrl}/learn/halal-mortgage-minneapolis`,         changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    // 2026-05-24 (SEO-9): five more city halal-mortgage pages + a "near me" hub
+    // (cross-links all 14 city pages for internal-link equity). Provider state
+    // availability verified against Guidance Residential's official licensed-states
+    // page (CA/WA/OH/PA/AZ all confirmed). Provider lists limited to AMJA-permissible firms (Guidance; Ameen in CA).
+    { url: `${baseUrl}/learn/halal-mortgage-san-jose`,            changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-seattle`,             changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-columbus`,            changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-philadelphia`,        changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-phoenix`,             changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-near-me`,             changeFrequency: 'monthly', priority: 0.84, lastModified: now },
+    { url: `${baseUrl}/learn/islamic-loans-usa`,                  changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    // 2026-05-24 (SEO-10): five more city halal-mortgage pages (state coverage
+    // confirmed against Guidance Residential's official division list: DC, MA,
+    // TN, NC, CO all listed). Provider lists limited to AMJA-permissible firms (Guidance Residential).
+    { url: `${baseUrl}/learn/halal-mortgage-washington-dc`,       changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-boston`,              changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-nashville`,           changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-raleigh`,             changeFrequency: 'monthly', priority: 0.86, lastModified: now },
+    { url: `${baseUrl}/learn/halal-mortgage-denver`,              changeFrequency: 'monthly', priority: 0.86, lastModified: now },
     { url: `${baseUrl}/learn/la-wasiyyata-li-warith`,             changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/what-is-sukuk`,                      changeFrequency: 'monthly', priority: 0.86, lastModified: now },
     { url: `${baseUrl}/learn/islamic-estate-planning-tools`,      changeFrequency: 'monthly', priority: 0.85, lastModified: now },

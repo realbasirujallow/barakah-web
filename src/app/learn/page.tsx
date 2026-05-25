@@ -205,8 +205,8 @@ const articles: ArticleCard[] = [
   {
     slug: 'halal-mortgage-providers-usa',
     category: 'Islamic Finance',
-    title: 'Halal Mortgage Providers in the USA (2025)',
-    description: 'Compare Guidance Residential, UIF, Ameen Housing, Devon Bank, and Lariba on structure, availability, and Shariah credentials.',
+    title: 'Halal Mortgage Providers in the USA (2026)',
+    description: 'Compare Guidance Residential, UIF, Ameen Housing, and Devon Bank on structure, availability, and Shariah credentials.',
     readTime: 8,
   },
   {

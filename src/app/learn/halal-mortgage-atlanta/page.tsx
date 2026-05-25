@@ -24,12 +24,12 @@ const data: CityMortgageData = {
   marketNote:
     'Atlanta sits in the middle of the affordability range for large US metros — pricier than the rural Southeast but well below the coasts, with strong suburban inventory in the northern counties. Steady population growth has pushed prices up in recent years, so saving a solid down payment ahead of time materially improves the math on a diminishing-musharaka purchase.',
   providerNote:
-    'Georgia is served by the major national halal financiers. Guidance Residential and UIF Corporation operate in the state, and LARIBA and Devon Bank are available to buyers across most US states. Confirm current licensing and program terms with each before you apply, since availability and pricing shift over time.',
-  providers: ['Guidance Residential', 'UIF Corporation', 'LARIBA', 'Devon Bank'],
+    'Georgia is served by the major national halal financiers. Guidance Residential and UIF Corporation operate in the state, and Devon Bank is available to buyers across most US states. Confirm current licensing and program terms with each before you apply, since availability and pricing shift over time.',
+  providers: ['Guidance Residential', 'UIF Corporation', 'Devon Bank'],
   localFaq: [
     {
       q: 'Which halal mortgage providers serve the Atlanta area?',
-      a: 'The national providers Guidance Residential and UIF Corporation are the most commonly used in Georgia, with LARIBA and Devon Bank also serving buyers in most states. There is no large Atlanta-headquartered Islamic financier, so most buyers work with these national programs.',
+      a: 'The national providers Guidance Residential and UIF Corporation are the most commonly used in Georgia, with Devon Bank also serving buyers in most states. There is no large Atlanta-headquartered Islamic financier, so most buyers work with these national programs.',
     },
     {
       q: 'Is Atlanta a good market for a first halal home purchase?',

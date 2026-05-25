@@ -237,7 +237,7 @@ export default function IslamicBankingVsConventionalPage() {
               <ol className="list-decimal pl-6 space-y-2 text-gray-700 dark:text-gray-300">
                 <li>Open a no-interest checking account for daily money flow.</li>
                 <li>Move emergency-fund cash to a profit-sharing or sukuk-based account.</li>
-                <li>Refinance any conventional mortgage with an Islamic home-finance provider (Guidance Residential, UIF, Lariba in the US; Al Rayan, Gatehouse in the UK).</li>
+                <li>Refinance any conventional mortgage with an Islamic home-finance provider (Guidance Residential, UIF in the US; Al Rayan, Gatehouse in the UK).</li>
                 <li>Move investment accounts to halal ETFs and funds.</li>
                 <li>Replace credit-card revolving debt with debit, charge cards, or fully-paid-each-month credit cards.</li>
                 <li>Track zakat across all of the above at 2.5% per lunar year once you cross{' '}

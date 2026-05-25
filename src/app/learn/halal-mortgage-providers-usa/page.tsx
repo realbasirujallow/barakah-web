@@ -2,12 +2,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Halal Mortgage Providers in the USA (2025)',
+  title: 'Halal Mortgage Providers in the USA (2026)',
   description:
     'Compare Shariah-compliant home financing providers in the United States: Guidance Residential, UIF Corporation, Ameen Housing, Devon Bank, and more. Rates, structures, and availability.',
   alternates: { canonical: 'https://trybarakah.com/learn/halal-mortgage-providers-usa' },
   openGraph: {
-    title: 'Halal Mortgage Providers in the USA (2025)',
+    title: 'Halal Mortgage Providers in the USA (2026)',
     description:
       'Compare Guidance Residential, UIF, Ameen Housing, and more — Shariah-compliant home financing options for American Muslims.',
     url: 'https://trybarakah.com/learn/halal-mortgage-providers-usa',
@@ -19,10 +19,10 @@ const providers = [
   {
     name: 'Guidance Residential',
     structure: 'Diminishing Musharaka (co-ownership)',
-    states: '40+ states',
+    states: '30+ states',
     minDown: '3% (FHA-equivalent programs available)',
     scholars: 'Shariah Supervisory Board with global scholars',
-    notes: 'The largest halal home financing provider in the US. Often considered the gold standard by scholars.',
+    notes: 'The largest halal home financing provider in the US. AMJA\'s Resident Fatwa Committee found its declining-balance co-ownership model permissible.',
     url: 'https://www.guidanceresidential.com',
     recommended: true,
   },
@@ -32,17 +32,17 @@ const providers = [
     states: 'Most US states',
     minDown: '10–20%',
     scholars: 'Shariah Supervisory Board',
-    notes: 'Subsidiary of University Bank, Michigan. FDIC-insured parent company.',
+    notes: 'Subsidiary of University Bank, Michigan. FDIC-insured parent company. AMJA: permissible only in cases of dire need.',
     url: 'https://www.uifcorp.com',
     recommended: false,
   },
   {
     name: 'Ameen Housing',
     structure: 'Ijara (lease-to-own)',
-    states: 'California, Illinois, Texas, select others',
+    states: 'California only (member-owned co-op)',
     minDown: '20%',
     scholars: 'AMJA and independent scholars',
-    notes: 'Non-profit model focused on affordability for lower-income Muslim families.',
+    notes: 'Member-owned cooperative; AMJA found its contracts permissible. Operates only in California.',
     url: 'https://www.ameenhousing.com',
     recommended: false,
   },
@@ -52,18 +52,28 @@ const providers = [
     states: 'Nationwide',
     minDown: '5–20% depending on program',
     scholars: 'Internal Shariah review',
-    notes: 'Chicago-based community bank with Islamic finance programs. Available nationwide for existing customers.',
+    notes: 'Chicago-based community bank with Islamic finance programs. Available nationwide for existing customers. AMJA: permissible only in cases of dire need.',
     url: 'https://www.devonbank.com',
     recommended: false,
   },
   {
-    name: 'Lariba / Bank of Whittier',
-    structure: 'Declining-participation (co-investment model)',
-    states: 'Most US states',
+    name: 'Mubarak Mortgage',
+    structure: 'Murabaha (cost-plus sale)',
+    states: 'Select US states — confirm availability',
     minDown: 'Varies',
-    scholars: 'LARIBA Shariah Board',
-    notes: 'One of the oldest Islamic finance institutions in the US. Uses a unique declining-participation model distinct from mainstream diminishing musharaka.',
-    url: 'https://www.lariba.com',
+    scholars: 'AMJA-reviewed (murabaha found Shariah-compliant)',
+    notes: 'Newer provider; the home title transfers to you up front. AMJA found its murabaha contract Shariah-compliant and advised it appoint an independent Shariah supervisory board.',
+    url: 'https://mubarakmortgage.com',
+    recommended: false,
+  },
+  {
+    name: 'Neeyah',
+    structure: 'Diminishing partnership (shared equity)',
+    states: '~17 US states (2026), expanding',
+    minDown: 'Varies (finances up to ~80%)',
+    scholars: 'AMJA-reviewed (found acceptable)',
+    notes: 'Investor-funded co-ownership; retains its share, does not sell to Fannie Mae/Freddie Mac, and shares property taxes, insurance, and repairs. AMJA found its diminishing-partnership contract acceptable.',
+    url: 'https://neeyah.com',
     recommended: false,
   },
 ];
@@ -116,7 +126,7 @@ export default function Page() {
           </nav>
 
           <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-100">
-            Halal Mortgage Providers in the USA (2025)
+            Halal Mortgage Providers in the USA (2026)
           </h1>
           <p className="text-sm text-gray-500 mb-4 dark:text-gray-400">Last reviewed: 2026-04-19</p>
           <p className="text-lg text-gray-600 mb-8 leading-relaxed dark:text-gray-400">

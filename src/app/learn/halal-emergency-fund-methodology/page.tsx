@@ -112,9 +112,9 @@ export default function HalalEmergencyFundPage() {
             Most major banks (Chase, Wells Fargo, Bank of America) offer plain checking that pays 0% by default. This is the cleanest option. You hold the cash, you can move it instantly, you have no riba exposure. The downside: inflation erodes purchasing power. That is the price of avoiding riba.
           </p>
 
-          <h3 className="text-lg font-bold text-gray-900 mt-6 mb-3 dark:text-gray-100">2. Lariba or UIF cash management</h3>
+          <h3 className="text-lg font-bold text-gray-900 mt-6 mb-3 dark:text-gray-100">2. Islamic-bank cash management (UIF)</h3>
           <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">
-            Lariba American Finance House offers profit-sharing deposit accounts structured as Mudaraba. Returns are based on actual investment in halal trade, not interest. Yields fluctuate. UIF has similar product offerings depending on state availability.
+            Some US Islamic financial institutions offer profit-sharing deposit accounts structured as Mudaraba. Returns are based on actual investment in halal trade, not interest, and yields fluctuate. UIF, for example, has product offerings depending on state availability.
           </p>
 
           <h3 className="text-lg font-bold text-gray-900 mt-6 mb-3 dark:text-gray-100">3. Physical gold and silver</h3>
@@ -136,7 +136,7 @@ export default function HalalEmergencyFundPage() {
           </p>
           <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4 pl-2 dark:text-gray-300">
             <li><strong>$10,000 in non-interest checking</strong> — same-day liquidity for any actual emergency.</li>
-            <li><strong>$8,000 in a Lariba Mudaraba account</strong> — accessible in 1-3 days, halal returns.</li>
+            <li><strong>$8,000 in an Islamic-bank Mudaraba account</strong> — accessible in 1-3 days, halal returns.</li>
             <li><strong>$3,000 in physical gold (~30g)</strong> — purchasing power hedge, sellable at a dealer in a week.</li>
             <li><strong>$1,500 in SPSK sukuk</strong> — last-resort reserve, 1-2 day liquidity, modest yield.</li>
           </ul>
@@ -152,7 +152,7 @@ export default function HalalEmergencyFundPage() {
           <section className="mt-8 rounded-2xl bg-amber-50 border border-amber-200 p-6">
             <h2 className="mb-2 text-lg font-bold text-amber-900">Bottom line</h2>
             <p className="text-sm text-amber-900 leading-relaxed">
-              Build 3-6 months of essential expenses. Park the immediate-access portion in a 0% checking account. Use Lariba Mudaraba or sukuk for the longer slice. Keep some in physical gold. Track your hawl date and pay 2.5% zakat on it every lunar year. Skip the 5% APY savings account — it is riba on contract.
+              Build 3-6 months of essential expenses. Park the immediate-access portion in a 0% checking account. Use an Islamic-bank Mudaraba account or sukuk for the longer slice. Keep some in physical gold. Track your hawl date and pay 2.5% zakat on it every lunar year. Skip the 5% APY savings account — it is riba on contract.
             </p>
           </section>
 

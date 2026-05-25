@@ -4,12 +4,11 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Halal Mortgage vs Renting in 2026: Honest Math',
   description:
-    'Honest comparison of halal mortgages and renting in 2026 — Guidance Residential, UIF, Lariba. Total-cost math, when each makes sense, and the niyyah decision.',
+    'Honest comparison of halal mortgages and renting in 2026 — Guidance Residential and UIF. Total-cost math, when each makes sense, and the niyyah decision.',
   keywords: [
     'halal mortgage vs rent',
     'guidance residential review',
     'uif corporation review',
-    'lariba review',
     'halal home financing 2026',
     'islamic mortgage usa',
     'rent vs buy muslim',
@@ -24,7 +23,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://trybarakah.com/learn/halal-mortgage-vs-rent-2026' },
   openGraph: {
     title: 'Halal Mortgage vs Renting in 2026 — The Honest Math',
-    description: 'Guidance vs UIF vs Lariba, total-cost vs renting, and how to make the niyyah-driven decision.',
+    description: 'Guidance vs UIF, total-cost vs renting, and how to make the niyyah-driven decision.',
     url: 'https://trybarakah.com/learn/halal-mortgage-vs-rent-2026',
     siteName: 'Barakah',
     type: 'article',
@@ -33,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Halal Mortgage vs Renting in 2026',
-    description: 'Honest math on Guidance Residential, UIF, Lariba — and when renting wins.',
+    description: 'Honest math on Guidance Residential and UIF — and when renting wins.',
     images: ['https://trybarakah.com/og-image.png'],
   },
 };
@@ -79,7 +78,7 @@ export default function HalalMortgageVsRent2026Page() {
           </h1>
 
           <p className="text-lg text-gray-600 leading-relaxed mb-8 dark:text-gray-400">
-            The American Muslim conversation about home ownership has shifted in 2026. With the three established halal home financing providers — Guidance Residential, UIF Corporation, and Lariba — competing actively for the first time, the question is no longer just &ldquo;is it permissible?&rdquo; but &ldquo;does the math work compared to renting?&rdquo; This piece runs the real numbers honestly, including the cases where renting wins.
+            The American Muslim conversation about home ownership has shifted in 2026. With the established halal home financing providers — Guidance Residential and UIF Corporation — competing actively, the question is no longer just &ldquo;is it permissible?&rdquo; but &ldquo;does the math work compared to renting?&rdquo; This piece runs the real numbers honestly, including the cases where renting wins.
           </p>
 
           <div className="bg-[#1B5E20] text-white rounded-2xl p-6 mb-10">
@@ -99,10 +98,6 @@ export default function HalalMortgageVsRent2026Page() {
             <div className="bg-[#FFF8E1] rounded-xl p-5 border border-green-100">
               <p className="font-bold text-[#1B5E20] mb-2">UIF Corporation — ijara wa iqtina (lease-to-own)</p>
               <p className="text-sm text-gray-700 dark:text-gray-300">UIF buys the property and leases it back; at the end of the term ownership transfers. Pricing is generally competitive with conventional mortgages and they have expanded to most US states. Their Shariah board includes scholars affiliated with AAOIFI.</p>
-            </div>
-            <div className="bg-[#FFF8E1] rounded-xl p-5 border border-green-100">
-              <p className="font-bold text-[#1B5E20] mb-2">Lariba — declining-balance partnership</p>
-              <p className="text-sm text-gray-700 dark:text-gray-300">The longest-running US halal financier, with a more conservative structure that some scholars consider cleanest. Pricing is sometimes 50–100 bps higher than Guidance/UIF, but the contract structure has historically attracted strong scholarly endorsement.</p>
             </div>
           </div>
 
@@ -124,7 +119,6 @@ export default function HalalMortgageVsRent2026Page() {
                 <tr><td className="p-3 font-medium">Conventional 30-yr fixed</td><td className="p-3">7.10%</td><td className="p-3">$2,693</td><td className="p-3">$969k</td></tr>
                 <tr><td className="p-3 font-medium">Guidance Residential</td><td className="p-3">7.45%</td><td className="p-3">$2,786</td><td className="p-3">$1.00m</td></tr>
                 <tr><td className="p-3 font-medium">UIF</td><td className="p-3">7.30%</td><td className="p-3">$2,746</td><td className="p-3">$989k</td></tr>
-                <tr><td className="p-3 font-medium">Lariba</td><td className="p-3">7.85%</td><td className="p-3">$2,892</td><td className="p-3">$1.04m</td></tr>
               </tbody>
             </table>
           </div>

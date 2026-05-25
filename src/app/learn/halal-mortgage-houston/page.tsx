@@ -24,8 +24,8 @@ const data: CityMortgageData = {
   marketNote:
     'Houston remains comparatively affordable for a major US metro, with a broad supply of new-build suburban housing keeping prices more moderate than the coasts. Texas has no state income tax, but it offsets that with relatively high property taxes — a real cost that applies to every homeowner and belongs in your rent-versus-buy calculation regardless of how the purchase is financed.',
   providerNote:
-    'Texas is well covered by the national halal financiers. Guidance Residential and UIF Corporation are both active in the state, Ameen Housing has historically operated in Texas, and LARIBA and Devon Bank serve buyers across most US states. The competition among these providers gives Houston buyers room to compare effective costs.',
-  providers: ['Guidance Residential', 'UIF Corporation', 'Ameen Housing', 'LARIBA', 'Devon Bank'],
+    'Texas is well covered by the national halal financiers. Guidance Residential and UIF Corporation are both active in the state, Ameen Housing has historically operated in Texas, and Devon Bank serves buyers across most US states. The competition among these providers gives Houston buyers room to compare effective costs.',
+  providers: ['Guidance Residential', 'UIF Corporation', 'Ameen Housing', 'Devon Bank'],
   localFaq: [
     {
       q: 'Does Texas having no income tax make a halal mortgage cheaper?',

@@ -31,7 +31,7 @@ const FaqSchema = {
       name: 'Are there fully halal savings accounts in the USA?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Yes — but they are limited. As of 2026, American Muslims have access to a small number of Islamic-bank profit-sharing accounts (notably University Islamic Financial / UIF and Lariba), a handful of credit unions with no-interest options, and sukuk-based investment accounts via brokerages. Many Muslims also use no-interest checking at conventional banks and direct excess cash into halal investment products instead of interest-bearing savings.",
+        text: "Yes — but they are limited. As of 2026, American Muslims have access to a small number of Islamic-bank profit-sharing accounts (notably University Islamic Financial / UIF), a handful of credit unions with no-interest options, and sukuk-based investment accounts via brokerages. Many Muslims also use no-interest checking at conventional banks and direct excess cash into halal investment products instead of interest-bearing savings.",
       },
     },
     {
@@ -157,7 +157,6 @@ export default function HalalSavingsAccountUsaPage() {
               </p>
               <ul className="list-disc space-y-2 pl-6 text-gray-700 dark:text-gray-300">
                 <li><strong>University Islamic Financial (UIF)</strong> — division of University Bank in Michigan; offers profit-sharing deposit accounts and halal home financing.</li>
-                <li><strong>Lariba (American Finance House)</strong> — California-based; offers halal financing and partnership accounts.</li>
                 <li><strong>Guidance Residential</strong> — primarily known for home financing but partners with banks for halal deposit products.</li>
                 <li><strong>Various local credit unions</strong> — a handful of Muslim-community credit unions in major metro areas (Detroit, Houston, Northern Virginia) offer no-interest checking and Islamic-financing services.</li>
               </ul>

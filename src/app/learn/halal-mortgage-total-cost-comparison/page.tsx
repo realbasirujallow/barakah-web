@@ -140,7 +140,6 @@ export default function HalalMortgageCostComparisonPage() {
           <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">Major US halal home-financing providers</h2>
           <ul className="list-disc list-inside space-y-2 text-base text-gray-700">
             <li><strong>Guidance Residential</strong> — Diminishing Musharaka structure. Largest US halal home-financing provider, available in most states. Shariah board oversight.</li>
-            <li><strong>Lariba</strong> — Ijara-based. Available in select states. Different fee structure.</li>
             <li><strong>UIF (University Islamic Financial)</strong> — Murabaha-based. Specific state availability.</li>
             <li><strong>Devon Bank</strong> — Murabaha and Ijara. Chicago-area focus, expanding.</li>
           </ul>
