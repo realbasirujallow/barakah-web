@@ -1793,6 +1793,15 @@ export const api = {
    *  last-event histogram + up to 30 full per-user event timelines. */
   getAdminDropoffAnalysis: (days = 30) =>
     apiFetch(`/admin/dropoff-analysis?days=${days}`, {}, API_TIMEOUT, true),
+  /**
+   * Abandoned-checkout outreach list (2026-05-24): users who fired
+   * upgrade_started (reached Stripe/RevenueCat checkout) but never reached
+   * first_upgrade_completed. Returns plaintext contact details (email, name,
+   * plan, status) — admin-only — for 1:1 founder-led conversion outreach.
+   * See AdminAnalyticsController#getAbandonedCheckout.
+   */
+  getAdminAbandonedCheckout: (days = 30, limit = 100) =>
+    apiFetch(`/admin/abandoned-checkout?days=${days}&limit=${limit}`, {}, API_TIMEOUT, true),
   getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
   getAdminOverview: () => apiFetch('/admin/overview', {}, API_TIMEOUT, true),
   /**

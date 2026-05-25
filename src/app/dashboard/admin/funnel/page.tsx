@@ -38,6 +38,21 @@ interface FunnelResponse {
   topPaywallEndpoints: { endpoint: string; count: number }[];
 }
 
+interface AbandonedUser {
+  id: number;
+  email: string | null;
+  name: string | null;
+  plan: string | null;
+  subscriptionStatus: string | null;
+  createdAt: number | null;
+}
+
+interface AbandonedResponse {
+  windowDays: number;
+  count: number;
+  users: AbandonedUser[];
+}
+
 const WINDOW_OPTIONS = [7, 30, 90, 180, 365] as const;
 
 function pct(n: number) {
@@ -51,6 +66,7 @@ export default function FunnelPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<FunnelResponse | null>(null);
+  const [abandoned, setAbandoned] = useState<AbandonedResponse | null>(null);
   const [growth, setGrowth] = useState<GrowthResponse | null>(null);
   const [days, setDays] = useState<number>(30);
   // 2026-05-18 release-polish (admin gap #6): data-freshness signal.
@@ -92,6 +108,21 @@ export default function FunnelPage() {
     load();
     return () => { cancelled = true; };
   }, [days, isAdmin, isAuthLoading, toast, user]);
+
+  // Abandoned-checkout outreach list (2026-05-24): users who started checkout
+  // (upgrade_started) but never completed — the highest-intent segment for
+  // founder-led conversion. Re-fetches when the window changes. Failure is
+  // non-fatal: the funnel still renders without this panel.
+  useEffect(() => {
+    if (isAuthLoading || !user || !isAdmin) {
+      return;
+    }
+    let cancelled = false;
+    api.getAdminAbandonedCheckout(days)
+      .then((res) => { if (!cancelled) setAbandoned(res as AbandonedResponse); })
+      .catch((err) => logError(err, { context: 'Failed to load abandoned-checkout list' }));
+    return () => { cancelled = true; };
+  }, [days, isAdmin, isAuthLoading, user]);
 
   // Growth metrics don't depend on the window selector — they're always
   // rolling-30d / point-in-time counts. Fetch once on mount.
@@ -275,6 +306,51 @@ export default function FunnelPage() {
                         <tr key={i} className="border-b border-gray-100 last:border-b-0">
                           <td className="py-2 font-mono text-xs">{row.endpoint}</td>
                           <td className="py-2 text-right font-bold text-primary">{row.count.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Abandoned-checkout outreach list (2026-05-24): users who reached
+                checkout (upgrade_started) but didn't complete. Highest-intent
+                segment — these people tried to pay. Plaintext contact details
+                for 1:1 founder-led conversion. */}
+            <div className="bg-white rounded-xl p-5 shadow-sm">
+              <h2 className="text-lg font-semibold text-primary mb-2">Abandoned checkout — outreach list</h2>
+              <p className="text-sm text-gray-600 mb-3">
+                Users who clicked Upgrade and reached checkout but never completed payment in this window. Highest-intent segment — reach out 1:1.
+              </p>
+              {!abandoned ? (
+                <p className="text-sm text-gray-400 italic">Loading…</p>
+              ) : abandoned.users.length === 0 ? (
+                <p className="text-sm text-gray-400 italic">No abandoned checkouts in this window.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs text-gray-500 uppercase tracking-wide border-b border-gray-200">
+                        <th className="py-2">Email</th>
+                        <th className="py-2">Name</th>
+                        <th className="py-2">Plan</th>
+                        <th className="py-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {abandoned.users.map((u) => (
+                        <tr key={u.id} className="border-b border-gray-100 last:border-b-0">
+                          <td className="py-2">
+                            {u.email ? (
+                              <a href={`mailto:${u.email}`} className="text-primary underline hover:no-underline">{u.email}</a>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </td>
+                          <td className="py-2">{u.name || <span className="text-gray-400">—</span>}</td>
+                          <td className="py-2 font-mono text-xs">{u.plan || '—'}</td>
+                          <td className="py-2 text-xs">{u.subscriptionStatus || '—'}</td>
                         </tr>
                       ))}
                     </tbody>
