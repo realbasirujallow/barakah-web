@@ -39,36 +39,41 @@
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 
-// CSS View Transitions API — feature detection.
-type DocumentWithVT = Document & {
-  startViewTransition?: (cb: () => void | Promise<void>) => {
-    finished: Promise<void>;
-    ready: Promise<void>;
-    updateCallbackDone: Promise<void>;
-    skipTransition: () => void;
-  };
-};
-
 export function useViewTransition() {
   const router = useRouter();
 
   /**
-   * Navigate to `href`. When the browser supports View Transitions,
-   * wraps `router.push` in `document.startViewTransition` so any
-   * matching `viewTransitionName` elements morph between pages.
-   * Falls through to plain `router.push` otherwise.
+   * Navigate to `href`.
+   *
+   * 2026-05-25 (FREEZE FIX): we previously wrapped `router.push` in
+   * `document.startViewTransition(() => router.push(href))`. That is a
+   * freeze trap with the Next.js App Router, especially on mobile:
+   *
+   *   1. startViewTransition snapshots the WHOLE current page and lays
+   *      that screenshot over the live DOM.
+   *   2. `router.push` is async/fire-and-forget — it starts an RSC fetch
+   *      + render and returns immediately, BEFORE the new page paints.
+   *   3. The browser keeps the frozen screenshot on top, swallowing taps
+   *      and scroll, until the transition resolves. Over a slow mobile
+   *      connection on a data-heavy page (budget, transactions, …) that
+   *      gap is seconds — the page looks "frozen."
+   *   4. Because push returns before the destination renders, the morph
+   *      usually animates old→old anyway, so we paid the freeze cost for
+   *      an animation that didn't even land.
+   *
+   * Since every dashboard sidebar link goes through HeroLink → navigate,
+   * this froze a large fraction of navigations. The browser-native shared-
+   * element morph simply isn't reliable across full-page App Router
+   * navigations, so we navigate plainly. The hook + HeroLink API stay
+   * intact so call sites don't change; this is purely the navigation
+   * mechanism. (A future re-enable would need to await the route commit
+   * before ending the transition — e.g. React's experimental
+   * `unstable_ViewTransition` — not a bare push wrapper.)
    */
   const navigate = useCallback(
     (href: string) => {
       if (typeof window === 'undefined') return;
-      const doc = document as DocumentWithVT;
-      if (!doc.startViewTransition) {
-        router.push(href);
-        return;
-      }
-      doc.startViewTransition(() => {
-        router.push(href);
-      });
+      router.push(href);
     },
     [router],
   );
@@ -81,14 +86,7 @@ export function useViewTransition() {
   const replace = useCallback(
     (href: string) => {
       if (typeof window === 'undefined') return;
-      const doc = document as DocumentWithVT;
-      if (!doc.startViewTransition) {
-        router.replace(href);
-        return;
-      }
-      doc.startViewTransition(() => {
-        router.replace(href);
-      });
+      router.replace(href);
     },
     [router],
   );
