@@ -8,7 +8,7 @@ import { useToast } from '../lib/toast';
 import { ReactNode } from 'react';
 
 import { PRICING } from '../lib/pricing';
-import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../lib/trial';
+import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL, CARD_ON_FILE_TRIAL_DAYS } from '../lib/trial';
 
 interface PlanGateProps {
   /** Minimum plan required to see the content. */
@@ -29,6 +29,9 @@ export function PlanGate({ required, featureName, description, children }: PlanG
   const { user, isLoading, refreshPlan } = useAuth();
   const { toast } = useToast();
   const [upgrading, setUpgrading] = useState<'plus' | 'family' | null>(null);
+  // ACTIVATION-2 (2026-05-24): separate loading state for the card-on-file
+  // trial CTA so it disables independently of the immediate-upgrade buttons.
+  const [startingTrial, setStartingTrial] = useState<'plus' | 'family' | null>(null);
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   // Round 18: track the refresh-plan sync state so the button disables
   // during the call (prior to this, eager users would click twice and
@@ -79,6 +82,29 @@ export function PlanGate({ required, featureName, description, children }: PlanG
       // BUG FIX: use toast instead of blocking alert()
       toast('Something went wrong. Please try via the Billing page.', 'error');
       setUpgrading(null);
+    }
+  };
+
+  // ACTIVATION-2 (2026-05-24): start a card-on-file, auto-converting trial
+  // straight from the paywall. Goes through Stripe Checkout (subscription
+  // mode) so the card is collected now, no charge for CARD_ON_FILE_TRIAL_DAYS,
+  // then Stripe auto-charges. This is the one-tap conversion path the audit
+  // flagged as missing — only 2 users ever reached Stripe in 3 months.
+  const handleStartTrial = async (planType: 'plus' | 'family') => {
+    setStartingTrial(planType);
+    try {
+      const result = await api.createCheckout(planType, billing, {
+        trialDays: CARD_ON_FILE_TRIAL_DAYS,
+      });
+      if (result?.url && validateStripeUrl(result.url)) {
+        window.location.href = result.url;
+      } else {
+        toast('Invalid payment URL. Please contact support.', 'error');
+        setStartingTrial(null);
+      }
+    } catch {
+      toast('Something went wrong. Please try via the Billing page.', 'error');
+      setStartingTrial(null);
     }
   };
 
@@ -191,12 +217,25 @@ export function PlanGate({ required, featureName, description, children }: PlanG
                 ) : 'Billed monthly'}
               </p>
 
+              {/* ACTIVATION-2 (2026-05-24): primary CTA is now the card-on-file
+                  trial — no charge for {CARD_ON_FILE_TRIAL_DAYS} days, cancel
+                  anytime, auto-converts. Immediate "upgrade now" stays as a
+                  secondary option for users who want to pay today. */}
+              <button
+                onClick={() => handleStartTrial('plus')}
+                disabled={startingTrial === 'plus'}
+                className="w-full bg-[#1B5E20] hover:bg-[#2E7D32] text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-60 mb-2"
+              >
+                {startingTrial === 'plus'
+                  ? 'Redirecting to Stripe...'
+                  : `Start free trial — no charge for ${CARD_ON_FILE_TRIAL_DAYS} days`}
+              </button>
               <button
                 onClick={() => handleUpgrade('plus')}
                 disabled={upgrading === 'plus'}
-                className="w-full bg-[#1B5E20] hover:bg-[#2E7D32] text-white py-3 rounded-xl font-semibold text-sm transition disabled:opacity-60 mb-6"
+                className="w-full bg-white border border-[#1B5E20] text-[#1B5E20] hover:bg-green-50 py-2.5 rounded-xl font-medium text-sm transition disabled:opacity-60 mb-6"
               >
-                {upgrading === 'plus' ? 'Redirecting to Stripe...' : 'Upgrade to Plus'}
+                {upgrading === 'plus' ? 'Redirecting to Stripe...' : 'Or upgrade & pay now'}
               </button>
 
               <div className="space-y-3 border-t pt-6">

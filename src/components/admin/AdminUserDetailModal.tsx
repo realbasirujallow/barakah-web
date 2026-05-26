@@ -988,7 +988,8 @@ function AdminIssueCouponSection({
     if (!confirm(
       `Apply ${mode === 'percent' ? `${params.percentOff}% off` : `$${(params.amountOffCents! / 100).toFixed(2)} off`}`
       + ` (${duration}${duration === 'repeating' ? `, ${params.durationInMonths} months` : ''})`
-      + ` to ${userEmail}? Their next Stripe invoice will reflect the discount.`,
+      + ` to ${userEmail}? Active web subscribers are discounted on the next invoice;`
+      + ` everyone else (trial / mobile) gets it applied at their next web checkout.`,
     )) return;
 
     setSaving(true);
@@ -998,7 +999,16 @@ function AdminIssueCouponSection({
         toast(r.error, 'error');
         return;
       }
-      toast(`Discount applied: ${r.discount}`, 'success');
+      // Surface where the discount actually landed. Mobile (App Store / Play)
+      // users can't be discounted in place — warn so the founder emails them
+      // the web link instead of assuming their store invoice changed.
+      if (r.platform === 'mobile') {
+        toast(`Discount staged: ${r.discount}. ${r.note ?? 'User pays via a mobile store — it applies only if they subscribe on the web.'}`, 'info');
+      } else if (r.platform === 'web-pending') {
+        toast(`Discount staged: ${r.discount} — applies at their next web checkout.`, 'success');
+      } else {
+        toast(`Discount applied: ${r.discount}`, 'success');
+      }
       setOpen(false);
       // Reset form to defaults so the next open is clean.
       setReason('');

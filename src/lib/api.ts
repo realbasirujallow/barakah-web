@@ -2096,11 +2096,19 @@ export const api = {
   },
 
   // ── Stripe Billing ──────────────────────────────────────────────────────────
-  /** Create a Stripe Checkout session (new subscriber). Returns { url }. */
+  /**
+   * Create a Stripe Checkout session (new subscriber). Returns { url }.
+   *
+   * ACTIVATION-2 (2026-05-24): pass `trialDays` (e.g. 7) to start a
+   * card-on-file, auto-converting trial — Stripe collects the card at
+   * checkout but takes no charge until the trial ends, then auto-charges.
+   * This is the conversion lever for free/expired users. Omit (or 0) for
+   * the immediate-billing path.
+   */
   createCheckout: (
     plan: 'plus' | 'family',
     billing: 'monthly' | 'yearly' = 'monthly',
-    options?: { successPath?: string; cancelPath?: string },
+    options?: { successPath?: string; cancelPath?: string; trialDays?: number },
   ) =>
     apiFetch('/api/stripe/create-checkout', {
       method: 'POST',
@@ -2109,6 +2117,9 @@ export const api = {
         billing,
         successPath: options?.successPath,
         cancelPath: options?.cancelPath,
+        // Stringified so it matches the backend's Map<String,String> body
+        // contract; the backend parses + clamps it to 1..30.
+        ...(options?.trialDays ? { trialDays: String(options.trialDays) } : {}),
       }),
     }),
 

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -7,6 +7,7 @@ import { useToast } from '../../../lib/toast';
 import { REFEREE_FIRST_MONTH_PRICE } from '../../../lib/referralCopy';
 import { validateStripeUrl } from '../../../lib/validateUrl';
 import { PRICING } from '../../../lib/pricing';
+import { CARD_ON_FILE_TRIAL_DAYS } from '../../../lib/trial';
 import { useLocalizedPrice } from '../../../lib/useLocalizedPrice';
 import { trackPaywallViewed, trackUpgradeStarted } from '../../../lib/analytics';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
@@ -100,7 +101,7 @@ function BillingContent() {
   const params = useSearchParams();
   const { refreshPlan } = useAuth();
   const { toast } = useToast();
-  const [status, setStatus] = useState<{ plan: string; status: string; hasSubscription: boolean } | null>(null);
+  const [status, setStatus] = useState<{ plan: string; status: string; hasSubscription: boolean; pendingDiscount?: { label?: string } } | null>(null);
   const [saveOffer, setSaveOffer] = useState<SaveOffer | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
@@ -123,7 +124,7 @@ function BillingContent() {
   const loadStatus = async () => {
     try {
       const data = await api.subscriptionStatus();
-      setStatus(data as { plan: string; status: string; hasSubscription: boolean });
+      setStatus(data as { plan: string; status: string; hasSubscription: boolean; pendingDiscount?: { label?: string } });
     } catch {
       setStatus({ plan: 'free', status: 'inactive', hasSubscription: false });
     }
@@ -204,6 +205,58 @@ function BillingContent() {
       setLoading(null);
     }
   };
+
+  // ACTIVATION-2 (2026-05-24): start a card-on-file, auto-converting trial.
+  // Always goes through Stripe Checkout (subscription mode) so the card is
+  // collected up front; Stripe auto-charges when the trial ends. Distinct
+  // from handleUpgrade (which bills immediately for free users). This is the
+  // primary CTA we surface to free users — the #1 revenue lever.
+  const handleStartTrial = async (plan: 'plus' | 'family') => {
+    if (loading) return;
+    setLoading(`trial-${plan}`);
+    try { trackUpgradeStarted(plan, billing, 'billing_page_trial'); } catch { /* GA4 unavailable */ }
+    try {
+      const result = await api.createCheckout(plan, billing, {
+        trialDays: CARD_ON_FILE_TRIAL_DAYS,
+        successPath: '/dashboard/billing?success=true',
+        cancelPath: '/dashboard?checkout=canceled',
+      });
+      if (result?.url && validateStripeUrl(result.url)) {
+        window.location.href = result.url;
+      } else {
+        toast('Invalid Stripe URL. Please contact support.', 'error');
+        setLoading(null);
+      }
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Could not start your trial. Please try again.', 'error');
+      setLoading(null);
+    }
+  };
+
+  // GROWTH-A (2026-05-24): one-click upgrade from lifecycle emails. The trial
+  // reminder / trial-ended emails link here with ?plan=<tier>&checkout=1, so
+  // the CTA in the inbox lands the user straight in Stripe Checkout instead of
+  // a plan picker. Guards:
+  //   - waits until subscription status has loaded (so we don't auto-charge
+  //     someone who is already on that exact paid plan);
+  //   - fires at most once per mount (autoCheckoutFired ref);
+  //   - only for the two real tiers; any other ?plan value is ignored.
+  const autoCheckoutFired = useRef(false);
+  useEffect(() => {
+    if (autoCheckoutFired.current) return;
+    if (statusLoading) return; // need plan state before deciding
+    if (params.get('checkout') !== '1') return;
+    const requested = params.get('plan');
+    if (requested !== 'plus' && requested !== 'family') return;
+    // Already on this exact active plan? Don't re-launch checkout — send them
+    // to the normal page so they can manage instead.
+    if (status?.plan === requested && status?.status === 'active') return;
+    autoCheckoutFired.current = true;
+    handleUpgrade(requested);
+    // handleUpgrade is stable for the lifetime of this mount; intentionally
+    // excluded from deps to avoid re-firing on each render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusLoading, status, params]);
 
   const handleManage = async () => {
     setLoading('portal');
@@ -334,6 +387,85 @@ function BillingContent() {
         <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-4 mb-6 flex items-center gap-3">
           <span className="text-2xl">ℹ️</span>
           <p className="text-sm">Checkout was canceled — no charge was made.</p>
+        </div>
+      )}
+
+      {/* Founder-CRM: a staged admin "Issue Discount" the user hasn't claimed.
+          The coupon auto-applies at checkout (StripeController), so picking ANY
+          plan below claims it. Mobile subscribers see the same banner inside the
+          app pointing here, since a Stripe coupon can't touch a store invoice. */}
+      {!statusLoading && status?.pendingDiscount && currentPlan === 'free' && (
+        <div
+          className="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-300 rounded-2xl p-5 mb-6"
+          data-testid="billing-discount-claim"
+        >
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl" aria-hidden>🎁</span>
+              <div>
+                <p className="font-bold text-amber-900 text-base sm:text-lg">
+                  You&apos;ve been given {status.pendingDiscount.label ?? 'a discount'}
+                </p>
+                <p className="text-sm text-amber-800">
+                  It&apos;ll be applied automatically at checkout — choose any plan below to claim it.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleUpgrade('plus')}
+              disabled={!!loading}
+              className="shrink-0 rounded-xl bg-amber-600 px-5 py-2.5 font-semibold text-white hover:bg-amber-700 disabled:opacity-60"
+              data-testid="billing-discount-claim-btn"
+            >
+              {loading === 'plus' ? 'Opening checkout…' : 'Claim it on Barakah Plus'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ACTIVATION-2 (2026-05-24): card-on-file trial CTA for FREE users.
+          This is the #1 revenue lever — free users today never enter a card,
+          so they never convert. One tap → Stripe Checkout (card collected
+          now, no charge for {CARD_ON_FILE_TRIAL_DAYS} days, auto-charges when
+          the trial ends). Shown only to genuine free users (not trialing,
+          not already subscribed). */}
+      {!statusLoading && currentPlan === 'free' && !isTrialing && !status?.hasSubscription && (
+        <div
+          className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-5 mb-6"
+          data-testid="billing-trial-cta"
+        >
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="font-bold text-gray-900 text-base sm:text-lg">
+                Start your free {CARD_ON_FILE_TRIAL_DAYS}-day trial
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                No charge for {CARD_ON_FILE_TRIAL_DAYS} days · cancel anytime before it ends.
+                Add your card now and unlock everything in Plus today.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row md:flex-col md:w-64 shrink-0">
+              <button
+                type="button"
+                onClick={() => handleStartTrial('plus')}
+                disabled={loading === 'trial-plus'}
+                className="rounded-xl bg-primary text-primary-foreground text-sm font-semibold px-4 py-3 hover:bg-[#155016] disabled:opacity-60 transition-colors"
+                data-testid="billing-start-trial-plus"
+              >
+                {loading === 'trial-plus' ? 'Redirecting to Stripe…' : `Start free trial — no charge for ${CARD_ON_FILE_TRIAL_DAYS} days`}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleStartTrial('family')}
+                disabled={loading === 'trial-family'}
+                className="rounded-xl border border-primary text-primary text-sm font-medium px-4 py-2.5 hover:bg-green-50 disabled:opacity-60 transition-colors"
+                data-testid="billing-start-trial-family"
+              >
+                {loading === 'trial-family' ? 'Redirecting…' : 'Try Family free instead'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
