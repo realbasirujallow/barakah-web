@@ -1219,9 +1219,14 @@ export default function DashboardPage() {
                 const price = h.currentPrice ?? 0;
                 return (
                   <li key={h.symbol} className="flex items-center justify-between px-5 py-3 border-t border-gray-100 first:border-t-0">
-                    <p className="text-base font-semibold text-gray-900">{h.symbol}</p>
-                    <div className="flex items-center gap-3">
-                      <p className="text-base text-gray-900 tabular-nums">{price.toFixed(2)}</p>
+                    <div className="min-w-0 flex-1 pr-3">
+                      <p className="text-base font-semibold text-gray-900">{h.symbol}</p>
+                      {h.name && (
+                        <p className="text-xs text-gray-500 truncate">{h.name}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <p className="text-base text-gray-900 tabular-nums">{fmt(price)}</p>
                       <span className={`text-sm font-bold tabular-nums px-3 py-1 rounded-full ${pct >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                         {pct >= 0 ? '↑' : '↓'} {Math.abs(pct).toFixed(2)}%
                       </span>
