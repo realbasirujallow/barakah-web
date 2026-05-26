@@ -42,6 +42,7 @@ const stocks: { symbol: string; name: string; sector: string; status: Status }[]
   { symbol: 'UL', name: 'Unilever', sector: 'Consumer Staples', status: 'Borderline — verify debt' },
   { symbol: 'PG', name: 'Procter & Gamble', sector: 'Consumer Staples', status: 'Verify ratios' },
   { symbol: 'KO', name: 'Coca-Cola', sector: 'Consumer Staples', status: 'Borderline — verify debt' },
+  { symbol: 'NSRGY', name: 'Nestlé (ADR)', sector: 'Consumer Staples', status: 'Verify ratios' },
 ];
 
 const commonlyNonCompliant = [

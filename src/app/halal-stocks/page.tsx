@@ -45,6 +45,7 @@ const tickers = [
   { symbol: 'UL', name: 'Unilever', sector: 'Consumer Staples', note: 'Verify debt ratio' },
   { symbol: 'PG', name: 'Procter & Gamble', sector: 'Consumer Staples', note: 'Verify ratios' },
   { symbol: 'KO', name: 'Coca-Cola', sector: 'Consumer Staples', note: 'Borderline — verify' },
+  { symbol: 'NSRGY', name: 'Nestlé', sector: 'Consumer Staples', note: 'Passes — note ethical concerns' },
 ];
 
 export default function HalalStocksHub() {

@@ -202,6 +202,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // 2026-05-22 (SEO-8): more consumer-staples tickers
     { url: `${baseUrl}/halal-stocks/pg`,         changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
     { url: `${baseUrl}/halal-stocks/ko`,         changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
+    // 2026-05-25 (SEO-9): Nestlé — final consumer-staples ticker from gap analysis (was open item)
+    { url: `${baseUrl}/halal-stocks/nsrgy`,      changeFrequency: 'weekly',  priority: 0.90, lastModified: now },
 
 
     // ── Fiqh Terms Glossary ──────────────────────────────────────────────────
