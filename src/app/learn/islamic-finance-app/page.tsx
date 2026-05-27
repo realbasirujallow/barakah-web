@@ -2,9 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+  // 2026-05-27 CTR optimization (title intact to preserve ranking signals).
+  // GSC: 635 imp / 1 click / 0.2% CTR / position ~7.6 — page 1 but snippet
+  // doesn't pop. Sharpen with side-by-side framing + named competitors +
+  // "what to actually use" closure that comparison searchers want.
   title: 'Best Islamic Finance App 2026 — Complete Guide & Comparison',
   description:
-    'Find the best Islamic finance app for 2026. Compare Barakah, Zoya, Wahed, and others across zakat, halal investing, budgeting, and Islamic will planning. Fiqh-aware reviews.',
+    'Side-by-side: Barakah vs Zoya vs Wahed vs Musaffa for 2026. Which has the strongest zakat calculator, halal screener, bank sync, riba detector, and family plan — plus the honest weaknesses of each.',
   keywords: [
     'best islamic finance app',
     'best islamic finance app 2026',

@@ -3,15 +3,20 @@ import Link from 'next/link';
 import NisabLivePrices from '../../../components/NisabLivePrices';
 
 export const metadata: Metadata = {
+  // 2026-05-27 CTR optimization (title intact to preserve ranking signals).
+  // GSC: 5,177 imp / 9 clicks / 0.2% CTR / position ~10 — searchers want a
+  // LIST with actual ticker names, not a methodology lecture. New description
+  // names specific tickers (matching high-intent queries) and adds
+  // purification + freshness signals.
   title: 'Halal Stocks List 2026: How to Screen for Shariah Compliance',
-  description: 'Learn how to screen stocks for Shariah compliance using AAOIFI standards. Covers halal sectors, haram industries, financial ratios, and how to build a halal portfolio in 2026.',
-  keywords: ['halal stocks', 'shariah compliant stocks', 'halal investing', 'islamic stocks', 'halal stock screener', 'AAOIFI screening', 'halal ETF', 'islamic finance investing'],
+  description: 'AAOIFI-screened halal stocks — AAPL, MSFT, NVDA, GOOGL, META, AMD, ADBE, TSLA, AMZN, KO, PG, UL, NSRGY and more. The 3 financial ratios, business-activity rules, and purification guidance. Updated 2026.',
+  keywords: ['halal stocks', 'shariah compliant stocks', 'halal investing', 'islamic stocks', 'halal stock screener', 'AAOIFI screening', 'halal ETF', 'islamic finance investing', 'halal stocks list', 'halal stocks 2026'],
   alternates: {
     canonical: 'https://trybarakah.com/learn/halal-stocks',
   },
   openGraph: {
     title: 'Halal Stocks List 2026: How to Screen for Shariah Compliance',
-    description: 'Complete guide to screening stocks for Shariah compliance using AAOIFI standards, with sector analysis and screening ratios.',
+    description: 'AAOIFI-screened halal stocks — AAPL, MSFT, NVDA, GOOGL, META, TSLA, KO, PG, UL, NSRGY and more — with the 3 ratios and purification guidance.',
     url: 'https://trybarakah.com/learn/halal-stocks',
     type: 'article',
   },
