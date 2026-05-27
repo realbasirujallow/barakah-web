@@ -531,7 +531,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         href="#dashboard-main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-3 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:font-semibold focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
       >
-        Skip to main content
+        {t('a11ySkipToMain')}
       </a>
       <ToastProvider>
         <div className="flex-1 flex flex-col min-h-screen">
@@ -586,7 +586,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 {darkMode ? '☀️' : '🌙'}
               </button>
               <NotificationBell />
-              <p className="text-sm text-gray-500">Assalamu Alaikum, <span className="font-semibold text-primary">{user.name}</span></p>
+              <p className="text-sm text-gray-500">{t('greetingAssalamuAlaikum')}, <span className="font-semibold text-primary">{user.name}</span></p>
             </div>
           </header>
           {/* 2026-05-11 (Bug-A4): the "Ask Barakah" + "Feedback" floating
@@ -611,10 +611,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </main>
           <footer className="px-6 py-3 text-center text-xs text-gray-400 border-t bg-white">
             <Link href="/disclaimer" className="hover:text-primary hover:underline transition">
-              ⚠️ Disclaimer &amp; Islamic Guidance Notice
+              ⚠️ {t('dashFooterDisclaimerLink')}
             </Link>
             <span className="mx-2">·</span>
-            <span>Not a fatwa — consult a qualified scholar for your specific situation</span>
+            <span>{t('dashFooterFatwaShort')}</span>
           </footer>
         </div>
 

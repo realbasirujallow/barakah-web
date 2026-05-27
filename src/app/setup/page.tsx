@@ -644,7 +644,7 @@ function SetupPageInner() {
                       onClick={() => setStep(2)}
                       className="rounded-2xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                     >
-                      {plaidAccounts.length > 0 ? 'Continue with linked accounts' : 'Skip for now'}
+                      {plaidAccounts.length > 0 ? t('setupContinueLinked') : t('setupSkipForNow')}
                     </button>
                   </div>
 

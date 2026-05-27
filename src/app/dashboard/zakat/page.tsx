@@ -630,7 +630,7 @@ export default function ZakatPage() {
             title={tFmt('zktAnnivTooltipFmt', [lunarYear])}
             aria-label={tFmt('zktAnnivAriaFmt', [lunarYear])}
           >
-            {lunarYear} AH
+            {lunarYear} {t('zktAhSuffix')}
           </span>
         }
         actions={
@@ -833,9 +833,13 @@ export default function ZakatPage() {
               {data?.nisabUserCurrency != null && (
                 <p className="text-xs text-gray-500 mt-1">
                   ≈ {fmt(data.nisabUserCurrency as number)}
-                  {data?.userCurrency && data.userCurrency !== 'USD' && (
-                    <> · USD ${((data?.nisab as number) || 0).toFixed(2)}</>
-                  )}
+                  {/* BUG-NISAB-USD-LABEL fix (run 2, 2026-05-27): the legacy
+                      "· USD $X" tail was mislabeling the user-currency nisab
+                      as USD after the BUG-NISAB-MATH-PKR fix (commit 061801d)
+                      made `data.nisab` denominate in baseCurrency. A PKR
+                      user saw "USD $3,431,518" when the figure was actually
+                      PKR. Dropped the tail — `nisabUserCurrency` shown
+                      above already renders the localized amount. */}
                 </p>
               )}
               {nisabInfo && (
@@ -1113,7 +1117,7 @@ export default function ZakatPage() {
         <>
           {/* Payment Progress Summary */}
           <div className={`rounded-2xl p-6 text-white mb-6 ${fulfilled ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gradient-to-r from-[#1B5E20] to-[#2E7D32]'}`}>
-            <p className="text-lg font-bold mb-4">{fulfilled ? t('zktProgressFulfilled') : t('zktProgressTitle')} — {lunarYear} AH</p>
+            <p className="text-lg font-bold mb-4">{fulfilled ? t('zktProgressFulfilled') : t('zktProgressTitle')} — {lunarYear} {t('zktAhSuffix')}</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
               <div>
                 <p className="text-2xl font-bold">{hideZakat ? '••••' : fmt(zakatDue ?? 0)}</p>
@@ -1475,7 +1479,7 @@ export default function ZakatPage() {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-green-50 rounded-lg p-4 text-center">
                     <p className="text-xs text-gray-500 font-medium">{t('zktLunarYear')}</p>
-                    <p className="text-lg font-bold text-primary mt-1">{String((receipt.paymentStatus as Record<string, unknown>)?.currentLunarYear ?? lunarYear)} AH</p>
+                    <p className="text-lg font-bold text-primary mt-1">{String((receipt.paymentStatus as Record<string, unknown>)?.currentLunarYear ?? lunarYear)} {t('zktAhSuffix')}</p>
                   </div>
                   <div className="bg-green-50 rounded-lg p-4 text-center">
                     <p className="text-xs text-gray-500 font-medium">{t('zktZakatPaid')}</p>

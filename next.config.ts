@@ -309,6 +309,16 @@ const nextConfig: NextConfig = {
         destination: "/dashboard/categorize",
         permanent: true,
       },
+      // BUG-CASHFLOW-404 (2026-05-27, overnight QA slice 2): users (and
+      // Persona 2 in the audit) typed /dashboard/cashflow expecting the
+      // Cash Flow page. The canonical route is /dashboard/cash-flow
+      // (with hyphen). Redirect the un-hyphenated slug so hand-typed and
+      // shared URLs land on the real page instead of the 404 mosque.
+      {
+        source: "/dashboard/cashflow",
+        destination: "/dashboard/cash-flow",
+        permanent: true,
+      },
     ];
   },
 

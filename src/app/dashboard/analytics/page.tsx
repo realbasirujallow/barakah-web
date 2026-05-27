@@ -577,11 +577,11 @@ function AnalyticsPageContent() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 px-2 text-gray-500">Month</th>
-                  <th className="text-right py-2 px-2 text-gray-500">Income</th>
-                  <th className="text-right py-2 px-2 text-gray-500">Expenses</th>
-                  <th className="text-right py-2 px-2 text-gray-500">Net</th>
-                  <th className="text-right py-2 px-2 text-gray-500">vs Prior</th>
+                  <th className="text-left py-2 px-2 text-gray-500">{t('analyticsAxisMonth')}</th>
+                  <th className="text-right py-2 px-2 text-gray-500">{t('analyticsYoyTableIncome')}</th>
+                  <th className="text-right py-2 px-2 text-gray-500">{t('analyticsYoyTableExpenses')}</th>
+                  <th className="text-right py-2 px-2 text-gray-500">{t('analyticsYoyTableNet')}</th>
+                  <th className="text-right py-2 px-2 text-gray-500">{t('analyticsVsPriorShort')}</th>
                   <th className="w-6 py-2 px-2" />
                 </tr>
               </thead>
@@ -643,7 +643,7 @@ function AnalyticsPageContent() {
               </tbody>
             </table>
             <p className="mt-2 text-[11px] text-gray-400 text-center">
-              Click any row (or bar) to see income & expense breakdown by category and merchant.
+              {t('analyticsTableFooterHint')}
             </p>
           </div>
         )}
@@ -666,7 +666,7 @@ function AnalyticsPageContent() {
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         {/* Income vs Expense Bar */}
         <div className="bg-white rounded-2xl p-6 shadow-sm" role="region" aria-label="Income vs Expenses chart">
-          <h2 className="text-lg font-semibold text-primary mb-4">Income vs Expenses</h2>
+          <h2 className="text-lg font-semibold text-primary mb-4">{t('analyticsIncomeVsExpensesTitle')}</h2>
           {overviewData.every((d) => d.amount === 0) ? (
             <p className="text-gray-400 text-center py-12">No transaction data for this period</p>
           ) : (
@@ -694,7 +694,7 @@ function AnalyticsPageContent() {
 
         {/* Period Comparison Trend */}
         <div className="bg-white rounded-2xl p-6 shadow-sm" role="region" aria-label="Period Comparison chart">
-          <h2 className="text-lg font-semibold text-primary mb-4">Period Comparison</h2>
+          <h2 className="text-lg font-semibold text-primary mb-4">{t('analyticsPeriodComparisonTitle')}</h2>
           {[allPeriods.week, allPeriods.month, allPeriods.year].every(p => !p || (p.totalIncome === 0 && p.totalExpenses === 0)) ? (
             <p className="text-gray-400 text-center py-12">No transaction data available</p>
           ) : (
@@ -724,17 +724,17 @@ function AnalyticsPageContent() {
       {/* Year-over-Year Comparison */}
       {yoyData.length >= 2 && (
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="text-lg font-semibold text-primary mb-1">Year-over-Year</h2>
+          <h2 className="text-lg font-semibold text-primary mb-1">{t('analyticsYoyTitle')}</h2>
           <p className="text-xs text-gray-500 mb-4">Annual income vs spending — based on imported data</p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-2 px-3 text-gray-500 font-medium">Year</th>
-                  <th className="text-right py-2 px-3 text-gray-500 font-medium">Income</th>
-                  <th className="text-right py-2 px-3 text-gray-500 font-medium">Expenses</th>
-                  <th className="text-right py-2 px-3 text-gray-500 font-medium">Net</th>
-                  <th className="text-right py-2 px-3 text-gray-500 font-medium">vs Prior Year</th>
+                  <th className="text-right py-2 px-3 text-gray-500 font-medium">{t('analyticsYoyTableIncome')}</th>
+                  <th className="text-right py-2 px-3 text-gray-500 font-medium">{t('analyticsYoyTableExpenses')}</th>
+                  <th className="text-right py-2 px-3 text-gray-500 font-medium">{t('analyticsYoyTableNet')}</th>
+                  <th className="text-right py-2 px-3 text-gray-500 font-medium">{t('analyticsYoyTableVsPriorYear')}</th>
                 </tr>
               </thead>
               <tbody>

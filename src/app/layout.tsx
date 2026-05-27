@@ -294,7 +294,7 @@ export default async function RootLayout({
         <script
           nonce={nonce}
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var l=localStorage.getItem('barakah_locale');if(!l)return;var rtl={ar:1,ur:1,fa:1,he:1};document.documentElement.lang=l;document.documentElement.dir=rtl[l]?'rtl':'ltr';}catch(e){}})();`,
+            __html: `(function(){try{var allowed={en:1,ar:1,ur:1,fr:1};var qp=new URLSearchParams(window.location.search).get('lang');var stored=localStorage.getItem('barakah_locale');var l=(qp&&allowed[qp])?qp:stored;if(qp&&allowed[qp]){try{localStorage.setItem('barakah_locale',qp);}catch(e){}}if(!l)return;var rtl={ar:1,ur:1,fa:1,he:1};document.documentElement.lang=l;document.documentElement.dir=rtl[l]?'rtl':'ltr';}catch(e){}})();`,
           }}
         />
         {/* JSON-LD below is `type="application/ld+json"` — browsers do NOT

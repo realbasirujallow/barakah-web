@@ -311,26 +311,27 @@ export default function HomeV2() {
         </div>
         <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5">
           <div className="bg-white rounded-2xl p-6 border border-gray-200">
-            <h3 className="font-bold text-lg text-gray-900 mb-1">Free</h3>
+            <h3 className="font-bold text-lg text-gray-900 mb-1">{t('pricingPlanFreeName')}</h3>
             <p className="text-3xl font-extrabold text-gray-900 mb-1">$0</p>
-            <p className="text-xs text-gray-500 mb-5">forever</p>
-            <Link href="/signup" className="block text-center bg-gray-900 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-gray-800 transition text-sm">Start free</Link>
+            <p className="text-xs text-gray-500 mb-5">{t('pricingForeverSuffix').replace(/^\//, '')}</p>
+            <Link href="/signup" className="block text-center bg-gray-900 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-gray-800 transition text-sm">{t('homeV2HeroCtaPrimary')}</Link>
           </div>
           <div className="bg-white rounded-2xl p-6 border-2 border-[#1B5E20] relative">
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#1B5E20] text-white text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold">Most popular</span>
-            <h3 className="font-bold text-lg text-[#1B5E20] mb-1">Plus</h3>
-            <p className="text-3xl font-extrabold text-[#1B5E20] mb-1">{PRICING.plus.monthly}<span className="text-sm font-normal text-gray-500">/mo</span></p>
-            <p className="text-xs text-gray-500 mb-5">{PRICING.plus.yearly} yearly</p>
-            <Link href="/signup" className="block text-center bg-[#1B5E20] text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm">Try Plus</Link>
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#1B5E20] text-white text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold">{t('pricingMostPopular')}</span>
+            <h3 className="font-bold text-lg text-[#1B5E20] mb-1">{t('pricingPlanPlusName')}</h3>
+            <p className="text-3xl font-extrabold text-[#1B5E20] mb-1">{PRICING.plus.monthly}<span className="text-sm font-normal text-gray-500">{t('pricingPerMonthSuffix')}</span></p>
+            <p className="text-xs text-gray-500 mb-5">{PRICING.plus.yearly} {t('annual').toLowerCase()}</p>
+            <Link href="/signup" className="block text-center bg-[#1B5E20] text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm">{t('homeV2HeroCtaPrimary')}</Link>
           </div>
           <div className="bg-white rounded-2xl p-6 border border-gray-200">
-            <h3 className="font-bold text-lg text-blue-700 mb-1">Family</h3>
-            <p className="text-3xl font-extrabold text-blue-700 mb-1">{PRICING.family.monthly}<span className="text-sm font-normal text-gray-500">/mo</span></p>
-            <p className="text-xs text-gray-500 mb-5">Up to 6 members</p>
-            <Link href="/signup" className="block text-center bg-blue-700 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-blue-800 transition text-sm">Try Family</Link>
+            <h3 className="font-bold text-lg text-blue-700 mb-1">{t('pricingPlanFamilyName')}</h3>
+            <p className="text-3xl font-extrabold text-blue-700 mb-1">{PRICING.family.monthly}<span className="text-sm font-normal text-gray-500">{t('pricingPerMonthSuffix')}</span></p>
+            <p className="text-xs text-gray-500 mb-5">{t('pricingFamilyFeat2')}</p>
+            <Link href="/signup" className="block text-center bg-blue-700 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-blue-800 transition text-sm">{t('pricingStartFamily')}</Link>
           </div>
         </div>
         <p className="text-center text-xs text-gray-500 mt-6">
+          {/* TODO BUG-PUBSITE-LOCALE-PARTIAL: "See the full feature comparison." needs founder copy voice for fr/ar/ur */}
           See the <Link href="/pricing" className="text-[#1B5E20] underline">full feature comparison</Link>.
         </p>
       </section>

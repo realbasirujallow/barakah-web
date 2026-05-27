@@ -640,10 +640,42 @@ export default function DashboardPage() {
                   };
                   const k = HIJRI_EVENT_KEYS[e.name];
                   const label = k ? t(k) : e.name;
+                  // 2026-05-27 (founder feedback): "in 0 days" reads as broken.
+                  // When daysAway === 0 the event IS today — render a proper
+                  // greeting (Eid Mubarak / "Today is …") instead of the
+                  // counter. Eid-specific copy uses the dedicated keys; other
+                  // events fall back to a generic "Today" suffix.
+                  let rightSide: string;
+                  if (e.daysAway === 0) {
+                    const TODAY_KEYS: Record<string, string> = {
+                      'Eid al-Adha': 'dashEidMubarakAdha',
+                      'Eid al-Fitr': 'dashEidMubarakFitr',
+                      'Ashura': 'dashEventAshuraToday',
+                      'Day of Arafah': 'dashEventArafahToday',
+                      'Islamic New Year': 'dashEventNewYearToday',
+                      'Laylat al-Qadr': 'dashEventLaylatAlQadrToday',
+                    };
+                    const todayKey = TODAY_KEYS[e.name];
+                    rightSide = todayKey ? t(todayKey) : t('dashEventToday');
+                  } else if (e.daysAway === 1) {
+                    rightSide = t('dashEventTomorrow');
+                  } else {
+                    rightSide = tFmt(e.daysAway === 1 ? 'dashInNDaysOne' : 'dashInNDaysMany', [e.daysAway]);
+                  }
+                  // When today, the full Eid-Mubarak phrase replaces both the
+                  // event name AND the counter — collapse to a single span so
+                  // it doesn't read as "Eid al-Adha    Eid Mubarak! Eid al-Adha today".
+                  const isFullPhraseToday = e.daysAway === 0 && k && (e.name === 'Eid al-Adha' || e.name === 'Eid al-Fitr' || e.name === 'Ashura' || e.name === 'Day of Arafah' || e.name === 'Islamic New Year' || e.name === 'Laylat al-Qadr');
                   return (
                     <li key={`${e.name}-${i}`} className="flex items-center justify-between text-sm">
-                      <span>{label}</span>
-                      <span className="text-emerald-100">{tFmt(e.daysAway === 1 ? 'dashInNDaysOne' : 'dashInNDaysMany', [e.daysAway])}</span>
+                      {isFullPhraseToday ? (
+                        <span className="font-semibold">{rightSide}</span>
+                      ) : (
+                        <>
+                          <span>{label}</span>
+                          <span className="text-emerald-100">{rightSide}</span>
+                        </>
+                      )}
                     </li>
                   );
                 })}

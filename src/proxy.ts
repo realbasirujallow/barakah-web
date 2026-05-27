@@ -178,6 +178,19 @@ export function proxy(request: NextRequest) {
     return applyCsp(NextResponse.redirect(dashboardUrl), csp);
   }
 
+  // ── Slug-redirects for hand-typed dashboard URLs ─────────────────
+  // BUG-CASHFLOW-404 (run 2, 2026-05-27): users type /dashboard/cashflow
+  // expecting the Cash Flow page; canonical slug is /dashboard/cash-flow.
+  // next.config.ts `redirects()` is bypassed because this proxy intercepts
+  // /dashboard/* BEFORE the framework redirect layer fires (the auth gate
+  // below runs first). Handle these slug fixups here so the redirect
+  // actually reaches the user — both authed and anonymous.
+  if (pathname === '/dashboard/cashflow') {
+    const fixUrl = request.nextUrl.clone();
+    fixUrl.pathname = '/dashboard/cash-flow';
+    return applyCsp(NextResponse.redirect(fixUrl, 308), csp);
+  }
+
   // ── Protected routes: redirect if clearly not logged in ──────────
   //
   // H-R4-4: "clearly not logged in" means BOTH cookies are missing. If

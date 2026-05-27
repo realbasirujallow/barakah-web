@@ -37,9 +37,9 @@ export default function PricingPageClient() {
 
         <section className="grid gap-4 md:grid-cols-3 mb-12">
           {[
-            ['Free is real', 'Run a zakat estimate and start tracking money without a card.'],
-            ['Plus is the first upgrade', 'Bank sync, unlimited transactions, cash-flow, riba review, and halal screening live here.'],
-            ['Family is for households', 'Use it when shared budgets, family visibility, and estate continuity matter.'],
+            [t('pricingCalloutFreeTitle'), t('pricingCalloutFreeBody')],
+            [t('pricingCalloutPlusTitle'), t('pricingCalloutPlusBody')],
+            [t('pricingCalloutFamilyTitle'), t('pricingCalloutFamilyBody')],
           ].map(([title, body]) => (
             <div key={title} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
               <h2 className="text-base font-bold text-gray-900 mb-2">{title}</h2>

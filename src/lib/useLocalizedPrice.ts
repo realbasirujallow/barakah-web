@@ -43,6 +43,7 @@
 import { useEffect, useState } from 'react';
 import { api } from './api';
 import { useCurrency } from './useCurrency';
+import { useI18n } from './i18n';
 
 interface FxRates { base: string; rates: Record<string, number>; updatedAt?: string }
 
@@ -108,8 +109,71 @@ interface LocalizedPrice {
  * currency for display. Returns the USD price verbatim if the user is
  * USD, the conversion is unavailable, or the input doesn't parse.
  */
+// BUG-PRICING-LOCALE follow-up (2026-05-27, run 2): anonymous public-page
+// visitors on /pricing have no `barakah_preferred_currency` set, so they
+// hit the USD branch even when they switched UI language to fr/ar/ur.
+// Map the active UI locale → the most-representative currency for that
+// audience so the pricing tile reads in their currency. Users still
+// override via /dashboard/profile once they sign up.
+function currencyFromLocale(locale: string | undefined): string | null {
+  if (!locale) return null;
+  const lc = locale.toLowerCase();
+  if (lc.startsWith('fr')) return 'EUR';
+  if (lc.startsWith('ar')) return 'SAR';
+  if (lc.startsWith('ur')) return 'PKR';
+  return null;
+}
+
+// BUG-PRICING-CURRENCY-NOT-CONVERTED (run 4b, 2026-05-27): Run 4's real-Chrome
+// MCP testing verified $ still appeared on /pricing?lang=fr/ar/ur even though
+// useLocalizedPrice was wired up. Root cause: FX endpoint (api.getCurrencyRates)
+// requires no auth but can be slow/flaky and the SSR snapshot ('USD') leaks
+// onto the first paint. For anon visitors with a locale-derived currency, skip
+// FX entirely and use hardcoded MSRP equivalents — pricing accuracy matters
+// less than rendering the right SYMBOL above the fold. Stripe handles the
+// final per-currency price at checkout regardless.
+//
+// MSRPs are keyed off the underlying USD string we receive. We accept both
+// the raw monthly/yearly prices and the computed yearly-per-month strings
+// derived in PricingToggle (e.g. $99/12 = $8.25, $149/12 = $12.42).
+const ANON_MSRP: Record<string, Record<string, string>> = {
+  // Plus monthly $9.99 / yearly-per-month $8.25 / yearly $99
+  // Family monthly $14.99 / yearly-per-month $12.42 / yearly $149
+  // Savings: plus-yearly-saving $20.88, family-yearly-saving $30.88
+  EUR: {
+    '$9.99': '€9.50', '$8.25': '€7.50', '$99': '€90', '$20.88': '€19',
+    '$14.99': '€14', '$12.42': '€11.50', '$149': '€135', '$30.88': '€28',
+  },
+  SAR: {
+    '$9.99': 'ر.س 37', '$8.25': 'ر.س 30', '$99': 'ر.س 370', '$20.88': 'ر.س 78',
+    '$14.99': 'ر.س 56', '$12.42': 'ر.س 45', '$149': 'ر.س 555', '$30.88': 'ر.س 115',
+  },
+  PKR: {
+    '$9.99': '₨ 2,790', '$8.25': '₨ 2,300', '$99': '₨ 27,500', '$20.88': '₨ 5,800',
+    '$14.99': '₨ 4,180', '$12.42': '₨ 3,500', '$149': '₨ 41,500', '$30.88': '₨ 8,600',
+  },
+};
+
 export function useLocalizedPrice(usdPrice: string): LocalizedPrice {
-  const { currency, locale } = useCurrency();
+  const stored = useCurrency();
+  // Run 4b fix (2026-05-27): stored.locale is the *number-formatting* locale
+  // (barakah_number_locale / navigator.language), which on US-Chrome browsers
+  // defaults to "en-US" even when the user picked fr/ar/ur as the UI language.
+  // For the anon-MSRP shortcut we want the UI locale — barakah_locale, set by
+  // ?lang=xx and the language switcher. Read it via useI18n() so we get the
+  // reactive value (not the stale module-load snapshot).
+  const i18n = useI18n();
+  const localeDerived = currencyFromLocale(i18n.locale) || currencyFromLocale(stored.locale);
+  // Only override the stored currency when it's the *default* USD AND the
+  // UI locale strongly suggests otherwise. A signed-in US user who picked
+  // French UI still wants USD.
+  const isStoredDefault = typeof window !== 'undefined' && !localStorage.getItem('barakah_preferred_currency');
+  const currency = isStoredDefault && localeDerived ? localeDerived : stored.currency;
+  const locale = stored.locale;
+
+  // 2026-05-27 hooks-order fix: hooks MUST be called unconditionally before
+  // any early return (React rules-of-hooks). Hoisted useState + useEffect
+  // above the anon-MSRP shortcut. They cost nothing when the shortcut hits.
   const [rates, setRates] = useState<FxRates | null>(null);
   // 2026-05-08: derive loading directly from (currency, rates) instead of
   // calling setLoading(false) synchronously inside the effect — that
@@ -127,6 +191,19 @@ export function useLocalizedPrice(usdPrice: string): LocalizedPrice {
     });
     return () => { cancelled = true; };
   }, [currency]);
+
+  // Anon-visitor MSRP shortcut (run 4b): if we derived the currency from the
+  // locale (anon, no stored preference) AND we have a hardcoded MSRP for this
+  // input, return it immediately. This bypasses the FX dance entirely so the
+  // first paint shows the right symbol — no $ flash, no FX failure mode.
+  if (isStoredDefault && localeDerived && ANON_MSRP[localeDerived]?.[usdPrice]) {
+    return {
+      localized: ANON_MSRP[localeDerived][usdPrice],
+      currency: localeDerived,
+      approximate: true,
+      loading: false,
+    };
+  }
 
   if (currency === 'USD') {
     return { localized: usdPrice, currency: 'USD', approximate: false, loading: false };
