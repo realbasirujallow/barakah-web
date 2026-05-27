@@ -16,6 +16,13 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://trybarakah.com/learn/hawl',
+    languages: {
+      en: 'https://trybarakah.com/learn/hawl',
+      fr: 'https://trybarakah.com/fr/learn/hawl',
+      ar: 'https://trybarakah.com/ar/learn/hawl',
+      ur: 'https://trybarakah.com/ur/learn/hawl',
+      'x-default': 'https://trybarakah.com/learn/hawl',
+    },
   },
   openGraph: {
     title: 'Hawl Meaning: Your Zakat Anniversary Year, Explained',

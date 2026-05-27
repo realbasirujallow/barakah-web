@@ -6,7 +6,16 @@ export const metadata: Metadata = {
   description:
     'What is sukuk? A plain-English guide to Islamic investment certificates — how sukuk differ from conventional bonds, the main types (ijara, murabaha, musharaka, mudaraba, wakala), whether they are halal, and the risks to know.',
   keywords: ['what is sukuk', 'sukuk', 'sukuk meaning', 'sukuk definition', 'islamic bonds', 'are sukuk halal'],
-  alternates: { canonical: 'https://trybarakah.com/learn/what-is-sukuk' },
+  alternates: {
+    canonical: 'https://trybarakah.com/learn/what-is-sukuk',
+    languages: {
+      en: 'https://trybarakah.com/learn/what-is-sukuk',
+      fr: 'https://trybarakah.com/fr/learn/what-is-sukuk',
+      ar: 'https://trybarakah.com/ar/learn/what-is-sukuk',
+      ur: 'https://trybarakah.com/ur/learn/what-is-sukuk',
+      'x-default': 'https://trybarakah.com/learn/what-is-sukuk',
+    },
+  },
   openGraph: {
     title: 'What Is Sukuk? Islamic Bonds Explained (2026)',
     description: 'How sukuk work, how they differ from conventional bonds, the main types, and whether they are halal.',
