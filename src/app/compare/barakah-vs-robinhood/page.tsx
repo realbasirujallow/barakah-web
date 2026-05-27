@@ -40,9 +40,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', robinhood: 'PFOF model — order flow sold to market makers', winner: 'Barakah' as const, note: 'Robinhood\'s payment-for-order-flow has been controversial.' },
 ];
 
+const faqs = [
+  {
+    q: 'Is Robinhood halal?',
+    a: "The Robinhood app itself is just a brokerage — buying and holding individual stocks is not inherently haram. The Shariah issues are: (1) Robinhood's cash sweep earns interest (riba) by default — you can disable this in settings; (2) Robinhood does not screen tickers for Shariah compliance, so you must use a separate halal screener before buying; (3) options trading and margin (Robinhood Gold) are not Shariah-compliant and should be avoided.",
+  },
+  {
+    q: 'How does Barakah help me use Robinhood as a Muslim?',
+    a: 'Barakah Plus screens 30,000+ tickers against AAOIFI Standard 21 so you can verify a stock is halal before buying it on Robinhood. It also calculates zakat on your holdings (including stocks linked via Plaid), flags dividends that need purification, tracks your hawl, and surfaces any interest income Robinhood paid you. You keep Robinhood for execution; Barakah is the Islamic layer on top.',
+  },
+  {
+    q: "What about Robinhood's interest income on cash?",
+    a: "Disable the cash-sweep / interest features in Robinhood settings to stop earning riba on idle balances. Any interest you've already received should be purified — donated to charity without expecting reward. Barakah's riba detector picks these flows up automatically when you link Robinhood via Plaid, so you know exactly how much to purify.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsRobinhoodPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -116,6 +142,18 @@ export default function BarakahVsRobinhoodPage() {
               Muslim users, you have to actively opt out of the haram pieces and screen everything yourself. That&apos;s
               where Barakah fits in: same accounts, with the Islamic compliance layer on top.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

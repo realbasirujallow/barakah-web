@@ -42,9 +42,35 @@ const rows = [
   { feature: 'Audit / integrity transparency', barakah: 'SHA-256 integrity hash per snapshot, methodology changelog, Scholar Board in formation', wahed: 'Regulation + established external Shariah oversight', winner: 'Tie' as const, note: 'Both prioritize trust, but through different mechanisms.' },
 ];
 
+const faqs = [
+  {
+    q: 'Is Wahed Invest halal and AAOIFI-compliant?',
+    a: "Yes — Wahed is a Shariah-compliant robo-advisor with an established Shariah Supervisory Board. Its portfolios use sukuk, gold, and AAOIFI-screened equities. For passive halal investing it is one of the most established and regulated options in the US, UK, and Malaysia.",
+  },
+  {
+    q: 'What does Barakah do that Wahed Invest does not?',
+    a: "Wahed manages your investments inside Wahed-curated portfolios. Barakah is a full Islamic-finance OS for your whole household — budgeting, zakat across every asset class (not just what Wahed manages), hawl tracking, riba detection on conventional accounts you have outside Wahed, halal screening for self-directed picks at any brokerage, plus faraid + wasiyyah planning. The two are complementary.",
+  },
+  {
+    q: 'Can I use Wahed and Barakah together?',
+    a: "Yes — that is a common setup. Wahed handles the managed-portfolio side; Barakah covers household finances + zakat + Islamic planning. Link your Wahed account through Plaid in Barakah and it will surface in your zakat calculation automatically alongside any other assets you own.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsWahedPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto">
@@ -128,6 +154,18 @@ export default function BarakahVsWahedPage() {
               Barakah&apos;s /dashboard/investments view aggregates your Wahed account alongside your brokerage,
               401(k), and cash — so you see the full household picture in one place.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

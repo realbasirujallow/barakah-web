@@ -39,9 +39,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', empower: 'Free dashboard funds advisory sales calls (expect outreach)', winner: 'Barakah' as const, note: 'Empower will call you to upsell wealth management.' },
 ];
 
+const faqs = [
+  {
+    q: 'Is Empower Personal Wealth halal for Muslims?',
+    a: "Empower's dashboard itself is neutral — it tracks accounts and net worth, which is fine. The gap is that Empower has no zakat engine, no hawl tracker, no halal stock screen, and no riba detection — so an observant Muslim using it alone has to handle every Islamic-finance test by hand. Empower's paid advisory side also recommends conventional interest-bearing investments by default, so the managed-account path is not Shariah-compliant.",
+  },
+  {
+    q: 'What does Barakah do that Empower Personal Wealth does not?',
+    a: 'Zakat across cash, gold/silver, stocks, 401k, rental, crypto, and business assets; hawl continuity tracking against a daily nisab check; AAOIFI screening for 30,000+ tickers; transaction-level riba detection with purification math; and a faraid calculator + wasiyyah builder for Islamic estate planning. None of those exist in Empower.',
+  },
+  {
+    q: 'Can I use Empower and Barakah together?',
+    a: 'Yes, and that is the cleanest setup for many Muslim households with a complex portfolio: keep Empower for its best-in-class fee analyzer and retirement projection, and add Barakah Plus ($9.99/mo) for the Islamic layer (zakat, hawl, halal, riba, wasiyyah). They link to your accounts independently via different aggregators, so there is no conflict.',
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsEmpowerPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -115,6 +141,18 @@ export default function BarakahVsEmpowerPage() {
               for most Muslim households: Empower for investment analytics if your portfolio warrants it, plus Barakah Plus
               ($9.99/mo) for zakat, hawl, halal screening, riba detection, and the wasiyyah builder.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

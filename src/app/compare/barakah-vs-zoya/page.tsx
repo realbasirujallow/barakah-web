@@ -52,9 +52,35 @@ for (const r of rows) {
   (tally as Record<string, number>)[r.winner]++;
 }
 
+const faqs = [
+  {
+    q: 'Is Zoya the same as Barakah?',
+    a: "No. Zoya is a halal stock-screening app — its core feature is checking whether a specific ticker is Shariah-compliant against AAOIFI standards. Barakah is a Muslim household financial OS that includes halal stock screening, plus zakat, hawl, riba detection, budgeting, and Islamic estate planning. If you only need ticker screening, Zoya is purpose-built; if you want one app for your whole Islamic financial life, Barakah is broader.",
+  },
+  {
+    q: 'Does Barakah screen as many stocks as Zoya?',
+    a: "Barakah's screener covers 30,000+ tickers across US, UK, and GCC markets using the same AAOIFI Standard 21 ratios Zoya uses. Coverage overlaps heavily — major US/UK names are in both. Barakah's screen is included in the Plus plan; Zoya's free tier limits screen depth and locks the financial ratios behind their paid tier.",
+  },
+  {
+    q: 'Can I use Zoya and Barakah together?',
+    a: "Yes. Some users prefer Zoya for ticker deep-dives and Barakah for the rest of their Islamic finance (zakat, riba, household budget, wasiyyah). The two apps don't conflict and don't share data. Barakah includes screening so you don't strictly need a second app, but using both is fine.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsZoyaPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto">
@@ -211,6 +237,18 @@ export default function BarakahVsZoyaPage() {
           </section>
 
           {/* CTAs */}
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">
             <h2 className="mb-3 text-xl font-bold">Try Barakah free for {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL}</h2>
             <p className="mb-4 text-sm leading-7 text-green-100">

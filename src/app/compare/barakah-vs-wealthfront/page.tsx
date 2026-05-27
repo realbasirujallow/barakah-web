@@ -39,9 +39,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', wealthfront: 'Brokerage privacy standard; no data sold', winner: 'Tie' as const },
 ];
 
+const faqs = [
+  {
+    q: 'Is Wealthfront halal for Muslims?',
+    a: "Wealthfront's default portfolios are heavy in interest-bearing bonds, conventional REITs, and unscreened equities — none of which pass AAOIFI Shariah screening. Wealthfront does not offer a halal portfolio option, and its cash account pays interest (riba) by default. For Shariah-compliant robo-advice, look at Wahed Invest; for self-directed halal investing, use Barakah's screener with a regular brokerage.",
+  },
+  {
+    q: 'What can Barakah do that Wealthfront cannot?',
+    a: 'Zakat across all asset classes, hawl continuity tracking, AAOIFI screening for 30,000+ tickers, transaction-level riba detection, and Islamic estate planning (faraid + wasiyyah). Wealthfront is a managed-portfolio robo-advisor; Barakah is a Muslim household financial OS — different jobs entirely.',
+  },
+  {
+    q: 'Can I use Wealthfront and Barakah together?',
+    a: "Only with care — Wealthfront's standard portfolio holds non-Shariah-compliant assets, so simply linking it does not make it halal. Most observant Muslims either pick a Shariah-compliant alternative (Wahed Invest, or self-directed via a halal screener like Barakah Plus) or limit Wealthfront to its cash-only account with interest disabled.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsWealthfrontPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -117,6 +143,18 @@ export default function BarakahVsWealthfrontPage() {
               holdings for halal compliance, and calculate zakat on the actual asset value. If you do hold cash there,
               Barakah&apos;s riba-detection will flag the interest for purification.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">
