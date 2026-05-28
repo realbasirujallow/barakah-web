@@ -15,12 +15,12 @@ import { PageHeader } from '../../../components/dashboard/PageHeader';
 interface Account {
   id: number;
   name: string;
-  type: string;
-  broker: string;
+  accountType: string;   // backend: accountType (not type)
+  institution: string;   // backend: institution (not broker)
   totalValue: number;
-  totalCost: number;
-  gainLoss: number;
-  gainLossPct: number;
+  totalContributed: number; // backend: totalContributed (not totalCost)
+  totalGainLoss: number;    // backend: totalGainLoss (not gainLoss)
+  returnPercentage: number; // backend: returnPercentage (not gainLossPct)
   holdings: Holding[];
 }
 
@@ -28,20 +28,20 @@ interface Holding {
   id: number;
   symbol: string;
   name: string;
-  quantity: number;
-  averageCost: number;
+  shares: number;           // backend: shares (not quantity)
+  avgCostPerShare: number;  // backend: avgCostPerShare (not averageCost)
   currentPrice: number;
-  totalValue: number;
+  marketValue: number;      // backend: marketValue (not totalValue)
   gainLoss: number;
-  gainLossPct: number;
+  gainLossPercent: number;  // backend: gainLossPercent (not gainLossPct)
   isHalal?: boolean;
 }
 
 interface Portfolio {
   totalValue: number;
-  totalCost: number;
+  totalContributed: number;     // backend: totalContributed (not totalCost)
   totalGainLoss: number;
-  totalGainLossPct: number;
+  overallReturnPercent: number; // backend: overallReturnPercent (not totalGainLossPct)
   accounts: Account[];
 }
 
@@ -258,8 +258,8 @@ export default function InvestmentsPage() {
 
   const accounts: Account[] = portfolio?.accounts || [];
   const totalValue       = portfolio?.totalValue || 0;
-  const totalGainLoss    = portfolio?.totalGainLoss || 0;
-  const totalGainLossPct = portfolio?.totalGainLossPct || 0;
+  const totalGainLoss    = portfolio?.totalGainLoss ?? 0;
+  const totalGainLossPct = portfolio?.overallReturnPercent ?? 0;
   const isGain = totalGainLoss >= 0;
 
   // Combined total includes asset-backed investment accounts
@@ -614,7 +614,7 @@ export default function InvestmentsPage() {
         <div className="space-y-4 mb-6">
           <h2 className="text-base font-semibold text-gray-700">Brokerage &amp; Tracked Accounts</h2>
           {accounts.map(account => {
-            const accGain = account.gainLoss || 0;
+            const accGain = account.totalGainLoss ?? 0;
             const accGainPositive = accGain >= 0;
             const isExpanded = expandedAccount === account.id;
             const holdings: Holding[] = account.holdings || [];
@@ -630,11 +630,11 @@ export default function InvestmentsPage() {
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-gray-900">{account.name}</p>
                       <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                        {ACCOUNT_TYPES.find(t => t.value === account.type)?.label || account.type}
+                        {ACCOUNT_TYPES.find(t => t.value === account.accountType)?.label || account.accountType}
                       </span>
                     </div>
-                    {account.broker && (
-                      <p className="text-sm text-gray-500 mt-0.5">{account.broker}</p>
+                    {account.institution && (
+                      <p className="text-sm text-gray-500 mt-0.5">{account.institution}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-4">
@@ -642,9 +642,9 @@ export default function InvestmentsPage() {
                       <p className="font-bold text-gray-900">{fmt(account.totalValue)}</p>
                       {/* 2026-05-11 (Bug-A9): hide the green-up "▲ $0.00 (0.00%)"
                           line when there's no gain to report. Visual noise. */}
-                      {(Math.abs(accGain) >= 0.005 || Math.abs(account.gainLossPct || 0) >= 0.005) && (
+                      {(Math.abs(accGain) >= 0.005 || Math.abs(account.returnPercentage ?? 0) >= 0.005) && (
                         <p className={`text-xs ${accGainPositive ? 'text-green-600' : 'text-red-600'}`}>
-                          {accGainPositive ? '▲' : '▼'} {fmt(Math.abs(accGain))} ({fmtPct(account.gainLossPct)})
+                          {accGainPositive ? '▲' : '▼'} {fmt(Math.abs(accGain))} ({fmtPct(account.returnPercentage)})
                         </p>
                       )}
                     </div>
@@ -681,7 +681,7 @@ export default function InvestmentsPage() {
                     ) : (
                       <div className="divide-y">
                         {holdings.map(h => {
-                          const hGain = h.gainLoss || 0;
+                          const hGain = h.gainLoss ?? 0;
                           const hGainPos = hGain >= 0;
                           return (
                             <div key={h.id} className="px-4 py-3 flex justify-between items-center">
@@ -696,15 +696,15 @@ export default function InvestmentsPage() {
                                   )}
                                 </div>
                                 <p className="text-xs text-gray-500">{h.name}</p>
-                                <p className="text-xs text-gray-400">{h.quantity} shares @ {fmt(h.averageCost)}</p>
+                                <p className="text-xs text-gray-400">{h.shares} shares @ {fmt(h.avgCostPerShare)}</p>
                               </div>
                               <div className="flex items-center gap-4">
                                 <div className="text-right">
-                                  <p className="font-medium text-sm">{fmt(h.totalValue)}</p>
+                                  <p className="font-medium text-sm">{fmt(h.marketValue)}</p>
                                   {/* Bug-A9: hide $0.00/0% gain rows. */}
-                                  {(Math.abs(hGain) >= 0.005 || Math.abs(h.gainLossPct || 0) >= 0.005) && (
+                                  {(Math.abs(hGain) >= 0.005 || Math.abs(h.gainLossPercent ?? 0) >= 0.005) && (
                                     <p className={`text-xs ${hGainPos ? 'text-green-600' : 'text-red-600'}`}>
-                                      {hGainPos ? '▲' : '▼'} {fmt(Math.abs(hGain))} ({fmtPct(h.gainLossPct)})
+                                      {hGainPos ? '▲' : '▼'} {fmt(Math.abs(hGain))} ({fmtPct(h.gainLossPercent)})
                                     </p>
                                   )}
                                 </div>
