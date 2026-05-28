@@ -14,7 +14,7 @@ interface RecurringTx {
   amount: number;
   category: string;
   type: string;
-  date: number;
+  timestamp: number; // backend field name (was: date)
   recurring: boolean;
   recurringActive: boolean;
   frequency?: string;
@@ -97,7 +97,7 @@ function TxRow({ tx, fmt, toggling, onToggle }: TxRowProps) {
         <div>
           <p className="font-medium text-gray-900 text-sm">{tx.description || 'No description'}</p>
           <p className="text-xs text-gray-500 capitalize">
-            {tx.category} • Last: {formatDate(tx.date)}
+            {tx.category} • Last: {formatDate(tx.timestamp)}
             {tx.frequency && <span className="ml-1">• {tx.frequency}</span>}
           </p>
         </div>
@@ -126,7 +126,7 @@ function TxRow({ tx, fmt, toggling, onToggle }: TxRowProps) {
 /**
  * 2026-05-03 (Section B·5): month-grid view of recurring transactions.
  *
- * The backend stores `tx.date` as the LAST-seen epoch for each
+ * The backend stores `tx.timestamp` as the LAST-seen epoch for each
  * recurring row, so we use day-of-month from that as a proxy for
  * "this is the day each cycle the user gets charged." Good enough
  * for the visualization — the user can still edit the row from the
@@ -147,7 +147,7 @@ function RecurringCalendar({
   const byDay = useMemo(() => {
     const map = new Map<number, RecurringTx[]>();
     transactions.forEach(tx => {
-      const ms = tx.date < 1e12 ? tx.date * 1000 : tx.date;
+      const ms = tx.timestamp < 1e12 ? tx.timestamp * 1000 : tx.timestamp;
       const day = new Date(ms).getDate();
       const arr = map.get(day) ?? [];
       arr.push(tx);

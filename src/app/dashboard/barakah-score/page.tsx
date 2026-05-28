@@ -179,8 +179,8 @@ export default function BarakahScorePage() {
       const d = await api.getBarakahScore();
       setData(d);
     } catch (err: unknown) {
-      const status = (err as { status?: number })?.status;
-      setIsPlanError(status === 403);
+      const msg = err instanceof Error ? err.message.toLowerCase() : '';
+      setIsPlanError(msg.includes('plan') || msg.includes('upgrade') || msg.includes('403'));
       setError('Failed to load Barakah Score');
     } finally {
       setLoading(false);

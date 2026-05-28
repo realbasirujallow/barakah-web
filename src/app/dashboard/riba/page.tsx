@@ -259,7 +259,7 @@ export default function RibaPage() {
               transactionId: tx.transactionId,
               description: tx.description,
               amount: tx.amount,
-              date: String(tx.date ?? tx.timestamp ?? ''),
+              date: tx.timestamp ? new Date(tx.timestamp).toISOString() : String(tx.date ?? ''),
               ribaType: tx.ribaType,
               riskLevel: tx.riskLevel,
               riskScore: tx.riskScore,

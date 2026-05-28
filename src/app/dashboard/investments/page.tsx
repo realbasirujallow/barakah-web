@@ -69,6 +69,7 @@ interface AssetAccount {
 
 const ACCOUNT_TYPES = [
   { value: 'brokerage', label: 'Brokerage' },
+  { value: 'individual_brokerage', label: 'Individual Brokerage' },
   { value: 'ira', label: 'IRA' },
   { value: 'roth_ira', label: 'Roth IRA' },
   { value: '401k', label: '401(k)' },
@@ -85,12 +86,21 @@ const INVESTMENT_ASSET_TYPES = [
 ];
 const INVESTMENT_ASSET_LABELS: Record<string, string> = {
   investment: 'Investment',
+  brokerage: 'Brokerage',
+  individual_brokerage: 'Individual Brokerage',
   '401k': '401(k)',
+  retirement_401k: '401(k)',
   roth_ira: 'Roth IRA',
   ira: 'Traditional IRA',
   hsa: 'HSA',
+  '403b': '403(b)',
+  pension: 'Pension',
+  tsp: 'TSP',
+  sep_ira: 'SEP IRA',
   '529': '529 Education',
+  '529_plan': '529 Education',
   crypto: 'Crypto',
+  business: 'Business',
 };
 
 const emptyAccountForm = { name: '', type: 'brokerage', broker: '' };
@@ -343,9 +353,11 @@ export default function InvestmentsPage() {
         const last = portfolioHistory[portfolioHistory.length - 1];
         const idx90 = Math.max(0, portfolioHistory.length - 90);
         const ref90 = portfolioHistory[idx90] ?? portfolioHistory[0];
-        const portfolio3m = ref90?.totalValue
+        // Guard: if the baseline value is tiny (< $100) the % is meaningless
+        // (e.g. portfolio was just linked and first snapshot had $0.01)
+        const portfolio3m = (ref90?.totalValue && ref90.totalValue >= 100)
           ? ((last.totalValue - ref90.totalValue) / ref90.totalValue) * 100
-          : 0;
+          : null;
         // 1-day Portfolio return.
         const prev = portfolioHistory[portfolioHistory.length - 2];
         const portfolioToday = prev?.totalValue
@@ -389,9 +401,13 @@ export default function InvestmentsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <p className="text-[10px] uppercase tracking-wide text-gray-400">3 Months</p>
-                    <p className={`text-lg font-bold tabular-nums ${portfolio3m >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                      {fmtPctSigned(portfolio3m)}
-                    </p>
+                    {portfolio3m != null ? (
+                      <p className={`text-lg font-bold tabular-nums ${portfolio3m >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                        {fmtPctSigned(portfolio3m)}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-gray-400">Not enough history</p>
+                    )}
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-wide text-gray-400">Today</p>
@@ -465,8 +481,13 @@ export default function InvestmentsPage() {
                   arrive as % from start). */}
               {(() => {
                 const round2 = (n: number) => Math.round(n * 100) / 100;
-                const baseline = portfolioHistory[0]?.totalValue || 1;
-                const portfolioPctSeries = portfolioHistory.map(p => ({
+                // Find the first snapshot with a meaningful value (>= $100) to avoid
+                // astronomical % when the portfolio was first linked with near-$0 balance.
+                const CHART_BASELINE_MIN = 100;
+                const baselineIdx = portfolioHistory.findIndex(p => p.totalValue >= CHART_BASELINE_MIN);
+                const trimmedHistory = baselineIdx >= 0 ? portfolioHistory.slice(baselineIdx) : portfolioHistory;
+                const baseline = trimmedHistory[0]?.totalValue || 1;
+                const portfolioPctSeries = trimmedHistory.map(p => ({
                   date: p.date,
                   portfolio: baseline > 0 ? ((p.totalValue - baseline) / baseline) * 100 : 0,
                   totalValue: p.totalValue,

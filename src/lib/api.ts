@@ -1008,7 +1008,7 @@ export const api = {
     apiFetch('/api/debts/burden', {}, API_TIMEOUT, suppressUnauthorized),
 
   // Bills
-  getBills: () => apiFetch('/api/bills/list'),
+  getBills: () => apiFetch('/api/bills/list', {}, API_TIMEOUT, true),
   addBill: (data: Record<string, unknown>) =>
     apiFetch('/api/bills/add', { method: 'POST', body: JSON.stringify(data) }),
   markBillPaid: (id: number) =>
@@ -1026,7 +1026,7 @@ export const api = {
     apiFetch('/api/transactions/process-recurring', { method: 'POST', body: JSON.stringify({}) }),
 
   // Hawl
-  getHawl: () => apiFetch('/api/hawl/list'),
+  getHawl: () => apiFetch('/api/hawl/list', {}, API_TIMEOUT, true),
   addHawl: (data: Record<string, unknown>) =>
     apiFetch('/api/hawl/add', { method: 'POST', body: JSON.stringify(data) }),
   markHawlPaid: (id: number) =>
@@ -1114,7 +1114,7 @@ export const api = {
     apiFetch(`/api/waqf/distribution/beneficiary/${id}`, { method: 'DELETE' }),
 
   // Subscription Detection
-  detectSubscriptions: () => apiFetch('/api/subscriptions/detect'),
+  detectSubscriptions: () => apiFetch('/api/subscriptions/detect', {}, API_TIMEOUT, true),
 
   /** R37 (2026-04-30): mark a detected subscription as a false positive. */
   dismissSubscription: (name: string, reason?: string) =>
@@ -1141,8 +1141,8 @@ export const api = {
     }),
 
   // Riba
-  scanRiba: () => apiFetch('/api/riba/scan'),
-  getRibaPurificationStatus: () => apiFetch('/api/zakat/purification-status'),
+  scanRiba: () => apiFetch('/api/riba/scan', {}, API_TIMEOUT, true),
+  getRibaPurificationStatus: () => apiFetch('/api/zakat/purification-status', {}, API_TIMEOUT, true),
   recordRibaPurification: (amount: number, notes?: string) =>
     apiFetch('/api/zakat/record-purification', { method: 'POST', body: JSON.stringify({ amount, notes }) }),
 
@@ -1185,11 +1185,12 @@ export const api = {
   deleteTransactionRule: (id: number) =>
     apiFetch(`/api/categorize/rules/${id}`, { method: 'DELETE' }),
 
-  // Zakat — FIXED: was calling /api/assets/total (assets endpoint) which
-  // does NOT return breakdown, totalWealthGoldGrams, zakatableWealth, etc.
-  // The zakat page needs the full calculation from /api/zakat/calculate.
+  // Zakat — /api/assets/total calls assetService.getTotalWealth() which returns
+  // the full zakat calculation: zakatableWealth, zakatDue, breakdown,
+  // totalWealthGoldGrams, zakatEligible, currentLunarYear, etc.
+  // /api/zakat/calculate is POST-only (manual what-if calc) — NOT for this use case.
   getZakat: (suppressUnauthorized = true) =>
-    apiFetch('/api/zakat/calculate', {}, API_TIMEOUT, suppressUnauthorized),
+    apiFetch('/api/assets/total', {}, API_TIMEOUT, suppressUnauthorized),
   getZakatPayments: (lunarYear?: number) =>
     apiFetch(`/api/zakat/payments${lunarYear ? `?lunarYear=${lunarYear}` : ''}`, {}, API_TIMEOUT, true),
   addZakatPayment: (data: Record<string, unknown>) =>
@@ -1215,7 +1216,7 @@ export const api = {
   // FEATURE 3: PDF Export
   exportZakatReport: () => apiFetch('/api/zakat/export-report'),
   // FEATURE 4: Supported Currencies
-  getSupportedCurrencies: () => apiFetch('/api/zakat/supported-currencies'),
+  getSupportedCurrencies: () => apiFetch('/api/zakat/supported-currencies', {}, API_TIMEOUT, true),
   // FEATURE 5: Scholarly References
   getScholarlyReferences: () => apiFetch('/api/zakat/scholarly-references'),
 
@@ -1275,10 +1276,10 @@ export const api = {
 
   // Analytics
   getTransactionSummary: (period: string = 'month') =>
-    apiFetch(`/api/transactions/summary?period=${period}`),
+    apiFetch(`/api/transactions/summary?period=${period}`, {}, API_TIMEOUT, true),
 
   getMonthlySummary: (months: number = 13) =>
-    apiFetch(`/api/transactions/monthly-summary?months=${months}`),
+    apiFetch(`/api/transactions/monthly-summary?months=${months}`, {}, API_TIMEOUT, true),
 
   /**
    * Per-month breakdown of income and expenses, grouped by category AND
@@ -1288,7 +1289,7 @@ export const api = {
    * @param month YYYY-MM, e.g. "2026-04" — backend rejects other formats.
    */
   getMonthlyDetail: (month: string) =>
-    apiFetch(`/api/transactions/monthly-detail?month=${encodeURIComponent(month)}`),
+    apiFetch(`/api/transactions/monthly-detail?month=${encodeURIComponent(month)}`, {}, API_TIMEOUT, true),
 
   // ─── Cash Flow (PR 1 backend, PR 3 client wiring) ──────────────────
   // Backed by /api/cashflow/* — see CashflowController.java. Two
@@ -1333,9 +1334,9 @@ export const api = {
     apiFetch('/api/notifications/fcm-token', { method: 'POST', body: JSON.stringify({ token }) }, API_TIMEOUT, true),
 
   // Live Prices
-  getCryptoPrice: (symbol: string) => apiFetch(`/api/prices/crypto/${symbol}`),
-  getStockPrice: (symbol: string) => apiFetch(`/api/prices/stock/${symbol}`),
-  getSupportedCryptos: () => apiFetch('/api/prices/crypto'),
+  getCryptoPrice: (symbol: string) => apiFetch(`/api/prices/crypto/${symbol}`, {}, API_TIMEOUT, true),
+  getStockPrice: (symbol: string) => apiFetch(`/api/prices/stock/${symbol}`, {}, API_TIMEOUT, true),
+  getSupportedCryptos: () => apiFetch('/api/prices/crypto', {}, API_TIMEOUT, true),
 
   // Investments
   getInvestmentAccounts: () => apiFetch('/api/investments/accounts/list'),
@@ -1376,7 +1377,7 @@ export const api = {
   // Forecasting (2026-05-03 — backs /dashboard/forecasting). Single
   // scenario per user today; schema supports multi-scenario for future
   // "compare" UI.
-  getActiveForecastScenario: () => apiFetch('/api/forecasting/scenarios/active'),
+  getActiveForecastScenario: () => apiFetch('/api/forecasting/scenarios/active', {}, API_TIMEOUT, true),
   saveForecastScenario: (data: {
     id?: number;
     name?: string;
@@ -1446,7 +1447,7 @@ export const api = {
     apiFetch('/api/ramadan/goals', { method: 'PUT', body: JSON.stringify(data) }),
 
   // Profile
-  getProfile: (suppressUnauthorized = false) => apiFetch('/auth/profile', {}, API_TIMEOUT, suppressUnauthorized),
+  getProfile: (suppressUnauthorized = true) => apiFetch('/auth/profile', {}, API_TIMEOUT, suppressUnauthorized),
   updateProfile: (data: Record<string, unknown>) =>
     apiFetch('/auth/update-profile', { method: 'PUT', body: JSON.stringify(data) }),
   // Round 23: server-side guided-setup completion. Client POSTs here
@@ -1476,7 +1477,7 @@ export const api = {
   exportData: () => apiFetch('/auth/export-data'),
 
   // Barakah Score
-  getBarakahScore: () => apiFetch('/api/barakah-score'),
+  getBarakahScore: () => apiFetch('/api/barakah-score', {}, API_TIMEOUT, true),
 
   // Notifications
   //
@@ -1507,7 +1508,7 @@ export const api = {
     apiFetch(`/api/notifications/${id}`, { method: 'DELETE' }, API_TIMEOUT, true),
 
   // Preferences & lifecycle
-  getPreferences: () => apiFetch('/api/preferences'),
+  getPreferences: () => apiFetch('/api/preferences', {}, API_TIMEOUT, true),
   updatePreferences: (data: Record<string, unknown>) =>
     apiFetch('/api/preferences', { method: 'PUT', body: JSON.stringify(data) }),
   lifecycleHeartbeat: (data: { platform?: string; appVersion?: string; timeZone?: string; route?: string }) => {
@@ -2305,7 +2306,7 @@ export const api = {
 
   // ── Halal Spending Analysis ─────────────────────────────────────────────────
   getHalalAnalysis: (period = 'month') =>
-    apiFetch(`/api/transactions/halal-analysis?period=${encodeURIComponent(period)}`),
+    apiFetch(`/api/transactions/halal-analysis?period=${encodeURIComponent(period)}`, {}, API_TIMEOUT, true),
 
   // ── Multi-Currency Zakat Summary ────────────────────────────────────────────
   getZakatSummary: (currency = 'USD') =>
