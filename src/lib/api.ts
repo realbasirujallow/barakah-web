@@ -858,14 +858,14 @@ export const api = {
     apiFetch(`/api/assets/${id}`, { method: 'DELETE' }),
 
   // Transactions
-  getTransactions: (type?: string, page?: number, size?: number, search?: string, accountId?: number) => {
+  getTransactions: (type?: string, page?: number, size?: number, search?: string, accountId?: number, suppressUnauthorized = true) => {
     const params = new URLSearchParams();
     if (type) params.set('type', type);
     if (page !== undefined) params.set('page', String(page));
     if (size !== undefined) params.set('size', String(size));
     if (search) params.set('search', search);
     if (accountId !== undefined) params.set('accountId', String(accountId));
-    return apiFetch(`/api/transactions/list?${params}`);
+    return apiFetch(`/api/transactions/list?${params}`, {}, API_TIMEOUT, suppressUnauthorized);
   },
   // R13 hardening (2026-04-23): suppressUnauthorized=true.
   // TransactionUsageMeter fires this on mount for every free-user surface
@@ -885,7 +885,7 @@ export const api = {
     apiFetch('/api/transactions/bulk', { method: 'DELETE', body: JSON.stringify({ ids }) }),
   /** Get transactions needing review (uncategorized/imported). */
   getReviewQueue: (page = 0, size = 50) =>
-    apiFetch(`/api/transactions/review-queue?page=${page}&size=${size}`),
+    apiFetch(`/api/transactions/review-queue?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
   /** Bulk-categorize multiple transactions. */
   bulkCategorize: (ids: number[], category: string) =>
     apiFetch('/api/transactions/bulk-categorize', { method: 'POST', body: JSON.stringify({ ids, category, reviewStatus: 'reviewed' }) }),
@@ -955,11 +955,11 @@ export const api = {
   },
 
   // Budgets
-  getBudgets: (month?: number, year?: number) => {
+  getBudgets: (month?: number, year?: number, suppressUnauthorized = true) => {
     const params = new URLSearchParams();
     if (month) params.set('month', String(month));
     if (year) params.set('year', String(year));
-    return apiFetch(`/api/budgets/list?${params}`);
+    return apiFetch(`/api/budgets/list?${params}`, {}, API_TIMEOUT, suppressUnauthorized);
   },
   addBudget: (data: Record<string, unknown>) =>
     apiFetch('/api/budgets/add', { method: 'POST', body: JSON.stringify(data) }),
@@ -976,7 +976,7 @@ export const api = {
   getCashFlowForecast: (months = 3) => apiFetch(`/api/budgets/forecast?months=${months}`),
 
   // Debts
-  getDebts: () => apiFetch('/api/debts/list'),
+  getDebts: () => apiFetch('/api/debts/list', {}, API_TIMEOUT, true),
   addDebt: (data: Record<string, unknown>) =>
     apiFetch('/api/debts/add', { method: 'POST', body: JSON.stringify(data) }),
   updateDebt: (id: number, data: Record<string, unknown>) =>
@@ -1019,7 +1019,7 @@ export const api = {
     apiFetch(`/api/bills/${id}`, { method: 'DELETE' }),
 
   // Recurring transactions
-  getRecurringTransactions: () => apiFetch('/api/transactions/recurring'),
+  getRecurringTransactions: () => apiFetch('/api/transactions/recurring', {}, API_TIMEOUT, true),
   toggleRecurring: (id: number) =>
     apiFetch(`/api/transactions/${id}/toggle-recurring`, { method: 'PUT', body: JSON.stringify({}) }),
   processRecurring: () =>
@@ -1185,10 +1185,13 @@ export const api = {
   deleteTransactionRule: (id: number) =>
     apiFetch(`/api/categorize/rules/${id}`, { method: 'DELETE' }),
 
-  // Zakat
-  getZakat: () => apiFetch('/api/assets/total'),
+  // Zakat — FIXED: was calling /api/assets/total (assets endpoint) which
+  // does NOT return breakdown, totalWealthGoldGrams, zakatableWealth, etc.
+  // The zakat page needs the full calculation from /api/zakat/calculate.
+  getZakat: (suppressUnauthorized = true) =>
+    apiFetch('/api/zakat/calculate', {}, API_TIMEOUT, suppressUnauthorized),
   getZakatPayments: (lunarYear?: number) =>
-    apiFetch(`/api/zakat/payments${lunarYear ? `?lunarYear=${lunarYear}` : ''}`),
+    apiFetch(`/api/zakat/payments${lunarYear ? `?lunarYear=${lunarYear}` : ''}`, {}, API_TIMEOUT, true),
   addZakatPayment: (data: Record<string, unknown>) =>
     apiFetch('/api/zakat/payments', { method: 'POST', body: JSON.stringify(data) }),
   deleteZakatPayment: (id: number) =>
@@ -1231,7 +1234,7 @@ export const api = {
   }),
 
   // Savings Goals
-  getSavingsGoals: () => apiFetch('/api/savings-goals/list'),
+  getSavingsGoals: () => apiFetch('/api/savings-goals/list', {}, API_TIMEOUT, true),
   addSavingsGoal: (data: Record<string, unknown>) =>
     apiFetch('/api/savings-goals/add', { method: 'POST', body: JSON.stringify(data) }),
   contributeSavingsGoal: (id: number, amount: number) =>
@@ -1293,9 +1296,9 @@ export const api = {
   // and breakdown (per-month income / expense / sadaqah-zakat by
   // category or merchant).
   getCashflowMonths: (range = 13) =>
-    apiFetch(`/api/cashflow/months?range=${range}`),
+    apiFetch(`/api/cashflow/months?range=${range}`, {}, API_TIMEOUT, true),
   getCashflowBreakdown: (month: string, dimension: 'category' | 'merchant' = 'category') =>
-    apiFetch(`/api/cashflow/breakdown?month=${encodeURIComponent(month)}&dimension=${dimension}`),
+    apiFetch(`/api/cashflow/breakdown?month=${encodeURIComponent(month)}&dimension=${dimension}`, {}, API_TIMEOUT, true),
   // Auto-detected recurring income streams (paychecks). See
   // IncomeDetectionService.java — read-only, derived from real deposits.
   // suppressUnauthorized: mount-fired on the Cash Flow page — a transient
@@ -1361,7 +1364,7 @@ export const api = {
 
   // Net Worth
   takeNetWorthSnapshot: () => apiFetch('/api/net-worth/snapshot', { method: 'POST', body: JSON.stringify({}) }),
-  getNetWorthHistory: (period: string = '6m') => apiFetch(`/api/net-worth/history?period=${period}`),
+  getNetWorthHistory: (period: string = '6m') => apiFetch(`/api/net-worth/history?period=${period}`, {}, API_TIMEOUT, true),
 
   // Investments benchmark comparison (2026-05-03). Returns time-series
   // for S&P 500 / US Stocks / US Bonds plus period totals so the

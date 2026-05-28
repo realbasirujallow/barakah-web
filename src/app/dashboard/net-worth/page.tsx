@@ -93,8 +93,8 @@ export default function NetWorthPage() {
   const [totalAssets, setTotalAssets] = useState(0);
   const [totalDebts, setTotalDebts] = useState(0);
   const [totalSavings, setTotalSavings] = useState(0);
-  const [changeAmount, setChangeAmount] = useState(0);
-  const [changePercent, setChangePercent] = useState(0);
+  const [changeAmount, setChangeAmount] = useState<number | null>(null);
+  const [changePercent, setChangePercent] = useState<number | null>(null);
 
   // 2026-05-02 (Monarch parity): Accounts list + group expand state.
   const [assets, setAssets] = useState<AssetItem[]>([]);
@@ -145,8 +145,10 @@ export default function NetWorthPage() {
       setTotalAssets(d.totalAssets ?? 0);
       setTotalDebts(d.totalDebts ?? 0);
       setTotalSavings(d.totalSavings ?? 0);
-      setChangeAmount(d.changeAmount ?? 0);
-      setChangePercent(d.changePercent ?? 0);
+      // Preserve null when backend has no prior snapshot to compare against.
+      // Null hides the change row; 0 would show a misleading "▲ $0.00".
+      setChangeAmount(d.changeAmount ?? null);
+      setChangePercent(d.changePercent ?? null);
 
       const assetRecs = (assetList as { assets?: unknown[] })?.assets ?? [];
       setAssets(
@@ -236,7 +238,7 @@ export default function NetWorthPage() {
     if (mountedRef.current) setSnapping(false);
   };
 
-  const changePositive = changeAmount >= 0;
+  const changePositive = (changeAmount ?? 0) >= 0;
   const periodLabel = PERIODS.find(p => p.key === period)?.label ?? period;
 
   // 2026-05-02 (Monarch parity): build expandable account groups.
@@ -344,9 +346,9 @@ export default function NetWorthPage() {
       >
         <p className="text-green-100 text-sm">Current Net Worth</p>
         <p className="text-4xl font-bold mb-1">{fmt(currentNetWorth)}</p>
-        {history.length > 0 && (
+        {history.length > 0 && changeAmount != null && (
           <p className={`text-sm ${changePositive ? 'text-green-200' : 'text-red-300'}`}>
-            {changePositive ? '▲' : '▼'} {fmt(Math.abs(changeAmount))} ({changePercent.toFixed(1)}%) over {periodLabel.toLowerCase()}
+            {changePositive ? '▲' : '▼'} {fmt(Math.abs(changeAmount))} ({(changePercent ?? 0).toFixed(1)}%) over {periodLabel.toLowerCase()}
           </p>
         )}
         {/* MOB-5 (2026-05-21): daily change ("Today") for parity with the
