@@ -711,6 +711,9 @@ export default function ProfilePage() {
                 const { setLocale } = await import('../../../lib/i18n');
                 setLocale(next);
                 localStorage.setItem('barakah_locale_manual_override', 'true');
+                // Sync user.locale on the backend so server-generated content
+                // (insights, emails, weekly recap) also renders in the new language.
+                await api.updatePreferences({ language: next } as unknown as Record<string, unknown>);
                 toast(tStandalone('profLanguageUpdated'), 'success');
               } catch {
                 toast(tStandalone('profLanguageUpdateFailed'), 'error');

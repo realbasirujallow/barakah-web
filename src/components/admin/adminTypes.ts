@@ -32,6 +32,7 @@ export interface AdminUser {
   country?: string;
   state?: string;
   phoneNumber?: string;
+  locale?: string;
 }
 
 export interface OnboardingTrialSettings {

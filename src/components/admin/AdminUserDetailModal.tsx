@@ -293,6 +293,7 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [wipeConfirm, setWipeConfirm] = useState<number | null>(null);
   const [isWiping, setIsWiping] = useState(false);
+  const [localeUpdating, setLocaleUpdating] = useState(false);
 
   return (
     // 2026-05-02 (revert): the earlier `flex min-h-full` outer-scroll
@@ -855,6 +856,36 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
               userEmail={selected.email}
               toast={toast}
             />
+          </div>
+
+          {/* Language / Locale override */}
+          <div className="border-t pt-5">
+            <p className="text-sm font-medium text-gray-700 mb-1">Language Override</p>
+            <p className="text-xs text-gray-500 mb-3">Change the user&apos;s UI &amp; email locale. Useful when a test account was created with wrong device language.</p>
+            <div className="flex gap-2">
+              {(['en', 'ar', 'ur', 'fr'] as const).map((loc) => (
+                <button
+                  key={loc}
+                  disabled={localeUpdating || selected?.locale === loc}
+                  onClick={async () => {
+                    setLocaleUpdating(true);
+                    try {
+                      await api.adminUpdateUserLocale(selected!.id, loc);
+                      toast(`Locale updated to ${loc}`, 'success');
+                      setSelected({ ...selected!, locale: loc });
+                    } catch (err) {
+                      toast(err instanceof Error ? err.message : 'Locale update failed', 'error');
+                    } finally { setLocaleUpdating(false); }
+                  }}
+                  className={`flex-1 py-1.5 rounded-lg text-sm font-semibold border transition
+                    ${selected?.locale === loc
+                      ? 'bg-green-100 border-green-400 text-green-800'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50'}`}
+                >
+                  {loc.toUpperCase()}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Wipe Financial Data */}
