@@ -32,6 +32,7 @@ import { AdminUnverifiedTab } from '../../../components/admin/AdminUnverifiedTab
 import { AdminDeletedTab } from '../../../components/admin/AdminDeletedTab';
 import { AdminEmailLogTab } from '../../../components/admin/AdminEmailLogTab';
 import { AdminExperimentsTab } from '../../../components/admin/AdminExperimentsTab';
+import { AdminLocaleAuditTab } from '../../../components/admin/AdminLocaleAuditTab';
 import { AdminUserDetailModal } from '../../../components/admin/AdminUserDetailModal';
 import { AdminGrantTrialModal } from '../../../components/admin/AdminGrantTrialModal';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
@@ -595,7 +596,7 @@ export default function AdminPage() {
 
       {/* ── Tab Navigation ── */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 overflow-x-auto">
-        {(['overview', 'users', 'alerts', 'unverified', 'lifecycle', 'experiments', 'deleted', 'email-log'] as const).map(tab => (
+        {(['overview', 'users', 'alerts', 'unverified', 'lifecycle', 'experiments', 'deleted', 'email-log', 'locale-audit'] as const).map(tab => (
           <button
             key={tab}
             type="button"
@@ -627,6 +628,7 @@ export default function AdminPage() {
             {tab === 'lifecycle' && '📬 Lifecycle'}
             {tab === 'experiments' && '🧪 Experiments'}
             {tab === 'deleted' && '🗑️ Deleted'}
+            {tab === 'locale-audit' && '🌐 Locale Audit'}
             {tab === 'email-log' && (
               <>
                 ✉️ Email Log
@@ -744,6 +746,10 @@ export default function AdminPage() {
           setEmailLogStats={setEmailLogStats}
           toast={toast}
         />
+      )}
+
+      {activeTab === 'locale-audit' && (
+        <AdminLocaleAuditTab />
       )}
 
       {/* ══════════════════ USER DETAIL MODAL ══════════════════ */}

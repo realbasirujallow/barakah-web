@@ -1587,6 +1587,8 @@ export const api = {
     apiFetch(`/admin/users/${userId}/wipe-financial-data`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   adminUpdateUserLocale: (userId: number, locale: string) =>
     apiFetch(`/admin/users/${userId}/locale`, { method: 'PUT', body: JSON.stringify({ locale }) }, API_TIMEOUT, true),
+  adminLocaleAudit: () =>
+    apiFetch('/admin/locale-audit', {}, API_TIMEOUT, true),
   adminVerifyEmail: (userId: number) =>
     apiFetch(`/admin/users/${userId}/verify-email`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   /**

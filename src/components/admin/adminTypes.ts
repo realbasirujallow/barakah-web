@@ -197,7 +197,8 @@ export type AdminTab =
   | 'lifecycle'
   | 'experiments'
   | 'deleted'
-  | 'email-log';
+  | 'email-log'
+  | 'locale-audit';
 
 /** Feature flag metadata returned by /admin/feature-flags. */
 export interface AdminFeatureFlag {
