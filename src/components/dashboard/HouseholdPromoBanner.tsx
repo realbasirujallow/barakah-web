@@ -42,25 +42,13 @@ export interface HouseholdPromoBannerProps {
   className?: string;
 }
 
-const COPY: Record<Exclude<HouseholdBannerVariant, 'none'>, {
+// Fallback EN copy (used as type reference only; runtime copy comes from i18n)
+type BannerCopy = Record<Exclude<HouseholdBannerVariant, 'none'>, {
   title: string;
   body: string;
   ctaLabel: string;
   ctaHref: string;
-}> = {
-  'invite-promo': {
-    title: 'Manage money together',
-    body: 'Add up to 6 household members to share budgets, joint zakat, and estate planning.',
-    ctaLabel: 'See Family plan',
-    ctaHref: '/dashboard/billing',
-  },
-  'invite-empty': {
-    title: 'Invite your first household member',
-    body: "You're on the Family plan but no one else is on it yet. Add a spouse, parent, or adult child.",
-    ctaLabel: 'Invite member',
-    ctaHref: '/dashboard/family',
-  },
-};
+}>;
 
 export function HouseholdPromoBanner({
   variant,
@@ -71,7 +59,7 @@ export function HouseholdPromoBanner({
   if (variant === 'none') return null;
 
   // Build localized copy dynamically so locale switches take effect immediately.
-  const COPY_L10N: typeof COPY = {
+  const COPY_L10N: BannerCopy = {
     'invite-promo': {
       title: t('dashHouseholdPromoTitle'),
       body: t('dashHouseholdPromoBody'),
