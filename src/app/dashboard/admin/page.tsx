@@ -16,7 +16,7 @@
  * file-organisation refactor with no behavioural or network changes.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
@@ -83,6 +83,9 @@ export default function AdminPage() {
   const [forbidden, setForbidden] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [search, setSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<UsersResponse | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [userFilter, setUserFilter] = useState<UserFilter>('all');
   const [selected, setSelected] = useState<AdminUser | null>(null);
   const [resetting, setResetting] = useState(false);
@@ -364,11 +367,37 @@ export default function AdminPage() {
     }
   };
 
-  const filteredUsers = (usersData?.users ?? []).filter(u => {
-    const q = search.trim().toLowerCase();
-    const searchMatch = !q || u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q);
-    if (!searchMatch) return false;
+  // Server-side search: debounce 400ms, fires when query >= 2 chars.
+  // Clears results when query is cleared so the normal paginated view resumes.
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    const q = search.trim();
+    if (q.length < 2) {
+      setSearchResults(null);
+      return;
+    }
+    searchDebounceRef.current = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const res = await api.adminSearchUsers(q, 0, 200);
+        setSearchResults(res as UsersResponse);
+      } catch {
+        // silently keep old results if search fails
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 400);
+    return () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current); };
+  }, [search]);
 
+  // When a search query is active, use server results; otherwise use the
+  // paginated usersData (client-side filter for plan/status chips still applied).
+  const activeUsers = search.trim().length >= 2
+    ? (searchResults?.users ?? [])
+    : (usersData?.users ?? []);
+
+  const filteredUsers = activeUsers.filter(u => {
+    // In search mode, plan/status filter chips still apply for refinement.
     switch (userFilter) {
       case 'unverified':
         return u.emailVerified === false;
@@ -643,11 +672,12 @@ export default function AdminPage() {
 
       {activeTab === 'users' && (
         <AdminUsersTab
-          usersData={usersData}
-          recentSignups={overview?.recentSignups}
+          usersData={search.trim().length >= 2 ? (searchResults ?? usersData) : usersData}
+          recentSignups={search.trim().length >= 2 ? undefined : overview?.recentSignups}
           filteredUsers={filteredUsers}
           search={search}
           setSearch={setSearch}
+          searchLoading={searchLoading}
           userFilter={userFilter}
           setUserFilter={setUserFilter}
           page={page}

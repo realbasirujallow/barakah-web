@@ -1558,6 +1558,13 @@ export const api = {
   getAdminUsers: (page = 0, size = 50) =>
     apiFetch(`/admin/active-users?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
   /**
+   * Full-database admin user search — hits the server so it works across ALL
+   * users, not just the current page. Searches email, name, country, state,
+   * plan, subscriptionStatus, and signupSource (e.g. "test", "e2e", "longsmile").
+   */
+  adminSearchUsers: (q: string, page = 0, size = 50) =>
+    apiFetch(`/admin/users/search?q=${encodeURIComponent(q)}&page=${page}&size=${size}`, {}, API_TIMEOUT, true),
+  /**
    * Returns ALL unverified users (email_verified = false), newest first.
    * No pagination — the unverified set is bounded and the admin "Unverified"
    * tab needs the full list to match the badge count from /admin/overview.

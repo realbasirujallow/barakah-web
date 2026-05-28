@@ -19,6 +19,7 @@ export interface AdminUsersTabProps {
   filteredUsers: AdminUser[];
   search: string;
   setSearch: (s: string) => void;
+  searchLoading?: boolean;
   userFilter: UserFilter;
   setUserFilter: (f: UserFilter) => void;
   page: number;
@@ -33,6 +34,7 @@ export function AdminUsersTab({
   filteredUsers,
   search,
   setSearch,
+  searchLoading,
   userFilter,
   setUserFilter,
   page,
@@ -92,13 +94,20 @@ export function AdminUsersTab({
         <div className="p-4 border-b bg-gray-50">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex-1 flex flex-col gap-3 lg:flex-row lg:items-center">
-              <input
-                type="text"
-                placeholder="Search by name or email…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="flex-1 px-4 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
-              />
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Search by name, email, country, plan… (searches all users)"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none pr-8"
+                />
+                {searchLoading && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs animate-pulse">
+                    …
+                  </span>
+                )}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {[
                   ['all', 'All Users'],
@@ -135,7 +144,11 @@ export function AdminUsersTab({
                   Clear Search
                 </button>
               )}
-              <span className="text-xs text-gray-400">{usersData?.totalElements ?? 0} total</span>
+              <span className="text-xs text-gray-400">
+                {search.trim().length >= 2
+                  ? `${filteredUsers.length} result${filteredUsers.length !== 1 ? 's' : ''} for "${search.trim()}"`
+                  : `${usersData?.totalElements ?? 0} total`}
+              </span>
               {(usersData?.totalPages ?? 1) > 1 && !search && (
                 <>
                   <button
