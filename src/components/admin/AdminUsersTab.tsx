@@ -10,6 +10,7 @@
  * refactor.
  */
 
+import { useState, useEffect } from 'react';
 import type { AdminUser, UsersResponse, UserFilter } from './adminTypes';
 import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDateMs, fmtFullTs, formatLocation } from './adminFormatting';
 
@@ -26,6 +27,7 @@ export interface AdminUsersTabProps {
   setPage: (p: number) => void;
   loadData: (p: number) => void | Promise<void>;
   openUser: (u: AdminUser, listContext?: AdminUser[]) => void;
+  onBulkDelete?: (ids: number[]) => Promise<void>;
 }
 
 export function AdminUsersTab({
@@ -41,7 +43,47 @@ export function AdminUsersTab({
   setPage,
   loadData,
   openUser,
+  onBulkDelete,
 }: AdminUsersTabProps) {
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkConfirm, setBulkConfirm] = useState(false);
+
+  // Clear selection when the user list changes (page turn, search, filter)
+  useEffect(() => { setSelected(new Set()); setBulkConfirm(false); }, [filteredUsers]);
+
+  const toggleOne = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selected.size === filteredUsers.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filteredUsers.map(u => u.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!onBulkDelete || selected.size === 0) return;
+    setBulkDeleting(true);
+    try {
+      await onBulkDelete(Array.from(selected));
+      setSelected(new Set());
+      setBulkConfirm(false);
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  const allSelected = filteredUsers.length > 0 && selected.size === filteredUsers.length;
+  const someSelected = selected.size > 0 && !allSelected;
+
   return (
     <div className="space-y-4">
       {recentSignups && recentSignups.length > 0 && (
@@ -205,10 +247,65 @@ export function AdminUsersTab({
           </div>
         </div>
 
+        {/* Bulk delete action bar — appears when ≥1 row is selected */}
+        {selected.size > 0 && (
+          <div className="flex items-center gap-3 px-4 py-2.5 bg-red-50 border-b border-red-100">
+            <span className="text-sm font-medium text-red-700">
+              {selected.size} user{selected.size !== 1 ? 's' : ''} selected
+            </span>
+            <div className="flex-1" />
+            <button
+              type="button"
+              onClick={() => setSelected(new Set())}
+              className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1"
+            >
+              Clear
+            </button>
+            {!bulkConfirm ? (
+              <button
+                type="button"
+                onClick={() => setBulkConfirm(true)}
+                className="px-3 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition"
+              >
+                Delete {selected.size} account{selected.size !== 1 ? 's' : ''}…
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-red-700 font-medium">Permanently delete? This cannot be undone.</span>
+                <button
+                  type="button"
+                  onClick={() => setBulkConfirm(false)}
+                  className="px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleting}
+                  className="px-3 py-1.5 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 rounded-lg transition disabled:opacity-50"
+                >
+                  {bulkDeleting ? `Deleting…` : `Yes, delete ${selected.size}`}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 text-left text-gray-500 text-xs uppercase tracking-wide">
+                <th className="px-3 py-3 w-8">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={el => { if (el) el.indeterminate = someSelected; }}
+                    onChange={toggleAll}
+                    className="rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                    title="Select all"
+                  />
+                </th>
                 <th className="px-3 py-3">ID</th>
                 <th className="px-3 py-3">User</th>
                 <th className="px-3 py-3">Plan</th>
@@ -224,7 +321,7 @@ export function AdminUsersTab({
             <tbody className="divide-y divide-gray-100">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="text-center py-10 text-gray-400">
+                  <td colSpan={11} className="text-center py-10 text-gray-400">
                     {search ? 'No users match your search.' : userFilter !== 'all' ? 'No users match this filter on the current page.' : 'No users found.'}
                   </td>
                 </tr>
@@ -232,8 +329,21 @@ export function AdminUsersTab({
                 filteredUsers.map(u => {
                   const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
                   const subInfo = SUB_STATUS_LABELS[u.subscriptionStatus ?? 'inactive'] ?? SUB_STATUS_LABELS.inactive;
+                  const isSelected = selected.has(u.id);
                   return (
-                    <tr key={u.id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => openUser(u, filteredUsers)}>
+                    <tr
+                      key={u.id}
+                      className={`hover:bg-gray-50 transition cursor-pointer ${isSelected ? 'bg-red-50' : ''}`}
+                      onClick={() => openUser(u, filteredUsers)}
+                    >
+                      <td className="px-3 py-3 w-8" onClick={e => toggleOne(u.id, e)}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {}}
+                          className="rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                        />
+                      </td>
                       <td className="px-3 py-3 text-gray-400 font-mono text-xs">{u.id}</td>
                       <td className="px-3 py-3">
                         <p className="font-medium text-gray-900 text-sm">{u.name || '—'}</p>

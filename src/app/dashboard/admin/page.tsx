@@ -331,6 +331,25 @@ export default function AdminPage() {
     }
   };
 
+  const handleBulkDelete = async (ids: number[]) => {
+    let deleted = 0;
+    const errors: number[] = [];
+    for (const id of ids) {
+      try {
+        await api.adminDeleteUser(id);
+        deleted++;
+      } catch {
+        errors.push(id);
+      }
+    }
+    if (errors.length === 0) {
+      toast(`Deleted ${deleted} account${deleted !== 1 ? 's' : ''} successfully.`, 'success');
+    } else {
+      toast(`Deleted ${deleted}, failed ${errors.length} (IDs: ${errors.join(', ')}).`, 'error');
+    }
+    loadData(page);
+  };
+
   const openTrialModal = () => { setTrialPlan('plus'); setTrialDurationDays(30); setTrialSendEmail(true); setTrialModalOpen(true); };
   const closeTrialModal = () => setTrialModalOpen(false);
 
@@ -684,6 +703,7 @@ export default function AdminPage() {
           setPage={setPage}
           loadData={loadData}
           openUser={openUser}
+          onBulkDelete={handleBulkDelete}
         />
       )}
 
