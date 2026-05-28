@@ -212,8 +212,8 @@ export function AdminUsersTab({
               )}
               <button
                 onClick={() => {
-                  const users = usersData?.users ?? [];
-                  const csv = ['ID,Name,Email,Phone,Plan,Status,Verified,Location,Joined']
+                  const users = filteredUsers;
+                  const csv = ['ID,Name,Email,Phone,Plan,Status,Verified,VerifiedAt,Location,Joined,SignupSource,SignupIp,LastLogin,LastLoginIp,LoginCount']
                     .concat(users.map(u => [
                       u.id,
                       `"${(u.name || '').replace(/"/g, '""')}"`,
@@ -239,9 +239,10 @@ export function AdminUsersTab({
                   a.click();
                   URL.revokeObjectURL(url);
                 }}
+                title="Exports visible rows (use search to filter before exporting)"
                 className="px-3 py-1.5 text-xs font-medium text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition"
               >
-                Export CSV
+                Export CSV ({search.trim().length >= 2 ? `${filteredUsers.length} results` : `page ${page + 1}`})
               </button>
             </div>
           </div>

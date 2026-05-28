@@ -1583,6 +1583,8 @@ export const api = {
     apiFetch(`/admin/users/${userId}/grant-trial`, { method: 'POST', body: JSON.stringify({ plan, durationDays, sendEmail }) }, API_TIMEOUT, true),
   adminDeleteUser: (userId: number) =>
     apiFetch(`/admin/users/${userId}`, { method: 'DELETE' }, API_TIMEOUT, true),
+  adminWipeFinancialData: (userId: number) =>
+    apiFetch(`/admin/users/${userId}/wipe-financial-data`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   adminVerifyEmail: (userId: number) =>
     apiFetch(`/admin/users/${userId}/verify-email`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   /**

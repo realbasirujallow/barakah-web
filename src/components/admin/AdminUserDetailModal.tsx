@@ -289,6 +289,11 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
   const [emailMarkVerified, setEmailMarkVerified] = useState(false);
   const [emailSaving, setEmailSaving] = useState(false);
 
+  // Delete / wipe loading guards
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [wipeConfirm, setWipeConfirm] = useState<number | null>(null);
+  const [isWiping, setIsWiping] = useState(false);
+
   return (
     // 2026-05-02 (revert): the earlier `flex min-h-full` outer-scroll
     // pattern broke modal mounting on some browser/window combos —
@@ -852,6 +857,45 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
             />
           </div>
 
+          {/* Wipe Financial Data */}
+          <div className="border-t pt-5">
+            <p className="text-sm font-medium text-orange-700 mb-1">Wipe Financial Data</p>
+            <p className="text-xs text-gray-500 mb-3">Deletes all transactions, assets, budgets, investments, zakat, goals etc. but keeps the account. Useful for resetting a test/QA account.</p>
+            {wipeConfirm === selected?.id ? (
+              <div className="space-y-2">
+                <p className="text-xs text-orange-600 font-semibold bg-orange-50 p-2 rounded">
+                  Are you sure? This will permanently erase all financial data for {selected.name || selected.email}. The account remains active.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    disabled={isWiping}
+                    onClick={async () => {
+                      setIsWiping(true);
+                      try {
+                        await api.adminWipeFinancialData(selected.id);
+                        toast(`Financial data wiped for ${selected.email}`, 'success');
+                        setWipeConfirm(null);
+                      } catch (err) {
+                        toast(err instanceof Error ? err.message : 'Wipe failed', 'error');
+                      } finally { setIsWiping(false); }
+                    }}
+                    className="flex-1 py-2 bg-orange-600 text-white rounded-lg text-sm font-semibold hover:bg-orange-700 disabled:opacity-50 transition"
+                  >
+                    {isWiping ? 'Wiping…' : 'Yes, Wipe Financial Data'}
+                  </button>
+                  <button onClick={() => setWipeConfirm(null)} className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition">Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setWipeConfirm(selected?.id ?? null)}
+                className="w-full py-2.5 border-2 border-orange-300 text-orange-600 rounded-lg text-sm font-semibold hover:bg-orange-50 transition"
+              >
+                Wipe Financial Data…
+              </button>
+            )}
+          </div>
+
           {/* Delete Account */}
           <div className="border-t pt-5">
             <p className="text-sm font-medium text-red-700 mb-1">Delete Account</p>
@@ -863,7 +907,9 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
                 </p>
                 <div className="flex gap-2">
                   <button
+                    disabled={isDeleting}
                     onClick={async () => {
+                      setIsDeleting(true);
                       try {
                         await api.adminDeleteUser(selected.id);
                         toast(`User ${selected.email} deleted`, 'success');
@@ -872,11 +918,11 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
                         setUsersData(prev => prev ? { ...prev, users: prev.users.filter(u => u.id !== selected.id), totalElements: prev.totalElements - 1 } : prev);
                       } catch (err) {
                         toast(err instanceof Error ? err.message : 'Delete failed', 'error');
-                      }
+                      } finally { setIsDeleting(false); }
                     }}
-                    className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
+                    className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-50 transition"
                   >
-                    Yes, Delete Permanently
+                    {isDeleting ? 'Deleting…' : 'Yes, Delete Permanently'}
                   </button>
                   <button
                     onClick={() => setDeleteConfirm(null)}

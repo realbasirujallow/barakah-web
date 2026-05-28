@@ -393,10 +393,11 @@ export default function AdminPage() {
     const q = search.trim();
     if (q.length < 2) {
       setSearchResults(null);
+      setSearchLoading(false);
       return;
     }
+    setSearchLoading(true); // show spinner immediately when debounce is armed (≥2 chars)
     searchDebounceRef.current = setTimeout(async () => {
-      setSearchLoading(true);
       try {
         const res = await api.adminSearchUsers(q, 0, 200);
         setSearchResults(res as UsersResponse);
