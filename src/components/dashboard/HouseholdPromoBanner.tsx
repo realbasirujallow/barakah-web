@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useI18n } from '../../lib/i18n';
 
 /**
  * Phase 17 (Apr 30 2026) — household promo banner.
@@ -66,8 +67,25 @@ export function HouseholdPromoBanner({
   onDismiss,
   className,
 }: HouseholdPromoBannerProps) {
+  const { t } = useI18n();
   if (variant === 'none') return null;
-  const copy = COPY[variant];
+
+  // Build localized copy dynamically so locale switches take effect immediately.
+  const COPY_L10N: typeof COPY = {
+    'invite-promo': {
+      title: t('dashHouseholdPromoTitle'),
+      body: t('dashHouseholdPromoBody'),
+      ctaLabel: t('dashHouseholdPromoCtaSee'),
+      ctaHref: '/dashboard/billing',
+    },
+    'invite-empty': {
+      title: t('dashHouseholdInviteTitle'),
+      body: t('dashHouseholdInviteBody'),
+      ctaLabel: t('dashHouseholdInviteCta'),
+      ctaHref: '/dashboard/family',
+    },
+  };
+  const copy = COPY_L10N[variant];
 
   return (
     <div

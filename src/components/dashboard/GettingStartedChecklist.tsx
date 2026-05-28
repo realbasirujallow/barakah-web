@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useI18n } from '../../lib/i18n';
 
 /**
  * Phase 6.4 (Apr 27 2026) — activation checklist for new users.
@@ -48,6 +49,7 @@ export function GettingStartedChecklist({
   onDismiss,
   className,
 }: GettingStartedChecklistProps) {
+  const { t } = useI18n();
   const doneCount = items.filter(i => i.done).length;
   const totalCount = items.length;
   const pct = totalCount === 0 ? 0 : Math.round((doneCount / totalCount) * 100);
@@ -61,10 +63,10 @@ export function GettingStartedChecklist({
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
             <h2 className="text-sm font-semibold text-foreground tracking-tight">
-              Get the most out of Barakah
+              {t('dashGetStartedTitle')}
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {doneCount} of {totalCount} steps complete
+              {t('dashGetStartedSteps').replace('{done}', String(doneCount)).replace('{total}', String(totalCount))}
             </p>
           </div>
           {onDismiss && (

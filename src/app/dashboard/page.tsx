@@ -510,37 +510,37 @@ export default function DashboardPage() {
   const gettingStartedItems: GettingStartedItem[] = [
     {
       id: 'bank',
-      label: 'Connect a bank account',
-      description: 'Auto-import transactions and balances',
+      label: t('dashGsConnectBank'),
+      description: t('dashGsConnectBankDesc'),
       href: '/dashboard/import',
       done: ((widgets?.netWorthMini?.totalAssets ?? 0) > 0)
         || ((widgets?.recentTransactions?.totalCount ?? 0) > 0),
     },
     {
       id: 'tx',
-      label: 'Add or import a transaction',
-      description: 'Track income and expenses',
+      label: t('dashGsAddTransaction'),
+      description: t('dashGsAddTransactionDesc'),
       href: '/dashboard/transactions',
       done: (widgets?.recentTransactions?.totalCount ?? 0) > 0,
     },
     {
       id: 'asset',
-      label: 'Add an asset (cash, gold, stocks)',
-      description: 'Build your zakat-ready net worth',
+      label: t('dashGsAddAsset'),
+      description: t('dashGsAddAssetDesc'),
       href: '/dashboard/assets',
       done: (totals?.totalWealth ?? 0) > 0,
     },
     {
       id: 'budget',
-      label: 'Set up a budget',
-      description: 'Cap spending by category',
+      label: t('dashGsSetBudget'),
+      description: t('dashGsSetBudgetDesc'),
       href: '/dashboard/budget',
       done: !!(widgets?.budgetOverview && widgets.budgetOverview.totalBudgeted > 0),
     },
     {
       id: 'goal',
-      label: 'Create a savings goal',
-      description: 'Hajj, emergency fund, or anything else',
+      label: t('dashGsCreateGoal'),
+      description: t('dashGsCreateGoalDesc'),
       href: '/dashboard/savings',
       done: false, // No widget reports savings yet — defaults to "open"
     },
@@ -930,7 +930,7 @@ export default function DashboardPage() {
           className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-medium hover:bg-primary/10 transition-colors"
         >
           <span aria-hidden="true">↩</span>
-          <span>Pick up where you left off — {labelForRoute(lastVisit.pathname)}</span>
+          <span>{t('dashPickUpWhere').replace('{route}', labelForRoute(lastVisit.pathname))}</span>
         </Link>
       )}
 

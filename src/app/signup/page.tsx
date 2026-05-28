@@ -543,28 +543,26 @@ function SignupContent() {
                 lies, the user gets a normal-looking page with a quietly
                 available Resend button at the bottom. */}
             <div className="text-5xl mb-4">📧</div>
-            <h2 className="text-xl font-bold text-[#1B5E20] mb-2">Check Your Email!</h2>
+            <h2 className="text-xl font-bold text-[#1B5E20] mb-2">{t('signupCheckEmailHeadline')}</h2>
             <p className="text-gray-600 mb-2">
-              We sent a verification link to <strong>{email}</strong>.
+              {t('signupCheckEmailBody').replace('{email}', '')}
+              <strong>{email}</strong>.
             </p>
             <p className="text-gray-500 text-sm mb-6">
-              Click the link in the email to verify your account, then sign in to choose your starting plan and connect your accounts.
-              Don&apos;t forget to check your spam folder!
+              {t('signupCheckEmailSpam')}
             </p>
             {!emailSent && (
               <p className="text-amber-700 text-xs bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4 text-left">
-                <strong>Heads up:</strong> our email provider didn&apos;t confirm delivery.
-                If nothing lands in the next minute, click <em>Resend verification email</em>
-                below.
+                {t('signupResendTrouble')}
               </p>
             )}
 
             <div className="mb-4 rounded-xl bg-[#FFF3CD] text-[#1B5E20] text-sm font-medium px-4 py-3">
-              After sign in, Barakah will guide you through plan choice, secure account connection, and your first dashboard focus.
+              {t('signupCheckEmailNextSteps')}
             </div>
 
             {resendStatus === 'sent' ? (
-              <p className="text-green-700 text-sm mb-4">✅ Verification email resent!</p>
+              <p className="text-green-700 text-sm mb-4">{t('signupResendSent')}</p>
             ) : (
               <button
                 type="button"
@@ -572,7 +570,7 @@ function SignupContent() {
                 disabled={resendStatus === 'sending'}
                 className="w-full mb-3 border border-[#1B5E20] text-[#1B5E20] py-2.5 rounded-lg text-sm font-semibold hover:bg-green-50 transition disabled:opacity-50"
               >
-                {resendStatus === 'sending' ? 'Sending...' : 'Resend Verification Email'}
+                {resendStatus === 'sending' ? t('signupResendSending') : t('signupResendEmail')}
               </button>
             )}
 

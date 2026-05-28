@@ -94,10 +94,10 @@ function buildAdvice(p: AdviceQueueProps, t: (key: string) => string = (k) => k)
       id: 'hawl-due',
       severity: 'warning',
       icon: AlertTriangle,
-      title: `Zakat is due on ${p.hawlDueNowCount} asset${p.hawlDueNowCount === 1 ? '' : 's'}`,
-      body: 'A full lunar year (hawl) has passed. Calculate and pay this zakat to keep your wealth purified.',
+      title: t('adviceHawlDueTitle').replace('{count}', String(p.hawlDueNowCount)).replace('{plural}', p.hawlDueNowCount === 1 ? '' : 's'),
+      body: t('adviceHawlDueBody'),
       href: '/dashboard/hawl',
-      cta: 'Open hawl tracker',
+      cta: t('adviceHawlCta'),
     });
   }
   if (p.overdueBillsCount > 0) {
@@ -105,10 +105,10 @@ function buildAdvice(p: AdviceQueueProps, t: (key: string) => string = (k) => k)
       id: 'overdue-bills',
       severity: 'warning',
       icon: Receipt,
-      title: `${p.overdueBillsCount} bill${p.overdueBillsCount === 1 ? ' is' : 's are'} overdue`,
-      body: 'Review and mark these as paid (or update the due date if you already paid).',
+      title: t('adviceOverdueBillsTitle').replace('{count}', String(p.overdueBillsCount)).replace('{plural}', p.overdueBillsCount === 1 ? '' : 's'),
+      body: t('adviceOverdueBillsBody'),
       href: '/dashboard/bills',
-      cta: 'Review bills',
+      cta: t('adviceReviewBillsCta'),
     });
   }
 
@@ -118,10 +118,10 @@ function buildAdvice(p: AdviceQueueProps, t: (key: string) => string = (k) => k)
       id: 'needs-review',
       severity: 'info',
       icon: Clock,
-      title: `${p.reviewQueueCount} transaction${p.reviewQueueCount === 1 ? '' : 's'} need${p.reviewQueueCount === 1 ? 's' : ''} review`,
-      body: 'Verify the auto-detected categories on imported transactions so your budgets stay accurate.',
+      title: t('adviceNeedsReviewTitle').replace('{count}', String(p.reviewQueueCount)).replace('{plural}', p.reviewQueueCount === 1 ? '' : 's').replace('{s}', p.reviewQueueCount === 1 ? 's' : ''),
+      body: t('adviceNeedsReviewBody'),
       href: '/dashboard/transactions?filter=needs_review',
-      cta: 'Review now',
+      cta: t('adviceReviewNowCta'),
     });
   }
   const lastMonthOk = (p.spendingLastMonth ?? 0) >= 50;
@@ -130,10 +130,10 @@ function buildAdvice(p: AdviceQueueProps, t: (key: string) => string = (k) => k)
       id: 'spending-spike',
       severity: 'info',
       icon: PieChart,
-      title: `Spending up ${p.spendingChangePercent.toFixed(0)}% vs last month`,
-      body: 'Take a moment to scan your top categories — small spikes early in the month compound.',
+      title: t('adviceSpendingSpikeTitle').replace('{pct}', p.spendingChangePercent.toFixed(0)),
+      body: t('adviceSpendingSpikeBody'),
       href: '/dashboard/analytics',
-      cta: 'See breakdown',
+      cta: t('adviceSeeBreakdownCta'),
     });
   }
   if (p.upcomingBillsCount > 0 && p.overdueBillsCount === 0) {
@@ -143,10 +143,10 @@ function buildAdvice(p: AdviceQueueProps, t: (key: string) => string = (k) => k)
       id: 'upcoming-bills',
       severity: 'info',
       icon: Receipt,
-      title: `${p.upcomingBillsCount} bill${p.upcomingBillsCount === 1 ? '' : 's'} due soon`,
-      body: 'Make sure you have funds set aside before the due date.',
+      title: t('adviceUpcomingBillsTitle').replace('{count}', String(p.upcomingBillsCount)).replace('{plural}', p.upcomingBillsCount === 1 ? '' : 's'),
+      body: t('adviceUpcomingBillsBody'),
       href: '/dashboard/bills',
-      cta: 'View bills',
+      cta: t('adviceViewBillsCta'),
     });
   }
 
@@ -169,10 +169,10 @@ function buildAdvice(p: AdviceQueueProps, t: (key: string) => string = (k) => k)
       id: 'set-budget',
       severity: 'suggestion',
       icon: Target,
-      title: 'Set your first budget',
-      body: 'Cap spending in your top categories so the numbers tell you when you’re drifting.',
+      title: t('adviceSetBudgetTitle'),
+      body: t('adviceSetBudgetBody'),
       href: '/dashboard/budget',
-      cta: 'Create budget',
+      cta: t('adviceSetBudgetCta'),
     });
   }
   if (p.transactionCount > 50 && p.reviewQueueCount === 0) {
@@ -182,10 +182,10 @@ function buildAdvice(p: AdviceQueueProps, t: (key: string) => string = (k) => k)
       id: 'auto-categorize',
       severity: 'suggestion',
       icon: Tags,
-      title: 'Turn on transaction sorting',
-      body: 'Let Barakah label imported transactions for you (Plus). Saves ~5 minutes per import.',
+      title: t('adviceAutoCategTitle'),
+      body: t('adviceAutoCategBody'),
       href: '/dashboard/categorize',
-      cta: 'Enable',
+      cta: t('adviceEnableCta'),
     });
   }
 

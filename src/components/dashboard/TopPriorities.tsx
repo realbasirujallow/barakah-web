@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { api } from '../../lib/api';
+import { useI18n } from '../../lib/i18n';
 
 /**
  * R45 (2026-05-01) — Monarch's "Goals: Your top priorities" section.
@@ -52,6 +53,7 @@ const CATEGORY_ICON: Record<string, string> = {
 };
 
 export function TopPriorities({ fmt }: TopPrioritiesProps) {
+  const { t } = useI18n();
   const [goals, setGoals] = React.useState<Goal[] | null>(null);
 
   React.useEffect(() => {
@@ -93,9 +95,9 @@ export function TopPriorities({ fmt }: TopPrioritiesProps) {
       <div className="flex items-center justify-between mb-3">
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-            Your top priorities
+            {t('dashTopPrioritiesLabel')}
           </p>
-          <h2 className="text-base font-bold text-foreground">Savings goals</h2>
+          <h2 className="text-base font-bold text-foreground">{t('dashSavingsGoalsTitle')}</h2>
         </div>
         <Link
           href="/dashboard/savings"
