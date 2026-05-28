@@ -77,7 +77,7 @@ const navItems: { href: string; icon: LucideIcon; label: string; gate?: 'plus' |
   { href: '/dashboard/zakat', icon: Coins, label: 'Zakat' },
   // ── Premium features (alphabetized) ───────────────────────────────────────
   { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics', gate: 'plus' },
-  { href: '/dashboard/categorize', icon: Tags, label: 'Transaction sorting', gate: 'plus' },
+  { href: '/dashboard/categorize', icon: Tags, label: 'Transaction Rules', gate: 'plus' },
   { href: '/dashboard/barakah-score', icon: Star, label: 'Barakah Score', gate: 'plus' },
   { href: '/dashboard/summary', icon: FileText, label: 'Financial Summary', gate: 'plus' },
   { href: '/dashboard/halal', icon: ShieldCheck, label: 'Stock Screener', gate: 'plus' },
@@ -131,7 +131,7 @@ const NAV_LABEL_KEYS: Record<string, string> = {
   'Transactions': 'navTransactions',
   'Zakat': 'navZakat',
   'Analytics': 'navAnalytics',
-  'Transaction sorting': 'navTransactionSorting',
+  'Transaction Rules': 'navTransactionSorting',
   'Barakah Score': 'navBarakahScore',
   'Financial Summary': 'navFinancialSummary',
   'Stock Screener': 'navStockScreener',
@@ -202,7 +202,7 @@ type SidebarSection = 'spending' | 'plan' | 'islamic' | 'family' | 'profile' | '
 const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> = {
   spending: {
     label: 'Spending',
-    items: ['Transactions', 'Budget', 'Recurring', 'Audit Ledger', 'Transaction sorting', 'Analytics', 'Riba Detector', 'Subscription Detector'],
+    items: ['Transactions', 'Budget', 'Recurring', 'Audit Ledger', 'Transaction Rules', 'Analytics', 'Riba Detector', 'Subscription Detector'],
   },
   plan: {
     label: 'Plan',

@@ -101,7 +101,7 @@ const ROUTE_TO_LABEL: Record<string, string> = {
   '/dashboard/family': 'Family',
   '/dashboard/shared': 'Shared Finances',
   '/dashboard/analytics': 'Analytics',
-  '/dashboard/categorize': 'Transaction sorting',
+  '/dashboard/categorize': 'Transaction Rules',
   '/dashboard/subscriptions': 'Subscription Detector',
   '/dashboard/ramadan': 'Ramadan Mode',
   '/dashboard/fiqh': 'Fiqh Settings',

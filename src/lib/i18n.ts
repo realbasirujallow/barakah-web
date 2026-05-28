@@ -94,7 +94,7 @@ const en: Translations = {
   navTransactions: 'Transactions',
   navZakat: 'Zakat',
   navAnalytics: 'Analytics',
-  navTransactionSorting: 'Transaction sorting',
+  navTransactionSorting: 'Transaction Rules',
   navBarakahScore: 'Barakah Score',
   navFinancialSummary: 'Financial Summary',
   navStockScreener: 'Stock Screener',
