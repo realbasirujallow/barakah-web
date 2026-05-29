@@ -137,6 +137,21 @@ function AnalyticsPageContent() {
     );
   }
 
+  // If all data failed to load, show a friendly error state instead of a blank page
+  const hasAnyData = allPeriods.week || allPeriods.month || allPeriods.year || monthlyData.length > 0 || halalAnalysis;
+  if (!hasAnyData) {
+    return (
+      <div className="text-center py-20 max-w-md mx-auto">
+        <div className="text-5xl mb-4">📊</div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">No Analytics Data Yet</h2>
+        <p className="text-gray-600 mb-6">Connect a bank account and let transactions sync to see your spending analytics.</p>
+        <a href="/dashboard" className="px-4 py-2 bg-[#1B5E20] text-white rounded-lg text-sm font-medium hover:bg-[#1B5E20]/90 transition">
+          Go to Dashboard
+        </a>
+      </div>
+    );
+  }
+
   // Guard: never render income/transfer buckets as "spending" rows, even if a
   // mis-typed transaction leaks one through (backend also excludes these).
   const expenseData = summary
