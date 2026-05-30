@@ -56,6 +56,7 @@ const en: Translations = {
   setupFlexibleLater: 'Flexible later',
   setupFlexibleLaterBody: 'You can still import CSVs or fine-tune everything afterward.',
   setupNoAccountsLinked: 'No accounts linked yet',
+  setupConnectionStatus: 'Connection status',
   setupNoAccountsBody: 'Connect your first bank or card account here. You can always manage categories and import details after setup.',
   setupImportLater: 'Need to import a CSV or fine-tune accounts later? You can always handle that from the dashboard import center after setup.',
   // 2026-05-19 (audit Bug #20 continuation): dashboard sidebar nav. Founder
@@ -2746,6 +2747,7 @@ const ar: Translations = {
   setupFlexibleLater: 'مرونة لاحقة',
   setupFlexibleLaterBody: 'يمكنك دائمًا استيراد ملفات CSV أو تعديل كل شيء بعد ذلك.',
   setupNoAccountsLinked: 'لا توجد حسابات مرتبطة بعد',
+  setupConnectionStatus: 'حالة الاتصال',
   setupNoAccountsBody: 'اربط أول حساب بنكي أو بطاقة هنا. يمكنك إدارة التصنيفات وتفاصيل الاستيراد بعد الإعداد.',
   setupImportLater: 'تحتاج إلى استيراد CSV أو ضبط الحسابات لاحقًا؟ يمكنك دائمًا فعل ذلك من مركز الاستيراد في لوحة التحكم بعد الإعداد.',
   // 2026-05-19 (audit Bug #20 continuation): dashboard sidebar nav — Arabic. FOUNDER TO REVIEW.
@@ -5385,6 +5387,7 @@ const ur: Translations = {
   setupFlexibleLater: 'بعد میں لچک',
   setupFlexibleLaterBody: 'آپ بعد میں CSV درآمد کر سکتے ہیں یا ہر چیز کو فائن ٹیون کر سکتے ہیں۔',
   setupNoAccountsLinked: 'ابھی کوئی اکاؤنٹ نہیں جڑا',
+  setupConnectionStatus: 'کنکشن کی صورتحال',
   setupNoAccountsBody: 'یہاں اپنا پہلا بینک یا کارڈ اکاؤنٹ جوڑیں۔ آپ سیٹ اپ کے بعد کیٹگریز اور درآمد کی تفصیلات کا انتظام کر سکتے ہیں۔',
   setupImportLater: 'بعد میں CSV درآمد کرنا یا اکاؤنٹس کو فائن ٹیون کرنا چاہتے ہیں؟ آپ ہمیشہ ڈیش بورڈ امپورٹ سینٹر سے یہ سنبھال سکتے ہیں۔',
   // 2026-05-19 (audit Bug #20 continuation): dashboard sidebar nav — Urdu. FOUNDER TO REVIEW.
@@ -8024,6 +8027,7 @@ const fr: Translations = {
   setupFlexibleLater: 'Flexible plus tard',
   setupFlexibleLaterBody: 'Vous pouvez toujours importer des CSV ou affiner les détails par la suite.',
   setupNoAccountsLinked: 'Aucun compte connecté pour le moment',
+  setupConnectionStatus: 'État de la connexion',
   setupNoAccountsBody: 'Connectez ici votre premier compte bancaire ou carte. Vous pouvez gérer les catégories et les détails d’importation après la configuration.',
   setupImportLater: 'Besoin d’importer un CSV ou d’ajuster les comptes plus tard ? Vous pouvez le faire depuis le centre d’importation du tableau de bord, à tout moment.',
   // 2026-05-19 (audit Bug #20 continuation): dashboard sidebar nav — French. FOUNDER TO REVIEW.

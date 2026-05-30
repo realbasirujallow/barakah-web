@@ -13,6 +13,13 @@ export const metadata: Metadata = {
   keywords: ['halal stocks', 'shariah compliant stocks', 'halal investing', 'islamic stocks', 'halal stock screener', 'AAOIFI screening', 'halal ETF', 'islamic finance investing', 'halal stocks list', 'halal stocks 2026'],
   alternates: {
     canonical: 'https://trybarakah.com/learn/halal-stocks',
+    languages: {
+      en: 'https://trybarakah.com/learn/halal-stocks',
+      fr: 'https://trybarakah.com/fr/learn/halal-stocks',
+      ar: 'https://trybarakah.com/ar/learn/halal-stocks',
+      ur: 'https://trybarakah.com/ur/learn/halal-stocks',
+      'x-default': 'https://trybarakah.com/learn/halal-stocks',
+    },
   },
   openGraph: {
     title: 'Halal Stocks List 2026: How to Screen for Shariah Compliance',

@@ -43,9 +43,35 @@ const rows = [
   { feature: 'Offline / manual-entry support', barakah: 'Full — bulk import, CSV, manual transactions', ynab: 'Full', winner: 'Tie' as const },
 ];
 
+const faqs = [
+  {
+    q: 'Is YNAB halal for Muslims?',
+    a: "YNAB the app is neutral — it's a budgeting tool, and budgeting is permissible. The Shariah-relevant gap is what YNAB doesn't do: no zakat across multi-asset wealth, no hawl tracker, no halal stock screen, no riba flagging on interest income, no Islamic estate planning. YNAB is fine to use; it just leaves the Islamic-finance layer entirely up to you (most Muslim YNAB users keep a parallel zakat spreadsheet).",
+  },
+  {
+    q: 'What does Barakah do that YNAB does not?',
+    a: 'Zakat across cash, gold, stocks, 401k, rental, crypto, and business; hawl continuity tracking with daily nisab checks; AAOIFI screening on 30,000+ tickers; transaction-level riba detection with purification math; Islamic estate planning (faraid + wasiyyah); and a Family plan up to 6 members vs YNAB Together\'s two-user limit.',
+  },
+  {
+    q: 'Can I use YNAB and Barakah together?',
+    a: "Yes — common bridge for households who love YNAB's envelope discipline. Keep YNAB for the strict envelope budgeting; add Barakah for the Islamic layer (zakat, hawl, halal screening, riba detection, wasiyyah). Same accounts can be linked to both.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsYnabPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -119,6 +145,18 @@ export default function BarakahVsYnabPage() {
               separate zakat spreadsheet every Ramadan, try Barakah&apos;s Plus tier ($9.99/mo) for the Islamic layer. {DEFAULT_ONBOARDING_TRIAL_WINDOW_LABEL}
               free trial, no card.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

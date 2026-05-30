@@ -40,9 +40,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', yaqeen: 'Standard SaaS; no data sale per policy', winner: 'Tie' as const },
 ];
 
+const faqs = [
+  {
+    q: 'Is Yaqeen Money halal?',
+    a: "Yes — Yaqeen Money positions itself as a Shariah-compliant Muslim finance platform, and its product positioning reflects Islamic-finance principles. It is a credible Muslim-built option in the space. For specific Shariah-compliance details on each product, refer to Yaqeen Money's own disclosures and their advisory framework.",
+  },
+  {
+    q: 'What does Barakah do that Yaqeen Money does not?',
+    a: 'Barakah is the broader Muslim household financial OS — multi-asset zakat (cash, gold, stocks, 401k, rental, crypto, business), hawl continuity tracking across years, AAOIFI screening on 30,000+ tickers, transaction-level riba detection with purification math, faraid + wasiyyah, and a Family plan up to 6 members. The two products overlap in spirit but Barakah covers a wider household-finance surface.',
+  },
+  {
+    q: 'Can I use Yaqeen Money and Barakah together?',
+    a: "Yes — they don't conflict. Some Muslim households use multiple Islamic-finance tools in parallel for different jobs. Barakah focuses on the household financial OS layer; Yaqeen Money focuses on its specific product offering. Pick whichever covers more of your actual workflow.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsYaqeenMoneyPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -115,6 +141,18 @@ export default function BarakahVsYaqeenMoneyPage() {
               multi-asset zakat, halal stock screening, faraid, and family seats in one place — that&apos;s the area
               where Barakah is further along today.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

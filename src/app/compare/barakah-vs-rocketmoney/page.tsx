@@ -39,9 +39,35 @@ const rows = [
   { feature: 'Mobile app quality', barakah: 'Live on iOS & Android', rocket: 'Polished iOS & Android, mature; Rocket Companies brand backing', winner: 'Rocket Money' as const, note: 'Mobile UX is among the best in the category.' },
 ];
 
+const faqs = [
+  {
+    q: 'Is Rocket Money halal for Muslims?',
+    a: "Rocket Money is a budget + subscription-cancellation tool — neutral by itself. The Shariah-relevant gap is what it doesn't do: no zakat across your wealth, no hawl tracker, no halal stock screen, no riba flagging on interest income, no Islamic estate planning. Fine to use for subscription auditing; doesn't carry the Islamic-finance layer.",
+  },
+  {
+    q: 'What does Barakah do that Rocket Money does not?',
+    a: 'Zakat across all asset classes; hawl continuity tracking; AAOIFI screening on 30,000+ tickers; transaction-level riba detection with purification math; Islamic estate planning (faraid + wasiyyah); and a built-in subscription detector. Rocket Money is a budget + cancel-subscriptions tool; Barakah is a Muslim household financial OS that also detects subscriptions.',
+  },
+  {
+    q: 'Can I use Rocket Money and Barakah together?',
+    a: "You can, but most users find Barakah's subscription detection covers Rocket Money's main hook plus the Islamic layer. If you specifically rely on Rocket Money's negotiation-on-your-behalf feature, keep that for a few months and use Barakah for everything else.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsRocketMoneyPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -117,6 +143,18 @@ export default function BarakahVsRocketMoneyPage() {
               on spreadsheets. Either switch to Barakah outright (and cancel subscriptions yourself), or bolt Barakah
               Plus ($9.99/mo) onto Rocket Money for the Islamic features you can&apos;t get anywhere else.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

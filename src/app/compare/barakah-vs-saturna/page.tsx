@@ -40,9 +40,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', saturna: 'Standard fiduciary; no data sale', winner: 'Tie' as const },
 ];
 
+const faqs = [
+  {
+    q: 'Is Saturna halal and Shariah-compliant?',
+    a: "Yes — Saturna Capital is the long-established US-based manager of the Amana Mutual Funds, which are explicitly Shariah-compliant equity and income funds with a Shariah supervisory board. Amana is one of the oldest halal mutual fund families in the US and a credible option for managed-portfolio halal investing.",
+  },
+  {
+    q: 'What does Barakah do that Saturna does not?',
+    a: 'Saturna manages your investments inside Amana-curated mutual funds. Barakah is a Muslim household financial OS — zakat across all asset classes (not just what Saturna manages), hawl tracking, halal screening on 30,000+ tickers for self-directed investing, transaction-level riba detection on conventional accounts outside Saturna, and Islamic estate planning. The two are structurally complementary.',
+  },
+  {
+    q: 'Can I use Saturna and Barakah together?',
+    a: "Yes — that's a natural setup. Saturna handles the managed-portfolio side via Amana Funds; Barakah covers everything else (household finances, zakat on the total portfolio including Amana holdings, hawl tracking, riba detection on outside accounts, wasiyyah). Link your Saturna account via Plaid in Barakah and zakat computes against the total.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsSaturnaPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -115,6 +141,18 @@ export default function BarakahVsSaturnaPage() {
               halal screening on the rest of what you hold elsewhere, and calculate zakat across the whole household.
               Different jobs. Same goal.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

@@ -105,7 +105,13 @@ export default function DashboardPage() {
   // 2026-05-19 Round 8 (audit Bug #20): single useI18n hook below is reused
   // for both the existing greeting i18n AND the dashboard chrome additions.
   const [totals, setTotals] = useState<AssetTotal | null>(null);
+  // `loading` gates ONLY the critical KPI row (Net Worth + Zakat), which
+  // depends solely on getAssetTotal(). `widgetsLoading` gates the secondary
+  // widget-derived cards (spending, budget, movers…). Splitting them lets the
+  // headline KPIs paint as soon as the cheap totals call returns instead of
+  // waiting on the slowest of ~11 parallel calls. See loadDashboard below.
   const [loading, setLoading] = useState(true);
+  const [widgetsLoading, setWidgetsLoading] = useState(true);
   // Round 18: these four flags used to read localStorage inside the
   // useState initializer, which runs on both SSR (where safeGetItem
   // returns null by design) and CSR (where it returns the real value).
@@ -286,12 +292,21 @@ export default function DashboardPage() {
     let cancelled = false;
 
     const loadDashboard = async () => {
-      const [
-        assetResult, hijriResult, hawlResult, portfolioResult, portfolioHistoryResult,
-        widgetResult, safeToSpendResult, insightsResult, reviewQueueResult,
-        recurringResult, groupedAssetsResult,
-      ] = await Promise.allSettled([
-        api.getAssetTotal(),
+      // PERF (2026-05-29): the Net Worth + Zakat KPI row is the dashboard's
+      // headline content and depends ONLY on getAssetTotal() — the cheapest
+      // call (~300ms). It used to be one of 11 calls inside a single
+      // Promise.allSettled, and `loading` was only released after ALL of them
+      // settled, so one slow aggregation (dashboard widgets / portfolio
+      // history / insights / recurring / grouped assets) kept the KPIs
+      // showing "…" for as long as the SLOWEST call took. Now we await the
+      // critical totals on their own and release `loading` immediately, while
+      // the secondary widget calls keep loading concurrently and fill in
+      // their own cards (gated by `widgetsLoading`).
+      const criticalP = api.getAssetTotal();
+
+      // Fire every secondary call NOW so they run in parallel with the
+      // critical one — we just don't block first paint on them.
+      const restP = Promise.allSettled([
         api.getIslamicCalendarToday(),
         api.getHawlDue(30),
         api.getPortfolioSummary(),
@@ -312,10 +327,11 @@ export default function DashboardPage() {
         api.getGroupedAssets(),
       ]);
 
-      if (cancelled) return;
-
-      if (assetResult.status === 'fulfilled') setTotals(assetResult.value);
-      else {
+      // --- Critical path: release the KPI row as soon as totals land ---
+      try {
+        const assetValue = await criticalP;
+        if (!cancelled) setTotals(assetValue);
+      } catch (reason) {
         // Round 17: suppress the red toast when the failure is a 403 /
         // "Plus required" message — that's the expected state for new
         // free-tier users who don't have asset totals in their plan.
@@ -323,13 +339,24 @@ export default function DashboardPage() {
         // load dashboard data" banner on their very first dashboard
         // render. The PlanGate component already renders a proper
         // upsell card in-place, so no toast is needed for that case.
-        const errMsg = assetResult.reason instanceof Error
-          ? assetResult.reason.message : String(assetResult.reason ?? '');
+        const errMsg = reason instanceof Error
+          ? reason.message : String(reason ?? '');
         const isPlanGate = /plus required|403|forbidden|upgrade/i.test(errMsg);
-        if (!isPlanGate) {
+        if (!cancelled && !isPlanGate) {
           toast('Failed to load dashboard data. Please refresh.', 'error');
         }
       }
+      if (!cancelled) setLoading(false);
+
+      // --- Secondary path: fill in widget cards as they arrive ---
+      const [
+        hijriResult, hawlResult, portfolioResult, portfolioHistoryResult,
+        widgetResult, safeToSpendResult, insightsResult, reviewQueueResult,
+        recurringResult, groupedAssetsResult,
+      ] = await restP;
+
+      if (cancelled) return;
+
       if (hijriResult.status === 'fulfilled') setHijri(hijriResult.value as HijriData);
       if (hawlResult.status === 'fulfilled') setHawlDue(hawlResult.value as typeof hawlDue);
       if (groupedAssetsResult.status === 'fulfilled') {
@@ -409,7 +436,7 @@ export default function DashboardPage() {
         deduped.sort((a, b) => Math.abs(b.gainLossPct) - Math.abs(a.gainLossPct));
         setTopMovers(deduped);
       }
-      setLoading(false);
+      setWidgetsLoading(false);
     };
 
     void loadDashboard();
@@ -1341,7 +1368,7 @@ export default function DashboardPage() {
             <div className="min-w-0">
               <p className="text-xs text-gray-500 uppercase tracking-wide">{t('spendingThisMonth')}</p>
               <p className="text-2xl font-bold text-gray-900 truncate tabular-nums">
-                {widgets?.spending ? fmt(widgets.spending.thisMonth) : loading ? '...' : fmt(0)}
+                {widgets?.spending ? fmt(widgets.spending.thisMonth) : widgetsLoading ? '...' : fmt(0)}
               </p>
             </div>
             {widgets?.spending && widgets.spending.lastMonth >= 50 && (
@@ -1372,7 +1399,7 @@ export default function DashboardPage() {
               })}
             </div>
           )}
-          {(!widgets?.spending || widgets.spending.thisMonth === 0) && !loading && (
+          {(!widgets?.spending || widgets.spending.thisMonth === 0) && !widgetsLoading && (
             <p className="text-gray-400 text-sm mt-2">No spending recorded yet this month.</p>
           )}
           <span className="inline-block mt-3 text-sm font-medium text-primary">
@@ -1768,7 +1795,7 @@ export default function DashboardPage() {
         onOpenChange={setSpendingDrillOpen}
         fmt={fmt}
         spending={widgets?.spending ?? null}
-        loading={loading}
+        loading={widgetsLoading}
       />
     </div>
   );

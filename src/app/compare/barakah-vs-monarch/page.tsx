@@ -40,9 +40,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', monarch: 'No data sold (per privacy policy)', winner: 'Tie' as const },
 ];
 
+const faqs = [
+  {
+    q: 'Is Monarch halal for Muslims?',
+    a: "Monarch the app is a clean net-worth and household-finance dashboard — neutral by itself. The Shariah gap for Muslim users is what it doesn't do: no zakat across your multi-asset wealth, no hawl tracker, no halal stock screen, no riba flagging on interest income, no Islamic estate planner. Using Monarch is fine; it just leaves the Islamic-finance layer to you.",
+  },
+  {
+    q: 'What does Barakah do that Monarch does not?',
+    a: 'Zakat across cash, gold, stocks, 401k, rental, crypto, and business; hawl continuity tracking; AAOIFI screening on 30,000+ tickers; transaction-level riba detection with purification math; faraid + wasiyyah; and a Family plan that scales to 6 members vs Monarch\'s couples-focused two-user model.',
+  },
+  {
+    q: 'Can I use Monarch and Barakah together?',
+    a: "Yes — a common bridge for households who love Monarch's net-worth view. Keep Monarch for portfolio visualisation; use Barakah for zakat, hawl, halal screening, riba detection, and Islamic will planning. Same bank connections via Plaid; no conflict between the apps.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsMonarchPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -114,6 +140,18 @@ export default function BarakahVsMonarchPage() {
               for the budgeting layer but doing your zakat on spreadsheets. Either switch to Barakah outright, or bolt
               Barakah Plus ($9.99/mo) onto your Monarch subscription for the Islamic features you can&apos;t get anywhere else.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

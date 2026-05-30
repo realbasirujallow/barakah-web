@@ -24,7 +24,12 @@ import LanguageSwitcher from './LanguageSwitcher';
  * — keeps the marketing pages from feeling app-like).
  */
 
-const NAV_ITEMS: Array<{ key: 'navPricing' | 'navCompare' | 'navLearn' | 'navMethodology'; href: string }> = [
+// 2026-05-29 SEO: added Features to the nav. /features was an orphan page
+// (Search Console: "Referring page: None detected") → Google crawled it but
+// left it "Crawled - currently not indexed". A sitewide nav link gives it the
+// internal links it needs to get indexed. `navFeatures` already exists in i18n.
+const NAV_ITEMS: Array<{ key: 'navFeatures' | 'navPricing' | 'navCompare' | 'navLearn' | 'navMethodology'; href: string }> = [
+  { key: 'navFeatures', href: '/features' },
   { key: 'navPricing', href: '/pricing' },
   { key: 'navCompare', href: '/compare' },
   { key: 'navLearn', href: '/learn' },

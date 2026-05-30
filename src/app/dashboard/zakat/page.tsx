@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { toHijri } from '../../../lib/format';
 import { useCurrency } from '../../../lib/useCurrency';
@@ -926,6 +927,19 @@ export default function ZakatPage() {
               <button onClick={() => router.push('/dashboard/assets')} className="mt-3 text-sm bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90">
                 {t('zktGoToAssets')}
               </button>
+              {/* BUG-Z1 cross-link (2026-05-27): point users to the
+                  session-only Asset Calc tab as an alternative if they
+                  just want to estimate before committing to tracking. */}
+              <p className="mt-3 text-xs text-blue-700/80">
+                {t('zktOverviewEmptyAssetCalcNote')}{' '}
+                <button
+                  type="button"
+                  onClick={() => setTab('assets')}
+                  className="underline font-semibold hover:text-blue-900"
+                >
+                  {t('zktOverviewEmptyAssetCalcCta')}
+                </button>
+              </p>
             </div>
           )}
 
@@ -992,6 +1006,17 @@ export default function ZakatPage() {
 
       ) : tab === 'assets' ? (
         <>
+          {/* BUG-Z1 cross-link clarity banner (2026-05-27): the Asset Calc
+              tab is a session-only what-if calculator and does NOT persist
+              to Overview. Spell that out so users don't expect it to
+              update their dashboard totals. */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-xs text-blue-900 flex items-start gap-2">
+            <span aria-hidden>ℹ️</span>
+            <p>
+              {t('zktAssetCalcSandboxNote')}{' '}
+              <Link href="/dashboard/assets" className="underline font-semibold hover:text-blue-700">{t('zktAssetCalcSandboxCta')}</Link>
+            </p>
+          </div>
           {/* Manual Zakat Asset Calculator */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-sm text-amber-800">
             <p className="font-semibold mb-1">{t('zktManualHeading')}</p>

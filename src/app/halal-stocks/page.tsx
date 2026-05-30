@@ -66,10 +66,46 @@ export default function HalalStocksHub() {
       { '@type': 'ListItem', position: 2, name: 'Halal Stocks', item: 'https://trybarakah.com/halal-stocks' },
     ],
   };
+  // 2026-05-28 (T2 from international SEO audit): FAQ schema added to lift
+  // SERP rich-snippet eligibility on the hub. /halal-stocks/list already had
+  // FAQ schema; this brings the hub to parity. Questions match the actual
+  // top-of-funnel searcher intent ("how do I know X is halal", "what is
+  // AAOIFI", "do I purify dividends").
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'How do I know if a stock is halal?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: "A stock is considered halal when the company passes both an Islamic business-activity screen (no material revenue from alcohol, gambling, conventional banking/insurance, pork, weapons, or adult content) and the AAOIFI Standard 21 financial-ratio screen (interest-bearing debt under 30% of market cap, interest-bearing securities + cash under 30%, and non-permissible income under 5%). Tickers pass or fail screening quarterly as ratios shift, so verify the current snapshot before buying.",
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is the AAOIFI Standard 21 halal screening methodology?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: "AAOIFI Standard 21 is the international Islamic-finance standard used by most Shariah-compliant indices, funds, and screeners. It defines the business-activity exclusions, the three financial ratios (debt, interest-bearing securities, non-permissible income), how to use trailing-12-month market-cap averages in the denominators, and how to compute the purification amount on dividends. Other methodologies exist (MSCI, S&P, FTSE Russell, IDIB) and differ on threshold limits.",
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Do I need to purify dividends from halal stocks?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: "Yes. Even when a company passes Shariah screening, a small share of its revenue typically comes from non-permissible sources or interest on cash. Scholars require purifying that share of any dividends or capital gains by donating it to charity without expecting reward. The purification percentage is recalculated each quarter from the company's disclosed non-permissible income ratio.",
+        },
+      },
+    ],
+  };
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collection) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <main className="flex-1">
         <div className="max-w-5xl mx-auto px-6 py-10">
           <h1 className="mb-4 text-4xl md:text-5xl font-extrabold text-[#1B5E20]">Halal Stocks — Live Screening</h1>

@@ -22,6 +22,13 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://trybarakah.com/zakat-calculator',
+    languages: {
+      en: 'https://trybarakah.com/zakat-calculator',
+      fr: 'https://trybarakah.com/fr/zakat-calculator',
+      ar: 'https://trybarakah.com/ar/zakat-calculator',
+      ur: 'https://trybarakah.com/ur/zakat-calculator',
+      'x-default': 'https://trybarakah.com/zakat-calculator',
+    },
   },
   openGraph: {
     title: 'Free Zakat Calculator 2026 — Calculate Zakat on All Assets',

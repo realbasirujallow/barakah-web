@@ -230,10 +230,16 @@ function ReportsPageContent() {
   const donutData = useMemo(() => {
     if (!breakdown) return [] as Array<{ label: string; amount: number; pct: number; color: string }>;
     const rows = tab === 'spending' ? breakdown.expenses : breakdown.income;
+    // Recompute each slice's % against the SHOWN rows' sum, not the backend pct.
+    // The backend computes pct against total outflow, which includes Sadaqah/
+    // Zakat that's deliberately excluded from these spending/income rows — so the
+    // backend pcts summed to ~64% and didn't match the displayed Total. Dividing
+    // by the row sum makes the breakdown self-consistent (slices sum to 100%).
+    const sum = rows.reduce((s, r) => s + r.amount, 0);
     return rows.map((r, i) => ({
       label: r.label,
       amount: r.amount,
-      pct: r.pct,
+      pct: sum > 0 ? (r.amount / sum) * 100 : 0,
       color: DONUT_PALETTE[i % DONUT_PALETTE.length],
     }));
   }, [breakdown, tab]);

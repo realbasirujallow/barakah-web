@@ -39,9 +39,35 @@ const rows = [
   { feature: 'Riba detection on everyday transactions', barakah: 'Transaction-level flagging + purification journey', musaffa: 'None', winner: 'Barakah' as const },
 ];
 
+const faqs = [
+  {
+    q: 'Is Musaffa halal and AAOIFI-aligned?',
+    a: "Yes — Musaffa is a Shariah-focused stock screening platform with its own Shariah supervisory board, broadly aligned with AAOIFI Standard 21. It is one of the most established halal stock screeners. The product is genuinely good at what it does: per-ticker compliance reviews and academic-style breakdowns.",
+  },
+  {
+    q: 'What does Barakah do that Musaffa does not?',
+    a: 'Musaffa focuses on stock screening. Barakah is broader: multi-asset zakat (cash, gold, stocks, 401k, rental, crypto, business), hawl tracking, transaction-level riba detection, faraid + wasiyyah planning, and a Family plan up to 6 members. Barakah Plus also includes its own AAOIFI screener on 30,000+ tickers, so for households who want one app to cover their full Islamic finance life, Barakah is the broader fit.',
+  },
+  {
+    q: 'Can I use Musaffa and Barakah together?',
+    a: "Yes. Some investors prefer Musaffa for deep ticker analysis and Barakah for the rest of household Islamic finance (zakat, riba, family budget, wasiyyah). The two apps don't share data and don't conflict. Barakah includes screening so a second screening app isn't strictly required, but using both is fine.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsMusaffaPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto">
@@ -111,6 +137,18 @@ export default function BarakahVsMusaffaPage() {
               <li><strong>Pick Barakah</strong> if you want one app for your household&apos;s entire money flow — zakat on every asset class, not just stocks; hawl continuity; family sharing; wasiyyah.</li>
               <li><strong>Use both</strong> if you&apos;re a serious Muslim investor. Musaffa for stock picking; Barakah for household orchestration + zakat on the total picture.</li>
             </ul>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

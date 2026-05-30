@@ -374,12 +374,18 @@ export default function IbadahFinancePage() {
                       {fmt(data.purification.remaining)} remaining
                     </p>
                   )}
-                  <div className="flex-1">
-                    <ProgressBar value={data.purification.purified} max={data.purification.totalRiba} />
-                    <p className="text-gray-500 text-xs mt-1.5">
-                      {fmt(data.purification.purified)} of {fmt(data.purification.totalRiba)} purified
-                    </p>
-                  </div>
+                  {/* Only show the progress ratio when there's actually riba to
+                      purify. Otherwise the card read a nonsensical "$0.72 of $0.00
+                      purified" (purified > total) — hide it and let the
+                      "Complete / All purified" state speak for itself. */}
+                  {data.purification.totalRiba > 0 && (
+                    <div className="flex-1">
+                      <ProgressBar value={data.purification.purified} max={data.purification.totalRiba} />
+                      <p className="text-gray-500 text-xs mt-1.5">
+                        {fmt(data.purification.purified)} of {fmt(data.purification.totalRiba)} purified
+                      </p>
+                    </div>
+                  )}
                   <p className="text-sm mt-4 group-hover:underline" style={{ color: '#1B5E20' }}>
                     View Details &rarr;
                   </p>

@@ -39,9 +39,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', zeta: 'No data sold; banking partner subject to standard banking disclosures', winner: 'Barakah' as const, note: 'Banking partnerships add disclosure surface that aggregator-only apps avoid.' },
 ];
 
+const faqs = [
+  {
+    q: 'Is Zeta halal for Muslims?',
+    a: "Zeta is a finance app built for couples — joint accounts, shared goals, individual sub-accounts. Neutral by itself. The Shariah-relevant gap is what it doesn't do: no zakat across multi-asset wealth, no hawl tracker, no halal stock screen, no riba flagging on interest income, no Islamic estate planning. Fine to use for couple finances; doesn't carry the Islamic-finance layer.",
+  },
+  {
+    q: 'What does Barakah do that Zeta does not?',
+    a: 'Zakat across all asset classes; hawl continuity tracking per person; AAOIFI screening on 30,000+ tickers; transaction-level riba detection with purification math; and Islamic estate planning (faraid + wasiyyah). Barakah\'s Family plan also scales up to 6 members (extended households, parents + adult children), where Zeta is couple-focused.',
+  },
+  {
+    q: 'Can I use Zeta and Barakah together?',
+    a: "Yes — if you specifically love Zeta's couple-account UX, keep it for the joint-banking side and use Barakah for the Islamic layer (zakat, hawl, halal screening, riba, wasiyyah) plus broader household visibility.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsZetaPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -117,6 +143,18 @@ export default function BarakahVsZetaPage() {
               Islamic compliance layer; if you specifically need the joint debit card, keep Zeta and bolt Barakah Plus
               ($9.99/mo) on top.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

@@ -664,7 +664,7 @@ function SetupPageInner() {
                 <div className="rounded-3xl border border-gray-200 p-6">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm font-semibold text-[#1B5E20]">Connection status</p>
+                      <p className="text-sm font-semibold text-[#1B5E20]">{t('setupConnectionStatus')}</p>
                       <h3 className="text-2xl font-bold text-gray-900 mt-1">
                         {plaidAccounts.length === 0
                           ? t('setupNoAccountsLinked')

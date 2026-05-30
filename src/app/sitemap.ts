@@ -10,6 +10,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // ── High-value interactive tools ─────────────────────────────────────────
     { url: `${baseUrl}/zakat-calculator`,  changeFrequency: 'weekly', priority: 0.97, lastModified: now },
+    // 2026-05-29: localized zakat-calculator landings (P0 from international SEO build plan)
+    { url: `${baseUrl}/fr/zakat-calculator`, changeFrequency: 'weekly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/ar/zakat-calculator`, changeFrequency: 'weekly', priority: 0.85, lastModified: now },
+    { url: `${baseUrl}/ur/zakat-calculator`, changeFrequency: 'weekly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/faraid-calculator`, changeFrequency: 'weekly', priority: 0.92, lastModified: now },
 
     // ── Core marketing pages ─────────────────────────────────────────────────
@@ -17,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/features`,   changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/try`,        changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/compare`,    changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/family`,     changeFrequency: 'monthly', priority: 0.90, lastModified: now }, // 2026-05-28: family-plan marketing landing (international SEO P0)
     { url: `${baseUrl}/careers`,    changeFrequency: 'monthly', priority: 0.66, lastModified: now },
     { url: `${baseUrl}/refer`,      changeFrequency: 'monthly', priority: 0.70, lastModified: now },
 
@@ -274,6 +279,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/sadaqah-jariyah-ideas`,              changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/halal-investing-canada`,             changeFrequency: 'monthly', priority: 0.90, lastModified: now },
     { url: `${baseUrl}/learn/zakat-on-pension-uk`,                changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+
+    // ── 2026-05-28: International SEO engagement — new EN P0/P1 pages ────────
+    { url: `${baseUrl}/learn/halal-mortgage-uk`,                  changeFrequency: 'monthly', priority: 0.92, lastModified: now },
+    { url: `${baseUrl}/learn/ynab-alternative-for-muslims`,       changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/learn/monarch-alternative-for-muslims`,    changeFrequency: 'monthly', priority: 0.88, lastModified: now },
+    // 2026-05-28: localized expansion — halal-stocks + islamic-finance-app (ar/fr/ur)
+    { url: `${baseUrl}/ar/learn/halal-stocks`,                    changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/fr/learn/halal-stocks`,                    changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/ur/learn/halal-stocks`,                    changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/ar/learn/islamic-finance-app`,             changeFrequency: 'monthly', priority: 0.78, lastModified: now },
+    { url: `${baseUrl}/fr/learn/application-finance-islamique`,   changeFrequency: 'monthly', priority: 0.78, lastModified: now },
+    { url: `${baseUrl}/ur/learn/islamic-finance-app`,             changeFrequency: 'monthly', priority: 0.78, lastModified: now },
 
     // ── Legal & contact ───────────────────────────────────────────────────────
     { url: `${baseUrl}/contact`,    changeFrequency: 'yearly', priority: 0.40, lastModified: now },

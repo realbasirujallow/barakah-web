@@ -42,6 +42,8 @@ interface Portfolio {
   totalContributed: number;     // backend: totalContributed (not totalCost)
   totalGainLoss: number;
   overallReturnPercent: number; // backend: overallReturnPercent (not totalGainLossPct)
+  dayGainLoss: number;          // backend: today's whole-portfolio gain (incl 401k)
+  dayGainLossPercent: number;   // backend: today's gain % vs prior-day close
   accounts: Account[];
 }
 
@@ -271,9 +273,19 @@ export default function InvestmentsPage() {
   const totalGainLoss    = portfolio?.totalGainLoss ?? 0;
   const totalGainLossPct = portfolio?.overallReturnPercent ?? 0;
   const isGain = totalGainLoss >= 0;
+  const dayGainLoss      = portfolio?.dayGainLoss ?? 0;
+  const dayGainLossPct   = portfolio?.dayGainLossPercent ?? 0;
+  const isDayGain        = dayGainLoss >= 0;
 
-  // Combined total includes asset-backed investment accounts
-  const assetTotal    = assetAccounts.reduce((sum, a) => sum + (a.value || 0), 0);
+  // Combined total: exclude Plaid-linked asset accounts because their balances
+  // are already captured in `totalValue` (holdings synced via Plaid). Adding them
+  // again would double-count every Fidelity/brokerage account that was imported
+  // via Plaid — the Asset row is a mirror of the Plaid account balance, not an
+  // additional account. Only manually-entered (non-Plaid) asset accounts are additive.
+  const nonPlaidAssets = assetAccounts.filter(
+    (a) => !a.notes?.startsWith('Linked from Plaid')
+  );
+  const assetTotal    = nonPlaidAssets.reduce((sum, a) => sum + (a.value || 0), 0);
   const combinedTotal = totalValue + assetTotal;
 
   return (
@@ -308,7 +320,7 @@ export default function InvestmentsPage() {
           <p className="text-4xl font-bold">{fmt(combinedTotal)}</p>
           {assetTotal > 0 && totalValue > 0 && (
             <p className="text-green-200 text-xs mt-0.5">
-              {fmt(totalValue)} tracked holdings + {fmt(assetTotal)} retirement &amp; asset accounts
+              {fmt(totalValue)} Plaid holdings + {fmt(assetTotal)} manually tracked accounts
             </p>
           )}
           {/* 2026-05-11 (Bug-A8): hide / annotate the gain line when the
@@ -338,6 +350,12 @@ export default function InvestmentsPage() {
               </p>
             );
           })()}
+          {/* Today's gain/loss line — only show when snapshot has a meaningful value */}
+          {Math.abs(dayGainLoss) >= 0.01 && (
+            <p className={`text-sm mt-0.5 ${isDayGain ? 'text-green-100' : 'text-red-200'}`}>
+              {isDayGain ? '▲' : '▼'} {fmt(Math.abs(dayGainLoss))} ({fmtPct(dayGainLossPct)}) today
+            </p>
+          )}
         </div>
       )}
 
@@ -358,11 +376,16 @@ export default function InvestmentsPage() {
         const portfolio3m = (ref90?.totalValue && ref90.totalValue >= 100)
           ? ((last.totalValue - ref90.totalValue) / ref90.totalValue) * 100
           : null;
-        // 1-day Portfolio return.
+        // 1-day Portfolio return — prefer the authoritative day-gain % from the
+        // portfolio summary (brokerage-style per-holding aggregate, same number
+        // the hero shows) so this card can't diverge from the headline. Fall back
+        // to a snapshot-to-snapshot diff only when the summary has no day value.
         const prev = portfolioHistory[portfolioHistory.length - 2];
-        const portfolioToday = prev?.totalValue
-          ? ((last.totalValue - prev.totalValue) / prev.totalValue) * 100
-          : (last.dayGainLossPercent || 0);
+        const portfolioToday = Math.abs(dayGainLossPct) >= 0.005
+          ? dayGainLossPct
+          : (prev?.totalValue
+              ? ((last.totalValue - prev.totalValue) / prev.totalValue) * 100
+              : (last.dayGainLossPercent || 0));
 
         // BENCHMARK SNAPSHOT — public-index trailing returns as of
         // 2026-05-01. Update these numbers in each release; the
@@ -777,32 +800,42 @@ export default function InvestmentsPage() {
           <p className="text-xs text-gray-500 -mt-1">
             Added via Assets or CSV import. To update balances, edit them in Assets.
           </p>
-          {assetAccounts.map(asset => (
-            <Link
-              key={asset.id}
-              href={`/dashboard/assets/${asset.id}`}
-              className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center hover:shadow-md hover:bg-gray-50 transition cursor-pointer"
-            >
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-gray-900">{asset.name}</p>
-                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-                    {INVESTMENT_ASSET_LABELS[asset.type] || asset.type}
-                  </span>
+          {assetAccounts.map(asset => {
+            const isPlaidLinked = asset.notes?.startsWith('Linked from Plaid');
+            return (
+              <Link
+                key={asset.id}
+                href={`/dashboard/assets/${asset.id}`}
+                className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center hover:shadow-md hover:bg-gray-50 transition cursor-pointer"
+              >
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold text-gray-900">{asset.name}</p>
+                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                      {INVESTMENT_ASSET_LABELS[asset.type] || asset.type}
+                    </span>
+                    {isPlaidLinked && (
+                      <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
+                        Counted in Plaid holdings
+                      </span>
+                    )}
+                  </div>
+                  {asset.institution && (
+                    <p className="text-sm text-gray-500 mt-0.5">{asset.institution}</p>
+                  )}
+                  {asset.notes && !isPlaidLinked && (
+                    <p className="text-xs text-gray-400 mt-0.5 max-w-xs truncate">{asset.notes}</p>
+                  )}
                 </div>
-                {asset.institution && (
-                  <p className="text-sm text-gray-500 mt-0.5">{asset.institution}</p>
-                )}
-                {asset.notes && (
-                  <p className="text-xs text-gray-400 mt-0.5 max-w-xs truncate">{asset.notes}</p>
-                )}
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-gray-900 text-lg">{fmt(asset.value || 0)}</p>
-                <p className="text-xs text-primary">View details →</p>
-              </div>
-            </Link>
-          ))}
+                <div className="text-right">
+                  <p className="font-bold text-gray-900 text-lg">
+                    {fmt(asset.value || 0)}
+                  </p>
+                  <p className="text-xs text-primary">View details →</p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
 

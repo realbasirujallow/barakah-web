@@ -105,7 +105,18 @@ function LoginForm() {
           // the legacy per-device flag for pre-migration accounts.
           const parsed = JSON.parse(savedUser) as { id?: string; setupCompletedAt?: number | null };
           if (parsed.id && isSetupComplete(parsed.id, parsed.setupCompletedAt)) {
+            // Wave 2 BUG-SIGNUP-WIZARD (2026-05-27): first time on this
+            // device after setup → show the locale-confirm shell so the
+            // user sees the backend-derived currency + can pick a UI
+            // language before landing on the dashboard. Skip-flag is
+            // set by the onboarding page itself (Confirm or Skip).
             nextRoute = '/dashboard';
+            try {
+              const seen = localStorage.getItem('barakah_onboarding_locale_seen');
+              if (seen !== '1') {
+                nextRoute = '/onboarding/locale-confirm';
+              }
+            } catch { /* private mode */ }
           }
         }
       } catch {

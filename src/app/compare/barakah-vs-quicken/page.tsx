@@ -39,9 +39,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', quicken: 'No data sold; Quicken Classic stores locally (data file on your machine).', winner: 'Quicken' as const, note: 'Local data file is the most privacy-preserving option of any app here.' },
 ];
 
+const faqs = [
+  {
+    q: 'Is Quicken halal for Muslims?',
+    a: "Quicken is a long-established desktop and now-cloud personal-finance suite — neutral by itself. The Shariah-relevant gap: no zakat across your wealth, no hawl tracker, no halal stock screen, no riba detection, no Islamic estate planning. Fine to use for budgeting and tax prep; doesn't address the Islamic-finance layer at all.",
+  },
+  {
+    q: 'What does Barakah do that Quicken does not?',
+    a: 'Zakat across all asset classes; hawl continuity tracking; AAOIFI screening on 30,000+ tickers; transaction-level riba detection with purification math; and Islamic estate planning (faraid + wasiyyah). Quicken is a legacy comprehensive finance suite; Barakah is a fiqh-aware household OS purpose-built for Muslim households.',
+  },
+  {
+    q: 'Can I use Quicken and Barakah together?',
+    a: "Yes, especially if you have an established Quicken workflow for tax prep that you don't want to disrupt. Keep Quicken for the tax + investment-tracking side; add Barakah for the Islamic layer (zakat, hawl, halal screening, riba detection, wasiyyah).",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsQuickenPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -116,6 +142,18 @@ export default function BarakahVsQuickenPage() {
               your zakat on spreadsheets. The cleanest answer: bolt Barakah Plus ($9.99/mo) onto Quicken or Simplifi for
               the Islamic layer. Or switch outright if a single app matters more than 10 years of investment history.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

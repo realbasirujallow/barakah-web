@@ -52,7 +52,7 @@ const FaqSchema = {
       name: 'Should I use gold nisab or silver nisab?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'The classical Hanafi position uses silver; AMJA, ISNA, and the Fiqh Council of North America recommend gold for North American Muslims. Silver is the more pro-obligation choice (lower threshold means more people qualify to pay zakat). Shafi\'i, Maliki, and Hanbali madhabs generally use gold for cash/savings and silver for silver holdings. Barakah auto-switches your nisab methodology when you change your madhab; you can always override in Zakat settings.',
+        text: 'The classical Hanafi position uses silver; AMJA, ISNA, and the Fiqh Council of North America have published positions supporting gold as the nisab threshold for North American Muslims. Silver is the more pro-obligation choice (lower threshold means more people qualify to pay zakat). Shafi\'i, Maliki, and Hanbali madhabs generally use gold for cash/savings and silver for silver holdings. Barakah auto-switches your nisab methodology when you change your madhab; you can always override in Zakat settings.',
       },
     },
     {
@@ -209,9 +209,9 @@ export default function NisabThresholdPage() {
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
                   <h3 className="mb-2 text-xl font-bold text-amber-900">AMJA Gold Standard</h3>
                   <p className="mb-2 text-sm leading-7 text-amber-900">
-                    <strong>85 g gold × live spot.</strong> Recommended by the Assembly of Muslim
-                    Jurists of America (AMJA), the Islamic Society of North America (ISNA), and the
-                    Fiqh Council of North America for North American Muslims. Follows the majority
+                    <strong>85 g gold × live spot.</strong> Supported by published positions from
+                    the Assembly of Muslim Jurists of America (AMJA), the Islamic Society of North
+                    America (ISNA), and the Fiqh Council of North America. Follows the majority
                     contemporary position that gold is the most stable reference for cash-dominant
                     wealth in inflation-adjusted economies.
                   </p>

@@ -39,9 +39,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', tiller: 'Data lives in your own Google account; Tiller does not sell data', winner: 'Tiller' as const, note: 'Tiller wins on data ownership — you own the spreadsheet.' },
 ];
 
+const faqs = [
+  {
+    q: 'Is Tiller halal for Muslims?',
+    a: "Tiller pipes your bank data into Google Sheets — the tool itself is neutral. The Shariah layer is whatever you build in Sheets. Tiller does not ship a zakat template, hawl tracker, halal stock screen, riba flagging, or Islamic estate planning. Fine to use if you're a power-spreadsheet user; doesn't carry the Islamic layer out of the box.",
+  },
+  {
+    q: 'What does Barakah do that Tiller does not?',
+    a: 'Zakat across all asset classes (built in, no spreadsheet to maintain); hawl continuity tracking; AAOIFI screening on 30,000+ tickers; transaction-level riba detection with purification math; Islamic estate planning (faraid + wasiyyah); and a Family plan up to 6 members. Tiller is a spreadsheet pipeline; Barakah is a fiqh-aware household OS.',
+  },
+  {
+    q: 'Can I use Tiller and Barakah together?',
+    a: "Yes — Tiller users tend to be spreadsheet enthusiasts who keep using Sheets for custom analysis even after adopting Barakah for the Islamic layer. The two don't fight: Tiller feeds Sheets, Barakah handles zakat / hawl / halal / riba / wasiyyah.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsTillerPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -115,6 +141,18 @@ export default function BarakahVsTillerPage() {
               hand-built. The honest answer for most Muslim households: use Barakah for the Islamic layer and budgeting,
               and keep Tiller only if you have specific spreadsheet workflows that justify it.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

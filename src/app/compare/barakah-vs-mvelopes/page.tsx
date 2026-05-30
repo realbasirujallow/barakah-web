@@ -40,9 +40,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', mvelopes: 'Standard SaaS; no data sale per policy', winner: 'Tie' as const },
 ];
 
+const faqs = [
+  {
+    q: 'Is Mvelopes halal for Muslims?',
+    a: "Mvelopes is an envelope-budgeting app — neutral by itself. It does not handle the Shariah layer: no zakat across multi-asset wealth, no hawl tracker, no halal stock screen, no riba detection, no Islamic estate planning. Fine to use as a budgeting tool; doesn't carry Islamic finance.",
+  },
+  {
+    q: 'What does Barakah do that Mvelopes does not?',
+    a: 'Zakat across all asset classes; hawl continuity tracking; AAOIFI screening on 30,000+ tickers; transaction-level riba detection with purification math; and Islamic estate planning (faraid + wasiyyah). Mvelopes is an envelope-budgeting tool; Barakah is a Muslim household financial OS.',
+  },
+  {
+    q: 'Can I use Mvelopes and Barakah together?',
+    a: "You can, but most users find Barakah's category-budgeting with rollover covers what Mvelopes offers, plus the Islamic-finance layer. If you genuinely love Mvelopes' strict envelope discipline, keep it for budgeting and use Barakah for zakat, hawl, halal screening, riba, and wasiyyah.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsMvelopesPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -114,6 +140,18 @@ export default function BarakahVsMvelopesPage() {
               envelopes badly enough to pay envelope prices and still need a separate workflow for zakat and halal
               checking. Barakah Plus at $9.99 covers more ground for less.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

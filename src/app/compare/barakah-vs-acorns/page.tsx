@@ -40,9 +40,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', acorns: 'Standard SaaS; no data sale per policy', winner: 'Tie' as const },
 ];
 
+const faqs = [
+  {
+    q: 'Is Acorns halal for Muslims?',
+    a: "Acorns the app is a generic round-up investing service — neither inherently halal nor inherently haram. The Shariah issue is what Acorns invests in: its default portfolios are built from conventional ETFs that include interest-bearing bonds, financials, and other holdings that do not pass AAOIFI Standard 21 screening. Acorns does not offer a halal portfolio option. Cash held in Acorns earns interest by default, which is riba most scholars say to avoid.",
+  },
+  {
+    q: 'What does Barakah do that Acorns does not?',
+    a: 'Zakat across all asset classes (cash, gold, stocks, 401k, rental, crypto, business), hawl continuity tracking, AAOIFI screening on 30,000+ tickers so you can verify a stock is halal before buying, transaction-level riba detection with purification math, and Islamic estate planning (faraid + wasiyyah). Acorns is a round-up micro-investing app; Barakah is a Muslim household financial OS — different jobs.',
+  },
+  {
+    q: 'Can I use Acorns and Barakah together?',
+    a: "Only with care — Acorns' default portfolios hold non-Shariah-compliant assets, so simply linking it does not make your investments halal. Most observant Muslims either pick a Shariah-compliant alternative (Wahed Invest, or self-directed halal screening via Barakah Plus) instead of Acorns' managed micro-investing.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsAcornsPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -114,6 +140,18 @@ export default function BarakahVsAcornsPage() {
               non-screened ETFs. For a Muslim family that wants to invest with confidence, Barakah is the layer that
               answers the question Acorns won&apos;t: is what I&apos;m holding actually halal?
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

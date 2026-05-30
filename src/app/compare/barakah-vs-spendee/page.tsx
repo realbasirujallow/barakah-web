@@ -40,9 +40,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', spendee: 'EU-based, GDPR-first', winner: 'Tie' as const },
 ];
 
+const faqs = [
+  {
+    q: 'Is Spendee halal for Muslims?',
+    a: "Spendee is a visual budget tracker — neutral by itself. It does not handle the Shariah layer: no zakat across your wealth, no hawl tracker, no halal stock screen, no riba detection, no Islamic estate planning. Fine to use; doesn't carry the Islamic-finance layer.",
+  },
+  {
+    q: 'What does Barakah do that Spendee does not?',
+    a: 'Zakat across all asset classes; hawl continuity tracking; AAOIFI screening on 30,000+ tickers; transaction-level riba detection with purification math; and Islamic estate planning (faraid + wasiyyah). Spendee is a visual budget tracker; Barakah is a fiqh-aware household OS.',
+  },
+  {
+    q: 'Can I use Spendee and Barakah together?',
+    a: "Yes, but once you have Barakah's category-budgeting plus the Islamic layer, Spendee's main feature is largely duplicated. Most users switch fully; some keep Spendee for its visualisation style and use Barakah for everything else.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsSpendeePage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -114,6 +140,18 @@ export default function BarakahVsSpendeePage() {
               accounts, gold holdings, or you want zakat done correctly, Spendee runs out of room. Barakah is built
               for the Muslim household that wants the budgeting plus the obligations handled in one place.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

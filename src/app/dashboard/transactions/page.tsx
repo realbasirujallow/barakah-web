@@ -11,7 +11,7 @@ import { logError } from '../../../lib/logError';
 import EmptyState from '../../../components/EmptyState';
 import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
-import { useI18n, t as tStandalone, tFmt as tFmtStandalone } from '../../../lib/i18n';
+import { useI18n, t as tStandalone } from '../../../lib/i18n';
 import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon } from 'lucide-react';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';

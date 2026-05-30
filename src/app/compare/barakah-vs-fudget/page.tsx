@@ -40,9 +40,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', fudget: 'No accounts, all local — best in class', winner: 'Fudget' as const, note: 'Fudget stores nothing on a server. Best privacy story in budgeting.' },
 ];
 
+const faqs = [
+  {
+    q: 'Is Fudget halal for Muslims?',
+    a: "Fudget is a simple paper-list-style budget app — neutral in itself. It does not handle the Shariah-specific things a Muslim household needs: no zakat calculation, no hawl tracker, no halal stock screen, no riba detection, no Islamic estate planning. Fine to use; just doesn't carry the Islamic-finance layer.",
+  },
+  {
+    q: 'What does Barakah do that Fudget does not?',
+    a: 'Zakat across all asset classes, hawl continuity tracking, AAOIFI screening on 30,000+ tickers, transaction-level riba detection with purification math, and Islamic estate planning (faraid + wasiyyah). Fudget is intentionally minimal — paper-list simplicity. Barakah is a full Muslim household financial OS.',
+  },
+  {
+    q: 'Can I use Fudget and Barakah together?',
+    a: "Yes, but most people don't bother — once you have Barakah's category-budgeting plus the Islamic layer, Fudget's notepad-style flow becomes redundant. If you genuinely love Fudget's simplicity, keep it for quick lists and use Barakah for everything else.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsFudgetPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -114,6 +140,18 @@ export default function BarakahVsFudgetPage() {
               about zakat tracking, save your money. If you have investments, gold, retirement accounts, or want to
               calculate zakat correctly across asset classes, Barakah is doing a different job entirely.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

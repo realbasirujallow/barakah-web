@@ -21,7 +21,16 @@ export const metadata: Metadata = {
     'halal investing app',
     'islamic budgeting software',
   ],
-  alternates: { canonical: 'https://trybarakah.com/learn/islamic-finance-app' },
+  alternates: {
+    canonical: 'https://trybarakah.com/learn/islamic-finance-app',
+    languages: {
+      en: 'https://trybarakah.com/learn/islamic-finance-app',
+      fr: 'https://trybarakah.com/fr/learn/application-finance-islamique',
+      ar: 'https://trybarakah.com/ar/learn/islamic-finance-app',
+      ur: 'https://trybarakah.com/ur/learn/islamic-finance-app',
+      'x-default': 'https://trybarakah.com/learn/islamic-finance-app',
+    },
+  },
   openGraph: {
     title: 'Best Islamic Finance App 2026 — Complete Guide & Comparison',
     description:

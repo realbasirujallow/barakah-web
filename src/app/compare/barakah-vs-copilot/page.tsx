@@ -39,9 +39,35 @@ const rows = [
   { feature: 'Privacy', barakah: 'Self-hosted option on roadmap; no data sold', copilot: 'No data sold; clear privacy policy', winner: 'Tie' as const },
 ];
 
+const faqs = [
+  {
+    q: 'Is Copilot halal for Muslims?',
+    a: "Copilot the app is a personal-finance dashboard — neutral by itself. The Shariah-relevant gap for Muslim users is what Copilot doesn't do: no zakat calculation across your assets, no hawl tracker, no AAOIFI halal stock screen, no riba flagging, no Islamic estate planning. The app is fine to use; it leaves the Islamic-finance layer entirely up to you.",
+  },
+  {
+    q: 'What does Barakah do that Copilot does not?',
+    a: 'Zakat across cash, gold, stocks, 401k, rental, crypto, and business; hawl continuity tracking; AAOIFI Standard 21 screening on 30,000+ tickers; transaction-level riba detection with purification math; and faraid + wasiyyah planning. Copilot is a premium iOS-first dashboard; Barakah is a fiqh-aware household OS — different jobs.',
+  },
+  {
+    q: 'Can I use Copilot and Barakah together?',
+    a: "Yes. Some users keep Copilot for its design and category-budgeting and use Barakah for the Islamic layer (zakat, hawl, halal screening, riba, will). Link the same accounts via Plaid in Barakah; the two apps see different aspects of your finances without conflicting.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function BarakahVsCopilotPage() {
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <nav className="bg-white border-b border-gray-100 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#1B5E20] transition">Home</Link>
@@ -116,6 +142,18 @@ export default function BarakahVsCopilotPage() {
               layer for $14.99/mo. If you already love Copilot and won&apos;t switch, bolt on Barakah Plus ($9.99/mo) for
               the zakat / hawl / halal / riba / wasiyyah pieces Copilot will never ship.
             </p>
+          </section>
+
+          <section className="mb-10 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Frequently asked</h2>
+            <div className="space-y-4">
+              {faqs.map((f) => (
+                <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                  <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                  <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-[#1B5E20] p-6 text-white">

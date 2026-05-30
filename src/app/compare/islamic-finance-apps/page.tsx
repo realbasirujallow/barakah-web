@@ -23,9 +23,35 @@ export const metadata: Metadata = {
   },
 };
 
+const faqs = [
+  {
+    q: 'Which Islamic finance app is best for a Muslim household in 2026?',
+    a: "It depends on the job you need done. For one app that covers zakat + hawl + halal stock screening + riba detection + budgeting + Islamic estate planning + a family plan, Barakah is the closest fit. For pure halal stock screening, Zoya and Musaffa are specialists. For a managed Shariah-compliant robo-advisor, Wahed is purpose-built. For traditional mutual-fund halal investing, Saturna's Amana Funds are the long-established option. Many households use more than one.",
+  },
+  {
+    q: 'Do any of these apps compute zakat across all asset classes?',
+    a: 'Barakah is the only one that calculates zakat across cash, gold, silver, stocks, 401k, rental, crypto, and business inventory in a single place, with multi-madhab (Hanafi / Shafi\'i / Maliki / Hanbali) positions. Zoya and Musaffa offer basic zakat tools but focused on the stock side. Wahed and Saturna do not compute zakat for you.',
+  },
+  {
+    q: 'Can I use multiple Islamic finance apps in parallel?',
+    a: "Yes — a common setup is Barakah for household + zakat + hawl + halal screening + wasiyyah, plus a specialist for managed investing (Wahed or Saturna). The apps don't share data and don't conflict. Pick the combination that covers your actual workflow.",
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function IslamicFinanceAppsComparePage() {
   return (
     <main className="flex-1">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <div className="max-w-4xl mx-auto px-6 py-10">
         <nav className="text-sm text-gray-500 mb-6">
           <Link href="/" className="hover:text-[#1B5E20]">Home</Link>
@@ -159,6 +185,18 @@ export default function IslamicFinanceAppsComparePage() {
             <li>· <Link href="/compare/barakah-vs-saturna" className="text-[#1B5E20] underline">Barakah vs Saturna</Link></li>
             <li>· <Link href="/compare/barakah-vs-musaffa" className="text-[#1B5E20] underline">Barakah vs Musaffa</Link></li>
           </ul>
+        </section>
+
+        <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+          <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">Frequently asked</h2>
+          <div className="space-y-4">
+            {faqs.map((f) => (
+              <details key={f.q} className="rounded-xl border border-gray-200 p-4">
+                <summary className="cursor-pointer text-base font-semibold text-gray-900">{f.q}</summary>
+                <p className="mt-2 text-sm leading-7 text-gray-700">{f.a}</p>
+              </details>
+            ))}
+          </div>
         </section>
 
         <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">

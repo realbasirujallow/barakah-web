@@ -288,7 +288,7 @@ export default function ZakatOnGoldPage() {
             <footer className="mt-12 pt-8 border-t border-gray-200 text-sm text-gray-600 dark:text-gray-400 dark:border-gray-700">
               <p><strong>By:</strong> Barakah Editorial Team</p>
               <p><strong>Last reviewed:</strong> April 3, 2026</p>
-              <p className="mt-2">This article is based on Islamic fiqh from AMJA (American Muslim Jurists Association), Fiqh Council of North America, and classical Islamic jurisprudence sources including hadith collections (Sahih Bukhari, Sahih Muslim).</p>
+              <p className="mt-2">Methodology draws on classical Islamic jurisprudence including hadith collections (Sahih Bukhari, Sahih Muslim); published scholarly positions are referenced where noted.</p>
             </footer>
           </article>
           <section className="mt-10 rounded-2xl bg-amber-50 border border-amber-200 p-6">
