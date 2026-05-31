@@ -1195,6 +1195,8 @@ export const api = {
     apiFetch(`/api/zakat/payments${lunarYear ? `?lunarYear=${lunarYear}` : ''}`, {}, API_TIMEOUT, true),
   addZakatPayment: (data: Record<string, unknown>) =>
     apiFetch('/api/zakat/payments', { method: 'POST', body: JSON.stringify(data) }),
+  updateZakatPayment: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/zakat/payments/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteZakatPayment: (id: number) =>
     apiFetch(`/api/zakat/payments/${id}`, { method: 'DELETE' }),
   getNisabInfo: () => apiFetch("/api/zakat/info"),

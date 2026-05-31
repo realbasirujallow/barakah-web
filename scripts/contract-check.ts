@@ -3,19 +3,21 @@
  *
  * Cross-repo contract sanity check. Extracts every `apiFetch('/api/...')`
  * call site from `src/lib/api.ts` and pings the corresponding backend
- * endpoint with a HEAD or GET request, expecting a non-404 / non-405
- * response. The intent is NOT to verify auth or business logic — just
- * to catch endpoints that the frontend calls but the backend has
- * removed or renamed (silent contract drift).
+ * endpoint, treating any response OTHER than 404 as "route exists". The
+ * intent is NOT to verify auth or business logic — just to catch endpoints
+ * that the frontend calls but the backend has removed or renamed (silent
+ * contract drift). 405 (method-not-allowed) means the route IS present
+ * (just a different verb than our regex-guessed probe) and is NOT drift.
  *
  * Usage:
  *   API_BASE=https://api.trybarakah.com npx tsx scripts/contract-check.ts
  *   API_BASE=http://localhost:8080      npx tsx scripts/contract-check.ts
  *
- * Exits non-zero if any endpoint returns 404 (gone) or 405 (method
- * mismatch). Other status codes (200, 401, 403, 429, 500) are treated
- * as "endpoint exists" and are NOT failures — the auth-required and
- * business-logic surface area is huge and out of scope.
+ * Exits non-zero only if an endpoint returns 404 (gone). All other status
+ * codes (200, 401, 403, 405, 422, 429, 500) are treated as "endpoint exists"
+ * and are NOT failures — the auth-required and business-logic surface area is
+ * huge and out of scope. Unresolved dynamic paths (nested template literals)
+ * are skipped rather than probed.
  *
  * 2026-05-06: created as part of the overnight readiness backlog. Run
  * in CI on every backend or web PR that touches /api/* to catch drift
@@ -50,6 +52,11 @@ function extractEndpoints(): EndpointCall[] {
     // Replace template-literal segments with a placeholder so we can ping
     // an example value (works for /api/admin/users/{id}/... etc.)
     const concretePath = path.replace(/\$\{[^}]+\}/g, '1');
+    // Skip paths we couldn't fully resolve: a NESTED template literal (e.g.
+    // `/api/x${year ? `?year=${year}` : ''}`) truncates at the inner backtick
+    // and leaves a stray `${`, which would be probed as a bogus 404. That's a
+    // checker artifact, not real contract drift — don't probe it.
+    if (concretePath.includes('${')) continue;
     const method = (match[2] ?? 'GET').toUpperCase();
     const key = `${method} ${concretePath}`;
     if (seen.has(key)) continue;
@@ -81,9 +88,14 @@ async function ping(endpoint: EndpointCall): Promise<PingResult> {
       }),
     });
     const status = res.status;
-    // 404 = endpoint missing; 405 = method mismatch — both are contract drift.
+    // 404 = endpoint missing → real contract drift (the thing this tool targets).
     if (status === 404) return { endpoint, status, ok: false, note: 'NOT FOUND — backend removed/renamed?' };
-    if (status === 405) return { endpoint, status, ok: false, note: 'METHOD NOT ALLOWED — wrong verb?' };
+    // 405 = the route EXISTS but our probe used a different verb than the backend
+    // allows. Verb detection here is regex-based and imperfect (multi-line
+    // apiFetch calls, POST/PUT/DELETE-only routes), and "method mismatch" is NOT
+    // the drift this tool targets (removed/renamed routes). Treat 405 as
+    // "exists" so verb-only quirks don't false-positive and erode trust.
+    if (status === 405) return { endpoint, status, ok: true, note: 'exists (405 — route present, verb-only)' };
     // Everything else (200/401/403/422/429/500) means the route exists.
     return { endpoint, status, ok: true, note: 'exists' };
   } catch (err) {

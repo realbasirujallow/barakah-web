@@ -52,6 +52,19 @@ const PERSONAS: Persona[] = [
 
 const PASSWORD = 'demo-Pa55!';
 
+// This suite is NOT prod-targeted. It requires all 14 demo personas above to
+// be seeded into a LOCAL backend (see file header) with the web app served at
+// localhost:3000 — loginViaUI() hardcodes that origin. Without that seeded
+// environment every "login" lands back on /login and the suite hard-FAILS with
+// a misleading red (observed 2026-05-30 during a full-suite run pointed at
+// prod: persona p01 rendered "API error 500" from the unseeded local server,
+// failing the whole run). Gate behind an explicit opt-in so a plain
+// `npx playwright test` against any non-seeded target SKIPS honestly — the same
+// discipline the authenticated/admin suites use with E2E_EMAIL/E2E_PASSWORD.
+// To run it: seed the personas, start web+backend locally, then
+//   E2E_PERSONAS_SEEDED=1 npx playwright test e2e/persona-walk.spec.ts
+const PERSONAS_SEEDED = process.env.E2E_PERSONAS_SEEDED === '1';
+
 const SURFACES: { slug: string; path: string }[] = [
   { slug: 'dashboard',     path: '/dashboard' },
   { slug: 'transactions',  path: '/dashboard/transactions' },
@@ -191,6 +204,10 @@ test.describe.configure({ mode: 'serial' });
 test.describe('Multi-persona headed visual walk', () => {
   for (const persona of PERSONAS) {
     test(`walk persona ${persona.id}`, async ({ browser }) => {
+      test.skip(
+        !PERSONAS_SEEDED,
+        'E2E_PERSONAS_SEEDED=1 required — needs the 14 demo personas seeded in a local backend with web at localhost:3000 (this suite is not prod-targeted).',
+      );
       test.setTimeout(180_000);
       const { ctx, page } = await loginViaUI(browser, persona);
       // Assert that we actually landed on an authenticated page before walking

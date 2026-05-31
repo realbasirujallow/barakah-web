@@ -70,7 +70,7 @@ function SadaqahContent() {
   const [giving, setGiving] = useState<GivingInsights | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false });
+  const [form, setForm] = useState({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false, date: new Date().toISOString().slice(0, 10) });
   const [saving, setSaving] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   // 2026-05-02: lock body scroll while modal/confirm is open.
@@ -127,8 +127,13 @@ function SadaqahContent() {
     }
     setSaving(true);
     try {
-      await api.addSadaqah({ ...form, amount: amt });
-      setShowForm(false); setForm({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false }); load();
+      await api.addSadaqah({
+        ...form,
+        amount: amt,
+        // backend `date` is epoch ms; the form holds YYYY-MM-DD (noon → TZ-safe).
+        date: form.date ? new Date(`${form.date}T12:00:00`).getTime() : undefined,
+      });
+      setShowForm(false); setForm({ amount: '', recipientName: '', category: 'general', description: '', anonymous: false, recurring: false, date: new Date().toISOString().slice(0, 10) }); load();
       toast(t('sadaqahRecordedToast'), 'success');
     } catch (err: unknown) { toast(err instanceof Error ? err.message : t('sadaqahSaveError'), 'error'); }
     setSaving(false);
@@ -371,6 +376,8 @@ function SadaqahContent() {
                 </select></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldDescription')}</label>
                 <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Date given</label>
+                <input type="date" value={form.date} max={new Date().toISOString().slice(0, 10)} onChange={e => setForm({ ...form, date: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.anonymous} onChange={e => setForm({ ...form, anonymous: e.target.checked })} className="w-4 h-4" /> {t('sadaqahCheckAnonymous')}</label>
                 <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.recurring} onChange={e => setForm({ ...form, recurring: e.target.checked })} className="w-4 h-4" /> {t('sadaqahCheckRecurring')}</label>

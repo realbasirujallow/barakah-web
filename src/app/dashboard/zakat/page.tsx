@@ -109,7 +109,10 @@ export default function ZakatPage() {
   const shownMabrookRef = useRef(false);
   // 2026-05-02: lock body scroll while any modal is open.
   useBodyScrollLock(showForm || showChecklist || showMabrook);
-  const [form, setForm] = useState({ amount: '', recipient: '', notes: '' });
+  // 2026-05-30: `date` = date paid (YYYY-MM-DD for <input type="date">, default
+  // today). editPaymentId != null puts the form in edit mode (PUT vs POST).
+  const [form, setForm] = useState({ amount: '', recipient: '', notes: '', date: new Date().toISOString().slice(0, 10) });
+  const [editPaymentId, setEditPaymentId] = useState<number | null>(null);
   const [hideZakat, setHideZakat] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [nisabInfo, setNisabInfo] = useState<NisabInfo | null>(null);
@@ -378,10 +381,25 @@ export default function ZakatPage() {
   }, [zakatDue, selectedMethodology]);
 
   const handleShowPaymentForm = () => {
-    // Show checklist first, reset form
+    // Show checklist first, reset form (add mode)
+    setEditPaymentId(null);
     setChecklist({ wealth: false, hawl: false, debts: false, quranic: false });
-    setForm({ amount: '', recipient: '', notes: '' });
+    setForm({ amount: '', recipient: '', notes: '', date: new Date().toISOString().slice(0, 10) });
     setShowChecklist(true);
+  };
+
+  // 2026-05-30: open the form pre-filled to edit an existing payment (skips the
+  // eligibility checklist — that gate is only for recording a new payment).
+  const handleEditPayment = (p: ZakatPayment) => {
+    setEditPaymentId(p.id ?? null);
+    const ms = p.paidAt != null ? (p.paidAt < 1e12 ? p.paidAt * 1000 : p.paidAt) : Date.now();
+    setForm({
+      amount: p.amount != null ? String(p.amount) : '',
+      recipient: p.recipient ?? '',
+      notes: p.notes ?? '',
+      date: new Date(ms).toISOString().slice(0, 10),
+    });
+    setShowForm(true);
   };
 
   const handleSavePayment = async () => {
@@ -389,13 +407,26 @@ export default function ZakatPage() {
     if (!Number.isFinite(amount) || amount <= 0) return;
     setSaving(true);
     try {
-      await api.addZakatPayment({
-        amount,
-        recipient: form.recipient || undefined,
-        notes: form.notes || undefined,
-        lunarYear,
-      });
-      setForm({ amount: '', recipient: '', notes: '' });
+      // Noon avoids the date shifting a day under timezone conversion.
+      const paidAt = form.date ? new Date(`${form.date}T12:00:00`).getTime() : undefined;
+      if (editPaymentId != null) {
+        await api.updateZakatPayment(editPaymentId, {
+          amount,
+          recipient: form.recipient || undefined,
+          notes: form.notes || undefined,
+          paidAt,
+        });
+      } else {
+        await api.addZakatPayment({
+          amount,
+          recipient: form.recipient || undefined,
+          notes: form.notes || undefined,
+          lunarYear,
+          paidAt,
+        });
+      }
+      setEditPaymentId(null);
+      setForm({ amount: '', recipient: '', notes: '', date: new Date().toISOString().slice(0, 10) });
       setShowForm(false);
       setShowChecklist(false);
       // Calculate new total directly without relying on stale state
@@ -1193,9 +1224,14 @@ export default function ZakatPage() {
                       {p.notes ? <p className="text-gray-400 text-xs truncate">{String(p.notes)}</p> : null}
                       <p className="text-gray-400 text-xs">{date.toLocaleDateString(dateLocale)}</p>
                     </div>
-                    <button onClick={() => handleDeletePayment(p.id as number)} className="text-gray-300 hover:text-red-500 transition">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleEditPayment(p)} className="text-gray-300 hover:text-primary transition" aria-label="Edit payment">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
+                      </button>
+                      <button onClick={() => handleDeletePayment(p.id as number)} className="text-gray-300 hover:text-red-500 transition" aria-label="Delete payment">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -1736,6 +1772,10 @@ export default function ZakatPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('zktNotesOptional')}</label>
                 <input value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('zktNotesPlaceholder')} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date paid</label>
+                <input type="date" value={form.date} max={new Date().toISOString().slice(0, 10)} onChange={e => setForm({ ...form, date: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" />
               </div>
             </div>
             <div className="flex gap-3 mt-6">
