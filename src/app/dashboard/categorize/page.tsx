@@ -273,10 +273,15 @@ export default function CategorizePage() {
   const visibleStart = suggestions.length === 0 ? 0 : page * PAGE_SIZE + 1;
   const visibleEnd = Math.min((page + 1) * PAGE_SIZE, suggestions.length);
 
-  if (loading) {
-    return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
-  }
-
+  // 2026-06-01 sweep: previously this returned a full-page spinner while
+  // `loadAll` awaited `reviewCategories()` AND `getTransactionRules()` via
+  // Promise.allSettled. If either call was slow, the WHOLE page hung — and
+  // the Re-categorize backfill button (the user's only path to apply new
+  // categorization rules to historical data) became unreachable. The trust-
+  // critical e2e even caught this: 30s timeout, screenshot showed a stuck
+  // spinner. The button doesn't depend on either dataset — it fires a
+  // server-side mutation — so render the page chrome (including the button)
+  // immediately and keep the spinner scoped to the data panels below.
   return (
     <div className="space-y-6">
       <PageHeader
@@ -286,7 +291,8 @@ export default function CategorizePage() {
         actions={
           <button
             onClick={loadAll}
-            className="border border-primary text-primary px-4 py-2 rounded-xl hover:bg-green-50 font-medium text-sm"
+            disabled={loading}
+            className="border border-primary text-primary px-4 py-2 rounded-xl hover:bg-green-50 font-medium text-sm disabled:opacity-50"
           >
             {t('catRefresh')}
           </button>
