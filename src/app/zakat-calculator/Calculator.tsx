@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useId } from 'react';
 import Link from 'next/link';
 import { trackFirstZakatCalc, trackOnce } from '../../lib/analytics';
 
@@ -41,10 +41,11 @@ function InputField({
   tooltip,
   onChange,
 }: InputFieldProps) {
+  const inputId = useId();
   return (
     <div className="mb-4">
       <div className="flex items-center gap-2 mb-1">
-        <label className="block text-sm font-medium text-gray-700">{label}</label>
+        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700">{label}</label>
         <div
           className="relative group cursor-help"
           title={tooltip}
@@ -59,12 +60,14 @@ function InputField({
       </div>
       <div className="flex items-center gap-2">
         <input
+          id={inputId}
           type="number"
           value={value === 0 ? '' : value}
           onChange={(e) =>
             onChange(field, e.target.value ? parseFloat(e.target.value) : 0)
           }
           placeholder="0"
+          aria-label={`${label} (${unit})`}
           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
         />
         <span className="text-sm text-gray-600 font-medium min-w-12">{unit}</span>
@@ -423,21 +426,21 @@ export default function Calculator() {
                 You must meet the nisab threshold to be obligated to pay zakat.
               </p>
               <div className="grid grid-cols-3 gap-3 text-center">
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs text-gray-600">Gold Standard</p>
-                  <p className="text-lg font-bold text-green-700">
+                  <p className="text-sm sm:text-lg font-bold text-green-700 tabular-nums break-words">
                     ${nisabInGold.toFixed(2)}
                   </p>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs text-gray-600">Silver Standard</p>
-                  <p className="text-lg font-bold text-green-700">
+                  <p className="text-sm sm:text-lg font-bold text-green-700 tabular-nums break-words">
                     ${nisabInSilver.toFixed(2)}
                   </p>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs text-gray-600">Your Threshold</p>
-                  <p className="text-lg font-bold text-amber-600">
+                  <p className="text-sm sm:text-lg font-bold text-amber-600 tabular-nums break-words">
                     ${nisabThreshold.toFixed(2)}
                   </p>
                 </div>
