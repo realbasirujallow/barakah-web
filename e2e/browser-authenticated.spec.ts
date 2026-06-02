@@ -81,7 +81,12 @@ test.describe('Browser Authenticated Flows', () => {
 
   test('dashboard loads with greeting and widgets', async () => {
     await page.goto(`${BASE}/dashboard`);
-    await expect(page.locator('text=/Good (morning|afternoon|evening)/i')).toBeVisible({ timeout: 10000 });
+    // Greeting is a FOUR-bucket, time-of-day scheme (dashboard/page.tsx):
+    // morning 5–11, afternoon 12–16, evening 17–21, and late-night 22–4 which
+    // reuses the `welcomeBack` copy ("Welcome back to Barakah…"). The old regex
+    // omitted that 4th bucket, so this test passed by day and failed after
+    // 22:00 — a false red that has nothing to do with the dashboard. Match all four.
+    await expect(page.locator('text=/Good (morning|afternoon|evening)|Welcome back/i')).toBeVisible({ timeout: 10000 });
     // Net worth and Zakat cards depend on /api/dashboard/widgets which can take
     // longer than the default 5s timeout — match the greeting timeout. Both
     // labels also appear in the sidebar nav, so .first() selects the card
@@ -116,7 +121,8 @@ test.describe('Browser Authenticated Flows', () => {
     // greeting", not "greeting appears exactly once". Both occurrences
     // proves the same thing.
     await expect(
-      page.locator('text=/Good (morning|afternoon|evening)/i').first()
+      // Four greeting buckets incl. late-night (22–4) "Welcome back" — see note above.
+      page.locator('text=/Good (morning|afternoon|evening)|Welcome back/i').first()
     ).toBeVisible({ timeout: 15000 });
   });
 

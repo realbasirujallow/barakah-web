@@ -287,7 +287,13 @@ test.describe('Authenticated API Tests', () => {
         beneficiaryName: 'Test Mosque Foundation (E2E)',
         relationship: 'charity',
         sharePercentage: 34,
-        shareType: 'percentage',
+        // shareType must be 'fixed'|'voluntary' per the DTO @Pattern (and what
+        // the real web/mobile clients send). A wasiyyah bequest is 'voluntary'.
+        // This previously sent 'percentage' — which the DTO rejects with a
+        // generic 400 BEFORE the 1/3-cap rule runs, so the test never actually
+        // exercised the cap it asserts. (Backend verified: the cap + heir rules
+        // apply regardless of the label — WasiyyahService.addBeneficiary.)
+        shareType: 'voluntary',
       },
     });
     if (res.status() === 403) return;
@@ -303,7 +309,7 @@ test.describe('Authenticated API Tests', () => {
         beneficiaryName: 'Test Legal Heir (E2E)',
         relationship: 'son',
         sharePercentage: 10,
-        shareType: 'percentage',
+        shareType: 'voluntary', // valid DTO value so the heir-rejection rule is actually reached
       },
     });
     if (res.status() === 403) return;

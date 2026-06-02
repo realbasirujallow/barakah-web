@@ -1,4 +1,34 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync, readFileSync } from 'node:fs';
+
+// ── Load E2E credentials from a gitignored .env.e2e (zero-dependency) ────────
+// This config's header has ALWAYS documented "set in a local .env.e2e file",
+// but nothing actually loaded it — so creds placed there per the instructions
+// were silently ignored, global-setup logged in with blank creds, and every
+// authenticated suite skipped while looking "configured". Fixed 2026-05-30.
+//
+// Precedence: a variable already present in the shell environment WINS, so
+// `E2E_PASSWORD=… npx playwright test` still overrides the file. `.env.e2e`
+// (and `e2e/.env.e2e`) are covered by `.env*` in .gitignore — the password
+// never enters git or the chat transcript. Quotes around values are stripped.
+for (const envPath of ['.env.e2e', 'e2e/.env.e2e']) {
+  if (!existsSync(envPath)) continue;
+  for (const rawLine of readFileSync(envPath, 'utf8').split('\n')) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const eq = line.indexOf('=');
+    if (eq <= 0) continue;
+    const key = line.slice(0, eq).trim();
+    let val = line.slice(eq + 1).trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    if (process.env[key] === undefined) process.env[key] = val;
+  }
+}
 
 /**
  * Playwright config — runs E2E tests against a locally-booted Next.js dev
