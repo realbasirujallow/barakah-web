@@ -148,35 +148,43 @@ function WasiyyahMockup() {
   );
 }
 
+// 2026-06-03 (audit L2/L3): copy fields moved into src/lib/i18n.ts so the
+// outcome spine renders translated for ar/fr/ur. The constant keeps only the
+// structural bits (mockup, icon, href, stable key) plus the i18n key names;
+// the actual strings are resolved with t() at render inside HomeV2.
 const OUTCOME_BLOCKS: Array<{
-  eyebrow: string;
-  headline: string;
-  body: string;
-  cta: { label: string; href: string };
+  key: string;
+  eyebrowKey: string;
+  headlineKey: string;
+  bodyKey: string;
+  cta: { labelKey: string; href: string };
   mockup: ReactNode;
   icon: typeof Coins;
 }> = [
   {
-    eyebrow: 'For zakat',
-    headline: 'Calculate zakat in 60 seconds',
-    body: 'Add cash, gold, stocks, crypto. Barakah applies the live nisab threshold (gold or silver, your choice), tracks the lunar year, and shows your estimated zakat obligation with the date it’s likely due — verify with your scholar before paying. Four madhabs supported. No spreadsheets. No guessing.',
-    cta: { label: 'Try the free calculator →', href: '/zakat-calculator' },
+    key: 'zakat',
+    eyebrowKey: 'homeOutcomeZakatEyebrow',
+    headlineKey: 'onboardingStep3Title',
+    bodyKey: 'homeOutcomeZakatBody',
+    cta: { labelKey: 'homeOutcomeZakatCta', href: '/zakat-calculator' },
     mockup: <ZakatMockup />,
     icon: Coins,
   },
   {
-    eyebrow: 'For spending',
-    headline: 'Catch riba on every charge',
-    body: 'Connect a bank and Barakah flags interest charges, late fees, and finance fees automatically. Filter your spending by halal vs haram, see which subscriptions are riba-bearing, and clean it up before the lunar year closes.',
-    cta: { label: 'See the riba detector →', href: '/learn/riba-elimination' },
+    key: 'spending',
+    eyebrowKey: 'homeOutcomeSpendingEyebrow',
+    headlineKey: 'homeOutcomeSpendingHeadline',
+    bodyKey: 'homeOutcomeSpendingBody',
+    cta: { labelKey: 'homeOutcomeSpendingCta', href: '/learn/riba-elimination' },
     mockup: <RibaMockup />,
     icon: Shield,
   },
   {
-    eyebrow: 'For your estate',
-    headline: 'Plan your Islamic will, faraid-aware',
-    body: "List heirs with their Qur'anic inheritance shares, record obligations (debts, dowry, funeral costs), and generate a printable wasiyyah PDF. Faraid shares are computed per the Sunni majority position; verify with your scholar for your specific situation.",
-    cta: { label: 'Open the planner →', href: '/faraid-calculator' },
+    key: 'estate',
+    eyebrowKey: 'homeOutcomeEstateEyebrow',
+    headlineKey: 'homeOutcomeEstateHeadline',
+    bodyKey: 'homeOutcomeEstateBody',
+    cta: { labelKey: 'homeOutcomeEstateCta', href: '/faraid-calculator' },
     mockup: <WasiyyahMockup />,
     icon: ScrollText,
   },
@@ -251,16 +259,16 @@ export default function HomeV2() {
           </p>
           <div className="grid md:grid-cols-3 gap-4">
             {[
-              ['1', 'Estimate zakat', 'Use the free calculator before connecting a bank.'],
-              ['2', 'Add one money habit', 'Create a budget, savings goal, or recurring bill.'],
-              ['3', 'Upgrade only if it helps', 'Your Family trial starts with no card required.'],
-            ].map(([num, title, body]) => (
-              <div key={title} className="bg-white border border-amber-100 rounded-xl p-4 text-left">
+              ['1', 'homeFirstWin1Title', 'homeFirstWin1Body'],
+              ['2', 'homeFirstWin2Title', 'homeFirstWin2Body'],
+              ['3', 'homeFirstWin3Title', 'homeFirstWin3Body'],
+            ].map(([num, titleKey, bodyKey]) => (
+              <div key={titleKey} className="bg-white border border-amber-100 rounded-xl p-4 text-left">
                 <div className="w-7 h-7 rounded-full bg-[#1B5E20] text-white text-sm font-bold flex items-center justify-center mb-3">
                   {num}
                 </div>
-                <h3 className="font-bold text-gray-900 mb-1">{title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{body}</p>
+                <h3 className="font-bold text-gray-900 mb-1">{t(titleKey)}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{t(bodyKey)}</p>
               </div>
             ))}
           </div>
@@ -272,23 +280,23 @@ export default function HomeV2() {
         <div className="max-w-6xl mx-auto space-y-20">
           {OUTCOME_BLOCKS.map((block, i) => (
             <div
-              key={block.eyebrow}
+              key={block.key}
               className={`grid md:grid-cols-2 gap-10 md:gap-16 items-center ${
                 i % 2 === 1 ? 'md:[&>*:first-child]:order-2' : ''
               }`}
             >
               {/* Copy */}
               <div>
-                <p className="text-xs uppercase tracking-wider text-[#1B5E20] font-semibold mb-2">{block.eyebrow}</p>
+                <p className="text-xs uppercase tracking-wider text-[#1B5E20] font-semibold mb-2">{t(block.eyebrowKey)}</p>
                 <h2 className="text-3xl md:text-4xl font-bold text-[#1B5E20] mb-4 leading-tight">
-                  {block.headline}
+                  {t(block.headlineKey)}
                 </h2>
-                <p className="text-gray-700 mb-5 text-base leading-relaxed">{block.body}</p>
+                <p className="text-gray-700 mb-5 text-base leading-relaxed">{t(block.bodyKey)}</p>
                 <Link
                   href={block.cta.href}
                   className="inline-flex items-center gap-1 text-[#1B5E20] font-semibold hover:underline"
                 >
-                  {block.cta.label}
+                  {t(block.cta.labelKey)}
                 </Link>
               </div>
               {/* Phase 20 (Apr 30 2026): hand-crafted product mockup
@@ -306,8 +314,8 @@ export default function HomeV2() {
       {/* ── 4. Pricing (compact reference) ─────────────────────────────── */}
       <section id="pricing" className="bg-[#FFF8E1] py-16 px-6">
         <div className="max-w-5xl mx-auto text-center mb-10">
-          <h2 className="text-3xl font-bold text-[#1B5E20] mb-2">Simple pricing, halal-first</h2>
-          <p className="text-gray-700">Start free. Try Plus without a card. Upgrade when Barakah becomes part of your household routine.</p>
+          <h2 className="text-3xl font-bold text-[#1B5E20] mb-2">{t('homePricingV2Heading')}</h2>
+          <p className="text-gray-700">{t('homePricingV2Subcopy')}</p>
         </div>
         <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5">
           <div className="bg-white rounded-2xl p-6 border border-gray-200">
@@ -331,8 +339,8 @@ export default function HomeV2() {
           </div>
         </div>
         <p className="text-center text-xs text-gray-500 mt-6">
-          {/* TODO BUG-PUBSITE-LOCALE-PARTIAL: "See the full feature comparison." needs founder copy voice for fr/ar/ur */}
-          See the <Link href="/pricing" className="text-[#1B5E20] underline">full feature comparison</Link>.
+          {t('homePricingComparePrefix')}{' '}
+          <Link href="/pricing" className="text-[#1B5E20] underline">{t('homePricingCompareLink')}</Link>{t('homePricingCompareSuffix')}
         </p>
       </section>
 
@@ -345,7 +353,7 @@ export default function HomeV2() {
       <section className="bg-white py-16 px-6">
         <div className="max-w-3xl mx-auto">
           <p className="text-xs uppercase tracking-wider text-[#1B5E20] font-semibold mb-6 text-center">
-            Built by a halal-finance founder
+            {t('homeFounderV2Eyebrow')}
           </p>
           <div className="flex flex-col sm:flex-row gap-6 items-start bg-gray-50 rounded-2xl p-8 border border-gray-200">
             <div className="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-[#1B5E20]/20">
@@ -360,18 +368,18 @@ export default function HomeV2() {
             </div>
             <div className="flex-1">
               <h3 className="text-xl font-bold text-gray-900 mb-1">Basiru Jallow</h3>
-              <p className="text-sm text-[#1B5E20] font-semibold mb-3">Founder &amp; Senior Security Engineer</p>
+              <p className="text-sm text-[#1B5E20] font-semibold mb-3">{t('homeFounderV2Role')}</p>
               <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                10+ years in enterprise cybersecurity and identity &amp; access management. Former Senior SailPoint Developer at Deloitte GPS supporting the Social Security Administration, IAM engineering at Navient, and cybersecurity lead at CBRE Group (Fortune 200). Full-stack engineer across Java, Python, TypeScript, and Flutter. Built Barakah to give Muslim households the same caliber of secure, well-engineered financial tools that Fortune 500 companies rely on — with security practices from the identity and access management industry.
+                {t('homeFounderV2Bio')}
               </p>
               <p className="text-gray-700 italic leading-relaxed text-sm mb-3 border-l-2 border-[#1B5E20]/30 pl-4">
-                &ldquo;Barakah exists because every other money app forgot the Muslim household. Zakat is not a side feature; halal is not a filter. We&apos;re building the financial home our families actually need.&rdquo;
+                {t('homeFounderV2Quote')}
               </p>
               <Link
                 href="/about/founder"
                 className="text-sm text-[#1B5E20] hover:text-[#0d3a14] font-medium underline"
               >
-                Read the full founder story →
+                {t('homeFounderV2StoryLink')}
               </Link>
             </div>
           </div>
@@ -381,13 +389,13 @@ export default function HomeV2() {
       {/* ── 6. Final CTA ──────────────────────────────────────────────── */}
       <section className="bg-[#1B5E20] py-16 px-6 text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Start with one zakat. Stay for the rest.</h2>
-          <p className="text-green-200 mb-6">Free to start. No credit card. No setup.</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{t('homeFinalCtaHeading')}</h2>
+          <p className="text-green-200 mb-6">{t('homeFinalCtaSubcopy')}</p>
           <Link
             href="/signup"
             className="inline-flex items-center justify-center bg-white text-[#1B5E20] px-7 py-3.5 rounded-xl font-bold hover:bg-green-50 transition shadow-lg"
           >
-            Create your free account
+            {t('homeFinalCtaButton')}
           </Link>
         </div>
       </section>
@@ -416,39 +424,39 @@ export default function HomeV2() {
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8 text-sm">
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Compare</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">{t('navCompare')}</h3>
               <ul className="space-y-2 text-gray-600">
-                <li><Link href="/compare/barakah-vs-monarch" className="hover:text-[#1B5E20] hover:underline">vs Monarch</Link></li>
-                <li><Link href="/compare/barakah-vs-ynab" className="hover:text-[#1B5E20] hover:underline">vs YNAB</Link></li>
-                <li><Link href="/compare/barakah-vs-zoya" className="hover:text-[#1B5E20] hover:underline">vs Zoya</Link></li>
-                <li><Link href="/compare" className="hover:text-[#1B5E20] hover:underline">All comparisons →</Link></li>
+                <li><Link href="/compare/barakah-vs-monarch" className="hover:text-[#1B5E20] hover:underline">{t('homeFooterVsMonarch')}</Link></li>
+                <li><Link href="/compare/barakah-vs-ynab" className="hover:text-[#1B5E20] hover:underline">{t('homeFooterVsYnab')}</Link></li>
+                <li><Link href="/compare/barakah-vs-zoya" className="hover:text-[#1B5E20] hover:underline">{t('homeFooterVsZoya')}</Link></li>
+                <li><Link href="/compare" className="hover:text-[#1B5E20] hover:underline">{t('homeFooterAllComparisons')}</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Legal</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">{t('homeFooterLegal')}</h3>
               <ul className="space-y-2 text-gray-600">
-                <li><Link href="/terms" className="hover:text-[#1B5E20] hover:underline">Terms of Service</Link></li>
-                <li><Link href="/privacy" className="hover:text-[#1B5E20] hover:underline">Privacy Policy</Link></li>
-                <li><Link href="/disclaimer" className="hover:text-[#1B5E20] hover:underline">Disclaimer</Link></li>
-                <li><Link href="/security" className="hover:text-[#1B5E20] hover:underline">Security</Link></li>
+                <li><Link href="/terms" className="hover:text-[#1B5E20] hover:underline">{t('signupTermsOfService')}</Link></li>
+                <li><Link href="/privacy" className="hover:text-[#1B5E20] hover:underline">{t('signupPrivacyPolicy')}</Link></li>
+                <li><Link href="/disclaimer" className="hover:text-[#1B5E20] hover:underline">{t('legalDisclaimer')}</Link></li>
+                <li><Link href="/security" className="hover:text-[#1B5E20] hover:underline">{t('homeFooterSecurity')}</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Company</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">{t('homeFooterCompany')}</h3>
               <ul className="space-y-2 text-gray-600">
-                <li><Link href="/methodology" className="hover:text-[#1B5E20] hover:underline">Methodology</Link></li>
-                <li><Link href="/scholars" className="hover:text-[#1B5E20] hover:underline">Scholars &amp; review</Link></li>
-                <li><Link href="/transparency" className="hover:text-[#1B5E20] hover:underline">Transparency</Link></li>
-                <li><Link href="/contact" className="hover:text-[#1B5E20] hover:underline">Contact</Link></li>
+                <li><Link href="/methodology" className="hover:text-[#1B5E20] hover:underline">{t('navMethodology')}</Link></li>
+                <li><Link href="/scholars" className="hover:text-[#1B5E20] hover:underline">{t('homeFooterScholars')}</Link></li>
+                <li><Link href="/transparency" className="hover:text-[#1B5E20] hover:underline">{t('homeFooterTransparency')}</Link></li>
+                <li><Link href="/contact" className="hover:text-[#1B5E20] hover:underline">{t('navContact')}</Link></li>
               </ul>
             </div>
           </div>
           <div className="pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-gray-500">
-            <p>&copy; {new Date().getFullYear()} Barakah. Built with care for the Muslim household.</p>
+            <p>&copy; {new Date().getFullYear()} Barakah. {t('homeFooterTagline')}</p>
             <p>
-              <Link href="/terms" className="hover:text-gray-700">Terms</Link>
+              <Link href="/terms" className="hover:text-gray-700">{t('legalTerms')}</Link>
               {' · '}
-              <Link href="/privacy" className="hover:text-gray-700">Privacy</Link>
+              <Link href="/privacy" className="hover:text-gray-700">{t('legalPrivacy')}</Link>
             </p>
           </div>
         </div>

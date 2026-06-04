@@ -5,6 +5,7 @@ import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
 import { useCurrency } from '../../../lib/useCurrency';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 
 interface LedgerEntry {
   id?: number;
@@ -21,32 +22,36 @@ interface LedgerEntry {
   [key: string]: unknown;
 }
 
+// Entry-type filter options. `value` holds the raw backend enum (kept as-is —
+// it is sent to the API), while `labelKey` resolves to a localized label via
+// t() at render time.
 const ENTRY_TYPES = [
-  { value: '', label: 'All Types' },
-  { value: 'ASSET_ADDED', label: 'Asset Added' },
-  { value: 'ASSET_REMOVED', label: 'Asset Removed' },
-  { value: 'ASSET_UPDATED', label: 'Asset Updated' },
-  { value: 'DEBT_ADDED', label: 'Debt Added' },
-  { value: 'DEBT_PAYMENT', label: 'Debt Payment' },
-  { value: 'DEBT_REMOVED', label: 'Debt Removed' },
-  { value: 'DEBT_UPDATED', label: 'Debt Updated' },
-  { value: 'FIQH_CONFIG_CHANGED', label: 'Fiqh Config Changed' },
-  { value: 'HAWL_COMPLETED', label: 'Hawl Completed' },
-  { value: 'HAWL_RESET', label: 'Hawl Reset' },
-  { value: 'HAWL_STARTED', label: 'Hawl Started' },
-  { value: 'PURIFICATION_RECORDED', label: 'Purification Recorded' },
-  { value: 'RETIREMENT_ZAKAT_CALCULATED', label: 'Retirement Zakat Calculated' },
-  { value: 'SADAQAH_RECORDED', label: 'Sadaqah Recorded' },
-  { value: 'TRANSACTION_CREATED', label: 'Transaction Created' },
-  { value: 'WASIYYAH_UPDATED', label: 'Wasiyyah Updated' },
-  { value: 'ZAKAT_CALCULATED', label: 'Zakat Calculated' },
-  { value: 'ZAKAT_PAID', label: 'Zakat Paid' },
-  { value: 'ZAKAT_SNAPSHOT_LOCKED', label: 'Zakat Snapshot (Locked)' },
+  { value: '', labelKey: 'ledgerTypeAll' },
+  { value: 'ASSET_ADDED', labelKey: 'ledgerTypeAssetAdded' },
+  { value: 'ASSET_REMOVED', labelKey: 'ledgerTypeAssetRemoved' },
+  { value: 'ASSET_UPDATED', labelKey: 'ledgerTypeAssetUpdated' },
+  { value: 'DEBT_ADDED', labelKey: 'ledgerTypeDebtAdded' },
+  { value: 'DEBT_PAYMENT', labelKey: 'ledgerTypeDebtPayment' },
+  { value: 'DEBT_REMOVED', labelKey: 'ledgerTypeDebtRemoved' },
+  { value: 'DEBT_UPDATED', labelKey: 'ledgerTypeDebtUpdated' },
+  { value: 'FIQH_CONFIG_CHANGED', labelKey: 'ledgerTypeFiqhConfigChanged' },
+  { value: 'HAWL_COMPLETED', labelKey: 'ledgerTypeHawlCompleted' },
+  { value: 'HAWL_RESET', labelKey: 'ledgerTypeHawlReset' },
+  { value: 'HAWL_STARTED', labelKey: 'ledgerTypeHawlStarted' },
+  { value: 'PURIFICATION_RECORDED', labelKey: 'ledgerTypePurificationRecorded' },
+  { value: 'RETIREMENT_ZAKAT_CALCULATED', labelKey: 'ledgerTypeRetirementZakatCalculated' },
+  { value: 'SADAQAH_RECORDED', labelKey: 'ledgerTypeSadaqahRecorded' },
+  { value: 'TRANSACTION_CREATED', labelKey: 'ledgerTypeTransactionCreated' },
+  { value: 'WASIYYAH_UPDATED', labelKey: 'ledgerTypeWasiyyahUpdated' },
+  { value: 'ZAKAT_CALCULATED', labelKey: 'ledgerTypeZakatCalculated' },
+  { value: 'ZAKAT_PAID', labelKey: 'ledgerTypeZakatPaid' },
+  { value: 'ZAKAT_SNAPSHOT_LOCKED', labelKey: 'ledgerTypeZakatSnapshotLocked' },
 ];
 
 export default function AuditLedgerPage() {
   const { toast } = useToast();
   const { fmt } = useCurrency();
+  const { t, tFmt } = useI18n();
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [page, setPage] = useState(0);
@@ -76,13 +81,13 @@ export default function AuditLedgerPage() {
         }
       } catch (err) {
         logError(err, { context: 'Failed to load ledger' });
-        toast('Failed to load audit ledger. Please refresh.', 'error');
+        toast(t('ledgerLoadError'), 'error');
       }
       setLoading(false);
     };
 
     loadLedger();
-  }, [page, selectedType, toast]);
+  }, [page, selectedType, toast, t]);
 
   const handleTypeChange = (type: string) => {
     setSelectedType(type);
@@ -90,7 +95,7 @@ export default function AuditLedgerPage() {
   };
 
   const formatDate = (dateVal: unknown): string => {
-    if (!dateVal) return 'N/A';
+    if (!dateVal) return t('ledgerNA');
     try {
       let ms: number;
       if (typeof dateVal === 'number') {
@@ -113,7 +118,7 @@ export default function AuditLedgerPage() {
   };
 
   const formatAmount = (amount: unknown, entryCurrency?: string): string => {
-    if (amount === undefined || amount === null) return 'N/A';
+    if (amount === undefined || amount === null) return t('ledgerNA');
     try {
       const num = typeof amount === 'string' ? parseFloat(amount) : Number(amount);
       // Prefer the entry's own currency so historical rows keep the currency
@@ -143,7 +148,7 @@ export default function AuditLedgerPage() {
         // Build description from metadata fields
         const parts: string[] = [];
         if (meta.assetName) parts.push(meta.assetName);
-        if (meta.recipient) parts.push(`To: ${meta.recipient}`);
+        if (meta.recipient) parts.push(tFmt('ledgerDescToFmt', [meta.recipient]));
         if (meta.oldValue !== undefined && meta.newValue !== undefined) {
           parts.push(`${fmt(meta.oldValue)} → ${fmt(meta.newValue)}`);
         }
@@ -181,7 +186,7 @@ export default function AuditLedgerPage() {
       <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] to-[#E8F5E9] p-4 sm:p-8">
         <div className="max-w-6xl mx-auto">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <p className="text-gray-600">Loading audit ledger...</p>
+            <p className="text-gray-600">{t('ledgerLoading')}</p>
           </div>
         </div>
       </div>
@@ -193,8 +198,8 @@ export default function AuditLedgerPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <PageHeader
-          title="Audit Ledger"
-          subtitle="Journal entries with debit/credit double-entry"
+          title={t('ledgerTitle')}
+          subtitle={t('ledgerSubtitle')}
           className="mb-8"
         />
 
@@ -202,7 +207,7 @@ export default function AuditLedgerPage() {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="w-full sm:w-auto">
-              <label htmlFor="ledger-type" className="block text-sm font-semibold text-primary mb-2">Filter by Type</label>
+              <label htmlFor="ledger-type" className="block text-sm font-semibold text-primary mb-2">{t('ledgerFilterByType')}</label>
               <select
                 id="ledger-type"
                 value={selectedType}
@@ -211,13 +216,13 @@ export default function AuditLedgerPage() {
               >
                 {ENTRY_TYPES.map((type) => (
                   <option key={type.value} value={type.value}>
-                    {type.label}
+                    {t(type.labelKey)}
                   </option>
                 ))}
               </select>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Total Entries</p>
+              <p className="text-sm text-gray-600">{t('ledgerTotalEntries')}</p>
               <p className="text-2xl font-bold text-primary">{total}</p>
             </div>
           </div>
@@ -230,11 +235,11 @@ export default function AuditLedgerPage() {
               <table className="w-full">
                 <thead className="bg-green-700 text-white">
                   <tr>
-                    <th className="px-6 py-4 text-left font-semibold">Date</th>
-                    <th className="px-6 py-4 text-left font-semibold">Type</th>
-                    <th className="px-6 py-4 text-right font-semibold">Amount</th>
-                    <th className="px-6 py-4 text-left font-semibold">Description</th>
-                    <th className="px-6 py-4 text-center font-semibold">Status</th>
+                    <th className="px-6 py-4 text-left font-semibold">{t('ledgerColDate')}</th>
+                    <th className="px-6 py-4 text-left font-semibold">{t('ledgerColType')}</th>
+                    <th className="px-6 py-4 text-right font-semibold">{t('ledgerColAmount')}</th>
+                    <th className="px-6 py-4 text-left font-semibold">{t('ledgerColDescription')}</th>
+                    <th className="px-6 py-4 text-center font-semibold">{t('ledgerColStatus')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -262,11 +267,11 @@ export default function AuditLedgerPage() {
                       <td className="px-6 py-4 text-center">
                         {entryType === 'ZAKAT_SNAPSHOT_LOCKED' ? (
                           <span className="inline-flex items-center gap-1 text-blue-700 font-semibold">
-                            <span>🔒</span> Locked
+                            <span>🔒</span> {t('ledgerStatusLocked')}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-green-700 font-semibold">
-                            <span>✓</span> Active
+                            <span>✓</span> {t('ledgerStatusActive')}
                           </span>
                         )}
                       </td>
@@ -278,7 +283,7 @@ export default function AuditLedgerPage() {
             </div>
           ) : (
             <div className="p-8 text-center">
-              <p className="text-gray-600 text-lg">No ledger entries found.</p>
+              <p className="text-gray-600 text-lg">{t('ledgerEmpty')}</p>
             </div>
           )}
         </div>
@@ -291,18 +296,17 @@ export default function AuditLedgerPage() {
               disabled={page === 0}
               className="px-4 py-2 bg-green-700 hover:bg-green-800 disabled:bg-gray-400 text-white rounded-lg font-medium transition"
             >
-              Previous
+              {t('ledgerPrev')}
             </button>
             <div className="text-gray-600">
-              Page <span className="font-bold text-primary">{page + 1}</span> of{' '}
-              <span className="font-bold text-primary">{totalPages}</span>
+              {tFmt('ledgerPageOfFmt', [page + 1, totalPages])}
             </div>
             <button
               onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
               disabled={page >= totalPages - 1}
               className="px-4 py-2 bg-green-700 hover:bg-green-800 disabled:bg-gray-400 text-white rounded-lg font-medium transition"
             >
-              Next
+              {t('ledgerNext')}
             </button>
           </div>
         )}

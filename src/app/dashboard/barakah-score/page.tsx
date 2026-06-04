@@ -3,61 +3,68 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import Link from 'next/link';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 
 interface Pillar { name: string; score: number; max: number; note: string; pct: number; }
 interface ScoreData { totalScore: number; maxScore: number; grade: string; overallNote: string; pillars: Pillar[]; }
 
 /* ── Per-pillar actionable tips ─────────────────────────────────── */
+// The backend returns pillar.name as a stable English identifier
+// ("Zakat Compliance", etc.) which we keep as the lookup key into this
+// map and as the i18n key suffix. All user-facing copy (display label +
+// tips) is resolved through useI18n at render time so it localizes.
+interface PillarTip { pctThreshold: number; tipKey: string }
 interface PillarMeta {
   icon: string;
   href: string;
-  tips: { pctThreshold: number; tip: string }[];
+  labelKey: string;
+  tips: PillarTip[];
 }
 
 const PILLAR_META: Record<string, PillarMeta> = {
   'Zakat Compliance': {
-    icon: '🕌', href: '/dashboard/zakat',
+    icon: '🕌', href: '/dashboard/zakat', labelKey: 'barakahScorePillarZakat',
     tips: [
-      { pctThreshold: 0,  tip: 'You have not recorded any Zakat payments. If your wealth exceeds the nisab, Zakat is obligatory. Head to the Zakat calculator to check your eligibility.' },
-      { pctThreshold: 40, tip: 'You are partially meeting your Zakat obligation. Review your assets in the Zakat calculator to ensure all zakatable wealth is included.' },
-      { pctThreshold: 75, tip: 'Great progress! Make sure your Zakat hawl (lunar year cycle) is up to date so you never miss a payment.' },
-      { pctThreshold: 90, tip: 'Excellent! Consider adding voluntary Sadaqah beyond Zakat to further strengthen your score.' },
+      { pctThreshold: 0,  tipKey: 'barakahScoreZakatTip0' },
+      { pctThreshold: 40, tipKey: 'barakahScoreZakatTip40' },
+      { pctThreshold: 75, tipKey: 'barakahScoreZakatTip75' },
+      { pctThreshold: 90, tipKey: 'barakahScoreZakatTip90' },
     ],
   },
   'Sadaqah Consistency': {
-    icon: '🤲', href: '/dashboard/sadaqah',
+    icon: '🤲', href: '/dashboard/sadaqah', labelKey: 'barakahScorePillarSadaqah',
     tips: [
-      { pctThreshold: 0,  tip: 'No Sadaqah recorded yet. Even a small regular donation — weekly or monthly — counts. Tag any charitable transaction as "charity" to get credit.' },
-      { pctThreshold: 40, tip: 'Good start! Aim for consistency: small recurring donations are more rewarding than occasional large ones.' },
-      { pctThreshold: 75, tip: 'You are giving regularly. Consider automating your Sadaqah by setting up a recurring transfer to a cause you care about.' },
-      { pctThreshold: 90, tip: 'Mashallah! Your giving is consistent. Explore Waqf (endowments) or Qurban for the upcoming season.' },
+      { pctThreshold: 0,  tipKey: 'barakahScoreSadaqahTip0' },
+      { pctThreshold: 40, tipKey: 'barakahScoreSadaqahTip40' },
+      { pctThreshold: 75, tipKey: 'barakahScoreSadaqahTip75' },
+      { pctThreshold: 90, tipKey: 'barakahScoreSadaqahTip90' },
     ],
   },
   'Debt Reduction': {
-    icon: '💳', href: '/dashboard/debts',
+    icon: '💳', href: '/dashboard/debts', labelKey: 'barakahScorePillarDebt',
     tips: [
-      { pctThreshold: 0,  tip: 'Your debt-to-asset ratio is high. Try the Debt Payoff Projector on the Debts page — even $50/month extra can save thousands in interest.' },
-      { pctThreshold: 40, tip: 'You are making progress. Use the Avalanche strategy (highest interest first) to minimise total interest paid.' },
-      { pctThreshold: 75, tip: 'Your debt is well managed. Consider converting any interest-bearing debts to Halal alternatives (Qard Hasan, Islamic financing).' },
-      { pctThreshold: 90, tip: 'Excellent! With low debt, consider redirecting freed-up cash flow toward Halal investments or savings goals.' },
+      { pctThreshold: 0,  tipKey: 'barakahScoreDebtTip0' },
+      { pctThreshold: 40, tipKey: 'barakahScoreDebtTip40' },
+      { pctThreshold: 75, tipKey: 'barakahScoreDebtTip75' },
+      { pctThreshold: 90, tipKey: 'barakahScoreDebtTip90' },
     ],
   },
   'Savings Discipline': {
-    icon: '🎯', href: '/dashboard/savings',
+    icon: '🎯', href: '/dashboard/savings', labelKey: 'barakahScorePillarSavings',
     tips: [
-      { pctThreshold: 0,  tip: 'No savings goals found. Create a goal — even a small emergency fund (1 month of expenses) significantly improves financial security.' },
-      { pctThreshold: 40, tip: 'You have started saving. Try to automate a fixed amount each payday so saving happens before spending.' },
-      { pctThreshold: 75, tip: 'Good discipline! Aim to fund at least one goal to completion before opening new ones. Focus reduces time to goal.' },
-      { pctThreshold: 90, tip: 'Excellent savings discipline! Consider Halal investment options (ETFs like HLAL, Wahed, or sukuk) to grow your savings.' },
+      { pctThreshold: 0,  tipKey: 'barakahScoreSavingsTip0' },
+      { pctThreshold: 40, tipKey: 'barakahScoreSavingsTip40' },
+      { pctThreshold: 75, tipKey: 'barakahScoreSavingsTip75' },
+      { pctThreshold: 90, tipKey: 'barakahScoreSavingsTip90' },
     ],
   },
   'Halal Cleanliness': {
-    icon: '🛡️', href: '/dashboard/transactions',
+    icon: '🛡️', href: '/dashboard/transactions', labelKey: 'barakahScorePillarHalal',
     tips: [
-      { pctThreshold: 0,  tip: 'Several transactions appear riba-related (interest charges). Any interest received should be donated to charity and not included in wealth. Review flagged transactions.' },
-      { pctThreshold: 40, tip: 'You have some interest-flagged transactions. Work with your bank to move to interest-free accounts where possible.' },
-      { pctThreshold: 75, tip: 'Most transactions look halal. Review any "interest" or "APR" line items and consider donating those amounts to charity.' },
-      { pctThreshold: 90, tip: 'Your finances are very clean! Keep reviewing imported transactions and categorise any unusual income sources.' },
+      { pctThreshold: 0,  tipKey: 'barakahScoreHalalTip0' },
+      { pctThreshold: 40, tipKey: 'barakahScoreHalalTip40' },
+      { pctThreshold: 75, tipKey: 'barakahScoreHalalTip75' },
+      { pctThreshold: 90, tipKey: 'barakahScoreHalalTip90' },
     ],
   },
 };
@@ -67,10 +74,15 @@ const GRADE_COLORS: Record<string, string> = {
 };
 
 function ScoreGauge({ score, grade }: { score: number; grade: string }) {
+  const { t, tFmt } = useI18n();
   const r = 70; const circ = 2 * Math.PI * r;
   const filled = circ * (score / 100);
   const color = GRADE_COLORS[grade] || '#EF4444';
-  const label = grade === 'A' ? 'Excellent' : grade === 'B' ? 'Good' : grade === 'C' ? 'Fair' : grade === 'D' ? 'Needs Work' : 'Getting Started';
+  const label = grade === 'A' ? t('barakahScoreGradeExcellent')
+    : grade === 'B' ? t('barakahScoreGradeGood')
+    : grade === 'C' ? t('barakahScoreGradeFair')
+    : grade === 'D' ? t('barakahScoreGradeNeedsWork')
+    : t('barakahScoreGradeGettingStarted');
   return (
     <div className="relative flex flex-col items-center">
       <svg width="180" height="180" className="-rotate-90">
@@ -80,28 +92,34 @@ function ScoreGauge({ score, grade }: { score: number; grade: string }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
         <p className="text-5xl font-bold" style={{ color }}>{score}</p>
-        <p className="text-xs font-semibold mt-1" style={{ color }}>{label} (Grade {grade})</p>
+        <p className="text-xs font-semibold mt-1" style={{ color }}>{tFmt('barakahScoreGradeLabelFmt', [label, grade])}</p>
         <p className="text-xs text-gray-400">/ 100</p>
       </div>
     </div>
   );
 }
 
-function getActiveTip(meta: PillarMeta, pct: number): string {
-  // Return the highest threshold tip that applies
-  let active = meta.tips[0].tip;
-  for (const t of meta.tips) {
-    if (pct >= t.pctThreshold) active = t.tip;
+// Returns the i18n key of the highest-threshold tip that applies, so the
+// caller can resolve it with t() where the hook is in scope.
+function getActiveTipKey(meta: PillarMeta, pct: number): string {
+  let active = meta.tips[0].tipKey;
+  for (const tier of meta.tips) {
+    if (pct >= tier.pctThreshold) active = tier.tipKey;
   }
   return active;
 }
 
 function PillarCard({ pillar }: { pillar: Pillar }) {
+  const { t, tFmt } = useI18n();
   const [expanded, setExpanded] = useState(false);
-  const meta = PILLAR_META[pillar.name] || { icon: '📊', href: '/dashboard', tips: [] };
+  const meta = PILLAR_META[pillar.name] || { icon: '📊', href: '/dashboard', labelKey: '', tips: [] };
+  const label = meta.labelKey ? t(meta.labelKey) : pillar.name;
+  // First word of the localized pillar label keeps the link compact
+  // ("Go to Zakat →"), mirroring the original behaviour.
+  const goToLabel = tFmt('barakahScoreGoToFmt', [label.split(' ')[0]]);
   const pctWidth = pillar.max > 0 ? (pillar.score / pillar.max) * 100 : 0;
   const barColor = pctWidth >= 75 ? '#1B5E20' : pctWidth >= 50 ? '#F59E0B' : '#EF4444';
-  const tip = meta.tips.length ? getActiveTip(meta, pctWidth) : null;
+  const tip = meta.tips.length ? t(getActiveTipKey(meta, pctWidth)) : null;
 
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -113,7 +131,7 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="text-xl">{meta.icon}</span>
-            <p className="font-semibold text-gray-800">{pillar.name}</p>
+            <p className="font-semibold text-gray-800">{label}</p>
           </div>
           <div className="flex items-center gap-2">
             <p className="text-lg font-bold" style={{ color: barColor }}>
@@ -157,7 +175,7 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
             className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
             onClick={e => e.stopPropagation()}
           >
-            Go to {pillar.name.split(' ')[0]} →
+            {goToLabel}
           </Link>
         </div>
       )}
@@ -166,6 +184,7 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
 }
 
 export default function BarakahScorePage() {
+  const { t, tFmt } = useI18n();
   const [data, setData]     = useState<ScoreData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState('');
@@ -181,11 +200,11 @@ export default function BarakahScorePage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message.toLowerCase() : '';
       setIsPlanError(msg.includes('plan') || msg.includes('upgrade') || msg.includes('403'));
-      setError('Failed to load Barakah Score');
+      setError(t('barakahScoreLoadError'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => { void loadScore(); }, [loadScore]);
 
@@ -198,15 +217,15 @@ export default function BarakahScorePage() {
   if (error || !data) return (
     <div className="text-center py-16 max-w-md mx-auto">
       <div className="text-5xl mb-4">📊</div>
-      <h2 className="text-xl font-bold text-gray-900 mb-2">Unable to Calculate Score</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-2">{t('barakahScoreUnableTitle')}</h2>
       <p className="text-gray-600 mb-6">
         {isPlanError
-          ? 'Barakah Score requires a Plus or Family plan. Upgrade to see your personalized Islamic financial health score.'
-          : 'We couldn\'t calculate your score right now. This usually means you need to add more financial data (assets, transactions, zakat payments) first.'}
+          ? t('barakahScoreUnablePlan')
+          : t('barakahScoreUnableData')}
       </p>
       <div className="flex gap-3 justify-center">
-        <a href="/dashboard" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition">Go to Dashboard</a>
-        <button onClick={() => void loadScore()} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Try Again</button>
+        <a href="/dashboard" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition">{t('barakahScoreGoToDashboard')}</a>
+        <button onClick={() => void loadScore()} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">{t('errTryAgain')}</button>
       </div>
     </div>
   );
@@ -223,8 +242,8 @@ export default function BarakahScorePage() {
   return (
     <div className="max-w-2xl mx-auto">
       <PageHeader
-        title="Barakah Score"
-        subtitle="Your Islamic financial wellness across 5 pillars"
+        title={t('barakahScoreTitle')}
+        subtitle={t('barakahScoreSubtitle')}
       />
 
       {/* Gauge */}
@@ -232,7 +251,7 @@ export default function BarakahScorePage() {
         <ScoreGauge score={data.totalScore} grade={data.grade} />
         <p className="text-sm text-gray-600 mt-2 text-center max-w-sm font-medium">{data.overallNote}</p>
         <p className="text-xs text-gray-400 mt-2 text-center max-w-xs">
-          This score reflects your current Islamic financial practices. It is not a fatwa — consult a qualified scholar for specific guidance.
+          {t('barakahScoreNotFatwa')}
         </p>
       </div>
 
@@ -241,16 +260,16 @@ export default function BarakahScorePage() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 flex gap-3">
           <span className="text-2xl shrink-0">💡</span>
           <div>
-            <p className="text-sm font-semibold text-amber-900">Biggest opportunity: {lowestPillar.name}</p>
+            <p className="text-sm font-semibold text-amber-900">{tFmt('barakahScoreBiggestOpportunityFmt', [t(PILLAR_META[lowestPillar.name].labelKey)])}</p>
             <p className="text-sm text-amber-800 mt-0.5">
-              {getActiveTip(PILLAR_META[lowestPillar.name], (lowestPillar.score / lowestPillar.max) * 100)}
+              {t(getActiveTipKey(PILLAR_META[lowestPillar.name], (lowestPillar.score / lowestPillar.max) * 100))}
             </p>
           </div>
         </div>
       )}
 
       {/* Pillar cards (expandable) */}
-      <p className="text-xs text-gray-400 mb-3">Tap any pillar to see actionable tips</p>
+      <p className="text-xs text-gray-400 mb-3">{t('barakahScoreTapHint')}</p>
       <div className="space-y-3">
         {data.pillars.map(pillar => (
           <PillarCard key={pillar.name} pillar={pillar} />
@@ -258,7 +277,7 @@ export default function BarakahScorePage() {
       </div>
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 mt-6">
-        ⚠️ The Barakah Score is for personal reflection only. It is based on data you have entered and does not account for intentions (niyyah) or factors only Allah ﷻ knows. This is not a religious ruling.
+        {t('barakahScoreDisclaimer')}
       </div>
     </div>
   );

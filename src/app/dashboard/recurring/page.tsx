@@ -7,6 +7,7 @@ import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { CategoryIcon } from '../../../lib/categoryIcon';
+import { useI18n } from '../../../lib/i18n';
 
 interface RecurringTx {
   id: number;
@@ -88,6 +89,7 @@ interface TxRowProps {
   onToggle: (id: number) => void;
 }
 function TxRow({ tx, fmt, toggling, onToggle }: TxRowProps) {
+  const { t, tFmt } = useI18n();
   return (
     <div className={`flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 ${!tx.recurringActive ? 'opacity-50' : ''}`}>
       <div className="flex items-center gap-3">
@@ -95,9 +97,9 @@ function TxRow({ tx, fmt, toggling, onToggle }: TxRowProps) {
           <CategoryIcon category={tx.category} className="w-5 h-5" />
         </div>
         <div>
-          <p className="font-medium text-gray-900 text-sm">{tx.description || 'No description'}</p>
+          <p className="font-medium text-gray-900 text-sm">{tx.description || t('recurringNoDescription')}</p>
           <p className="text-xs text-gray-500 capitalize">
-            {tx.category} • Last: {formatDate(tx.timestamp)}
+            {tx.category} • {tFmt('recurringLastFmt', [formatDate(tx.timestamp)])}
             {tx.frequency && <span className="ml-1">• {tx.frequency}</span>}
           </p>
         </div>
@@ -109,7 +111,7 @@ function TxRow({ tx, fmt, toggling, onToggle }: TxRowProps) {
         <button
           onClick={() => onToggle(tx.id)}
           disabled={toggling === tx.id}
-          title={tx.recurringActive ? 'Pause recurring' : 'Resume recurring'}
+          title={tx.recurringActive ? t('recurringPauseTitle') : t('recurringResumeTitle')}
           className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors focus:outline-none ${
             tx.recurringActive ? 'bg-primary' : 'bg-gray-300'
           } disabled:opacity-60`}
@@ -143,6 +145,7 @@ function RecurringCalendar({
   transactions: RecurringTx[];
   fmt: (n: number) => string;
 }) {
+  const { t, tFmt } = useI18n();
   // Group rows by day-of-month (1..31).
   const byDay = useMemo(() => {
     const map = new Map<number, RecurringTx[]>();
@@ -176,10 +179,10 @@ function RecurringCalendar({
   return (
     <div className="p-5">
       <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium mb-3">
-        {monthLabel} · day each row recurs
+        {tFmt('recurringCalendarCaptionFmt', [monthLabel])}
       </p>
       <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-wide text-gray-400 mb-1">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+        {[t('recurringDowSun'), t('recurringDowMon'), t('recurringDowTue'), t('recurringDowWed'), t('recurringDowThu'), t('recurringDowFri'), t('recurringDowSat')].map(d => (
           <div key={d}>{d}</div>
         ))}
       </div>
@@ -229,8 +232,8 @@ function RecurringCalendar({
         })}
       </div>
       <div className="mt-3 flex items-center gap-3 text-[11px] text-gray-500">
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Income</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500" /> Expense</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> {t('recurringLegendIncome')}</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500" /> {t('recurringLegendExpense')}</span>
       </div>
     </div>
   );
@@ -245,6 +248,7 @@ export default function RecurringPage() {
   const [activeView, setActiveView]     = useState<'list' | 'calendar'>('list');
   const { toast } = useToast();
   const { fmt } = useCurrency();
+  const { t, tFmt } = useI18n();
 
   // RCR-1 fix (2026-05-15): surface what the backend already auto-detected
   // (recurring income streams + subscription charges) so the empty state
@@ -259,11 +263,11 @@ export default function RecurringPage() {
       const data = await api.getRecurringTransactions();
       setTransactions(data?.transactions || data || []);
     } catch {
-      toast('Failed to load recurring transactions', 'error');
+      toast(t('recurringLoadError'), 'error');
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => {
     void load();
@@ -280,8 +284,8 @@ export default function RecurringPage() {
           const s = streams.value as { streams?: Array<{ merchantName?: string; cadence?: string; averageAmount?: number; monthlyAmount?: number }> };
           (s?.streams ?? []).forEach(st => {
             items.push({
-              name: st.merchantName ?? 'Income stream',
-              cycle: st.cadence ?? 'Recurring income',
+              name: st.merchantName ?? t('recurringDetectedIncomeStream'),
+              cycle: st.cadence ?? t('recurringDetectedRecurringIncome'),
               amount: st.averageAmount ?? st.monthlyAmount ?? 0,
               href: '/dashboard/cash-flow',
             });
@@ -291,8 +295,8 @@ export default function RecurringPage() {
           const v = subs.value as { subscriptions?: Array<{ displayName?: string; name?: string; frequency?: string; amount?: number }> };
           (v?.subscriptions ?? []).forEach(s => {
             items.push({
-              name: s.displayName ?? s.name ?? 'Subscription',
-              cycle: s.frequency ?? 'Recurring',
+              name: s.displayName ?? s.name ?? t('recurringDetectedSubscription'),
+              cycle: s.frequency ?? t('recurringDetectedRecurring'),
               amount: s.amount ?? 0,
               href: '/dashboard/subscriptions',
             });
@@ -303,16 +307,16 @@ export default function RecurringPage() {
         /* silent */
       }
     })();
-  }, [load]);
+  }, [load, t]);
 
   const handleToggle = async (id: number) => {
     setToggling(id);
     try {
       await api.toggleRecurring(id);
       await load();
-      toast('Recurring status updated', 'success');
+      toast(t('recurringStatusUpdated'), 'success');
     } catch {
-      toast('Failed to update recurring status', 'error');
+      toast(t('recurringStatusUpdateError'), 'error');
     } finally {
       setToggling(null);
     }
@@ -323,10 +327,10 @@ export default function RecurringPage() {
     try {
       const result = await api.processRecurring();
       const count = result?.processedCount ?? result?.processed ?? 0;
-      toast(`Processed ${count} recurring transaction${count !== 1 ? 's' : ''}`, 'success');
+      toast(tFmt(count === 1 ? 'recurringProcessedFmt' : 'recurringProcessedPluralFmt', [count]), 'success');
       await load();
     } catch {
-      toast('Failed to process recurring transactions', 'error');
+      toast(t('recurringProcessError'), 'error');
     } finally {
       setProcessing(false);
     }
@@ -338,11 +342,11 @@ export default function RecurringPage() {
     </div>
   );
 
-  const active   = transactions.filter(t => t.recurringActive);
-  const inactive = transactions.filter(t => !t.recurringActive);
+  const active   = transactions.filter(tx => tx.recurringActive);
+  const inactive = transactions.filter(tx => !tx.recurringActive);
 
-  const monthlyImpact = active.reduce((sum, t) => {
-    const amt = t.type === 'income' ? t.amount : -t.amount;
+  const monthlyImpact = active.reduce((sum, tx) => {
+    const amt = tx.type === 'income' ? tx.amount : -tx.amount;
     return sum + amt;
   }, 0);
 
@@ -353,14 +357,14 @@ export default function RecurringPage() {
   // "credit", "card", "card payment", "minimum payment", "statement").
   // Where the heuristic doesn't fire, those rows fall back into the
   // Expenses pillar — which is correct in Monarch too.
-  const isCreditCardLike = (t: RecurringTx) => {
-    if (t.type === 'income') return false;
-    const blob = `${t.description ?? ''} ${t.category ?? ''}`.toLowerCase();
+  const isCreditCardLike = (tx: RecurringTx) => {
+    if (tx.type === 'income') return false;
+    const blob = `${tx.description ?? ''} ${tx.category ?? ''}`.toLowerCase();
     return /\b(credit\s*card|card\s*payment|minimum\s*payment|statement|amex|chase\s*card|capital\s*one)\b/.test(blob);
   };
-  const incomeTxs = active.filter(t => t.type === 'income');
+  const incomeTxs = active.filter(tx => tx.type === 'income');
   const ccTxs = active.filter(isCreditCardLike);
-  const expenseTxs = active.filter(t => t.type !== 'income' && !isCreditCardLike(t));
+  const expenseTxs = active.filter(tx => tx.type !== 'income' && !isCreditCardLike(tx));
   const sumAbs = (rows: RecurringTx[]) => rows.reduce((s, r) => s + Math.abs(r.amount), 0);
   const incomeTotal = sumAbs(incomeTxs);
   const expenseTotal = sumAbs(expenseTxs);
@@ -369,15 +373,15 @@ export default function RecurringPage() {
   return (
     <div className="max-w-5xl mx-auto">
       <PageHeader
-        title="Recurring"
-        subtitle="Income, expenses, and credit-card payments that repeat each period."
+        title={t('recurringTitle')}
+        subtitle={t('recurringSubtitle')}
         actions={
           <button
             onClick={handleProcessNow}
             disabled={processing || active.length === 0}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50 font-medium"
           >
-            {processing ? 'Processing...' : '▶ Process Now'}
+            {processing ? t('recurringProcessingBtn') : t('recurringProcessNowBtn')}
           </button>
         }
       />
@@ -403,12 +407,12 @@ export default function RecurringPage() {
             </span>
             <span className="text-sm font-medium truncate">
               {inactive.length === 1
-                ? 'You have 1 paused recurring transaction to review'
-                : `You have ${inactive.length} paused recurring transactions to review`}
+                ? t('recurringReviewOneFmt')
+                : tFmt('recurringReviewManyFmt', [inactive.length])}
             </span>
           </div>
           <span className="text-sm font-semibold underline-offset-2 hover:underline whitespace-nowrap">
-            Review now →
+            {t('recurringReviewNowCta')}
           </span>
         </a>
       )}
@@ -423,36 +427,36 @@ export default function RecurringPage() {
         <div className="bg-card rounded-2xl border border-border p-5 mb-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <PillarCard
-              label="Income"
+              label={t('recurringPillarIncome')}
               count={incomeTxs.length}
               total={incomeTotal}
               fmt={fmt}
               color="emerald"
-              labelTotal={`${fmt(incomeTotal)} expected`}
-              foot={`${incomeTxs.length} recurring source${incomeTxs.length === 1 ? '' : 's'}`}
+              labelTotal={tFmt('recurringExpectedFmt', [fmt(incomeTotal)])}
+              foot={tFmt(incomeTxs.length === 1 ? 'recurringSourceFootFmt' : 'recurringSourceFootPluralFmt', [incomeTxs.length])}
             />
             <PillarCard
-              label="Expenses"
+              label={t('recurringPillarExpenses')}
               count={expenseTxs.length}
               total={expenseTotal}
               fmt={fmt}
               color="rose"
-              labelTotal={`${fmt(expenseTotal)} expected`}
-              foot={`${expenseTxs.length} recurring expense${expenseTxs.length === 1 ? '' : 's'}`}
+              labelTotal={tFmt('recurringExpectedFmt', [fmt(expenseTotal)])}
+              foot={tFmt(expenseTxs.length === 1 ? 'recurringExpenseFootFmt' : 'recurringExpenseFootPluralFmt', [expenseTxs.length])}
             />
             <PillarCard
-              label="Credit cards"
+              label={t('recurringPillarCreditCards')}
               count={ccTxs.length}
               total={ccTotal}
               fmt={fmt}
               color="slate"
-              labelTotal={ccTotal > 0 ? `${fmt(ccTotal)} due` : 'No card payments'}
-              foot={`${ccTxs.length} recurring card payment${ccTxs.length === 1 ? '' : 's'}`}
+              labelTotal={ccTotal > 0 ? tFmt('recurringDueFmt', [fmt(ccTotal)]) : t('recurringNoCardPayments')}
+              foot={tFmt(ccTxs.length === 1 ? 'recurringCardFootFmt' : 'recurringCardFootPluralFmt', [ccTxs.length])}
             />
           </div>
           {/* Net monthly impact strip */}
           <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">Monthly impact</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">{t('recurringMonthlyImpact')}</p>
             <p className={`text-base font-bold tabular-nums ${monthlyImpact >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
               {monthlyImpact >= 0 ? '+' : ''}{fmt(monthlyImpact)}
             </p>
@@ -462,8 +466,8 @@ export default function RecurringPage() {
 
       {/* Info box */}
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5 text-sm text-blue-800">
-        <p className="font-semibold mb-1">📌 How recurring works</p>
-        <p>Transactions marked as recurring are replicated automatically each period. Toggle the switch to pause or resume any recurring entry. Use <strong>Process Now</strong> to manually trigger all active recurring entries.</p>
+        <p className="font-semibold mb-1">{t('recurringInfoTitle')}</p>
+        <p>{t('recurringInfoBodyPrefix')} <strong>{t('recurringInfoBodyEmphasis')}</strong> {t('recurringInfoBodySuffix')}</p>
       </div>
 
       {/* Active — list ↔ calendar view toggle (Section B·5).
@@ -475,21 +479,21 @@ export default function RecurringPage() {
       {active.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center">
-            <h2 className="font-semibold text-primary">Active ({active.length})</h2>
+            <h2 className="font-semibold text-primary">{tFmt('recurringActiveHeadingFmt', [active.length])}</h2>
             <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
               <button
                 type="button"
                 onClick={() => setActiveView('list')}
                 className={`px-2.5 py-1 text-xs font-medium rounded-md transition ${activeView === 'list' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
-                List
+                {t('recurringViewList')}
               </button>
               <button
                 type="button"
                 onClick={() => setActiveView('calendar')}
                 className={`px-2.5 py-1 text-xs font-medium rounded-md transition ${activeView === 'calendar' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
-                Calendar
+                {t('recurringViewCalendar')}
               </button>
             </div>
           </div>
@@ -505,7 +509,7 @@ export default function RecurringPage() {
       {inactive.length > 0 && (
         <div id="paused-recurring" className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden scroll-mt-6">
           <div className="px-5 py-3 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-500">Paused ({inactive.length})</h2>
+            <h2 className="font-semibold text-gray-500">{tFmt('recurringPausedHeadingFmt', [inactive.length])}</h2>
           </div>
           {inactive.map(tx => <TxRow key={tx.id} tx={tx} fmt={fmt} toggling={toggling} onToggle={handleToggle} />)}
         </div>
@@ -514,9 +518,9 @@ export default function RecurringPage() {
       {transactions.length === 0 && detected.length > 0 && (
         <div className="bg-white dark:bg-card rounded-2xl shadow-sm mb-4 overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 dark:border-border">
-            <h2 className="font-semibold text-gray-700 dark:text-foreground">Detected automatically · {detected.length}</h2>
+            <h2 className="font-semibold text-gray-700 dark:text-foreground">{tFmt('recurringDetectedHeadingFmt', [detected.length])}</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              These look recurring based on your transaction history. Open the source page to manage each one.
+              {t('recurringDetectedSubtitle')}
             </p>
           </div>
           <ul className="divide-y divide-gray-100 dark:divide-border">
@@ -528,7 +532,7 @@ export default function RecurringPage() {
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
                   {d.amount > 0 && <p className="text-sm font-semibold tabular-nums text-gray-900 dark:text-foreground">{fmt(d.amount)}</p>}
-                  <Link href={d.href} className="text-xs text-primary font-medium hover:underline">Manage →</Link>
+                  <Link href={d.href} className="text-xs text-primary font-medium hover:underline">{t('recurringManageCta')}</Link>
                 </div>
               </li>
             ))}
@@ -539,17 +543,17 @@ export default function RecurringPage() {
       {transactions.length === 0 && (
         <EmptyState
           illustration="receipt"
-          title={detected.length > 0 ? 'No manually marked recurring transactions yet' : 'No recurring transactions yet'}
-          description="Mark a transaction as recurring on the Transactions page and Barakah will detect future instances automatically."
+          title={detected.length > 0 ? t('recurringEmptyTitleManual') : t('recurringEmptyTitle')}
+          description={t('recurringEmptyDesc')}
           actions={[
-            { label: 'Open transactions', href: '/dashboard/transactions', primary: true },
+            { label: t('recurringEmptyAction'), href: '/dashboard/transactions', primary: true },
           ]}
           preview={
             <div className="space-y-2">
               {[
-                { name: 'Netflix', cat: 'Subscriptions', cycle: `Monthly · ${fmt(15.49)}` },
-                { name: 'Gym membership', cat: 'Health', cycle: `Monthly · ${fmt(39)}` },
-                { name: 'iCloud storage', cat: 'Subscriptions', cycle: `Monthly · ${fmt(2.99)}` },
+                { name: t('recurringPreviewNetflix'), cat: t('recurringPreviewCatSubscriptions'), cycle: tFmt('recurringPreviewCycleFmt', [fmt(15.49)]) },
+                { name: t('recurringPreviewGym'), cat: t('recurringPreviewCatHealth'), cycle: tFmt('recurringPreviewCycleFmt', [fmt(39)]) },
+                { name: t('recurringPreviewIcloud'), cat: t('recurringPreviewCatSubscriptions'), cycle: tFmt('recurringPreviewCycleFmt', [fmt(2.99)]) },
               ].map((r) => (
                 <div key={r.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                   <div>

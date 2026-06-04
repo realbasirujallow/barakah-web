@@ -36,6 +36,7 @@ import {
 } from 'recharts';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
+import { useI18n } from '../../../lib/i18n';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 
@@ -105,6 +106,7 @@ function computeProjection(opts: {
 
 function ForecastingPageContent() {
   const { fmt, symbol } = useCurrency();
+  const { t, tFmt } = useI18n();
 
   // Scenario knobs. 2026-05-03: now persisted via
   // /api/forecasting/scenarios/active. The defaults below are used as
@@ -231,8 +233,8 @@ function ForecastingPageContent() {
   return (
     <div role="main" className="max-w-6xl mx-auto">
       <PageHeader
-        title="Forecasting"
-        subtitle="Project your wealth across decades, keyed to the Islamic milestones that matter to you."
+        title={t('forecastingTitle')}
+        subtitle={t('forecastingSubtitle')}
         actions={
           // Tiny save-status chip — same idea as Linear's "saving…/saved"
           // affordance. Tells the user the scenario syncs without making
@@ -247,10 +249,10 @@ function ForecastingPageContent() {
             }
             aria-live="polite"
           >
-            {saveStatus === 'saving' ? 'Saving…' :
-             saveStatus === 'saved' ? 'Saved' :
-             saveStatus === 'error' ? 'Save failed — try again' :
-             'Synced'}
+            {saveStatus === 'saving' ? t('forecastingSaving') :
+             saveStatus === 'saved' ? t('forecastingSaved') :
+             saveStatus === 'error' ? t('forecastingSaveFailed') :
+             t('forecastingSynced')}
           </span>
         }
       />
@@ -259,30 +261,30 @@ function ForecastingPageContent() {
       <div className="bg-gradient-to-br from-[#1B5E20] via-emerald-700 to-emerald-600 text-white rounded-2xl p-6 mb-6 shadow-md">
         <div className="grid md:grid-cols-3 gap-6">
           <div>
-            <p className="text-emerald-100 text-xs uppercase tracking-wide">Today</p>
+            <p className="text-emerald-100 text-xs uppercase tracking-wide">{t('forecastingToday')}</p>
             <p className="text-3xl font-bold tabular-nums mt-1">
               {startingValue == null ? '...' : fmt(startingValue)}
             </p>
-            <p className="text-emerald-200 text-xs mt-1">Starting net worth</p>
+            <p className="text-emerald-200 text-xs mt-1">{t('forecastingStartingNetWorth')}</p>
           </div>
           {hajjPoint && (
             <div>
-              <p className="text-emerald-100 text-xs uppercase tracking-wide">In {hajjYearsFromNow} year{hajjYearsFromNow === 1 ? '' : 's'} <span className="text-emerald-300">· Hajj 🕋</span></p>
+              <p className="text-emerald-100 text-xs uppercase tracking-wide">{tFmt('forecastingHajjEyebrowFmt', [hajjYearsFromNow, hajjYearsFromNow === 1 ? '' : 's'])} <span className="text-emerald-300">{t('forecastingHajjEyebrowTag')}</span></p>
               <p className="text-3xl font-bold tabular-nums mt-1">{fmt(hajjPoint.value)}</p>
-              <p className="text-emerald-200 text-xs mt-1">Projected at {hajjPoint.age} years old</p>
+              <p className="text-emerald-200 text-xs mt-1">{tFmt('forecastingProjectedAtAgeFmt', [hajjPoint.age])}</p>
             </div>
           )}
           {retirementPoint && (
             <div>
-              <p className="text-emerald-100 text-xs uppercase tracking-wide">At retirement <span className="text-emerald-300">· {retirementAge}</span></p>
+              <p className="text-emerald-100 text-xs uppercase tracking-wide">{t('forecastingAtRetirement')} <span className="text-emerald-300">· {retirementAge}</span></p>
               <p className="text-3xl font-bold tabular-nums mt-1">{fmt(retirementPoint.value)}</p>
-              <p className="text-emerald-200 text-xs mt-1">In {retirementAge - currentAge} years</p>
+              <p className="text-emerald-200 text-xs mt-1">{tFmt('forecastingInYearsFmt', [retirementAge - currentAge])}</p>
             </div>
           )}
         </div>
         {loadError && (
           <p className="text-emerald-100 text-xs mt-4 italic">
-            Couldn&apos;t load your live net worth — showing a sample {fmt(100000)} starting point so you can still preview the projection.
+            {tFmt('forecastingLoadErrorFmt', [fmt(100000)])}
           </p>
         )}
       </div>
@@ -291,18 +293,18 @@ function ForecastingPageContent() {
       <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
         <div className="flex items-baseline justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-primary">Net-worth projection</h2>
+            <h2 className="text-lg font-semibold text-primary">{t('forecastingChartTitle')}</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Compound-growth model: starting net worth + monthly contributions earning {annualReturnPct}% annually.
+              {tFmt('forecastingChartSubtitleFmt', [annualReturnPct])}
             </p>
           </div>
           <p className="text-2xl font-bold tabular-nums text-emerald-700">
-            {fmtShort(finalValue)} <span className="text-xs font-normal text-gray-500">in {projection.length ? projection[projection.length - 1].year : 0}y</span>
+            {fmtShort(finalValue)} <span className="text-xs font-normal text-gray-500">{tFmt('forecastingInYearsShortFmt', [projection.length ? projection[projection.length - 1].year : 0])}</span>
           </p>
         </div>
 
         {projection.length === 0 ? (
-          <div className="py-20 text-center text-gray-400">Loading projection…</div>
+          <div className="py-20 text-center text-gray-400">{t('forecastingLoadingProjection')}</div>
         ) : (
           <ResponsiveContainer width="100%" height={320}>
             <LineChart data={projection} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
@@ -316,7 +318,7 @@ function ForecastingPageContent() {
               <XAxis
                 dataKey="year"
                 tick={{ fill: '#374151', fontSize: 11 }}
-                tickFormatter={y => y === 0 ? 'Now' : `+${y}y`}
+                tickFormatter={y => y === 0 ? t('forecastingAxisNow') : tFmt('forecastingAxisYearFmt', [y])}
               />
               <YAxis
                 tickFormatter={fmtShort}
@@ -324,7 +326,7 @@ function ForecastingPageContent() {
               />
               <Tooltip
                 formatter={(v: number | undefined) => fmt(v ?? 0)}
-                labelFormatter={y => y === 0 ? 'Today' : `${y} year${y === 1 ? '' : 's'} from now`}
+                labelFormatter={y => y === 0 ? t('forecastingTooltipToday') : tFmt('forecastingTooltipYearsFmt', [y, y === 1 ? '' : 's'])}
                 contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
               />
               <Line
@@ -346,7 +348,7 @@ function ForecastingPageContent() {
                   fill="#FF6B35"
                   stroke="#fff"
                   strokeWidth={2}
-                  label={{ value: '🕋 Hajj', position: 'top', fill: '#FF6B35', fontSize: 12, fontWeight: 600 }}
+                  label={{ value: t('forecastingMilestoneHajj'), position: 'top', fill: '#FF6B35', fontSize: 12, fontWeight: 600 }}
                 />
               )}
               {/* Retirement milestone marker */}
@@ -358,7 +360,7 @@ function ForecastingPageContent() {
                   fill="#1B5E20"
                   stroke="#fff"
                   strokeWidth={2}
-                  label={{ value: `Retirement · ${retirementAge}`, position: 'top', fill: '#1B5E20', fontSize: 12, fontWeight: 600 }}
+                  label={{ value: tFmt('forecastingMilestoneRetirementFmt', [retirementAge]), position: 'top', fill: '#1B5E20', fontSize: 12, fontWeight: 600 }}
                 />
               )}
               <ReferenceLine y={0} stroke="#9ca3af" strokeDasharray="3 3" />
@@ -370,78 +372,76 @@ function ForecastingPageContent() {
       {/* Scenario inputs */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <ScenarioCard
-          label="Current age"
-          subtitle="Used to mark retirement on the chart"
+          label={t('forecastingCurrentAgeLabel')}
+          subtitle={t('forecastingCurrentAgeSubtitle')}
           value={currentAge}
           onChange={setCurrentAge}
           min={18}
           max={80}
           step={1}
-          suffix="years"
+          suffix={t('forecastingYearsSuffix')}
+          sliderAriaLabel={tFmt('forecastingSliderAriaFmt', [t('forecastingCurrentAgeLabel')])}
         />
         <ScenarioCard
-          label="Retirement age"
-          subtitle="When you plan to stop earning"
+          label={t('forecastingRetirementAgeLabel')}
+          subtitle={t('forecastingRetirementAgeSubtitle')}
           value={retirementAge}
           onChange={setRetirementAge}
           min={Math.max(currentAge + 1, 35)}
           max={85}
           step={1}
-          suffix="years"
+          suffix={t('forecastingYearsSuffix')}
           accent="primary"
+          sliderAriaLabel={tFmt('forecastingSliderAriaFmt', [t('forecastingRetirementAgeLabel')])}
         />
         <ScenarioCard
-          label="Hajj timing"
-          subtitle="Years from now"
+          label={t('forecastingHajjTimingLabel')}
+          subtitle={t('forecastingHajjTimingSubtitle')}
           value={hajjYearsFromNow}
           onChange={setHajjYearsFromNow}
           min={1}
           max={MAX_HORIZON}
           step={1}
-          suffix="years"
+          suffix={t('forecastingYearsSuffix')}
           accent="orange"
           icon="🕋"
+          sliderAriaLabel={tFmt('forecastingSliderAriaFmt', [t('forecastingHajjTimingLabel')])}
         />
         <ScenarioCard
-          label="Monthly contribution"
-          subtitle="Halal investments + savings"
+          label={t('forecastingMonthlyContributionLabel')}
+          subtitle={t('forecastingMonthlyContributionSubtitle')}
           value={monthlyContribution}
           onChange={setMonthlyContribution}
           min={0}
           max={20_000}
           step={100}
           prefix={symbol}
+          sliderAriaLabel={tFmt('forecastingSliderAriaFmt', [t('forecastingMonthlyContributionLabel')])}
         />
         <ScenarioCard
-          label="Annual return"
-          subtitle="Long-run halal-portfolio average"
+          label={t('forecastingAnnualReturnLabel')}
+          subtitle={t('forecastingAnnualReturnSubtitle')}
           value={annualReturnPct}
           onChange={setAnnualReturnPct}
           min={0}
           max={15}
           step={0.5}
           suffix="%"
+          sliderAriaLabel={tFmt('forecastingSliderAriaFmt', [t('forecastingAnnualReturnLabel')])}
         />
         <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-sm text-emerald-900 leading-relaxed">
-          <p className="font-semibold mb-1">Tip 💡</p>
+          <p className="font-semibold mb-1">{t('forecastingTipTitle')}</p>
           <p>
-            Try setting Hajj 5 years out and see how much your monthly contribution
-            needs to be to stay on track. Increasing the annual return assumes a
-            more aggressive halal-equity weighting in your portfolio.
+            {t('forecastingTipBody')}
           </p>
         </div>
       </div>
 
       {/* Disclaimer */}
       <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-xs text-amber-900 leading-relaxed mb-8">
-        <p className="font-semibold mb-1">⚠️ Not financial advice</p>
+        <p className="font-semibold mb-1">{t('forecastingDisclaimerTitle')}</p>
         <p>
-          Projections use a constant-rate compound-growth model and don&apos;t
-          account for inflation, taxes, market volatility, life events, or
-          fluctuating contributions. Numbers are illustrative — consult a
-          qualified financial advisor for actual planning. Not a fatwa; consult
-          a qualified scholar for the Islamic permissibility of any specific
-          investment vehicle.
+          {t('forecastingDisclaimerBody')}
         </p>
       </div>
     </div>
@@ -460,10 +460,12 @@ interface ScenarioCardProps {
   suffix?: string;
   accent?: 'primary' | 'orange';
   icon?: string;
+  /** Localized aria-label for the range slider (the input falls back to `label`). */
+  sliderAriaLabel: string;
 }
 
 function ScenarioCard({
-  label, subtitle, value, onChange, min, max, step, prefix, suffix, accent, icon,
+  label, subtitle, value, onChange, min, max, step, prefix, suffix, accent, icon, sliderAriaLabel,
 }: ScenarioCardProps) {
   const accentClass =
     accent === 'orange' ? 'bg-[#FF6B35]' :
@@ -504,7 +506,7 @@ function ScenarioCard({
         max={max}
         step={step}
         className={`w-full ${accentClass} accent-current rounded-lg appearance-none h-1.5 cursor-pointer`}
-        aria-label={`${label} slider`}
+        aria-label={sliderAriaLabel}
       />
       <p className="text-xs text-gray-400 mt-2">{subtitle}</p>
     </div>

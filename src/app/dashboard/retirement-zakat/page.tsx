@@ -5,6 +5,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 
 interface RetirementZakatResult {
   fullAccessible?: {
@@ -48,6 +49,7 @@ const US_STATES = [
 export default function RetirementZakatPage() {
   const { toast } = useToast();
   const { fmt: formatCurrency, symbol } = useCurrency();
+  const { t, tFmt } = useI18n();
 
   // Form state
   const [balance, setBalance] = useState('');
@@ -83,7 +85,7 @@ export default function RetirementZakatPage() {
   const handleCalculate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!balance || isNaN(parseFloat(balance))) {
-      toast('Please enter a valid balance', 'error');
+      toast(t('retirementZakatValidBalanceError'), 'error');
       return;
     }
 
@@ -92,7 +94,7 @@ export default function RetirementZakatPage() {
     // and can produce nonsensical (or negative) zakat amounts.
     const parsed = parseFloat(balance);
     if (!Number.isFinite(parsed) || parsed < 0) {
-      toast('Balance cannot be negative', 'error');
+      toast(t('retirementZakatNegativeBalanceError'), 'error');
       return;
     }
 
@@ -126,12 +128,12 @@ export default function RetirementZakatPage() {
       if (hasValidResults) {
         setResults(result);
       } else {
-        toast('Unable to calculate retirement zakat. Please check your inputs and try again.', 'error');
+        toast(t('retirementZakatUnableToCalculate'), 'error');
         setResults(null);
       }
     } catch (err) {
       logError(err, { context: 'Failed to calculate retirement zakat' });
-      toast('Failed to calculate retirement zakat. Please try again.', 'error');
+      toast(t('retirementZakatCalculateFailed'), 'error');
     }
     setLoading(false);
   };
@@ -146,8 +148,8 @@ export default function RetirementZakatPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <PageHeader
-          title="Retirement Zakat Calculator"
-          subtitle="Calculate zakat on 401(k), IRA, Roth IRA, 403(b), TSP, and other retirement accounts"
+          title={t('retirementZakatPageTitle')}
+          subtitle={t('retirementZakatPageSubtitle')}
           className="mb-8"
         />
 
@@ -155,12 +157,12 @@ export default function RetirementZakatPage() {
           {/* Form Section */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-bold text-primary mb-6">Account Details</h2>
+              <h2 className="text-xl font-bold text-primary mb-6">{t('retirementZakatAccountDetails')}</h2>
 
               <form onSubmit={handleCalculate} className="space-y-4">
                 {/* Balance */}
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">Total Account Balance ({symbol})</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">{tFmt('retirementZakatTotalBalanceLabelFmt', [symbol])}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -169,32 +171,32 @@ export default function RetirementZakatPage() {
                     placeholder="0.00"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Your full balance including any employer contributions</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('retirementZakatBalanceHint')}</p>
                 </div>
 
                 {/* Account Type */}
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">Account Type</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">{t('retirementZakatAccountTypeLabel')}</label>
                   <select
                     value={accountType}
                     onChange={(e) => setAccountType(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
                   >
                     <option value="401k">401(k)</option>
-                    <option value="ira">Traditional IRA</option>
-                    <option value="roth_ira">Roth IRA</option>
+                    <option value="ira">{t('retirementZakatAccountTraditionalIra')}</option>
+                    <option value="roth_ira">{t('retirementZakatAccountRothIra')}</option>
                     <option value="403b">403(b)</option>
-                    <option value="tsp">TSP (Federal)</option>
-                    <option value="sep_ira">SEP IRA</option>
-                    <option value="simple_ira">SIMPLE IRA</option>
-                    <option value="pension">Pension</option>
+                    <option value="tsp">{t('retirementZakatAccountTsp')}</option>
+                    <option value="sep_ira">{t('retirementZakatAccountSepIra')}</option>
+                    <option value="simple_ira">{t('retirementZakatAccountSimpleIra')}</option>
+                    <option value="pension">{t('retirementZakatAccountPension')}</option>
                   </select>
                 </div>
 
                 {/* Employer Match — optional, unlocks the Employer Match Only card */}
                 <div>
                   <label className="block text-sm font-semibold text-primary mb-2">
-                    Employer Contribution (%) — optional
+                    {t('retirementZakatEmployerContribLabel')}
                   </label>
                   <input
                     type="number"
@@ -203,28 +205,28 @@ export default function RetirementZakatPage() {
                     max="100"
                     value={employerMatchPercent}
                     onChange={(e) => setEmployerMatchPercent(e.target.value)}
-                    placeholder="e.g. 25"
+                    placeholder={t('retirementZakatEmployerContribPlaceholder')}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Share of the balance that came from your employer (match, profit-share, pension contributions). Leave blank if unsure — needed for the &quot;Employer Match Only&quot; scholarly method below.
+                    {t('retirementZakatEmployerContribHint')}
                   </p>
                 </div>
 
                 {/* State */}
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">State (Optional)</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">{t('retirementZakatStateLabel')}</label>
                   <select
                     value={state}
                     onChange={(e) => setState(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
                   >
-                    <option value="">Select State</option>
+                    <option value="">{t('retirementZakatSelectState')}</option>
                     {US_STATES.map(s => (
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
-                  <p className="text-xs text-gray-500 mt-1">Used to estimate state income tax on early withdrawals</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('retirementZakatStateHint')}</p>
                 </div>
 
                 {/* Calculate Button */}
@@ -233,14 +235,14 @@ export default function RetirementZakatPage() {
                   disabled={loading || !balance}
                   className="w-full bg-green-700 hover:bg-green-800 disabled:bg-gray-400 text-white font-bold py-3 rounded-lg transition mt-6"
                 >
-                  {loading ? 'Calculating...' : 'Calculate Zakat'}
+                  {loading ? t('retirementZakatCalculating') : t('dashCalculateZakat')}
                 </button>
               </form>
 
               {/* Info Card */}
               <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-xs text-gray-700">
-                  <strong>Note:</strong> Scholars differ on whether retirement accounts are zakatable. Different methodologies produce different zakat amounts below. Consult your local scholar for guidance specific to your situation.
+                  <strong>{t('retirementZakatNoteLabel')}</strong> {t('retirementZakatNoteBody')}
                 </p>
               </div>
             </div>
@@ -250,33 +252,33 @@ export default function RetirementZakatPage() {
           <div className="lg:col-span-2">
             {!results ? (
               <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-                <p className="text-gray-600">Enter your account details and click &quot;Calculate Zakat&quot; to see the three scholarly positions.</p>
+                <p className="text-gray-600">{t('retirementZakatEmptyResults')}</p>
               </div>
             ) : (
               <>
                 {!results.fullAccessible ? (
                   <div className="bg-white rounded-lg shadow-lg p-8 text-center">
                     <div className="text-red-600 p-4 bg-red-50 rounded-lg">
-                      Unable to calculate retirement zakat. Please check your inputs and try again.
+                      {t('retirementZakatUnableToCalculate')}
                     </div>
                   </div>
                 ) : (
               <div className="space-y-6">
                 {/* Account Summary */}
                 <div className="bg-white rounded-lg shadow-lg p-6">
-                  <h3 className="text-lg font-bold text-primary mb-4">Account Summary</h3>
+                  <h3 className="text-lg font-bold text-primary mb-4">{t('retirementZakatAccountSummary')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-600">Balance</p>
+                      <p className="text-sm text-gray-600">{t('retirementZakatBalance')}</p>
                       <p className="text-xl font-bold text-primary">{formatCurrency(results.balance || 0)}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Account Type</p>
+                      <p className="text-sm text-gray-600">{t('retirementZakatAccountTypeLabel')}</p>
                       <p className="text-xl font-bold text-primary">{results.accountType || accountType}</p>
                     </div>
                     {results.nisab && (
                       <div>
-                        <p className="text-sm text-gray-600">Nisab</p>
+                        <p className="text-sm text-gray-600">{t('retirementZakatNisab')}</p>
                         <p className="text-xl font-bold text-primary">{formatCurrency(results.nisab)}</p>
                       </div>
                     )}
@@ -293,16 +295,16 @@ export default function RetirementZakatPage() {
                   }`}>
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h4 className="text-lg font-bold text-primary">Accessible Balance Method (AMJA/FCNA)</h4>
+                        <h4 className="text-lg font-bold text-primary">{t('retirementZakatMethodAccessible')}</h4>
                         {getMethodRecommendation('full_accessible') && (
-                          <p className="text-xs text-green-700 font-semibold">YOUR PREFERRED METHOD</p>
+                          <p className="text-xs text-green-700 font-semibold">{t('retirementZakatPreferredMethod')}</p>
                         )}
                       </div>
                       <span className="text-2xl font-bold text-green-700">{formatCurrency(results.fullAccessible?.zakatDue || 0)}</span>
                     </div>
                     <div className="space-y-2 mb-3">
                       <p className="text-sm">
-                        <span className="font-semibold">Zakatable Amount:</span> {formatCurrency(results.fullAccessible?.zakatableAmount || 0)}
+                        <span className="font-semibold">{t('retirementZakatZakatableAmount')}</span> {formatCurrency(results.fullAccessible?.zakatableAmount || 0)}
                       </p>
                       {results.fullAccessible?.explanation && (
                         <p className="text-sm text-gray-700">{results.fullAccessible.explanation}</p>
@@ -310,7 +312,7 @@ export default function RetirementZakatPage() {
                     </div>
                     {results.fullAccessible?.scholars && results.fullAccessible.scholars.length > 0 && (
                       <p className="text-xs text-gray-600">
-                        <strong>Scholars:</strong> {results.fullAccessible.scholars.join(', ')}
+                        <strong>{t('retirementZakatScholarsLabel')}</strong> {results.fullAccessible.scholars.join(', ')}
                       </p>
                     )}
                   </div>
@@ -323,16 +325,16 @@ export default function RetirementZakatPage() {
                   }`}>
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h4 className="text-lg font-bold text-primary">Employer Match Only</h4>
+                        <h4 className="text-lg font-bold text-primary">{t('retirementZakatMethodEmployerMatch')}</h4>
                         {getMethodRecommendation('employer_match_only') && (
-                          <p className="text-xs text-green-700 font-semibold">YOUR PREFERRED METHOD</p>
+                          <p className="text-xs text-green-700 font-semibold">{t('retirementZakatPreferredMethod')}</p>
                         )}
                       </div>
                       <span className="text-2xl font-bold text-green-700">{formatCurrency(results.employerMatchOnly?.zakatDue || 0)}</span>
                     </div>
                     <div className="space-y-2 mb-3">
                       <p className="text-sm">
-                        <span className="font-semibold">Zakatable Amount:</span> {formatCurrency(results.employerMatchOnly?.zakatableAmount || 0)}
+                        <span className="font-semibold">{t('retirementZakatZakatableAmount')}</span> {formatCurrency(results.employerMatchOnly?.zakatableAmount || 0)}
                       </p>
                       {results.employerMatchOnly?.explanation && (
                         <p className="text-sm text-gray-700">{results.employerMatchOnly.explanation}</p>
@@ -340,7 +342,7 @@ export default function RetirementZakatPage() {
                     </div>
                     {results.employerMatchOnly?.scholars && results.employerMatchOnly.scholars.length > 0 && (
                       <p className="text-xs text-gray-600">
-                        <strong>Scholars:</strong> {results.employerMatchOnly.scholars.join(', ')}
+                        <strong>{t('retirementZakatScholarsLabel')}</strong> {results.employerMatchOnly.scholars.join(', ')}
                       </p>
                     )}
                   </div>
@@ -353,16 +355,16 @@ export default function RetirementZakatPage() {
                   }`}>
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h4 className="text-lg font-bold text-primary">On Withdrawal Only</h4>
+                        <h4 className="text-lg font-bold text-primary">{t('retirementZakatMethodWithdrawal')}</h4>
                         {getMethodRecommendation('on_withdrawal_only') && (
-                          <p className="text-xs text-green-700 font-semibold">YOUR PREFERRED METHOD</p>
+                          <p className="text-xs text-green-700 font-semibold">{t('retirementZakatPreferredMethod')}</p>
                         )}
                       </div>
                       <span className="text-2xl font-bold text-green-700">{formatCurrency(results.onWithdrawalOnly?.zakatDue || 0)}</span>
                     </div>
                     <div className="space-y-2 mb-3">
                       <p className="text-sm">
-                        <span className="font-semibold">Zakatable Amount:</span> {formatCurrency(results.onWithdrawalOnly?.zakatableAmount || 0)}
+                        <span className="font-semibold">{t('retirementZakatZakatableAmount')}</span> {formatCurrency(results.onWithdrawalOnly?.zakatableAmount || 0)}
                       </p>
                       {results.onWithdrawalOnly?.explanation && (
                         <p className="text-sm text-gray-700">{results.onWithdrawalOnly.explanation}</p>
@@ -370,7 +372,7 @@ export default function RetirementZakatPage() {
                     </div>
                     {results.onWithdrawalOnly?.scholars && results.onWithdrawalOnly.scholars.length > 0 && (
                       <p className="text-xs text-gray-600">
-                        <strong>Scholars:</strong> {results.onWithdrawalOnly.scholars.join(', ')}
+                        <strong>{t('retirementZakatScholarsLabel')}</strong> {results.onWithdrawalOnly.scholars.join(', ')}
                       </p>
                     )}
                   </div>
@@ -379,7 +381,7 @@ export default function RetirementZakatPage() {
                 {/* Disclaimer */}
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                   <p className="text-xs text-gray-700">
-                    <strong>Disclaimer:</strong> This calculator presents three scholarly positions on retirement account zakat. The Islamic jurisprudence on retirement accounts is still evolving as these are modern financial instruments. Always consult with your local Islamic scholar before making zakat decisions based on these calculations.
+                    <strong>{t('retirementZakatDisclaimerLabel')}</strong> {t('retirementZakatDisclaimerBody')}
                   </p>
                 </div>
               </div>

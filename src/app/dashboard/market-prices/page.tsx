@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
+import { useI18n } from '../../../lib/i18n';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 
@@ -82,6 +83,7 @@ function fmtChange(pct: number | undefined): { text: string; positive: boolean }
 
 export default function MarketPricesPage() {
   const { toast } = useToast();
+  const { t, tFmt } = useI18n();
   const [tab, setTab] = useState<Tab>('crypto');
 
   // Crypto state
@@ -129,11 +131,11 @@ export default function MarketPricesPage() {
       setCryptoPrices(next);
     } catch (err) {
       logError(err, { context: 'Failed to load crypto prices' });
-      toast('Could not load crypto prices. Try again in a moment.', 'error');
+      toast(t('marketPricesCryptoLoadError'), 'error');
     } finally {
       setLoadingCryptos(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => {
     if (tab === 'crypto' && supportedCryptos.length === 0) {
@@ -171,7 +173,7 @@ export default function MarketPricesPage() {
   const handleStockSearch = async () => {
     const sym = stockSymbol.trim().toUpperCase();
     if (!sym) {
-      setStockError('Enter a ticker symbol (e.g. AAPL)');
+      setStockError(t('marketPricesEnterTickerError'));
       return;
     }
     setSearchingStock(true);
@@ -180,13 +182,13 @@ export default function MarketPricesPage() {
     try {
       const r = (await api.getStockPrice(sym)) as { price?: StockPrice };
       if (!r?.price) {
-        setStockError('No price data returned. Check the symbol and try again.');
+        setStockError(t('marketPricesNoPriceError'));
       } else {
         setStockResult(r.price);
       }
     } catch (err) {
       logError(err, { context: 'Stock price lookup', symbol: sym });
-      setStockError('Could not fetch price. The provider may be rate-limiting; try again in a moment.');
+      setStockError(t('marketPricesFetchError'));
     } finally {
       setSearchingStock(false);
     }
@@ -196,13 +198,13 @@ export default function MarketPricesPage() {
     const upper = sym.trim().toUpperCase();
     if (!upper || watchlist.includes(upper)) return;
     if (watchlist.length >= 50) {
-      toast('Watchlist limit (50) reached. Remove one to add another.', 'error');
+      toast(t('marketPricesWatchlistLimitToast'), 'error');
       return;
     }
     const next = [...watchlist, upper];
     setWatchlist(next);
     safeSetWatchlist(next);
-    toast(`${upper} added to watchlist`, 'success');
+    toast(tFmt('marketPricesAddedToastFmt', [upper]), 'success');
   };
 
   const removeFromWatchlist = (sym: string) => {
@@ -214,27 +216,27 @@ export default function MarketPricesPage() {
   return (
     <div className="max-w-3xl mx-auto">
       <PageHeader
-        title="Market Prices"
-        subtitle="Live crypto and stock prices. Used for zakat asset valuation and general market reference."
+        title={t('marketPricesTitle')}
+        subtitle={t('marketPricesSubtitle')}
         className="mb-4"
       />
 
       {/* Tab bar */}
       <div className="flex gap-1 bg-white rounded-xl p-1 shadow-sm mb-4">
-        {(['crypto', 'stock', 'watchlist'] as const).map(t => (
+        {(['crypto', 'stock', 'watchlist'] as const).map(tabKey => (
           <button
-            key={t}
+            key={tabKey}
             type="button"
-            onClick={() => setTab(t)}
+            onClick={() => setTab(tabKey)}
             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition ${
-              tab === t
+              tab === tabKey
                 ? 'bg-primary text-primary-foreground shadow'
                 : 'text-gray-600 hover:bg-green-50 hover:text-primary'
             }`}
           >
-            {t === 'crypto' && '💎 Crypto'}
-            {t === 'stock' && '📈 Stock Search'}
-            {t === 'watchlist' && `⭐ Watchlist${watchlist.length ? ` (${watchlist.length})` : ''}`}
+            {tabKey === 'crypto' && `💎 ${t('marketPricesTabCrypto')}`}
+            {tabKey === 'stock' && `📈 ${t('marketPricesTabStock')}`}
+            {tabKey === 'watchlist' && `⭐ ${watchlist.length ? tFmt('marketPricesTabWatchlistCountFmt', [watchlist.length]) : t('marketPricesTabWatchlist')}`}
           </button>
         ))}
       </div>
@@ -248,26 +250,23 @@ export default function MarketPricesPage() {
               questions. Listing prices without this note read as a blanket
               blessing of any listed coin. */}
           <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
-            <strong>Scholarly opinions vary on crypto.</strong> Pricing is shown for portfolio
-            tracking and zakat valuation only — not as a halal classification. Yield-staking,
-            governance, and interest-bearing tokens each carry separate fiqh questions.
-            Consult a qualified scholar before treating any specific coin as halal.
+            <strong>{t('marketPricesCryptoDisclaimerTitle')}</strong> {t('marketPricesCryptoDisclaimerBody')}
           </div>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-gray-700">Top {Math.min(supportedCryptos.length, 12)} cryptos</p>
+            <p className="text-sm font-semibold text-gray-700">{tFmt('marketPricesTopCryptosFmt', [Math.min(supportedCryptos.length, 12)])}</p>
             <button
               type="button"
               onClick={() => void loadCryptos()}
               disabled={loadingCryptos}
               className="text-xs text-primary font-medium hover:underline disabled:opacity-50"
             >
-              {loadingCryptos ? 'Refreshing…' : 'Refresh'}
+              {loadingCryptos ? t('marketPricesRefreshing') : t('marketPricesRefresh')}
             </button>
           </div>
           {loadingCryptos && Object.keys(cryptoPrices).length === 0 ? (
-            <div className="text-center py-12 text-gray-400">Loading crypto prices…</div>
+            <div className="text-center py-12 text-gray-400">{t('marketPricesLoadingCrypto')}</div>
           ) : Object.keys(cryptoPrices).length === 0 ? (
-            <div className="text-center py-12 text-gray-400">No crypto prices available right now.</div>
+            <div className="text-center py-12 text-gray-400">{t('marketPricesNoCrypto')}</div>
           ) : (
             <ul className="divide-y divide-gray-100">
               {Object.entries(cryptoPrices).map(([sym, price]) => {
@@ -281,7 +280,7 @@ export default function MarketPricesPage() {
                     <div className="text-right">
                       <p className="font-semibold text-gray-800">{fmtPrice(price.price)}</p>
                       <p className={`text-xs font-medium ${ch.positive ? 'text-green-600' : 'text-red-600'}`}>
-                        24h {ch.text}
+                        {tFmt('marketPrices24hChangeFmt', [ch.text])}
                       </p>
                     </div>
                   </li>
@@ -290,7 +289,7 @@ export default function MarketPricesPage() {
             </ul>
           )}
           <p className="text-center text-xs text-gray-400 mt-4">
-            Prices cached up to 5 min server-side · for reference only, not financial advice.
+            {t('marketPricesCacheNote')}
           </p>
         </div>
       )}
@@ -298,13 +297,13 @@ export default function MarketPricesPage() {
       {/* Stock search tab */}
       {tab === 'stock' && (
         <div className="bg-white rounded-2xl shadow-sm p-4">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Look up a stock by ticker</p>
+          <p className="text-sm font-semibold text-gray-700 mb-3">{t('marketPricesStockLookupHeading')}</p>
           <div className="flex gap-2">
             <input
               value={stockSymbol}
               onChange={e => setStockSymbol(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleStockSearch()}
-              placeholder="Ticker (e.g. AAPL, TSLA)"
+              placeholder={t('marketPricesTickerPlaceholder')}
               className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary uppercase"
               maxLength={10}
             />
@@ -314,7 +313,7 @@ export default function MarketPricesPage() {
               disabled={searchingStock || !stockSymbol.trim()}
               className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50"
             >
-              {searchingStock ? '…' : 'Look Up'}
+              {searchingStock ? t('marketPricesSearching') : t('marketPricesLookUpBtn')}
             </button>
           </div>
           {stockError && (
@@ -332,15 +331,15 @@ export default function MarketPricesPage() {
                   disabled={watchlist.includes(stockResult.symbol)}
                   className="text-xs px-3 py-1 rounded-full border border-primary text-primary font-medium hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {watchlist.includes(stockResult.symbol) ? 'In watchlist ✓' : '+ Add to watchlist'}
+                  {watchlist.includes(stockResult.symbol) ? t('marketPricesInWatchlist') : t('marketPricesAddToWatchlist')}
                 </button>
               </div>
               <p className="text-3xl font-bold text-gray-800">{fmtPrice(stockResult.currentPrice)}</p>
               <div className="grid grid-cols-2 gap-2 mt-3 text-xs text-gray-600">
-                {stockResult.openPrice != null && <p>Open: <span className="font-medium">{fmtPrice(stockResult.openPrice)}</span></p>}
-                {stockResult.previousClose != null && <p>Prev close: <span className="font-medium">{fmtPrice(stockResult.previousClose)}</span></p>}
-                {stockResult.highPrice != null && <p>High: <span className="font-medium">{fmtPrice(stockResult.highPrice)}</span></p>}
-                {stockResult.lowPrice != null && <p>Low: <span className="font-medium">{fmtPrice(stockResult.lowPrice)}</span></p>}
+                {stockResult.openPrice != null && <p>{t('marketPricesOpen')} <span className="font-medium">{fmtPrice(stockResult.openPrice)}</span></p>}
+                {stockResult.previousClose != null && <p>{t('marketPricesPrevClose')} <span className="font-medium">{fmtPrice(stockResult.previousClose)}</span></p>}
+                {stockResult.highPrice != null && <p>{t('marketPricesHigh')} <span className="font-medium">{fmtPrice(stockResult.highPrice)}</span></p>}
+                {stockResult.lowPrice != null && <p>{t('marketPricesLow')} <span className="font-medium">{fmtPrice(stockResult.lowPrice)}</span></p>}
               </div>
             </div>
           )}
@@ -354,10 +353,10 @@ export default function MarketPricesPage() {
             <EmptyState
               variant="bare"
               icon="⭐"
-              title="Build your market watchlist"
-              description="Track gold (PAXG), Shariah-compliant stocks, or anything you check often. Prices refresh every 5 minutes."
+              title={t('marketPricesEmptyTitle')}
+              description={t('marketPricesEmptyDesc')}
               actions={[
-                { label: 'Search a stock', onClick: () => setTab('stock'), primary: true },
+                { label: t('marketPricesEmptySearchStock'), onClick: () => setTab('stock'), primary: true },
               ]}
               preview={
                 <div className="space-y-2">
@@ -383,13 +382,13 @@ export default function MarketPricesPage() {
           ) : (
             <>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-semibold text-gray-700">Watching {watchlist.length} stock{watchlist.length === 1 ? '' : 's'}</p>
+                <p className="text-sm font-semibold text-gray-700">{watchlist.length === 1 ? tFmt('marketPricesWatchingOneFmt', [watchlist.length]) : tFmt('marketPricesWatchingFmt', [watchlist.length])}</p>
                 <button
                   type="button"
                   onClick={() => void loadWatchlistPrices()}
                   className="text-xs text-primary font-medium hover:underline"
                 >
-                  Refresh
+                  {t('marketPricesRefresh')}
                 </button>
               </div>
               <ul className="divide-y divide-gray-100">
@@ -403,7 +402,7 @@ export default function MarketPricesPage() {
                     <li key={sym} className="flex items-center justify-between py-3">
                       <div>
                         <p className="font-semibold text-gray-800">{sym}</p>
-                        {price?.previousClose != null && <p className="text-xs text-gray-500">Prev close {fmtPrice(price.previousClose)}</p>}
+                        {price?.previousClose != null && <p className="text-xs text-gray-500">{tFmt('marketPricesPrevCloseInlineFmt', [fmtPrice(price.previousClose)])}</p>}
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="text-right">
@@ -415,7 +414,7 @@ export default function MarketPricesPage() {
                         <button
                           type="button"
                           onClick={() => removeFromWatchlist(sym)}
-                          aria-label={`Remove ${sym} from watchlist`}
+                          aria-label={tFmt('marketPricesRemoveAriaFmt', [sym])}
                           className="text-gray-400 hover:text-red-600 px-2"
                         >
                           ✕

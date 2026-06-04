@@ -15,6 +15,7 @@ import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { isSafeInternalPath } from '../../../lib/safePath';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 
 interface Notification {
   id: number;
@@ -63,6 +64,7 @@ export default function NotificationsPage() {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const { toast } = useToast();
+  const { t, tFmt } = useI18n();
 
   const load = useCallback(async (p: number) => {
     setLoading(true);
@@ -84,10 +86,10 @@ export default function NotificationsPage() {
     } catch {
       // BUG FIX: show error UI instead of silently swallowing — the user is
       // on the notifications page specifically to read these.
-      setLoadError('Failed to load notifications. Please try again.');
+      setLoadError(t('notificationsLoadError'));
       setNotifications([]);
     } finally { setLoading(false); }
-  }, []);
+  }, [t]);
 
   useEffect(() => { load(0); }, [load]);
 
@@ -104,7 +106,7 @@ export default function NotificationsPage() {
       // Roll back on failure
       setNotifications(prevNotifications);
       setUnreadCount(prevUnread);
-      toast('Failed to mark notification as read', 'error');
+      toast(t('notificationsMarkReadError'), 'error');
     }
   };
 
@@ -115,7 +117,7 @@ export default function NotificationsPage() {
       setUnreadCount(0);
     } catch {
       // BUG FIX: show toast instead of silent console.warn
-      toast('Failed to mark all as read', 'error');
+      toast(t('notificationsMarkAllError'), 'error');
     }
   };
 
@@ -133,7 +135,7 @@ export default function NotificationsPage() {
       // Roll back on failure
       setNotifications(prevNotifications);
       setUnreadCount(prevUnread);
-      toast('Failed to delete notification', 'error');
+      toast(t('notificationsDeleteError'), 'error');
     }
   };
 
@@ -147,12 +149,12 @@ export default function NotificationsPage() {
   return (
     <div>
       <PageHeader
-        title="Notifications"
-        subtitle={unreadCount > 0 ? `${unreadCount} unread` : 'Reminders, alerts, and household activity'}
+        title={t('navNotifications')}
+        subtitle={unreadCount > 0 ? tFmt('notificationsUnreadFmt', [unreadCount]) : t('notificationsSubtitle')}
         actions={
           unreadCount > 0 ? (
             <button type="button" onClick={markAllRead} className="text-sm text-primary border border-primary px-3 py-1.5 rounded-lg hover:bg-green-50 transition">
-              Mark all read
+              {t('notificationsMarkAllRead')}
             </button>
           ) : undefined
         }
@@ -166,7 +168,7 @@ export default function NotificationsPage() {
             onClick={() => load(page)}
             className="text-sm font-semibold text-red-700 underline hover:no-underline flex-shrink-0"
           >
-            Retry
+            {t('zktRetry')}
           </button>
         </div>
       )}
@@ -178,7 +180,7 @@ export default function NotificationsPage() {
       ) : !loadError && notifications.length === 0 ? (
         <div className="text-center py-20 text-gray-400">
           <p className="text-4xl mb-3">🔔</p>
-          <p>No notifications yet. We&apos;ll let you know when something needs your attention.</p>
+          <p>{t('notificationsEmpty')}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -229,7 +231,7 @@ export default function NotificationsPage() {
                 <button
                   type="button"
                   onClick={() => deleteOne(n.id)}
-                  aria-label="Delete notification"
+                  aria-label={t('notificationsDeleteAria')}
                   className="absolute top-3 right-3 text-gray-300 hover:text-red-400 transition opacity-0 group-hover:opacity-100 focus:opacity-100 text-sm"
                 >✕</button>
               </div>
@@ -241,10 +243,10 @@ export default function NotificationsPage() {
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-6">
           <button type="button" onClick={() => load(page - 1)} disabled={page === 0}
-            className="px-4 py-2 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition">← Prev</button>
-          <span className="px-4 py-2 text-sm text-gray-600">{page + 1} / {totalPages}</span>
+            className="px-4 py-2 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition">{t('txnPagePrev')}</button>
+          <span className="px-4 py-2 text-sm text-gray-600">{tFmt('notificationsPageOfFmt', [page + 1, totalPages])}</span>
           <button type="button" onClick={() => load(page + 1)} disabled={page >= totalPages - 1}
-            className="px-4 py-2 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition">Next →</button>
+            className="px-4 py-2 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50 transition">{t('txnPageNext')}</button>
         </div>
       )}
     </div>

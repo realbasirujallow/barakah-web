@@ -6,6 +6,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 
 /* ── Hijri date calculation ──────────────────────────────────────────
    Uses the Kuwaiti algorithm (imported from format.ts for consistency).
@@ -60,15 +61,15 @@ function getRamadanStatus(now: Date): {
 const ZAKAT_FITR_DEFAULT = 10; // default; user can edit per their mosque
 
 const OPTIONAL_CATEGORIES = [
-  { key: 'quran',       label: 'Quran / Islamic Books',   icon: '📖', suggested: 50 },
-  { key: 'iftarguest',  label: "Iftar for Guests",         icon: '🍽️', suggested: 200 },
-  { key: 'itikaaf',     label: "I'tikaaf Expenses",        icon: '🕌', suggested: 100 },
-  { key: 'charity',     label: 'Extra Sadaqah',            icon: '🤲', suggested: 300 },
-  { key: 'clothing',    label: 'Eid Clothing',             icon: '👗', suggested: 150 },
-  { key: 'gifts',       label: 'Eid Gifts',                icon: '🎁', suggested: 100 },
+  { key: 'quran',       labelKey: 'ramadanCatQuran',      icon: '📖', suggested: 50 },
+  { key: 'iftarguest',  labelKey: 'ramadanCatIftarGuests', icon: '🍽️', suggested: 200 },
+  { key: 'itikaaf',     labelKey: 'ramadanCatItikaaf',    icon: '🕌', suggested: 100 },
+  { key: 'charity',     labelKey: 'ramadanCatExtraSadaqah', icon: '🤲', suggested: 300 },
+  { key: 'clothing',    labelKey: 'ramadanCatEidClothing', icon: '👗', suggested: 150 },
+  { key: 'gifts',       labelKey: 'ramadanCatEidGifts',   icon: '🎁', suggested: 100 },
 ];
 
-interface BudgetItem { key: string; label: string; icon: string; suggested: number; allocated: number; }
+interface BudgetItem { key: string; labelKey: string; icon: string; suggested: number; allocated: number; }
 
 // Most-recent completed Ramadan vs. ordinary months — RamadanInsightService.
 interface RamadanComparison {
@@ -91,9 +92,9 @@ function deltaText(pct: number | null): string {
 }
 
 const DUAS = [
-  { arabic: 'اللَّهُمَّ بَلِّغْنَا رَمَضَانَ', transliteration: 'Allahumma ballighna Ramadan', meaning: 'O Allah, let us reach Ramadan' },
-  { arabic: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي', transliteration: "Allahumma innaka 'afuwwun tuhibbul 'afwa fa'fu 'anni", meaning: 'O Allah, You are the Pardoner, You love to pardon, so pardon me' },
-  { arabic: 'رَبَّنَا تَقَبَّلْ مِنَّا إِنَّكَ أَنتَ السَّمِيعُ الْعَلِيمُ', transliteration: 'Rabbana taqabbal minna innaka antas-Sami\'ul-\'Aleem', meaning: 'Our Lord, accept from us; indeed You are the All-Hearing, the All-Knowing' },
+  { arabic: 'اللَّهُمَّ بَلِّغْنَا رَمَضَانَ', transliteration: 'Allahumma ballighna Ramadan', meaningKey: 'ramadanDua1Meaning' },
+  { arabic: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي', transliteration: "Allahumma innaka 'afuwwun tuhibbul 'afwa fa'fu 'anni", meaningKey: 'ramadanDua2Meaning' },
+  { arabic: 'رَبَّنَا تَقَبَّلْ مِنَّا إِنَّكَ أَنتَ السَّمِيعُ الْعَلِيمُ', transliteration: 'Rabbana taqabbal minna innaka antas-Sami\'ul-\'Aleem', meaningKey: 'ramadanDua3Meaning' },
 ];
 
 // Safe localStorage helpers
@@ -106,6 +107,7 @@ const safeSetItem = (key: string, value: string): void => {
 
 export default function RamadanPage() {
   const { fmt, symbol } = useCurrency();
+  const { t, tFmt } = useI18n();
   const [now, setNow]                   = useState(new Date());
   const [members, setMembers]           = useState(1);
   const [fitrahPaid, setFitrahPaid]     = useState(false);
@@ -157,8 +159,8 @@ export default function RamadanPage() {
             ));
           }
           if (data.notes) {
-            setCustomGoal({ label: 'Notes', amount: 0 });
-            setCustomGoalDraft({ label: 'Notes', amount: '' });
+            setCustomGoal({ label: t('ramadanNotes'), amount: 0 });
+            setCustomGoalDraft({ label: t('ramadanNotes'), amount: '' });
           }
         }
       } catch {
@@ -214,15 +216,15 @@ export default function RamadanPage() {
       setTimeout(() => setSyncStatus('idle'), 3000);
     } catch {
       setSyncStatus('error');
-      toast('Failed to sync goals', 'error');
+      toast(t('ramadanSyncFailedToast'), 'error');
       setTimeout(() => setSyncStatus('idle'), 3000);
     }
   };
 
   // Clock tick
   useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 60000);
-    return () => clearInterval(t);
+    const id = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(id);
   }, []);
 
   // Load the last-Ramadan comparison. Only surfaces when there's a
@@ -256,15 +258,15 @@ export default function RamadanPage() {
     <div className="max-w-2xl mx-auto">
       {/* Header */}
       <PageHeader
-        title="Ramadan Mode"
+        title={t('ramadanMode')}
         subtitle={`${hijri.day} ${hijri.monthName} ${hijri.year} AH · ${now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`}
       />
 
       {/* Ramadan status card */}
       {ramadan.inRamadan ? (
         <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
-          <p className="text-green-200 text-sm">Ramadan Mubarak 🌙</p>
-          <p className="text-4xl font-bold mt-1">Day {ramadan.day}</p>
+          <p className="text-green-200 text-sm">{t('ramadanMubarak')}</p>
+          <p className="text-4xl font-bold mt-1">{tFmt('ramadanDayFmt', [ramadan.day])}</p>
           <div className="mt-3">
             <div className="w-full bg-white/20 rounded-full h-2">
               <div
@@ -272,7 +274,7 @@ export default function RamadanPage() {
                 style={{ width: `${(ramadan.day / ramadan.total) * 100}%` }}
               />
             </div>
-            <p className="text-green-200 text-xs mt-1">{ramadan.day} of {ramadan.total} days · {ramadan.total - ramadan.day} remaining</p>
+            <p className="text-green-200 text-xs mt-1">{tFmt('ramadanDayProgressFmt', [ramadan.day, ramadan.total, ramadan.total - ramadan.day])}</p>
           </div>
         </div>
       ) : (
@@ -281,14 +283,14 @@ export default function RamadanPage() {
           <p className="text-lg font-semibold text-primary">
             {ramadan.daysUntil !== null
               ? ramadan.daysUntil === 0
-                ? 'Ramadan starts today!'
-                : `${ramadan.daysUntil} days until Ramadan`
-              : 'Ramadan date not available'}
+                ? t('ramadanStartsToday')
+                : tFmt('ramadanDaysUntilFmt', [ramadan.daysUntil])
+              : t('ramadanDateUnavailable')}
           </p>
           {ramadan.start && (
             <p className="text-gray-500 text-sm mt-1">
-              Expected to begin {ramadan.start.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
-              <span className="text-xs text-gray-400 ml-1">(subject to moon sighting)</span>
+              {tFmt('ramadanExpectedBeginFmt', [ramadan.start.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })])}
+              <span className="text-xs text-gray-400 ml-1">{t('ramadanSubjectMoonSighting')}</span>
             </p>
           )}
         </div>
@@ -299,16 +301,16 @@ export default function RamadanPage() {
           with real transaction data behind it. */}
       {comparison && (
         <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
-          <h2 className="font-bold text-primary mb-1">{comparison.ramadanLabel}, in review</h2>
+          <h2 className="font-bold text-primary mb-1">{tFmt('ramadanInReviewFmt', [comparison.ramadanLabel ?? ''])}</h2>
           <p className="text-xs text-gray-500 mb-4">
-            How your spending and giving moved compared with an ordinary month.
+            {t('ramadanReviewSubtitle')}
           </p>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
-              <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-1">Spending</p>
+              <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-1">{t('ramadanSpending')}</p>
               <p className="text-2xl font-bold text-gray-900">{fmt(comparison.ramadanSpending)}</p>
               <p className="text-xs text-gray-500 mt-0.5">
-                vs {fmt(comparison.normalMonthlySpending)}/mo normally
+                {tFmt('ramadanVsMonthlyFmt', [fmt(comparison.normalMonthlySpending)])}
                 {comparison.spendingDeltaPct !== null && (
                   <span className={`ml-1 font-semibold ${comparison.spendingDeltaPct > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
                     ({deltaText(comparison.spendingDeltaPct)})
@@ -317,10 +319,10 @@ export default function RamadanPage() {
               </p>
             </div>
             <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3">
-              <p className="text-[11px] uppercase tracking-wide text-emerald-700 font-medium mb-1">Giving</p>
+              <p className="text-[11px] uppercase tracking-wide text-emerald-700 font-medium mb-1">{t('ramadanGiving')}</p>
               <p className="text-2xl font-bold text-gray-900">{fmt(comparison.ramadanGiving)}</p>
               <p className="text-xs text-gray-600 mt-0.5">
-                vs {fmt(comparison.normalMonthlyGiving)}/mo normally
+                {tFmt('ramadanVsMonthlyFmt', [fmt(comparison.normalMonthlyGiving)])}
                 {comparison.givingDeltaPct !== null && (
                   <span className={`ml-1 font-semibold ${comparison.givingDeltaPct >= 0 ? 'text-emerald-700' : 'text-gray-500'}`}>
                     ({deltaText(comparison.givingDeltaPct)})
@@ -331,7 +333,7 @@ export default function RamadanPage() {
           </div>
           {comparison.givingDeltaPct !== null && comparison.givingDeltaPct > 0 && (
             <p className="text-sm text-emerald-700 mt-3">
-              You gave <span className="font-semibold">{deltaText(comparison.givingDeltaPct)}</span> more than your usual month — may Allah accept it.
+              {t('ramadanGaveMorePrefix')} <span className="font-semibold">{deltaText(comparison.givingDeltaPct)}</span> {t('ramadanGaveMoreSuffix')}
             </p>
           )}
           {comparison.topRamadanCategories.length > 0 && (
@@ -349,22 +351,22 @@ export default function RamadanPage() {
 
       {/* Zakat al-Fitr Calculator */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
-        <h2 className="font-bold text-primary mb-3">Zakat al-Fitr</h2>
+        <h2 className="font-bold text-primary mb-3">{t('ramadanZakatFitrTitle')}</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Obligatory charity paid before Eid al-Fitr prayer. Enter the amount your mosque specifies — typically {fmt(10)}–{fmt(15)} per person based on staple food equivalent.
+          {tFmt('ramadanZakatFitrIntroFmt', [fmt(10), fmt(15)])}
         </p>
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">Amount per person ({symbol})</label>
+            <label className="text-sm font-medium text-gray-700 block mb-1">{tFmt('ramadanAmountPerPersonFmt', [symbol])}</label>
             <input
               type="number" min="1" step="1" value={fitrahPerPerson}
               onChange={e => setFitrahPerPerson(Math.max(1, parseFloat(e.target.value) || ZAKAT_FITR_DEFAULT))}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
             />
-            <p className="text-xs text-gray-400 mt-0.5">Default {symbol}10 — edit per your mosque</p>
+            <p className="text-xs text-gray-400 mt-0.5">{tFmt('ramadanDefaultEditMosqueFmt', [`${symbol}10`])}</p>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">Family members</label>
+            <label className="text-sm font-medium text-gray-700 block mb-1">{t('ramadanFamilyMembers')}</label>
             <input
               type="number" min="1" max="20" value={members}
               onChange={e => setMembers(Math.max(1, parseInt(e.target.value) || 1))}
@@ -373,7 +375,7 @@ export default function RamadanPage() {
           </div>
         </div>
         <div className="flex justify-between items-center bg-amber-50 rounded-xl px-4 py-3 mb-4">
-          <span className="text-sm text-amber-800">{members} person{members > 1 ? 's' : ''} × {symbol}{fitrahPerPerson}</span>
+          <span className="text-sm text-amber-800">{tFmt(members > 1 ? 'ramadanPersonsTimesFmt' : 'ramadanPersonTimesFmt', [members, `${symbol}${fitrahPerPerson}`])}</span>
           <span className="text-xl font-bold text-primary">{fmt(fitrahTotal)}</span>
         </div>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -383,20 +385,20 @@ export default function RamadanPage() {
             className="w-4 h-4 accent-[#1B5E20]"
           />
           <span className={fitrahPaid ? 'line-through text-gray-400' : 'text-gray-700'}>
-            Zakat al-Fitr paid ✓
+            {t('ramadanZakatFitrPaid')}
           </span>
         </label>
       </div>
 
       {/* Ramadan Budget Planner */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
-        <h2 className="font-bold text-primary mb-1">Ramadan Budget Planner</h2>
-        <p className="text-xs text-gray-500 mb-4">Plan extra Ramadan spending. Adjust amounts for your situation.</p>
+        <h2 className="font-bold text-primary mb-1">{t('ramadanBudgetPlannerTitle')}</h2>
+        <p className="text-xs text-gray-500 mb-4">{t('ramadanBudgetPlannerDesc')}</p>
         <div className="space-y-3">
           {budget.map(b => (
             <div key={b.key} className="flex items-center gap-3">
               <span className="text-xl w-8 text-center">{b.icon}</span>
-              <span className="flex-1 text-sm text-gray-700">{b.label}</span>
+              <span className="flex-1 text-sm text-gray-700">{t(b.labelKey)}</span>
               <div className="flex items-center gap-1">
                 <span className="text-gray-400 text-sm">{symbol}</span>
                 <input
@@ -410,10 +412,10 @@ export default function RamadanPage() {
         </div>
         {/* Custom goal */}
         <div className="mt-4 pt-4 border-t border-gray-100">
-          <p className="text-sm font-medium text-gray-700 mb-2">+ Custom Goal</p>
+          <p className="text-sm font-medium text-gray-700 mb-2">{t('ramadanCustomGoal')}</p>
           <div className="flex gap-2">
             <input
-              type="text" placeholder="e.g. Night of Power donation"
+              type="text" placeholder={t('ramadanCustomGoalPlaceholder')}
               value={customGoalDraft.label}
               onChange={e => setCustomGoalDraft(d => ({ ...d, label: e.target.value }))}
               className="flex-1 border rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:border-primary"
@@ -435,7 +437,7 @@ export default function RamadanPage() {
               }}
               className="bg-primary text-primary-foreground px-3 py-1.5 rounded-lg text-sm hover:bg-primary/90 font-medium whitespace-nowrap"
             >
-              Add
+              {t('ramadanAdd')}
             </button>
           </div>
           {customGoal.label && (
@@ -452,7 +454,7 @@ export default function RamadanPage() {
           )}
         </div>
         <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
-          <span className="text-sm font-semibold text-gray-700">Total (excl. Fitrah)</span>
+          <span className="text-sm font-semibold text-gray-700">{t('ramadanTotalExclFitrah')}</span>
           <span className="text-lg font-bold text-gray-900">{fmt(totalBudget)}</span>
         </div>
         <div className="mt-4 flex gap-3">
@@ -461,16 +463,16 @@ export default function RamadanPage() {
             disabled={syncStatus === 'saving'}
             className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50 font-medium text-sm"
           >
-            {syncStatus === 'saving' ? 'Saving...' : 'Save & Sync'}
+            {syncStatus === 'saving' ? t('ramadanSaving') : t('ramadanSaveSync')}
           </button>
           {syncStatus === 'synced' && (
             <div className="flex-1 bg-green-50 text-green-700 rounded-lg py-2 text-center text-sm font-medium">
-              ✓ Synced
+              {t('ramadanSynced')}
             </div>
           )}
           {syncStatus === 'error' && (
             <div className="flex-1 bg-red-50 text-red-700 rounded-lg py-2 text-center text-sm font-medium">
-              ✕ Sync failed
+              {t('ramadanSyncFailed')}
             </div>
           )}
         </div>
@@ -482,12 +484,12 @@ export default function RamadanPage() {
         )}
         {!fitrahPaid && (
           <div className="flex justify-between items-center mt-1 text-sm text-primary">
-            <span>🕌 Zakat al-Fitr ({members} × {symbol}{fitrahPerPerson})</span>
+            <span>{tFmt('ramadanZakatFitrLineFmt', [members, `${symbol}${fitrahPerPerson}`])}</span>
             <span className="font-semibold">{fmt(fitrahTotal)}</span>
           </div>
         )}
         <div className="flex justify-between items-center mt-2 pt-2 border-t border-primary/20">
-          <span className="font-bold text-primary">Grand Total</span>
+          <span className="font-bold text-primary">{t('ramadanGrandTotal')}</span>
           <span className="text-xl font-bold text-primary">{fmt(grandTotal)}</span>
         </div>
       </div>
@@ -495,10 +497,10 @@ export default function RamadanPage() {
       {/* Daily Nafila Tracker */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="font-bold text-primary">Daily Nawafil Tracker</h2>
-          <span className="text-sm text-gray-500">{nafilaCount}/{ramadan.inRamadan ? ramadan.day : 30} days</span>
+          <h2 className="font-bold text-primary">{t('ramadanNawafilTrackerTitle')}</h2>
+          <span className="text-sm text-gray-500">{tFmt('ramadanNafilaCountFmt', [nafilaCount, ramadan.inRamadan ? ramadan.day : 30])}</span>
         </div>
-        <p className="text-xs text-gray-500 mb-4">Track your extra voluntary prayers and worship during Ramadan</p>
+        <p className="text-xs text-gray-500 mb-4">{t('ramadanNawafilTrackerDesc')}</p>
         <div className="grid grid-cols-10 gap-1.5">
           {Array.from({ length: 30 }, (_, i) => {
             const isToday = ramadan.inRamadan && i + 1 === ramadan.day;
@@ -507,7 +509,7 @@ export default function RamadanPage() {
               <button
                 key={i}
                 onClick={() => !isFuture && toggleNafila(i)}
-                title={`Day ${i + 1}`}
+                title={tFmt('ramadanDayFmt', [i + 1])}
                 disabled={isFuture}
                 className={`aspect-square rounded-md text-xs font-medium transition ${
                   isFuture ? 'bg-gray-100 text-gray-300 cursor-not-allowed' :
@@ -522,13 +524,13 @@ export default function RamadanPage() {
           })}
         </div>
         <p className="text-xs text-gray-400 mt-3 text-center">
-          Tap a day to mark your nawafil complete
+          {t('ramadanTapDayHint')}
         </p>
       </div>
 
       {/* Duas for Ramadan */}
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-5">
-        <h2 className="font-bold text-primary mb-3">Ramadan Du&apos;as</h2>
+        <h2 className="font-bold text-primary mb-3">{t('ramadanDuasTitle')}</h2>
         <div className="space-y-2">
           {DUAS.map((dua, i) => (
             <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
@@ -536,14 +538,14 @@ export default function RamadanPage() {
                 className="w-full text-left px-4 py-3 hover:bg-gray-50 transition flex justify-between items-center"
                 onClick={() => setExpandDua(expandDua === i ? null : i)}
               >
-                <span className="text-sm font-medium text-gray-800">{dua.meaning}</span>
+                <span className="text-sm font-medium text-gray-800">{t(dua.meaningKey)}</span>
                 <span className="text-gray-400 text-sm ml-2">{expandDua === i ? '▲' : '▼'}</span>
               </button>
               {expandDua === i && (
                 <div className="px-4 pb-4 pt-1 bg-green-50">
                   <p className="text-right text-xl text-gray-800 font-arabic leading-relaxed mb-2">{dua.arabic}</p>
                   <p className="text-sm text-gray-600 italic mb-1">{dua.transliteration}</p>
-                  <p className="text-xs text-gray-500">{dua.meaning}</p>
+                  <p className="text-xs text-gray-500">{t(dua.meaningKey)}</p>
                 </div>
               )}
             </div>
@@ -556,35 +558,35 @@ export default function RamadanPage() {
         <Link href="/dashboard/zakat" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
           <span className="text-2xl">🕌</span>
           <div>
-            <p className="font-semibold text-gray-800 text-sm">Zakat Calculator</p>
-            <p className="text-xs text-gray-500">Compute your full Zakat</p>
+            <p className="font-semibold text-gray-800 text-sm">{t('zakatPageTitle')}</p>
+            <p className="text-xs text-gray-500">{t('ramadanLinkZakatDesc')}</p>
           </div>
         </Link>
         <Link href="/dashboard/sadaqah" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
           <span className="text-2xl">🤲</span>
           <div>
-            <p className="font-semibold text-gray-800 text-sm">Sadaqah Log</p>
-            <p className="text-xs text-gray-500">Track your charity</p>
+            <p className="font-semibold text-gray-800 text-sm">{t('ramadanLinkSadaqahLog')}</p>
+            <p className="text-xs text-gray-500">{t('ramadanLinkSadaqahDesc')}</p>
           </div>
         </Link>
         <Link href="/dashboard/zakat" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
           <span className="text-2xl">🕌</span>
           <div>
-            <p className="font-semibold text-gray-800 text-sm">Zakat</p>
-            <p className="text-xs text-gray-500">Calculate &amp; track</p>
+            <p className="font-semibold text-gray-800 text-sm">{t('navZakat')}</p>
+            <p className="text-xs text-gray-500">{t('ramadanLinkZakatTrackDesc')}</p>
           </div>
         </Link>
         <Link href="/dashboard/budget" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition flex items-center gap-3">
           <span className="text-2xl">📊</span>
           <div>
-            <p className="font-semibold text-gray-800 text-sm">Budget</p>
-            <p className="text-xs text-gray-500">Manage Ramadan spending</p>
+            <p className="font-semibold text-gray-800 text-sm">{t('navBudget')}</p>
+            <p className="text-xs text-gray-500">{t('ramadanLinkBudgetDesc')}</p>
           </div>
         </Link>
       </div>
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800">
-        ⚠️ Ramadan dates are approximations based on astronomical calculation. Actual start date may differ by 1 day depending on moon sighting in your region. Always confirm with your local mosque or Islamic authority.
+        {t('ramadanDatesDisclaimer')}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { trackReferralShare } from '../../../lib/analytics';
 import { REFEREE_FIRST_MONTH_PRICE, REFEREE_REGULAR_PRICE, REFEREE_REWARD_PHRASE } from '../../../lib/referralCopy';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { SkeletonPage } from '../SkeletonCard';
+import { useI18n } from '../../../lib/i18n';
 
 // Fire both the GA4 share event and the backend REFERRAL_SHARED lifecycle
 // event so the admin viral-loop funnel reflects this surface.
@@ -24,6 +25,7 @@ interface ReferralData {
 }
 
 export default function ReferralPage() {
+  const { t, tFmt } = useI18n();
   const [data, setData] = useState<ReferralData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export default function ReferralPage() {
       .then((d: ReferralData) => setData(d))
       .catch((err: Error) => {
         logError(err, { context: 'Failed to load referral code' });
-        setError(err?.message || 'Failed to load referral data.');
+        setError(err?.message || t('referralLoadError'));
       })
       .finally(() => setLoading(false));
   };
@@ -73,8 +75,8 @@ export default function ReferralPage() {
   const shareNative = () => {
     if (!data || !navigator.share) return;
     navigator.share({
-      title: 'Join Barakah — Islamic Finance Tracker',
-      text: 'Build a more thoughtful Muslim household finance system with Barakah. Sign up with my referral link!',
+      title: t('referralShareTitle'),
+      text: t('referralShareText'),
       url: data.shareUrl,
     }).then(() => fireShare('native', 'referral_page')).catch(() => {});
   };
@@ -91,7 +93,7 @@ export default function ReferralPage() {
         onClick={load}
         className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-semibold hover:bg-primary/90 transition"
       >
-        Try again
+        {t('zktTryAgain')}
       </button>
     </div>
   );
@@ -101,8 +103,8 @@ export default function ReferralPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <PageHeader
-        title="Refer a Friend"
-        subtitle="Share Barakah with friends and family."
+        title={t('navReferAFriend')}
+        subtitle={t('referralSubtitle')}
         className="mb-4"
       />
 
@@ -110,8 +112,8 @@ export default function ReferralPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <div className="bg-gradient-to-br from-[#1B5E20] to-teal-700 text-white rounded-2xl p-5">
           <p className="text-3xl mb-2">🎁</p>
-          <p className="font-bold text-lg">You earn</p>
-          <p className="text-green-200 text-sm mt-1">A free extra month of Barakah access — automatically applied once your friend verifies their email.</p>
+          <p className="font-bold text-lg">{t('referralYouEarn')}</p>
+          <p className="text-green-200 text-sm mt-1">{t('referralYouEarnDesc')}</p>
         </div>
         <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-5">
           <p className="text-3xl mb-2">💰</p>
@@ -123,8 +125,8 @@ export default function ReferralPage() {
               referrers were getting confused). REFEREE_REGULAR_PRICE is
               still rendered alongside so the percentage-off math is
               transparent. */}
-          <p className="font-bold text-lg">They get {REFEREE_REWARD_PHRASE}</p>
-          <p className="text-amber-100 text-sm mt-1">Your friend gets {REFEREE_REWARD_PHRASE} instead of {REFEREE_REGULAR_PRICE} — 50% off their first month, automatically applied at checkout.</p>
+          <p className="font-bold text-lg">{tFmt('referralTheyGetFmt', [REFEREE_REWARD_PHRASE])}</p>
+          <p className="text-amber-100 text-sm mt-1">{tFmt('referralTheyGetDescFmt', [REFEREE_REWARD_PHRASE, REFEREE_REGULAR_PRICE])}</p>
         </div>
       </div>
 
@@ -132,24 +134,24 @@ export default function ReferralPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-2xl p-6 text-center">
           <p className="text-4xl font-bold">{data.referralClicks}</p>
-          <p className="text-sky-100 text-sm mt-1">Referral Link Clicks</p>
+          <p className="text-sky-100 text-sm mt-1">{t('referralStatClicks')}</p>
         </div>
         <div className="bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] text-white rounded-2xl p-6 text-center">
           <p className="text-4xl font-bold">{data.referralCount}</p>
-          <p className="text-green-200 text-sm mt-1">Rewards Triggered</p>
+          <p className="text-green-200 text-sm mt-1">{t('referralStatRewards')}</p>
         </div>
         {/* 2026-05-11 (Bug-A12): 8-char codes overflowed the card width.
             Cap font size + allow tracking-tight + min-width-0 so longer
             codes shrink-fit rather than clip. */}
         <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-6 text-center min-w-0">
           <p className="text-3xl sm:text-4xl font-bold tracking-tight break-all">{data.referralCode}</p>
-          <p className="text-amber-100 text-sm mt-1">Your Referral Code</p>
+          <p className="text-amber-100 text-sm mt-1">{t('referralStatCode')}</p>
         </div>
       </div>
 
       {/* Share Link */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-        <h2 className="font-semibold text-primary mb-3">Your Referral Link</h2>
+        <h2 className="font-semibold text-primary mb-3">{t('referralYourLink')}</h2>
         <div className="flex gap-2">
           <input
             type="text"
@@ -166,7 +168,7 @@ export default function ReferralPage() {
                 : 'bg-primary text-primary-foreground hover:bg-primary/90'
             }`}
           >
-            {copied ? '✅ Copied!' : '📋 Copy'}
+            {copied ? `✅ ${t('referralCopied')}` : `📋 ${t('referralCopy')}`}
           </button>
         </div>
       </div>
@@ -178,59 +180,59 @@ export default function ReferralPage() {
             onClick={shareNative}
             className="flex items-center justify-center gap-2 bg-blue-600 text-white rounded-xl py-3 px-4 hover:bg-blue-700 transition text-sm font-medium"
           >
-            📤 Share
+            📤 {t('dashShare')}
           </button>
         )}
         <a
-          href={`https://wa.me/?text=${encodeURIComponent('Build a more thoughtful Muslim household finance system with Barakah! ' + data.shareUrl)}`}
+          href={`https://wa.me/?text=${encodeURIComponent(t('referralShareMsg') + ' ' + data.shareUrl)}`}
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => fireShare('whatsapp', 'referral_page')}
           className="flex items-center justify-center gap-2 bg-green-500 text-white rounded-xl py-3 px-4 hover:bg-green-600 transition text-sm font-medium"
         >
-          💬 WhatsApp
+          💬 {t('referralWhatsapp')}
         </a>
         <a
-          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('Build a more thoughtful Muslim household finance system with Barakah! 🌙 ' + data.shareUrl)}`}
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(t('referralShareMsg') + ' 🌙 ' + data.shareUrl)}`}
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => fireShare('twitter', 'referral_page')}
           className="flex items-center justify-center gap-2 bg-sky-500 text-white rounded-xl py-3 px-4 hover:bg-sky-600 transition text-sm font-medium"
         >
-          🐦 Twitter
+          🐦 {t('referralTwitter')}
         </a>
         <a
-          href={`mailto:?subject=${encodeURIComponent('Check out Barakah — Islamic Household Finance')}&body=${encodeURIComponent('Assalamu Alaikum!\n\nI\'ve been using Barakah to organize daily money, zakat, and family financial responsibilities in one place, and thought you might like it too.\n\nSign up here: ' + data.shareUrl)}`}
+          href={`mailto:?subject=${encodeURIComponent(t('referralEmailSubject'))}&body=${encodeURIComponent(tFmt('referralEmailBodyFmt', [data.shareUrl]))}`}
           onClick={() => fireShare('email', 'referral_page')}
           className="flex items-center justify-center gap-2 bg-gray-600 text-white rounded-xl py-3 px-4 hover:bg-gray-700 transition text-sm font-medium"
         >
-          ✉️ Email
+          ✉️ {t('authEmail')}
         </a>
       </div>
 
       {/* How it works */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <h2 className="font-semibold text-primary mb-4">How it works</h2>
+        <h2 className="font-semibold text-primary mb-4">{t('referralHowItWorks')}</h2>
         <div className="space-y-4">
           <div className="flex gap-4 items-start">
             <span className="bg-green-100 text-primary rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">1</span>
             <div>
-              <p className="font-medium">Share your link</p>
-              <p className="text-gray-500 text-sm">Send your unique referral link to friends and family.</p>
+              <p className="font-medium">{t('referralStep1Title')}</p>
+              <p className="text-gray-500 text-sm">{t('referralStep1Desc')}</p>
             </div>
           </div>
           <div className="flex gap-4 items-start">
             <span className="bg-green-100 text-primary rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">2</span>
             <div>
-              <p className="font-medium">They sign up</p>
-              <p className="text-gray-500 text-sm">When someone signs up using your link, they&apos;re linked to your account.</p>
+              <p className="font-medium">{t('referralStep2Title')}</p>
+              <p className="text-gray-500 text-sm">{t('referralStep2Desc')}</p>
             </div>
           </div>
           <div className="flex gap-4 items-start">
             <span className="bg-green-100 text-primary rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">3</span>
             <div>
-              <p className="font-medium">Earn rewards</p>
-              <p className="text-gray-500 text-sm">Once they verify their email, <strong>you earn a free extra month</strong> and <strong>they get their first paid month for {REFEREE_FIRST_MONTH_PRICE}</strong> — automatically applied at checkout.</p>
+              <p className="font-medium">{t('referralStep3Title')}</p>
+              <p className="text-gray-500 text-sm">{t('referralStep3Before')}<strong>{t('referralStep3StrongYou')}</strong>{t('referralStep3Mid')}<strong>{tFmt('referralStep3StrongThemFmt', [REFEREE_FIRST_MONTH_PRICE])}</strong>{t('referralStep3After')}</p>
             </div>
           </div>
         </div>

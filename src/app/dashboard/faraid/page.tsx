@@ -9,6 +9,7 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -157,6 +158,7 @@ export default function FaraidPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { symbol: currencySymbol, fmt } = useCurrency();
+  const { t } = useI18n();
 
   const [form, setForm] = useState<FormData>({
     estateValue: 0,
@@ -265,7 +267,7 @@ export default function FaraidPage() {
 
   const calculate = async () => {
     if (form.estateValue <= 0) {
-      toast('Estate value must be greater than zero', 'error');
+      toast(t('faraidEstateValueRequired'), 'error');
       return;
     }
     setLoading(true);
@@ -276,14 +278,14 @@ export default function FaraidPage() {
       } else {
         const normalized = normalizeFaraidResult(res);
         if (!normalized) {
-          toast('The Faraid response was incomplete. Please try again.', 'error');
+          toast(t('faraidIncompleteResponse'), 'error');
           setResult(null);
           return;
         }
         setResult(normalized);
       }
     } catch {
-      toast('Failed to calculate Faraid distribution', 'error');
+      toast(t('faraidCalculateFailed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -299,17 +301,16 @@ export default function FaraidPage() {
         <div className="bg-white border border-gray-200 rounded-2xl p-10 shadow-sm">
           <div className="text-5xl mb-4">📜</div>
           <h1 className="text-2xl font-bold text-primary mb-2">
-            Faraid Calculator
+            {t('faraid')}
           </h1>
           <p className="text-gray-600 mb-6">
-            Calculate Islamic inheritance distribution based on the Quran and Sunnah.
-            This feature is available on the Plus plan.
+            {t('faraidGateDescription')}
           </p>
           <Link
             href="/dashboard/billing"
             className="inline-block bg-primary text-primary-foreground font-semibold px-8 py-3 rounded-xl hover:bg-primary/90 transition"
           >
-            Upgrade to Plus
+            {t('profUpgradeToPlus')}
           </Link>
         </div>
       </div>
@@ -330,21 +331,21 @@ export default function FaraidPage() {
     <div className="max-w-6xl mx-auto py-8 px-4 space-y-8">
       {/* Header */}
       <PageHeader
-        title="Inheritance Calculator"
-        subtitle="Faraid — Qur&apos;anic inheritance shares per the Sunni majority position"
+        title={t('faraidPageTitle')}
+        subtitle={t('faraidPageSubtitle')}
         className="mb-0"
       />
 
       {prefilled && (
         <div className="bg-green-50 border border-green-200 text-green-900 rounded-xl px-4 py-3 text-sm flex items-center justify-between gap-3">
           <span>
-            💡 Heirs pre-filled from your <Link href="/dashboard/profile" className="underline font-semibold">Household profile</Link>. Adjust any field before calculating if something changed.
+            💡 {t('faraidPrefillBannerBefore')} <Link href="/dashboard/profile" className="underline font-semibold">{t('faraidPrefillBannerLink')}</Link>{t('faraidPrefillBannerAfter')}
           </span>
           <button
             type="button"
             onClick={() => setPrefilled(false)}
             className="text-green-800 hover:text-green-900 text-xl leading-none"
-            aria-label="Dismiss"
+            aria-label={t('faraidDismiss')}
           >
             ×
           </button>
@@ -355,21 +356,21 @@ export default function FaraidPage() {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Left — Estate Details */}
         <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-5">
-          <h2 className="text-lg font-semibold text-primary">Estate Details</h2>
+          <h2 className="text-lg font-semibold text-primary">{t('faraidEstateDetails')}</h2>
 
-          <CurrencyInput label="Total Estate Value" value={form.estateValue} onChange={(v) => setNumber('estateValue', v)} symbol={currencySymbol} />
-          <CurrencyInput label="Funeral Expenses" value={form.funeralExpenses} onChange={(v) => setNumber('funeralExpenses', v)} symbol={currencySymbol} />
-          <CurrencyInput label="Outstanding Debts" value={form.debts} onChange={(v) => setNumber('debts', v)} symbol={currencySymbol} />
-          <CurrencyInput label="Wasiyyah (Bequest) Amount" value={form.wasiyyahAmount} onChange={(v) => setNumber('wasiyyahAmount', v)} symbol={currencySymbol} />
+          <CurrencyInput label={t('faraidTotalEstateValue')} value={form.estateValue} onChange={(v) => setNumber('estateValue', v)} symbol={currencySymbol} />
+          <CurrencyInput label={t('faraidFuneralExpenses')} value={form.funeralExpenses} onChange={(v) => setNumber('funeralExpenses', v)} symbol={currencySymbol} />
+          <CurrencyInput label={t('faraidOutstandingDebts')} value={form.debts} onChange={(v) => setNumber('debts', v)} symbol={currencySymbol} />
+          <CurrencyInput label={t('faraidWasiyyahAmount')} value={form.wasiyyahAmount} onChange={(v) => setNumber('wasiyyahAmount', v)} symbol={currencySymbol} />
         </div>
 
         {/* Right — Heirs */}
         <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-6">
-          <h2 className="text-lg font-semibold text-primary">Heirs</h2>
+          <h2 className="text-lg font-semibold text-primary">{t('faraidHeirs')}</h2>
 
           {/* Spouse */}
           <fieldset>
-            <legend className="text-sm font-medium text-gray-700 mb-2">Spouse</legend>
+            <legend className="text-sm font-medium text-gray-700 mb-2">{t('faraidSpouse')}</legend>
             <div className="flex gap-6">
               <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                 <input
@@ -379,7 +380,7 @@ export default function FaraidPage() {
                   onChange={() => { setField('hasHusband', false); setField('hasWife', false); }}
                   className="accent-[#1B5E20]"
                 />
-                None
+                {t('faraidSpouseNone')}
               </label>
               <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                 <input
@@ -389,7 +390,7 @@ export default function FaraidPage() {
                   onChange={() => { setField('hasHusband', true); setField('hasWife', false); }}
                   className="accent-[#1B5E20]"
                 />
-                Husband
+                {t('faraidHusband')}
               </label>
               <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                 <input
@@ -399,14 +400,14 @@ export default function FaraidPage() {
                   onChange={() => { setField('hasWife', true); setField('hasHusband', false); }}
                   className="accent-[#1B5E20]"
                 />
-                Wife
+                {t('faraidWife')}
               </label>
             </div>
           </fieldset>
 
           {/* Parents */}
           <fieldset>
-            <legend className="text-sm font-medium text-gray-700 mb-2">Parents</legend>
+            <legend className="text-sm font-medium text-gray-700 mb-2">{t('faraidParents')}</legend>
             <div className="flex gap-6">
               <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                 <input
@@ -415,7 +416,7 @@ export default function FaraidPage() {
                   onChange={(e) => setField('hasFather', e.target.checked)}
                   className="accent-[#1B5E20] rounded"
                 />
-                Father
+                {t('faraidFather')}
               </label>
               <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                 <input
@@ -424,42 +425,42 @@ export default function FaraidPage() {
                   onChange={(e) => setField('hasMother', e.target.checked)}
                   className="accent-[#1B5E20] rounded"
                 />
-                Mother
+                {t('faraidMother')}
               </label>
             </div>
           </fieldset>
 
           {/* Children */}
           <fieldset>
-            <legend className="text-sm font-medium text-gray-700 mb-2">Children</legend>
+            <legend className="text-sm font-medium text-gray-700 mb-2">{t('faraidChildren')}</legend>
             <div className="grid grid-cols-2 gap-4">
-              <IntInput label="Sons" value={form.numSons} onChange={(v) => setInt('numSons', v)} />
-              <IntInput label="Daughters" value={form.numDaughters} onChange={(v) => setInt('numDaughters', v)} />
+              <IntInput label={t('faraidSons')} value={form.numSons} onChange={(v) => setInt('numSons', v)} />
+              <IntInput label={t('faraidDaughters')} value={form.numDaughters} onChange={(v) => setInt('numDaughters', v)} />
             </div>
           </fieldset>
 
           {/* Full Siblings */}
           <fieldset>
-            <legend className="text-sm font-medium text-gray-700 mb-2">Full Siblings</legend>
+            <legend className="text-sm font-medium text-gray-700 mb-2">{t('faraidFullSiblings')}</legend>
             <div className="grid grid-cols-2 gap-4">
-              <IntInput label="Brothers" value={form.numFullBrothers} onChange={(v) => setInt('numFullBrothers', v)} />
-              <IntInput label="Sisters" value={form.numFullSisters} onChange={(v) => setInt('numFullSisters', v)} />
+              <IntInput label={t('faraidBrothers')} value={form.numFullBrothers} onChange={(v) => setInt('numFullBrothers', v)} />
+              <IntInput label={t('faraidSisters')} value={form.numFullSisters} onChange={(v) => setInt('numFullSisters', v)} />
             </div>
           </fieldset>
 
           {/* Paternal Siblings */}
           <fieldset>
-            <legend className="text-sm font-medium text-gray-700 mb-2">Paternal Siblings</legend>
+            <legend className="text-sm font-medium text-gray-700 mb-2">{t('faraidPaternalSiblings')}</legend>
             <div className="grid grid-cols-2 gap-4">
-              <IntInput label="Brothers" value={form.numPaternalBrothers} onChange={(v) => setInt('numPaternalBrothers', v)} />
-              <IntInput label="Sisters" value={form.numPaternalSisters} onChange={(v) => setInt('numPaternalSisters', v)} />
+              <IntInput label={t('faraidBrothers')} value={form.numPaternalBrothers} onChange={(v) => setInt('numPaternalBrothers', v)} />
+              <IntInput label={t('faraidSisters')} value={form.numPaternalSisters} onChange={(v) => setInt('numPaternalSisters', v)} />
             </div>
           </fieldset>
 
           {/* Maternal Siblings */}
           <fieldset>
-            <legend className="text-sm font-medium text-gray-700 mb-2">Maternal Siblings</legend>
-            <IntInput label="Maternal Siblings" value={form.numMaternalSiblings} onChange={(v) => setInt('numMaternalSiblings', v)} />
+            <legend className="text-sm font-medium text-gray-700 mb-2">{t('faraidMaternalSiblings')}</legend>
+            <IntInput label={t('faraidMaternalSiblings')} value={form.numMaternalSiblings} onChange={(v) => setInt('numMaternalSiblings', v)} />
           </fieldset>
         </div>
       </div>
@@ -472,7 +473,7 @@ export default function FaraidPage() {
         disabled={loading}
         className="w-full bg-primary text-primary-foreground font-semibold py-3.5 rounded-xl hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {loading ? 'Calculating...' : 'Calculate Faraid Distribution'}
+        {loading ? t('faraidCalculating') : t('faraidCalculateBtn')}
       </button>
 
       {/* ── Results ──────────────────────────────────────────────────── */}
@@ -480,36 +481,36 @@ export default function FaraidPage() {
         <div className="space-y-8">
           {/* Deduction Flow */}
           <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-primary mb-4">Deduction Flow</h2>
+            <h2 className="text-lg font-semibold text-primary mb-4">{t('faraidDeductionFlow')}</h2>
             <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
-              <FlowCard label="Total Estate" amount={result.estateValue} />
+              <FlowCard label={t('faraidFlowTotalEstate')} amount={result.estateValue} />
               <FlowArrow />
-              <FlowCard label="After Funeral" amount={result.afterFuneralExpenses} />
+              <FlowCard label={t('faraidFlowAfterFuneral')} amount={result.afterFuneralExpenses} />
               <FlowArrow />
-              <FlowCard label="After Debts" amount={result.afterDebts} />
+              <FlowCard label={t('faraidFlowAfterDebts')} amount={result.afterDebts} />
               <FlowArrow />
-              <FlowCard label="After Wasiyyah" amount={Math.max(0, (result.afterDebts || 0) - (result.wasiyyahApplied || 0))} />
+              <FlowCard label={t('faraidFlowAfterWasiyyah')} amount={Math.max(0, (result.afterDebts || 0) - (result.wasiyyahApplied || 0))} />
               <FlowArrow />
-              <FlowCard label="Distributable" amount={result.distributableEstate} highlight />
+              <FlowCard label={t('faraidFlowDistributable')} amount={result.distributableEstate} highlight />
             </div>
             {result.wasiyyahCapped && (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-4">
-                The wasiyyah was capped at one-third of the estate after debts, as required by Islamic law.
+                {t('faraidWasiyyahCappedNote')}
               </p>
             )}
           </div>
 
           {/* Heir Distribution Table */}
           <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-primary mb-4">Heir Distribution</h2>
+            <h2 className="text-lg font-semibold text-primary mb-4">{t('faraidHeirDistribution')}</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 text-left text-gray-500">
-                    <th className="pb-3 pr-4 font-medium">Heir</th>
-                    <th className="pb-3 pr-4 font-medium">Quranic Share</th>
-                    <th className="pb-3 pr-4 font-medium text-right">Amount</th>
-                    <th className="pb-3 font-medium">Source / Reason</th>
+                    <th className="pb-3 pr-4 font-medium">{t('faraidColHeir')}</th>
+                    <th className="pb-3 pr-4 font-medium">{t('faraidColQuranicShare')}</th>
+                    <th className="pb-3 pr-4 font-medium text-right">{t('faraidColAmount')}</th>
+                    <th className="pb-3 font-medium">{t('faraidColSourceReason')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -537,7 +538,7 @@ export default function FaraidPage() {
           {/* Pie Chart */}
           {pieData.length > 0 && (
             <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-primary mb-4">Distribution Chart</h2>
+              <h2 className="text-lg font-semibold text-primary mb-4">{t('faraidDistributionChart')}</h2>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -568,17 +569,15 @@ export default function FaraidPage() {
           {/* Special Rules */}
           {(result.awlApplied || result.raddApplied) && (
             <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-3">
-              <h2 className="text-lg font-semibold text-primary mb-2">Special Rules Applied</h2>
+              <h2 className="text-lg font-semibold text-primary mb-2">{t('faraidSpecialRules')}</h2>
               {result.awlApplied && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-800">
-                  <span className="font-semibold">Awl (Proportional Reduction):</span> The total prescribed shares exceeded 100%.
-                  All shares have been proportionally reduced so that each heir receives a fair fraction of the estate.
+                  <span className="font-semibold">{t('faraidAwlLabel')}</span> {t('faraidAwlBody')}
                 </div>
               )}
               {result.raddApplied && (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-800">
-                  <span className="font-semibold">Radd (Proportional Increase):</span> After distributing the prescribed shares,
-                  a surplus remained. The surplus has been redistributed proportionally among eligible heirs.
+                  <span className="font-semibold">{t('faraidRaddLabel')}</span> {t('faraidRaddBody')}
                 </div>
               )}
             </div>
@@ -587,19 +586,19 @@ export default function FaraidPage() {
           {/* Blocking Rules */}
           {(blockingRules.siblingsBlocked || blockingRules.maternalSiblingsBlocked) && (
             <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-3">
-              <h2 className="text-lg font-semibold text-primary mb-2">Blocking Rules</h2>
+              <h2 className="text-lg font-semibold text-primary mb-2">{t('faraidBlockingRules')}</h2>
               {blockingRules.siblingsBlocked && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700">
-                  <span className="font-semibold">Siblings blocked</span> by{' '}
-                  <span className="text-primary font-medium">{blockingRules.siblingBlockedBy || 'closer heirs'}</span>.
-                  In Islamic inheritance law, certain closer relatives exclude more distant ones from inheriting.
+                  <span className="font-semibold">{t('faraidSiblingsBlocked')}</span> {t('faraidBlockedBy')}{' '}
+                  <span className="text-primary font-medium">{blockingRules.siblingBlockedBy || t('faraidCloserHeirs')}</span>.
+                  {' '}{t('faraidSiblingsBlockedBody')}
                 </div>
               )}
               {blockingRules.maternalSiblingsBlocked && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700">
-                  <span className="font-semibold">Maternal siblings blocked</span> by{' '}
-                  <span className="text-primary font-medium">{blockingRules.maternalBlockedBy || 'closer heirs'}</span>.
-                  Maternal half-siblings are excluded when certain relatives are present.
+                  <span className="font-semibold">{t('faraidMaternalSiblingsBlocked')}</span> {t('faraidBlockedBy')}{' '}
+                  <span className="text-primary font-medium">{blockingRules.maternalBlockedBy || t('faraidCloserHeirs')}</span>.
+                  {' '}{t('faraidMaternalSiblingsBlockedBody')}
                 </div>
               )}
             </div>
@@ -608,8 +607,8 @@ export default function FaraidPage() {
           {/* Madhab & Source */}
           <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-              <span><span className="font-medium text-gray-800">Madhab:</span> {result.madhab}</span>
-              <span><span className="font-medium text-gray-800">Source:</span> {result.source}</span>
+              <span><span className="font-medium text-gray-800">{t('faraidMadhabLabel')}</span> {result.madhab}</span>
+              <span><span className="font-medium text-gray-800">{t('faraidSourceLabel')}</span> {result.source}</span>
             </div>
           </div>
 
@@ -619,7 +618,7 @@ export default function FaraidPage() {
               onClick={() => setEducationOpen(!educationOpen)}
               className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition"
             >
-              <h2 className="text-lg font-semibold text-primary">Quranic References</h2>
+              <h2 className="text-lg font-semibold text-primary">{t('faraidQuranicReferences')}</h2>
               <svg
                 className={`w-5 h-5 text-gray-400 transition-transform ${educationOpen ? 'rotate-180' : ''}`}
                 fill="none"
@@ -632,31 +631,25 @@ export default function FaraidPage() {
             {educationOpen && (
               <div className="px-6 pb-6 space-y-4 text-sm text-gray-700 leading-relaxed">
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Surah An-Nisa 4:11</h3>
+                  <h3 className="font-semibold text-gray-900 mb-1">{t('faraidSurah411Title')}</h3>
                   <p>
-                    Prescribes the shares for children, parents. A male child receives twice the share of a female.
-                    If the deceased has children, each parent receives one-sixth. If no children and parents inherit,
-                    the mother receives one-third (or one-sixth if the deceased has siblings).
+                    {t('faraidSurah411Body')}
                   </p>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Surah An-Nisa 4:12</h3>
+                  <h3 className="font-semibold text-gray-900 mb-1">{t('faraidSurah412Title')}</h3>
                   <p>
-                    Prescribes spousal shares. The husband receives one-half if there are no children, one-quarter
-                    otherwise. The wife receives one-quarter if there are no children, one-eighth otherwise.
-                    Also covers maternal siblings&apos; shares.
+                    {t('faraidSurah412Body')}
                   </p>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Surah An-Nisa 4:176</h3>
+                  <h3 className="font-semibold text-gray-900 mb-1">{t('faraidSurah4176Title')}</h3>
                   <p>
-                    Known as the Verse of Kalalah, it addresses the case when a person dies without parents or
-                    children. Full siblings and paternal siblings inherit according to the rules specified in this verse.
+                    {t('faraidSurah4176Body')}
                   </p>
                 </div>
                 <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-xs text-green-800">
-                  These calculations follow the Sunni majority (Jumhur) methodology. For complex estate situations,
-                  always consult a qualified Islamic scholar.
+                  {t('faraidScholarDisclaimer')}
                 </div>
               </div>
             )}
