@@ -34,7 +34,7 @@ const securityFAQ = [
   {
     question: 'Does Barakah sell my data to third parties?',
     answer:
-      'No. Barakah does not sell, rent, share, or trade your personal or financial data with any third party. Your data is used exclusively to provide the Barakah service to you. We do not run ads. We do not monetize your data.',
+      'No. Barakah does not sell, rent, or trade your personal or financial data, and we never share it with third parties for advertising or marketing. To operate the Service we rely on trusted providers — Plaid (bank connections), Stripe (payments), plus hosting, email, and analytics — who process data only on our behalf under confidentiality obligations. We do not run ads, and we do not monetize your data.',
   },
   {
     question: 'Who can see my financial information?',
@@ -96,7 +96,7 @@ const securityFeatures = [
   },
   {
     title: 'Zero Data Selling',
-    desc: 'We do not sell, share, or trade your data. No ads. No data brokers. Ever.',
+    desc: 'We do not sell, rent, or trade your data, and never share it for advertising. Service providers process it only to run Barakah.',
     icon: '🚫',
   },
   {
