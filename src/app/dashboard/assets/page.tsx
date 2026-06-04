@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { logError } from '../../../lib/logError';
@@ -57,6 +58,24 @@ const GROUP_ICON: Record<string, string> = {
   'Precious Metals': '🥇',
   'Other': '📋',
 };
+
+// Canonical Monarch-style render order for the collapsible groups, mirroring the
+// mobile app's AssetGrouping.groupOrder ([cash, investments, real_estate,
+// vehicles, metals, other]). Labels are the display strings emitted by the
+// backend's DomainConstants.assetCategoryGroup (Cash / Investments / Real Estate
+// / Vehicles / Precious Metals / Other). The grouped endpoint returns groups
+// sorted by total desc; we re-sort to this fixed order so the section sequence
+// stays stable as balances shift. Unknown labels sort last (after Other).
+const GROUP_ORDER: Record<string, number> = {
+  'Cash': 0,
+  'Investments': 1,
+  'Real Estate': 2,
+  'Vehicles': 3,
+  'Precious Metals': 4,
+  'Other': 5,
+};
+const groupOrderIndex = (label: string): number =>
+  GROUP_ORDER[label] ?? Number.MAX_SAFE_INTEGER;
 
 interface SubscriptionStatus {
   plan: 'free' | 'plus' | 'family';
@@ -137,6 +156,10 @@ export default function AssetsPage() {
   useBodyScrollLock(showForm || showBreakdown);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  // Monarch-style collapsible group sections, keyed by display label. Per-session
+  // only (not persisted) and empty = all expanded, mirroring the mobile app's
+  // AssetGrouping behavior on the Assets screen.
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
 
@@ -334,6 +357,14 @@ export default function AssetsPage() {
     setSelectedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleGroup = (label: string) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label); else next.add(label);
       return next;
     });
   };
@@ -657,10 +688,27 @@ export default function AssetsPage() {
         />
       ) : (
         <div className="space-y-6">
-          {groups.map(group => (
+          {/* Monarch-style: render groups in canonical order ([cash,
+              investments, real_estate, vehicles, metals, other]) regardless of
+              the backend's total-desc sort, and let each section collapse.
+              Sort a COPY so the loaded `groups` state stays untouched. */}
+          {[...groups]
+            .sort((a, b) => groupOrderIndex(a.label) - groupOrderIndex(b.label))
+            .map(group => {
+            const collapsed = collapsedGroups.has(group.label);
+            return (
             <div key={group.label}>
-              <div className="flex items-baseline justify-between mb-2 px-1">
+              <button
+                type="button"
+                onClick={() => toggleGroup(group.label)}
+                aria-expanded={!collapsed}
+                className="w-full flex items-center justify-between mb-2 px-1 py-1 rounded-lg hover:bg-gray-50 transition-colors text-left"
+              >
                 <div className="flex items-center gap-2">
+                  <ChevronRight
+                    className={`w-4 h-4 text-gray-400 transition-transform ${collapsed ? '' : 'rotate-90'}`}
+                    aria-hidden="true"
+                  />
                   <span className="text-lg" aria-hidden="true">{GROUP_ICON[group.label] ?? '📋'}</span>
                   <h2 className="text-base font-bold text-gray-900">{group.label}</h2>
                   <span className="text-xs text-gray-400">{group.count}</span>
@@ -669,12 +717,15 @@ export default function AssetsPage() {
                   <p className="text-base font-bold text-primary">{fmt(group.total)}</p>
                   <p className="text-[11px] text-gray-400">{group.pctOfAssets}% of assets</p>
                 </div>
-              </div>
-              <div className="space-y-3">
-                {group.assets.map(renderAssetCard)}
-              </div>
+              </button>
+              {!collapsed && (
+                <div className="space-y-3">
+                  {group.assets.map(renderAssetCard)}
+                </div>
+              )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
