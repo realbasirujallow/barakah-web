@@ -6,6 +6,7 @@ import { useToast } from '../../../lib/toast';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import ModalShell from '../../../components/ui/ModalShell';
 import EmptyState from '../../../components/EmptyState';
+import { useI18n } from '../../../lib/i18n';
 
 interface Group {
   id: number;
@@ -94,6 +95,7 @@ const emptyTxForm = { description: '', amount: '', category: '', type: 'expense'
 
 export default function SharedPage() {
   const { fmt, currency, locale: dateLocale } = useCurrency();
+  const { t, tFmt } = useI18n();
   const [groups, setGroups] = useState<Group[]>([]);
   const [activeGroup, setActiveGroup] = useState<Group | null>(null);
   const [summary, setSummary] = useState<GroupSummary | null>(null);
@@ -149,7 +151,7 @@ export default function SharedPage() {
         const g = d?.groups ?? d;
         setGroups(Array.isArray(g) ? g : []);
       })
-      .catch(() => { toast('Failed to load groups', 'error'); })
+      .catch(() => { toast(t('sharedLoadGroupsError'), 'error'); })
       .finally(() => setLoading(false));
   };
 
@@ -211,8 +213,8 @@ export default function SharedPage() {
       setGroupForm(emptyGroupForm);
       loadGroups();
       const code = res?.inviteCode || res?.group?.inviteCode;
-      toast(code ? `Group created! Invite code: ${code}` : 'Group created', 'success');
-    } catch { toast('Failed to create group', 'error'); }
+      toast(code ? tFmt('sharedGroupCreatedCodeFmt', [code]) : t('sharedGroupCreated'), 'success');
+    } catch { toast(t('sharedCreateGroupError'), 'error'); }
     setSavingGroup(false);
   };
 
@@ -223,8 +225,8 @@ export default function SharedPage() {
       setShowJoinForm(false);
       setJoinCode('');
       loadGroups();
-      toast('Joined group', 'success');
-    } catch { toast('Failed to join group', 'error'); }
+      toast(t('sharedJoinedGroup'), 'success');
+    } catch { toast(t('sharedJoinGroupError'), 'error'); }
     setJoiningGroup(false);
   };
 
@@ -242,8 +244,8 @@ export default function SharedPage() {
       setShowAddTx(false);
       setTxForm(emptyTxForm);
       loadGroupDetail(activeGroup);
-      toast('Transaction added', 'success');
-    } catch { toast('Failed to add transaction', 'error'); }
+      toast(t('sharedTxAdded'), 'success');
+    } catch { toast(t('sharedAddTxError'), 'error'); }
     setSavingTx(false);
   };
 
@@ -255,13 +257,13 @@ export default function SharedPage() {
     const group = activeGroup;
     const gid = group.id;
     setConfirmAction({
-      message: 'Delete this transaction?',
+      message: t('sharedDeleteTxConfirm'),
       action: async () => {
         try {
           await api.deleteGroupTransaction(gid, txId);
           loadGroupDetail(group);
         } catch {
-          toast('Failed to delete transaction', 'error');
+          toast(t('sharedDeleteTxError'), 'error');
         }
       }
     });
@@ -278,8 +280,8 @@ export default function SharedPage() {
       setShowAddBudget(false);
       setBudgetForm({ category: '', monthlyLimit: '' });
       loadGroupDetail(activeGroup);
-      toast('Budget added', 'success');
-    } catch { toast('Failed to add budget', 'error'); }
+      toast(t('sharedBudgetAdded'), 'success');
+    } catch { toast(t('sharedAddBudgetError'), 'error'); }
     setSavingBudget(false);
   };
 
@@ -288,13 +290,13 @@ export default function SharedPage() {
     const group = activeGroup;
     const gid = group.id;
     setConfirmAction({
-      message: 'Delete this budget?',
+      message: t('sharedDeleteBudgetConfirm'),
       action: async () => {
         try {
           await api.deleteSharedBudget(gid, budgetId);
           loadGroupDetail(group);
         } catch {
-          toast('Failed to delete budget', 'error');
+          toast(t('sharedDeleteBudgetError'), 'error');
         }
       }
     });
@@ -318,8 +320,8 @@ export default function SharedPage() {
       setShowAddGoal(false);
       setGoalForm({ name: '', targetAmount: '', targetDate: '', description: '' });
       loadGroupDetail(activeGroup);
-      toast('Goal added', 'success');
-    } catch { toast('Failed to add goal', 'error'); }
+      toast(t('sharedGoalAdded'), 'success');
+    } catch { toast(t('sharedAddGoalError'), 'error'); }
     setSavingGoal(false);
   };
 
@@ -331,8 +333,8 @@ export default function SharedPage() {
       setShowContributeGoal(null);
       setContributeAmount('');
       loadGroupDetail(activeGroup);
-      toast('Contribution added', 'success');
-    } catch { toast('Failed to contribute to goal', 'error'); }
+      toast(t('sharedContributionAdded'), 'success');
+    } catch { toast(t('sharedContributeError'), 'error'); }
     setContributingGoal(false);
   };
 
@@ -341,13 +343,13 @@ export default function SharedPage() {
     const group = activeGroup;
     const gid = group.id;
     setConfirmAction({
-      message: 'Delete this goal?',
+      message: t('sharedDeleteGoalConfirm'),
       action: async () => {
         try {
           await api.deleteSharedGoal(gid, goalId);
           loadGroupDetail(group);
         } catch {
-          toast('Failed to delete goal', 'error');
+          toast(t('sharedDeleteGoalError'), 'error');
         }
       }
     });
@@ -381,7 +383,7 @@ export default function SharedPage() {
             onClick={() => { setActiveGroup(null); setSummary(null); setTransactions([]); }}
             className="text-primary hover:underline text-sm font-medium"
           >
-            ← All Groups
+            {t('sharedAllGroups')}
           </button>
           <h1 className="text-2xl font-bold text-primary">{activeGroup.name}</h1>
         </div>
@@ -389,14 +391,14 @@ export default function SharedPage() {
         {/* Invite code */}
         <div className="bg-white rounded-xl p-4 mb-4 flex items-center justify-between shadow-sm">
           <div>
-            <p className="text-xs text-gray-500">Invite Code</p>
+            <p className="text-xs text-gray-500">{t('sharedInviteCode')}</p>
             <p className="font-mono font-bold text-primary text-lg">{activeGroup.inviteCode}</p>
           </div>
           <button
             onClick={() => copyInviteCode(activeGroup.inviteCode)}
             className="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-gray-700"
           >
-            {copiedCode ? '✓ Copied!' : 'Copy'}
+            {copiedCode ? t('sharedCopiedBtn') : t('sharedCopyBtn')}
           </button>
         </div>
 
@@ -409,11 +411,11 @@ export default function SharedPage() {
             {/* Summary */}
             <div className="grid md:grid-cols-2 gap-4 mb-6">
               <div className="bg-white rounded-xl p-5 shadow-sm">
-                <p className="text-gray-500 text-sm">Total Spent (30 days)</p>
+                <p className="text-gray-500 text-sm">{t('sharedTotalSpent30d')}</p>
                 <p className="text-2xl font-bold text-gray-900">{fmt(summary?.totalSpent || 0)}</p>
               </div>
               <div className="bg-white rounded-xl p-5 shadow-sm">
-                <p className="text-gray-500 text-sm">Members</p>
+                <p className="text-gray-500 text-sm">{t('sharedMembers')}</p>
                 <p className="text-2xl font-bold text-gray-900">{activeGroup.members?.length || 0}</p>
               </div>
             </div>
@@ -422,7 +424,7 @@ export default function SharedPage() {
             {(positiveBalances.length > 0 || negativeBalances.length > 0) && (
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-4">
                 <div className="px-5 py-4 border-b">
-                  <h2 className="font-bold text-primary">Balances</h2>
+                  <h2 className="font-bold text-primary">{t('sharedBalances')}</h2>
                 </div>
                 <div className="divide-y">
                   {balances.map(b => (
@@ -436,7 +438,7 @@ export default function SharedPage() {
                 </div>
                 {positiveBalances.length > 0 && negativeBalances.length > 0 && (
                   <div className="px-5 py-3 bg-gray-50 text-xs text-gray-500 border-t">
-                    Positive = owed money · Negative = owes money
+                    {t('sharedBalancesLegend')}
                   </div>
                 )}
               </div>
@@ -453,7 +455,7 @@ export default function SharedPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Expenses
+                  {t('sharedTabExpenses')}
                 </button>
                 <button
                   onClick={() => setActiveTab('budgets')}
@@ -463,7 +465,7 @@ export default function SharedPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Budgets
+                  {t('sharedTabBudgets')}
                 </button>
                 <button
                   onClick={() => setActiveTab('goals')}
@@ -473,7 +475,7 @@ export default function SharedPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Goals
+                  {t('sharedTabGoals')}
                 </button>
                 <button
                   onClick={() => setActiveTab('estate')}
@@ -483,7 +485,7 @@ export default function SharedPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Estate
+                  {t('sharedTabEstate')}
                 </button>
               </div>
 
@@ -491,12 +493,12 @@ export default function SharedPage() {
               {activeTab === 'expenses' && (
                 <div>
                   <div className="px-5 py-4 border-b flex justify-between items-center">
-                    <h2 className="font-bold text-primary">Transactions</h2>
+                    <h2 className="font-bold text-primary">{t('sharedTransactions')}</h2>
                     <button
                       onClick={() => { setShowAddTx(true); setTxForm(emptyTxForm); }}
                       className="text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90"
                     >
-                      + Add
+                      {t('sharedAddBtn')}
                     </button>
                   </div>
                   {transactions.length === 0 ? (
@@ -504,9 +506,9 @@ export default function SharedPage() {
                       <EmptyState
                         variant="bare"
                         icon="🧾"
-                        title="No shared transactions yet"
-                        description="Add a household expense (groceries, family iftar, kids' school fees) and any member can see it. Splits, paid-by, and category all show on the receipt."
-                        actions={[{ label: '+ Add Transaction', onClick: () => { setShowAddTx(true); setTxForm(emptyTxForm); }, primary: true }]}
+                        title={t('sharedTxEmptyTitle')}
+                        description={t('sharedTxEmptyDesc')}
+                        actions={[{ label: t('sharedAddTransactionBtn'), onClick: () => { setShowAddTx(true); setTxForm(emptyTxForm); }, primary: true }]}
                       />
                     </div>
                   ) : (
@@ -516,7 +518,7 @@ export default function SharedPage() {
                           <div>
                             <p className="font-medium text-gray-900">{tx.description}</p>
                             <p className="text-xs text-gray-500">
-                              Paid by {tx.paidByName} · {formatDate(tx.date)}
+                              {tFmt('sharedPaidByFmt', [tx.paidByName, formatDate(tx.date)])}
                               {tx.category && ` · ${tx.category}`}
                             </p>
                           </div>
@@ -540,12 +542,12 @@ export default function SharedPage() {
               {activeTab === 'budgets' && (
                 <div>
                   <div className="px-5 py-4 border-b flex justify-between items-center">
-                    <h2 className="font-bold text-primary">Budgets</h2>
+                    <h2 className="font-bold text-primary">{t('sharedTabBudgets')}</h2>
                     <button
                       onClick={() => { setShowAddBudget(true); setBudgetForm({ category: '', monthlyLimit: '' }); }}
                       className="text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90"
                     >
-                      + Add Budget
+                      {t('sharedAddBudgetBtn')}
                     </button>
                   </div>
                   {budgets.length === 0 ? (
@@ -553,9 +555,9 @@ export default function SharedPage() {
                       <EmptyState
                         variant="bare"
                         icon="🎯"
-                        title="No household budgets yet"
-                        description="Set a monthly cap on a category (groceries, dining, kids) and Barakah will warn the whole household at 80% and 100%. No transactions are blocked."
-                        actions={[{ label: '+ Add Budget', onClick: () => { setShowAddBudget(true); setBudgetForm({ category: '', monthlyLimit: '' }); }, primary: true }]}
+                        title={t('sharedBudgetEmptyTitle')}
+                        description={t('sharedBudgetEmptyDesc')}
+                        actions={[{ label: t('sharedAddBudgetBtn'), onClick: () => { setShowAddBudget(true); setBudgetForm({ category: '', monthlyLimit: '' }); }, primary: true }]}
                       />
                     </div>
                   ) : (
@@ -564,7 +566,7 @@ export default function SharedPage() {
                         <div key={budget.id} className="px-5 py-4 flex justify-between items-center">
                           <div>
                             <p className="font-medium text-gray-900">{budget.category}</p>
-                            <p className="text-xs text-gray-500">Monthly limit</p>
+                            <p className="text-xs text-gray-500">{t('sharedMonthlyLimit')}</p>
                           </div>
                           <div className="flex items-center gap-3">
                             <p className="font-bold text-gray-900">{fmt(budget.monthlyLimit)}</p>
@@ -586,12 +588,12 @@ export default function SharedPage() {
               {activeTab === 'goals' && (
                 <div>
                   <div className="px-5 py-4 border-b flex justify-between items-center">
-                    <h2 className="font-bold text-primary">Goals</h2>
+                    <h2 className="font-bold text-primary">{t('sharedTabGoals')}</h2>
                     <button
                       onClick={() => { setShowAddGoal(true); setGoalForm({ name: '', targetAmount: '', targetDate: '', description: '' }); }}
                       className="text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90"
                     >
-                      + Add Goal
+                      {t('sharedAddGoalBtn')}
                     </button>
                   </div>
                   {goals.length === 0 ? (
@@ -599,9 +601,9 @@ export default function SharedPage() {
                       <EmptyState
                         variant="bare"
                         icon="🎒"
-                        title="No household goals yet"
-                        description="Set a target the whole family can chip in on — Hajj fund, kids' tuition, qurbani, emergency reserve. Each contribution updates the bar for everyone."
-                        actions={[{ label: '+ Add Goal', onClick: () => { setShowAddGoal(true); setGoalForm({ name: '', targetAmount: '', targetDate: '', description: '' }); }, primary: true }]}
+                        title={t('sharedGoalEmptyTitle')}
+                        description={t('sharedGoalEmptyDesc')}
+                        actions={[{ label: t('sharedAddGoalBtn'), onClick: () => { setShowAddGoal(true); setGoalForm({ name: '', targetAmount: '', targetDate: '', description: '' }); }, primary: true }]}
                       />
                     </div>
                   ) : (
@@ -614,7 +616,7 @@ export default function SharedPage() {
                               <div>
                                 <p className="font-medium text-gray-900">{goal.name}</p>
                                 {goal.targetDate && (
-                                  <p className="text-xs text-gray-500">Target: {new Date(goal.targetDate).toLocaleDateString(dateLocale)}</p>
+                                  <p className="text-xs text-gray-500">{tFmt('sharedGoalTargetFmt', [new Date(goal.targetDate).toLocaleDateString(dateLocale)])}</p>
                                 )}
                               </div>
                               <button
@@ -632,14 +634,14 @@ export default function SharedPage() {
                                 />
                               </div>
                               <p className="text-xs text-gray-500 mt-1">
-                                {fmt(goal.currentAmount)} of {fmt(goal.targetAmount)}
+                                {tFmt('sharedGoalProgressFmt', [fmt(goal.currentAmount), fmt(goal.targetAmount)])}
                               </p>
                             </div>
                             <button
                               onClick={() => setShowContributeGoal(goal.id)}
                               className="text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90 w-full"
                             >
-                              Contribute
+                              {t('sharedContributeBtn')}
                             </button>
                           </div>
                         );
@@ -655,11 +657,11 @@ export default function SharedPage() {
                   <div className="px-5 py-4 border-b">
                     <div className="flex justify-between items-center">
                       <div>
-                        <h2 className="font-bold text-primary">Family Estate</h2>
-                        <p className="text-xs text-gray-500 mt-1">Waqf endowments and Wasiyyah (wills) shared by family members</p>
+                        <h2 className="font-bold text-primary">{t('sharedFamilyEstate')}</h2>
+                        <p className="text-xs text-gray-500 mt-1">{t('sharedFamilyEstateSubtitle')}</p>
                       </div>
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <span className="text-xs text-gray-500">Share mine</span>
+                        <span className="text-xs text-gray-500">{t('sharedShareMine')}</span>
                         <div className="relative">
                           <input
                             type="checkbox"
@@ -669,12 +671,12 @@ export default function SharedPage() {
                               setEstateSharing(enabled);
                               try {
                                 await api.setEstateSharing(enabled);
-                                toast(enabled ? 'Estate shared with family' : 'Estate set to private', 'success');
+                                toast(enabled ? t('sharedEstateShared') : t('sharedEstatePrivate'), 'success');
                                 if (activeGroup) {
                                   const estate = await api.getFamilyEstate(activeGroup.id);
                                   setEstateData(estate);
                                 }
-                              } catch { toast('Failed to update sharing preference', 'error'); }
+                              } catch { toast(t('sharedUpdateSharingError'), 'error'); }
                             }}
                             className="sr-only peer"
                           />
@@ -691,15 +693,15 @@ export default function SharedPage() {
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
                           <p className="text-2xl font-bold text-primary">{estateData.membersSharing || 0}</p>
-                          <p className="text-xs text-gray-500">Members Sharing</p>
+                          <p className="text-xs text-gray-500">{t('sharedMembersSharing')}</p>
                         </div>
                         <div>
                           <p className="text-2xl font-bold text-amber-600">{estateData.membersWithEstatePlan || 0}</p>
-                          <p className="text-xs text-gray-500">Have Estate Plan</p>
+                          <p className="text-xs text-gray-500">{t('sharedHaveEstatePlan')}</p>
                         </div>
                         <div>
                           <p className="text-2xl font-bold text-emerald-600">{fmt(estateData.groupTotalWaqf || 0)}</p>
-                          <p className="text-xs text-gray-500">Total Waqf</p>
+                          <p className="text-xs text-gray-500">{t('sharedTotalWaqf')}</p>
                         </div>
                       </div>
                     </div>
@@ -724,16 +726,16 @@ export default function SharedPage() {
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900 text-sm">
-                                  {member.displayName}{isSelf && <span className="text-xs text-primary ml-1">(you)</span>}
+                                  {member.displayName}{isSelf && <span className="text-xs text-primary ml-1">{t('sharedYouSuffix')}</span>}
                                 </p>
                                 <p className="text-xs text-gray-400">{member.role}</p>
                               </div>
                             </div>
                             {!isSharing && (
-                              <span className="text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full">Private</span>
+                              <span className="text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full">{t('sharedPrivateBadge')}</span>
                             )}
                             {isSharing && member.hasEstatePlan && (
-                              <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">Estate Plan Active</span>
+                              <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">{t('sharedEstatePlanActive')}</span>
                             )}
                           </div>
 
@@ -743,7 +745,7 @@ export default function SharedPage() {
                               {/* Waqf Section */}
                               {waqfs.length > 0 && (
                                 <div>
-                                  <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-2">Waqf Endowments</p>
+                                  <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-2">{t('sharedWaqfEndowments')}</p>
                                   {waqfs.map((w, i) => (
                                     <div key={(w.id as number | string | undefined) ?? i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
                                       <div>
@@ -753,14 +755,14 @@ export default function SharedPage() {
                                       <p className="text-sm font-semibold text-emerald-600">{fmt((w.amount as number) || 0)}</p>
                                     </div>
                                   ))}
-                                  <p className="text-xs text-gray-400 mt-1">Total: {fmt(member.totalWaqf || 0)}</p>
+                                  <p className="text-xs text-gray-400 mt-1">{tFmt('sharedWaqfTotalFmt', [fmt(member.totalWaqf || 0)])}</p>
                                 </div>
                               )}
 
                               {/* Wasiyyah Section */}
                               {beneficiaries.length > 0 && (
                                 <div>
-                                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Wasiyyah Beneficiaries</p>
+                                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">{t('sharedWasiyyahBeneficiaries')}</p>
                                   {beneficiaries.map((b, i) => (
                                     <div key={(b.id as number | string | undefined) ?? i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
                                       <div>
@@ -770,19 +772,19 @@ export default function SharedPage() {
                                       <p className="text-sm font-semibold text-amber-600">{(b.sharePercentage as number)?.toFixed(1)}%</p>
                                     </div>
                                   ))}
-                                  <p className="text-xs text-gray-400 mt-1">Total allocated: {(member.totalShareAllocated || 0).toFixed(1)}%</p>
+                                  <p className="text-xs text-gray-400 mt-1">{tFmt('sharedTotalAllocatedFmt', [(member.totalShareAllocated || 0).toFixed(1)])}</p>
                                 </div>
                               )}
 
                               {/* Obligations Section */}
                               {obligations.length > 0 && (
                                 <div>
-                                  <p className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-2">Outstanding Obligations</p>
+                                  <p className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-2">{t('sharedOutstandingObligations')}</p>
                                   {obligations.map((o, i) => (
                                     <div key={(o.id as number | string | undefined) ?? i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
                                       <div>
                                         <p className="text-sm text-gray-900">{o.description as string}</p>
-                                        <p className="text-xs text-gray-400">{o.type as string}{o.recipient ? ` to ${o.recipient as string}` : ''}</p>
+                                        <p className="text-xs text-gray-400">{o.type as string}{o.recipient ? tFmt('sharedObligationToFmt', [o.recipient as string]) : ''}</p>
                                       </div>
                                       <div className="text-right">
                                         <p className={`text-sm font-semibold ${o.status === 'fulfilled' ? 'text-green-600' : 'text-red-600'}`}>{fmt((o.amount as number) || 0)}</p>
@@ -791,35 +793,32 @@ export default function SharedPage() {
                                     </div>
                                   ))}
                                   {(member.pendingObligations || 0) > 0 && (
-                                    <p className="text-xs text-red-500 mt-1">Pending: {fmt(member.pendingObligations || 0)}</p>
+                                    <p className="text-xs text-red-500 mt-1">{tFmt('sharedPendingFmt', [fmt(member.pendingObligations || 0)])}</p>
                                   )}
                                 </div>
                               )}
 
                               {waqfs.length === 0 && beneficiaries.length === 0 && obligations.length === 0 && (
-                                <p className="text-sm text-gray-400 py-2">No estate plan set up yet.</p>
+                                <p className="text-sm text-gray-400 py-2">{t('sharedNoEstatePlanYet')}</p>
                               )}
                             </div>
                           ) : (
                             <div className="px-4 py-3">
-                              <p className="text-sm text-gray-400">{isSelf ? 'Toggle "Share mine" above to share your Waqf and Wasiyyah with family.' : 'This member has not shared their estate plan.'}</p>
+                              <p className="text-sm text-gray-400">{isSelf ? t('sharedShareEstatePrompt') : t('sharedMemberNotShared')}</p>
                             </div>
                           )}
                         </div>
                       );
                     }) : (
-                      <div className="text-center py-10 text-gray-400 text-sm">No family members in this group yet.</div>
+                      <div className="text-center py-10 text-gray-400 text-sm">{t('sharedNoFamilyMembers')}</div>
                     )}
                   </div>
 
                   {/* Islamic guidance */}
                   <div className="mx-5 mb-5 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                    <p className="text-sm font-medium text-amber-800 mb-1">Why share your estate plan?</p>
+                    <p className="text-sm font-medium text-amber-800 mb-1">{t('sharedWhyShareTitle')}</p>
                     <p className="text-xs text-amber-700">
-                      In Islam, ensuring your family knows your Wasiyyah (will) and Waqf (endowments)
-                      is essential for proper execution after you pass. The Prophet (peace be upon him) said:
-                      &ldquo;It is not permissible for any Muslim who has something to will to stay for two
-                      nights without having his last will and testament written.&rdquo; (Bukhari &amp; Muslim)
+                      {t('sharedWhyShareBody')}
                     </p>
                   </div>
                 </div>
@@ -832,19 +831,19 @@ export default function SharedPage() {
         {showAddTx && (
           <ModalShell onClose={() => setShowAddTx(false)}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold text-primary mb-4">Add Transaction</h2>
+              <h2 className="text-xl font-bold text-primary mb-4">{t('sharedAddTransactionTitle')}</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldDescription')}</label>
                   <input
                     value={txForm.description}
                     onChange={e => setTxForm({ ...txForm, description: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                    placeholder="e.g. Dinner at restaurant"
+                    placeholder={t('sharedTxDescPlaceholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount ({currency})</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tFmt('sharedFieldAmountFmt', [currency])}</label>
                   <input
                     type="number" step="0.01"
                     value={txForm.amount}
@@ -854,29 +853,29 @@ export default function SharedPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldCategoryOptional')}</label>
                   <input
                     value={txForm.category}
                     onChange={e => setTxForm({ ...txForm, category: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                    placeholder="e.g. food, transport, utilities"
+                    placeholder={t('sharedTxCategoryPlaceholder')}
                   />
                 </div>
-                <p className="text-xs text-gray-400">Split equally among all group members.</p>
+                <p className="text-xs text-gray-400">{t('sharedSplitEquallyNote')}</p>
               </div>
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setShowAddTx(false)}
                   className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
                 >
-                  Cancel
+                  {t('sharedCancel')}
                 </button>
                 <button
                   onClick={handleAddTransaction}
                   disabled={savingTx || !txForm.description || !txForm.amount}
                   className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {savingTx ? 'Saving...' : 'Add'}
+                  {savingTx ? t('sharedSaving') : t('sharedAdd')}
                 </button>
               </div>
             </div>
@@ -887,19 +886,19 @@ export default function SharedPage() {
         {showAddBudget && (
           <ModalShell onClose={() => setShowAddBudget(false)}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold text-primary mb-4">Add Budget</h2>
+              <h2 className="text-xl font-bold text-primary mb-4">{t('sharedAddBudgetTitle')}</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldCategory')}</label>
                   <input
                     value={budgetForm.category}
                     onChange={e => setBudgetForm({ ...budgetForm, category: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                    placeholder="e.g. groceries, dining"
+                    placeholder={t('sharedBudgetCategoryPlaceholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Limit ({currency})</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tFmt('sharedFieldMonthlyLimitFmt', [currency])}</label>
                   <input
                     type="number" step="0.01"
                     value={budgetForm.monthlyLimit}
@@ -914,14 +913,14 @@ export default function SharedPage() {
                   onClick={() => setShowAddBudget(false)}
                   className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
                 >
-                  Cancel
+                  {t('sharedCancel')}
                 </button>
                 <button
                   onClick={handleAddBudget}
                   disabled={savingBudget || !budgetForm.category || !budgetForm.monthlyLimit}
                   className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {savingBudget ? 'Saving...' : 'Add'}
+                  {savingBudget ? t('sharedSaving') : t('sharedAdd')}
                 </button>
               </div>
             </div>
@@ -932,19 +931,19 @@ export default function SharedPage() {
         {showAddGoal && (
           <ModalShell onClose={() => setShowAddGoal(false)}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold text-primary mb-4">Add Goal</h2>
+              <h2 className="text-xl font-bold text-primary mb-4">{t('sharedAddGoalTitle')}</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Goal Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldGoalName')}</label>
                   <input
                     value={goalForm.name}
                     onChange={e => setGoalForm({ ...goalForm, name: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                    placeholder="e.g. Weekend trip"
+                    placeholder={t('sharedGoalNamePlaceholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Amount ({currency})</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{tFmt('sharedFieldTargetAmountFmt', [currency])}</label>
                   <input
                     type="number" step="0.01"
                     value={goalForm.targetAmount}
@@ -954,7 +953,7 @@ export default function SharedPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Date (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldTargetDateOptional')}</label>
                   <input
                     type="date"
                     value={goalForm.targetDate}
@@ -963,12 +962,12 @@ export default function SharedPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldDescriptionOptional')}</label>
                   <textarea
                     value={goalForm.description}
                     onChange={e => setGoalForm({ ...goalForm, description: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                    placeholder="What is this goal for?"
+                    placeholder={t('sharedGoalDescPlaceholder')}
                     rows={2}
                   />
                 </div>
@@ -978,14 +977,14 @@ export default function SharedPage() {
                   onClick={() => setShowAddGoal(false)}
                   className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
                 >
-                  Cancel
+                  {t('sharedCancel')}
                 </button>
                 <button
                   onClick={handleAddGoal}
                   disabled={savingGoal || !goalForm.name || !goalForm.targetAmount}
                   className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {savingGoal ? 'Saving...' : 'Add'}
+                  {savingGoal ? t('sharedSaving') : t('sharedAdd')}
                 </button>
               </div>
             </div>
@@ -996,9 +995,9 @@ export default function SharedPage() {
         {showContributeGoal !== null && (
           <ModalShell onClose={() => setShowContributeGoal(null)}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold text-primary mb-4">Contribute to Goal</h2>
+              <h2 className="text-xl font-bold text-primary mb-4">{t('sharedContributeTitle')}</h2>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount ({currency})</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{tFmt('sharedFieldAmountFmtContribute', [currency])}</label>
                 <input
                   type="number" step="0.01"
                   value={contributeAmount}
@@ -1012,14 +1011,14 @@ export default function SharedPage() {
                   onClick={() => { setShowContributeGoal(null); setContributeAmount(''); }}
                   className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
                 >
-                  Cancel
+                  {t('sharedCancel')}
                 </button>
                 <button
                   onClick={handleContributeGoal}
                   disabled={contributingGoal || !contributeAmount}
                   className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {contributingGoal ? 'Contributing...' : 'Contribute'}
+                  {contributingGoal ? t('sharedContributing') : t('sharedContributeBtn')}
                 </button>
               </div>
             </div>
@@ -1033,21 +1032,21 @@ export default function SharedPage() {
   return (
     <div>
       <PageHeader
-        title="Shared Finances"
-        subtitle="Track shared expenses with family, roommates, or travel companions. Expenses are split equally and balances are calculated automatically."
+        title={t('sharedPageTitle')}
+        subtitle={t('sharedPageSubtitle')}
         actions={
           <>
             <button
               onClick={() => setShowJoinForm(true)}
               className="border border-primary text-primary px-4 py-2 rounded-lg hover:bg-green-50 font-medium text-sm"
             >
-              Join Group
+              {t('sharedJoinGroupBtn')}
             </button>
             <button
               onClick={() => setShowCreateForm(true)}
               className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm"
             >
-              + Create Group
+              {t('sharedCreateGroupBtn')}
             </button>
           </>
         }
@@ -1056,7 +1055,7 @@ export default function SharedPage() {
       {groups.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <p className="text-4xl mb-3">👥</p>
-          <p>No shared groups yet. Create one or join with an invite code.</p>
+          <p>{t('sharedEmptyGroups')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -1073,7 +1072,7 @@ export default function SharedPage() {
                     <p className="text-sm text-gray-500 mt-0.5">{group.description}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
-                    {group.memberCount || group.members?.length || 0} members · Code: <span className="font-mono">{group.inviteCode || '—'}</span>
+                    {tFmt('sharedMembersCodeFmt', [group.memberCount || group.members?.length || 0])}<span className="font-mono">{group.inviteCode || t('sharedCodeFallback')}</span>
                   </p>
                 </div>
                 <span className="text-gray-400 text-sm">→</span>
@@ -1087,24 +1086,24 @@ export default function SharedPage() {
       {showCreateForm && (
         <ModalShell onClose={() => setShowCreateForm(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-primary mb-4">Create Shared Group</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">{t('sharedCreateGroupTitle')}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Group Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldGroupName')}</label>
                 <input
                   value={groupForm.name}
                   onChange={e => setGroupForm({ ...groupForm, name: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                  placeholder="e.g. Roommates, Family Trip"
+                  placeholder={t('sharedGroupNamePlaceholder')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldDescriptionOptional')}</label>
                 <input
                   value={groupForm.description}
                   onChange={e => setGroupForm({ ...groupForm, description: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                  placeholder="What is this group for?"
+                  placeholder={t('sharedGroupDescPlaceholder')}
                 />
               </div>
             </div>
@@ -1113,14 +1112,14 @@ export default function SharedPage() {
                 onClick={() => setShowCreateForm(false)}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
               >
-                Cancel
+                {t('sharedCancel')}
               </button>
               <button
                 onClick={handleCreateGroup}
                 disabled={savingGroup || !groupForm.name}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
-                {savingGroup ? 'Creating...' : 'Create Group'}
+                {savingGroup ? t('sharedCreating') : t('sharedCreateGroupSubmit')}
               </button>
             </div>
           </div>
@@ -1131,30 +1130,30 @@ export default function SharedPage() {
       {showJoinForm && (
         <ModalShell onClose={() => setShowJoinForm(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-primary mb-4">Join a Group</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">{t('sharedJoinGroupTitle')}</h2>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Invite Code</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldInviteCode')}</label>
               <input
                 value={joinCode}
                 onChange={e => setJoinCode(e.target.value)}
                 className="w-full border rounded-lg px-3 py-2 text-gray-900 font-mono text-lg"
-                placeholder="e.g. ABC123"
+                placeholder={t('sharedJoinCodePlaceholder')}
               />
-              <p className="text-xs text-gray-400 mt-1">Ask the group owner to share their invite code with you.</p>
+              <p className="text-xs text-gray-400 mt-1">{t('sharedJoinCodeHint')}</p>
             </div>
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowJoinForm(false)}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
               >
-                Cancel
+                {t('sharedCancel')}
               </button>
               <button
                 onClick={handleJoinGroup}
                 disabled={joiningGroup || !joinCode.trim()}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
-                {joiningGroup ? 'Joining...' : 'Join Group'}
+                {joiningGroup ? t('sharedJoining') : t('sharedJoinGroupBtn')}
               </button>
             </div>
           </div>
@@ -1165,8 +1164,8 @@ export default function SharedPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <p className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
+              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('sharedCancel')}</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('sharedConfirm')}</button>
             </div>
           </div>
         </ModalShell>

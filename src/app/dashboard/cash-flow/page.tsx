@@ -28,6 +28,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
+import { useI18n } from '../../../lib/i18n';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { CategoryIcon } from '../../../lib/categoryIcon';
 import {
@@ -81,11 +82,13 @@ interface IncomeStreamsResponse {
   primaryStream: IncomeStream | null;
 }
 
-const FREQUENCY_LABEL: Record<IncomeFrequency, string> = {
-  weekly: 'Weekly',
-  biweekly: 'Every 2 weeks',
-  semimonthly: 'Twice a month',
-  monthly: 'Monthly',
+// i18n key per frequency — resolved via t() at the IncomeStreamsPanel
+// call site so the cadence label localizes with the active locale.
+const FREQUENCY_LABEL_KEY: Record<IncomeFrequency, string> = {
+  weekly: 'cashFlowFreqWeekly',
+  biweekly: 'cashFlowFreqBiweekly',
+  semimonthly: 'cashFlowFreqSemimonthly',
+  monthly: 'cashFlowFreqMonthly',
 };
 
 function formatDay(epochMillis: number): string {
@@ -129,6 +132,7 @@ function monthLong(yyyyMM: string): string {
 
 export default function CashFlowPage() {
   const { fmt } = useCurrency();
+  const { t, tFmt, locale } = useI18n();
   // 2026-05-01: ?month=YYYY-MM URL param for deep-link from /dashboard/analytics
   // chart drills. When present, that month is selected on first paint instead
   // of defaulting to "most recent." Validated against the loaded months list
@@ -182,7 +186,7 @@ export default function CashFlowPage() {
           ''
         );
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load cash flow');
+        if (!cancelled) setError(err instanceof Error ? err.message : t('cashFlowLoadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -355,10 +359,10 @@ export default function CashFlowPage() {
     const otherIncome = breakdown.income.slice(6).reduce((s, r) => s + r.amount, 0);
     const otherExpense = breakdown.expenses.slice(8).reduce((s, r) => s + r.amount, 0);
     const incomeRows = otherIncome > 0
-      ? [...topIncomes, { key: '__other_income', label: 'Other income', amount: otherIncome, pct: 0 }]
+      ? [...topIncomes, { key: '__other_income', label: t('cashFlowOtherIncome'), amount: otherIncome, pct: 0 }]
       : topIncomes;
     const expenseRows = otherExpense > 0
-      ? [...topExpenses, { key: '__other_expense', label: 'Other expenses', amount: otherExpense, pct: 0 }]
+      ? [...topExpenses, { key: '__other_expense', label: t('cashFlowOtherExpenses'), amount: otherExpense, pct: 0 }]
       : topExpenses;
     if (incomeRows.length === 0 && expenseRows.length === 0) return null;
 
@@ -372,6 +376,10 @@ export default function CashFlowPage() {
     type SkNode = {
       name: string;
       kind: 'income' | 'hub' | 'outflow';
+      // Stable discriminator for the two synthetic outflow buckets so
+      // SankeyNode can pick the right color without matching on the
+      // (now localized) display name.
+      special?: 'sadaqah' | 'savings';
       // Drill-down key — empty for the hub and aggregated rows since we
       // can't filter the transactions page by "everything". Click-through
       // is suppressed when this is empty.
@@ -388,7 +396,7 @@ export default function CashFlowPage() {
       percentOfSide: totalIncome > 0 ? (r.amount / totalIncome) * 100 : 0,
     }));
     const hubIdx = nodes.length;
-    nodes.push({ name: 'Income', kind: 'hub' });
+    nodes.push({ name: t('cashFlowIncome'), kind: 'hub' });
     expenseRows.forEach(r => nodes.push({
       name: r.label,
       kind: 'outflow',
@@ -398,8 +406,9 @@ export default function CashFlowPage() {
     const sadaqahIdx = nodes.length;
     if (breakdown.totals.sadaqahZakat > 0) {
       nodes.push({
-        name: 'Sadaqah / Zakat',
+        name: t('cashFlowSadaqahZakat'),
         kind: 'outflow',
+        special: 'sadaqah',
         // Sadaqah / Zakat is a synthetic bucket aggregated server-side —
         // the transactions page doesn't filter on it directly today, so
         // leave categoryKey unset to keep the row non-clickable.
@@ -409,8 +418,9 @@ export default function CashFlowPage() {
     const savingsIdx = nodes.length;
     if (breakdown.totals.savings > 0) {
       nodes.push({
-        name: 'Savings',
+        name: t('cashFlowSavings'),
         kind: 'outflow',
+        special: 'savings',
         // Savings is income minus all outflow, also synthetic.
         percentOfSide: totalOutflow > 0 ? (breakdown.totals.savings / totalOutflow) * 100 : 0,
       });
@@ -437,8 +447,8 @@ export default function CashFlowPage() {
   return (
     <div className="max-w-6xl mx-auto">
       <PageHeader
-        title="Cash Flow"
-        subtitle="Where your money came from and where it went, month by month."
+        title={t('cashFlowTitle')}
+        subtitle={t('cashFlowSubtitle')}
         className="mb-6"
       />
 
@@ -476,7 +486,7 @@ export default function CashFlowPage() {
             onClick={() => window.location.reload()}
             className="text-sm font-semibold text-primary hover:underline"
           >
-            Retry
+            {t('zktRetry')}
           </button>
         </div>
       )}
@@ -484,9 +494,9 @@ export default function CashFlowPage() {
       {!loading && !error && months.length === 0 && (
         <div className="bg-card rounded-2xl p-12 border border-border text-center">
           <p className="text-4xl mb-3">📊</p>
-          <p className="text-base font-semibold text-foreground mb-1">No cash flow yet</p>
+          <p className="text-base font-semibold text-foreground mb-1">{t('cashFlowEmptyTitle')}</p>
           <p className="text-sm text-muted-foreground">
-            Add a transaction to start seeing your monthly income, expenses, and savings.
+            {t('cashFlowEmptyDesc')}
           </p>
         </div>
       )}
@@ -500,8 +510,8 @@ export default function CashFlowPage() {
               <div className="flex items-center gap-3">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
                   {chartView === 'sankey'
-                    ? `Cash flow · ${selected ? monthLong(selected.month) : ''}`
-                    : timeView === 'monthly' ? '13-month overview' : timeView === 'quarterly' ? 'By quarter' : 'By year'}
+                    ? tFmt('cashFlowSankeyHeaderFmt', [selected ? monthLong(selected.month) : ''])
+                    : timeView === 'monthly' ? t('cashFlow13MonthOverview') : timeView === 'quarterly' ? t('cashFlowByQuarter') : t('cashFlowByYear')}
                 </p>
                 {/* Bars / Sankey toggle (Monarch parity). */}
                 <div className="inline-flex rounded-full bg-muted/40 p-0.5 text-[12px] font-medium">
@@ -510,11 +520,11 @@ export default function CashFlowPage() {
                       key={v}
                       type="button"
                       onClick={() => setChartView(v)}
-                      className={`px-3 py-1 rounded-full transition-colors capitalize ${
+                      className={`px-3 py-1 rounded-full transition-colors ${
                         chartView === v ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      {v}
+                      {v === 'bars' ? t('cashFlowChartViewBars') : t('cashFlowChartViewSankey')}
                     </button>
                   ))}
                 </div>
@@ -524,7 +534,7 @@ export default function CashFlowPage() {
               {chartView === 'bars' && (
                 <div
                   role="tablist"
-                  aria-label="Time view"
+                  aria-label={t('cashFlowTimeViewAria')}
                   className="inline-flex rounded-full bg-muted/40 p-0.5 text-[12px] font-medium"
                 >
                   {(['monthly', 'quarterly', 'yearly'] as TimeView[]).map((v) => (
@@ -534,13 +544,13 @@ export default function CashFlowPage() {
                       aria-selected={timeView === v}
                       type="button"
                       onClick={() => setTimeView(v)}
-                      className={`px-3 py-1 rounded-full transition-colors capitalize ${
+                      className={`px-3 py-1 rounded-full transition-colors ${
                         timeView === v
                           ? 'bg-card text-foreground shadow-sm'
                           : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      {v}
+                      {v === 'monthly' ? t('cashFlowTimeViewMonthly') : v === 'quarterly' ? t('cashFlowTimeViewQuarterly') : t('cashFlowTimeViewYearly')}
                     </button>
                   ))}
                 </div>
@@ -556,11 +566,11 @@ export default function CashFlowPage() {
             {chartView === 'bars' && chartBuckets.length > 0 && chartBuckets.every(b => (b.income ?? 0) === 0 && (b.expenses ?? 0) === 0) ? (
               <div className="h-[260px] flex flex-col items-center justify-center text-center px-6">
                 <p className="text-3xl mb-2" aria-hidden="true">📊</p>
-                <p className="text-sm font-semibold text-foreground mb-1">No transactions in this window yet</p>
+                <p className="text-sm font-semibold text-foreground mb-1">{t('cashFlowChartEmptyTitle')}</p>
                 <p className="text-xs text-muted-foreground max-w-md">
-                  Bars and trend line will fill in as you add or import transactions.
-                  Try linking a bank from the <Link href="/dashboard/transactions" className="underline underline-offset-2">Transactions page</Link> or
-                  importing a CSV to seed the chart.
+                  {t('cashFlowChartEmptyBefore')}{' '}
+                  <Link href="/dashboard/transactions" className="underline underline-offset-2">{t('cashFlowTransactionsPageLink')}</Link>{' '}
+                  {t('cashFlowChartEmptyAfter')}
                 </p>
               </div>
             ) : chartView === 'bars' ? (
@@ -631,23 +641,23 @@ export default function CashFlowPage() {
                           <div className="flex justify-between gap-4">
                             <span className="flex items-center gap-1.5">
                               <span className="w-2 h-2 rounded-full bg-emerald-600" aria-hidden="true" />
-                              <span className="text-muted-foreground">Income</span>
+                              <span className="text-muted-foreground">{t('cashFlowIncome')}</span>
                             </span>
                             <span className="font-semibold text-emerald-700">{fmt(income)}</span>
                           </div>
                           <div className="flex justify-between gap-4">
                             <span className="flex items-center gap-1.5">
                               <span className="w-2 h-2 rounded-full bg-rose-600" aria-hidden="true" />
-                              <span className="text-muted-foreground">Expenses</span>
+                              <span className="text-muted-foreground">{t('cashFlowExpenses')}</span>
                             </span>
                             <span className="font-semibold text-rose-700">{fmt(expenses)}</span>
                           </div>
                           <div className="flex justify-between gap-4 pt-1 mt-1 border-t border-border">
-                            <span className="text-muted-foreground">Savings</span>
+                            <span className="text-muted-foreground">{t('cashFlowSavings')}</span>
                             <span className={`font-semibold ${savings >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{fmt(savings)}</span>
                           </div>
                           <div className="flex justify-between gap-4">
-                            <span className="text-muted-foreground">Savings Rate</span>
+                            <span className="text-muted-foreground">{t('cashFlowSavingsRate')}</span>
                             <span className={`font-semibold ${savingsRate >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                               {savingsRate.toFixed(1)}%
                             </span>
@@ -675,7 +685,7 @@ export default function CashFlowPage() {
                 ))}
                 <Bar
                   dataKey="income"
-                  name="Income"
+                  name={t('cashFlowIncome')}
                   fill="var(--chart-income, #2E7D32)"
                   radius={[3, 3, 0, 0]}
                   cursor="pointer"
@@ -683,7 +693,7 @@ export default function CashFlowPage() {
                 />
                 <Bar
                   dataKey="expenses"
-                  name="Expenses"
+                  name={t('cashFlowExpenses')}
                   fill="var(--chart-expenses, #C62828)"
                   radius={[3, 3, 0, 0]}
                   cursor="pointer"
@@ -693,7 +703,7 @@ export default function CashFlowPage() {
                 <Line
                   type="monotone"
                   dataKey="net"
-                  name="Net"
+                  name={t('cashFlowNet')}
                   stroke="#0f172a"
                   strokeWidth={1.5}
                   dot={{ r: 2 }}
@@ -722,15 +732,15 @@ export default function CashFlowPage() {
                   </ResponsiveContainer>
                 ) : (
                   <div className="text-center py-12 text-sm text-muted-foreground">
-                    {breakdownLoading ? 'Loading flow…' : 'No data for this period yet.'}
+                    {breakdownLoading ? t('cashFlowLoadingFlow') : t('cashFlowNoDataPeriod')}
                   </div>
                 )}
               </div>
             )}
             <p className="text-[11px] text-muted-foreground text-center mt-2">
               {chartView === 'bars'
-                ? 'Click any bar to see the breakdown for that period'
-                : 'Income sources flow into the central Income node, then split into expense categories, sadaqah/zakat, and savings'}
+                ? t('cashFlowBarsCaption')
+                : t('cashFlowSankeyCaption')}
             </p>
           </section>
 
@@ -746,40 +756,40 @@ export default function CashFlowPage() {
                   {monthLong(selected.month)}
                 </p>
                 <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
-                  Selected period
+                  {t('cashFlowSelectedPeriod')}
                 </p>
               </div>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <StatCard
-                  label="Income"
+                  label={t('cashFlowIncome')}
                   value={fmt(selected.income)}
                   valueClass="text-emerald-700 dark:text-emerald-400"
                   dotClass="bg-emerald-600"
                 />
                 <StatCard
-                  label="Expenses"
+                  label={t('cashFlowExpenses')}
                   value={fmt(selected.expenses)}
                   valueClass="text-rose-700 dark:text-rose-400"
                   dotClass="bg-rose-600"
                 />
                 <StatCard
-                  label="Total savings"
+                  label={t('cashFlowTotalSavings')}
                   value={fmt(selected.savings)}
                   valueClass="text-foreground"
                   dotClass="bg-slate-700 dark:bg-slate-300"
-                  tooltip="Income − Expenses − Sadaqah/Zakat = Savings (the cash residue after household outflows and given charity)."
+                  tooltip={t('cashFlowTotalSavingsTooltip')}
                 />
                 <StatCard
-                  label="Savings rate"
+                  label={t('cashFlowSavingsRate')}
                   value={`${savingsRatePct}%`}
                   valueClass={savingsRatePct >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-foreground'}
                   dotClass="bg-amber-500"
-                  tooltip="Savings ÷ Income — Monarch's 4th Cash Flow stat. 20%+ is generally considered healthy."
+                  tooltip={t('cashFlowSavingsRateTooltip')}
                 />
               </div>
               {selected.sadaqahZakat > 0 && (
                 <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">
-                  Includes <span className="font-semibold">{fmt(selected.sadaqahZakat)}</span> in Sadaqah / Zakat given this period — see breakdown below.
+                  {tFmt('cashFlowIncludesSadaqahFmt', [fmt(selected.sadaqahZakat)])}
                 </p>
               )}
             </section>
@@ -791,7 +801,7 @@ export default function CashFlowPage() {
           when at least one stream is detected; the panel fails quiet so
           it never blocks the rest of the page. */}
       {!loading && !error && incomeStreams && incomeStreams.count > 0 && (
-        <IncomeStreamsPanel data={incomeStreams} fmt={fmt} className="mb-4" />
+        <IncomeStreamsPanel data={incomeStreams} fmt={fmt} className="mb-4" t={t} tFmt={tFmt} />
       )}
 
       {/* Breakdown (PR 4 — Income / Expenses / Sadaqah-Zakat) */}
@@ -799,7 +809,7 @@ export default function CashFlowPage() {
         <div className="bg-card rounded-2xl p-5 border border-border">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-              Breakdown · {selected ? monthLong(selected.month) : ''}
+              {tFmt('cashFlowBreakdownHeaderFmt', [selected ? monthLong(selected.month) : ''])}
             </p>
             {/* Dimension toggle (Category / Merchant). v1 skips Group
                 per spec — Category + Merchant covers the 90% case
@@ -810,52 +820,58 @@ export default function CashFlowPage() {
                 onClick={() => setDimension('category')}
                 className={`px-3 py-1.5 transition-colors ${dimension === 'category' ? 'bg-primary text-primary-foreground font-semibold' : 'bg-card text-muted-foreground hover:bg-muted/40'}`}
               >
-                Category
+                {t('cashFlowDimCategory')}
               </button>
               <button
                 type="button"
                 onClick={() => setDimension('merchant')}
                 className={`px-3 py-1.5 transition-colors ${dimension === 'merchant' ? 'bg-primary text-primary-foreground font-semibold' : 'bg-card text-muted-foreground hover:bg-muted/40'}`}
               >
-                Merchant
+                {t('cashFlowDimMerchant')}
               </button>
             </div>
           </div>
 
           {breakdownLoading && !breakdown && (
             <div className="text-center py-8 text-sm text-muted-foreground">
-              Loading breakdown…
+              {t('cashFlowLoadingBreakdown')}
             </div>
           )}
 
           {breakdown && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               <BreakdownSection
-                title="Income"
+                title={t('cashFlowIncome')}
                 tone="income"
                 rows={breakdown.income}
                 total={breakdown.totals.income}
                 fmt={fmt}
                 month={selectedMonth}
                 dimension={dimension}
+                t={t}
+                tFmt={tFmt}
               />
               <BreakdownSection
-                title="Expenses"
+                title={t('cashFlowExpenses')}
                 tone="expense"
                 rows={breakdown.expenses}
                 total={breakdown.totals.expenses}
                 fmt={fmt}
                 month={selectedMonth}
                 dimension={dimension}
+                t={t}
+                tFmt={tFmt}
               />
               <BreakdownSection
-                title="Sadaqah / Zakat given"
+                title={t('cashFlowSadaqahZakatGiven')}
                 tone="sadaqah"
                 rows={breakdown.sadaqahZakat}
                 total={breakdown.totals.sadaqahZakat}
                 fmt={fmt}
                 month={selectedMonth}
                 dimension={dimension}
+                t={t}
+                tFmt={tFmt}
               />
             </div>
           )}
@@ -883,6 +899,8 @@ function BreakdownSection({
   fmt,
   month,
   dimension,
+  t,
+  tFmt,
 }: {
   title: string;
   tone: 'income' | 'expense' | 'sadaqah';
@@ -891,6 +909,8 @@ function BreakdownSection({
   fmt: (n: number) => string;
   month: string;
   dimension: Dimension;
+  t: (key: string) => string;
+  tFmt: (key: string, args: ReadonlyArray<string | number>) => string;
 }) {
   const barColor =
     tone === 'income' ? 'bg-emerald-100 dark:bg-emerald-900/30' :
@@ -906,7 +926,7 @@ function BreakdownSection({
       <div>
         <p className="text-sm font-semibold text-foreground mb-2">{title}</p>
         <p className="text-xs text-muted-foreground italic py-3">
-          No {tone === 'sadaqah' ? 'charity given' : tone} this month.
+          {tone === 'income' ? t('cashFlowNoIncomeMonth') : tone === 'expense' ? t('cashFlowNoExpensesMonth') : t('cashFlowNoCharityMonth')}
         </p>
       </div>
     );
@@ -939,7 +959,9 @@ function BreakdownSection({
               <Link
                 href={href}
                 className="relative block rounded-md hover:bg-muted/40 transition-colors px-2 py-1.5 group"
-                title={`View ${dimension === 'merchant' ? 'transactions for' : 'category'} "${row.label}" in ${month}`}
+                title={dimension === 'merchant'
+                  ? tFmt('cashFlowViewMerchantTitleFmt', [row.label, month])
+                  : tFmt('cashFlowViewCategoryTitleFmt', [row.label, month])}
               >
                 {/* Background bar — size proportional to amount */}
                 <span
@@ -996,6 +1018,7 @@ interface SankeyNodeProps {
     name: string;
     value: number;
     kind?: 'income' | 'hub' | 'outflow';
+    special?: 'sadaqah' | 'savings';
     categoryKey?: string;
     percentOfSide?: number;
   };
@@ -1007,8 +1030,8 @@ function SankeyNode({
   const fill =
     payload.kind === 'income' ? '#2E7D32' :
     payload.kind === 'hub' ? '#1B5E20' :
-    payload.name === 'Sadaqah / Zakat' ? '#F59E0B' :
-    payload.name === 'Savings' ? '#64748B' :
+    payload.special === 'sadaqah' ? '#F59E0B' :
+    payload.special === 'savings' ? '#64748B' :
     '#C62828';
 
   const clickable = !!payload.categoryKey;
@@ -1124,23 +1147,27 @@ function IncomeStreamsPanel({
   data,
   fmt,
   className,
+  t,
+  tFmt,
 }: {
   data: IncomeStreamsResponse;
   fmt: (n: number) => string;
   className?: string;
+  t: (key: string) => string;
+  tFmt: (key: string, args: ReadonlyArray<string | number>) => string;
 }) {
   return (
     <section className={`bg-card rounded-2xl p-5 border border-border ${className ?? ''}`}>
       <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
         <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-          Recurring income
+          {t('cashFlowRecurringIncome')}
         </p>
         <p className="text-sm font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
-          ≈ {fmt(data.totalMonthlyIncome)}/mo
+          {tFmt('cashFlowPerMonthFmt', [fmt(data.totalMonthlyIncome)])}
         </p>
       </div>
       <p className="text-[11px] text-muted-foreground mb-3">
-        Detected automatically from your deposits — used to power safe-to-spend and your forecast.
+        {t('cashFlowRecurringIncomeDesc')}
       </p>
       <ul className="space-y-1.5">
         {data.streams.map((s, i) => (
@@ -1155,18 +1182,18 @@ function IncomeStreamsPanel({
                 </span>
                 {s.confidence === 'low' && (
                   <span className="text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded px-1 py-0.5">
-                    Low confidence
+                    {t('cashFlowLowConfidence')}
                   </span>
                 )}
                 {s.amountVaries && (
                   <span className="text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-400 border border-amber-300/60 dark:border-amber-800/60 rounded px-1 py-0.5">
-                    Amount varies
+                    {t('cashFlowAmountVaries')}
                   </span>
                 )}
               </div>
               <p className="text-[11px] text-muted-foreground">
-                {FREQUENCY_LABEL[s.frequency]} · {s.occurrences} deposits
-                {s.lastReceived ? ` · last ${formatDay(s.lastReceived)}` : ''}
+                {tFmt('cashFlowStreamCadenceFmt', [t(FREQUENCY_LABEL_KEY[s.frequency]), s.occurrences])}
+                {s.lastReceived ? tFmt('cashFlowStreamLastFmt', [formatDay(s.lastReceived)]) : ''}
               </p>
             </div>
             <div className="text-right flex-shrink-0">
@@ -1175,7 +1202,7 @@ function IncomeStreamsPanel({
               </p>
               {s.nextExpected > Date.now() && (
                 <p className="text-[11px] text-muted-foreground">
-                  next ~{formatDay(s.nextExpected)}
+                  {tFmt('cashFlowStreamNextFmt', [formatDay(s.nextExpected)])}
                 </p>
               )}
             </div>

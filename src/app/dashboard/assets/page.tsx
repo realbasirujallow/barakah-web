@@ -16,6 +16,7 @@ import { SkeletonPage } from '../SkeletonCard';
 import EmptyState from '../../../components/EmptyState';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
+import { useI18n } from '../../../lib/i18n';
 
 interface Asset {
   id: number;
@@ -94,44 +95,70 @@ interface SubscriptionStatus {
   hasSubscription: boolean;
 }
 
-const TYPE_GROUPS: Record<string, { value: string; label: string }[]> = {
-  '💵 Cash & Savings': [
-    { value: 'cash', label: 'Cash' },
-    { value: 'savings_account', label: 'Savings Account' },
-    { value: 'checking_account', label: 'Checking Account' },
-  ],
-  '🏠 Real Estate': [
-    { value: 'primary_home', label: 'Primary Home' },
-    { value: 'investment_property', label: 'Investment Property (Rental)' },
-    { value: 'investment_property_resale', label: 'Investment Property (For Resale)' },
-    { value: 'rental_property', label: 'Rental Property' },
-  ],
-  '📈 Investments': [
-    { value: 'stock', label: 'Stocks / ETFs' },
-    { value: 'crypto', label: 'Cryptocurrency' },
-    { value: 'business', label: 'Business' },
-    { value: 'individual_brokerage', label: 'Individual Brokerage Account' },
-  ],
-  '🏦 Retirement': [
-    { value: '401k', label: '401(k)' },
-    { value: 'roth_ira', label: 'Roth IRA' },
-    { value: 'ira', label: 'Traditional IRA' },
-    { value: 'hsa', label: 'HSA' },
-    { value: '403b', label: '403(b)' },
-    { value: 'pension', label: 'Pension' },
-  ],
-  '🎓 Education': [
-    { value: '529', label: '529 Plan' },
-  ],
-  '🥇 Precious Metals': [
-    { value: 'gold', label: 'Gold' },
-    { value: 'silver', label: 'Silver' },
-  ],
-  '🚗 Other': [
-    { value: 'vehicle', label: 'Vehicle' },
-    { value: 'other', label: 'Other' },
-  ],
-};
+// Asset type taxonomy. `value` is the backend enum (never translated);
+// `labelKey`/`groupEmoji`+`groupLabelKey` are resolved through i18n inside the
+// component so the dropdown and the type-display helper stay localized.
+interface AssetTypeOption { value: string; labelKey: string }
+interface AssetTypeGroup { groupEmoji: string; groupLabelKey: string; items: AssetTypeOption[] }
+const TYPE_GROUP_DEFS: AssetTypeGroup[] = [
+  {
+    groupEmoji: '💵', groupLabelKey: 'assetsGroupCashSavings',
+    items: [
+      { value: 'cash', labelKey: 'assetsTypeCash' },
+      { value: 'savings_account', labelKey: 'assetsTypeSavingsAccount' },
+      { value: 'checking_account', labelKey: 'assetsTypeCheckingAccount' },
+    ],
+  },
+  {
+    groupEmoji: '🏠', groupLabelKey: 'assetsGroupRealEstate',
+    items: [
+      { value: 'primary_home', labelKey: 'assetsTypePrimaryHome' },
+      { value: 'investment_property', labelKey: 'assetsTypeInvestmentPropertyRental' },
+      { value: 'investment_property_resale', labelKey: 'assetsTypeInvestmentPropertyResale' },
+      { value: 'rental_property', labelKey: 'assetsTypeRentalProperty' },
+    ],
+  },
+  {
+    groupEmoji: '📈', groupLabelKey: 'assetsGroupInvestments',
+    items: [
+      { value: 'stock', labelKey: 'assetsTypeStocksEtfs' },
+      { value: 'crypto', labelKey: 'assetsTypeCryptocurrency' },
+      { value: 'business', labelKey: 'assetsTypeBusiness' },
+      { value: 'individual_brokerage', labelKey: 'assetsTypeIndividualBrokerage' },
+    ],
+  },
+  {
+    groupEmoji: '🏦', groupLabelKey: 'assetsGroupRetirement',
+    items: [
+      { value: '401k', labelKey: 'assetsType401k' },
+      { value: 'roth_ira', labelKey: 'assetsTypeRothIra' },
+      { value: 'ira', labelKey: 'assetsTypeTraditionalIra' },
+      { value: 'hsa', labelKey: 'assetsTypeHsa' },
+      { value: '403b', labelKey: 'assetsType403b' },
+      { value: 'pension', labelKey: 'assetsTypePension' },
+    ],
+  },
+  {
+    groupEmoji: '🎓', groupLabelKey: 'assetsGroupEducation',
+    items: [
+      { value: '529', labelKey: 'assetsType529Plan' },
+    ],
+  },
+  {
+    groupEmoji: '🥇', groupLabelKey: 'assetsGroupPreciousMetals',
+    items: [
+      { value: 'gold', labelKey: 'assetsTypeGold' },
+      { value: 'silver', labelKey: 'assetsTypeSilver' },
+    ],
+  },
+  {
+    groupEmoji: '🚗', groupLabelKey: 'assetsGroupOther',
+    items: [
+      { value: 'vehicle', labelKey: 'assetsTypeVehicle' },
+      { value: 'other', labelKey: 'assetsTypeOther' },
+    ],
+  },
+];
 
 const INVESTMENT_ASSET_TYPES = ['stock', 'crypto', 'individual_brokerage', 'etf', '401k', 'roth_ira', 'ira', '403b', 'pension', 'hsa', '529'];
 
@@ -147,6 +174,7 @@ const EMPTY_FORM: AssetFormState = { name: '', type: 'cash', value: '', penaltyR
 
 export default function AssetsPage() {
   const { fmt, currency, locale: dateLocale } = useCurrency();
+  const { t, tFmt } = useI18n();
   const { toast } = useToast();
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -245,7 +273,7 @@ export default function AssetsPage() {
       })
       .catch((err) => {
         logError(err, { context: 'Failed to load assets' });
-        setLoadError(err?.message || 'Failed to load assets. Please refresh.');
+        setLoadError(err?.message || t('assetsErrorLoadRefresh'));
       })
       .finally(() => setLoading(false));
   };
@@ -256,12 +284,12 @@ export default function AssetsPage() {
   const { user } = useAuth();
   const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus) || (user?.plan === 'plus' || user?.plan === 'family');
 
-  const typeLabel = (t: string) => {
-    for (const items of Object.values(TYPE_GROUPS)) {
-      const found = items.find(i => i.value === t);
-      if (found) return found.label;
+  const typeLabel = (assetType: string) => {
+    for (const group of TYPE_GROUP_DEFS) {
+      const found = group.items.find(i => i.value === assetType);
+      if (found) return t(found.labelKey);
     }
-    return t.replace(/_/g, ' ');
+    return assetType.replace(/_/g, ' ');
   };
 
   const openAdd = () => { setEditItem(null); setForm(EMPTY_FORM); setSaveError(null); setShowForm(true); };
@@ -285,19 +313,19 @@ export default function AssetsPage() {
       const val = parseFloat(form.value);
       // Validate asset value: must be finite, non-negative, and reasonable
       if (!Number.isFinite(val) || val < 0) {
-        setSaveError('Please enter a valid positive number for value.');
+        setSaveError(t('assetsErrorValuePositive'));
         setSaving(false);
         return;
       }
       const MAX_VALUE = 1_000_000_000; // 1 billion max
       if (val > MAX_VALUE) {
-        setSaveError(`Asset value cannot exceed ${fmt(MAX_VALUE)}.`);
+        setSaveError(tFmt('assetsErrorValueMaxFmt', [fmt(MAX_VALUE)]));
         setSaving(false);
         return;
       }
       // Check decimal precision (max 2 decimal places for currency)
       if (!/^\d+(\.\d{1,2})?$/.test(form.value.trim())) {
-        setSaveError('Please enter a value with up to 2 decimal places.');
+        setSaveError(t('assetsErrorValueDecimals'));
         setSaving(false);
         return;
       }
@@ -345,7 +373,7 @@ export default function AssetsPage() {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       logError(err, { context: 'Failed to save asset' });
-      setSaveError(message || 'Failed to save asset. Please try again.');
+      setSaveError(message || t('assetsErrorSaveFailed'));
     } finally {
       setSaving(false);
     }
@@ -354,21 +382,21 @@ export default function AssetsPage() {
   const handleDelete = (id: number) => {
     const asset = assets.find(item => item.id === id);
     if (asset?.readOnly) {
-      toast('Linked Plaid balances are read-only here. Unlink or resync them from Import.', 'error');
+      toast(t('assetsToastReadOnly'), 'error');
       return;
     }
     setConfirmAction({
-      message: 'Delete this asset?',
+      message: t('assetsConfirmDelete'),
       action: async () => {
         try {
           const result = await api.deleteAsset(id);
           if (result?.error) throw new Error(result.error);
-          toast('Asset deleted successfully', 'success');
+          toast(t('assetsToastDeleted'), 'success');
           load();
         } catch (err: unknown) {
           const message = err instanceof Error ? err.message : String(err);
           logError(err, { context: 'Failed to delete asset' });
-          toast(message || 'Failed to delete asset. Please try again.', 'error');
+          toast(message || t('assetsToastDeleteFailed'), 'error');
         }
       }
     });
@@ -401,7 +429,7 @@ export default function AssetsPage() {
   const handleBulkDelete = () => {
     if (selectedIds.size === 0) return;
     setConfirmAction({
-      message: `Delete ${selectedIds.size} asset${selectedIds.size === 1 ? '' : 's'}? This cannot be undone.`,
+      message: tFmt('assetsConfirmBulkDeleteFmt', [selectedIds.size]),
       action: async () => {
         setBulkDeleting(true);
         try {
@@ -412,7 +440,7 @@ export default function AssetsPage() {
           load();
         } catch (err: unknown) {
           const message = err instanceof Error ? err.message : String(err);
-          toast(message || 'Failed to delete assets.', 'error');
+          toast(message || t('assetsToastBulkDeleteFailed'), 'error');
         } finally {
           setBulkDeleting(false);
         }
@@ -453,7 +481,7 @@ export default function AssetsPage() {
               <Link href={`/dashboard/assets/${a.id}`} className="font-semibold text-primary hover:underline">{a.name}</Link>
               {a.readOnly && (
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                  Linked via Plaid
+                  {t('assetsLinkedViaPlaid')}
                 </span>
               )}
             </div>
@@ -463,7 +491,7 @@ export default function AssetsPage() {
             {a.readOnly && (
               <p className="text-xs text-gray-500">
                 {[a.institutionName, a.accountSubtype, a.accountMask ? `••${a.accountMask}` : null].filter(Boolean).join(' • ')}
-                {a.lastSyncedAt ? ` • Synced ${new Date(a.lastSyncedAt).toLocaleDateString(dateLocale)}` : ''}
+                {a.lastSyncedAt ? ` • ${tFmt('assetsSyncedDateFmt', [new Date(a.lastSyncedAt).toLocaleDateString(dateLocale)])}` : ''}
               </p>
             )}
             {a.address && (
@@ -480,13 +508,13 @@ export default function AssetsPage() {
             <>
               {!a.readOnly && (
                 <>
-                  <button type="button" onClick={() => openEdit(a)} className="text-gray-600 hover:text-blue-600 text-sm">Edit</button>
-                  <button type="button" onClick={() => handleDelete(a.id)} className="text-gray-600 hover:text-red-600 text-sm">Delete</button>
+                  <button type="button" onClick={() => openEdit(a)} className="text-gray-600 hover:text-blue-600 text-sm">{t('assetsEdit')}</button>
+                  <button type="button" onClick={() => handleDelete(a.id)} className="text-gray-600 hover:text-red-600 text-sm">{t('delete')}</button>
                 </>
               )}
               {a.readOnly && (
                 <Link href="/dashboard/import" className="text-gray-500 hover:text-primary text-sm border border-gray-300 px-3 py-1 rounded-lg">
-                  Manage
+                  {t('assetsManage')}
                 </Link>
               )}
             </>
@@ -506,7 +534,7 @@ export default function AssetsPage() {
               src={mapsUrl(a.address)!}
             />
           ) : (
-            <p className="text-xs text-gray-400 italic py-2 px-3">Map unavailable</p>
+            <p className="text-xs text-gray-400 italic py-2 px-3">{t('assetsMapUnavailable')}</p>
           )}
         </div>
       )}
@@ -521,22 +549,22 @@ export default function AssetsPage() {
   return (
     <div>
       <PageHeader
-        title="Assets"
-        subtitle="Cash, gold, real estate, and investments — flagged by zakat eligibility"
+        title={t('assetsPageTitle')}
+        subtitle={t('assetsPageSubtitle')}
         className="mb-4"
         actions={
           <>
-            <SyncBanksButton onSynced={load} label="Sync balances" />
+            <SyncBanksButton onSynced={load} label={t('assetsSyncBalances')} />
             {deletableAssets.length > 0 && (
               <button
                 type="button"
                 onClick={() => { setSelectMode(s => !s); setSelectedIds(new Set()); }}
                 className={`px-3 py-2 rounded-lg text-sm font-medium border transition ${selectMode ? 'bg-red-50 border-red-200 text-red-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
               >
-                {selectMode ? 'Cancel' : 'Select'}
+                {selectMode ? t('cancel') : t('assetsSelect')}
               </button>
             )}
-            <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm">+ Add Asset</button>
+            <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium text-sm">{t('assetsAddAsset')}</button>
           </>
         }
       />
@@ -547,17 +575,17 @@ export default function AssetsPage() {
         <div>
           <p className={`text-sm font-semibold ${plaidSyncAccess ? 'text-primary' : 'text-amber-900'}`}>
             {hasLinkedPlaidAssets
-              ? (plaidSyncAccess ? 'Keep your linked balances fresh.' : 'Your linked balances are visible, but syncing is paused.')
-              : 'Connect bank and investment accounts.'}
+              ? (plaidSyncAccess ? t('assetsPlaidKeepFresh') : t('assetsPlaidPaused'))
+              : t('assetsPlaidConnectPrompt')}
           </p>
           <p className={`text-sm mt-1 ${plaidSyncAccess ? 'text-gray-600' : 'text-amber-800'}`}>
             {hasLinkedPlaidAssets
               ? (plaidSyncAccess
-                ? 'Resync Plaid balances and routes from Import so this page stays current.'
-                : 'Upgrade to Plus or Family to keep syncing balances and new activity after your trial ends.')
+                ? t('assetsPlaidRefreshHelp')
+                : t('assetsPlaidUpgradeHelp'))
               : (plaidSyncAccess
-                ? 'Link Plaid accounts so cash, brokerage, and retirement balances land here without manual entry.'
-                : 'Plaid account sync now lives on Plus and Family. Upgrade when you want live balances instead of manual updates.')}
+                ? t('assetsPlaidLinkHelp')
+                : t('assetsPlaidNowOnPaid'))}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -567,14 +595,14 @@ export default function AssetsPage() {
               plaidSyncAccess ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'border border-amber-300 text-amber-900 hover:bg-amber-100'
             }`}
           >
-            {hasLinkedPlaidAssets ? 'Manage Linked Accounts' : 'Connect Accounts'}
+            {hasLinkedPlaidAssets ? t('assetsManageLinkedAccounts') : t('assetsConnectAccounts')}
           </Link>
           {!plaidSyncAccess && (
             <Link
               href="/dashboard/billing"
               className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
             >
-              Upgrade to Keep Syncing
+              {t('assetsUpgradeToKeepSyncing')}
             </Link>
           )}
         </div>
@@ -585,7 +613,7 @@ export default function AssetsPage() {
         <div className="flex items-center gap-3 mb-4 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
           <input type="checkbox" checked={selectedIds.size === deletableAssets.length && deletableAssets.length > 0} onChange={toggleSelectAll} className="w-4 h-4 cursor-pointer" />
           <span className="text-sm text-gray-600 flex-1">
-            {selectedIds.size === 0 ? 'Select assets to delete' : `${selectedIds.size} selected`}
+            {selectedIds.size === 0 ? t('assetsSelectToDelete') : tFmt('assetsSelectedCountFmt', [selectedIds.size])}
           </span>
           {selectedIds.size > 0 && (
             <button
@@ -594,7 +622,7 @@ export default function AssetsPage() {
               disabled={bulkDeleting}
               className="px-4 py-1.5 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition disabled:opacity-50"
             >
-              {bulkDeleting ? 'Deleting...' : `Delete ${selectedIds.size}`}
+              {bulkDeleting ? t('assetsDeleting') : tFmt('assetsDeleteCountFmt', [selectedIds.size])}
             </button>
           )}
         </div>
@@ -602,37 +630,37 @@ export default function AssetsPage() {
 
       {assets.some(a => INVESTMENT_ASSET_TYPES.includes(a.type)) && (
         <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-800 flex items-center justify-between">
-          <span>📈 You have investment-type assets. Track detailed holdings, stock prices &amp; Halal screening in <strong>Investments</strong>.</span>
-          <Link href="/dashboard/investments" className="ml-3 text-blue-700 font-semibold underline hover:no-underline whitespace-nowrap">Go to Investments →</Link>
+          <span>{t('assetsInvestmentBannerBefore')}<strong>{t('navInvestments')}</strong>{t('assetsInvestmentBannerAfter')}</span>
+          <Link href="/dashboard/investments" className="ml-3 text-blue-700 font-semibold underline hover:no-underline whitespace-nowrap">{t('assetsGoToInvestments')}</Link>
         </div>
       )}
 
       {assets.some(a => a.linkedSource === 'plaid') && (
         <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm text-emerald-800 flex items-center justify-between gap-3">
-          <span>Linked Plaid balances now appear here as read-only accounts. Resync or manage them from <strong>Import</strong>.</span>
-          <Link href="/dashboard/import" className="text-emerald-700 font-semibold underline hover:no-underline whitespace-nowrap">Manage Linked Accounts →</Link>
+          <span>{t('assetsPlaidReadOnlyBannerBefore')}<strong>{t('debtImportLinkText')}</strong>{t('assetsPlaidReadOnlyBannerAfter')}</span>
+          <Link href="/dashboard/import" className="text-emerald-700 font-semibold underline hover:no-underline whitespace-nowrap">{t('assetsManageLinkedAccountsArrow')}</Link>
         </div>
       )}
 
       <div className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6">
-        <p className="text-green-100 text-sm">Net Worth</p>
+        <p className="text-green-100 text-sm">{t('netWorth')}</p>
         <p className="text-4xl font-bold">{fmt((total?.netWorthWithLinked as number) || (total?.netWorth as number) || (total?.totalWealthWithLinked as number) || (total?.totalWealth as number) || 0)}</p>
         <div className="flex items-center gap-2 mt-1">
-          <p className="text-green-200 text-sm">Zakat {(total?.zakatEligible as boolean) ? 'Eligible' : 'Below Nisab'}</p>
+          <p className="text-green-200 text-sm">{(total?.zakatEligible as boolean) ? t('assetsZakatEligible') : t('assetsZakatBelowNisab')}</p>
           <span className="text-green-200 text-sm">•</span>
           {(total?.zakatFullyPaid as boolean) ? (
-            <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">PAID {String(total?.currentLunarYear ?? '')} AH ✓</span>
+            <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">{tFmt('assetsZakatPaidYearFmt', [String(total?.currentLunarYear ?? '')])}</span>
           ) : (
             <button type="button" onClick={() => setShowBreakdown(!showBreakdown)} className="text-green-100 text-sm underline hover:text-white font-medium">
               {((total?.zakatPaid as number) || 0) > 0
-                ? `Remaining: ${fmt((total?.zakatRemaining as number) || 0)} (paid ${fmt((total?.zakatPaid as number) || 0)}) ↗`
-                : `Due: ${fmt((total?.zakatDue as number) || 0)} ↗`}
+                ? tFmt('assetsZakatRemainingFmt', [fmt((total?.zakatRemaining as number) || 0), fmt((total?.zakatPaid as number) || 0)])
+                : tFmt('assetsZakatDueFmt', [fmt((total?.zakatDue as number) || 0)])}
             </button>
           )}
         </div>
         {((total?.linkedAssetTotal as number) || 0) > 0 || ((total?.linkedDebtTotal as number) || 0) > 0 ? (
           <p className="text-xs text-green-100 mt-2">
-            Includes {fmt((total?.linkedAssetTotal as number) || 0)} in linked assets and {fmt((total?.linkedDebtTotal as number) || 0)} in linked debts.
+            {tFmt('assetsLinkedTotalsFmt', [fmt((total?.linkedAssetTotal as number) || 0), fmt((total?.linkedDebtTotal as number) || 0)])}
           </p>
         ) : null}
       </div>
@@ -647,18 +675,18 @@ export default function AssetsPage() {
             className="bg-white rounded-2xl p-6 w-full max-w-lg my-4 max-h-[90vh] overflow-y-auto shadow-sm"
           >
             <div className="flex justify-between items-center mb-4">
-              <h2 id="breakdown-modal-title" className="text-lg font-bold text-primary">Zakat Calculation Breakdown</h2>
-              <button type="button" aria-label="Close breakdown" onClick={() => setShowBreakdown(false)} className="text-gray-500 hover:text-gray-700 text-xl leading-none">✕</button>
+              <h2 id="breakdown-modal-title" className="text-lg font-bold text-primary">{t('assetsBreakdownTitle')}</h2>
+              <button type="button" aria-label={t('assetsCloseBreakdown')} onClick={() => setShowBreakdown(false)} className="text-gray-500 hover:text-gray-700 text-xl leading-none">✕</button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-              <div className="bg-blue-50 rounded-xl p-3"><p className="text-xs text-gray-500">Net Worth</p><p className="font-bold text-blue-700">{fmt((total?.netWorth as number) || 0)}</p></div>
-              <div className="bg-green-50 rounded-xl p-3"><p className="text-xs text-gray-500">Zakatable</p><p className="font-bold text-green-700">{fmt((total?.zakatableWealth as number) || 0)}</p></div>
-              <div className="bg-orange-50 rounded-xl p-3"><p className="text-xs text-gray-500">Exempt</p><p className="font-bold text-orange-700">{fmt((total?.nonZakatableWealth as number) || 0)}</p></div>
+              <div className="bg-blue-50 rounded-xl p-3"><p className="text-xs text-gray-500">{t('netWorth')}</p><p className="font-bold text-blue-700">{fmt((total?.netWorth as number) || 0)}</p></div>
+              <div className="bg-green-50 rounded-xl p-3"><p className="text-xs text-gray-500">{t('assetsZakatable')}</p><p className="font-bold text-green-700">{fmt((total?.zakatableWealth as number) || 0)}</p></div>
+              <div className="bg-orange-50 rounded-xl p-3"><p className="text-xs text-gray-500">{t('assetsExempt')}</p><p className="font-bold text-orange-700">{fmt((total?.nonZakatableWealth as number) || 0)}</p></div>
             </div>
             <div className="border-t pt-3 mb-3">
-              <p className="text-xs text-gray-500 mb-1">Nisab Threshold: {fmt((total?.nisab as number) || 5686.20)}</p>
-              <p className="text-xs text-gray-500">Zakat Rate: 2.5% of zakatable wealth</p>
-              <p className="text-sm font-semibold text-primary mt-1">Zakat Due = {fmt((total?.zakatableWealth as number) || 0)} × 2.5% = {fmt((total?.zakatDue as number) || 0)}</p>
+              <p className="text-xs text-gray-500 mb-1">{tFmt('assetsNisabThresholdFmt', [fmt((total?.nisab as number) || 5686.20)])}</p>
+              <p className="text-xs text-gray-500">{t('assetsZakatRate')}</p>
+              <p className="text-sm font-semibold text-primary mt-1">{tFmt('assetsZakatDueCalcFmt', [fmt((total?.zakatableWealth as number) || 0), fmt((total?.zakatDue as number) || 0)])}</p>
             </div>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {(total.breakdown as Array<Record<string, unknown>>).map((item, i) => (
@@ -671,7 +699,7 @@ export default function AssetsPage() {
                   <div className="text-right">
                     <p className="font-medium text-gray-700">{fmt(safeNum(item.value))}</p>
                     <p className={`text-xs font-medium ${(item.zakatable as boolean) ? 'text-green-600' : 'text-orange-600'}`}>
-                      {(item.zakatable as boolean) ? `Zakatable: ${fmt(safeNum(item.zakatableValue))}` : 'Exempt'}
+                      {(item.zakatable as boolean) ? tFmt('assetsZakatableValueFmt', [fmt(safeNum(item.zakatableValue))]) : t('assetsExempt')}
                     </p>
                   </div>
                 </div>
@@ -683,9 +711,9 @@ export default function AssetsPage() {
 
       {loadError && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">
-          <p className="font-medium">Failed to load assets</p>
+          <p className="font-medium">{t('assetsLoadFailedHeading')}</p>
           <p className="text-red-500 mt-1">{loadError}</p>
-          <button type="button" onClick={load} className="mt-2 text-red-700 underline hover:text-red-900 text-xs">Retry</button>
+          <button type="button" onClick={load} className="mt-2 text-red-700 underline hover:text-red-900 text-xs">{t('zktRetry')}</button>
         </div>
       )}
 
@@ -695,10 +723,10 @@ export default function AssetsPage() {
         // primary CTA + sample preview row.
         <EmptyState
           illustration="savings"
-          title="No assets yet"
-          description="Track your wealth (savings, investments, real estate, gold, crypto) in one place. Barakah uses live prices for stocks and gold so your zakat calc stays accurate."
+          title={t('assetsEmptyTitle')}
+          description={t('assetsEmptyDesc')}
           actions={[
-            { label: '+ Add your first asset', onClick: openAdd, primary: true },
+            { label: t('assetsEmptyAddFirst'), onClick: openAdd, primary: true },
           ]}
           preview={
             <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm">
@@ -706,8 +734,8 @@ export default function AssetsPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-base">🪙</span>
                   <div>
-                    <p className="font-semibold text-gray-900 text-sm">Gold (24K)</p>
-                    <p className="text-[10px] text-gray-500">2.5 oz · live price</p>
+                    <p className="font-semibold text-gray-900 text-sm">{t('assetsEmptyPreviewGold')}</p>
+                    <p className="text-[10px] text-gray-500">{t('assetsEmptyPreviewGoldDetail')}</p>
                   </div>
                 </div>
                 <p className="text-xs text-primary font-bold">{fmt(5200)}</p>
@@ -744,7 +772,7 @@ export default function AssetsPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-base font-bold text-primary">{fmt(group.total)}</p>
-                  <p className="text-[11px] text-gray-400">{group.pctOfAssets}% of assets</p>
+                  <p className="text-[11px] text-gray-400">{tFmt('assetsPctOfAssetsFmt', [group.pctOfAssets])}</p>
                 </div>
               </button>
               {!collapsed && (
@@ -769,8 +797,8 @@ export default function AssetsPage() {
           >
             <p id="confirm-modal-title" className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
-              <button type="button" aria-label="Cancel and close" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
+              <button type="button" aria-label={t('assetsCancelAndClose')} onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('cancel')}</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('confirm')}</button>
             </div>
           </div>
         </ModalShell>
@@ -785,20 +813,20 @@ export default function AssetsPage() {
             aria-labelledby="form-modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md my-4"
           >
-            <h2 id="form-modal-title" className="text-xl font-bold text-primary mb-4">{editItem ? 'Edit Asset' : 'Add Asset'}</h2>
+            <h2 id="form-modal-title" className="text-xl font-bold text-primary mb-4">{editItem ? t('assetsEditAsset') : t('assetsAddAssetTitle')}</h2>
             <div className="space-y-4">
               <div>
-                <label htmlFor="asset-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <label htmlFor="asset-name" className="block text-sm font-medium text-gray-700 mb-1">{t('assetsFieldName')}</label>
                 <input id="asset-name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="e.g. My Home" />
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('assetsNamePlaceholder')} />
               </div>
               <div>
-                <label htmlFor="asset-type" className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label htmlFor="asset-type" className="block text-sm font-medium text-gray-700 mb-1">{t('assetsFieldType')}</label>
                 <select id="asset-type" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900">
-                  {Object.entries(TYPE_GROUPS).map(([group, items]) => (
-                    <optgroup key={group} label={group}>
-                      {items.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  {TYPE_GROUP_DEFS.map((group) => (
+                    <optgroup key={group.groupLabelKey} label={`${group.groupEmoji} ${t(group.groupLabelKey)}`}>
+                      {group.items.map(opt => <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>)}
                     </optgroup>
                   ))}
                 </select>
@@ -819,19 +847,19 @@ export default function AssetsPage() {
                       <p className="text-xs text-amber-700 mt-1.5 flex items-start gap-1.5">
                         <span aria-hidden="true">⚠️</span>
                         <span>
-                          The name suggests this is a rental — pick{' '}
+                          {t('assetsHintRentalLead')}{' '}
                           <button type="button"
                             onClick={() => setForm({ ...form, type: 'rental_property' })}
                             className="underline font-medium text-amber-800 hover:text-amber-900">
-                            Rental Property
+                            {t('assetsTypeRentalProperty')}
                           </button>
-                          {' '}or{' '}
+                          {' '}{t('assetsHintOr')}{' '}
                           <button type="button"
                             onClick={() => setForm({ ...form, type: 'investment_property' })}
                             className="underline font-medium text-amber-800 hover:text-amber-900">
-                            Investment Property (Rental)
+                            {t('assetsTypeInvestmentPropertyRental')}
                           </button>
-                          {' '}so zakat treats the rental income correctly.
+                          {' '}{t('assetsHintRentalTrail')}
                         </span>
                       </p>
                     );
@@ -841,13 +869,13 @@ export default function AssetsPage() {
                       <p className="text-xs text-amber-700 mt-1.5 flex items-start gap-1.5">
                         <span aria-hidden="true">⚠️</span>
                         <span>
-                          The name suggests this is your primary home — pick{' '}
+                          {t('assetsHintPrimaryLead')}{' '}
                           <button type="button"
                             onClick={() => setForm({ ...form, type: 'primary_home' })}
                             className="underline font-medium text-amber-800 hover:text-amber-900">
-                            Primary Home
+                            {t('assetsTypePrimaryHome')}
                           </button>
-                          {' '}so zakat treats it as personal-use exempt.
+                          {' '}{t('assetsHintPrimaryTrail')}
                         </span>
                       </p>
                     );
@@ -856,17 +884,17 @@ export default function AssetsPage() {
                 })()}
               </div>
               <div>
-                <label htmlFor="asset-value" className="block text-sm font-medium text-gray-700 mb-1">Value ({currency})</label>
+                <label htmlFor="asset-value" className="block text-sm font-medium text-gray-700 mb-1">{tFmt('assetsFieldValueFmt', [currency])}</label>
                 <input id="asset-value" type="number" step="0.01" value={form.value} onChange={e => setForm({ ...form, value: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="0.00" />
               </div>
 
               {ADDRESS_TYPES.includes(form.type) && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('assetsFieldAddress')}</label>
                   <input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                    placeholder="e.g. 123 Main St, Austin, TX 78701" />
+                    placeholder={t('assetsAddressPlaceholder')} />
                   {form.address && (
                     <div className="mt-2 rounded-lg overflow-hidden border">
                       {mapsUrl(form.address) ? (
@@ -876,11 +904,11 @@ export default function AssetsPage() {
                           src={mapsUrl(form.address)!}
                         />
                       ) : (
-                        <p className="text-xs text-gray-400 italic py-2 px-3">Map unavailable</p>
+                        <p className="text-xs text-gray-400 italic py-2 px-3">{t('assetsMapUnavailable')}</p>
                       )}
                     </div>
                   )}
-                  <p className="text-xs text-gray-400 mt-1">Address is used for map display only. Enter your estimated value above.</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('assetsAddressHelp')}</p>
                 </div>
               )}
 
@@ -888,7 +916,7 @@ export default function AssetsPage() {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Early Withdrawal Penalty (%)
+                      {t('assetsFieldEarlyWithdrawalPenalty')}
                     </label>
                     <input type="number" step="0.1" min="0" max="100" value={form.penaltyRate}
                       onChange={e => setForm({ ...form, penaltyRate: e.target.value })}
@@ -896,7 +924,7 @@ export default function AssetsPage() {
                       placeholder={EDUCATION_TYPES.includes(form.type) || IRA_TYPES.includes(form.type) ? '0' : '10'} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('assetsFieldTaxRate')}</label>
                     <input type="number" step="0.1" min="0" max="100" value={form.taxRate}
                       onChange={e => setForm({ ...form, taxRate: e.target.value })}
                       className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -904,16 +932,14 @@ export default function AssetsPage() {
                   </div>
                   {EDUCATION_TYPES.includes(form.type) ? (
                     <p className="text-xs text-gray-500">
-                      529 plans: <strong>qualified</strong> withdrawals (for education) are tax-free &amp; penalty-free — leave both at 0%.
-                      For <strong>non-qualified</strong> withdrawals, set 10% penalty + your income tax rate to zakat only on what you&apos;d actually keep.
+                      {t('assetsHelp529Part1')}<strong>{t('assetsHelp529Qualified')}</strong>{t('assetsHelp529Part2')}<strong>{t('assetsHelp529NonQualified')}</strong>{t('assetsHelp529Part3')}
                     </p>
                   ) : IRA_TYPES.includes(form.type) ? (
                     <p className="text-xs text-gray-500">
-                      IRAs are tax-exempt by default (0% penalty, 0% tax). If your state charges income tax, add your state rate above.
-                      States like TX, FL, NV, WA, WY, SD, AK, TN, NH have no state income tax.
+                      {t('assetsHelpIra')}
                     </p>
                   ) : (
-                    <p className="text-xs text-gray-500">Defaults: 10% penalty + 22% federal tax + state tax. Adjust if your state or plan differs.</p>
+                    <p className="text-xs text-gray-500">{t('assetsHelpPenaltyDefaults')}</p>
                   )}
                 </>
               )}
@@ -921,16 +947,14 @@ export default function AssetsPage() {
               {INVESTMENT_TYPES.includes(form.type) && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Capital Gains Tax Rate (%)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('assetsFieldCapitalGainsTaxRate')}</label>
                     <input type="number" step="0.1" min="0" max="100" value={form.taxRate}
                       onChange={e => setForm({ ...form, taxRate: e.target.value })}
                       className="w-full border rounded-lg px-3 py-2 text-gray-900"
                       placeholder="0" />
                   </div>
                   <p className="text-xs text-gray-500">
-                    <strong>Optional:</strong> Set your estimated capital gains tax rate to zakat only on what you&apos;d keep after selling.
-                    Common rates: <strong>15%</strong> long-term, <strong>22–37%</strong> short-term (depends on income).
-                    Leave at 0% to zakat on the full market value (default — some scholars prefer this).
+                    <strong>{t('assetsHelpCapGainsOptionalLabel')}</strong> {t('assetsHelpCapGainsPart1')}<strong>{t('assetsHelpCapGainsLongTerm')}</strong>{t('assetsHelpCapGainsPart2')}<strong>{t('assetsHelpCapGainsShortTerm')}</strong>{t('assetsHelpCapGainsPart3')}
                   </p>
                 </>
               )}
@@ -941,10 +965,10 @@ export default function AssetsPage() {
               </div>
             )}
             <div className="flex gap-3 mt-4">
-              <button type="button" aria-label="Cancel and close" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" aria-label={t('assetsCancelAndClose')} onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('cancel')}</button>
               <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.value}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">
-                {saving ? 'Saving...' : editItem ? 'Update' : 'Add'}
+                {saving ? t('assetsSaving') : editItem ? t('assetsUpdate') : t('assetsAddBtn')}
               </button>
             </div>
           </div>

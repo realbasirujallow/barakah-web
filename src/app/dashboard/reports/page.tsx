@@ -8,6 +8,7 @@ import {
 import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { useCurrency } from '../../../lib/useCurrency';
+import { useI18n } from '../../../lib/i18n';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { CategoryIcon } from '../../../lib/categoryIcon';
@@ -26,11 +27,11 @@ type Period = 'week' | 'month' | 'year' | 'all';
 type Tab = 'spending' | 'income' | 'trends' | 'exports';
 type SubView = 'breakdown' | 'trends';
 
-const PERIODS: { value: Period; label: string }[] = [
-  { value: 'week',  label: 'Last 7 Days' },
-  { value: 'month', label: 'Last 30 Days' },
-  { value: 'year',  label: 'Last Year' },
-  { value: 'all',   label: 'All Time' },
+const PERIODS: { value: Period; labelKey: string }[] = [
+  { value: 'week',  labelKey: 'reportsPeriodWeek' },
+  { value: 'month', labelKey: 'reportsPeriodMonth' },
+  { value: 'year',  labelKey: 'reportsPeriodYear' },
+  { value: 'all',   labelKey: 'reportsPeriodAll' },
 ];
 
 interface BreakdownRow {
@@ -63,40 +64,51 @@ const DONUT_PALETTE = [
   '#37474F', '#7B1FA2', '#0277BD', '#D84315', '#33691E',
 ];
 
-const REPORT_TYPES = [
+const REPORT_TYPES: {
+  id: string;
+  titleKey: string;
+  emoji: string;
+  descKey: string;
+  badge: string;
+  badgeKey?: string;
+  badgeColor: string;
+  periodPicker: boolean;
+  href?: string;
+}[] = [
   {
     id: 'zakat',
-    title: 'Zakat Statement',
+    titleKey: 'reportsZakatStatementTitle',
     emoji: '🕌',
-    desc: 'Full zakat calculation breakdown with nisab, assets, and amount due',
+    descKey: 'reportsZakatStatementDesc',
     badge: 'PDF',
     badgeColor: 'bg-green-100 text-green-800',
     periodPicker: false,
   },
   {
     id: 'transactions-pdf',
-    title: 'Transaction History',
+    titleKey: 'reportsTransactionHistoryTitle',
     emoji: '📋',
-    desc: 'Formatted PDF of your income, expenses, and categories',
+    descKey: 'reportsTransactionHistoryDesc',
     badge: 'PDF',
     badgeColor: 'bg-green-100 text-green-800',
     periodPicker: true,
   },
   {
     id: 'transactions-csv',
-    title: 'Export to Spreadsheet',
+    titleKey: 'reportsExportSpreadsheetTitle',
     emoji: '📊',
-    desc: 'Download transactions as a CSV file for Excel, Google Sheets, or accounting software',
+    descKey: 'reportsExportSpreadsheetDesc',
     badge: 'CSV',
     badgeColor: 'bg-blue-100 text-blue-800',
     periodPicker: true,
   },
   {
     id: 'portfolio',
-    title: 'Portfolio Summary',
+    titleKey: 'reportsPortfolioSummaryTitle',
     emoji: '💰',
-    desc: 'View your asset holdings, allocation breakdown, and total wealth',
+    descKey: 'reportsPortfolioSummaryDesc',
     badge: 'View',
+    badgeKey: 'reportsBadgeView',
     badgeColor: 'bg-purple-100 text-purple-800',
     periodPicker: false,
     href: '/dashboard/assets',
@@ -106,6 +118,8 @@ const REPORT_TYPES = [
 function ReportsPageContent() {
   const { toast } = useToast();
   const { fmt } = useCurrency();
+  const { t, tFmt } = useI18n();
+  const otherLabel = t('reportsCategoryOther');
   const [tab, setTab] = useState<Tab>('spending');
   const [subView, setSubView] = useState<SubView>('breakdown');
   const [period, setPeriod] = useState<Period>('month');
@@ -133,11 +147,11 @@ function ReportsPageContent() {
         setMonths(list);
         if (list.length > 0) setSelectedMonth(list[list.length - 1].month);
       } catch {
-        if (!cancelled) toast('Failed to load report data', 'error');
+        if (!cancelled) toast(t('reportsLoadDataError'), 'error');
       }
     })();
     return () => { cancelled = true; };
-  }, [toast]);
+  }, [toast, t]);
 
   // Single-month breakdown for Spending/Income donuts.
   useEffect(() => {
@@ -195,7 +209,7 @@ function ReportsPageContent() {
               other += r.amount;
             }
           });
-          if (other > 0) row['Other'] = other;
+          if (other > 0) row[otherLabel] = other;
           return row;
         });
         setTrendData(data);
@@ -204,23 +218,23 @@ function ReportsPageContent() {
       }
     })();
     return () => { cancelled = true; };
-  }, [subView, months, trendData.length]);
+  }, [subView, months, trendData.length, otherLabel]);
 
   const handleGenerate = async (id: string) => {
     setLoading(id);
     try {
       if (id === 'zakat') {
         await api.downloadZakatReport();
-        toast('Zakat statement downloaded', 'success');
+        toast(t('reportsZakatDownloadedToast'), 'success');
       } else if (id === 'transactions-pdf') {
         await api.downloadTransactionsPdf(period);
-        toast('Transaction report downloaded', 'success');
+        toast(t('reportsTransactionDownloadedToast'), 'success');
       } else if (id === 'transactions-csv') {
         await api.downloadTransactionsCsv(period);
-        toast('CSV exported', 'success');
+        toast(t('reportsCsvExportedToast'), 'success');
       }
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Export failed. Please try again.', 'error');
+      toast(err instanceof Error ? err.message : t('reportsExportFailedToast'), 'error');
     } finally {
       setLoading(null);
     }
@@ -259,36 +273,36 @@ function ReportsPageContent() {
   return (
     <div className="max-w-6xl">
       <PageHeader
-        title="Reports"
+        title={t('reportsTitle')}
         icon="📊"
-        subtitle="Spending, income, and trends across your data — plus exports."
+        subtitle={t('reportsSubtitle')}
       />
 
       {/* Tab strip — Monarch parity: Spending / Income / Trends / Exports */}
       <div className="border-b border-gray-200 mb-5">
-        <nav className="flex gap-6" aria-label="Reports tabs">
+        <nav className="flex gap-6" aria-label={t('reportsTabsAria')}>
           {([
-            { id: 'spending', label: 'Spending' },
-            { id: 'income', label: 'Income' },
-            { id: 'trends', label: 'Trends' },
-            { id: 'exports', label: 'Exports' },
-          ] as { id: Tab; label: string }[]).map(t => (
+            { id: 'spending', label: t('reportsTabSpending') },
+            { id: 'income', label: t('reportsTabIncome') },
+            { id: 'trends', label: t('reportsTabTrends') },
+            { id: 'exports', label: t('reportsTabExports') },
+          ] as { id: Tab; label: string }[]).map(tabItem => (
             <button
-              key={t.id}
+              key={tabItem.id}
               type="button"
               onClick={() => {
-                setTab(t.id);
-                if (t.id === 'trends') setSubView('trends');
+                setTab(tabItem.id);
+                if (tabItem.id === 'trends') setSubView('trends');
                 else setSubView('breakdown');
               }}
               className={`px-1 py-3 text-sm font-medium transition border-b-2 ${
-                tab === t.id
+                tab === tabItem.id
                   ? 'border-primary text-foreground'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
-              aria-current={tab === t.id ? 'page' : undefined}
+              aria-current={tab === tabItem.id ? 'page' : undefined}
             >
-              {t.label}
+              {tabItem.label}
             </button>
           ))}
         </nav>
@@ -310,7 +324,7 @@ function ReportsPageContent() {
                       subView === v ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    {v}
+                    {v === 'breakdown' ? t('reportsSubViewBreakdown') : t('reportsSubViewTrends')}
                   </button>
                 ))}
               </div>
@@ -347,7 +361,11 @@ function ReportsPageContent() {
             <div className="bg-white rounded-2xl shadow-sm p-6">
               {donutData.length === 0 ? (
                 <div className="text-center py-12 text-sm text-muted-foreground">
-                  {breakdown ? `No ${tab} for ${monthLong(selectedMonth)}.` : 'Loading breakdown…'}
+                  {breakdown
+                    ? (tab === 'income'
+                        ? tFmt('reportsNoIncomeForFmt', [monthLong(selectedMonth)])
+                        : tFmt('reportsNoSpendingForFmt', [monthLong(selectedMonth)]))
+                    : t('reportsLoadingBreakdown')}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
@@ -376,7 +394,7 @@ function ReportsPageContent() {
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                       <p className="text-2xl font-bold text-foreground tabular-nums">{fmt(donutTotal)}</p>
-                      <p className="text-xs text-muted-foreground">Total</p>
+                      <p className="text-xs text-muted-foreground">{t('reportsDonutTotal')}</p>
                     </div>
                   </div>
                   <ul className="space-y-2">
@@ -405,9 +423,9 @@ function ReportsPageContent() {
           {subView === 'trends' && tab === 'spending' && (
             <div className="bg-white rounded-2xl shadow-sm p-6">
               {trendsLoading && trendData.length === 0 ? (
-                <div className="text-center py-12 text-sm text-muted-foreground">Loading trends…</div>
+                <div className="text-center py-12 text-sm text-muted-foreground">{t('reportsLoadingTrends')}</div>
               ) : trendData.length === 0 ? (
-                <div className="text-center py-12 text-sm text-muted-foreground">No trend data yet.</div>
+                <div className="text-center py-12 text-sm text-muted-foreground">{t('reportsNoTrendData')}</div>
               ) : (
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart data={trendData} margin={{ top: 8, right: 12, left: 4, bottom: 30 }}>
@@ -419,13 +437,13 @@ function ReportsPageContent() {
                       contentStyle={{ backgroundColor: 'white', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
                     />
                     <Legend wrapperStyle={{ fontSize: 11 }} iconSize={8} />
-                    {[...trendCategories, 'Other'].map((cat, i) => (
+                    {[...trendCategories, otherLabel].map((cat, i) => (
                       <Bar
                         key={cat}
                         dataKey={cat}
                         stackId="spending"
                         fill={DONUT_PALETTE[i % DONUT_PALETTE.length]}
-                        radius={i === [...trendCategories, 'Other'].length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                        radius={i === [...trendCategories, otherLabel].length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
                       />
                     ))}
                   </BarChart>
@@ -446,7 +464,7 @@ function ReportsPageContent() {
           ) : (
             <>
               <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium mb-3">
-                Spending by category, last 13 months
+                {t('reportsTrendsCaption')}
               </p>
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={trendData} margin={{ top: 8, right: 12, left: 4, bottom: 30 }}>
@@ -479,7 +497,7 @@ function ReportsPageContent() {
         <>
           {/* Period selector — for time-based reports */}
           <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
-            <p className="text-sm font-semibold text-gray-700 mb-3">Time Period</p>
+            <p className="text-sm font-semibold text-gray-700 mb-3">{t('reportsTimePeriod')}</p>
             <div className="flex flex-wrap gap-2">
               {PERIODS.map(p => (
                 <button
@@ -492,11 +510,11 @@ function ReportsPageContent() {
                       : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  {p.label}
+                  {t(p.labelKey)}
                 </button>
               ))}
             </div>
-            <p className="text-xs text-gray-400 mt-2">Applies to Transaction History and CSV Export</p>
+            <p className="text-xs text-gray-400 mt-2">{t('reportsTimePeriodNote')}</p>
           </div>
 
           {/* Report cards */}
@@ -514,15 +532,15 @@ function ReportsPageContent() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                      <p className="font-semibold text-gray-900">{r.title}</p>
+                      <p className="font-semibold text-gray-900">{t(r.titleKey)}</p>
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${r.badgeColor}`}>
-                        {r.badge}
+                        {r.badgeKey ? t(r.badgeKey) : r.badge}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500">{r.desc}</p>
+                    <p className="text-sm text-gray-500">{t(r.descKey)}</p>
                     {r.periodPicker && (
                       <p className="text-xs text-primary font-medium mt-1">
-                        Period: {PERIODS.find(p => p.value === period)?.label}
+                        {tFmt('reportsPeriodLabelFmt', [t(PERIODS.find(p => p.value === period)?.labelKey ?? 'reportsPeriodMonth')])}
                       </p>
                     )}
                   </div>
@@ -536,10 +554,10 @@ function ReportsPageContent() {
                       {isLoading ? (
                         <span className="flex items-center gap-1.5">
                           <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          Generating…
+                          {t('reportsGenerating')}
                         </span>
                       ) : (
-                        <>⬇ Download</>
+                        <>⬇ {t('reportsDownload')}</>
                       )}
                     </button>
                   )}
@@ -561,8 +579,7 @@ function ReportsPageContent() {
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
             <span className="text-amber-500 text-lg flex-shrink-0">ℹ️</span>
             <div className="text-sm text-amber-900">
-              <strong>Reports are for personal record-keeping.</strong> For tax purposes or legal matters, consult a qualified accountant or Islamic finance advisor.
-              Barakah does not sell your data; trusted service providers are used only where needed to operate the product.
+              <strong>{t('reportsInfoNoteLabel')}</strong> {t('reportsInfoNoteBody')}
             </div>
           </div>
         </>
