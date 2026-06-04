@@ -59,7 +59,7 @@ const securityFAQ = [
   {
     question: 'Who built Barakah and why should I trust it?',
     answer:
-      'Barakah is built by Basiru Jallow, a cybersecurity professional with 10+ years of enterprise identity and access management experience, including federal work at Deloitte GPS (supporting the Social Security Administration) and Fortune 200 security operations at CBRE Group. Security is not an afterthought — it is a core competency of the founder.',
+      'Barakah is built by Basiru Jallow, a cybersecurity professional with 10+ years of enterprise identity and access management experience — Senior SailPoint Developer at Deloitte GPS (supporting the Social Security Administration), IAM engineering at Navient, and Fortune 200 security operations at CBRE Group. Security is not an afterthought — it is a core competency of the founder.',
   },
 ];
 
@@ -179,7 +179,7 @@ export default function SecurityPage() {
           <div>
             <p className="font-bold text-lg">Built by a cybersecurity professional</p>
             <p className="text-green-100 text-sm mt-1">
-              Basiru Jallow — 10+ years in enterprise identity &amp; access management. Federal (Deloitte GPS / SSA), Fortune 200 (CBRE Group), and 8+ years building IAM programs at Navient.
+              Basiru Jallow — 10+ years in enterprise cybersecurity and identity &amp; access management: Senior SailPoint Developer at Deloitte GPS (SSA), IAM engineering at Navient, and Fortune 200 security operations at CBRE Group.
             </p>
           </div>
         </div>

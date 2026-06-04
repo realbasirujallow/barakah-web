@@ -102,7 +102,7 @@ export default function TrustPageClient() {
           <div>
             <p className="font-bold text-lg">Built by a cybersecurity professional</p>
             <p className="text-green-100 text-sm mt-1">
-              Basiru Jallow — 10+ years in enterprise identity &amp; access management including federal work at Deloitte GPS (Social Security Administration) and Fortune 200 security operations at CBRE Group. Security is a core competency, not an afterthought.
+              Basiru Jallow — 10+ years in enterprise cybersecurity and identity &amp; access management: Senior SailPoint Developer at Deloitte GPS (Social Security Administration), IAM engineering at Navient, and Fortune 200 security operations at CBRE Group. Security is a core competency, not an afterthought.
             </p>
           </div>
         </div>

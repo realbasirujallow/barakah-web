@@ -362,7 +362,7 @@ export default function HomeV2() {
               <h3 className="text-xl font-bold text-gray-900 mb-1">Basiru Jallow</h3>
               <p className="text-sm text-[#1B5E20] font-semibold mb-3">Founder &amp; Senior Security Engineer</p>
               <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                10+ years in enterprise cybersecurity and identity governance. Former Senior SailPoint Developer at Deloitte GPS supporting the Social Security Administration, and cybersecurity lead at CBRE Group (Fortune 200). Full-stack engineer across Java, Python, TypeScript, and Flutter. Built Barakah to give Muslim households the same caliber of secure, well-engineered financial tools that Fortune 500 companies rely on — with security practices from the identity and access management industry.
+                10+ years in enterprise cybersecurity and identity &amp; access management. Former Senior SailPoint Developer at Deloitte GPS supporting the Social Security Administration, IAM engineering at Navient, and cybersecurity lead at CBRE Group (Fortune 200). Full-stack engineer across Java, Python, TypeScript, and Flutter. Built Barakah to give Muslim households the same caliber of secure, well-engineered financial tools that Fortune 500 companies rely on — with security practices from the identity and access management industry.
               </p>
               <p className="text-gray-700 italic leading-relaxed text-sm mb-3 border-l-2 border-[#1B5E20]/30 pl-4">
                 &ldquo;Barakah exists because every other money app forgot the Muslim household. Zakat is not a side feature; halal is not a filter. We&apos;re building the financial home our families actually need.&rdquo;

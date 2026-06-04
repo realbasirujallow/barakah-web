@@ -69,9 +69,10 @@ export default function FounderPage() {
               <h2 className="text-2xl font-bold text-gray-900">Basiru Jallow</h2>
               <p className="text-sm text-[#1B5E20] font-semibold mt-1">Founder &amp; Senior Security Engineer · Barakah</p>
               <p className="text-base text-gray-700 mt-4">
-                10+ years in enterprise cybersecurity and identity governance. Former
-                Senior SailPoint Developer at Deloitte GPS supporting the Social
-                Security Administration, and cybersecurity lead at CBRE Group (Fortune 200).
+                10+ years in enterprise cybersecurity and identity and access
+                management. Former Senior SailPoint Developer at Deloitte GPS
+                supporting the Social Security Administration, IAM engineering at
+                Navient, and cybersecurity lead at CBRE Group (Fortune 200).
                 Full-stack engineer across Java, Python, TypeScript, and Flutter.
                 Built Barakah to give Muslim households the same caliber of secure,
                 well-engineered financial tools that Fortune 500 companies rely on —
