@@ -196,6 +196,15 @@ export default function TransactionsPage() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
+  // #6 (2026-06-04): local-calendar YYYY-MM-DD for an existing timestamp, so the
+  // edit modal, the list grouping, and the month filter all agree with the date
+  // shown on the row. toISOString() returned UTC, which from US Eastern after
+  // ~8pm rolled a transaction forward a day (off-by-one between list + edit).
+  // Standard convention = the user's local date.
+  const localDateKey = (ts: number) => {
+    const d = new Date(ts);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
   const [form, setForm] = useState({
     type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: 'USD',
     date: localToday(),
@@ -351,7 +360,7 @@ export default function TransactionsPage() {
 
   const openEdit = (tx: Tx) => {
     setEditTx(tx);
-    const txDate = new Date(tx.timestamp).toISOString().slice(0, 10);
+    const txDate = localDateKey(tx.timestamp);
     setForm({ type: tx.type, direction: tx.direction || (tx.type === 'income' ? 'inflow' : tx.type === 'transfer' ? 'neutral' : 'outflow'), category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate, tags: tx.tags || '', notes: tx.notes || '' });
     // BUG FIX: clear stale form error when editing a different transaction
     setFormError(null);
@@ -383,8 +392,11 @@ export default function TransactionsPage() {
         setSaving(false);
         return;
       }
-      // Convert date string to epoch milliseconds (noon UTC to avoid timezone edge cases)
-      const timestamp = form.date ? new Date(form.date + 'T12:00:00Z').getTime() : Date.now();
+      // #6: epoch millis at LOCAL noon, so the stored instant's local calendar
+      // day equals exactly the date the user picked (matches localDateKey on
+      // read). Noon avoids any DST edge. Was 'T12:00:00Z' (UTC) which could land
+      // a chosen date on the previous/next local day.
+      const timestamp = form.date ? new Date(form.date + 'T12:00:00').getTime() : Date.now();
       // Round 30: strip `date` before send. The DTO expects a numeric
       // `timestamp` (Long); sending the raw ISO-date string caused
       // Jackson to fail "invalid request body" when the user edited a
@@ -1013,16 +1025,14 @@ export default function TransactionsPage() {
           const groups: Group[] = [];
           const byKey: Record<string, Group> = {};
           const monthFilteredTxs = urlMonth
-              ? txs.filter(t => {
-                  const iso = new Date(t.timestamp).toISOString();
-                  return iso.startsWith(urlMonth);
-                })
+              ? txs.filter(t => localDateKey(t.timestamp).startsWith(urlMonth))
               : txs;
           for (const t of monthFilteredTxs) {
             const d = new Date(t.timestamp);
-            // Use ISO date as the stable bucketing key (independent of
-            // user locale) but render a friendlier label below.
-            const key = d.toISOString().slice(0, 10);
+            // #6: bucket by the LOCAL calendar date so the group a row lands in
+            // matches the date shown on the row + in the edit modal; render a
+            // friendlier locale-formatted label below.
+            const key = localDateKey(t.timestamp);
             let g = byKey[key];
             if (!g) {
               const today = new Date();
