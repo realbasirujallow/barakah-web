@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { api } from '../../../lib/api';
@@ -15,6 +15,7 @@ import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { SkeletonPage } from '../SkeletonCard';
 import EmptyState from '../../../components/EmptyState';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
+import { useFocusTrap } from '../../../lib/useFocusTrap';
 
 interface Asset {
   id: number;
@@ -76,6 +77,16 @@ const GROUP_ORDER: Record<string, number> = {
 };
 const groupOrderIndex = (label: string): number =>
   GROUP_ORDER[label] ?? Number.MAX_SAFE_INTEGER;
+
+// Coerce an untyped backend value to a finite number, defaulting to 0. The
+// breakdown rows come through as Record<string, unknown>; feeding null /
+// undefined / NaN straight into Intl.NumberFormat renders a literal "$NaN"
+// (and the `as number` cast hid that from the type checker). Guard the value
+// before formatting so a missing field shows "$0.00" instead.
+const safeNum = (v: unknown): number => {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
 
 interface SubscriptionStatus {
   plan: 'free' | 'plus' | 'family';
@@ -154,6 +165,16 @@ export default function AssetsPage() {
   const [showBreakdown, setShowBreakdown] = useState(false);
   // 2026-05-02: scroll lock — see comment near showForm declaration.
   useBodyScrollLock(showForm || showBreakdown);
+  // Focus-trap refs for the three dialogs (add/edit form, confirm-delete, and
+  // the zakat breakdown). Matches the sitewide pattern (savings/bills/waqf):
+  // ModalShell handles Escape + outside-click + body-scroll-lock; useFocusTrap
+  // adds Tab-trapping, initial focus, and focus restore on close.
+  const formModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(formModalRef, showForm);
+  const confirmModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(confirmModalRef, confirmAction !== null);
+  const breakdownModalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(breakdownModalRef, showBreakdown);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   // Monarch-style collapsible group sections, keyed by display label. Per-session
@@ -459,8 +480,8 @@ export default function AssetsPage() {
             <>
               {!a.readOnly && (
                 <>
-                  <button type="button" onClick={() => openEdit(a)} className="text-gray-400 hover:text-blue-600 text-sm">Edit</button>
-                  <button type="button" onClick={() => handleDelete(a.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                  <button type="button" onClick={() => openEdit(a)} className="text-gray-600 hover:text-blue-600 text-sm">Edit</button>
+                  <button type="button" onClick={() => handleDelete(a.id)} className="text-gray-600 hover:text-red-600 text-sm">Delete</button>
                 </>
               )}
               {a.readOnly && (
@@ -617,39 +638,47 @@ export default function AssetsPage() {
       </div>
 
       {showBreakdown && total?.breakdown ? (
-        <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-primary">Zakat Calculation Breakdown</h2>
-            <button type="button" onClick={() => setShowBreakdown(false)} className="text-gray-400 hover:text-gray-600">✕</button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-            <div className="bg-blue-50 rounded-xl p-3"><p className="text-xs text-gray-500">Net Worth</p><p className="font-bold text-blue-700">{fmt((total?.netWorth as number) || 0)}</p></div>
-            <div className="bg-green-50 rounded-xl p-3"><p className="text-xs text-gray-500">Zakatable</p><p className="font-bold text-green-700">{fmt((total?.zakatableWealth as number) || 0)}</p></div>
-            <div className="bg-orange-50 rounded-xl p-3"><p className="text-xs text-gray-500">Exempt</p><p className="font-bold text-orange-700">{fmt((total?.nonZakatableWealth as number) || 0)}</p></div>
-          </div>
-          <div className="border-t pt-3 mb-3">
-            <p className="text-xs text-gray-500 mb-1">Nisab Threshold: {fmt((total?.nisab as number) || 5686.20)}</p>
-            <p className="text-xs text-gray-500">Zakat Rate: 2.5% of zakatable wealth</p>
-            <p className="text-sm font-semibold text-primary mt-1">Zakat Due = {fmt((total?.zakatableWealth as number) || 0)} × 2.5% = {fmt((total?.zakatDue as number) || 0)}</p>
-          </div>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {(total.breakdown as Array<Record<string, unknown>>).map((item, i) => (
-              <div key={i} className={`flex justify-between items-start p-3 rounded-lg text-sm ${(item.zakatable as boolean) ? 'bg-green-50' : 'bg-orange-50'}`}>
-                <div>
-                  <p className="font-medium text-gray-900">{item.name as string}</p>
-                  <p className="text-xs text-gray-500 capitalize">{typeLabel(item.type as string)}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{item.reason as string}</p>
+        <ModalShell onClose={() => setShowBreakdown(false)} className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div
+            ref={breakdownModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="breakdown-modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-lg my-4 max-h-[90vh] overflow-y-auto shadow-sm"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 id="breakdown-modal-title" className="text-lg font-bold text-primary">Zakat Calculation Breakdown</h2>
+              <button type="button" aria-label="Close breakdown" onClick={() => setShowBreakdown(false)} className="text-gray-500 hover:text-gray-700 text-xl leading-none">✕</button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+              <div className="bg-blue-50 rounded-xl p-3"><p className="text-xs text-gray-500">Net Worth</p><p className="font-bold text-blue-700">{fmt((total?.netWorth as number) || 0)}</p></div>
+              <div className="bg-green-50 rounded-xl p-3"><p className="text-xs text-gray-500">Zakatable</p><p className="font-bold text-green-700">{fmt((total?.zakatableWealth as number) || 0)}</p></div>
+              <div className="bg-orange-50 rounded-xl p-3"><p className="text-xs text-gray-500">Exempt</p><p className="font-bold text-orange-700">{fmt((total?.nonZakatableWealth as number) || 0)}</p></div>
+            </div>
+            <div className="border-t pt-3 mb-3">
+              <p className="text-xs text-gray-500 mb-1">Nisab Threshold: {fmt((total?.nisab as number) || 5686.20)}</p>
+              <p className="text-xs text-gray-500">Zakat Rate: 2.5% of zakatable wealth</p>
+              <p className="text-sm font-semibold text-primary mt-1">Zakat Due = {fmt((total?.zakatableWealth as number) || 0)} × 2.5% = {fmt((total?.zakatDue as number) || 0)}</p>
+            </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {(total.breakdown as Array<Record<string, unknown>>).map((item, i) => (
+                <div key={i} className={`flex justify-between items-start p-3 rounded-lg text-sm ${(item.zakatable as boolean) ? 'bg-green-50' : 'bg-orange-50'}`}>
+                  <div>
+                    <p className="font-medium text-gray-900">{item.name as string}</p>
+                    <p className="text-xs text-gray-500 capitalize">{typeLabel(item.type as string)}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{item.reason as string}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-gray-700">{fmt(safeNum(item.value))}</p>
+                    <p className={`text-xs font-medium ${(item.zakatable as boolean) ? 'text-green-600' : 'text-orange-600'}`}>
+                      {(item.zakatable as boolean) ? `Zakatable: ${fmt(safeNum(item.zakatableValue))}` : 'Exempt'}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium text-gray-700">{fmt(item.value as number)}</p>
-                  <p className={`text-xs font-medium ${(item.zakatable as boolean) ? 'text-green-600' : 'text-orange-600'}`}>
-                    {(item.zakatable as boolean) ? `Zakatable: ${fmt(item.zakatableValue as number)}` : 'Exempt'}
-                  </p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </ModalShell>
       ) : null}
 
       {loadError && (
@@ -731,10 +760,16 @@ export default function AssetsPage() {
 
       {confirmAction && (
         <ModalShell onClose={() => setConfirmAction(null)}>
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-            <p className="text-gray-800 mb-6">{confirmAction.message}</p>
+          <div
+            ref={confirmModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-sm"
+          >
+            <p id="confirm-modal-title" className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" aria-label="Cancel and close" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
             </div>
           </div>
@@ -743,8 +778,14 @@ export default function AssetsPage() {
 
       {showForm && (
         <ModalShell onClose={() => setShowForm(false)} className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md my-4">
-            <h2 className="text-xl font-bold text-primary mb-4">{editItem ? 'Edit Asset' : 'Add Asset'}</h2>
+          <div
+            ref={formModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="form-modal-title"
+            className="bg-white rounded-2xl p-6 w-full max-w-md my-4"
+          >
+            <h2 id="form-modal-title" className="text-xl font-bold text-primary mb-4">{editItem ? 'Edit Asset' : 'Add Asset'}</h2>
             <div className="space-y-4">
               <div>
                 <label htmlFor="asset-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
@@ -900,7 +941,7 @@ export default function AssetsPage() {
               </div>
             )}
             <div className="flex gap-3 mt-4">
-              <button type="button" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" aria-label="Cancel and close" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
               <button type="button" onClick={handleSave} disabled={saving || !form.name || !form.value}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">
                 {saving ? 'Saving...' : editItem ? 'Update' : 'Add'}
