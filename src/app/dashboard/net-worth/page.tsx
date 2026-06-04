@@ -10,6 +10,7 @@ import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { ChevronRight } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useToast } from '../../../lib/toast';
+import { useI18n } from '../../../lib/i18n';
 
 interface Snapshot {
   id?: number;
@@ -68,11 +69,11 @@ function groupForDebt(t: string): string {
 }
 
 const PERIODS = [
-  { key: '30d', label: '30 Days' },
-  { key: '90d', label: '90 Days' },
-  { key: '6m', label: '6 Months' },
-  { key: '1y', label: '1 Year' },
-  { key: 'all', label: 'All Time' },
+  { key: '30d', labelKey: 'netWorthPeriod30d' },
+  { key: '90d', labelKey: 'netWorthPeriod90d' },
+  { key: '6m', labelKey: 'netWorthPeriod6m' },
+  { key: '1y', labelKey: 'netWorthPeriod1y' },
+  { key: 'all', labelKey: 'netWorthPeriodAll' },
 ];
 
 export default function NetWorthPage() {
@@ -80,6 +81,7 @@ export default function NetWorthPage() {
   const router = useRouter();
   const { fmt } = useCurrency();
   const { toast } = useToast();
+  const { t, tFmt } = useI18n();
   const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
 
   const [history, setHistory] = useState<Snapshot[]>([]);
@@ -196,10 +198,10 @@ export default function NetWorthPage() {
       snapshots.sort((a, b) => b.date - a.date);
       setHistory(snapshots);
     } catch {
-      if (mountedRef.current) setError('Could not load net worth data.');
+      if (mountedRef.current) setError(t('netWorthLoadError'));
     }
     if (mountedRef.current) setLoading(false);
-  }, [period]);
+  }, [period, t]);
 
   // BUG FIX: merged into one effect so free users don't trigger API calls before redirect
   useEffect(() => {
@@ -227,19 +229,38 @@ export default function NetWorthPage() {
         await load();
         // NW-snap-1 fix: previously this was a silent success — user
         // couldn't tell whether the snapshot saved. Add an explicit toast.
-        toast('Snapshot saved · history updated', 'success');
+        toast(t('netWorthSnapshotSaved'), 'success');
       }
     } catch {
       if (mountedRef.current) {
-        setError('Failed to take snapshot. Make sure you have assets tracked.');
-        toast('Snapshot failed. Make sure you have assets tracked.', 'error');
+        setError(t('netWorthSnapshotFailedError'));
+        toast(t('netWorthSnapshotFailedToast'), 'error');
       }
     }
     if (mountedRef.current) setSnapping(false);
   };
 
   const changePositive = (changeAmount ?? 0) >= 0;
-  const periodLabel = PERIODS.find(p => p.key === period)?.label ?? period;
+  const periodLabelKey = PERIODS.find(p => p.key === period)?.labelKey;
+  const periodLabel = periodLabelKey ? t(periodLabelKey) : period;
+
+  // 2026-06-03 (i18n): account-group bucket labels (Cash, Investments, …) are
+  // produced as English keys by groupForAsset/groupForDebt. Map each to a
+  // localized string; unknown buckets fall back to the raw key.
+  const GROUP_LABEL_KEYS: Record<string, string> = {
+    'Cash': 'netWorthGroupCash',
+    'Investments': 'netWorthGroupInvestments',
+    'Real Estate': 'netWorthGroupRealEstate',
+    'Vehicles': 'netWorthGroupVehicles',
+    'Precious Metals': 'netWorthGroupPreciousMetals',
+    'Other Assets': 'netWorthGroupOtherAssets',
+    'Credit Cards': 'netWorthGroupCreditCards',
+    'Mortgages': 'netWorthGroupMortgages',
+    'Student Loans': 'netWorthGroupStudentLoans',
+    'Auto Loans': 'netWorthGroupAutoLoans',
+    'Loans': 'netWorthGroupLoans',
+  };
+  const groupLabel = (key: string) => (GROUP_LABEL_KEYS[key] ? t(GROUP_LABEL_KEYS[key]) : key);
 
   // 2026-05-02 (Monarch parity): build expandable account groups.
   // Group assets by groupForAsset() and debts by groupForDebt(),
@@ -317,15 +338,15 @@ export default function NetWorthPage() {
   return (
     <div>
       <PageHeader
-        title="Net Worth"
-        subtitle="Assets minus debts, with halal-vs-haram split"
+        title={t('netWorthTitle')}
+        subtitle={t('netWorthSubtitle')}
         actions={
           <button
             onClick={takeSnapshot}
             disabled={snapping}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium disabled:opacity-50"
           >
-            {snapping ? 'Calculating...' : '📸 Take Snapshot'}
+            {snapping ? t('netWorthCalculating') : `📸 ${t('netWorthTakeSnapshot')}`}
           </button>
         }
       />
@@ -344,11 +365,11 @@ export default function NetWorthPage() {
         className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6"
         style={{ viewTransitionName: 'net-worth-hero' }}
       >
-        <p className="text-green-100 text-sm">Current Net Worth</p>
+        <p className="text-green-100 text-sm">{t('netWorthCurrent')}</p>
         <p className="text-4xl font-bold mb-1">{fmt(currentNetWorth)}</p>
         {history.length > 0 && changeAmount != null && (
           <p className={`text-sm ${changePositive ? 'text-green-200' : 'text-red-300'}`}>
-            {changePositive ? '▲' : '▼'} {fmt(Math.abs(changeAmount))} ({(changePercent ?? 0).toFixed(1)}%) over {periodLabel.toLowerCase()}
+            {changePositive ? '▲' : '▼'} {fmt(Math.abs(changeAmount))} ({(changePercent ?? 0).toFixed(1)}%) {tFmt('netWorthOverPeriodFmt', [periodLabel.toLowerCase()])}
           </p>
         )}
         {/* MOB-5 (2026-05-21): daily change ("Today") for parity with the
@@ -360,22 +381,22 @@ export default function NetWorthPage() {
           const dcp = prev !== 0 ? (dc / prev) * 100 : 0;
           return (
             <p className={`text-sm ${dc >= 0 ? 'text-green-200' : 'text-red-300'}`}>
-              {dc >= 0 ? '↗' : '↘'} {fmt(Math.abs(dc))} ({dc >= 0 ? '+' : ''}{dcp.toFixed(2)}%) Today
+              {dc >= 0 ? '↗' : '↘'} {fmt(Math.abs(dc))} ({dc >= 0 ? '+' : ''}{dcp.toFixed(2)}%) {t('netWorthToday')}
             </p>
           );
         })()}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
           <div className="bg-white/10 rounded-xl p-3">
-            <p className="text-green-100 text-xs">Total Assets</p>
+            <p className="text-green-100 text-xs">{t('zktTotalAssets')}</p>
             <p className="font-bold text-lg">{fmt(totalAssets)}</p>
           </div>
           <div className="bg-white/10 rounded-xl p-3">
-            <p className="text-green-100 text-xs">Savings Goals</p>
+            <p className="text-green-100 text-xs">{t('navSavingsGoals')}</p>
             <p className="font-bold text-lg">{fmt(totalSavings)}</p>
           </div>
           <div className="bg-white/10 rounded-xl p-3">
-            <p className="text-green-100 text-xs">Total Debts</p>
+            <p className="text-green-100 text-xs">{t('netWorthTotalDebts')}</p>
             <p className="font-bold text-lg">{fmt(totalDebts)}</p>
           </div>
         </div>
@@ -409,7 +430,7 @@ export default function NetWorthPage() {
                     domain={['auto', 'auto']}
                   />
                   <Tooltip
-                    formatter={(value) => [fmt(Number(value ?? 0)), 'Net worth'] as [string, string]}
+                    formatter={(value) => [fmt(Number(value ?? 0)), t('netWorthChartTooltip')] as [string, string]}
                     labelFormatter={(label) => new Date(Number(label)).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb', fontSize: 13 }}
                   />
@@ -434,7 +455,7 @@ export default function NetWorthPage() {
                 : 'bg-white text-gray-600 hover:bg-gray-100'
             }`}
           >
-            {p.label}
+            {t(p.labelKey)}
           </button>
         ))}
       </div>
@@ -450,7 +471,7 @@ export default function NetWorthPage() {
         const seg = (groups: typeof accountGroups, total: number, colors: string[]) => (
           <div className="flex h-3 rounded-full overflow-hidden bg-gray-100">
             {groups.map((g, i) => (
-              <div key={g.key} title={`${g.key} · ${fmt(g.total)}`}
+              <div key={g.key} title={`${groupLabel(g.key)} · ${fmt(g.total)}`}
                 style={{ width: `${total > 0 ? (g.total / total) * 100 : 0}%`, backgroundColor: colors[i % colors.length] }} />
             ))}
           </div>
@@ -461,7 +482,7 @@ export default function NetWorthPage() {
               <div key={g.key} className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-2 text-gray-600">
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors[i % colors.length] }} />
-                  {g.key}
+                  {groupLabel(g.key)}
                 </span>
                 <span className="font-medium text-gray-800 tabular-nums">
                   {compMode === 'percent' ? `${total > 0 ? ((g.total / total) * 100).toFixed(1) : '0'}%` : fmt(g.total)}
@@ -473,12 +494,12 @@ export default function NetWorthPage() {
         return (
           <div className="bg-white rounded-2xl p-5 border mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-gray-700 text-sm">Composition</h2>
+              <h2 className="font-semibold text-gray-700 text-sm">{t('netWorthComposition')}</h2>
               <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
                 {(['totals', 'percent'] as const).map(m => (
                   <button key={m} type="button" onClick={() => setCompMode(m)}
                     className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${compMode === m ? 'bg-white text-primary shadow-sm' : 'text-gray-500'}`}>
-                    {m === 'totals' ? 'Totals' : 'Percent'}
+                    {m === 'totals' ? t('netWorthTotals') : t('netWorthPercent')}
                   </button>
                 ))}
               </div>
@@ -486,7 +507,7 @@ export default function NetWorthPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-sm font-semibold text-emerald-800">Assets</span>
+                  <span className="text-sm font-semibold text-emerald-800">{t('navAssets')}</span>
                   <span className="text-sm font-bold text-gray-900 tabular-nums">{fmt(totalAssetsVal)}</span>
                 </div>
                 {seg(assetGroups, totalAssetsVal, ASSET_COLORS)}
@@ -494,11 +515,11 @@ export default function NetWorthPage() {
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-sm font-semibold text-rose-800">Liabilities</span>
+                  <span className="text-sm font-semibold text-rose-800">{t('netWorthLiabilities')}</span>
                   <span className="text-sm font-bold text-gray-900 tabular-nums">{fmt(totalLiabilities)}</span>
                 </div>
                 {liabGroups.length > 0 ? (<>{seg(liabGroups, totalLiabilities, LIAB_COLORS)}{legend(liabGroups, totalLiabilities, LIAB_COLORS)}</>)
-                  : <p className="text-sm text-gray-400 py-2">No debts tracked — debt-free, alhamdulillah.</p>}
+                  : <p className="text-sm text-gray-400 py-2">{t('netWorthNoDebtsTracked')}</p>}
               </div>
             </div>
           </div>
@@ -507,9 +528,9 @@ export default function NetWorthPage() {
 
       {/* How net worth is calculated */}
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-sm text-blue-800">
-        <p className="font-semibold mb-1">📌 How net worth is calculated</p>
-        <p>Net Worth = <span className="font-medium">Assets</span> + <span className="font-medium">Savings Goals</span> − <span className="font-medium">Active Debts</span></p>
-        <p className="mt-1 text-blue-700">Importing <em>transactions</em> does not update this figure. To reflect your account balances, go to <a href="/dashboard/import" className="underline font-medium">Import</a> and upload a <em>Balances CSV</em> from your bank or budgeting app (Monarch Money, YNAB, Mint, etc.) — positive accounts map to Assets, negative (credit cards / loans) map to Debts automatically.</p>
+        <p className="font-semibold mb-1">📌 {t('netWorthHowTitle')}</p>
+        <p>{t('netWorthTitle')} = <span className="font-medium">{t('navAssets')}</span> + <span className="font-medium">{t('navSavingsGoals')}</span> − <span className="font-medium">{t('netWorthActiveDebts')}</span></p>
+        <p className="mt-1 text-blue-700">{t('netWorthHowImportPrefix')} <a href="/dashboard/import" className="underline font-medium">{t('netWorthHowImportLink')}</a> {t('netWorthHowImportSuffix')}</p>
       </div>
 
       {/* Monarch-parity Accounts grid: 2-col on lg+ — left expandable
@@ -533,7 +554,7 @@ export default function NetWorthPage() {
                         className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}
                         aria-hidden="true"
                       />
-                      <span className="font-semibold text-foreground">{g.key}</span>
+                      <span className="font-semibold text-foreground">{groupLabel(g.key)}</span>
                       <span className="text-xs text-gray-400">({g.items.length})</span>
                     </div>
                     <span className={`font-bold tabular-nums ${g.kind === 'asset' ? 'text-foreground' : 'text-rose-700'}`}>
@@ -558,9 +579,9 @@ export default function NetWorthPage() {
                               {item.ribaFree === false && (
                                 <span
                                   className="text-[10px] uppercase tracking-wide font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded"
-                                  title="Riba-bearing — see /dashboard/riba"
+                                  title={t('netWorthRibaBearingTitle')}
                                 >
-                                  Riba
+                                  {t('debtRibaBadge')}
                                 </span>
                               )}
                               <span className={`text-sm font-semibold tabular-nums ${g.kind === 'asset' ? 'text-foreground' : 'text-rose-700'}`}>
@@ -579,10 +600,10 @@ export default function NetWorthPage() {
 
           {/* Side panel: Assets vs Liabilities (Monarch parity) */}
           <aside className="bg-white rounded-2xl shadow-sm p-5 h-fit">
-            <h3 className="font-semibold text-foreground mb-4">Summary</h3>
+            <h3 className="font-semibold text-foreground mb-4">{t('netWorthSummary')}</h3>
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-gray-600">Assets</span>
+                <span className="text-sm text-gray-600">{t('navAssets')}</span>
                 <span className="text-sm font-bold tabular-nums">{fmt(totalAssetsVal)}</span>
               </div>
               <div className="h-2 bg-emerald-100 rounded-full overflow-hidden flex">
@@ -599,7 +620,7 @@ export default function NetWorthPage() {
                     <li key={g.key} className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
                         <span className={`w-2 h-2 rounded-full ${palette[i % palette.length]}`} aria-hidden="true" />
-                        <span className="text-gray-600">{g.key}</span>
+                        <span className="text-gray-600">{groupLabel(g.key)}</span>
                       </span>
                       <span className="tabular-nums text-gray-700">{fmt(g.total)}</span>
                     </li>
@@ -610,7 +631,7 @@ export default function NetWorthPage() {
             {totalLiabilities > 0 && (
               <div className="mt-5 pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">Liabilities</span>
+                  <span className="text-sm text-gray-600">{t('netWorthLiabilities')}</span>
                   <span className="text-sm font-bold tabular-nums text-rose-700">{fmt(totalLiabilities)}</span>
                 </div>
                 <div className="h-2 bg-rose-100 rounded-full overflow-hidden flex">
@@ -627,7 +648,7 @@ export default function NetWorthPage() {
                       <li key={g.key} className="flex items-center justify-between">
                         <span className="flex items-center gap-1.5">
                           <span className={`w-2 h-2 rounded-full ${palette[i % palette.length]}`} aria-hidden="true" />
-                          <span className="text-gray-600">{g.key}</span>
+                          <span className="text-gray-600">{groupLabel(g.key)}</span>
                         </span>
                         <span className="tabular-nums text-gray-700">{fmt(g.total)}</span>
                       </li>
@@ -642,32 +663,32 @@ export default function NetWorthPage() {
 
       {/* Breakdown card */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-        <h2 className="font-bold text-primary mb-4">Breakdown</h2>
+        <h2 className="font-bold text-primary mb-4">{t('netWorthBreakdown')}</h2>
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-green-500 inline-block" />
-              <span className="text-gray-600">Assets</span>
+              <span className="text-gray-600">{t('navAssets')}</span>
             </div>
             <span className="font-semibold text-green-700">+ {fmt(totalAssets)}</span>
           </div>
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-blue-500 inline-block" />
-              <span className="text-gray-600">Savings Goals</span>
+              <span className="text-gray-600">{t('navSavingsGoals')}</span>
             </div>
             <span className="font-semibold text-blue-700">+ {fmt(totalSavings)}</span>
           </div>
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-red-500 inline-block" />
-              <span className="text-gray-600">Active Debts</span>
+              <span className="text-gray-600">{t('netWorthActiveDebts')}</span>
             </div>
             <span className="font-semibold text-red-600">− {fmt(totalDebts)}</span>
           </div>
           <hr />
           <div className="flex justify-between items-center">
-            <span className="font-bold">Net Worth</span>
+            <span className="font-bold">{t('netWorthTitle')}</span>
             <span className={`font-bold text-lg ${currentNetWorth >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(currentNetWorth)}</span>
           </div>
         </div>
@@ -685,18 +706,18 @@ export default function NetWorthPage() {
       {history.length === 0 && !loading && (
         <EmptyState
           illustration="savings"
-          title="Take your first snapshot"
-          description="A snapshot saves your assets, savings, and debts as a single number. Come back weekly and you'll see your trajectory clearly."
+          title={t('netWorthEmptyTitle')}
+          description={t('netWorthEmptyDesc')}
           actions={[
-            { label: '📸 Take snapshot', onClick: takeSnapshot, primary: true },
-            { label: 'Add an asset', href: '/dashboard/assets' },
+            { label: `📸 ${t('netWorthEmptyActionSnapshot')}`, onClick: takeSnapshot, primary: true },
+            { label: t('netWorthEmptyActionAddAsset'), href: '/dashboard/assets' },
           ]}
           preview={
             <div className="space-y-2">
               {[
-                { label: 'Last week', delta: `+${fmt(1240)}`, cls: 'text-green-600' },
-                { label: 'Last month', delta: `+${fmt(8560)}`, cls: 'text-green-600' },
-                { label: 'Year to date', delta: `+${fmt(23400)}`, cls: 'text-green-600' },
+                { label: t('netWorthPreviewLastWeek'), delta: `+${fmt(1240)}`, cls: 'text-green-600' },
+                { label: t('netWorthPreviewLastMonth'), delta: `+${fmt(8560)}`, cls: 'text-green-600' },
+                { label: t('netWorthPreviewYearToDate'), delta: `+${fmt(23400)}`, cls: 'text-green-600' },
               ].map((s) => (
                 <div key={s.label} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                   <p className="font-medium text-gray-700">{s.label}</p>
@@ -710,8 +731,8 @@ export default function NetWorthPage() {
       {history.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b">
-            <h2 className="font-bold text-primary">Snapshot History</h2>
-            <p className="text-xs text-gray-500 mt-1">A snapshot is recorded once per day when you visit this page</p>
+            <h2 className="font-bold text-primary">{t('netWorthSnapshotHistory')}</h2>
+            <p className="text-xs text-gray-500 mt-1">{t('netWorthSnapshotHistoryNote')}</p>
           </div>
           <div className="divide-y">
             {history.map((snap, i) => {
@@ -723,7 +744,7 @@ export default function NetWorthPage() {
                   <div>
                     <p className="font-medium text-gray-900">{formatDate(snap.date)}</p>
                     <p className="text-sm text-gray-500">
-                      Assets {fmt(snap.totalAssets)} · Debts {fmt(snap.totalDebts)} · Savings {fmt(snap.totalSavings)}
+                      {tFmt('netWorthSnapshotRowFmt', [fmt(snap.totalAssets), fmt(snap.totalDebts), fmt(snap.totalSavings)])}
                     </p>
                   </div>
                   <div className="text-right">

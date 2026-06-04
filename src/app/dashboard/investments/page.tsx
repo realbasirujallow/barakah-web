@@ -11,6 +11,7 @@ import ModalShell from '../../../components/ui/ModalShell';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 
 interface Account {
   id: number;
@@ -69,14 +70,15 @@ interface AssetAccount {
   notes?: string;
 }
 
+// label resolved via t() at render time (keys added centrally to i18n.ts)
 const ACCOUNT_TYPES = [
-  { value: 'brokerage', label: 'Brokerage' },
-  { value: 'individual_brokerage', label: 'Individual Brokerage' },
-  { value: 'ira', label: 'IRA' },
-  { value: 'roth_ira', label: 'Roth IRA' },
-  { value: '401k', label: '401(k)' },
-  { value: 'crypto', label: 'Crypto Wallet' },
-  { value: 'other', label: 'Other' },
+  { value: 'brokerage', labelKey: 'investmentsAcctTypeBrokerage' },
+  { value: 'individual_brokerage', labelKey: 'investmentsAcctTypeIndividualBrokerage' },
+  { value: 'ira', labelKey: 'investmentsAcctTypeIra' },
+  { value: 'roth_ira', labelKey: 'investmentsAcctTypeRothIra' },
+  { value: '401k', labelKey: 'investmentsAcctType401k' },
+  { value: 'crypto', labelKey: 'investmentsAcctTypeCrypto' },
+  { value: 'other', labelKey: 'investmentsAcctTypeOther' },
 ];
 
 // Asset types that are investment-related and should surface on this page
@@ -86,23 +88,24 @@ const INVESTMENT_ASSET_TYPES = [
   '529', '529_plan', 'education_savings',
   'crypto', 'business',
 ];
-const INVESTMENT_ASSET_LABELS: Record<string, string> = {
-  investment: 'Investment',
-  brokerage: 'Brokerage',
-  individual_brokerage: 'Individual Brokerage',
-  '401k': '401(k)',
-  retirement_401k: '401(k)',
-  roth_ira: 'Roth IRA',
-  ira: 'Traditional IRA',
-  hsa: 'HSA',
-  '403b': '403(b)',
-  pension: 'Pension',
-  tsp: 'TSP',
-  sep_ira: 'SEP IRA',
-  '529': '529 Education',
-  '529_plan': '529 Education',
-  crypto: 'Crypto',
-  business: 'Business',
+// label keys resolved via t() at render time (keys added centrally to i18n.ts)
+const INVESTMENT_ASSET_LABEL_KEYS: Record<string, string> = {
+  investment: 'investmentsAssetLabelInvestment',
+  brokerage: 'investmentsAssetLabelBrokerage',
+  individual_brokerage: 'investmentsAssetLabelIndividualBrokerage',
+  '401k': 'investmentsAssetLabel401k',
+  retirement_401k: 'investmentsAssetLabel401k',
+  roth_ira: 'investmentsAssetLabelRothIra',
+  ira: 'investmentsAssetLabelTraditionalIra',
+  hsa: 'investmentsAssetLabelHsa',
+  '403b': 'investmentsAssetLabel403b',
+  pension: 'investmentsAssetLabelPension',
+  tsp: 'investmentsAssetLabelTsp',
+  sep_ira: 'investmentsAssetLabelSepIra',
+  '529': 'investmentsAssetLabel529',
+  '529_plan': 'investmentsAssetLabel529',
+  crypto: 'investmentsAssetLabelCrypto',
+  business: 'investmentsAssetLabelBusiness',
 };
 
 const emptyAccountForm = { name: '', type: 'brokerage', broker: '' };
@@ -111,6 +114,7 @@ const emptyHoldingForm = { symbol: '', name: '', quantity: '', averageCost: '', 
 export default function InvestmentsPage() {
   const { toast } = useToast();
   const { fmt } = useCurrency();
+  const { t, tFmt } = useI18n();
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [assetAccounts, setAssetAccounts] = useState<AssetAccount[]>([]);
@@ -174,7 +178,7 @@ export default function InvestmentsPage() {
     setError('');
     Promise.allSettled([
       api.getPortfolioSummary().then(d => setPortfolio(d)).catch(() => {
-        setError('Could not load portfolio. Make sure you have investment accounts set up.');
+        setError(t('investmentsLoadError'));
       }),
       // Pull investment-type assets (401k, IRA, HSA, 529 etc.) tracked via the Assets page
       api.getAssets().then((res: { assets?: AssetAccount[] } | AssetAccount[]) => {
@@ -214,15 +218,15 @@ export default function InvestmentsPage() {
       setShowAccountForm(false);
       setAccountForm(emptyAccountForm);
       load();
-    } catch (err: unknown) { logError(err); toast(err instanceof Error ? err.message : 'Failed to add account', 'error'); }
+    } catch (err: unknown) { logError(err); toast(err instanceof Error ? err.message : t('investmentsAddAccountError'), 'error'); }
     setSavingAccount(false);
   };
 
   const handleDeleteAccount = (id: number) => {
     setConfirmAction({
-      message: 'Delete this account and all its holdings?',
+      message: t('investmentsDeleteAccountConfirm'),
       action: async () => {
-        await api.deleteInvestmentAccount(id).catch((err) => { logError(err); toast('Failed to delete account', 'error'); });
+        await api.deleteInvestmentAccount(id).catch((err) => { logError(err); toast(t('investmentsDeleteAccountError'), 'error'); });
         load();
       }
     });
@@ -233,9 +237,9 @@ export default function InvestmentsPage() {
     const quantity = parseFloat(holdingForm.quantity);
     const averageCost = parseFloat(holdingForm.averageCost);
     const currentPrice = parseFloat(holdingForm.currentPrice || holdingForm.averageCost);
-    if (isNaN(quantity) || quantity <= 0) { toast('Please enter a valid quantity', 'error'); return; }
-    if (isNaN(averageCost) || averageCost < 0) { toast('Please enter a valid average cost', 'error'); return; }
-    if (isNaN(currentPrice) || currentPrice < 0) { toast('Please enter a valid current price', 'error'); return; }
+    if (isNaN(quantity) || quantity <= 0) { toast(t('investmentsInvalidQuantity'), 'error'); return; }
+    if (isNaN(averageCost) || averageCost < 0) { toast(t('investmentsInvalidAvgCost'), 'error'); return; }
+    if (isNaN(currentPrice) || currentPrice < 0) { toast(t('investmentsInvalidCurrentPrice'), 'error'); return; }
     setSavingHolding(true);
     try {
       await api.addHolding(addHoldingFor, {
@@ -248,13 +252,13 @@ export default function InvestmentsPage() {
       setAddHoldingFor(null);
       setHoldingForm(emptyHoldingForm);
       load();
-    } catch (err: unknown) { logError(err); toast(err instanceof Error ? err.message : 'Failed to add holding', 'error'); }
+    } catch (err: unknown) { logError(err); toast(err instanceof Error ? err.message : t('investmentsAddHoldingError'), 'error'); }
     setSavingHolding(false);
   };
 
   const handleDeleteHolding = (id: number) => {
     setConfirmAction({
-      message: 'Remove this holding?',
+      message: t('investmentsRemoveHoldingConfirm'),
       action: async () => {
         await api.deleteHolding(id).catch((err) => { logError(err); });
         load();
@@ -291,19 +295,19 @@ export default function InvestmentsPage() {
   return (
     <div>
       <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-800 flex items-center justify-between">
-        <span>💰 Investment assets (stocks, crypto, retirement accounts) added in <strong>Assets</strong> also count toward your net worth &amp; Zakat.</span>
-        <Link href="/dashboard/assets" className="ml-3 text-amber-700 font-semibold underline hover:no-underline whitespace-nowrap">View Assets →</Link>
+        <span>💰 {t('investmentsAssetsBannerPrefix')} <strong>{t('investmentsAssetsBannerStrong')}</strong> {t('investmentsAssetsBannerSuffix')}</span>
+        <Link href="/dashboard/assets" className="ml-3 text-amber-700 font-semibold underline hover:no-underline whitespace-nowrap">{t('investmentsViewAssetsLink')}</Link>
       </div>
 
       <PageHeader
-        title="Investments"
-        subtitle="Retirement, brokerage, and zakat-eligible holdings — halal screened"
+        title={t('investmentsTitle')}
+        subtitle={t('investmentsSubtitle')}
         actions={
           <button
             onClick={() => setShowAccountForm(true)}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium"
           >
-            + Add Account
+            {t('investmentsAddAccountBtn')}
           </button>
         }
       />
@@ -316,11 +320,11 @@ export default function InvestmentsPage() {
           className="bg-gradient-to-r from-[#1B5E20] to-emerald-500 rounded-2xl p-6 text-white mb-6"
           style={{ viewTransitionName: 'investments-hero' }}
         >
-          <p className="text-green-100 text-sm">Total Portfolio Value</p>
+          <p className="text-green-100 text-sm">{t('investmentsTotalPortfolioValue')}</p>
           <p className="text-4xl font-bold">{fmt(combinedTotal)}</p>
           {assetTotal > 0 && totalValue > 0 && (
             <p className="text-green-200 text-xs mt-0.5">
-              {fmt(totalValue)} Plaid holdings + {fmt(assetTotal)} manually tracked accounts
+              {tFmt('investmentsPlaidPlusManualFmt', [fmt(totalValue), fmt(assetTotal)])}
             </p>
           )}
           {/* 2026-05-11 (Bug-A8): hide / annotate the gain line when the
@@ -338,22 +342,22 @@ export default function InvestmentsPage() {
               return (
                 <p
                   className="text-sm mt-1 text-green-100"
-                  title="Cost basis not yet available — % return can't be computed. Showing balance change only."
+                  title={t('investmentsCostBasisTooltip')}
                 >
-                  {isGain ? '▲' : '▼'} {fmt(deltaAbs)} all time · cost basis pending
+                  {isGain ? '▲' : '▼'} {tFmt('investmentsAllTimeCostBasisPendingFmt', [fmt(deltaAbs)])}
                 </p>
               );
             }
             return (
               <p className={`text-sm mt-1 ${isGain ? 'text-green-200' : 'text-red-300'}`}>
-                {isGain ? '▲' : '▼'} {fmt(deltaAbs)} ({fmtPct(totalGainLossPct)}) all time
+                {isGain ? '▲' : '▼'} {tFmt('investmentsGainAllTimeFmt', [fmt(deltaAbs), fmtPct(totalGainLossPct)])}
               </p>
             );
           })()}
           {/* Today's gain/loss line — only show when snapshot has a meaningful value */}
           {Math.abs(dayGainLoss) >= 0.01 && (
             <p className={`text-sm mt-0.5 ${isDayGain ? 'text-green-100' : 'text-red-200'}`}>
-              {isDayGain ? '▲' : '▼'} {fmt(Math.abs(dayGainLoss))} ({fmtPct(dayGainLossPct)}) today
+              {isDayGain ? '▲' : '▼'} {tFmt('investmentsGainTodayFmt', [fmt(Math.abs(dayGainLoss)), fmtPct(dayGainLossPct)])}
             </p>
           )}
         </div>
@@ -391,9 +395,9 @@ export default function InvestmentsPage() {
         // 2026-05-01. Update these numbers in each release; the
         // component is honest about staleness via the asOf label below.
         const benchmarks = [
-          { name: 'S&P 500',   color: '#FF7043', threeMonth: 3.62, today: 0.28 },
-          { name: 'US Stocks', color: '#42A5F5', threeMonth: 3.74, today: 0.31 },
-          { name: 'US Bonds',  color: '#9CCC65', threeMonth: -0.79, today: -0.20 },
+          { name: 'S&P 500',   labelKey: 'investmentsBenchmarkSp500',   color: '#FF7043', threeMonth: 3.62, today: 0.28 },
+          { name: 'US Stocks', labelKey: 'investmentsBenchmarkUsStocks', color: '#42A5F5', threeMonth: 3.74, today: 0.31 },
+          { name: 'US Bonds',  labelKey: 'investmentsBenchmarkUsBonds',  color: '#9CCC65', threeMonth: -0.79, today: -0.20 },
         ];
         const fmtPctSigned = (n: number) =>
           `${n > 0 ? '+' : ''}${n.toFixed(2)}%`;
@@ -403,15 +407,15 @@ export default function InvestmentsPage() {
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  Backtested performance
+                  {t('investmentsBacktestedHeading')}
                   <span
-                    title="Benchmark returns are public-index trailing values as of 2026-05-01, refreshed with each app release. Your portfolio return is calculated from your live holdings history. For comparison only — not investment advice."
+                    title={t('investmentsBacktestedTooltip')}
                     className="text-xs text-gray-400 cursor-help border border-dashed border-gray-300 rounded-full w-4 h-4 inline-flex items-center justify-center"
                   >
                     i
                   </span>
                 </h2>
-                <p className="text-xs text-gray-500 mt-0.5">Your portfolio vs major US benchmarks · benchmarks as of 2026-05-01</p>
+                <p className="text-xs text-gray-500 mt-0.5">{t('investmentsBacktestedSubtitle')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -419,21 +423,21 @@ export default function InvestmentsPage() {
               <div className="rounded-xl border-2 border-emerald-600 p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" aria-hidden="true" />
-                  <p className="text-sm font-semibold text-foreground">Your Portfolio</p>
+                  <p className="text-sm font-semibold text-foreground">{t('investmentsYourPortfolio')}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-[10px] uppercase tracking-wide text-gray-400">3 Months</p>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400">{t('investmentsThreeMonths')}</p>
                     {portfolio3m != null ? (
                       <p className={`text-lg font-bold tabular-nums ${portfolio3m >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                         {fmtPctSigned(portfolio3m)}
                       </p>
                     ) : (
-                      <p className="text-sm text-gray-400">Not enough history</p>
+                      <p className="text-sm text-gray-400">{t('investmentsNotEnoughHistory')}</p>
                     )}
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-wide text-gray-400">Today</p>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400">{t('investmentsToday')}</p>
                     <p className={`text-lg font-bold tabular-nums ${portfolioToday >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                       {fmtPctSigned(portfolioToday)}
                     </p>
@@ -445,17 +449,17 @@ export default function InvestmentsPage() {
                 <div key={b.name} className="rounded-xl border border-gray-200 p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: b.color }} aria-hidden="true" />
-                    <p className="text-sm font-semibold text-foreground">{b.name}</p>
+                    <p className="text-sm font-semibold text-foreground">{t(b.labelKey)}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <p className="text-[10px] uppercase tracking-wide text-gray-400">3 Months</p>
+                      <p className="text-[10px] uppercase tracking-wide text-gray-400">{t('investmentsThreeMonths')}</p>
                       <p className={`text-lg font-bold tabular-nums ${b.threeMonth >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                         {fmtPctSigned(b.threeMonth)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-wide text-gray-400">Today</p>
+                      <p className="text-[10px] uppercase tracking-wide text-gray-400">{t('investmentsToday')}</p>
                       <p className={`text-lg font-bold tabular-nums ${b.today >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                         {fmtPctSigned(b.today)}
                       </p>
@@ -473,8 +477,8 @@ export default function InvestmentsPage() {
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Portfolio Performance</h2>
-              <p className="text-sm text-gray-500 mt-1">Prices update automatically</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('investmentsPortfolioPerformance')}</h2>
+              <p className="text-sm text-gray-500 mt-1">{t('investmentsPricesUpdateAuto')}</p>
             </div>
             <div className="flex gap-2">
               {[7, 30, 90, 365].map(days => (
@@ -559,10 +563,10 @@ export default function InvestmentsPage() {
                               if (value === undefined || value === null) return ['--', safeName];
                               const n = Number(value);
                               if (Number.isNaN(n)) return ['--', safeName];
-                              if (safeName === 'portfolio') return [`${n >= 0 ? '+' : ''}${n.toFixed(2)}%`, 'Your Portfolio'];
-                              if (safeName === 'sp500') return [`${n >= 0 ? '+' : ''}${n.toFixed(2)}%`, 'S&P 500'];
-                              if (safeName === 'usStocks') return [`${n >= 0 ? '+' : ''}${n.toFixed(2)}%`, 'US Stocks'];
-                              if (safeName === 'usBonds') return [`${n >= 0 ? '+' : ''}${n.toFixed(2)}%`, 'US Bonds'];
+                              if (safeName === 'portfolio') return [`${n >= 0 ? '+' : ''}${n.toFixed(2)}%`, t('investmentsYourPortfolio')];
+                              if (safeName === 'sp500') return [`${n >= 0 ? '+' : ''}${n.toFixed(2)}%`, t('investmentsBenchmarkSp500')];
+                              if (safeName === 'usStocks') return [`${n >= 0 ? '+' : ''}${n.toFixed(2)}%`, t('investmentsBenchmarkUsStocks')];
+                              if (safeName === 'usBonds') return [`${n >= 0 ? '+' : ''}${n.toFixed(2)}%`, t('investmentsBenchmarkUsBonds')];
                               return [String(value), safeName];
                             }}
                             labelFormatter={(label) => {
@@ -587,12 +591,12 @@ export default function InvestmentsPage() {
                         visible; users opt in to overlays for clarity. */}
                     {benchmarks && (
                       <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-                        <span className="text-gray-500 font-medium uppercase tracking-wide">Compare:</span>
+                        <span className="text-gray-500 font-medium uppercase tracking-wide">{t('investmentsCompareLabel')}</span>
                         {(
                           [
-                            { key: 'sp500', label: 'S&P 500', color: '#FF7043' },
-                            { key: 'usStocks', label: 'US Stocks', color: '#42A5F5' },
-                            { key: 'usBonds', label: 'US Bonds', color: '#9CCC65' },
+                            { key: 'sp500', labelKey: 'investmentsBenchmarkSp500', color: '#FF7043' },
+                            { key: 'usStocks', labelKey: 'investmentsBenchmarkUsStocks', color: '#42A5F5' },
+                            { key: 'usBonds', labelKey: 'investmentsBenchmarkUsBonds', color: '#9CCC65' },
                           ] as const
                         ).map(b => {
                           const active = showBenchmarks[b.key];
@@ -605,11 +609,11 @@ export default function InvestmentsPage() {
                               aria-pressed={active}
                             >
                               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: b.color }} aria-hidden="true" />
-                              <span className="text-gray-700 font-medium">{b.label}</span>
+                              <span className="text-gray-700 font-medium">{t(b.labelKey)}</span>
                             </button>
                           );
                         })}
-                        <span className="text-gray-400 italic ml-2">Reference data — not live quotes</span>
+                        <span className="text-gray-400 italic ml-2">{t('investmentsReferenceDataNote')}</span>
                       </div>
                     )}
                   </>
@@ -618,28 +622,28 @@ export default function InvestmentsPage() {
             </>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-400">No historical data available yet. Check back soon.</p>
+              <p className="text-gray-400">{t('investmentsNoHistoryYet')}</p>
             </div>
           )}
 
           {portfolioHistory.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-200">
               <div>
-                <p className="text-xs text-gray-500">Current Value</p>
+                <p className="text-xs text-gray-500">{t('investmentsCurrentValue')}</p>
                 <p className="text-lg font-bold text-gray-900">{fmt(combinedTotal)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Total Return</p>
+                <p className="text-xs text-gray-500">{t('investmentsTotalReturn')}</p>
                 <p className={`text-lg font-bold ${totalGainLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {fmt(totalGainLoss)} ({fmtPct(totalGainLossPct)})
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Holdings</p>
+                <p className="text-xs text-gray-500">{t('investmentsHoldings')}</p>
                 <p className="text-lg font-bold text-gray-900">{portfolioHistory[portfolioHistory.length - 1]?.holdingCount || 0}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Halal %</p>
+                <p className="text-xs text-gray-500">{t('investmentsHalalPercent')}</p>
                 <p className="text-lg font-bold text-green-600">{(portfolioHistory[portfolioHistory.length - 1]?.halalPercent || 0).toFixed(1)}%</p>
               </div>
             </div>
@@ -656,7 +660,7 @@ export default function InvestmentsPage() {
       {/* ── Tracked Investment Accounts (with holdings) ────────────────────── */}
       {accounts.length > 0 && (
         <div className="space-y-4 mb-6">
-          <h2 className="text-base font-semibold text-gray-700">Brokerage &amp; Tracked Accounts</h2>
+          <h2 className="text-base font-semibold text-gray-700">{t('investmentsBrokerageTrackedHeading')}</h2>
           {accounts.map(account => {
             const accGain = account.totalGainLoss ?? 0;
             const accGainPositive = accGain >= 0;
@@ -674,7 +678,7 @@ export default function InvestmentsPage() {
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-gray-900">{account.name}</p>
                       <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                        {ACCOUNT_TYPES.find(t => t.value === account.accountType)?.label || account.accountType}
+                        {(() => { const at = ACCOUNT_TYPES.find(x => x.value === account.accountType); return at ? t(at.labelKey) : account.accountType; })()}
                       </span>
                     </div>
                     {account.institution && (
@@ -710,16 +714,16 @@ export default function InvestmentsPage() {
                       // small "+ Add Holding" link below.
                       <div className="px-4 py-6 text-center">
                         <p className="text-2xl mb-2" aria-hidden="true">📈</p>
-                        <p className="text-sm font-semibold text-foreground mb-1">No holdings tracked yet</p>
+                        <p className="text-sm font-semibold text-foreground mb-1">{t('investmentsNoHoldingsTitle')}</p>
                         <p className="text-xs text-gray-500 max-w-sm mx-auto mb-3">
-                          Add a stock or ETF to unlock halal screening, zakat-eligible breakdown, and S&amp;P 500 / US Stocks / US Bonds comparison.
+                          {t('investmentsNoHoldingsDesc')}
                         </p>
                         <button
                           type="button"
                           onClick={() => { setAddHoldingFor(account.id); setHoldingForm(emptyHoldingForm); }}
                           className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition"
                         >
-                          + Add your first holding
+                          {t('investmentsAddFirstHolding')}
                         </button>
                       </div>
                     ) : (
@@ -733,14 +737,14 @@ export default function InvestmentsPage() {
                                 <div className="flex items-center gap-2">
                                   <p className="font-semibold text-sm text-gray-900">{h.symbol}</p>
                                   {h.isHalal === true && (
-                                    <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">Halal</span>
+                                    <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">{t('halalStatHalal')}</span>
                                   )}
                                   {h.isHalal === false && (
-                                    <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full">Review</span>
+                                    <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full">{t('txnReviewPill')}</span>
                                   )}
                                 </div>
                                 <p className="text-xs text-gray-500">{h.name}</p>
-                                <p className="text-xs text-gray-400">{h.shares} shares @ {fmt(h.avgCostPerShare)}</p>
+                                <p className="text-xs text-gray-400">{tFmt('investmentsSharesAtFmt', [String(h.shares), fmt(h.avgCostPerShare)])}</p>
                               </div>
                               <div className="flex items-center gap-4">
                                 <div className="text-right">
@@ -771,13 +775,13 @@ export default function InvestmentsPage() {
                         onClick={() => { setAddHoldingFor(account.id); setHoldingForm(emptyHoldingForm); }}
                         className="text-sm text-primary font-medium hover:underline"
                       >
-                        + Add Holding
+                        {t('investmentsAddHoldingLink')}
                       </button>
                       <button
                         onClick={() => handleDeleteAccount(account.id)}
                         className="text-sm text-red-400 hover:text-red-600"
                       >
-                        Delete Account
+                        {t('investmentsDeleteAccountBtn')}
                       </button>
                     </div>
                   </div>
@@ -792,13 +796,13 @@ export default function InvestmentsPage() {
       {assetAccounts.length > 0 && (
         <div className="space-y-3 mb-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-700">Retirement &amp; Savings Accounts</h2>
+            <h2 className="text-base font-semibold text-gray-700">{t('investmentsRetirementSavingsHeading')}</h2>
             <Link href="/dashboard/assets" className="text-sm text-primary hover:underline">
-              Manage in Assets →
+              {t('investmentsManageInAssetsLink')}
             </Link>
           </div>
           <p className="text-xs text-gray-500 -mt-1">
-            Added via Assets or CSV import. To update balances, edit them in Assets.
+            {t('investmentsAssetBackedNote')}
           </p>
           {assetAccounts.map(asset => {
             const isPlaidLinked = asset.notes?.startsWith('Linked from Plaid');
@@ -812,11 +816,11 @@ export default function InvestmentsPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-gray-900">{asset.name}</p>
                     <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-                      {INVESTMENT_ASSET_LABELS[asset.type] || asset.type}
+                      {INVESTMENT_ASSET_LABEL_KEYS[asset.type] ? t(INVESTMENT_ASSET_LABEL_KEYS[asset.type]) : asset.type}
                     </span>
                     {isPlaidLinked && (
                       <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
-                        Counted in Plaid holdings
+                        {t('investmentsCountedInPlaid')}
                       </span>
                     )}
                   </div>
@@ -831,7 +835,7 @@ export default function InvestmentsPage() {
                   <p className="font-bold text-gray-900 text-lg">
                     {fmt(asset.value || 0)}
                   </p>
-                  <p className="text-xs text-primary">View details →</p>
+                  <p className="text-xs text-primary">{t('investmentsViewDetailsLink')}</p>
                 </div>
               </Link>
             );
@@ -843,11 +847,11 @@ export default function InvestmentsPage() {
       {accounts.length === 0 && assetAccounts.length === 0 && (
         <EmptyState
           illustration="savings"
-          title="Track your halal investments"
-          description="Add a brokerage account or import from Plaid. Each holding is run through an AAOIFI Standard 21 ratio screen, with a passes/review/fails signal next to each ticker for you to verify."
+          title={t('investmentsEmptyTitle')}
+          description={t('investmentsEmptyDesc')}
           actions={[
-            { label: '+ Add account', onClick: () => setShowAccountForm(true), primary: true },
-            { label: 'Add 401(k) / IRA', href: '/dashboard/assets' },
+            { label: t('investmentsEmptyActionAdd'), onClick: () => setShowAccountForm(true), primary: true },
+            { label: t('investmentsEmptyActionAdd401k'), href: '/dashboard/assets' },
           ]}
           preview={
             <div className="space-y-2">
@@ -866,7 +870,7 @@ export default function InvestmentsPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-700">{h.value}</p>
-                    <span className={`text-[10px] uppercase font-bold tracking-wide ${h.tag === 'halal' ? 'text-emerald-600' : 'text-red-600'}`}>{h.tag === 'halal' ? '✓ Halal' : '✗ Haram'}</span>
+                    <span className={`text-[10px] uppercase font-bold tracking-wide ${h.tag === 'halal' ? 'text-emerald-600' : 'text-red-600'}`}>{h.tag === 'halal' ? t('investmentsPreviewHalal') : t('investmentsPreviewHaram')}</span>
                   </div>
                 </div>
               ))}
@@ -885,51 +889,51 @@ export default function InvestmentsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">Add Investment Account</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{t('investmentsAddAccountModalTitle')}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsAccountNameLabel')}</label>
                 <input
                   value={accountForm.name}
                   onChange={e => setAccountForm({ ...accountForm, name: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                  placeholder="e.g. Fidelity Roth IRA"
+                  placeholder={t('investmentsAccountNamePlaceholder')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Account Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsAccountTypeLabel')}</label>
                 <select
                   value={accountForm.type}
                   onChange={e => setAccountForm({ ...accountForm, type: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
                 >
-                  {ACCOUNT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  {ACCOUNT_TYPES.map(at => <option key={at.value} value={at.value}>{t(at.labelKey)}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Broker / Platform</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsBrokerPlatformLabel')}</label>
                 <input
                   value={accountForm.broker}
                   onChange={e => setAccountForm({ ...accountForm, broker: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
-                  placeholder="e.g. Fidelity, Schwab, Coinbase"
+                  placeholder={t('investmentsBrokerPlatformPlaceholder')}
                 />
               </div>
             </div>
             <div className="flex gap-3 mt-6">
               <button
-                aria-label="Close add account modal"
+                aria-label={t('investmentsCloseAddAccountModal')}
                 onClick={() => setShowAccountForm(false)}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
               >
-                Cancel
+                {t('budgetCancel')}
               </button>
               <button
                 onClick={handleAddAccount}
                 disabled={savingAccount || !accountForm.name}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
-                {savingAccount ? 'Saving...' : 'Add Account'}
+                {savingAccount ? t('budgetSaving') : t('investmentsAddAccountSubmit')}
               </button>
             </div>
           </div>
@@ -946,11 +950,11 @@ export default function InvestmentsPage() {
             aria-labelledby="modal-title"
             className="bg-white rounded-2xl p-6 w-full max-w-md"
           >
-            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">Add Holding</h2>
+            <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{t('investmentsAddHoldingModalTitle')}</h2>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Ticker Symbol</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsTickerSymbolLabel')}</label>
                   <input
                     value={holdingForm.symbol}
                     onChange={e => setHoldingForm({ ...holdingForm, symbol: e.target.value.toUpperCase() })}
@@ -959,7 +963,7 @@ export default function InvestmentsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsCompanyNameLabel')}</label>
                   <input
                     value={holdingForm.name}
                     onChange={e => setHoldingForm({ ...holdingForm, name: e.target.value })}
@@ -970,7 +974,7 @@ export default function InvestmentsPage() {
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Shares</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsSharesLabel')}</label>
                   <input
                     type="number" step="0.0001"
                     value={holdingForm.quantity}
@@ -980,7 +984,7 @@ export default function InvestmentsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Avg Cost</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsAvgCostLabel')}</label>
                   <input
                     type="number" step="0.01"
                     value={holdingForm.averageCost}
@@ -990,7 +994,7 @@ export default function InvestmentsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Current Price</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsCurrentPriceLabel')}</label>
                   <input
                     type="number" step="0.01"
                     value={holdingForm.currentPrice}
@@ -1003,18 +1007,18 @@ export default function InvestmentsPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button
-                aria-label="Close add holding modal"
+                aria-label={t('investmentsCloseAddHoldingModal')}
                 onClick={() => setAddHoldingFor(null)}
                 className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50"
               >
-                Cancel
+                {t('budgetCancel')}
               </button>
               <button
                 onClick={handleAddHolding}
                 disabled={savingHolding || !holdingForm.symbol || !holdingForm.quantity || !holdingForm.averageCost}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
               >
-                {savingHolding ? 'Saving...' : 'Add Holding'}
+                {savingHolding ? t('budgetSaving') : t('investmentsAddHoldingSubmit')}
               </button>
             </div>
           </div>
@@ -1031,8 +1035,8 @@ export default function InvestmentsPage() {
           >
             <p id="modal-title" className="text-gray-800 mb-6">{confirmAction.message}</p>
             <div className="flex gap-3">
-              <button type="button" aria-label="Close confirmation modal" onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">Confirm</button>
+              <button type="button" aria-label={t('investmentsCloseConfirmModal')} onClick={() => setConfirmAction(null)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('budgetCancel')}</button>
+              <button type="button" onClick={() => { const act = confirmAction.action; setConfirmAction(null); act(); }} className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700">{t('budgetConfirm')}</button>
             </div>
           </div>
         </ModalShell>

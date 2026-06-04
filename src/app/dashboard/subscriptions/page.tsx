@@ -6,6 +6,7 @@ import { PageHeader } from '../../../components/dashboard/PageHeader';
 // 2026-05-12 (QA-2026-05-12, audit A3): swap two window.alert() error
 // paths to the in-app toast so error UX matches the rest of the dashboard.
 import { useToast } from '../../../lib/toast';
+import { useI18n } from '../../../lib/i18n';
 
 interface Subscription {
   name: string;
@@ -82,7 +83,8 @@ function CancelHelpLink({
    *  parent can flip status → "requested" + persist intent. */
   onCancelClick?: (sub: Subscription) => void;
 }) {
-  const name = sub?.displayName ?? sub?.name ?? flag?.subscription ?? 'subscription';
+  const { t, tFmt } = useI18n();
+  const name = sub?.displayName ?? sub?.name ?? flag?.subscription ?? t('subscriptionsGenericName');
   const directUrl = sub?.cancelUrl
     ?? `https://www.google.com/search?q=${encodeURIComponent(`how to cancel ${name}`)}`;
   const isFallback = !sub?.cancelUrl || sub?.cancelUrlFallback === true;
@@ -106,9 +108,9 @@ function CancelHelpLink({
           ? 'border border-gray-300 text-gray-700 hover:bg-gray-50'
           : 'bg-red-600 text-white hover:bg-red-700'
       }`}
-      aria-label={isFallback ? `Search how to cancel ${name}` : `Open ${name} cancellation page`}
+      aria-label={isFallback ? tFmt('subscriptionsSearchHowToCancelAriaFmt', [name]) : tFmt('subscriptionsOpenCancelPageAriaFmt', [name])}
     >
-      {isFallback ? 'How to cancel ↗' : 'Cancel ↗'}
+      {isFallback ? t('subscriptionsHowToCancelBtn') : t('subscriptionsCancelBtn')}
     </a>
   );
 }
@@ -127,18 +129,19 @@ function CancellationStatus({
   onMarkCancelled: (sub: Subscription) => void;
   onMarkStillActive: (sub: Subscription) => void;
 }) {
+  const { t } = useI18n();
   if (sub.cancellationStatus === 'cancelled') {
     return (
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-          ✓ Cancelled
+          ✓ {t('subscriptionsStatusCancelled')}
         </span>
         <button
           type="button"
           onClick={() => onMarkStillActive(sub)}
           className="text-[11px] text-gray-500 hover:text-gray-700 underline"
         >
-          Undo
+          {t('subscriptionsUndo')}
         </button>
       </div>
     );
@@ -147,21 +150,21 @@ function CancellationStatus({
     return (
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
-          ⏳ Cancellation requested
+          ⏳ {t('subscriptionsStatusRequested')}
         </span>
         <button
           type="button"
           onClick={() => onMarkCancelled(sub)}
           className="text-[11px] font-semibold text-emerald-700 hover:text-emerald-900 underline"
         >
-          I cancelled it
+          {t('subscriptionsICancelledIt')}
         </button>
         <button
           type="button"
           onClick={() => onMarkStillActive(sub)}
           className="text-[11px] text-gray-500 hover:text-gray-700 underline"
         >
-          Still active
+          {t('subscriptionsStillActive')}
         </button>
       </div>
     );
@@ -199,6 +202,7 @@ function SubscriptionRowEditor({
   const [busy, setBusy] = useState(false);
   // 2026-05-12 (audit A3): swap window.alert() for the in-app toast.
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const CATEGORIES = [
     'food', 'dining', 'groceries', 'coffee',
@@ -223,7 +227,7 @@ function SubscriptionRowEditor({
       // so the row disappears regardless.
       onChanged();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not dismiss', 'error');
+      toast(err instanceof Error ? err.message : t('subscriptionsCouldNotDismiss'), 'error');
     } finally {
       setBusy(false);
       setOpen(false);
@@ -237,7 +241,7 @@ function SubscriptionRowEditor({
       if (r?.error) throw new Error(r.error);
       onChanged();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not recategorize', 'error');
+      toast(err instanceof Error ? err.message : t('subscriptionsCouldNotRecategorize'), 'error');
     } finally {
       setBusy(false);
       setOpen(false);
@@ -251,7 +255,7 @@ function SubscriptionRowEditor({
         type="button"
         onClick={() => setOpen(o => !o)}
         className="px-2 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition text-xs font-semibold"
-        aria-label="Edit subscription"
+        aria-label={t('subscriptionsEditAria')}
         disabled={busy}
       >
         ⋯
@@ -269,7 +273,7 @@ function SubscriptionRowEditor({
                 disabled={busy}
                 className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 transition disabled:opacity-50"
               >
-                Not a subscription (dismiss)
+                {t('subscriptionsNotASubscriptionDismiss')}
               </button>
               <button
                 type="button"
@@ -277,18 +281,18 @@ function SubscriptionRowEditor({
                 disabled={busy}
                 className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 transition disabled:opacity-50"
               >
-                Change category…
+                {t('subscriptionsChangeCategory')}
               </button>
               <div className="border-t border-gray-100 my-1" />
               <p className="px-3 py-1 text-[10px] text-gray-400 leading-snug">
-                Dismissing skips this group on every future scan. Recategorizing updates the underlying transactions.
+                {t('subscriptionsEditorHint')}
               </p>
             </>
           )}
           {pickingCategory && (
             <>
               <p className="px-3 py-2 text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
-                Move to category
+                {t('subscriptionsMoveToCategory')}
               </p>
               <div className="max-h-56 overflow-y-auto">
                 {CATEGORIES.map(cat => (
@@ -310,7 +314,7 @@ function SubscriptionRowEditor({
                 disabled={busy}
                 className="w-full text-left px-3 py-2 text-xs text-gray-500 hover:bg-gray-50 transition"
               >
-                ← Back
+                ← {t('subscriptionsBack')}
               </button>
             </>
           )}
@@ -322,6 +326,7 @@ function SubscriptionRowEditor({
 
 export default function SubscriptionsPage() {
   const { fmt } = useCurrency();
+  const { t, tFmt } = useI18n();
   const [loading, setLoading] = useState(true);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [haramFlags, setHaramFlags] = useState<HaramFlag[]>([]);
@@ -349,11 +354,11 @@ export default function SubscriptionsPage() {
         setCancelledYearly(Number(data?.cancelledYearlySavings) || 0);
       }
     } catch {
-      setError('Failed to detect subscriptions. Please try again.');
+      setError(t('subscriptionsDetectError'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   /** Convert this subscription's "amount per frequency" → monthly cost
    *  so the savings tally we send to the backend is comparable
@@ -436,10 +441,10 @@ export default function SubscriptionsPage() {
 
   const frequencyLabel = (f: string) => {
     switch (f) {
-      case 'weekly': return 'Weekly';
-      case 'monthly': return 'Monthly';
-      case 'quarterly': return 'Quarterly';
-      case 'yearly': return 'Yearly';
+      case 'weekly': return t('billsFreqWeekly');
+      case 'monthly': return t('billsFreqMonthly');
+      case 'quarterly': return t('billsFreqQuarterly');
+      case 'yearly': return t('billsFreqYearly');
       default: return f;
     }
   };
@@ -447,11 +452,11 @@ export default function SubscriptionsPage() {
   if (loading) {
     return (
       <div className="p-6 space-y-4">
-        <h1 className="text-2xl font-bold text-primary">Subscription Detector</h1>
+        <h1 className="text-2xl font-bold text-primary">{t('navSubscriptionDetector')}</h1>
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto mb-4" />
-            <p className="text-gray-500">Analyzing your transactions for recurring subscriptions...</p>
+            <p className="text-gray-500">{t('subscriptionsAnalyzing')}</p>
           </div>
         </div>
       </div>
@@ -461,15 +466,15 @@ export default function SubscriptionsPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Subscription Detector"
-        subtitle="Detect recurring charges and flag riba-bearing ones"
+        title={t('navSubscriptionDetector')}
+        subtitle={t('subscriptionsSubtitle')}
         className="mb-0"
         actions={
           <button
             onClick={loadSubscriptions}
             className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-green-800 transition"
           >
-            Re-scan
+            {t('subscriptionsRescan')}
           </button>
         }
       />
@@ -481,36 +486,36 @@ export default function SubscriptionsPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Detected</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('subscriptionsCardDetected')}</p>
           <p className="text-2xl font-bold text-primary">{subscriptions.length}</p>
-          <p className="text-xs text-gray-400">subscriptions</p>
+          <p className="text-xs text-gray-400">{t('subscriptionsCardDetectedUnit')}</p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Monthly Cost</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('subscriptionsCardMonthlyCost')}</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{fmt(totalMonthly)}</p>
-          <p className="text-xs text-gray-400">estimated</p>
+          <p className="text-xs text-gray-400">{t('subscriptionsCardEstimated')}</p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Yearly Cost</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('subscriptionsCardYearlyCost')}</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{fmt(totalYearly)}</p>
-          <p className="text-xs text-gray-400">estimated</p>
+          <p className="text-xs text-gray-400">{t('subscriptionsCardEstimated')}</p>
         </div>
         {/* 2026-05-10: cancellation savings card. When the user has marked
             zero subscriptions as cancelled, show haram flag count instead
             so the slot isn't wasted on day 1. */}
         {cancelledMonthly > 0 ? (
           <div className="rounded-xl p-4 shadow-sm bg-emerald-50 dark:bg-emerald-900/20">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Saved by cancelling</p>
-            <p className="text-2xl font-bold text-emerald-700">{fmt(cancelledMonthly)}/mo</p>
-            <p className="text-xs text-emerald-700/80">{fmt(cancelledYearly)} per year</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('subscriptionsCardSaved')}</p>
+            <p className="text-2xl font-bold text-emerald-700">{tFmt('subscriptionsCardSavedPerMoFmt', [fmt(cancelledMonthly)])}</p>
+            <p className="text-xs text-emerald-700/80">{tFmt('subscriptionsCardSavedPerYearFmt', [fmt(cancelledYearly)])}</p>
           </div>
         ) : (
           <div className={`rounded-xl p-4 shadow-sm ${haramFlags.length > 0 ? 'bg-red-50 dark:bg-red-900/20' : 'bg-green-50 dark:bg-green-900/20'}`}>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Haram Flags</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('subscriptionsCardHaramFlags')}</p>
             <p className={`text-2xl font-bold ${haramFlags.length > 0 ? 'text-red-600' : 'text-green-600'}`}>
               {haramFlags.length}
             </p>
-            <p className="text-xs text-gray-400">{haramFlags.length === 0 ? 'all clear!' : 'needs attention'}</p>
+            <p className="text-xs text-gray-400">{haramFlags.length === 0 ? t('subscriptionsCardAllClear') : t('subscriptionsCardNeedsAttention')}</p>
           </div>
         )}
       </div>
@@ -519,11 +524,10 @@ export default function SubscriptionsPage() {
       {haramFlags.length > 0 && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-5">
           <h2 className="text-lg font-semibold text-red-700 dark:text-red-400 mb-3">
-            Non-Halal Subscriptions Detected
+            {t('subscriptionsHaramHeading')}
           </h2>
           <p className="text-sm text-red-600 dark:text-red-300 mb-4">
-            The following recurring charges have been flagged as potentially non-halal.
-            Tap <strong>Cancel</strong> to go straight to the provider&apos;s cancellation page, or check the <strong>halal alternative</strong> suggestion.
+            {t('subscriptionsHaramIntroPrefix')} <strong>{t('subscriptionsCancelWord')}</strong> {t('subscriptionsHaramIntroMid')} <strong>{t('subscriptionsHalalAlternativeWord')}</strong> {t('subscriptionsHaramIntroSuffix')}
           </p>
           <div className="space-y-3">
             {haramFlags.map((flag, i) => {
@@ -536,17 +540,17 @@ export default function SubscriptionsPage() {
                   <span className={`px-2 py-1 rounded text-xs font-bold ${
                     flag.severity === 'critical' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
                   }`}>
-                    {flag.severity === 'critical' ? 'HARAM' : 'RIBA'}
+                    {flag.severity === 'critical' ? t('subscriptionsBadgeHaram') : t('subscriptionsBadgeRiba')}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 dark:text-white">{flag.subscription}</p>
                     <p className="text-sm text-red-600">{flag.reason}</p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {fmt(flag.amount)} / {flag.frequency}
+                      {fmt(flag.amount)} / {frequencyLabel(flag.frequency)}
                     </p>
                     {sub?.halalAlternative && (
                       <p className="text-xs text-green-700 mt-2 bg-green-50 dark:bg-green-900/20 rounded px-2 py-1.5">
-                        <strong>Halal alternative:</strong> {sub.halalAlternative}
+                        <strong>{t('subscriptionsHalalAlternativeLabel')}</strong> {sub.halalAlternative}
                       </p>
                     )}
                     {sub && (
@@ -571,19 +575,19 @@ export default function SubscriptionsPage() {
       {subscriptions.length > 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
           <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">All Detected Subscriptions</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('subscriptionsTableHeading')}</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700/50">
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Service</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Amount</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Frequency</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Last Charged</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Next Expected</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Status</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">Action</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">{t('subscriptionsColService')}</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">{t('billsFieldAmount')}</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">{t('billsFieldFrequency')}</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">{t('subscriptionsColLastCharged')}</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">{t('subscriptionsColNextExpected')}</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">{t('analyticsHalalTableStatus')}</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">{t('importColAction')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -600,20 +604,20 @@ export default function SubscriptionsPage() {
                       {frequencyLabel(sub.frequency)}
                     </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                      {sub.lastCharged ? formatDate(sub.lastCharged) : 'N/A'}
+                      {sub.lastCharged ? formatDate(sub.lastCharged) : t('sadaqahNA')}
                     </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                      {sub.nextExpected ? formatDate(sub.nextExpected) : 'N/A'}
+                      {sub.nextExpected ? formatDate(sub.nextExpected) : t('sadaqahNA')}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-col gap-1">
                         {sub.haramFlagged ? (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 w-fit">
-                            Non-Halal
+                            {t('subscriptionsStatusNonHalal')}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 w-fit">
-                            Halal
+                            {t('halalStatHalal')}
                           </span>
                         )}
                         <CancellationStatus
@@ -649,7 +653,7 @@ export default function SubscriptionsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center shadow-sm">
             <p className="text-4xl mb-4">🔍</p>
             <p className="text-gray-500 dark:text-gray-400">
-              No recurring subscriptions detected yet. Add more transactions and try again.
+              {t('subscriptionsEmptyDesc')}
             </p>
           </div>
         )

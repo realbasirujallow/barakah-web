@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { trackFeatureUse, trackOnce } from '../../../lib/analytics';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import { useI18n } from '../../../lib/i18n';
 
 // ── Existing interfaces ───────────────────────────────────────────────────────
 
@@ -170,6 +171,7 @@ export default function RibaPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { fmt, symbol, locale: dateLocale } = useCurrency();
+  const { t, tFmt } = useI18n();
   const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
 
   // GA4 feature-engagement event — fires once per browser on first riba-
@@ -272,7 +274,7 @@ export default function RibaPage() {
           });
         }
       } else {
-        toast('Failed to scan transactions for riba', 'error');
+        toast(t('ribaScanFailed'), 'error');
       }
 
       // Check debts for interest (riba)
@@ -347,7 +349,7 @@ export default function RibaPage() {
         toast(res.error, 'error');
       } else {
         setPurifiedTxnIds(prev => new Set(prev).add(tx.transactionId));
-        toast(`Purified ${tx.description} — JazakAllahu khairan.`, 'success');
+        toast(tFmt('ribaPurifiedTxnToastFmt', [tx.description]), 'success');
         // Refresh the aggregate purification status so the Purification tab's
         // progress bar updates without a page reload.
         api.getRibaPurificationStatus().then(status => {
@@ -355,11 +357,11 @@ export default function RibaPage() {
         }).catch(() => {});
       }
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Failed to record purification', 'error');
+      toast(err instanceof Error ? err.message : t('ribaPurifyFailed'), 'error');
     } finally {
       setPurifyingTxnId(null);
     }
-  }, [purifyingTxnId, purifiedTxnIds, toast]);
+  }, [purifyingTxnId, purifiedTxnIds, toast, t, tFmt]);
 
   // ── Journey data load ───────────────────────────────────────────────────────
   const loadJourney = useCallback(async () => {
@@ -373,12 +375,12 @@ export default function RibaPage() {
         setJourney(data);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load your riba elimination journey';
+      const msg = err instanceof Error ? err.message : t('ribaJourneyLoadFailed');
       setJourneyError(msg);
     } finally {
       setJourneyLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (activeTab === 'journey' && !journey && !journeyLoading && hasPaidAccess && !isLoading) {
@@ -398,12 +400,12 @@ export default function RibaPage() {
         notes: goalForm.notes.trim(),
       });
       if (res?.error) { toast(res.error, 'error'); return; }
-      toast('Riba goal added. May Allah make your journey easy.', 'success');
+      toast(t('ribaGoalAddedToast'), 'success');
       setGoalForm({ sourceType: 'MORTGAGE', sourceName: '', currentAmount: '', notes: '' });
       setSuggestions([]);
       loadJourney();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to create goal';
+      const msg = err instanceof Error ? err.message : t('ribaGoalCreateFailed');
       toast(msg, 'error');
     } finally {
       setSubmittingGoal(false);
@@ -416,15 +418,15 @@ export default function RibaPage() {
       if (status === 'eliminated') {
         const res = await api.eliminateRibaGoal(goalId);
         if (res?.error) { toast(res.error, 'error'); return; }
-        toast('Alhamdulillah! Riba source eliminated!', 'success');
+        toast(t('ribaGoalEliminatedToast'), 'success');
       } else {
         const res = await api.updateRibaGoal(goalId, { status });
         if (res?.error) { toast(res.error, 'error'); return; }
-        toast('Goal marked as in progress', 'success');
+        toast(t('ribaGoalInProgressToast'), 'success');
       }
       loadJourney();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to update goal';
+      const msg = err instanceof Error ? err.message : t('ribaGoalUpdateFailed');
       toast(msg, 'error');
     } finally {
       setUpdatingGoalId(null);
@@ -438,7 +440,7 @@ export default function RibaPage() {
       if (res?.error) { toast(res.error, 'error'); return; }
       setSuggestions(Array.isArray(res) ? res : res?.suggestions ?? []);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load suggestions';
+      const msg = err instanceof Error ? err.message : t('ribaSuggestionsFailed');
       toast(msg, 'error');
     } finally {
       setLoadingSuggestions(false);
@@ -481,16 +483,16 @@ export default function RibaPage() {
 
   // ── Tab definitions ─────────────────────────────────────────────────────────
   const tabs: { key: TabKey; label: string }[] = [
-    { key: 'scan', label: 'Scan' },
-    { key: 'journey', label: 'Journey' },
-    { key: 'purification', label: 'Purification' },
+    { key: 'scan', label: t('ribaTabScan') },
+    { key: 'journey', label: t('ribaTabJourney') },
+    { key: 'purification', label: t('ribaTabPurification') },
   ];
 
   return (
     <div>
       <PageHeader
-        title="Riba Detector"
-        subtitle="Scan transactions for interest charges and track purification of haram income"
+        title={t('ribaPageTitle')}
+        subtitle={t('ribaPageSubtitle')}
       />
 
       {/* ── Tab Bar ── */}
@@ -521,25 +523,25 @@ export default function RibaPage() {
           {noTransactions && !hasRibaDebts ? (
             <EmptyState
               illustration="insight"
-              title="Nothing to scan yet"
-              description="Connect a bank or import a CSV and we'll flag any interest income or interest-bearing charges in your records."
+              title={t('ribaScanEmptyTitle')}
+              description={t('ribaScanEmptyDesc')}
               actions={[
-                { label: 'Connect bank', href: '/dashboard/import', primary: true },
-                { label: 'Add transaction', href: '/dashboard/transactions' },
+                { label: t('ribaConnectBank'), href: '/dashboard/import', primary: true },
+                { label: t('ribaAddTransaction'), href: '/dashboard/transactions' },
               ]}
               preview={
                 <div className="space-y-2">
                   {[
-                    { desc: 'Bank interest (savings)', amt: `+${fmt(8.42)}`, cls: 'text-red-600' },
-                    { desc: 'Credit-card APR charge', amt: `−${fmt(45.50)}`, cls: 'text-red-600' },
-                    { desc: 'Investment APY payout', amt: `+${fmt(12.18)}`, cls: 'text-red-600' },
-                  ].map((t) => (
-                    <div key={t.desc} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
+                    { desc: t('ribaPreviewBankInterest'), amt: `+${fmt(8.42)}`, cls: 'text-red-600' },
+                    { desc: t('ribaPreviewCreditApr'), amt: `−${fmt(45.50)}`, cls: 'text-red-600' },
+                    { desc: t('ribaPreviewInvestmentApy'), amt: `+${fmt(12.18)}`, cls: 'text-red-600' },
+                  ].map((row) => (
+                    <div key={row.desc} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                       <div>
-                        <p className="font-medium text-gray-700">{t.desc}</p>
-                        <p className="text-xs text-gray-400">Flagged as riba</p>
+                        <p className="font-medium text-gray-700">{row.desc}</p>
+                        <p className="text-xs text-gray-400">{t('ribaFlaggedAsRiba')}</p>
                       </div>
-                      <span className={`font-semibold ${t.cls}`}>{t.amt}</span>
+                      <span className={`font-semibold ${row.cls}`}>{row.amt}</span>
                     </div>
                   ))}
                 </div>
@@ -554,27 +556,32 @@ export default function RibaPage() {
               <div className="text-center">
                 <p className="text-6xl mb-3">{isClean ? '✅' : '⚠️'}</p>
                 <p className="text-2xl font-bold">
-                  {isClean ? 'Riba-Free!' : 'Riba Detected'}
+                  {isClean ? t('ribaVerdictClean') : t('ribaVerdictDetected')}
                 </p>
                 <p className="text-white/80 mt-1">
-                  {result?.truncated
-                    ? `Showing scan of ${result.totalScanned.toLocaleString()} of ${result.totalTransactions.toLocaleString()} transactions${hasRibaDebts ? ` · ${ribaDebts.length} interest-bearing debt${ribaDebts.length !== 1 ? 's' : ''} found` : ''}`
-                    : `${(result?.totalScanned || 0).toLocaleString()} transactions scanned${hasRibaDebts ? ` · ${ribaDebts.length} interest-bearing debt${ribaDebts.length !== 1 ? 's' : ''} found` : ''}`}
+                  {(() => {
+                    const debtSuffix = hasRibaDebts
+                      ? tFmt('ribaScanDebtSuffixFmt', [ribaDebts.length])
+                      : '';
+                    return result?.truncated
+                      ? tFmt('ribaScanTruncatedFmt', [result.totalScanned.toLocaleString(), result.totalTransactions.toLocaleString(), debtSuffix])
+                      : tFmt('ribaScanCountFmt', [(result?.totalScanned || 0).toLocaleString(), debtSuffix]);
+                  })()}
                 </p>
               </div>
 
               {!isClean && result && (
                 <div className="grid grid-cols-3 gap-4 mt-6">
                   <div className="text-center">
-                    <p className="text-white/70 text-xs">Flagged</p>
+                    <p className="text-white/70 text-xs">{t('ribaStatFlagged')}</p>
                     <p className="text-2xl font-bold">{flagged}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-white/70 text-xs">Riba Amount</p>
+                    <p className="text-white/70 text-xs">{t('ribaStatAmount')}</p>
                     <p className="text-2xl font-bold">{fmt(result.totalRibaAmount ?? 0)}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-white/70 text-xs">% of Total</p>
+                    <p className="text-white/70 text-xs">{t('ribaStatPercent')}</p>
                     <p className="text-2xl font-bold">{(result.ribaPercentage ?? 0).toFixed(1)}%</p>
                   </div>
                 </div>
@@ -584,8 +591,7 @@ export default function RibaPage() {
 
           {isClean && !noTransactions && !hasRibaDebts && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-800 mb-6">
-              <strong>Alhamdulillah!</strong> No riba-related transactions or debts were detected in your records.
-              Continue to avoid interest-based dealings as commanded in the Quran (2:275).
+              <strong>{t('ribaCleanBannerLabel')}</strong> {t('ribaCleanBannerBody')}
             </div>
           )}
 
@@ -601,19 +607,14 @@ export default function RibaPage() {
           {reviewDebts.length > 0 && (
             <div className="mb-6">
               <h2 className="text-lg font-semibold text-amber-700 mb-3">
-                Review {reviewDebts.length} debt{reviewDebts.length !== 1 ? 's' : ''} marked Riba-Free
+                {tFmt('ribaReviewHeadingFmt', [reviewDebts.length])}
               </h2>
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900 mb-4">
-                <strong>Heads up:</strong> these debts charge interest but are
-                currently flagged as Riba-Free. That&rsquo;s legitimate when
-                you pay in full each grace period or are inside a 0% intro
-                APR window — but the Detector hides them from its verdict
-                while the flag is on. Confirm each one in{' '}
+                <strong>{t('ribaReviewBannerLabel')}</strong> {t('ribaReviewBannerBefore')}{' '}
                 <Link href="/dashboard/debts" className="underline font-semibold">
-                  Debt Tracker
+                  {t('ribaDebtTracker')}
                 </Link>{' '}
-                so the Riba-Free verdict above reflects what you actually
-                want it to say.
+                {t('ribaReviewBannerAfter')}
               </div>
               <div className="space-y-3">
                 {reviewDebts.map(debt => (
@@ -628,7 +629,7 @@ export default function RibaPage() {
                       <div className="text-right">
                         <p className="text-lg font-bold text-amber-700">{fmt(debt.remainingAmount)}</p>
                         <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">
-                          {debt.interestRate}% interest · marked Riba-Free
+                          {tFmt('ribaReviewBadgeFmt', [debt.interestRate])}
                         </span>
                       </div>
                     </div>
@@ -637,10 +638,10 @@ export default function RibaPage() {
                         href={`/dashboard/debts?review=${debt.id}`}
                         className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-md font-medium hover:opacity-90 transition"
                       >
-                        Review in Debt Tracker
+                        {t('ribaReviewInDebtTracker')}
                       </Link>
                       <span className="text-xs text-gray-500 self-center">
-                        Common reasons this is correct: paid-in-grace-period · 0% intro APR · charge card
+                        {t('ribaReviewCommonReasons')}
                       </span>
                     </div>
                   </div>
@@ -652,11 +653,9 @@ export default function RibaPage() {
           {/* ── Interest-bearing debts (riba) ── */}
           {hasRibaDebts && (
             <div className="mb-6">
-              <h2 className="text-lg font-semibold text-red-700 mb-3">Interest-Bearing Debts (Riba)</h2>
+              <h2 className="text-lg font-semibold text-red-700 mb-3">{t('ribaDebtsHeading')}</h2>
               <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-800 mb-4">
-                <strong>Warning:</strong> You have {ribaDebts.length} debt{ribaDebts.length !== 1 ? 's' : ''} with interest (riba).
-                Interest on loans is prohibited in Islam. Consider refinancing to halal alternatives such as Islamic mortgages (Murabaha),
-                Qard Hasan (interest-free loans), or paying off these debts as a priority.
+                <strong>{t('ribaDebtsWarningLabel')}</strong> {tFmt('ribaDebtsWarningBodyFmt', [ribaDebts.length])}
               </div>
               <div className="space-y-3">
                 {ribaDebts.map(debt => (
@@ -669,17 +668,17 @@ export default function RibaPage() {
                       <div className="text-right">
                         <p className="text-lg font-bold text-red-600">{fmt(debt.remainingAmount)}</p>
                         <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full font-medium">
-                          {debt.interestRate}% interest
+                          {tFmt('ribaInterestBadgeFmt', [debt.interestRate])}
                         </span>
                       </div>
                     </div>
                     <div className="mt-3">
-                      <p className="text-xs font-medium text-green-700 mb-1">Islamic Alternatives</p>
+                      <p className="text-xs font-medium text-green-700 mb-1">{t('ribaIslamicAlternatives')}</p>
                       <div className="flex flex-wrap gap-1">
-                        {debt.type.includes('mortgage') && <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">Murabaha (Islamic Mortgage)</span>}
-                        {debt.type.includes('loan') && <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">Qard Hasan (Interest-Free Loan)</span>}
-                        {debt.type.includes('credit') && <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">Halal Credit Card (e.g. Safina Bank)</span>}
-                        <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">Prioritize paying off this debt</span>
+                        {debt.type.includes('mortgage') && <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">{t('ribaAltMurabaha')}</span>}
+                        {debt.type.includes('loan') && <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">{t('ribaAltQardHasan')}</span>}
+                        {debt.type.includes('credit') && <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">{t('ribaAltHalalCard')}</span>}
+                        <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">{t('ribaAltPrioritize')}</span>
                       </div>
                     </div>
                   </div>
@@ -690,7 +689,7 @@ export default function RibaPage() {
 
           {result && result.flaggedTransactions && result.flaggedTransactions.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-red-700">Flagged Transactions</h2>
+              <h2 className="text-lg font-semibold text-red-700">{t('ribaFlaggedTransactions')}</h2>
               {result.flaggedTransactions.map(tx => (
                 <div key={tx.transactionId} className="bg-white rounded-xl p-5 border-l-4 border-red-400">
                   <div className="flex justify-between items-start mb-3">
@@ -701,10 +700,10 @@ export default function RibaPage() {
                     <div className="text-right">
                       {tx.principalContaminated ? (
                         <>
-                          <p className="text-sm font-semibold text-amber-700" title="Contains principal (halal) plus interest (riba) in unknown proportions. Only the interest portion is riba; check your lender statement.">
-                            Contains riba
+                          <p className="text-sm font-semibold text-amber-700" title={t('ribaContainsRibaTitle')}>
+                            {t('ribaContainsRiba')}
                           </p>
-                          <p className="text-xs text-gray-500">{fmt(tx.amount)} total</p>
+                          <p className="text-xs text-gray-500">{tFmt('ribaAmountTotalFmt', [fmt(tx.amount)])}</p>
                         </>
                       ) : (
                         <p className="text-lg font-bold text-red-600">{fmt(tx.amount)}</p>
@@ -714,13 +713,13 @@ export default function RibaPage() {
                         tx.riskLevel === 'MEDIUM' ? 'bg-orange-100 text-orange-700' :
                         'bg-yellow-100 text-yellow-700'
                       }`}>
-                        {tx.riskLevel} • Score: {tx.riskScore}
+                        {tFmt('ribaRiskScoreFmt', [tx.riskLevel, tx.riskScore])}
                       </span>
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <p className="text-xs font-medium text-gray-500 mb-1">Why Flagged</p>
+                    <p className="text-xs font-medium text-gray-500 mb-1">{t('ribaWhyFlagged')}</p>
                     <div className="flex flex-wrap gap-1">
                       {tx.flagDetails?.map((d, i) => (
                         <span key={`${tx.transactionId}-flag-${d}-${i}`} className="bg-red-50 text-red-700 text-xs px-2 py-1 rounded">{d}</span>
@@ -730,7 +729,7 @@ export default function RibaPage() {
 
                   {tx.islamicAlternatives && tx.islamicAlternatives.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium text-green-700 mb-1">Islamic Alternatives</p>
+                      <p className="text-xs font-medium text-green-700 mb-1">{t('ribaIslamicAlternatives')}</p>
                       <div className="flex flex-wrap gap-1">
                         {tx.islamicAlternatives.map((a, i) => (
                           <span key={`${tx.transactionId}-alt-${a}-${i}`} className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded">{a}</span>
@@ -746,19 +745,19 @@ export default function RibaPage() {
                   <div className="mt-4 pt-3 border-t border-red-100 flex items-center justify-between gap-3 flex-wrap">
                     <p className="text-xs text-gray-500">
                       {tx.principalContaminated
-                        ? 'Loan payments contain principal (halal) + interest (riba). Only the interest portion needs purification — check your lender statement for the breakdown.'
-                        : 'Scholars agree interest income must be donated to charity — not kept.'}
+                        ? t('ribaPurifyNoteContaminated')
+                        : t('ribaPurifyNote')}
                     </p>
                     {purifiedTxnIds.has(tx.transactionId) ? (
                       <span className="text-sm font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-lg">
-                        ✓ Marked purified
+                        {t('ribaMarkedPurified')}
                       </span>
                     ) : tx.principalContaminated ? (
                       <span
                         className="text-xs font-medium text-amber-700 bg-amber-50 px-3 py-1.5 rounded-lg whitespace-nowrap"
-                        title="Purify only the interest portion from your lender statement, not the full payment."
+                        title={t('ribaVerifyInterestTitle')}
                       >
-                        Verify interest portion
+                        {t('ribaVerifyInterest')}
                       </span>
                     ) : (
                       <button
@@ -766,9 +765,9 @@ export default function RibaPage() {
                         onClick={() => handlePurifyTransaction(tx)}
                         disabled={purifyingTxnId !== null}
                         className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#154a19] transition disabled:opacity-50 whitespace-nowrap"
-                        title={`Record ${fmt(tx.amount)} as donated to charity`}
+                        title={tFmt('ribaPurifyBtnTitleFmt', [fmt(tx.amount)])}
                       >
-                        {purifyingTxnId === tx.transactionId ? 'Recording…' : `🤲 Purify ${fmt(tx.amount)}`}
+                        {purifyingTxnId === tx.transactionId ? t('ribaRecording') : tFmt('ribaPurifyBtnFmt', [fmt(tx.amount)])}
                       </button>
                     )}
                   </div>
@@ -778,7 +777,7 @@ export default function RibaPage() {
           )}
 
           <div className="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-            <strong>Quran 2:275:</strong> &quot;Those who consume interest cannot stand [on the Day of Resurrection] except as one stands who is being beaten by Satan...&quot;
+            <strong>{t('ribaQuran275Label')}</strong> {t('ribaQuran275Body')}
           </div>
         </>
       )}
@@ -801,7 +800,7 @@ export default function RibaPage() {
                 onClick={loadJourney}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-[#154a19] transition"
               >
-                Retry
+                {t('zktRetry')}
               </button>
             </div>
           )}
@@ -817,13 +816,13 @@ export default function RibaPage() {
                 <div className="text-center mb-4">
                   <p className="text-2xl font-bold">
                     {journey
-                      ? `${journey.eliminatedGoals} of ${journey.totalGoals} riba sources eliminated`
-                      : 'Start your riba-free journey'}
+                      ? tFmt('ribaJourneyEliminatedFmt', [journey.eliminatedGoals, journey.totalGoals])
+                      : t('ribaJourneyStartTitle')}
                   </p>
                   <p className="text-white/80 mt-1 text-sm">
                     {journey && journey.totalGoals > 0
-                      ? `${journey.progressPercent}% complete`
-                      : 'Add your riba sources below to begin tracking elimination'}
+                      ? tFmt('ribaJourneyPercentFmt', [journey.progressPercent])
+                      : t('ribaJourneyStartSubtitle')}
                   </p>
                 </div>
                 {journey && journey.totalGoals > 0 && (
@@ -837,15 +836,15 @@ export default function RibaPage() {
                 {journey && journey.totalGoals > 0 && (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
                     <div className="text-center">
-                      <p className="text-white/70 text-xs">Total Exposure</p>
+                      <p className="text-white/70 text-xs">{t('ribaStatTotalExposure')}</p>
                       <p className="text-xl font-bold">{fmt(journey.totalRibaExposure)}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-white/70 text-xs">Eliminated</p>
+                      <p className="text-white/70 text-xs">{t('ribaStatEliminated')}</p>
                       <p className="text-xl font-bold">{fmt(journey.totalEliminated)}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-white/70 text-xs">Active Goals</p>
+                      <p className="text-white/70 text-xs">{t('ribaStatActiveGoals')}</p>
                       <p className="text-xl font-bold">{journey.activeGoals}</p>
                     </div>
                   </div>
@@ -855,7 +854,7 @@ export default function RibaPage() {
               {/* ── Active Goals List ── */}
               {activeGoals.length > 0 && (
                 <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-primary mb-3">Active Goals</h2>
+                  <h2 className="text-lg font-semibold text-primary mb-3">{t('ribaActiveGoals')}</h2>
                   <div className="space-y-3">
                     {activeGoals.map(goal => (
                       <div key={goal.id} className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
@@ -881,7 +880,7 @@ export default function RibaPage() {
                               className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
                             >
                               <span>{expandedAlternatives.has(goal.id) ? '▾' : '▸'}</span>
-                              Halal Alternative
+                              {t('ribaHalalAlternative')}
                             </button>
                             {expandedAlternatives.has(goal.id) && (
                               <p className="mt-1 text-sm text-green-700 bg-green-50 rounded-lg p-3">
@@ -898,7 +897,7 @@ export default function RibaPage() {
                               disabled={updatingGoalId === goal.id}
                               className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded-lg text-xs font-semibold hover:bg-amber-200 transition disabled:opacity-50"
                             >
-                              {updatingGoalId === goal.id ? 'Updating...' : 'Mark In Progress'}
+                              {updatingGoalId === goal.id ? t('ribaUpdating') : t('ribaMarkInProgress')}
                             </button>
                           )}
                           <button
@@ -906,7 +905,7 @@ export default function RibaPage() {
                             disabled={updatingGoalId === goal.id}
                             className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-semibold hover:bg-green-200 transition disabled:opacity-50"
                           >
-                            {updatingGoalId === goal.id ? 'Updating...' : 'Mark Eliminated'}
+                            {updatingGoalId === goal.id ? t('ribaUpdating') : t('ribaMarkEliminated')}
                           </button>
                         </div>
                       </div>
@@ -917,11 +916,11 @@ export default function RibaPage() {
 
               {/* ── Add Goal Section ── */}
               <div className="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-6">
-                <h2 className="text-lg font-semibold text-primary mb-4">Add Riba Source</h2>
+                <h2 className="text-lg font-semibold text-primary mb-4">{t('ribaAddSource')}</h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="text-xs font-medium text-gray-700 mb-1 block">Source Type</label>
+                    <label className="text-xs font-medium text-gray-700 mb-1 block">{t('ribaFieldSourceType')}</label>
                     <select
                       value={goalForm.sourceType}
                       onChange={e => setGoalForm(prev => ({ ...prev, sourceType: e.target.value }))}
@@ -933,17 +932,17 @@ export default function RibaPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-700 mb-1 block">Source Name</label>
+                    <label className="text-xs font-medium text-gray-700 mb-1 block">{t('ribaFieldSourceName')}</label>
                     <input
                       type="text"
                       value={goalForm.sourceName}
                       onChange={e => setGoalForm(prev => ({ ...prev, sourceName: e.target.value }))}
-                      placeholder="e.g. Chase Mortgage, Discover Card"
+                      placeholder={t('ribaSourceNamePlaceholder')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-700 mb-1 block">Current Amount ({symbol})</label>
+                    <label className="text-xs font-medium text-gray-700 mb-1 block">{tFmt('ribaFieldCurrentAmountFmt', [symbol])}</label>
                     <input
                       type="number"
                       min="0"
@@ -955,11 +954,11 @@ export default function RibaPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-700 mb-1 block">Notes (optional)</label>
+                    <label className="text-xs font-medium text-gray-700 mb-1 block">{t('ribaFieldNotes')}</label>
                     <textarea
                       value={goalForm.notes}
                       onChange={e => setGoalForm(prev => ({ ...prev, notes: e.target.value }))}
-                      placeholder="Any additional details..."
+                      placeholder={t('ribaNotesPlaceholder')}
                       rows={1}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
                     />
@@ -972,21 +971,21 @@ export default function RibaPage() {
                     disabled={submittingGoal || !goalForm.sourceName.trim() || !goalForm.currentAmount}
                     className="px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-[#154a19] transition disabled:opacity-50"
                   >
-                    {submittingGoal ? 'Adding...' : 'Add Goal'}
+                    {submittingGoal ? t('ribaAddingGoal') : t('ribaAddGoal')}
                   </button>
                   <button
                     onClick={handleLoadSuggestions}
                     disabled={loadingSuggestions}
                     className="px-5 py-2 bg-white border border-primary text-primary rounded-lg text-sm font-semibold hover:bg-green-50 transition disabled:opacity-50"
                   >
-                    {loadingSuggestions ? 'Detecting...' : 'Auto-Detect from Debts'}
+                    {loadingSuggestions ? t('ribaDetecting') : t('ribaAutoDetect')}
                   </button>
                 </div>
 
                 {/* Suggestions */}
                 {suggestions.length > 0 && (
                   <div className="mt-4">
-                    <p className="text-xs font-medium text-gray-500 mb-2">Detected riba sources (click to add):</p>
+                    <p className="text-xs font-medium text-gray-500 mb-2">{t('ribaDetectedSources')}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {suggestions.map((s, i) => (
                         <button
@@ -1016,7 +1015,7 @@ export default function RibaPage() {
               {/* ── Milestones (Eliminated Goals) ── */}
               {eliminatedGoals.length > 0 && (
                 <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-primary mb-3">Milestones</h2>
+                  <h2 className="text-lg font-semibold text-primary mb-3">{t('ribaMilestones')}</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {eliminatedGoals.map(goal => (
                       <div key={goal.id} className="bg-green-50 border border-green-200 rounded-xl p-5">
@@ -1033,7 +1032,7 @@ export default function RibaPage() {
                               </span>
                             </div>
                             <p className="font-semibold text-green-800 truncate">{goal.sourceName}</p>
-                            <p className="text-sm text-green-700">{fmt(goal.originalAmount)} eliminated</p>
+                            <p className="text-sm text-green-700">{tFmt('ribaMilestoneEliminatedFmt', [fmt(goal.originalAmount)])}</p>
                             {goal.eliminatedAt && (
                               <p className="text-xs text-green-600 mt-1">
                                 {new Date(goal.eliminatedAt).toLocaleDateString(dateLocale)}
@@ -1051,17 +1050,17 @@ export default function RibaPage() {
               {!journey || journey.totalGoals === 0 ? (
                 <EmptyState
                   icon="🌱"
-                  title="Start your riba-free journey"
-                  description="List the mortgages, credit cards, or interest-bearing accounts you want to clear, then mark each one eliminated as you replace it with a halal alternative."
+                  title={t('ribaJourneyStartTitle')}
+                  description={t('ribaJourneyEmptyDesc')}
                   actions={[
-                    { label: 'Auto-detect from debts', onClick: handleLoadSuggestions, primary: true },
+                    { label: t('ribaAutoDetectLower'), onClick: handleLoadSuggestions, primary: true },
                   ]}
                   preview={
                     <div className="space-y-2">
                       {[
-                        { src: '🏠 Mortgage', name: 'Chase Mortgage', amt: fmt(240000), status: 'Active' },
-                        { src: '💳 Credit Card', name: 'Discover Card', amt: fmt(3400), status: 'In progress' },
-                        { src: '🚗 Car Loan', name: 'Toyota Finance', amt: fmt(11200), status: 'Active' },
+                        { src: t('ribaPreviewMortgage'), name: 'Chase Mortgage', amt: fmt(240000), status: t('ribaPreviewStatusActive') },
+                        { src: t('ribaPreviewCreditCard'), name: 'Discover Card', amt: fmt(3400), status: t('ribaPreviewStatusInProgress') },
+                        { src: t('ribaPreviewCarLoan'), name: 'Toyota Finance', amt: fmt(11200), status: t('ribaPreviewStatusActive') },
                       ].map((g) => (
                         <div key={g.name} className="bg-white rounded-xl p-3 flex justify-between items-center text-sm">
                           <div>
@@ -1077,7 +1076,7 @@ export default function RibaPage() {
               ) : null}
 
               <div className="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-                <strong>Quran 2:278-279:</strong> &quot;O you who have believed, fear Allah and give up what remains [due to you] of interest, if you should be believers.&quot;
+                <strong>{t('ribaQuran278Label')}</strong> {t('ribaQuran278Body')}
               </div>
             </>
           )}
@@ -1091,16 +1090,15 @@ export default function RibaPage() {
         <>
           {purification && purification.totalRibaDetected > 0 ? (
             <div className="bg-purple-50 border border-purple-200 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-purple-800 mb-2">Purify Riba (Interest)</h2>
+              <h2 className="text-lg font-semibold text-purple-800 mb-2">{t('ribaPurifyTitle')}</h2>
               <p className="text-sm text-purple-700 mb-4">
-                Scholars agree that interest income must be given away to charity — not kept.
-                Track your purification progress below.
+                {t('ribaPurifyIntro')}
               </p>
 
               {/* ── Visual progress indicator ── */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-purple-700">Purification Progress</span>
+                  <span className="text-sm font-medium text-purple-700">{t('ribaPurificationProgress')}</span>
                   <span className="text-sm font-bold text-purple-800">{purificationPercent}%</span>
                 </div>
                 <div className="w-full bg-purple-200 rounded-full h-4 overflow-hidden">
@@ -1117,22 +1115,22 @@ export default function RibaPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                 <div className="text-center bg-white rounded-lg p-3">
-                  <p className="text-xs text-gray-500">Total Riba</p>
+                  <p className="text-xs text-gray-500">{t('ribaPurifyTotalRiba')}</p>
                   <p className="text-lg font-bold text-red-600">{fmt(purification.totalRibaDetected)}</p>
                 </div>
                 <div className="text-center bg-white rounded-lg p-3">
-                  <p className="text-xs text-gray-500">Purified</p>
+                  <p className="text-xs text-gray-500">{t('ribaPurifyPurified')}</p>
                   <p className="text-lg font-bold text-green-600">{fmt(purification.totalPurified)}</p>
                 </div>
                 <div className="text-center bg-white rounded-lg p-3">
-                  <p className="text-xs text-gray-500">Remaining</p>
+                  <p className="text-xs text-gray-500">{t('ribaPurifyRemaining')}</p>
                   <p className="text-lg font-bold text-amber-600">{fmt(purification.remainingToPurify)}</p>
                 </div>
               </div>
               {purification.remainingToPurify > 0 ? (
                 <div className="flex gap-2 items-end">
                   <div className="flex-1">
-                    <label className="text-xs font-medium text-purple-700 mb-1 block">Donation Amount ({symbol})</label>
+                    <label className="text-xs font-medium text-purple-700 mb-1 block">{tFmt('ribaDonationAmountFmt', [symbol])}</label>
                     <input
                       type="number"
                       min="0.01"
@@ -1151,7 +1149,7 @@ export default function RibaPage() {
                       try {
                         const res = await api.recordRibaPurification(amt, 'Riba purification donation');
                         if (res?.error) { toast(res.error, 'error'); return; }
-                        toast('Alhamdulillah! Riba purified via charity donation.', 'success');
+                        toast(t('ribaPurifiedDonationToast'), 'success');
                         setPurification(prev => prev ? {
                           ...prev,
                           totalPurified: prev.totalPurified + amt,
@@ -1159,35 +1157,35 @@ export default function RibaPage() {
                         } : prev);
                         setPurifyAmount('');
                       } catch (err) {
-                        const msg = err instanceof Error ? err.message : 'Failed to record purification';
+                        const msg = err instanceof Error ? err.message : t('ribaPurifyFailed');
                         toast(msg, 'error');
                       } finally { setPurifying(false); }
                     }}
                     disabled={purifying}
                     className="px-5 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition disabled:opacity-50"
                   >
-                    {purifying ? 'Recording...' : 'Record Donation'}
+                    {purifying ? t('ribaRecordingDonation') : t('ribaRecordDonation')}
                   </button>
                 </div>
               ) : (
                 <div className="text-center bg-green-50 border border-green-200 rounded-lg p-4">
-                  <p className="text-green-700 font-semibold">All riba has been purified! May Allah accept from you.</p>
+                  <p className="text-green-700 font-semibold">{t('ribaAllPurified')}</p>
                 </div>
               )}
             </div>
           ) : (
             <EmptyState
               icon="✅"
-              title="Nothing to purify right now"
-              description="When the scanner finds interest income in your records, you can record charity donations here to purify it. Alhamdulillah — your records are clean so far."
+              title={t('ribaPurifyEmptyTitle')}
+              description={t('ribaPurifyEmptyDesc')}
               actions={[
-                { label: 'Run a fresh scan', onClick: () => setActiveTab('scan'), primary: true },
+                { label: t('ribaRunFreshScan'), onClick: () => setActiveTab('scan'), primary: true },
               ]}
             />
           )}
 
           <div className="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-            <strong>Quran 2:275:</strong> &quot;Those who consume interest cannot stand [on the Day of Resurrection] except as one stands who is being beaten by Satan...&quot;
+            <strong>{t('ribaQuran275Label')}</strong> {t('ribaQuran275Body')}
           </div>
         </>
       )}
