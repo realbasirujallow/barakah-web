@@ -102,6 +102,12 @@ export default function PricingToggle() {
         </span>
       </div>
 
+      {/* Founder decision: the free trial is the Family plan, for everyone — so
+          no single card "owns" the trial. State it once, above all three cards. */}
+      <p className="text-center text-sm font-medium text-gray-700 mb-10 -mt-6">
+        {t('pricingTrialBanner')}
+      </p>
+
       {/* Plan Cards */}
       <section className="grid md:grid-cols-3 gap-8 mb-20">
         {/* Free Plan */}
@@ -174,7 +180,7 @@ export default function PricingToggle() {
             href="/signup"
             className="block w-full text-center bg-green-700 hover:bg-green-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
-            {t('homePrimaryCta')}
+            {t('pricingStartPlus')}
           </Link>
         </div>
 
