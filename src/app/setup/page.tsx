@@ -633,7 +633,7 @@ function SetupPageInner() {
 
                   {plaidAccess && currentPlan === 'family' && status?.status === 'trialing' && (
                     <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-                      Your current Family trial includes secure bank sync right now, so you can connect accounts during setup without upgrading again.
+                      {t('setupTrialSyncNote')}
                     </div>
                   )}
                 </div>

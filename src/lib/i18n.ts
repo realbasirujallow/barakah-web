@@ -4088,6 +4088,8 @@ const en: Translations = {
   setupBannerPlanActive: "Your plan is active. Next, connect your accounts so Barakah can start working for you.",
   setupBannerAlreadyOnFmt: "You're already on {0}. Next, connect your accounts.",
   setupBannerNowOnFmt: "You're now on {0}. Next, connect your accounts.",
+  // === #4 localization setuptrial ===
+  setupTrialSyncNote: "Your current Family trial includes secure bank sync right now, so you can connect accounts during setup without upgrading again.",
 };
 
 const ar: Translations = {
@@ -8104,6 +8106,8 @@ const ar: Translations = {
   setupBannerPlanActive: "خطتك مفعّلة. التالي، اربط حساباتك لتبدأ بركة العمل من أجلك.",
   setupBannerAlreadyOnFmt: "أنت مشترك بالفعل في {0}. التالي، اربط حساباتك.",
   setupBannerNowOnFmt: "أنت الآن مشترك في {0}. التالي، اربط حساباتك.",
+  // === #4 localization setuptrial ===
+  setupTrialSyncNote: "تتضمّن تجربتك العائلية الحالية مزامنة بنكية آمنة الآن، لذا يمكنك ربط الحسابات أثناء الإعداد دون الترقية مجددًا.",
 };
 
 const ur: Translations = {
@@ -12120,6 +12124,8 @@ const ur: Translations = {
   setupBannerPlanActive: "آپ کا پلان فعال ہے۔ اگلا، اپنے اکاؤنٹس منسلک کریں تاکہ بركہ آپ کے لیے کام شروع کرے۔",
   setupBannerAlreadyOnFmt: "آپ پہلے ہی {0} پر ہیں۔ اگلا، اپنے اکاؤنٹس منسلک کریں۔",
   setupBannerNowOnFmt: "آپ اب {0} پر ہیں۔ اگلا، اپنے اکاؤنٹس منسلک کریں۔",
+  // === #4 localization setuptrial ===
+  setupTrialSyncNote: "آپ کے موجودہ Family ٹرائل میں ابھی محفوظ بینک سنک شامل ہے، لہٰذا آپ سیٹ اپ کے دوران دوبارہ اپ گریڈ کیے بغیر اکاؤنٹس منسلک کر سکتے ہیں۔",
 };
 
 const fr: Translations = {
@@ -16138,6 +16144,8 @@ const fr: Translations = {
   setupBannerPlanActive: "Votre formule est active. Ensuite, connectez vos comptes pour que Barakah commence à travailler pour vous.",
   setupBannerAlreadyOnFmt: "Vous êtes déjà sur {0}. Ensuite, connectez vos comptes.",
   setupBannerNowOnFmt: "Vous êtes maintenant sur {0}. Ensuite, connectez vos comptes.",
+  // === #4 localization setuptrial ===
+  setupTrialSyncNote: "Votre essai Family actuel inclut déjà la synchronisation bancaire sécurisée, vous pouvez donc connecter des comptes pendant la configuration sans repasser à une formule supérieure.",
 };
 
 const dictionaries: Record<string, Translations> = { en, ar, ur, fr };
