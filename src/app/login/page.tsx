@@ -168,20 +168,20 @@ function LoginForm() {
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-8">
           {bannerReason === 'expired' && (
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 p-3 rounded-lg mb-4 text-sm">
-              Your session has expired. Please sign in again.
+              {t('authSessionExpired')}
             </div>
           )}
 
           {bannerReason === 'logout' && (
             <div className="bg-green-50 border border-green-200 text-green-700 p-3 rounded-lg mb-4 text-sm">
-              You have been signed out successfully. See you next time!
+              {t('authSignedOut')}
             </div>
           )}
 
           {bannerReason === 'deleted' && (
             <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-lg mb-4 text-sm">
-              <p className="font-semibold mb-1">Your account has been deleted.</p>
-              <p>May Allah bless your journey. You&apos;re always welcome back — just sign up anytime.</p>
+              <p className="font-semibold mb-1">{t('authAccountDeletedTitle')}</p>
+              <p>{t('authAccountDeletedBody')}</p>
             </div>
           )}
 

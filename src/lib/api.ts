@@ -1744,6 +1744,22 @@ export const api = {
     apiFetch(`/admin/email-log?status=${status}&page=${page}&size=${size}`, {}, API_TIMEOUT, true),
   adminGetEmailLogEntry: (id: number) =>
     apiFetch(`/admin/email-log/${id}`, {}, API_TIMEOUT, true),
+  // Admin audit-log viewer (audit_logs table, written by AuditService —
+  // ADMIN_* campaign save/send/test, note create/delete, impersonation).
+  // Backend: GET /admin/audit-log?page=&size=&action=&actorId=  (admin-only).
+  adminGetAuditLog: (
+    page = 0,
+    size = 50,
+    action?: string,
+    actorId?: number,
+  ) => {
+    const qs = new URLSearchParams();
+    qs.set('page', String(page));
+    qs.set('size', String(size));
+    if (action) qs.set('action', action);
+    if (actorId != null) qs.set('actorId', String(actorId));
+    return apiFetch(`/admin/audit-log?${qs.toString()}`, {}, API_TIMEOUT, true);
+  },
   /**
    * Bulk-delete stale failed email_log rows older than N days. Default 7.
    * Returns { deleted: number, olderThanDays: number }.

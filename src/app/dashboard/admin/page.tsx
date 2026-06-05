@@ -536,6 +536,12 @@ export default function AdminPage() {
               📝 Notes
             </Link>
             <Link
+              href="/dashboard/admin/audit-log"
+              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
+            >
+              📋 Audit Log
+            </Link>
+            <Link
               href="/dashboard/admin/email-locales"
               className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
             >
