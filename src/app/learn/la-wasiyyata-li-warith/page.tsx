@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'La Wasiyyata li Warith — "No Bequest to an Heir" Hadith Explained (2026)',
+  title: 'La Wasiyyata li Warith: "No Bequest to an Heir" Hadith Explained',
   description:
-    'What does the hadith "La wasiyyata li warith" (no bequest to an heir) mean? Its source and grading, why heirs cannot be given extra by will, the one-third rule, and how it shapes a valid Islamic will.',
+    '"La wasiyyata li warith" means "there is no bequest for an heir." Read the hadith\'s wording, its source and grading (Abu Dawud, Tirmidhi, Ibn Majah), why an heir cannot be left extra by will, and the one-third rule for a valid Islamic will.',
   keywords: [
     'la wasiyyata li warith',
     'la wasiyyata li warith hadith',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/learn/la-wasiyyata-li-warith' },
   openGraph: {
-    title: 'La Wasiyyata li Warith — "No Bequest to an Heir" Hadith Explained',
+    title: 'La Wasiyyata li Warith: The "No Bequest to an Heir" Hadith',
     description:
       'Source, grading, and meaning of the hadith "no bequest to an heir," the one-third rule, and what it means for your Islamic will.',
     url: 'https://trybarakah.com/learn/la-wasiyyata-li-warith',

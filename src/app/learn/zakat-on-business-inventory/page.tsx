@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Zakat on Business Inventory — Trading Goods vs Operating Equipment',
+  title: 'Zakat on Business Inventory — Trade Goods at Market Value (AAOIFI)',
   description:
-    'Trading inventory IS zakatable. Operating equipment ISN&apos;T. Here&apos;s the rule, the test, and worked examples for retail / restaurants / e-commerce / professional services.',
+    'Trading inventory is zakatable at its current market (retail) value; operating equipment is not. The AAOIFI valuation rule, the trade-goods test, and worked examples for retail, restaurants, e-commerce and professional services.',
   keywords: [
     'zakat on business inventory',
     'zakat on trade goods',
@@ -14,9 +14,9 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: 'https://trybarakah.com/learn/zakat-on-business-inventory' },
   openGraph: {
-    title: 'Zakat on Business Inventory — Trading vs Operating',
+    title: 'Zakat on Business Inventory — Valuing Trade Goods at Market Value',
     description:
-      'Why your retail stock is zakatable but your kitchen equipment isn&apos;t. Worked examples by business type.',
+      'Why retail stock is zakatable at market value but kitchen equipment is not — the AAOIFI rule, with worked examples by business type.',
     url: 'https://trybarakah.com/learn/zakat-on-business-inventory',
     siteName: 'Barakah',
     type: 'article',
