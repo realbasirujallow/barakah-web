@@ -67,37 +67,14 @@ function formatPlaidBalance(value: number | null | undefined, currencyCode = 'US
   }
 }
 
+// Titles/descriptions are i18n keys (resolved via t() in render) so the
+// "choose your destination" step localizes for ar/ur/fr (QA 2026-06-05 LOC-2).
 const focusOptions = [
-  {
-    title: 'Go to Dashboard',
-    description: 'See your financial picture, next steps, and recent activity.',
-    href: '/dashboard',
-    icon: '🏠',
-  },
-  {
-    title: 'Review Imported Accounts',
-    description: 'Check linked accounts, import CSV data, or continue bank setup.',
-    href: '/dashboard/import',
-    icon: '🏦',
-  },
-  {
-    title: 'Set Up Zakat',
-    description: 'Start with nisab, hawl tracking, and annual zakat readiness.',
-    href: '/dashboard/zakat',
-    icon: '🕌',
-  },
-  {
-    title: 'Start Budgeting',
-    description: 'Build a monthly spending plan and track household cash flow.',
-    href: '/dashboard/budget',
-    icon: '📊',
-  },
-  {
-    title: 'Tidy Up Debts',
-    description: 'Track balances, payments, and riba exposure in one place.',
-    href: '/dashboard/debts',
-    icon: '💳',
-  },
+  { titleKey: 'setupFocusDashboardTitle', descKey: 'setupFocusDashboardDesc', href: '/dashboard', icon: '🏠' },
+  { titleKey: 'setupFocusImportTitle', descKey: 'setupFocusImportDesc', href: '/dashboard/import', icon: '🏦' },
+  { titleKey: 'setupFocusZakatTitle', descKey: 'setupFocusZakatDesc', href: '/dashboard/zakat', icon: '🕌' },
+  { titleKey: 'setupFocusBudgetTitle', descKey: 'setupFocusBudgetDesc', href: '/dashboard/budget', icon: '📊' },
+  { titleKey: 'setupFocusDebtsTitle', descKey: 'setupFocusDebtsDesc', href: '/dashboard/debts', icon: '💳' },
 ];
 
 function SetupPageInner() {
@@ -105,7 +82,7 @@ function SetupPageInner() {
   const searchParams = useSearchParams();
   const { user, isLoading, refreshPlan } = useAuth();
   // 2026-05-19 (audit Bug #20): wire wizard chrome to locale-aware strings.
-  const { t } = useI18n();
+  const { t, tFmt } = useI18n();
   const stepLabelsI18n = [t('setupStep1'), t('setupStep2'), t('setupStep3')] as const;
 
   const initialStep = searchParams.get('step') === 'connect' || searchParams.get('checkout') === 'success'
@@ -155,7 +132,7 @@ function SetupPageInner() {
         ? new URLSearchParams(window.location.search).get('checkout')
         : null;
       if (currentCheckout === 'success' && typed?.status === 'active') {
-        setBanner('Your plan is active. Next, connect your accounts so Barakah can start working for you.');
+        setBanner(t('setupBannerPlanActive'));
       }
     } catch {
       setStatus({ plan: 'free', status: 'inactive', hasSubscription: false });
@@ -276,7 +253,7 @@ function SetupPageInner() {
     }
 
     if (currentPlan === plan || (currentPlan === 'family' && plan === 'plus')) {
-      setBanner(`You're already on ${currentPlan === 'family' ? 'Barakah Family' : 'Barakah Plus'}. Next, connect your accounts.`);
+      setBanner(tFmt('setupBannerAlreadyOnFmt', [currentPlan === 'family' ? 'Barakah Family' : 'Barakah Plus']));
       setStep(1);
       return;
     }
@@ -304,7 +281,7 @@ function SetupPageInner() {
       if (result?.success) {
         await refreshPlan();
         await loadSubscriptionStatus();
-        setBanner(`You're now on ${plan === 'family' ? 'Barakah Family' : 'Barakah Plus'}. Next, connect your accounts.`);
+        setBanner(tFmt('setupBannerNowOnFmt', [plan === 'family' ? 'Barakah Family' : 'Barakah Plus']));
         setStep(1);
         return;
       }
@@ -400,17 +377,17 @@ function SetupPageInner() {
   const planCards = useMemo(() => [
     {
       id: 'free' as const,
-      title: 'Start Free',
+      title: t('setupPlanFreeTitle'),
       price: '$0',
       period: 'forever',
-      badge: currentPlan === 'free' ? 'Current Plan' : null,
-      description: 'Explore the essentials first, then upgrade when you want automatic workflows and deeper planning.',
+      badge: currentPlan === 'free' ? t('setupPlanBadgeCurrent') : null,
+      description: t('setupPlanFreeDesc'),
       features: [
-        'Budgets & bills tracking',
-        'Zakat calculator and Hawl tracker',
-        'Sadaqah log and Ramadan tools',
+        t('setupPlanFreeFeat1'),
+        t('setupPlanFreeFeat2'),
+        t('setupPlanFreeFeat3'),
       ],
-      cta: 'Continue with Free',
+      cta: t('setupPlanFreeCta'),
       ctaStyle: 'border border-green-200 text-[#1B5E20] bg-white hover:bg-green-50',
     },
     {
@@ -418,14 +395,14 @@ function SetupPageInner() {
       title: 'Barakah Plus',
       price: billing === 'yearly' ? PRICING.plus.yearly : PRICING.plus.monthly,
       period: billing === 'yearly' ? PRICING.plus.yearlyPeriod : PRICING.plus.monthlyPeriod,
-      badge: currentPlan === 'plus' ? 'Current Plan' : 'Most Popular',
-      description: 'Best for individuals who want connected accounts, premium automation, and deeper Islamic finance tools.',
+      badge: currentPlan === 'plus' ? t('setupPlanBadgeCurrent') : t('setupPlanBadgePopular'),
+      description: t('setupPlanPlusDesc'),
       features: [
-        'Unlimited transactions',
-        'Connected account workflows',
-        'Barakah Score, investments, and reports',
+        t('setupPlanPlusFeat1'),
+        t('setupPlanPlusFeat2'),
+        t('setupPlanPlusFeat3'),
       ],
-      cta: currentPlan === 'plus' || currentPlan === 'family' ? 'Continue with Plus' : 'Upgrade to Plus',
+      cta: currentPlan === 'plus' || currentPlan === 'family' ? t('setupPlanPlusCtaContinue') : t('setupPlanPlusCtaUpgrade'),
       ctaStyle: 'bg-[#1B5E20] text-white hover:bg-[#2E7D32]',
     },
     {
@@ -433,17 +410,17 @@ function SetupPageInner() {
       title: 'Barakah Family',
       price: billing === 'yearly' ? PRICING.family.yearly : PRICING.family.monthly,
       period: billing === 'yearly' ? PRICING.family.yearlyPeriod : PRICING.family.monthlyPeriod,
-      badge: currentPlan === 'family' ? 'Current Plan' : 'For Households',
-      description: 'Designed for spouses and families who need shared visibility, household planning, and estate continuity.',
+      badge: currentPlan === 'family' ? t('setupPlanBadgeCurrent') : t('setupPlanBadgeHouseholds'),
+      description: t('setupPlanFamilyDesc'),
       features: [
-        'Everything in Plus',
-        'Shared household workflows',
-        'Family estate visibility and collaboration',
+        t('setupPlanFamilyFeat1'),
+        t('setupPlanFamilyFeat2'),
+        t('setupPlanFamilyFeat3'),
       ],
-      cta: currentPlan === 'family' ? 'Continue with Family' : 'Upgrade to Family',
+      cta: currentPlan === 'family' ? t('setupPlanFamilyCtaContinue') : t('setupPlanFamilyCtaUpgrade'),
       ctaStyle: 'bg-blue-600 text-white hover:bg-blue-700',
     },
-  ], [billing, currentPlan]);
+  ], [billing, currentPlan, t]);
 
   if (isLoading || !user) {
     return (
@@ -517,22 +494,22 @@ function SetupPageInner() {
               <div className="space-y-8">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-[#1B5E20]">Choose your starting plan</p>
-                    <h2 className="text-3xl font-bold text-gray-900 mt-1">Start free or unlock the smoother path now.</h2>
+                    <p className="text-sm font-semibold text-[#1B5E20]">{t('setupPlanChooseLabel')}</p>
+                    <h2 className="text-3xl font-bold text-gray-900 mt-1">{t('setupPlanStartHeadline')}</h2>
                     <p className="text-gray-600 mt-3 max-w-2xl">
-                      Automatic bank sync, deeper automation, and premium planning tools feel much better when they are part of setup instead of something you discover later.
+                      {t('setupPlanWhyBody')}
                     </p>
                   </div>
 
                   <div className="inline-flex items-center gap-3 bg-[#F7FAF7] rounded-full px-4 py-2 border border-green-100">
-                    <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Monthly</span>
+                    <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>{t('setupBillingMonthly')}</span>
                     <button
                       onClick={() => setBilling(prev => prev === 'monthly' ? 'yearly' : 'monthly')}
                       className={`relative h-7 w-14 rounded-full transition-colors ${billing === 'yearly' ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}
                     >
                       <span className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${billing === 'yearly' ? 'translate-x-7' : ''}`} />
                     </button>
-                    <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>Yearly</span>
+                    <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-[#1B5E20]' : 'text-gray-400'}`}>{t('setupBillingYearly')}</span>
                   </div>
                 </div>
 
@@ -630,14 +607,14 @@ function SetupPageInner() {
                         disabled={plaidLoading}
                         className="rounded-2xl bg-[#1B5E20] px-5 py-3 text-sm font-semibold text-white hover:bg-[#2E7D32] disabled:opacity-50"
                       >
-                        {plaidLoading ? 'Opening Plaid...' : 'Connect with Plaid'}
+                        {plaidLoading ? t('setupOpeningPlaid') : t('setupConnectPlaid')}
                       </button>
                     ) : (
                       <button
                         onClick={() => setStep(1)}
                         className="rounded-2xl border border-[#1B5E20] px-5 py-3 text-sm font-semibold text-[#1B5E20] hover:bg-green-50"
                       >
-                        Upgrade to Connect
+                        {t('setupUpgradeToConnect')}
                       </button>
                     )}
                     <button
@@ -650,7 +627,7 @@ function SetupPageInner() {
 
                   {!statusLoading && !plaidAccess && (
                     <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                      Automatic bank sync is included on Plus and Family. Upgrade above when you&apos;re ready, or keep going with Barakah Free for manual tracking.
+                      {t('setupBankSyncUpgradeNote')}
                     </div>
                   )}
 
@@ -715,10 +692,10 @@ function SetupPageInner() {
             {step === 2 && (
               <div className="space-y-6">
                 <div className="max-w-3xl">
-                  <p className="text-sm font-semibold text-[#1B5E20]">Choose your first destination</p>
-                  <h2 className="text-3xl font-bold text-gray-900 mt-1">Where should Barakah take you first?</h2>
+                  <p className="text-sm font-semibold text-[#1B5E20]">{t('setupChooseDestinationLabel')}</p>
+                  <h2 className="text-3xl font-bold text-gray-900 mt-1">{t('setupWhereFirst')}</h2>
                   <p className="text-gray-600 mt-3">
-                    Pick the area you want to focus on first. We’ll mark setup complete and take you straight there.
+                    {t('setupPickArea')}
                   </p>
                 </div>
 
@@ -730,10 +707,10 @@ function SetupPageInner() {
                       className="rounded-3xl border border-gray-200 bg-white p-6 text-left hover:border-[#1B5E20] hover:shadow-lg hover:shadow-green-100 transition"
                     >
                       <div className="text-3xl">{option.icon}</div>
-                      <h3 className="mt-4 text-xl font-bold text-gray-900">{option.title}</h3>
-                      <p className="mt-3 text-sm leading-6 text-gray-600">{option.description}</p>
+                      <h3 className="mt-4 text-xl font-bold text-gray-900">{t(option.titleKey)}</h3>
+                      <p className="mt-3 text-sm leading-6 text-gray-600">{t(option.descKey)}</p>
                       <span className="mt-6 inline-flex text-sm font-semibold text-[#1B5E20]">
-                        Open this next →
+                        {t('setupOpenThisNext')} →
                       </span>
                     </button>
                   ))}
