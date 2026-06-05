@@ -132,7 +132,7 @@ function monthLong(yyyyMM: string): string {
 
 export default function CashFlowPage() {
   const { fmt } = useCurrency();
-  const { t, tFmt, locale } = useI18n();
+  const { t, tFmt } = useI18n();
   // 2026-05-01: ?month=YYYY-MM URL param for deep-link from /dashboard/analytics
   // chart drills. When present, that month is selected on first paint instead
   // of defaulting to "most recent." Validated against the loaded months list
