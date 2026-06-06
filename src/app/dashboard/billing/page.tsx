@@ -797,12 +797,30 @@ function PlanPriceDisplay({ price, period }: { price: string; period: string }) 
   const { localized, approximate, loading } = useLocalizedPrice(price);
   // The "$0 / forever" free plan should render plainly — no FX dance.
   const isFree = price === '$0';
+  // 2026-06-06 (QA LOC-RESIDUAL): localize the period suffix. The canonical
+  // English values flow in from PRICING constants in lib/pricing.ts: "/mo",
+  // "/year", "/yr", and "forever" for the Free plan. Map to i18n keys at
+  // render time; unmapped values (defensive) render the raw string so any
+  // future period strings don't silently fall back to empty.
+  const localizedPeriod = (() => {
+    switch (period) {
+      case '/mo':
+        return t('billingPeriodMonthlySuffix');
+      case '/year':
+      case '/yr':
+        return t('billingPeriodYearlySuffix');
+      case 'forever':
+        return t('billingPeriodForever');
+      default:
+        return period;
+    }
+  })();
   return (
     <>
       <span className="text-3xl font-extrabold text-primary">
         {isFree ? price : (loading ? price : localized)}
       </span>
-      <span className="text-gray-400 text-sm">{period}</span>
+      <span className="text-gray-400 text-sm">{localizedPeriod}</span>
       {!isFree && approximate && !loading && (
         <p className="text-[11px] text-gray-500 mt-1">{t('billingLocalCurrencyNote')}</p>
       )}

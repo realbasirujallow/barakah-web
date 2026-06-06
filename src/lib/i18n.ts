@@ -4142,6 +4142,10 @@ const en: Translations = {
   billingRedirectingState: "Redirecting to Stripe…",
   billingUpgradeToFmt: "Upgrade to {0}",
   billingLocalCurrencyNote: "Charged in your local currency at checkout.",
+  // === QA LOC-RESIDUAL price-suffix localization (2026-06-06) ===
+  billingPeriodMonthlySuffix: "/mo",
+  billingPeriodYearlySuffix: "/year",
+  billingPeriodForever: "forever",
 };
 
 const ar: Translations = {
@@ -8212,6 +8216,10 @@ const ar: Translations = {
   billingRedirectingState: "جارٍ التحويل إلى Stripe…",
   billingUpgradeToFmt: "الترقية إلى {0}",
   billingLocalCurrencyNote: "يُحتسب بعملتك المحلية عند الدفع.",
+  // === QA LOC-RESIDUAL price-suffix localization (2026-06-06) ===
+  billingPeriodMonthlySuffix: "/شهريًا",
+  billingPeriodYearlySuffix: "/سنويًا",
+  billingPeriodForever: "للأبد",
 };
 
 const ur: Translations = {
@@ -12282,6 +12290,10 @@ const ur: Translations = {
   billingRedirectingState: "Stripe پر بھیجا جا رہا ہے…",
   billingUpgradeToFmt: "{0} پر اپ گریڈ کریں",
   billingLocalCurrencyNote: "چیک آؤٹ پر آپ کی مقامی کرنسی میں چارج کیا جائے گا۔",
+  // === QA LOC-RESIDUAL price-suffix localization (2026-06-06) ===
+  billingPeriodMonthlySuffix: "/ماہانہ",
+  billingPeriodYearlySuffix: "/سالانہ",
+  billingPeriodForever: "ہمیشہ کے لیے",
 };
 
 const fr: Translations = {
@@ -16354,6 +16366,10 @@ const fr: Translations = {
   billingRedirectingState: "Redirection vers Stripe…",
   billingUpgradeToFmt: "Passer à {0}",
   billingLocalCurrencyNote: "Facturé dans votre devise locale au paiement.",
+  // === QA LOC-RESIDUAL price-suffix localization (2026-06-06) ===
+  billingPeriodMonthlySuffix: "/mois",
+  billingPeriodYearlySuffix: "/an",
+  billingPeriodForever: "pour toujours",
 };
 
 const dictionaries: Record<string, Translations> = { en, ar, ur, fr };
