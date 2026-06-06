@@ -8166,12 +8166,15 @@ const ar: Translations = {
   setupTrialSyncNote: "تتضمّن تجربتك العائلية الحالية مزامنة بنكية آمنة الآن، لذا يمكنك ربط الحسابات أثناء الإعداد دون الترقية مجددًا.",
 
   // === QA LOC-7 referral modal (2026-06-06) ===
-  referralModalTitle: "شارك بركة مع عائلتك",
+  // Polish: "ادعُ … إلى بركة" (invite) reads as a referral CTA; "شارك بركة"
+  // (share) reads as a content-share gesture. Refine if you have a
+  // founder-voice phrasing in mind.
+  referralModalTitle: "ادعُ عائلتك إلى بركة",
   referralModalYourCode: "رمز الإحالة الخاص بك",
   referralModalWhatsAppCta: "شارك عبر واتساب",
   referralModalCopyLinkCta: "📋 انسخ رابط الإحالة",
   referralModalCopiedCta: "✓ تم نسخ الرابط!",
-  referralModalMaybeLater: "ربما لاحقًا",
+  referralModalMaybeLater: "لاحقًا",
   referralModalFootnote: "يمكنك دائمًا العثور على رابط الإحالة في الإعدادات ← دعوة صديق",
   referralModalCloseAria: "إغلاق",
   referralModalWhatsAppBodyFmt: "السلام عليكم! بدأت للتو باستخدام بركة لإدارة أموالي بطريقة حلال — حاسبة الزكاة وتتبع الحول والميزانيات والمزيد. جرّبها مجانًا: {0}",
@@ -12240,12 +12243,15 @@ const ur: Translations = {
   setupTrialSyncNote: "آپ کے موجودہ Family ٹرائل میں ابھی محفوظ بینک سنک شامل ہے، لہٰذا آپ سیٹ اپ کے دوران دوبارہ اپ گریڈ کیے بغیر اکاؤنٹس منسلک کر سکتے ہیں۔",
 
   // === QA LOC-7 referral modal (2026-06-06) ===
-  referralModalTitle: "اپنے خاندان کے ساتھ بركہ شیئر کریں",
+  // Polish: "مدعو کریں" (invite) reads as a referral CTA in Urdu marketing
+  // convention; "شیئر کریں" (share) reads as a content-share gesture.
+  // Refine if a more founder-voiced phrasing is preferred.
+  referralModalTitle: "اپنے خاندان کو بركہ پر مدعو کریں",
   referralModalYourCode: "آپ کا حوالہ کوڈ",
   referralModalWhatsAppCta: "واٹس ایپ پر شیئر کریں",
   referralModalCopyLinkCta: "📋 حوالہ لنک کاپی کریں",
   referralModalCopiedCta: "✓ لنک کاپی ہو گیا!",
-  referralModalMaybeLater: "شاید بعد میں",
+  referralModalMaybeLater: "بعد میں",
   referralModalFootnote: "آپ اپنا حوالہ لنک ہمیشہ سیٹنگز ← دوست کو دعوت دیں میں پا سکتے ہیں",
   referralModalCloseAria: "بند کریں",
   referralModalWhatsAppBodyFmt: "السلام علیکم! میں نے ابھی برکہ استعمال کرنا شروع کیا ہے تاکہ اپنی مالیات کو حلال طریقے سے سنبھال سکوں — زکوٰۃ کیلکولیٹر، حول ٹریکر، بجٹ اور بہت کچھ۔ مفت آزمائیں: {0}",
@@ -16316,12 +16322,19 @@ const fr: Translations = {
   setupTrialSyncNote: "Votre essai Family actuel inclut déjà la synchronisation bancaire sécurisée, vous pouvez donc connecter des comptes pendant la configuration sans repasser à une formule supérieure.",
 
   // === QA LOC-7 referral modal (2026-06-06) ===
-  referralModalTitle: "Partagez Barakah avec votre famille",
+  // 2026-06-06 (founder-voice polish): "Invitez … sur Barakah" reads as a
+  // referral CTA in French SaaS convention; "Partagez Barakah avec votre
+  // famille" reads as a share-content gesture. Refine to founder voice if
+  // a more specific framing is preferred (e.g. "Offrez Barakah à un proche").
+  referralModalTitle: "Invitez votre famille sur Barakah",
   referralModalYourCode: "Votre code de parrainage",
   referralModalWhatsAppCta: "Partager via WhatsApp",
   referralModalCopyLinkCta: "📋 Copier le lien de parrainage",
   referralModalCopiedCta: "✓ Lien copié !",
-  referralModalMaybeLater: "Peut-être plus tard",
+  // Polish: "Plus tard" lands like Spotify / Headspace / Duolingo
+  // dismissals (more native); "Peut-être plus tard" is the literal
+  // word-for-word translation.
+  referralModalMaybeLater: "Plus tard",
   referralModalFootnote: "Vous pouvez toujours retrouver votre lien de parrainage dans Paramètres → Inviter un ami",
   referralModalCloseAria: "Fermer",
   referralModalWhatsAppBodyFmt: "Assalamu Alaikum ! Je viens de commencer à utiliser Barakah pour gérer mes finances de manière halal — calculateur de zakat, suivi du hawl, budgets et bien plus. Essayez-le gratuitement : {0}",
