@@ -25,27 +25,33 @@ type SaveOffer = {
 };
 
 // ── Plan definitions ─────────────────────────────────────────────────────────
+// 2026-06-06 (QA LOC-6): features + Free plan name + badge are stored as i18n
+// keys here and resolved through t() at render time. Brand tokens ("Barakah
+// Plus", "Barakah Family", USD prices, the "$X/mo" suffix) intentionally stay
+// in English on the constant — pricing strings have to stay stable for the
+// Stripe portal and the canonical price labels carried into the audit log.
 const PLANS = [
   {
     id: 'free' as const,
-    name: 'Free',
+    nameKey: 'billingPlanNameFree',
     monthlyPrice: '$0',
     yearlyPrice: '$0',
     monthlyPeriod: 'forever',
     yearlyPeriod: 'forever',
     yearlySaving: null,
     color: 'gray',
-    features: [
-      '10 transactions per month',
-      'Budgets & bills tracking',
-      'Zakat calculator & Hawl tracker',
-      'Sadaqah & Ramadan Mode',
-      'Cash Flow with Sadaqah pillar',
-      'Recurring transactions',
+    featureKeys: [
+      'billingFeatTransactions10',
+      'billingFeatBudgetsBills',
+      'billingFeatZakatHawl',
+      'billingFeatSadaqahRamadan',
+      'billingFeatCashFlowSadaqah',
+      'billingFeatRecurring',
     ],
   },
   {
     id: 'plus' as const,
+    // Brand token — not localized. Per LOC-5 stance: leave Barakah Plus / Family in English.
     name: 'Barakah Plus',
     monthlyPrice: PRICING.plus.monthly,
     yearlyPrice: PRICING.plus.yearly,
@@ -54,23 +60,24 @@ const PLANS = [
     yearlySaving: PRICING.plus.yearlySaving,
     color: 'green',
     highlight: true,
-    badge: 'Most Popular',
-    features: [
-      'Unlimited transactions',
-      'All Free features',
-      'Halal stock screener (30,000+)',
-      'Riba & Subscription detector',
-      'Transaction Rules',
-      'Wasiyyah & Waqf planning',
-      'Investments & net worth',
-      'Barakah Score & analytics',
-      'Debt Payoff Projector',
-      'Financial Summary reports',
-      'CSV & PDF export',
+    badgeKey: 'billingBadgeMostPopular',
+    featureKeys: [
+      'billingFeatUnlimitedTx',
+      'billingFeatAllFree',
+      'billingFeatHalalScreener',
+      'billingFeatRibaSubsDetector',
+      'billingFeatTransactionRules',
+      'billingFeatWasiyyahWaqf',
+      'billingFeatInvestmentsNw',
+      'billingFeatBarakahScore',
+      'billingFeatDebtPayoff',
+      'billingFeatFinancialSummary',
+      'billingFeatCsvPdfExport',
     ],
   },
   {
     id: 'family' as const,
+    // Brand token — not localized.
     name: 'Barakah Family',
     monthlyPrice: PRICING.family.monthly,
     yearlyPrice: PRICING.family.yearly,
@@ -78,14 +85,14 @@ const PLANS = [
     yearlyPeriod: PRICING.family.yearlyPeriod,
     yearlySaving: PRICING.family.yearlySaving,
     color: 'blue',
-    features: [
-      'Everything in Plus',
-      'Up to 6 family members',
-      'Shared budgets & goals',
-      'Family Estate Visibility (wills & endowments)',
-      'Family financial summary',
-      'Shared expense splitting',
-      'Priority support',
+    featureKeys: [
+      'billingFeatEverythingInPlus',
+      'billingFeatUpTo6',
+      'billingFeatSharedBudgets',
+      'billingFeatFamilyEstate',
+      'billingFeatFamilySummary',
+      'billingFeatSharedExpense',
+      'billingFeatPrioritySupport',
     ],
   },
 ];
@@ -97,7 +104,7 @@ function BillingContent() {
   // pricing strings (e.g. "$9.99/mo", PCI compliance line, Stripe portal
   // copy) intentionally stay English — Stripe support and the audit trail
   // need stable canonical price labels and Stripe's own UI is English.
-  const { t } = useI18n();
+  const { t, tFmt } = useI18n();
   const params = useSearchParams();
   const { refreshPlan } = useAuth();
   const { toast } = useToast();
@@ -550,23 +557,23 @@ function BillingContent() {
       {/* Billing toggle */}
       <div className="flex flex-col items-center mb-6 gap-2">
         <div className="flex items-center gap-3">
-          <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-primary' : 'text-gray-400'}`}>Monthly</span>
+          <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-primary' : 'text-gray-400'}`}>{t('billingToggleMonthly')}</span>
           <button
             onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
             className={`relative w-14 h-7 rounded-full transition-colors ${billing === 'yearly' ? 'bg-primary' : 'bg-gray-300'}`}
-            aria-label={billing === 'yearly' ? 'Switch to monthly billing' : 'Switch to annual billing'}
+            aria-label={billing === 'yearly' ? t('billingToggleAriaSwitchMonthly') : t('billingToggleAriaSwitchAnnual')}
           >
             <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-7' : ''}`} />
           </button>
           <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-primary' : 'text-gray-400'}`}>
-            Yearly
+            {t('billingToggleYearly')}
           </span>
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full transition-colors ${
             billing === 'yearly'
               ? 'text-green-700 bg-green-100'
               : 'text-amber-700 bg-amber-100 animate-pulse'
           }`}>
-            {billing === 'yearly' ? 'Save 17%' : '🎁 GET 2 MONTHS FREE'}
+            {billing === 'yearly' ? t('billingToggleSave17') : t('billingToggleGet2MonthsFree')}
           </span>
         </div>
         {billing === 'monthly' && (
@@ -578,7 +585,7 @@ function BillingContent() {
                 text is intentionally currency-neutral ("17% on Plus or 17%
                 on Family") so it's true for every customer regardless of
                 the local currency Stripe charges them in. */}
-            Switch to annual and save 17% on Plus or 17% on Family per year.
+            {t('billingToggleAnnualSavingsNote')}
           </p>
         )}
       </div>
@@ -603,13 +610,16 @@ function BillingContent() {
               } bg-white`}
             >
               {/* Badge */}
-              {'badge' in plan && plan.badge && (
+              {'badgeKey' in plan && plan.badgeKey && (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
-                  {plan.badge}
+                  {t(plan.badgeKey)}
                 </span>
               )}
 
-              <h2 className="text-lg font-bold text-gray-800 mt-1">{plan.name}</h2>
+              <h2 className="text-lg font-bold text-gray-800 mt-1">
+                {/* Free plan name localized via key; brand names ("Barakah Plus" / "Family") stay English. */}
+                {'nameKey' in plan && plan.nameKey ? t(plan.nameKey) : plan.name}
+              </h2>
 
               <div className="mt-2 mb-4">
                 <PlanPriceDisplay price={price} period={period} />
@@ -621,10 +631,10 @@ function BillingContent() {
               </div>
 
               <ul className="space-y-2 flex-1 mb-5">
-                {plan.features.map(f => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
+                {plan.featureKeys.map(key => (
+                  <li key={key} className="flex items-start gap-2 text-sm text-gray-600">
                     <span className="text-primary font-bold mt-0.5">✓</span>
-                    {f}
+                    {t(key)}
                   </li>
                 ))}
               </ul>
@@ -648,7 +658,7 @@ function BillingContent() {
                   // Never show an upgrade/switch button for Free — only info text
                   return (
                     <div className="text-center text-sm text-gray-400 py-2">
-                      {currentTier > 0 ? 'Included in your plan' : 'Always free — cancel anytime to return here'}
+                      {currentTier > 0 ? t('billingIncludedInPlan') : t('billingAlwaysFreeNote')}
                     </div>
                   );
                 }
@@ -657,11 +667,15 @@ function BillingContent() {
                   // Users who truly need to downgrade can use the Stripe billing portal.
                   return (
                     <div className="text-center text-sm text-gray-400 py-2">
-                      Included in your plan
+                      {t('billingIncludedInPlan')}
                     </div>
                   );
                 }
-                // Higher-tier plan — show upgrade button
+                // Higher-tier plan — show upgrade button. By this point the
+                // narrowing above (early-return when plan.id === 'free') means
+                // plan is Plus or Family, both of which carry a brand `.name`
+                // — no nameKey lookup needed in this branch.
+                const planLabel = plan.name;
                 return (
                   <button
                     onClick={() => handleUpgrade(plan.id as 'plus' | 'family')}
@@ -671,10 +685,10 @@ function BillingContent() {
                     {loading === plan.id ? (
                       <span className="flex items-center justify-center gap-2">
                         <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        {status?.hasSubscription ? 'Upgrading plan...' : 'Redirecting to Stripe...'}
+                        {status?.hasSubscription ? t('billingUpgradingState') : t('billingRedirectingState')}
                       </span>
                     ) : (
-                      `Upgrade to ${plan.name}`
+                      tFmt('billingUpgradeToFmt', [planLabel])
                     )}
                   </button>
                 );
@@ -779,6 +793,7 @@ export default function BillingPage() {
  * Free plan ("$0") is rendered verbatim — no conversion needed.
  */
 function PlanPriceDisplay({ price, period }: { price: string; period: string }) {
+  const { t } = useI18n();
   const { localized, approximate, loading } = useLocalizedPrice(price);
   // The "$0 / forever" free plan should render plainly — no FX dance.
   const isFree = price === '$0';
@@ -789,7 +804,7 @@ function PlanPriceDisplay({ price, period }: { price: string; period: string }) 
       </span>
       <span className="text-gray-400 text-sm">{period}</span>
       {!isFree && approximate && !loading && (
-        <p className="text-[11px] text-gray-500 mt-1">Charged in your local currency at checkout.</p>
+        <p className="text-[11px] text-gray-500 mt-1">{t('billingLocalCurrencyNote')}</p>
       )}
     </>
   );
