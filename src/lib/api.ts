@@ -1595,6 +1595,8 @@ export const api = {
     apiFetch(`/admin/users/${userId}/locale`, { method: 'PUT', body: JSON.stringify({ locale }) }, API_TIMEOUT, true),
   adminLocaleAudit: () =>
     apiFetch('/admin/locale-audit', {}, API_TIMEOUT, true),
+  adminLocaleAuditUsers: (locale: string, page = 0, size = 100) =>
+    apiFetch(`/admin/locale-audit/users?locale=${encodeURIComponent(locale)}&page=${page}&size=${size}`, {}, API_TIMEOUT, true),
   adminVerifyEmail: (userId: number) =>
     apiFetch(`/admin/users/${userId}/verify-email`, { method: 'POST', body: JSON.stringify({}) }, API_TIMEOUT, true),
   /**

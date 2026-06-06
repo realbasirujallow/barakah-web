@@ -12,22 +12,28 @@ const LOCALE_LABELS: Record<string, string> = {
 
 interface LocaleUser {
   id: number;
-  email: string;
-  name: string;
   plan: string;
   createdAt: string;
 }
 
-interface LocaleGroup {
+interface LocaleGroupSummary {
   locale: string;
   count: number;
-  users: LocaleUser[];
 }
 
 interface AuditResult {
   total: number;
   nonEnglish: number;
-  byLocale: LocaleGroup[];
+  byLocale: LocaleGroupSummary[];
+}
+
+interface LocaleUsersPage {
+  locale: string;
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  users: LocaleUser[];
 }
 
 export function AdminLocaleAuditTab() {
@@ -35,6 +41,7 @@ export function AdminLocaleAuditTab() {
   const [loading, setLoading] = useState(true);
   const [fixing, setFixing] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [usersByLocale, setUsersByLocale] = useState<Record<string, LocaleUsersPage | 'loading' | 'error'>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -44,14 +51,37 @@ export function AdminLocaleAuditTab() {
       .finally(() => setLoading(false));
   }, [toast]);
 
-  async function fixLocale(userId: number, userEmail: string) {
+  async function expandLocale(locale: string) {
+    if (expanded === locale) { setExpanded(null); return; }
+    setExpanded(locale);
+    if (usersByLocale[locale] && usersByLocale[locale] !== 'error') return;
+    setUsersByLocale(prev => ({ ...prev, [locale]: 'loading' }));
+    try {
+      const r = await api.adminLocaleAuditUsers(locale, 0, 100) as LocaleUsersPage;
+      setUsersByLocale(prev => ({ ...prev, [locale]: r }));
+    } catch {
+      setUsersByLocale(prev => ({ ...prev, [locale]: 'error' }));
+      toast(`Failed to load users for ${locale}`, 'error');
+    }
+  }
+
+  async function refreshLocale(locale: string) {
+    try {
+      const r = await api.adminLocaleAuditUsers(locale, 0, 100) as LocaleUsersPage;
+      setUsersByLocale(prev => ({ ...prev, [locale]: r }));
+    } catch {
+      /* swallow */
+    }
+  }
+
+  async function fixLocale(userId: number, fromLocale: string) {
     setFixing(userId);
     try {
       await api.adminUpdateUserLocale(userId, 'en');
-      toast(`Locale reset to EN for ${userEmail}`, 'success');
-      // Refresh
+      toast(`Locale reset to EN for user #${userId}`, 'success');
       const fresh = await api.adminLocaleAudit() as AuditResult;
       setData(fresh);
+      await refreshLocale(fromLocale);
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Failed to update locale', 'error');
     } finally {
@@ -63,6 +93,59 @@ export function AdminLocaleAuditTab() {
   if (!data) return null;
 
   const nonEnglishGroups = data.byLocale.filter(g => g.locale !== 'en');
+
+  function renderTable(group: LocaleGroupSummary, showAction: boolean) {
+    const entry = usersByLocale[group.locale];
+    if (entry === 'loading' || entry === undefined) {
+      return <div className="border-t px-4 py-6 text-center text-sm text-gray-500">Loading…</div>;
+    }
+    if (entry === 'error') {
+      return <div className="border-t px-4 py-6 text-center text-sm text-red-600">Failed to load — try again.</div>;
+    }
+    return (
+      <div className="border-t">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+              <th className="px-4 py-2 text-left">ID</th>
+              <th className="px-4 py-2 text-left">Plan</th>
+              <th className="px-4 py-2 text-left">Joined</th>
+              {showAction && <th className="px-4 py-2 text-left">Action</th>}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {entry.users.map(u => (
+              <tr key={u.id} className="hover:bg-gray-50">
+                <td className="px-4 py-3 font-medium text-gray-800">#{u.id}</td>
+                <td className="px-4 py-3">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.plan === 'family' ? 'bg-purple-100 text-purple-700' : u.plan === 'plus' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                    {u.plan}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-gray-500 text-xs">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}</td>
+                {showAction && (
+                  <td className="px-4 py-3">
+                    <button
+                      disabled={fixing === u.id}
+                      onClick={() => fixLocale(u.id, group.locale)}
+                      className="px-3 py-1 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition"
+                    >
+                      {fixing === u.id ? '…' : 'Reset to EN'}
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {entry.totalElements > entry.users.length && (
+          <div className="px-4 py-3 text-xs text-gray-500 border-t bg-gray-50">
+            Showing {entry.users.length} of {entry.totalElements}. Open a user&apos;s record from the Users tab for full detail.
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -98,7 +181,7 @@ export function AdminLocaleAuditTab() {
             <div key={group.locale} className="bg-white border rounded-xl overflow-hidden">
               <button
                 className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition"
-                onClick={() => setExpanded(expanded === group.locale ? null : group.locale)}
+                onClick={() => expandLocale(group.locale)}
               >
                 <span className="font-semibold text-gray-800">
                   {LOCALE_LABELS[group.locale] ?? group.locale} — {group.count} user{group.count !== 1 ? 's' : ''}
@@ -106,46 +189,7 @@ export function AdminLocaleAuditTab() {
                 <span className="text-gray-400 text-sm">{expanded === group.locale ? '▲' : '▼'}</span>
               </button>
 
-              {expanded === group.locale && (
-                <div className="border-t">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-                      <tr>
-                        <th className="px-4 py-2 text-left">ID</th>
-                        <th className="px-4 py-2 text-left">Email</th>
-                        <th className="px-4 py-2 text-left">Name</th>
-                        <th className="px-4 py-2 text-left">Plan</th>
-                        <th className="px-4 py-2 text-left">Joined</th>
-                        <th className="px-4 py-2 text-left">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {group.users.map(u => (
-                        <tr key={u.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-gray-500">#{u.id}</td>
-                          <td className="px-4 py-3 font-medium text-gray-800">{u.email}</td>
-                          <td className="px-4 py-3 text-gray-600">{u.name || '—'}</td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.plan === 'family' ? 'bg-purple-100 text-purple-700' : u.plan === 'plus' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
-                              {u.plan}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-gray-500 text-xs">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}</td>
-                          <td className="px-4 py-3">
-                            <button
-                              disabled={fixing === u.id}
-                              onClick={() => fixLocale(u.id, u.email)}
-                              className="px-3 py-1 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition"
-                            >
-                              {fixing === u.id ? '…' : 'Reset to EN'}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              {expanded === group.locale && renderTable(group, true)}
             </div>
           ))}
         </div>
@@ -156,43 +200,14 @@ export function AdminLocaleAuditTab() {
         <div key="en" className="bg-white border rounded-xl overflow-hidden">
           <button
             className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition"
-            onClick={() => setExpanded(expanded === 'en' ? null : 'en')}
+            onClick={() => expandLocale('en')}
           >
             <span className="font-semibold text-gray-800">
               🇬🇧 English — {group.count} user{group.count !== 1 ? 's' : ''} ✅
             </span>
             <span className="text-gray-400 text-sm">{expanded === 'en' ? '▲' : '▼'}</span>
           </button>
-          {expanded === 'en' && (
-            <div className="border-t">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-                  <tr>
-                    <th className="px-4 py-2 text-left">ID</th>
-                    <th className="px-4 py-2 text-left">Email</th>
-                    <th className="px-4 py-2 text-left">Name</th>
-                    <th className="px-4 py-2 text-left">Plan</th>
-                    <th className="px-4 py-2 text-left">Joined</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {group.users.map(u => (
-                    <tr key={u.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-500">#{u.id}</td>
-                      <td className="px-4 py-3 font-medium text-gray-800">{u.email}</td>
-                      <td className="px-4 py-3 text-gray-600">{u.name || '—'}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.plan === 'family' ? 'bg-purple-100 text-purple-700' : u.plan === 'plus' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
-                          {u.plan}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          {expanded === 'en' && renderTable(group, false)}
         </div>
       ))}
     </div>
