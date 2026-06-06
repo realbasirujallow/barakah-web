@@ -1393,18 +1393,27 @@ export default function TransactionsPage() {
                 <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('txnDescPlaceholder')} />
               </div>
-              {/* Date — the EFFECTIVE date: drives which month's budget & cash-flow this counts toward.
-                  Forward-dating is allowed (set a future budget month); the original posted date is kept. */}
+              {/* Date — the EFFECTIVE date: drives which month's budget & cash-flow
+                  this counts toward. Forward-dating is allowed (set a future
+                  budget month); the original posted date is kept separately.
+                  2026-06-06 founder feedback: the explanatory hint used to only
+                  appear when originalDate was non-null, so manually-created
+                  transactions (no posted date) had no signal at all that the
+                  date controlled budget month. Now the hint always appears,
+                  with the original-posted line added when known. */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldDate')}</label>
                 <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
                   max={new Date(Date.now() + 400 * 86400000).toISOString().slice(0, 10)}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" />
-                {editTx?.originalDate != null && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    Original (posted) date: {new Date(editTx.originalDate).toLocaleDateString(dateLocale)} — kept on file. The date above sets which month&rsquo;s budget &amp; cash flow this transaction counts toward.
-                  </p>
-                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  The date above sets which month&rsquo;s budget &amp; cash flow this transaction counts toward.
+                  {editTx?.originalDate != null && (
+                    <>
+                      {' '}Original (posted) date: <strong>{new Date(editTx.originalDate).toLocaleDateString(dateLocale)}</strong> — kept on file and unchanged.
+                    </>
+                  )}
+                </p>
               </div>
               {/* Tags */}
               <div>
