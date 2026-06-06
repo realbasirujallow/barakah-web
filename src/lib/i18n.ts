@@ -4140,6 +4140,7 @@ const en: Translations = {
   billingAlwaysFreeNote: "Always free — cancel anytime to return here",
   billingUpgradingState: "Upgrading plan…",
   billingRedirectingState: "Redirecting to Stripe…",
+  // Polish: kept as "Upgrade to {0}" for English — that IS native SaaS CTA.
   billingUpgradeToFmt: "Upgrade to {0}",
   billingLocalCurrencyNote: "Charged in your local currency at checkout.",
   // === QA LOC-RESIDUAL price-suffix localization (2026-06-06) ===
