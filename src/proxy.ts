@@ -108,8 +108,12 @@ function buildCspHeaders(): { nonce?: string; csp?: string } {
     "font-src 'self'",
     // 2026-05-02: api.aladhan.com + nominatim.openstreetmap.org removed
     // alongside the prayer-times surface deletion (PR #86).
-    `connect-src 'self' ${backendUrl} https://production.plaid.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google-analytics.com https://analytics.google.com`,
-    "frame-src 'self' https://cdn.plaid.com https://*.google.com https://*.googleapis.com https://*.gstatic.com",
+    // 2026-06-07 PARITY-GOOGLE-SSO-WEB: accounts.google.com is required for
+    // Google Identity Services token verification / FedCM XHR. Without it
+    // GIS fails silently with CSP violations in the console and the
+    // "Continue with Google" button never produces a credential.
+    `connect-src 'self' ${backendUrl} https://accounts.google.com https://production.plaid.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google-analytics.com https://analytics.google.com`,
+    "frame-src 'self' https://accounts.google.com https://cdn.plaid.com https://*.google.com https://*.googleapis.com https://*.gstatic.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
