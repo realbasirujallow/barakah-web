@@ -20,7 +20,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../lib/i18n';
 
@@ -67,6 +67,7 @@ const GIS_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 
 export default function GoogleSignInButton({ ctaLabel = 'continue_with' }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signInWithGoogle } = useAuth();
   const { t, locale } = useI18n();
   const targetRef = useRef<HTMLDivElement | null>(null);
@@ -75,6 +76,11 @@ export default function GoogleSignInButton({ ctaLabel = 'continue_with' }: Props
   const [sending, setSending] = useState(false);
 
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID;
+  // 2026-06-07 UX: /sso/confirm-link redirects here with ?ssoAuto=1 after
+  // the user clicks the email confirmation link. We immediately re-prompt
+  // the GIS One Tap so the user signs in with ONE click after the email
+  // bounce — no orphaned tabs.
+  const autoTrigger = searchParams.get('ssoAuto') === '1';
 
   useEffect(() => {
     if (!clientId || !targetRef.current) return;
@@ -142,6 +148,12 @@ export default function GoogleSignInButton({ ctaLabel = 'continue_with' }: Props
         width: 320,
         locale,
       });
+      // 2026-06-07 UX: auto-trigger the One-Tap prompt when redirected
+      // from /sso/confirm-link?ssoAuto=1. GIS shows its picker overlay
+      // on the same tab — no orphan window from the email click flow.
+      if (autoTrigger) {
+        try { window.google.accounts.id.prompt(); } catch { /* no-op */ }
+      }
     });
 
     return () => {

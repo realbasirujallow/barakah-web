@@ -18,6 +18,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { readTokenFromUrl, scrubTokenFromUrl } from '../../../lib/scrubUrlToken';
 
@@ -26,6 +27,21 @@ type Phase = 'verifying' | 'success' | 'error';
 function ConfirmSsoLinkInner() {
   const [phase, setPhase] = useState<Phase>('verifying');
   const [message, setMessage] = useState('');
+  const router = useRouter();
+
+  // 2026-06-07: when the user clicks the email link, the email client
+  // typically opens a NEW tab/window (we can't control that). Once
+  // confirmation succeeds in this tab, auto-bounce the user to
+  // /login?ssoAuto=1 — the login page reads the flag and immediately
+  // re-prompts the Google One Tap. End result: ONE extra click from
+  // the email-click to a signed-in dashboard, no orphan-tab confusion.
+  useEffect(() => {
+    if (phase !== 'success') return;
+    const timer = setTimeout(() => {
+      router.replace('/login?ssoAuto=1');
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [phase, router]);
 
   useEffect(() => {
     const token = readTokenFromUrl('token');
@@ -98,11 +114,15 @@ function ConfirmSsoLinkInner() {
               Google sign-in enabled
             </p>
             <p className="text-sm text-gray-600 mb-6">{message}</p>
+            <p className="text-xs text-gray-500 mb-4">
+              Taking you to sign in with Google…
+            </p>
+            <div className="mx-auto mb-4 animate-spin w-6 h-6 border-4 border-[#1B5E20] border-t-transparent rounded-full" />
             <Link
-              href="/login"
+              href="/login?ssoAuto=1"
               className="inline-block bg-[#1B5E20] text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-800 transition"
             >
-              Sign in
+              Sign in with Google now
             </Link>
           </>
         )}
