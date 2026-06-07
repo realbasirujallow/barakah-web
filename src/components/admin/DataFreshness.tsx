@@ -63,8 +63,18 @@ export default function DataFreshness({
   const isStale = fetchedAt != null && Date.now() - fetchedAt > staleAfterMs;
   const ageText = fetchedAt != null ? fmtAge(fetchedAt) : '—';
 
+  // 2026-06-06 (BUG-WEB-HYDRATION-1): outer used to be a <div>, but
+  // every admin page mounts <DataFreshness/> inside a <p>-rendered
+  // subtitle or under a <span>-flex shell — both invalid HTML wrappers
+  // for a <div> with a <button> inside. Next.js logged a hydration
+  // error on every admin page load. Switching the outer to <span>
+  // with display:inline-flex keeps the visual layout identical (it
+  // was a flex row) while making the tree valid HTML (span > span +
+  // span > button is fine).
   return (
-    <div className={`flex items-center gap-2 text-xs text-gray-400 ${className}`}>
+    <span
+      className={`inline-flex items-center gap-2 text-xs text-gray-400 ${className}`}
+    >
       <span
         className={isStale ? 'text-amber-700' : ''}
         title={fetchedAt != null ? fmtAbs(fetchedAt) : 'No data loaded yet'}
@@ -82,6 +92,6 @@ export default function DataFreshness({
           {refreshing ? '⏳' : '↻'}
         </button>
       )}
-    </div>
+    </span>
   );
 }
