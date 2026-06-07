@@ -1,53 +1,78 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
 /**
  * SUB-002 (2026-05-13) — interstitial for third-party subscription cancel links.
  *
- * Before: /dashboard/subscriptions opened the curated merchant cancel URL
- * directly in a new tab (target="_blank"). When a curated URL was stale
- * (HBO "Detail/000001719" pages, ChatGPT fragment-anchored deep links,
- * merchants that A/B their support routes) the user landed on a 404 or
- * cold support hub with no clear way back to Barakah.
+ * SEC-OPENREDIRECT-1 (2026-06-07): hardened. The page used to:
+ *   (a) accept ANY https URL via ?to=...
+ *   (b) auto-redirect 800ms later via window.location.href
+ *   (c) display attacker-controlled `name` query param in the title
  *
- * Now: the cancel link points here, this page validates the destination
- * (must be https), kicks off the redirect after a brief delay, and shows
- * a permanent "Back to Barakah" fallback so a bad merchant page is a
- * one-click recovery instead of a dead end.
+ * Combination was a usable phishing primitive — attacker sends
+ *   https://trybarakah.com/cancel-redirect?to=https://phish-paypal.example.com&name=PayPal
+ * victim sees the trusted Barakah origin + a green "Go to PayPal now"
+ * button + auto-redirect after 800ms. Reputation-laundering goldmine.
  *
- * The URL whitelist is intentionally permissive (any https origin) because
- * the curated CANCEL_LINKS list in SubscriptionDetectionService is the
- * actual trust boundary — this page only refuses non-https targets and
- * obviously-bogus ones to prevent open-redirect abuse.
+ * Now:
+ *   1. Host allowlist — only suffixes from the curated CANCEL_LINKS map
+ *      in SubscriptionDetectionService are accepted as redirect targets.
+ *      Unknown hosts render the "broken link" branch.
+ *   2. NO auto-redirect. The user must click the button. Removes the
+ *      "victim opens an email link, gets bounced to phish before they
+ *      can react" timing.
+ *   3. `name` is the merchant key matched against the allowlist (not
+ *      attacker-controlled text). Falls back to a generic label.
  */
+const ALLOWED_HOST_SUFFIXES: ReadonlyArray<string> = [
+  // Mirrors the values in SubscriptionDetectionService.java CANCEL_LINKS.
+  'netflix.com', 'hulu.com', 'disneyplus.com', 'help.max.com',
+  'paramountplus.com', 'peacocktv.com', 'apple.com', 'spotify.com',
+  'youtube.com', 'amazon.com', 'audible.com', 'nytimes.com', 'wsj.com',
+  'washingtonpost.com', 'medium.com', 'substack.com', 'patreon.com',
+  'chess.com', 'duolingo.com', 'headspace.com', 'calm.com', 'noom.com',
+  'myfitnesspal.com', 'strava.com', 'dropbox.com', 'icloud.com',
+  'google.com', 'microsoft.com', 'office.com', 'adobe.com', 'figma.com',
+  'github.com', 'gitlab.com', 'jetbrains.com', 'openai.com', 'chatgpt.com',
+  'claude.ai', 'anthropic.com', 'notion.so', 'evernote.com', 'todoist.com',
+  'asana.com', 'monday.com', 'slack.com', 'zoom.us', 'webex.com',
+];
+
 function CancelRedirectInner() {
   const params = useSearchParams();
   const rawTo = params.get('to') ?? '';
-  const name = params.get('name') ?? 'this subscription';
-  const [redirected, setRedirected] = useState(false);
+  const rawName = params.get('name') ?? '';
 
   const safeTo = useMemo(() => {
     try {
       const u = new URL(rawTo);
-      // Only https — blocks javascript:, data:, http: and other foot-guns.
       if (u.protocol !== 'https:') return null;
+      // SEC-OPENREDIRECT-1: enforce the curated allowlist. Host must
+      // match exactly OR be a subdomain of an allowed suffix.
+      const host = u.hostname.toLowerCase();
+      const allowed = ALLOWED_HOST_SUFFIXES.some(
+        (s) => host === s || host.endsWith('.' + s),
+      );
+      if (!allowed) return null;
       return u.toString();
     } catch {
       return null;
     }
   }, [rawTo]);
 
-  useEffect(() => {
-    if (!safeTo) return;
-    const t = window.setTimeout(() => {
-      setRedirected(true);
-      window.location.href = safeTo;
-    }, 800);
-    return () => window.clearTimeout(t);
-  }, [safeTo]);
+  // Sanitize `name` to alphanumerics + spaces so an attacker can't
+  // inject UI text like "PayPal — click below" via the query param.
+  const name = useMemo(() => {
+    const cleaned = rawName.replace(/[^A-Za-z0-9 +\-.]/g, '').trim();
+    return cleaned.length > 0 && cleaned.length < 40 ? cleaned : 'this subscription';
+  }, [rawName]);
+
+  // SEC-OPENREDIRECT-1: NO auto-redirect. Removed the setTimeout +
+  // window.location.href assignment. User must click the button below.
+  const [redirected] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center px-4">
