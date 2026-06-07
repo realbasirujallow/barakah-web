@@ -821,6 +821,16 @@ export const api = {
    */
   google: (idToken: string) =>
     apiFetch('/auth/google', { method: 'POST', body: JSON.stringify({ idToken }) }),
+  /**
+   * 2026-06-07: consume the email-confirmation link from the SEC-AUTH-1
+   * flow. Backend GET /auth/google/confirm-link?token=... — on success
+   * sets `sso_linked_at` and clears the token; future /auth/google calls
+   * mint tokens normally.
+   */
+  confirmSsoLink: (token: string) => {
+    const qs = new URLSearchParams({ token });
+    return apiFetch(`/auth/google/confirm-link?${qs.toString()}`, { method: 'GET' });
+  },
   // Clears the auth_token httpOnly cookie on the server side.
   // 2026-05-02 fix: empty `{}` body — apiFetch sends Content-Type:
   // application/json on every request, and a POST with that header
