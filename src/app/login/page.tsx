@@ -7,6 +7,7 @@ import { api } from '../../lib/api';
 import { isSetupComplete } from '../../lib/setup';
 import { isSafeInternalPath } from '../../lib/safePath';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
+import GoogleSignInButton from '../../components/GoogleSignInButton';
 import { useI18n } from '../../lib/i18n';
 
 const REMEMBERED_EMAIL_KEY = 'barakah_remembered_email';
@@ -272,6 +273,11 @@ function LoginForm() {
           >
             {loading ? t('authSigningIn') : t('authSignInButton')}
           </button>
+
+          {/* 2026-06-07 PARITY-GOOGLE-SSO-WEB: Continue with Google. Hidden
+              entirely when NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID is unset, so
+              dev/CI builds without GIS configured stay clean. */}
+          <GoogleSignInButton ctaLabel="continue_with" />
 
           <p className="text-center text-sm text-gray-500 mt-6">
             {t('authNoAccount')}{' '}

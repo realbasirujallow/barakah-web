@@ -160,6 +160,23 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   signup: (name: string, email: string, password: string, state: string, country: string, referralCode?: string, phoneNumber?: string) => Promise<void>;
+  /**
+   * 2026-06-07: Google SSO. Exchanges a Google-issued ID token for a
+   * Barakah session via POST /auth/google.
+   *
+   * Returns:
+   *   • {state: 'signed_in', isNewUser}   — Backend issued tokens; user is now signed in.
+   *   • {state: 'requires_link_confirmation', message}
+   *     — SEC-AUTH-1: the email matches an existing PASSWORD-signup
+   *     account; the backend sent a confirmation link to the bound email.
+   *     The caller should show {message} and NOT navigate to /dashboard.
+   *
+   * Throws on auth failure (401 invalid token, 403 disabled, 429 throttled).
+   */
+  signInWithGoogle: (idToken: string) => Promise<
+    | { state: 'signed_in'; isNewUser: boolean; requiresPhoneCapture: boolean }
+    | { state: 'requires_link_confirmation'; message: string }
+  >;
   logout: (reason?: 'logout' | 'deleted') => Promise<void>;
   isLoading: boolean;
   /** Call after a plan change to refresh plan from /auth/profile */
@@ -695,6 +712,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try { trackLogin('email'); } catch { /* GA4 may be blocked or unavailable */ }
   }, []);
 
+  // 2026-06-07: Google SSO. Mirrors `login` but accepts a Google ID token
+  // instead of email/password. Handles the SEC-AUTH-1 link-confirmation
+  // 202 path WITHOUT setting up a session — the caller surfaces the
+  // message and the user clicks the email link to enable SSO.
+  const signInWithGoogle = useCallback(async (idToken: string) => {
+    const data = await api.google(idToken);
+    // SEC-AUTH-1: backend may return 202 with requiresLinkConfirmation.
+    // apiFetch surfaces that as a normal resolved value (status was 2xx),
+    // so we inspect the body.
+    if (data && data.requiresLinkConfirmation === true) {
+      return {
+        state: 'requires_link_confirmation' as const,
+        message: typeof data.message === 'string' && data.message
+          ? data.message
+          : "We've sent a confirmation link to your email. Click it within 1 hour to enable Google sign-in for this account.",
+      };
+    }
+    // Happy path: full session.
+    const profile: User = {
+      id: String(data.userId ?? data.id ?? data.email ?? ''),
+      name: data.fullName ?? data.name ?? data.email ?? '',
+      email: data.email ?? '',
+      plan: (data.plan as User['plan']) ?? 'free',
+      planExpiresAt: data.planExpiresAt ?? null,
+      referralCode: data.referralCode,
+      isAdmin: data.isAdmin === true,
+      isSuperAdmin: data.isSuperAdmin === true,
+      setupCompletedAt: (data.setupCompletedAt as number | null | undefined) ?? null,
+      country: (data.country as string | undefined) ?? undefined,
+      preferredCurrency: (data.preferredCurrency as string | undefined) ?? undefined,
+    };
+    localStorage.setItem(USER_KEY, JSON.stringify(profile));
+    localStorage.setItem(REFRESH_TS_KEY, String(Date.now()));
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
+    try { localStorage.removeItem('barakah_locale_manual_override'); } catch { /* ignore */ }
+    setRefreshToken(typeof data.refreshToken === 'string'
+      ? data.refreshToken
+      : (typeof data.refresh_token === 'string' ? data.refresh_token : null));
+    _intentionalLogout = false;
+    setUser(profile);
+    try { trackLogin('google'); } catch { /* GA4 may be blocked */ }
+    return {
+      state: 'signed_in' as const,
+      isNewUser: data.isNewUser === true,
+      requiresPhoneCapture: data.requiresPhoneCapture === true,
+    };
+  }, []);
+
   const signup = useCallback(async (name: string, email: string, password: string, state: string, country: string, referralCode?: string, phoneNumber?: string) => {
     await api.signup(name, email, password, state, country, referralCode, phoneNumber);
     // Fire GA4 sign_up event. Backend also fires USER_SIGNED_UP; this covers
@@ -795,8 +860,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // and forced every consumer to rerender even when user/isLoading hadn't
   // changed.
   const value = useMemo(
-    () => ({ user, login, signup, logout, isLoading, refreshPlan }),
-    [user, isLoading, login, signup, logout, refreshPlan],
+    () => ({ user, login, signup, signInWithGoogle, logout, isLoading, refreshPlan }),
+    [user, isLoading, login, signup, signInWithGoogle, logout, refreshPlan],
   );
 
   return (

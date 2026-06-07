@@ -809,6 +809,18 @@ export const api = {
     apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, rememberMe }) }),
   signup: (name: string, email: string, password: string, state: string, country: string, referralCode?: string, phoneNumber?: string) =>
     apiFetch('/auth/signup', { method: 'POST', body: JSON.stringify({ fullName: name, email, password, state, country, referralCode, phoneNumber }) }),
+  /**
+   * 2026-06-07: web-side Google SSO. POSTs the Google-issued ID token to
+   * /auth/google. Backend responds with:
+   *   • 200 { success: true, token, refreshToken, userId, email, fullName,
+   *           isNewUser, requiresPhoneCapture } on success
+   *   • 202 { requiresLinkConfirmation: true, message } when the email
+   *     belongs to an existing PASSWORD-signup account and the user must
+   *     first click the link sent to their bound email (SEC-AUTH-1).
+   *   • 401 invalid token, 403 disabled, 429 rate-limited.
+   */
+  google: (idToken: string) =>
+    apiFetch('/auth/google', { method: 'POST', body: JSON.stringify({ idToken }) }),
   // Clears the auth_token httpOnly cookie on the server side.
   // 2026-05-02 fix: empty `{}` body — apiFetch sends Content-Type:
   // application/json on every request, and a POST with that header

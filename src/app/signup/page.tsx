@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { api, readCapturedReferralCode } from '../../lib/api';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../lib/trial';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
+import GoogleSignInButton from '../../components/GoogleSignInButton';
 import { useI18n } from '../../lib/i18n';
 
 function SignupContent() {
@@ -811,6 +812,10 @@ function SignupContent() {
           >
             {loading ? t('authCreating') : t('authCreateAccountButton')}
           </button>
+
+          {/* 2026-06-07 PARITY-GOOGLE-SSO-WEB: Sign up with Google. Same
+              button component as login uses; only the CTA label changes. */}
+          <GoogleSignInButton ctaLabel="signup_with" />
 
           <p className="text-center text-sm text-gray-500 mt-6">
             {t('authHaveAccount')}{' '}

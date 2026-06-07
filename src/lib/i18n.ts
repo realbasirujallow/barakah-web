@@ -20,6 +20,9 @@ import { useSyncExternalStore, useCallback, useMemo } from 'react';
 type Translations = Record<string, string>;
 
 const en: Translations = {
+  // 2026-06-07 PARITY-GOOGLE-SSO-WEB: Google SSO button divider + error.
+  orLabel: 'or',
+  googleSignInError: "We couldn't complete the Google sign-in. Please try again.",
   // 2026-05-19 (audit Bug #10): public landing-page hero strings for the
   // HomeV2 layout (src/app/page.tsx). Founder will author ar/fr/ur
   // translations in this file's mirror dictionaries. Until then those
@@ -4150,6 +4153,8 @@ const en: Translations = {
 };
 
 const ar: Translations = {
+  orLabel: 'أو',
+  googleSignInError: 'لم نتمكن من إتمام تسجيل الدخول عبر Google. يرجى المحاولة مرة أخرى.',
   // 2026-05-19 (audit Bug #10): homeV2 landing-page strings. First-pass
   // Arabic by claude; FOUNDER TO REVIEW for fluency, register, and dialect
   // (Modern Standard Arabic chosen as the safest default for cross-GCC reach).
@@ -8227,6 +8232,8 @@ const ar: Translations = {
 };
 
 const ur: Translations = {
+  orLabel: 'یا',
+  googleSignInError: 'گوگل سائن اِن مکمل نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔',
   // 2026-05-19 (audit Bug #10): homeV2 landing-page strings. First-pass
   // Urdu by claude; FOUNDER TO REVIEW for tone (formal Urdu chosen for
   // marketing voice; less colloquial than spoken register).
@@ -12304,6 +12311,8 @@ const ur: Translations = {
 };
 
 const fr: Translations = {
+  orLabel: 'ou',
+  googleSignInError: "La connexion Google n'a pas pu aboutir. Veuillez réessayer.",
   // 2026-05-19 (audit Bug #10): homeV2 landing-page strings. First-pass
   // French by claude; FOUNDER TO REVIEW. Voice matches existing Tarifs/
   // Comparer/Apprendre header tone (formal-but-warm, not Quebec slang).
