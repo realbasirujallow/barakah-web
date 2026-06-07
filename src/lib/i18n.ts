@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore, useCallback, useMemo } from 'react';
 
 /**
  * Pragmatic i18n layer for Barakah web.
@@ -16507,12 +16507,31 @@ export const SUPPORTED_LOCALES = [
 
 export function useI18n() {
   const locale = useSyncExternalStore(subscribeLocale, localeSnapshot, localeServerSnapshot);
-  return {
-    locale,
-    t: (key: string) => t(key, locale),
-    tFmt: (key: string, args: ReadonlyArray<string | number>) => tFmt(key, args, locale),
-    setLocale,
-    isRtl: isRtl(locale),
-    locales: SUPPORTED_LOCALES,
-  };
+  // 2026-06-06 (BUG-PROD-AUDIT-LOAD): memoize `t` and `tFmt` so their
+  // references are stable across renders for a given locale. Previously
+  // every useI18n() call returned a fresh inline arrow — and any
+  // component that listed `t` in a useEffect dependency array (e.g.
+  // /dashboard/admin/audit-log/page.tsx) would re-run that effect on
+  // every render, causing setLoading(true)/fetch loops that never
+  // resolved to a render of the loaded data. The audit-log page was
+  // stuck on "Loading…" forever on prod even though the API returned
+  // 200 in <500ms.
+  const tCb = useCallback((key: string) => t(key, locale), [locale]);
+  const tFmtCb = useCallback(
+    (key: string, args: ReadonlyArray<string | number>) => tFmt(key, args, locale),
+    [locale],
+  );
+  // Memoize the returned object too so destructuring callers that depend
+  // on the whole hook return value (rare but possible) don't re-render.
+  return useMemo(
+    () => ({
+      locale,
+      t: tCb,
+      tFmt: tFmtCb,
+      setLocale,
+      isRtl: isRtl(locale),
+      locales: SUPPORTED_LOCALES,
+    }),
+    [locale, tCb, tFmtCb],
+  );
 }
