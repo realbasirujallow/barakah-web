@@ -112,6 +112,22 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://trybarakah.com"),
   alternates: {
     canonical: "https://trybarakah.com",
+    // 2026-06-06 (SEO-HREFLANG-HOMEPAGE): the root canonical entry
+    // point for the locale toggle had NO languages: hreflang map even
+    // though /zakat-calculator + /learn/* siblings ship the full map.
+    // R2 SEO audit flagged this as the highest-leverage technical SEO
+    // miss — Google's algorithm reads hreflang reciprocally, so each
+    // localized sibling pointing back to "/" without "/" pointing
+    // forward to ar/fr/ur breaks the cluster. Adding the map (no copy
+    // change) closes the loop. x-default points at the English root
+    // because EN is the most-likely fallback for unknown locales.
+    languages: {
+      en: "https://trybarakah.com",
+      fr: "https://trybarakah.com/fr",
+      ar: "https://trybarakah.com/ar",
+      ur: "https://trybarakah.com/ur",
+      "x-default": "https://trybarakah.com",
+    },
   },
   robots: {
     index: true,
