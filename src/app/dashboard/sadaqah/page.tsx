@@ -86,20 +86,34 @@ function SadaqahContent() {
 
   const searchParams = useSearchParams();
 
+  // 2026-06-08 (UX-WEB-LISTS-NORETRY-1): persistent error + retry.
+  const [loadError, setLoadError] = useState<string | null>(null);
   const load = useCallback(() => {
     setLoading(true);
+    setLoadError(null);
     Promise.allSettled([api.getSadaqah(), api.getSadaqahStats(), api.getSadaqahInsights()])
       .then((results) => {
         const d = results[0].status === 'fulfilled' ? results[0].value : null;
         const s = results[1].status === 'fulfilled' ? results[1].value : null;
         // Insights are additive — a failure here must not block the page.
         const g = results[2].status === 'fulfilled' ? results[2].value : null;
-        if (d?.error) { toast(d.error, 'error'); return; }
+        if (d?.error) { toast(d.error, 'error'); setLoadError(d.error as string); return; }
+        // If the main donations call rejected, surface a banner; partial-OK is fine.
+        if (results[0].status === 'rejected') {
+          const msg = t('sadaqahLoadError');
+          toast(msg, 'error');
+          setLoadError(msg);
+          return;
+        }
         setItems(Array.isArray(d?.donations) ? d.donations : Array.isArray(d) ? d : []);
         setStats(mapStats(s));
         setGiving(g && !g.error ? (g as GivingInsights) : null);
       })
-      .catch(() => { toast(t('sadaqahLoadError'), 'error'); }).finally(() => setLoading(false));
+      .catch(() => {
+        const msg = t('sadaqahLoadError');
+        toast(msg, 'error');
+        setLoadError(msg);
+      }).finally(() => setLoading(false));
     // `t` is a fresh identity each render; including it would make `load` a new
     // function every render and the `[load]` effect refire forever. Keep `toast`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -196,6 +210,20 @@ function SadaqahContent() {
           <button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">{t('sadaqahGiveBtn')}</button>
         }
       />
+
+      {/* 2026-06-08 (UX-WEB-LISTS-NORETRY-1): persistent error + retry. */}
+      {loadError && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-4 text-sm text-yellow-800 flex items-center justify-between gap-3">
+          <span>{loadError}</span>
+          <button
+            type="button"
+            onClick={load}
+            className="shrink-0 bg-yellow-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-yellow-800 transition"
+          >
+            {t('zktRetry')}
+          </button>
+        </div>
+      )}
 
       <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-sm text-green-900 mb-6 space-y-3">
         <h3 className="font-bold text-base">{t('sadaqahGuidanceHeading')}</h3>

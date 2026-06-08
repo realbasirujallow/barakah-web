@@ -100,19 +100,27 @@ export default function SavingsPage() {
     });
   };
 
+  // 2026-06-08 (UX-WEB-LISTS-NORETRY-1): persistent error + retry.
+  const [loadError, setLoadError] = useState<string | null>(null);
   const load = () => {
     setLoading(true);
+    setLoadError(null);
     api.getSavingsGoals()
       .then(d => {
         if (d?.error) {
           toast(d.error as string, 'error');
+          setLoadError(d.error as string);
           return;
         }
         const items: Goal[] = Array.isArray(d?.goals) ? d.goals : Array.isArray(d) ? d : [];
         setGoals(items);
         checkMilestones(items);
       })
-      .catch(() => { toast(t('savingsLoadError'), 'error'); })
+      .catch(() => {
+        const msg = t('savingsLoadError');
+        toast(msg, 'error');
+        setLoadError(msg);
+      })
       .finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -246,6 +254,20 @@ export default function SavingsPage() {
           <button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">{t('savingsNewGoalBtn')}</button>
         }
       />
+
+      {/* 2026-06-08 (UX-WEB-LISTS-NORETRY-1): persistent error + retry. */}
+      {loadError && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-4 text-sm text-yellow-800 flex items-center justify-between gap-3">
+          <span>{loadError}</span>
+          <button
+            type="button"
+            onClick={load}
+            className="shrink-0 bg-yellow-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-yellow-800 transition"
+          >
+            {t('zktRetry')}
+          </button>
+        </div>
+      )}
 
       {/* ── Aggregate banner ───────────────────────────────────────────────── */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-500 rounded-2xl p-6 text-white mb-6">

@@ -316,17 +316,25 @@ export default function BillsPage() {
     return () => document.removeEventListener('keydown', handler);
   }, [deleteConfirmation]);
 
+  // 2026-06-08 (UX-WEB-LISTS-NORETRY-1): persistent error + retry.
+  const [loadError, setLoadError] = useState<string | null>(null);
   const load = useCallback(() => {
     setLoading(true);
+    setLoadError(null);
     api.getBills()
       .then(d => {
         if (d?.error) {
           toast(d.error as string, 'error');
+          setLoadError(d.error as string);
           return;
         }
         setBills(Array.isArray(d?.bills) ? d.bills : Array.isArray(d) ? d : []);
       })
-      .catch(() => toast(t('billsLoadError'), 'error'))
+      .catch(() => {
+        const msg = t('billsLoadError');
+        toast(msg, 'error');
+        setLoadError(msg);
+      })
       .finally(() => setLoading(false));
     // `t` is a fresh identity each render; including it would make `load` a new
     // function every render and the `[load]` effect refire forever. Keep `toast`.
@@ -521,6 +529,20 @@ export default function BillsPage() {
           <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">{t('billsAddBtn')}</button>
         }
       />
+
+      {/* 2026-06-08 (UX-WEB-LISTS-NORETRY-1): persistent error + retry. */}
+      {loadError && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-4 text-sm text-yellow-800 flex items-center justify-between gap-3">
+          <span>{loadError}</span>
+          <button
+            type="button"
+            onClick={load}
+            className="shrink-0 bg-yellow-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-yellow-800 transition"
+          >
+            {t('zktRetry')}
+          </button>
+        </div>
+      )}
 
       {/* Stats.
           R42 (2026-05-01): viewTransitionName matches the dashboard's

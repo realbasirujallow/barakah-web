@@ -152,8 +152,11 @@ export default function BudgetPage() {
     });
   };
 
+  // 2026-06-08 (UX-WEB-LISTS-NORETRY-1): persistent error + retry UI.
+  const [loadError, setLoadError] = useState<string | null>(null);
   const load = () => {
     setLoading(true);
+    setLoadError(null);
     // BUG FIX: pass the viewed month/year so the API returns only those
     // budgets instead of all history — was fetching entire budget history and
     // filtering client-side, which grows with each month the user has data.
@@ -161,13 +164,18 @@ export default function BudgetPage() {
       .then(d => {
         if (d?.error) {
           toast(d.error as string, 'error');
+          setLoadError(d.error as string);
           return;
         }
         const items: BudgetItem[] = Array.isArray(d?.budgets) ? d.budgets : Array.isArray(d) ? d : [];
         setBudgets(items);
         checkBudgetAlerts(items);
       })
-      .catch(() => { toast(t('budgetLoadError'), 'error'); })
+      .catch(() => {
+        const msg = t('budgetLoadError');
+        toast(msg, 'error');
+        setLoadError(msg);
+      })
       .finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, [viewMonth, viewYear]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -320,6 +328,20 @@ export default function BudgetPage() {
           </>
         }
       />
+
+      {/* 2026-06-08 (UX-WEB-LISTS-NORETRY-1): persistent error + retry banner. */}
+      {loadError && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-4 text-sm text-yellow-800 flex items-center justify-between gap-3">
+          <span>{loadError}</span>
+          <button
+            type="button"
+            onClick={load}
+            className="shrink-0 bg-yellow-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-yellow-800 transition"
+          >
+            {t('zktRetry')}
+          </button>
+        </div>
+      )}
 
       {/* ── Month Navigation ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-center gap-4 mb-6">
