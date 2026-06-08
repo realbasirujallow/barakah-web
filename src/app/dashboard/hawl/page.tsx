@@ -8,7 +8,8 @@ import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import ModalShell from '../../../components/ui/ModalShell';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
-import { useI18n } from '../../../lib/i18n';
+// 2026-06-08 (EDGE-HIJRI-LOCALE-1): toLocaleDateString sites use getLocale().
+import { useI18n, getLocale } from '../../../lib/i18n';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
 interface HawlItem {
@@ -329,7 +330,7 @@ function HawlPageContent() {
 
   const formatDate = (epochMs: number | null) => {
     if (!epochMs) return '';
-    return new Date(epochMs).toLocaleDateString(undefined, DATE_FORMAT);
+    return new Date(epochMs).toLocaleDateString(getLocale(), DATE_FORMAT);
   };
 
   const resetDateEditor = () => {
@@ -464,7 +465,7 @@ function HawlPageContent() {
           <div className="flex justify-between items-center">
             <div>
               <p className="text-white/90 font-semibold">{nextDueAsset}</p>
-              <p className="text-white/70 text-sm">{new Date(nextDueDate).toLocaleDateString(undefined, DATE_FORMAT)}</p>
+              <p className="text-white/70 text-sm">{new Date(nextDueDate).toLocaleDateString(getLocale(), DATE_FORMAT)}</p>
               <p className="text-white/50 text-xs">{formatHijriDate(nextDueDate)}</p>
             </div>
             <div className="text-right">
@@ -522,7 +523,7 @@ function HawlPageContent() {
                   <div className="mt-2 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                     <div className="flex items-center gap-2 text-sm text-green-700">
                       <span>&#128274;</span>
-                      <span>{tFmt('hawlLockedRowFmt', [fmt(item.lockedZakatAmount || item.zakatAmount), item.assetType === 'silver' ? t('hawlSilverLabel') : t('hawlGoldLabel'), (item.lockedGoldPrice ?? 0).toFixed(2), new Date(item.zakatLockedDate).toLocaleDateString(undefined, DATE_FORMAT)])}</span>
+                      <span>{tFmt('hawlLockedRowFmt', [fmt(item.lockedZakatAmount || item.zakatAmount), item.assetType === 'silver' ? t('hawlSilverLabel') : t('hawlGoldLabel'), (item.lockedGoldPrice ?? 0).toFixed(2), new Date(item.zakatLockedDate).toLocaleDateString(getLocale(), DATE_FORMAT)])}</span>
                     </div>
                     <button type="button" onClick={() => handleUnlockZakat(item.id)} className="text-xs text-gray-500 hover:text-red-600 underline">{t('hawlUnlockBtn')}</button>
                   </div>
@@ -603,7 +604,7 @@ function HawlPageContent() {
                   <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-primary h-2 rounded-full" style={{ width: `${pct}%` }} /></div>
                   {item.zakatLocked ? (
                     <div className="mt-2 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs">
-                      <span className="text-green-700">&#128274; {tFmt('hawlLockedRowFmt', [fmt(item.lockedZakatAmount), item.assetType === 'silver' ? t('hawlSilverLabel') : t('hawlGoldLabel'), (item.lockedGoldPrice ?? 0).toFixed(2), new Date(item.zakatLockedDate).toLocaleDateString(undefined, DATE_FORMAT)])}</span>
+                      <span className="text-green-700">&#128274; {tFmt('hawlLockedRowFmt', [fmt(item.lockedZakatAmount), item.assetType === 'silver' ? t('hawlSilverLabel') : t('hawlGoldLabel'), (item.lockedGoldPrice ?? 0).toFixed(2), new Date(item.zakatLockedDate).toLocaleDateString(getLocale(), DATE_FORMAT)])}</span>
                       <button type="button" onClick={() => handleUnlockZakat(item.id)} className="text-gray-500 hover:text-red-600 underline ml-2">{t('hawlUnlockBtn')}</button>
                     </div>
                   ) : (

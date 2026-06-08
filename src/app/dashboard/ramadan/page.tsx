@@ -6,7 +6,7 @@ import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
-import { useI18n } from '../../../lib/i18n';
+import { useI18n, getLocale } from '../../../lib/i18n';
 
 /* ── Hijri date calculation ──────────────────────────────────────────
    Uses the Kuwaiti algorithm (imported from format.ts for consistency).
@@ -259,7 +259,10 @@ export default function RamadanPage() {
       {/* Header */}
       <PageHeader
         title={t('ramadanMode')}
-        subtitle={`${hijri.day} ${hijri.monthName} ${hijri.year} AH · ${now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`}
+        // 2026-06-08 (CUR-HIJRI-RAMADAN-1): Hijri day/year via locale-aware
+        // numerals (ar/ur users see Arabic-Indic digits, fr uses Latin).
+        // "AH" English suffix replaced with localized t('hijriEraSuffix').
+        subtitle={`${hijri.day.toLocaleString(getLocale())} ${hijri.monthName} ${hijri.year.toLocaleString(getLocale())} ${t('hijriEraSuffix')} · ${now.toLocaleDateString(getLocale(), { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`}
       />
 
       {/* Ramadan status card */}
