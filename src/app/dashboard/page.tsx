@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { trackDemoDataLoaded } from '../../lib/analytics';
 import { useCurrency } from '../../lib/useCurrency';
-import { useI18n } from '../../lib/i18n';
+import { useI18n, getLocale } from '../../lib/i18n';
 import { formatHijriLocalized } from '../../lib/format';
 import { useToast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
@@ -1418,18 +1418,21 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Budget — {new Date().toLocaleString(undefined, { month: 'long', year: 'numeric' })}</p>
+              {/* 2026-06-08 (CUR-DASH-BUDGET-EN-1): localized + locale-aware
+                  month name; "spent" / "over budget" / "left" via t() so
+                  ar/ur/fr users see their own language on the hero card. */}
+              <p className="text-xs text-gray-500 uppercase tracking-wide">{t('dashBudgetMonth')} — {new Date().toLocaleString(getLocale(), { month: 'long', year: 'numeric' })}</p>
               {widgets?.budgetOverview && (
                 <p className="text-sm text-gray-600 mt-0.5">
-                  {fmt(widgets.budgetOverview.totalSpent)} of {fmt(widgets.budgetOverview.totalBudgeted)} spent
+                  {tFmt('dashBudgetSpentOfFmt', [fmt(widgets.budgetOverview.totalSpent), fmt(widgets.budgetOverview.totalBudgeted)])}
                 </p>
               )}
             </div>
             {widgets?.budgetOverview && widgets.budgetOverview.totalBudgeted > 0 && (
               <span className={`text-sm font-semibold ${widgets.budgetOverview.totalRemaining < 0 ? 'text-red-600' : 'text-gray-500'}`}>
                 {widgets.budgetOverview.totalRemaining < 0
-                  ? `${fmt(Math.abs(widgets.budgetOverview.totalRemaining))} over budget`
-                  : `${fmt(widgets.budgetOverview.totalRemaining)} left`}
+                  ? tFmt('dashBudgetOverFmt', [fmt(Math.abs(widgets.budgetOverview.totalRemaining))])
+                  : tFmt('dashBudgetLeftFmt', [fmt(widgets.budgetOverview.totalRemaining)])}
               </span>
             )}
           </div>
