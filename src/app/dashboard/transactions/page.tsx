@@ -209,6 +209,13 @@ export default function TransactionsPage() {
     type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: 'USD',
     date: localToday(),
     tags: '', notes: '',
+    // 2026-06-08: explicit recurring frequency picker (founder report:
+    // "when marking or editing a transaction for recurring, i don't see
+    // option to mark it biweekly"). Backend already supports
+    // daily/weekly/biweekly/monthly/yearly per VALID_FREQUENCIES;
+    // mobile already exposes the picker; web modal was the gap. Default
+    // 'monthly' mirrors backend toggleRecurring fallback.
+    frequency: 'monthly',
   });
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -351,7 +358,7 @@ export default function TransactionsPage() {
 
   const openAdd = () => {
     setEditTx(null);
-    setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '' });
+    setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '', frequency: 'monthly' });
     // BUG FIX: clear any stale validation error from a previous (failed) save
     // so it does not immediately show when the modal opens on a fresh attempt.
     setFormError(null);
@@ -361,7 +368,7 @@ export default function TransactionsPage() {
   const openEdit = (tx: Tx) => {
     setEditTx(tx);
     const txDate = localDateKey(tx.timestamp);
-    setForm({ type: tx.type, direction: tx.direction || (tx.type === 'income' ? 'inflow' : tx.type === 'transfer' ? 'neutral' : 'outflow'), category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate, tags: tx.tags || '', notes: tx.notes || '' });
+    setForm({ type: tx.type, direction: tx.direction || (tx.type === 'income' ? 'inflow' : tx.type === 'transfer' ? 'neutral' : 'outflow'), category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate, tags: tx.tags || '', notes: tx.notes || '', frequency: (tx as Tx & { frequency?: string }).frequency || 'monthly' });
     // BUG FIX: clear stale form error when editing a different transaction
     setFormError(null);
     setShowForm(true);
@@ -414,7 +421,7 @@ export default function TransactionsPage() {
       }
       setShowForm(false);
       setEditTx(null);
-      setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '' });
+      setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '', frequency: 'monthly' });
       load();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : (editTx ? t('txnUpdateFailed') : t('txnAddFailed'));
@@ -1457,6 +1464,32 @@ export default function TransactionsPage() {
                       </span>
                     )}
                   </label>
+                  {/* 2026-06-08: founder feedback "I don't see biweekly option
+                      when marking transaction as recurring". Backend supports
+                      daily/weekly/biweekly/monthly/yearly via VALID_FREQUENCIES;
+                      mobile already showed all five. This dropdown closes the
+                      web gap. Sent through the existing PATCH /api/transactions
+                      `frequency` field, which TransactionController.update
+                      validates against VALID_FREQUENCIES and uses to bump
+                      nextOccurrence. */}
+                  {Boolean(editTx.isRecurring) && (
+                    <div className="mt-3 ml-7">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        {t('txnFrequencyLabel')}
+                      </label>
+                      <select
+                        value={form.frequency}
+                        onChange={e => setForm({ ...form, frequency: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 text-sm text-gray-900"
+                      >
+                        <option value="daily">{t('txnFreqDaily')}</option>
+                        <option value="weekly">{t('txnFreqWeekly')}</option>
+                        <option value="biweekly">{t('txnFreqBiweekly')}</option>
+                        <option value="monthly">{t('txnFreqMonthly')}</option>
+                        <option value="yearly">{t('txnFreqYearly')}</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
