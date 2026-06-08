@@ -87,11 +87,23 @@ interface TxRowProps {
   fmt: (v: number) => string;
   toggling: number | null;
   onToggle: (id: number) => void;
+  // 2026-06-08: founder reported "/dashboard/recurring i cant click any of
+  // the recurring charges/transactions so i can edit them to say monthly
+  // weekly or biweekly". The row used to only expose the on/off toggle —
+  // no path to change the frequency. Now: click anywhere on the row
+  // EXCEPT the toggle opens an edit modal. The toggle still pauses/resumes.
+  onEdit: (tx: RecurringTx) => void;
 }
-function TxRow({ tx, fmt, toggling, onToggle }: TxRowProps) {
+function TxRow({ tx, fmt, toggling, onToggle, onEdit }: TxRowProps) {
   const { t, tFmt } = useI18n();
   return (
-    <div className={`flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 ${!tx.recurringActive ? 'opacity-50' : ''}`}>
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onEdit(tx)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEdit(tx); } }}
+      className={`flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors ${!tx.recurringActive ? 'opacity-50' : ''}`}
+    >
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
           <CategoryIcon category={tx.category} className="w-5 h-5" />
@@ -109,7 +121,7 @@ function TxRow({ tx, fmt, toggling, onToggle }: TxRowProps) {
           {tx.type === 'income' ? '+' : '-'}{fmt(Math.abs(tx.amount))}
         </p>
         <button
-          onClick={() => onToggle(tx.id)}
+          onClick={(e) => { e.stopPropagation(); onToggle(tx.id); }}
           disabled={toggling === tx.id}
           title={tx.recurringActive ? t('recurringPauseTitle') : t('recurringResumeTitle')}
           className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors focus:outline-none ${
@@ -246,9 +258,36 @@ export default function RecurringPage() {
   const [toggling, setToggling]         = useState<number | null>(null);
   // 2026-05-03 (Section B·5): list ↔ calendar toggle on Active rows.
   const [activeView, setActiveView]     = useState<'list' | 'calendar'>('list');
+  // 2026-06-08 (founder): edit-frequency modal for a recurring row.
+  // Clicking anywhere on a TxRow except the toggle opens this modal.
+  const [editTx, setEditTx]             = useState<RecurringTx | null>(null);
+  const [editFrequency, setEditFrequency] = useState<string>('monthly');
+  const [savingEdit, setSavingEdit]     = useState(false);
   const { toast } = useToast();
   const { fmt } = useCurrency();
   const { t, tFmt } = useI18n();
+  // 2026-06-08 (founder): when the user clicks a row, seed the edit
+  // modal's frequency from the row's current value. Declared AFTER
+  // toast + t so the save handler below can close over them.
+  useEffect(() => {
+    if (editTx) setEditFrequency(editTx.frequency || 'monthly');
+  }, [editTx]);
+  const handleSaveEdit = useCallback(async () => {
+    if (!editTx) return;
+    setSavingEdit(true);
+    try {
+      await api.updateTransaction(editTx.id, { frequency: editFrequency, recurring: true });
+      // Optimistic local update so the row reflects the new frequency
+      // immediately even if a load() refresh is debounced.
+      setTransactions(prev => prev.map(r => r.id === editTx.id ? { ...r, frequency: editFrequency } : r));
+      toast(t('recurringFrequencyUpdated'), 'success');
+      setEditTx(null);
+    } catch {
+      toast(t('recurringFrequencyUpdateFailed'), 'error');
+    } finally {
+      setSavingEdit(false);
+    }
+  }, [editTx, editFrequency, toast, t]);
 
   // RCR-1 fix (2026-05-15): surface what the backend already auto-detected
   // (recurring income streams + subscription charges) so the empty state
@@ -498,7 +537,7 @@ export default function RecurringPage() {
             </div>
           </div>
           {activeView === 'list' ? (
-            active.map(tx => <TxRow key={tx.id} tx={tx} fmt={fmt} toggling={toggling} onToggle={handleToggle} />)
+            active.map(tx => <TxRow key={tx.id} tx={tx} fmt={fmt} toggling={toggling} onToggle={handleToggle} onEdit={setEditTx} />)
           ) : (
             <RecurringCalendar transactions={active} fmt={fmt} />
           )}
@@ -511,7 +550,7 @@ export default function RecurringPage() {
           <div className="px-5 py-3 border-b border-gray-100">
             <h2 className="font-semibold text-gray-500">{tFmt('recurringPausedHeadingFmt', [inactive.length])}</h2>
           </div>
-          {inactive.map(tx => <TxRow key={tx.id} tx={tx} fmt={fmt} toggling={toggling} onToggle={handleToggle} />)}
+          {inactive.map(tx => <TxRow key={tx.id} tx={tx} fmt={fmt} toggling={toggling} onToggle={handleToggle} onEdit={setEditTx} />)}
         </div>
       )}
 
@@ -566,6 +605,63 @@ export default function RecurringPage() {
             </div>
           }
         />
+      )}
+
+      {/* 2026-06-08 (founder): edit-frequency modal. Single-purpose: change
+          the cadence of an existing recurring row. Other fields (amount,
+          description, category) live on /dashboard/transactions and would
+          bloat this modal. */}
+      {editTx && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="recurring-edit-title"
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => !savingEdit && setEditTx(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-lg max-w-sm w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="recurring-edit-title" className="text-lg font-semibold text-gray-900 mb-1">
+              {t('recurringEditTitle')}
+            </h2>
+            <p className="text-sm text-gray-600 mb-4 truncate">
+              {editTx.description || t('recurringNoDescription')}
+            </p>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t('txnFrequencyLabel')}
+            </label>
+            <select
+              value={editFrequency}
+              onChange={(e) => setEditFrequency(e.target.value)}
+              disabled={savingEdit}
+              className="w-full border rounded-lg px-3 py-2 text-sm text-gray-900 mb-6"
+            >
+              <option value="daily">{t('txnFreqDaily')}</option>
+              <option value="weekly">{t('txnFreqWeekly')}</option>
+              <option value="biweekly">{t('txnFreqBiweekly')}</option>
+              <option value="monthly">{t('txnFreqMonthly')}</option>
+              <option value="yearly">{t('txnFreqYearly')}</option>
+            </select>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setEditTx(null)}
+                disabled={savingEdit}
+                className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {t('txnCancel')}
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={savingEdit}
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50"
+              >
+                {savingEdit ? t('txnSaving') : t('txnSaveChanges')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
