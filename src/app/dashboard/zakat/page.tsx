@@ -404,7 +404,13 @@ export default function ZakatPage() {
 
   const handleSavePayment = async () => {
     const amount = parseFloat(form.amount);
-    if (!Number.isFinite(amount) || amount <= 0) return;
+    if (!Number.isFinite(amount) || amount <= 0) {
+      // 2026-06-08 (VAL-ZAKAT-PAYMENT-SILENT-1): previously silent no-op
+      // — user had no feedback that their save did nothing. Now toast
+      // an error so they know to enter a valid amount.
+      toast(t('zktInvalidAmount'), 'error');
+      return;
+    }
     setSaving(true);
     try {
       // Noon avoids the date shifting a day under timezone conversion.

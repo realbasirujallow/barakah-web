@@ -161,7 +161,9 @@ export default function SavingsPage() {
       }
       const MAX_VALUE = 1_000_000_000;
       if (contrib > MAX_VALUE) {
-        const msg = tFmt('savingsContribMaxErrorFmt', [`$${MAX_VALUE.toLocaleString()}`]);
+        // 2026-06-08 (CUR-SAVINGS-DOLLAR-1): use the resolved symbol
+        // (target-max sibling toast already does), not a hardcoded `$`.
+        const msg = tFmt('savingsContribMaxErrorFmt', [`${symbol}${MAX_VALUE.toLocaleString()}`]);
         setContError(msg); toast(msg, 'error'); setSaving(false); return;
       }
       if (!/^\d+(\.\d{1,2})?$/.test(contAmount.trim())) {
