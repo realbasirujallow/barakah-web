@@ -304,7 +304,7 @@ function SadaqahContent() {
                 placeholder={t('sadaqahCustomPlaceholder')}
                 value={donateCustom}
                 onChange={e => setDonateCustom(e.target.value)}
-                className="w-full border rounded-lg pl-8 pr-3 py-2 text-gray-900"
+                className="w-full border rounded-lg ps-8 pe-3 py-2 text-gray-900"
               />
             </div>
           )}
@@ -333,8 +333,8 @@ function SadaqahContent() {
                 <div>
                   <p className="font-semibold text-primary">{item.recipientName || catLabel(item.category)}</p>
                   <p className="text-sm text-gray-500">{catLabel(item.category)} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString(dateLocale)}
-                    {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">{t('sadaqahRecurringBadge')}</span>}
-                    {item.anonymous && <span className="ml-1 bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">{t('sadaqahAnonymousBadge')}</span>}
+                    {item.recurring && <span className="ms-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">{t('sadaqahRecurringBadge')}</span>}
+                    {item.anonymous && <span className="ms-1 bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">{t('sadaqahAnonymousBadge')}</span>}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">

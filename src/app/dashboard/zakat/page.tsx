@@ -836,7 +836,7 @@ export default function ZakatPage() {
               <p className="text-gray-500 text-sm flex items-center gap-1">
                 {t('zktNisabThreshold')}
                 <span
-                  className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"
+                  className="ms-1 inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"
                   title={
                     selectedMethodology === 'CLASSICAL_SILVER'
                       ? t('zktLiveSilverPrice')
@@ -896,7 +896,7 @@ export default function ZakatPage() {
                     tFmt('zktNisabGoldInfoFmt', [nisabInfo.goldPricePerGram.toFixed(2), String(nisabInfo.nisabGoldGrams ?? 85)])
                   ) : null}
                   {nisabInfo.priceAgeMs !== undefined && (
-                    <span className="ml-1">{tFmt('zktUpdatedAgoFmt', [formatTimeAgo(nisabInfo.priceAgeMs)])}</span>
+                    <span className="ms-1">{tFmt('zktUpdatedAgoFmt', [formatTimeAgo(nisabInfo.priceAgeMs)])}</span>
                   )}
                 </p>
               )}
@@ -925,7 +925,7 @@ export default function ZakatPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline">
                         <p className="text-sm font-medium text-gray-800 truncate">{String(item.name)}</p>
-                        <div className="text-right shrink-0 ml-3">
+                        <div className="text-right shrink-0 ms-3">
                           <p className="text-sm font-bold text-gray-800">{fmt(Number(item.value) || 0)}</p>
                           {Boolean(item.zakatable) && Number(item.zakatableValue) !== Number(item.value) && (
                             <p className="text-xs text-green-600">{tFmt('zktZakatableValueFmt', [fmt(Number(item.zakatableValue) || 0)])}</p>

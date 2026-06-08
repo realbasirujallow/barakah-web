@@ -294,7 +294,7 @@ export default function WaqfPage() {
                     <div>
                       <p className="font-semibold text-primary">{item.organizationName || t(PURPOSE_KEY[item.purpose] || 'waqfPurposeOther')}</p>
                       <p className="text-sm text-gray-500">{t(PURPOSE_KEY[item.purpose] || 'waqfPurposeOther')} • {t(TYPE_KEY[item.type] || 'waqfTypeOther')} • {new Date(item.date < 1e12 ? item.date * 1000 : item.date).toLocaleDateString(dateLocale)}
-                        {item.recurring && <span className="ml-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">{t('waqfRecurringBadge')}</span>}
+                        {item.recurring && <span className="ms-2 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full">{t('waqfRecurringBadge')}</span>}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -374,7 +374,7 @@ export default function WaqfPage() {
                         {b.contact && <p className="text-xs text-gray-500 mt-0.5">{b.contact}</p>}
                         {b.notes && <p className="text-xs text-gray-400 mt-0.5 italic">{b.notes}</p>}
                       </div>
-                      <div className="text-right ml-4">
+                      <div className="text-right ms-4">
                         <p className="text-xl font-bold text-primary">{b.percentage}%</p>
                         {totalWaqf > 0 && <p className="text-sm text-teal-700 font-medium">{fmt(b.calculatedAmount)}</p>}
                       </div>

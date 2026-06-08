@@ -896,7 +896,7 @@ export default function TransactionsPage() {
               {t('txnCategoryLabelFmt').split('{0}')[0]}<span className="font-bold capitalize">{categoryLabel(urlCategory)}</span>{t('txnCategoryLabelFmt').split('{0}')[1] ?? ''}
             </span>
           )}
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ms-auto flex items-center gap-3">
             {urlCategory && (
               <a
                 href={`/dashboard/transactions${urlMonth ? `?month=${urlMonth}` : ''}`}
@@ -941,7 +941,7 @@ export default function TransactionsPage() {
           )}
         </button>
         {totalElements > 0 && <span className="text-sm text-gray-500">{tFmt('txnTotalCountFmt', [totalElements])}</span>}
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ms-auto flex items-center gap-1.5">
           <span className="text-xs text-gray-500">{t('txnShow')}</span>
           {PAGE_SIZE_OPTIONS.map(n => (
             <button key={n} onClick={() => handlePageSizeChange(n)}
@@ -965,7 +965,7 @@ export default function TransactionsPage() {
                 "Select all pages" is on because the underlying endpoint
                 only accepts an explicit ids[] payload (max 500). */}
             {selectedIds.size > 0 && !selectAllPages && (
-              <div className="relative ml-auto">
+              <div className="relative ms-auto">
                 <button
                   type="button"
                   onClick={() => setBulkCategoryMenuOpen(o => !o)}
@@ -1028,7 +1028,7 @@ export default function TransactionsPage() {
             )}
             <button onClick={handleBulkDelete}
               disabled={(selectAllPages ? totalElements : selectedIds.size) === 0 || bulkDeleting}
-              className={`${selectedIds.size > 0 && !selectAllPages ? '' : 'ml-auto'} bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5`}>
+              className={`${selectedIds.size > 0 && !selectAllPages ? '' : 'ms-auto'} bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5`}>
               {bulkDeleting ? <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" /> : '🗑️'}
               {selectAllPages ? tFmt('txnDeleteAllFmt', [totalElements]) : selectedIds.size > 0 ? tFmt('txnDeleteNFmt', [selectedIds.size]) : t('txnDelete')}
             </button>
@@ -1183,11 +1183,11 @@ export default function TransactionsPage() {
                         ? <>
                             <span className="font-bold">{tx.merchantName}</span>
                             {tx.description && tx.description !== tx.merchantName
-                              ? <span className="font-normal text-gray-500 text-sm ml-1">— {prettifyDescription(tx.description)}</span>
+                              ? <span className="font-normal text-gray-500 text-sm ms-1">— {prettifyDescription(tx.description)}</span>
                               : ''}
                           </>
                         : (prettifyDescription(tx.description) || categoryLabel(tx.category))}
-                      {tx.notes && <span className="ml-1 text-sm" title={tx.notes}>📝</span>}
+                      {tx.notes && <span className="ms-1 text-sm" title={tx.notes}>📝</span>}
                     </p>
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${presentation.badgeClass}`}>
                       {presentation.badge}
@@ -1226,7 +1226,7 @@ export default function TransactionsPage() {
                     )}
                     {new Date(tx.timestamp).toLocaleDateString(dateLocale)}
                     {tx.currency && tx.currency !== preferredCurrency && (
-                      <span className="ml-1 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-mono">{tx.currency}</span>
+                      <span className="ms-1 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-mono">{tx.currency}</span>
                     )}
                   </p>
                   {tx.tags && tx.tags.trim() !== '' && (
@@ -1537,7 +1537,7 @@ export default function TransactionsPage() {
                       validates against VALID_FREQUENCIES and uses to bump
                       nextOccurrence. */}
                   {Boolean(editTx.isRecurring) && (
-                    <div className="mt-3 ml-7">
+                    <div className="mt-3 ms-7">
                       <label className="block text-xs font-medium text-gray-700 mb-1">
                         {t('txnFrequencyLabel')}
                       </label>
