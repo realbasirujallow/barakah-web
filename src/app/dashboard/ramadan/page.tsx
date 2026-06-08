@@ -448,7 +448,11 @@ export default function RamadanPage() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-primary">{fmt(customGoal.amount)}</span>
-                <button onClick={() => setCustomGoal({ label: '', amount: 0 })} className="text-gray-300 hover:text-red-500 text-xs">✕</button>
+                <button
+                  type="button"
+                  aria-label={t('ramadanClearCustomGoal')}
+                  onClick={() => setCustomGoal({ label: '', amount: 0 })}
+                  className="text-gray-300 hover:text-red-500 text-xs">✕</button>
               </div>
             </div>
           )}

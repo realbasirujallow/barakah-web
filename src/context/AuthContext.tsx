@@ -792,6 +792,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(REFRESH_TS_KEY);
       localStorage.removeItem(LAST_ACTIVITY_KEY);
+      // 2026-06-08 (AUTH-LOGOUT-WEB-1): clear per-user residue so a
+      // shared-browser hand-off doesn't leak user-A's data to user-B.
+      // Anything we own keyed by user lives under `barakah_*` or has
+      // a `_lastSeen` / `watchlist` / `dismiss` suffix. Scan + sweep.
+      const keysToWipe: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k) continue;
+        if (k.startsWith('barakah_') && k !== 'barakah_locale' && k !== 'barakah_locale_manual_override') {
+          keysToWipe.push(k);
+        } else if (k.includes('watchlist') || k.includes('dismiss') || k.includes('_lastSeen') || k.includes('userScopedNav')) {
+          keysToWipe.push(k);
+        }
+      }
+      keysToWipe.forEach(k => localStorage.removeItem(k));
+      // 2026-06-08 (AUTH-LOGOUT-WEB-2): super-admin support-mode token
+      // also survived logout. Wipe sessionStorage too.
+      try {
+        sessionStorage.clear();
+      } catch { /* sessionStorage access failed */ }
     } catch {
       // localStorage access failed
     }

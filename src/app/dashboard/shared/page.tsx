@@ -1072,7 +1072,8 @@ export default function SharedPage() {
                     <p className="text-sm text-gray-500 mt-0.5">{group.description}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
-                    {tFmt('sharedMembersCodeFmt', [group.memberCount || group.members?.length || 0])}<span className="font-mono">{group.inviteCode || t('sharedCodeFallback')}</span>
+                    {/* 2026-06-08 (EDGE-PLURAL-SHARED-1): singular variant when count = 1. */}
+                    {tFmt((group.memberCount ?? group.members?.length ?? 0) === 1 ? 'sharedMembersCodeSingularFmt' : 'sharedMembersCodeFmt', [group.memberCount || group.members?.length || 0])}<span className="font-mono">{group.inviteCode || t('sharedCodeFallback')}</span>
                   </p>
                 </div>
                 <span className="text-gray-400 text-sm">→</span>

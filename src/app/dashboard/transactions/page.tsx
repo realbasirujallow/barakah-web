@@ -783,7 +783,7 @@ export default function TransactionsPage() {
           "broken" to a user mid-month with rich historical data. */}
       {income === 0 && expense === 0 && transfers === 0 && totalElements > 0 && (
         <p className="text-xs text-gray-500 -mt-3 mb-4">
-          {tFmt('txnNoActivityMonthFmt', [totalElements])}
+          {tFmt(totalElements === 1 ? 'txnNoActivityMonthSingularFmt' : 'txnNoActivityMonthFmt', [totalElements])}
         </p>
       )}
       {/* 2026-05-08 (Bug B): only surface the mixed-currency note when the
@@ -1035,15 +1035,17 @@ export default function TransactionsPage() {
           </div>
           {allPageSelected && hasMorePages && !selectAllPages && (
             <div className="bg-blue-50 border-t border-blue-100 px-3 py-2 flex items-center gap-2 text-sm text-blue-800">
-              <span>{tFmt('txnAllPageSelectedFmt', [txs.length])}</span>
+              {/* 2026-06-08 (EDGE-PLURAL-TXN-1): pick singular variant
+                  when count is exactly 1. */}
+              <span>{tFmt(txs.length === 1 ? 'txnAllPageSelectedSingularFmt' : 'txnAllPageSelectedFmt', [txs.length])}</span>
               <button onClick={() => setSelectAllPages(true)} className="font-semibold underline hover:no-underline">
-                {tFmt('txnSelectAllFmt', [totalElements])}
+                {tFmt(totalElements === 1 ? 'txnSelectAllSingularFmt' : 'txnSelectAllFmt', [totalElements])}
               </button>
             </div>
           )}
           {selectAllPages && (
             <div className="bg-blue-50 border-t border-blue-100 px-3 py-2 flex items-center gap-2 text-sm text-blue-800">
-              <span>{tFmt('txnAllSelectedBannerFmt', [totalElements])}</span>
+              <span>{tFmt(totalElements === 1 ? 'txnAllSelectedBannerSingularFmt' : 'txnAllSelectedBannerFmt', [totalElements])}</span>
               <button onClick={() => { setSelectAllPages(false); setSelectedIds(new Set(txs.map(t => t.id))); }} className="font-semibold underline hover:no-underline">
                 {t('txnSelectOnlyPage')}
               </button>
