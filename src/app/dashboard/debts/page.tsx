@@ -880,23 +880,26 @@ export default function DebtsPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-primary mb-4">{editDebt ? t('debtModalEdit') : t('debtModalAdd')}</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormName')}</label>
-                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('debtFormNamePh')} /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormType')}</label>
-                <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value, ribaFree: ISLAMIC_TYPES.includes(e.target.value) ? true : form.ribaFree })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+              {/* 2026-06-08 (A11Y-DASHBOARD-FORM-LABELS-1): htmlFor + id
+                  pairs so screen readers announce the field's label when
+                  focused, instead of just "edit text". */}
+              <div><label htmlFor="debt-form-name" className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormName')}</label>
+                <input id="debt-form-name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('debtFormNamePh')} /></div>
+              <div><label htmlFor="debt-form-type" className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormType')}</label>
+                <select id="debt-form-type" value={form.type} onChange={e => setForm({ ...form, type: e.target.value, ribaFree: ISLAMIC_TYPES.includes(e.target.value) ? true : form.ribaFree })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {TYPES.map(typeKey => <option key={typeKey} value={typeKey}>{t(TYPE_LABEL_KEYS[typeKey])}</option>)}
                 </select></div>
               {isIslamic && <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700">✅ {t('debtFormIslamicHalal')}</div>}
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormTotal')}</label>
-                <input type="number" step="0.01" value={form.totalAmount} onChange={e => setForm({ ...form, totalAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormRemaining')}</label>
-                <input type="number" step="0.01" value={form.remainingAmount} onChange={e => setForm({ ...form, remainingAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('debtFormRemainingPh')} /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormMonthlyPayment')}</label>
-                <input type="number" step="0.01" value={form.monthlyPayment} onChange={e => setForm({ ...form, monthlyPayment: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{isIslamic ? t('debtFormProfitRate') : t('debtFormInterestRate')}</label>
-                <input type="number" step="0.1" value={form.interestRate} onChange={e => setForm({ ...form, interestRate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormLender')}</label>
-                <input value={form.lender} onChange={e => setForm({ ...form, lender: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('debtFormLenderPh')} /></div>
+              <div><label htmlFor="debt-form-total" className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormTotal')}</label>
+                <input id="debt-form-total" type="number" step="0.01" value={form.totalAmount} onChange={e => setForm({ ...form, totalAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div><label htmlFor="debt-form-remaining" className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormRemaining')}</label>
+                <input id="debt-form-remaining" type="number" step="0.01" value={form.remainingAmount} onChange={e => setForm({ ...form, remainingAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('debtFormRemainingPh')} /></div>
+              <div><label htmlFor="debt-form-monthly-payment" className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormMonthlyPayment')}</label>
+                <input id="debt-form-monthly-payment" type="number" step="0.01" value={form.monthlyPayment} onChange={e => setForm({ ...form, monthlyPayment: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div><label htmlFor="debt-form-rate" className="block text-sm font-medium text-gray-700 mb-1">{isIslamic ? t('debtFormProfitRate') : t('debtFormInterestRate')}</label>
+                <input id="debt-form-rate" type="number" step="0.1" value={form.interestRate} onChange={e => setForm({ ...form, interestRate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div><label htmlFor="debt-form-lender" className="block text-sm font-medium text-gray-700 mb-1">{t('debtFormLender')}</label>
+                <input id="debt-form-lender" value={form.lender} onChange={e => setForm({ ...form, lender: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('debtFormLenderPh')} /></div>
               {!isIslamic && <div className="flex items-center gap-2"><input type="checkbox" checked={form.ribaFree} onChange={e => setForm({ ...form, ribaFree: e.target.checked })} className="w-4 h-4" /><label className="text-sm text-gray-700">{t('debtFormRibaFree')}</label></div>}
               {!isHalal && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">⚠️ {t('debtFormRibaWarning')}</div>}
             </div>
