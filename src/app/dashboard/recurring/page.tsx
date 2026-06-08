@@ -272,6 +272,53 @@ export default function RecurringPage() {
   useEffect(() => {
     if (editTx) setEditFrequency(editTx.frequency || 'monthly');
   }, [editTx]);
+
+  // RCR-1 fix (2026-05-15): surface what the backend already auto-detected
+  // (recurring income streams + subscription charges) so the empty state
+  // doesn't lie when /dashboard/cash-flow + /dashboard/subscriptions are
+  // showing detected patterns. User can jump to the source page to act.
+  type Detected = { name: string; cycle: string; amount: number; href: string };
+  const [detected, setDetected] = useState<Detected[]>([]);
+
+  // 2026-06-08 (STALE-DETECTED-RECURRING-WEB-1): factor the auto-detected
+  // refetch out so it can be re-run alongside load() after a toggle /
+  // edit / processNow. Moved above handleSaveEdit so the closure can
+  // capture it.
+  const loadDetected = useCallback(async () => {
+    try {
+      const [streams, subs] = await Promise.allSettled([
+        api.getIncomeStreams(),
+        api.detectSubscriptions(),
+      ]);
+      const items: Detected[] = [];
+      if (streams.status === 'fulfilled' && streams.value) {
+        const s = streams.value as { streams?: Array<{ merchantName?: string; cadence?: string; averageAmount?: number; monthlyAmount?: number }> };
+        (s?.streams ?? []).forEach(st => {
+          items.push({
+            name: st.merchantName ?? t('recurringDetectedIncomeStream'),
+            cycle: st.cadence ?? t('recurringDetectedRecurringIncome'),
+            amount: st.averageAmount ?? st.monthlyAmount ?? 0,
+            href: '/dashboard/cash-flow',
+          });
+        });
+      }
+      if (subs.status === 'fulfilled' && subs.value) {
+        const v = subs.value as { subscriptions?: Array<{ displayName?: string; name?: string; frequency?: string; amount?: number }> };
+        (v?.subscriptions ?? []).forEach(s => {
+          items.push({
+            name: s.displayName ?? s.name ?? t('recurringDetectedSubscription'),
+            cycle: s.frequency ?? t('recurringDetectedRecurring'),
+            amount: s.amount ?? 0,
+            href: '/dashboard/subscriptions',
+          });
+        });
+      }
+      setDetected(items);
+    } catch {
+      /* silent */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const handleSaveEdit = useCallback(async () => {
     if (!editTx) return;
     setSavingEdit(true);
@@ -282,19 +329,15 @@ export default function RecurringPage() {
       setTransactions(prev => prev.map(r => r.id === editTx.id ? { ...r, frequency: editFrequency } : r));
       toast(t('recurringFrequencyUpdated'), 'success');
       setEditTx(null);
+      // 2026-06-08 (STALE-DETECTED-RECURRING-WEB-1): saving an edit can
+      // change which detected entries match — refresh the panel.
+      void loadDetected();
     } catch {
       toast(t('recurringFrequencyUpdateFailed'), 'error');
     } finally {
       setSavingEdit(false);
     }
-  }, [editTx, editFrequency, toast, t]);
-
-  // RCR-1 fix (2026-05-15): surface what the backend already auto-detected
-  // (recurring income streams + subscription charges) so the empty state
-  // doesn't lie when /dashboard/cash-flow + /dashboard/subscriptions are
-  // showing detected patterns. User can jump to the source page to act.
-  type Detected = { name: string; cycle: string; amount: number; href: string };
-  const [detected, setDetected] = useState<Detected[]>([]);
+  }, [editTx, editFrequency, toast, t, loadDetected]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -320,49 +363,17 @@ export default function RecurringPage() {
 
   useEffect(() => {
     void load();
-    // Best-effort fetch of auto-detected items in parallel; failures are
-    // silent so the page still renders the manually-marked list.
-    (async () => {
-      try {
-        const [streams, subs] = await Promise.allSettled([
-          api.getIncomeStreams(),
-          api.detectSubscriptions(),
-        ]);
-        const items: Detected[] = [];
-        if (streams.status === 'fulfilled' && streams.value) {
-          const s = streams.value as { streams?: Array<{ merchantName?: string; cadence?: string; averageAmount?: number; monthlyAmount?: number }> };
-          (s?.streams ?? []).forEach(st => {
-            items.push({
-              name: st.merchantName ?? t('recurringDetectedIncomeStream'),
-              cycle: st.cadence ?? t('recurringDetectedRecurringIncome'),
-              amount: st.averageAmount ?? st.monthlyAmount ?? 0,
-              href: '/dashboard/cash-flow',
-            });
-          });
-        }
-        if (subs.status === 'fulfilled' && subs.value) {
-          const v = subs.value as { subscriptions?: Array<{ displayName?: string; name?: string; frequency?: string; amount?: number }> };
-          (v?.subscriptions ?? []).forEach(s => {
-            items.push({
-              name: s.displayName ?? s.name ?? t('recurringDetectedSubscription'),
-              cycle: s.frequency ?? t('recurringDetectedRecurring'),
-              amount: s.amount ?? 0,
-              href: '/dashboard/subscriptions',
-            });
-          });
-        }
-        setDetected(items);
-      } catch {
-        /* silent */
-      }
-    })();
-  }, [load, t]);
+    void loadDetected();
+  }, [load, loadDetected]);
 
   const handleToggle = async (id: number) => {
     setToggling(id);
     try {
       await api.toggleRecurring(id);
-      await load();
+      // 2026-06-08 (STALE-DETECTED-RECURRING-WEB-1): also refresh the
+      // auto-detected panel — toggling a row marked-recurring should
+      // make the matching detected entry disappear.
+      await Promise.all([load(), loadDetected()]);
       toast(t('recurringStatusUpdated'), 'success');
     } catch {
       toast(t('recurringStatusUpdateError'), 'error');
@@ -377,7 +388,7 @@ export default function RecurringPage() {
       const result = await api.processRecurring();
       const count = result?.processedCount ?? result?.processed ?? 0;
       toast(tFmt(count === 1 ? 'recurringProcessedFmt' : 'recurringProcessedPluralFmt', [count]), 'success');
-      await load();
+      await Promise.all([load(), loadDetected()]);
     } catch {
       toast(t('recurringProcessError'), 'error');
     } finally {
