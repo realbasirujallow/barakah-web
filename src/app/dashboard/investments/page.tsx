@@ -652,8 +652,17 @@ export default function InvestmentsPage() {
       )}
 
       {error && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4 text-sm text-yellow-800">
-          {error}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4 text-sm text-yellow-800 flex items-center justify-between gap-3">
+          <span>{error}</span>
+          {/* 2026-06-08 (UX-WEB-INVESTMENTS-NORETRY-1): add Retry CTA so
+              users can recover from a transient backend hiccup without
+              leaving the page. */}
+          <button
+            onClick={load}
+            className="shrink-0 bg-yellow-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-yellow-800 transition"
+          >
+            {t('zktRetry')}
+          </button>
         </div>
       )}
 

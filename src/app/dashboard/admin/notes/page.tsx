@@ -22,6 +22,7 @@ import { api } from '../../../../lib/api';
 import { useToast } from '../../../../lib/toast';
 import { logError } from '../../../../lib/logError';
 import { useAuth } from '../../../../context/AuthContext';
+import { getLocale } from '../../../../lib/i18n';
 
 interface AdminNoteWithUser {
   id: number;
@@ -285,7 +286,7 @@ export default function AdminNotesPage() {
                           )}
                         </div>
                         <span className="text-[10px] text-gray-400 whitespace-nowrap">
-                          {new Date(n.createdAt).toLocaleString()}
+                          {new Date(n.createdAt).toLocaleString(getLocale())}
                         </span>
                       </div>
                       <p className="text-sm text-gray-800 whitespace-pre-wrap">{n.text}</p>

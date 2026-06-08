@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
-import { useI18n } from '../../../lib/i18n';
+import { useI18n, getLocale } from '../../../lib/i18n';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 
@@ -67,7 +67,10 @@ function safeSetWatchlist(list: string[]): void {
 
 function fmtPrice(value: number, currency = 'USD'): string {
   if (!Number.isFinite(value)) return '—';
-  return new Intl.NumberFormat('en-US', {
+  // 2026-06-08 (LOC-WEB-MARKET-PRICES-FMT-1): use the user's resolved
+  // locale instead of pinning to en-US. French user with EUR now sees
+  // "5 000,00 €" instead of "$5,000.00".
+  return new Intl.NumberFormat(getLocale(), {
     style: 'currency',
     currency,
     minimumFractionDigits: value < 1 ? 4 : 2,
