@@ -308,6 +308,16 @@ export default function RecurringPage() {
     }
   }, [toast, t]);
 
+  // 2026-06-08 (A11Y-MODAL-RECURRING-EDIT-1): Escape on the edit modal.
+  useEffect(() => {
+    if (!editTx) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !savingEdit) setEditTx(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [editTx, savingEdit]);
+
   useEffect(() => {
     void load();
     // Best-effort fetch of auto-detected items in parallel; failures are

@@ -47,7 +47,7 @@ export function PeriodPicker({
         className,
       )}
     >
-      {options.map((opt) => {
+      {options.map((opt, idx) => {
         const active = opt.value === value;
         return (
           <button
@@ -55,7 +55,29 @@ export function PeriodPicker({
             type="button"
             role="tab"
             aria-selected={active}
+            // 2026-06-08 (A11Y-PERIODPICKER-ARROW-KEYS-1): tabindex=-1 on
+            // inactive tabs so Tab moves the focus group as one unit;
+            // arrow keys cycle between tabs (W3C ARIA Authoring Practices
+            // tablist pattern).
+            tabIndex={active ? 0 : -1}
             onClick={() => onChange(opt.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                const dir = e.key === 'ArrowRight' ? 1 : -1;
+                const nextIdx = (idx + dir + options.length) % options.length;
+                onChange(options[nextIdx].value);
+                // Move focus too so screen readers announce the new tab.
+                const nextBtn = (e.currentTarget.parentElement?.children[nextIdx] as HTMLButtonElement | undefined);
+                nextBtn?.focus();
+              } else if (e.key === 'Home') {
+                e.preventDefault();
+                onChange(options[0].value);
+              } else if (e.key === 'End') {
+                e.preventDefault();
+                onChange(options[options.length - 1].value);
+              }
+            }}
             className={cn(
               'px-2.5 py-1 rounded text-xs font-medium tabular-nums transition-colors',
               active
