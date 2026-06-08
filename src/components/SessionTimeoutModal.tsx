@@ -55,9 +55,15 @@ export function SessionTimeoutModal() {
   const readLastActivity = useCallback(() => {
     try {
       const stored = parseInt(localStorage.getItem(LAST_ACTIVITY_KEY) || '0', 10);
-      return stored > 0 ? stored : Date.now();
+      // 2026-06-08 (AUTH-SESSION-WEB-4): if the stored value is corrupted /
+      // cleared (parses to 0 or NaN), treat as expired instead of returning
+      // Date.now(). Returning Date.now() would mask a wiped localStorage
+      // as "just active now" and keep the user signed in past the idle
+      // window. Returning 0 lets scheduleFromActivity see
+      // remainingUntilLogout <= 0 and force logout on the next tick.
+      return stored > 0 ? stored : 0;
     } catch {
-      return Date.now();
+      return 0;
     }
   }, []);
 
