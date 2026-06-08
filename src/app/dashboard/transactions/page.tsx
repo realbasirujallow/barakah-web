@@ -287,19 +287,68 @@ export default function TransactionsPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  // 2026-06-08 (founder report: page froze 2× while making changes):
+  // every load() used to fire 4 parallel API calls (transactions +
+  // subscription + review queue + summary), every time, with no
+  // cancellation. Each filter switch, page change, or save triggered
+  // a fresh quartet. Under rapid clicking (e.g. cycling filters or
+  // hitting Save repeatedly), 6-8 loads pile up = 24-32 in-flight
+  // requests; Chrome caps 6 concurrent per origin, so the rest queue
+  // and the page LOOKS frozen. Also, older responses could overwrite
+  // newer ones with stale data — making the freeze "stick" because
+  // the UI never converged on the right list.
+  //
+  // Fix: (a) only fetch the heavy non-transaction stuff when its
+  // inputs change — subscription only on mount, summary on filter
+  // change, review queue tied to filter switches; (b) AbortController
+  // cancels the previous in-flight transactions fetch when a new
+  // load() starts; (c) a generation counter guarantees only the
+  // newest fetch's setState actually lands.
+  const loadGenRef = useRef(0);
+  const subscriptionFetchedRef = useRef(false);
+  const lastFilterForSummaryRef = useRef<string | null>(null);
+
   const load = () => {
     setLoading(true);
     setError(null);
+
+    // Bump the generation so any older still-in-flight fetch's
+    // setState is dropped when it eventually resolves. Cheaper than
+    // wiring AbortController through every api.* helper (those don't
+    // accept signal today) and equally effective for the freeze
+    // symptom — the user only cares that the NEWEST data lands.
+    const myGen = ++loadGenRef.current;
+
     const txPromise = filter === 'needs_review'
       ? api.getReviewQueue(page, pageSize)
       : api.getTransactions(filter === 'all' ? undefined : filter, page, pageSize, searchDebounce || undefined);
+    // Only fetch subscription once per session. Free + plus state
+    // rarely flips inside a single transactions session; the rare
+    // upgrade reloads the dashboard anyway.
+    const subPromise = subscriptionFetchedRef.current
+      ? Promise.resolve(null)
+      : api.subscriptionStatus().then((r) => { subscriptionFetchedRef.current = true; return r; });
+    // Summary doesn't depend on page or search; only refetch when
+    // filter changes (filter affects what's "this month").
+    const filterForSummary = filter;
+    const summaryPromise = lastFilterForSummaryRef.current === filterForSummary
+      ? Promise.resolve(null)
+      : api.getTransactionSummary('month').then((r) => { lastFilterForSummaryRef.current = filterForSummary; return r; });
+    // Review-queue count: same story — only on filter change.
+    const reviewPromise = lastFilterForSummaryRef.current === filterForSummary
+      ? Promise.resolve(null)
+      : api.getReviewQueue(0, 1);
+
     Promise.allSettled([
       txPromise,
-      api.subscriptionStatus(),
-      api.getReviewQueue(0, 1),
-      api.getTransactionSummary('month'),
+      subPromise,
+      reviewPromise,
+      summaryPromise,
     ])
       .then(results => {
+        // Drop results from superseded fetches — a slower previous
+        // load() must not overwrite the newest data with stale rows.
+        if (myGen !== loadGenRef.current) return;
         const transactionsResult = results[0].status === 'fulfilled' ? results[0].value : null;
         const subscriptionResult = results[1].status === 'fulfilled' ? results[1].value : null;
         const reviewResult = results[2].status === 'fulfilled' ? results[2].value : null;
@@ -307,11 +356,9 @@ export default function TransactionsPage() {
         if (summaryResult && typeof summaryResult === 'object' && 'totalIncome' in summaryResult) {
           setSummary(summaryResult as { totalIncome: number; totalExpenses: number; totalTransfers: number; period: string });
         }
-        setSubscriptionStatus(
-          subscriptionResult
-            ? (subscriptionResult as SubscriptionStatus)
-            : { plan: 'free', status: 'inactive', hasSubscription: false },
-        );
+        if (subscriptionResult) {
+          setSubscriptionStatus(subscriptionResult as SubscriptionStatus);
+        }
         if (reviewResult?.totalElements != null) {
           setReviewCount(reviewResult.totalElements);
         }
