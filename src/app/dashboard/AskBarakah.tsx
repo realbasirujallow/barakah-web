@@ -245,6 +245,18 @@ export function AskBarakah() {
     }
   }, [messages, open]);
 
+  // 2026-06-08 (A11Y-ASKBARAKAH-PANEL-1): Escape closes the panel.
+  // Pairs with the role=dialog/aria-modal annotations on the surface
+  // so keyboard users have a non-mouse exit path.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
   const handleSend = (text?: string) => {
     const q = (text ?? input).trim();
     if (!q) return;
@@ -282,12 +294,21 @@ export function AskBarakah() {
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-40 bg-black/20"
           />
-          <div className="fixed top-0 right-0 z-50 h-full w-full sm:w-[420px] bg-white dark:bg-card shadow-2xl flex flex-col">
+          {/* 2026-06-08 (A11Y-ASKBARAKAH-PANEL-1, robustness sweep):
+              role=dialog + aria-modal + labelledby tell screen readers
+              this is a modal surface; without these Tab focus escaped
+              into the inert dashboard behind. Escape close handler
+              wired below in the existing useEffect. */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="askbarakah-header-title"
+            className="fixed top-0 right-0 z-50 h-full w-full sm:w-[420px] bg-white dark:bg-card shadow-2xl flex flex-col">
             <header className="flex items-center justify-between px-5 py-4 border-b border-border bg-gradient-to-br from-emerald-600 to-emerald-700 text-white">
               <div className="flex items-center gap-2">
                 <span aria-hidden="true">🕌</span>
                 <div>
-                  <p className="font-semibold text-sm">{t('askBarakahHeaderTitle')}</p>
+                  <p id="askbarakah-header-title" className="font-semibold text-sm">{t('askBarakahHeaderTitle')}</p>
                   <p className="text-[11px] opacity-80">{t('askBarakahHeaderSubtitle')}</p>
                 </div>
               </div>
