@@ -57,11 +57,26 @@ export function SyncBanksButton({
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
 
   // Fetch Plaid account count + subscription status on mount (and whenever
-  // the user changes — login/logout). Both calls already dedupe at the api
-  // layer (plaidGetAccounts is per-caller; subscriptionStatus has its own
-  // _subStatusInFlight guard) so concurrent mounts across pages stay cheap.
+  // the user identity changes — login/logout). The api layer's in-flight
+  // dedup helps when many components mount at once but does NOT cache
+  // across resolved → re-call; for that we depend on `user?.id`, a stable
+  // primitive, instead of the `user` OBJECT, so an AuthContext re-render
+  // that produces a new reference for the SAME user doesn't refire this
+  // effect and the two API calls.
+  //
+  // 2026-06-08 (founder report: /dashboard/transactions froze 2× while
+  // making changes): the previous `[user]` dep caused this effect to
+  // re-run on every parent re-render whose AuthContext value object
+  // refreshed — typically every filter switch, save, or row toggle on
+  // the transactions page. Each re-run fired `plaidGetAccounts` +
+  // `subscriptionStatus`, hammering the API connection-pool and
+  // contributing to the freeze. `user?.id` is a stable primitive: it
+  // only changes when the actual user changes, not on every parent
+  // re-render. Same fix shape as the i18n.ts useCallback stabilization
+  // from the May-2026 BUG-PROD-AUDIT-LOAD pattern.
+  const userId = user?.id ?? null;
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
     let cancelled = false;
 
     (async () => {
@@ -89,7 +104,7 @@ export function SyncBanksButton({
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [userId]);
 
   const handleSync = async () => {
     if (syncing) return;
