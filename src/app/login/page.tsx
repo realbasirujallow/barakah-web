@@ -137,7 +137,7 @@ function LoginForm() {
 
   const handleResendVerification = async () => {
     if (!email) {
-      setError('Please enter your email address above first.');
+      setError(t('authLoginResendNeedEmail'));
       return;
     }
     setResendStatus('sending');
@@ -145,7 +145,7 @@ function LoginForm() {
       await api.resendVerification(email);
       setResendStatus('sent');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to resend verification email');
+      setError(err instanceof Error ? err.message : t('authLoginResendFailed'));
       setResendStatus('idle');
     }
   };
@@ -190,32 +190,31 @@ function LoginForm() {
             <div role="alert" className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{error}</div>
           )}
 
+          {/* 2026-06-08 (LOC-LOGIN-RESEND-FALLBACK-1): wire 4 hardcoded
+              English strings to t() so resend-verification flow renders
+              correctly for ar/ur/fr login users. */}
           {needsVerification && resendStatus === 'idle' && (
             <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg mb-4">
-              <p className="text-amber-800 text-sm mb-3">
-                Your email is not verified yet. Check your inbox for the verification link, or request a new one.
-              </p>
+              <p className="text-amber-800 text-sm mb-3">{t('authLoginNeedsVerification')}</p>
               <button
                 type="button"
                 onClick={handleResendVerification}
                 className="w-full bg-amber-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-amber-700 transition"
               >
-                Resend Verification Email
+                {t('authLoginResendButton')}
               </button>
             </div>
           )}
 
           {needsVerification && resendStatus === 'sending' && (
             <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg mb-4 text-center">
-              <p className="text-amber-800 text-sm">Sending verification email...</p>
+              <p className="text-amber-800 text-sm">{t('authLoginResendSending')}</p>
             </div>
           )}
 
           {needsVerification && resendStatus === 'sent' && (
             <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
-              <p className="text-green-800 text-sm">
-                ✅ Verification email sent! Check your inbox (and spam folder) for the link.
-              </p>
+              <p className="text-green-800 text-sm">{t('authLoginResendSent')}</p>
             </div>
           )}
 
