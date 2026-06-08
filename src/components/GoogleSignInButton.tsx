@@ -184,12 +184,6 @@ export default function GoogleSignInButton({ ctaLabel = 'continue_with' }: Props
         width: 320,
         locale,
       });
-      // 2026-06-07 UX: auto-trigger the One-Tap prompt when redirected
-      // from /sso/confirm-link?ssoAuto=1. GIS shows its picker overlay
-      // on the same tab — no orphan window from the email click flow.
-      if (autoTrigger) {
-        try { window.google.accounts.id.prompt(); } catch { /* no-op */ }
-      }
     });
 
     return () => {
@@ -197,6 +191,31 @@ export default function GoogleSignInButton({ ctaLabel = 'continue_with' }: Props
       try { window.google?.accounts?.id?.cancel(); } catch { /* no-op */ }
     };
   }, [clientId, ctaLabel, locale, router, signInWithGoogle, t]);
+
+  // 2026-06-07 v2: dedicated auto-trigger effect. Separated from the
+  // GIS init useEffect above because autoTrigger can flip true LONG
+  // after init (when the cross-tab BroadcastChannel signals "ssoConfirmed"
+  // from /sso/confirm-link). The init effect's dep array intentionally
+  // does NOT include autoTrigger — re-initializing GIS would re-render
+  // the button and cause flicker. Instead, this effect just calls
+  // prompt() whenever autoTrigger becomes true and GIS is ready.
+  useEffect(() => {
+    if (!autoTrigger) return;
+    if (!clientId) return;
+    let cancelled = false;
+    const tryPrompt = () => {
+      if (cancelled) return;
+      if (window.google?.accounts?.id?.prompt) {
+        try { window.google.accounts.id.prompt(); } catch { /* no-op */ }
+      } else {
+        // GIS not loaded yet — poll briefly (init useEffect injects the
+        // script async; usually <500ms but allow up to 5s).
+        setTimeout(tryPrompt, 250);
+      }
+    };
+    tryPrompt();
+    return () => { cancelled = true; };
+  }, [autoTrigger, clientId]);
 
   if (!clientId) return null;
 
