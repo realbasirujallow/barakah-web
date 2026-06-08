@@ -1456,18 +1456,30 @@ export default function TransactionsPage() {
                   date controlled budget month. Now the hint always appears,
                   with the original-posted line added when known. */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldDate')}</label>
+                {/* 2026-06-08 founder: "Still no option to edit transaction
+                    so that it can be applied to another month". The field
+                    DID exist but the label said only "Date" and the
+                    explanation was tiny gray-500 hardcoded English. Users
+                    didn't realize editing this moves the transaction to a
+                    different month. Now: explicit label, prominent
+                    amber-bg helper block, fully localized. */}
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('txnFieldEffectiveDateLabel')}
+                </label>
                 <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
                   max={new Date(Date.now() + 400 * 86400000).toISOString().slice(0, 10)}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" />
-                <p className="mt-1 text-xs text-gray-500">
-                  The date above sets which month&rsquo;s budget &amp; cash flow this transaction counts toward.
-                  {editTx?.originalDate != null && (
-                    <>
-                      {' '}Original (posted) date: <strong>{new Date(editTx.originalDate).toLocaleDateString(dateLocale)}</strong> — kept on file and unchanged.
-                    </>
-                  )}
-                </p>
+                <div className="mt-2 flex gap-2 text-xs bg-amber-50 border border-amber-200 rounded-lg p-2.5">
+                  <span aria-hidden="true">💡</span>
+                  <div className="flex-1 text-amber-900">
+                    {t('txnFieldEffectiveDateHelper')}
+                    {editTx?.originalDate != null && (
+                      <span className="block mt-1 text-amber-800">
+                        {tFmt('txnFieldEffectiveDateOriginalFmt', [new Date(editTx.originalDate).toLocaleDateString(dateLocale)])}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
               {/* Tags */}
               <div>
