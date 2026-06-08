@@ -12562,7 +12562,7 @@ const fr: Translations = {
   dashSafeToSpendEmpty: 'Ajoutez des revenus ou des transactions pour voir le montant disponible en toute sécurité',
   dashMoreDetails: 'Plus de détails',
   dashHide: 'Masquer',
-  dashBudgetMonth: 'Budget',
+  dashBudgetMonth: 'Budget du mois',
   dashThisMonthSpending: 'Dépenses du mois',
   dashNoSpendingYet: 'Aucune dépense enregistrée ce mois-ci pour le moment.',
   dashRecentTransactions: 'Transactions récentes',
