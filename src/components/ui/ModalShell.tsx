@@ -43,6 +43,23 @@ export default function ModalShell({
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const restoreFocusToRef = useRef<HTMLElement | null>(null);
 
+  // 2026-06-08 (FREEZE-MODAL-1, founder report — clicking a few txn rows
+  // then scrolling froze /dashboard/transactions): the prior effect's
+  // dep array was [onClose]. Consumers pass an inline `() => setX(false)`
+  // arrow which is a NEW function every parent render. That made the
+  // entire effect (capture focus → add keydown listener → lock body
+  // overflow → move focus into dialog) tear down + re-run on EVERY
+  // parent re-render while the modal was open. The "move focus into
+  // dialog" step yanks the cursor mid-scroll, the listener add/remove
+  // churns, and on big trees React's reconciliation thrashes — the
+  // page reads as frozen.
+  //
+  // Split: onClose lives in a ref so the keydown handler sees the
+  // latest closure, but the setup/teardown effect runs ONLY on mount
+  // and unmount.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+
   useEffect(() => {
     // Remember the element that had focus before the dialog opened so
     // we can restore it on close (WAI-ARIA dialog pattern).
@@ -50,7 +67,7 @@ export default function ModalShell({
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        onCloseRef.current();
         return;
       }
       // Basic focus trap: cycle Tab/Shift+Tab among interactive descendants.
@@ -96,7 +113,10 @@ export default function ModalShell({
       // dumped at the top of the document.
       try { restoreFocusToRef.current?.focus({ preventScroll: true }); } catch { /* no-op */ }
     };
-  }, [onClose]);
+    // Empty deps: setup once on mount, tear down on unmount. Latest
+    // onClose closure is reached via onCloseRef.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div
@@ -108,7 +128,7 @@ export default function ModalShell({
       aria-label={ariaLabelledBy ? undefined : ariaLabel}
       tabIndex={-1}
       className={className}
-      onClick={onClose}
+      onClick={() => onCloseRef.current()}
     >
       <div style={{ display: 'contents' }} onClick={(e: MouseEvent) => e.stopPropagation()}>
         {children}
