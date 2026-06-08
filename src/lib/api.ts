@@ -1005,7 +1005,9 @@ export const api = {
     apiFetch(`/api/debts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   makeDebtPayment: (id: number, amount: number, paymentDate?: number) =>
     apiFetch(`/api/debts/${id}/payment`, { method: 'POST', body: JSON.stringify(paymentDate ? { amount, paymentDate } : { amount }) }),
-  getDebtPaymentSuggestions: () => apiFetch('/api/debts/payment-suggestions'),
+  // 2026-06-08 (ERR-UNAUTH-WEB-3): mount-fired on /dashboard/debts.
+  getDebtPaymentSuggestions: (suppressUnauthorized = true) =>
+    apiFetch('/api/debts/payment-suggestions', {}, API_TIMEOUT, suppressUnauthorized),
   deleteDebt: (id: number) =>
     apiFetch(`/api/debts/${id}`, { method: 'DELETE' }),
   bulkDeleteDebts: (ids: number[]) =>
@@ -1021,7 +1023,8 @@ export const api = {
    */
   getDebtPayoffStrategies: (extraMonthly: number) =>
     apiFetch(`/api/debts/payoff-strategies?extraMonthly=${encodeURIComponent(String(extraMonthly))}`),
-  getDebtProjections: () => apiFetch('/api/debts/projections'),
+  getDebtProjections: (suppressUnauthorized = true) =>
+    apiFetch('/api/debts/projections', {}, API_TIMEOUT, suppressUnauthorized),
   // Debt-burden intelligence — debt-to-income ratio + riba-bearing vs
   // riba-free split. See DebtInsightService.java.
   // suppressUnauthorized: mount-fired on /dashboard/debts — a transient 401
@@ -1076,8 +1079,12 @@ export const api = {
   getHawlHistory: () => apiFetch('/api/hawl/history'),
 
   // Sadaqah
-  getSadaqah: () => apiFetch('/api/sadaqah/list'),
-  getSadaqahStats: () => apiFetch('/api/sadaqah/stats'),
+  // 2026-06-08 (ERR-UNAUTH-WEB-1): mount-fired on /dashboard/sadaqah —
+  // a transient 401 must not cascade into a forced logout. Same pattern
+  // as getSadaqahInsights below + getAssets/getDebts. Founder report:
+  // "Random logouts on the sadaqah/wasiyyah pages".
+  getSadaqah: (suppressUnauthorized = true) => apiFetch('/api/sadaqah/list', {}, API_TIMEOUT, suppressUnauthorized),
+  getSadaqahStats: (suppressUnauthorized = true) => apiFetch('/api/sadaqah/stats', {}, API_TIMEOUT, suppressUnauthorized),
   // Giving-pattern intelligence — streak, trend, recurring gifts, top
   // recipients. See SadaqahInsightService.java.
   // suppressUnauthorized: mount-fired on /dashboard/sadaqah — a transient
@@ -1090,14 +1097,17 @@ export const api = {
     apiFetch(`/api/sadaqah/${id}`, { method: 'DELETE' }),
 
   // Wasiyyah
-  getWasiyyah: () => apiFetch('/api/wasiyyah/list'),
+  // 2026-06-08 (ERR-UNAUTH-WEB-1): mount-fired on /dashboard/wasiyyah,
+  // same 401-suppression treatment.
+  getWasiyyah: (suppressUnauthorized = true) => apiFetch('/api/wasiyyah/list', {}, API_TIMEOUT, suppressUnauthorized),
   addWasiyyah: (data: Record<string, unknown>) =>
     apiFetch('/api/wasiyyah/add', { method: 'POST', body: JSON.stringify(data) }),
   deleteWasiyyah: (id: number) =>
     apiFetch(`/api/wasiyyah/${id}`, { method: 'DELETE' }),
 
   // Wasiyyah Obligations (Islamic duties to settle from estate)
-  getWasiyyahObligations: () => apiFetch('/api/wasiyyah/obligations/list'),
+  getWasiyyahObligations: (suppressUnauthorized = true) =>
+    apiFetch('/api/wasiyyah/obligations/list', {}, API_TIMEOUT, suppressUnauthorized),
   addWasiyyahObligation: (data: Record<string, unknown>) =>
     apiFetch('/api/wasiyyah/obligations/add', { method: 'POST', body: JSON.stringify(data) }),
   updateWasiyyahObligation: (id: number, data: Record<string, unknown>) =>
@@ -1110,7 +1120,8 @@ export const api = {
     apiFetch('/api/wasiyyah/calculate-faraid', { method: 'POST', body: JSON.stringify(data) }),
 
   /** Islamic inheritance shares by relationship (Surah An-Nisa 4:11-12) */
-  getIslamicShares: () => apiFetch('/api/wasiyyah/islamic-shares'),
+  getIslamicShares: (suppressUnauthorized = true) =>
+    apiFetch('/api/wasiyyah/islamic-shares', {}, API_TIMEOUT, suppressUnauthorized),
 
   /** Zakat calculation receipt — full transparency of every input and decision. */
   getZakatReceipt: () => apiFetch('/api/zakat/receipt'),
@@ -1120,14 +1131,16 @@ export const api = {
     apiFetch('/api/ibadah/summary'),
 
   // Waqf
-  getWaqf: () => apiFetch('/api/waqf/list'),
+  // 2026-06-08 (ERR-UNAUTH-WEB-1): mount-fired on /dashboard/waqf.
+  getWaqf: (suppressUnauthorized = true) => apiFetch('/api/waqf/list', {}, API_TIMEOUT, suppressUnauthorized),
   addWaqf: (data: Record<string, unknown>) =>
     apiFetch('/api/waqf/add', { method: 'POST', body: JSON.stringify(data) }),
   updateWaqf: (id: number, data: Record<string, unknown>) =>
     apiFetch(`/api/waqf/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteWaqf: (id: number) =>
     apiFetch(`/api/waqf/${id}`, { method: 'DELETE' }),
-  getWaqfDistribution: () => apiFetch('/api/waqf/distribution'),
+  getWaqfDistribution: (suppressUnauthorized = true) =>
+    apiFetch('/api/waqf/distribution', {}, API_TIMEOUT, suppressUnauthorized),
   addWaqfBeneficiary: (data: Record<string, unknown>) =>
     apiFetch('/api/waqf/distribution/beneficiary', { method: 'POST', body: JSON.stringify(data) }),
   updateWaqfBeneficiary: (id: number, data: Record<string, unknown>) =>
@@ -1169,15 +1182,21 @@ export const api = {
     apiFetch('/api/zakat/record-purification', { method: 'POST', body: JSON.stringify({ amount, notes }) }),
 
   // Riba Elimination Journey
-  getRibaJourneySummary: () => apiFetch('/api/riba/journey/summary'),
-  getRibaJourneyGoals: () => apiFetch('/api/riba/journey/goals'),
+  // 2026-06-08 (ERR-UNAUTH-WEB-3): mount-fired on /dashboard/riba AND
+  // from the floating AskBarakah assistant (which can be opened from
+  // any page) — suppress 401 to avoid forced logout.
+  getRibaJourneySummary: (suppressUnauthorized = true) =>
+    apiFetch('/api/riba/journey/summary', {}, API_TIMEOUT, suppressUnauthorized),
+  getRibaJourneyGoals: (suppressUnauthorized = true) =>
+    apiFetch('/api/riba/journey/goals', {}, API_TIMEOUT, suppressUnauthorized),
   createRibaGoal: (data: Record<string, unknown>) =>
     apiFetch('/api/riba/journey/goals', { method: 'POST', body: JSON.stringify(data) }),
   updateRibaGoal: (id: number, data: Record<string, unknown>) =>
     apiFetch(`/api/riba/journey/goals/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   eliminateRibaGoal: (id: number) =>
     apiFetch(`/api/riba/journey/goals/${id}/eliminate`, { method: 'POST', body: JSON.stringify({}) }),
-  getRibaMilestones: () => apiFetch('/api/riba/journey/milestones'),
+  getRibaMilestones: (suppressUnauthorized = true) =>
+    apiFetch('/api/riba/journey/milestones', {}, API_TIMEOUT, suppressUnauthorized),
   getRibaGoalSuggestions: () => apiFetch('/api/riba/journey/suggestions'),
 
   // Auto-Categorize
@@ -2351,8 +2370,9 @@ export const api = {
     apiFetch(`/api/transactions/halal-analysis?period=${encodeURIComponent(period)}`, {}, API_TIMEOUT, true),
 
   // ── Multi-Currency Zakat Summary ────────────────────────────────────────────
-  getZakatSummary: (currency = 'USD') =>
-    apiFetch(`/api/hawl/zakat-summary?currency=${encodeURIComponent(currency)}`),
+  // 2026-06-08 (ERR-UNAUTH-WEB-3): mount-fired on /dashboard/zakat.
+  getZakatSummary: (currency = 'USD', suppressUnauthorized = true) =>
+    apiFetch(`/api/hawl/zakat-summary?currency=${encodeURIComponent(currency)}`, {}, API_TIMEOUT, suppressUnauthorized),
 
   // ── Hawl Due Reminders ──────────────────────────────────────────────────────
   // R14: mount-fired on /dashboard — suppress 401 default.

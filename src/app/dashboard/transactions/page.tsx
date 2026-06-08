@@ -328,16 +328,16 @@ export default function TransactionsPage() {
     const subPromise = subscriptionFetchedRef.current
       ? Promise.resolve(null)
       : api.subscriptionStatus().then((r) => { subscriptionFetchedRef.current = true; return r; });
-    // Summary doesn't depend on page or search; only refetch when
-    // filter changes (filter affects what's "this month").
-    const filterForSummary = filter;
-    const summaryPromise = lastFilterForSummaryRef.current === filterForSummary
-      ? Promise.resolve(null)
-      : api.getTransactionSummary('month').then((r) => { lastFilterForSummaryRef.current = filterForSummary; return r; });
-    // Review-queue count: same story — only on filter change.
-    const reviewPromise = lastFilterForSummaryRef.current === filterForSummary
-      ? Promise.resolve(null)
-      : api.getReviewQueue(0, 1);
+    // 2026-06-08 (STALE-SUMMARY-WEB-TXN-1, robustness sweep): the
+    // filter-cached summary made hero KPI cards (Income / Expenses /
+    // Transfers / Net) stay STALE after save / edit / delete because
+    // `filter` didn't change between mutation and the load() that
+    // followed it. The whole reason summary is server-aggregated is
+    // that the visible page may not include all month rows; caching
+    // it across mutations defeats that. Drop the cache — every
+    // load() refreshes summary. Review-queue count too.
+    const summaryPromise = api.getTransactionSummary('month');
+    const reviewPromise = api.getReviewQueue(0, 1);
 
     Promise.allSettled([
       txPromise,

@@ -219,7 +219,7 @@ export default function DashboardPage() {
     if (typeof window === 'undefined') return;
     const sp = new URLSearchParams(window.location.search);
     if (sp.get('checkout') === 'canceled') {
-      toast('Checkout cancelled — no charge was made.', 'info');
+      toast(t('dashCheckoutCanceled'), 'info');
       sp.delete('checkout');
       const qs = sp.toString();
       window.history.replaceState({}, '', `/dashboard${qs ? `?${qs}` : ''}`);
@@ -343,7 +343,7 @@ export default function DashboardPage() {
           ? reason.message : String(reason ?? '');
         const isPlanGate = /plus required|403|forbidden|upgrade/i.test(errMsg);
         if (!cancelled && !isPlanGate) {
-          toast('Failed to load dashboard data. Please refresh.', 'error');
+          toast(t('dashDataLoadError'), 'error');
         }
       }
       if (!cancelled) setLoading(false);
