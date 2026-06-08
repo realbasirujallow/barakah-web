@@ -414,20 +414,21 @@ export default function WaqfPage() {
           >
             <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editItem ? t('waqfModalEditTitle') : t('waqfModalAddTitle')}</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldOrg')}</label>
-                <input value={form.organizationName} onChange={e => setForm({ ...form, organizationName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('waqfOrgPlaceholder')} /></div>
+              {/* 2026-06-08 (A11Y-DASHBOARD-FORM-LABELS-1 part 5/6): htmlFor + id */}
+              <div><label htmlFor="waqf-form-org" className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldOrg')}</label>
+                <input id="waqf-form-org" value={form.organizationName} onChange={e => setForm({ ...form, organizationName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('waqfOrgPlaceholder')} /></div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldType')}</label>
-                  <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                <div><label htmlFor="waqf-form-type" className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldType')}</label>
+                  <select id="waqf-form-type" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                     {TYPES.map(ty => <option key={ty} value={ty}>{t(TYPE_KEY[ty] || 'waqfTypeOther')}</option>)}</select></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldPurpose')}</label>
-                  <select value={form.purpose} onChange={e => setForm({ ...form, purpose: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                <div><label htmlFor="waqf-form-purpose" className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldPurpose')}</label>
+                  <select id="waqf-form-purpose" value={form.purpose} onChange={e => setForm({ ...form, purpose: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                     {PURPOSES.map(p => <option key={p} value={p}>{t(PURPOSE_KEY[p] || 'waqfPurposeOther')}</option>)}</select></div>
               </div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldAmount')}</label>
-                <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldDescription')}</label>
-                <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div><label htmlFor="waqf-form-amount" className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldAmount')}</label>
+                <input id="waqf-form-amount" type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div><label htmlFor="waqf-form-description" className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldDescription')}</label>
+                <input id="waqf-form-description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
               <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.recurring} onChange={e => setForm({ ...form, recurring: e.target.checked })} className="w-4 h-4" /> {t('waqfFieldRecurring')}</label>
             </div>
             <div className="flex gap-3 mt-6">

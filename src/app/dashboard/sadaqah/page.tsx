@@ -366,18 +366,19 @@ function SadaqahContent() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-primary mb-4">{t('sadaqahModalTitle')}</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldAmount')}</label>
-                <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('sadaqahAmountPlaceholder')} /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldRecipient')}</label>
-                <input value={form.recipientName} onChange={e => setForm({ ...form, recipientName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('sadaqahRecipientPlaceholder')} /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldCategory')}</label>
-                <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+              {/* 2026-06-08 (A11Y-DASHBOARD-FORM-LABELS-1 part 4/6): htmlFor + id */}
+              <div><label htmlFor="sadaqah-form-amount" className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldAmount')}</label>
+                <input id="sadaqah-form-amount" type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('sadaqahAmountPlaceholder')} /></div>
+              <div><label htmlFor="sadaqah-form-recipient" className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldRecipient')}</label>
+                <input id="sadaqah-form-recipient" value={form.recipientName} onChange={e => setForm({ ...form, recipientName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('sadaqahRecipientPlaceholder')} /></div>
+              <div><label htmlFor="sadaqah-form-category" className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldCategory')}</label>
+                <select id="sadaqah-form-category" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {CATS.map(c => <option key={c} value={c}>{catLabel(c)}</option>)}
                 </select></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldDescription')}</label>
-                <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Date given</label>
-                <input type="date" value={form.date} max={new Date().toISOString().slice(0, 10)} onChange={e => setForm({ ...form, date: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div><label htmlFor="sadaqah-form-description" className="block text-sm font-medium text-gray-700 mb-1">{t('sadaqahFieldDescription')}</label>
+                <input id="sadaqah-form-description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div><label htmlFor="sadaqah-form-date" className="block text-sm font-medium text-gray-700 mb-1">Date given</label>
+                <input id="sadaqah-form-date" type="date" value={form.date} max={new Date().toISOString().slice(0, 10)} onChange={e => setForm({ ...form, date: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.anonymous} onChange={e => setForm({ ...form, anonymous: e.target.checked })} className="w-4 h-4" /> {t('sadaqahCheckAnonymous')}</label>
                 <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.recurring} onChange={e => setForm({ ...form, recurring: e.target.checked })} className="w-4 h-4" /> {t('sadaqahCheckRecurring')}</label>

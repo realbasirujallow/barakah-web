@@ -1761,17 +1761,18 @@ export default function ZakatPage() {
             </div>
 
             <div className="space-y-4">
+              {/* 2026-06-08 (A11Y-DASHBOARD-FORM-LABELS-1 part 6/6): htmlFor + id */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{tFmt('zktAmountLabelFmt', [currency])}</label>
-                <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="0.00" />
+                <label htmlFor="zakat-form-amount" className="block text-sm font-medium text-gray-700 mb-1">{tFmt('zktAmountLabelFmt', [currency])}</label>
+                <input id="zakat-form-amount" type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="0.00" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('zktRecipientOptional')}</label>
-                <input value={form.recipient} onChange={e => setForm({ ...form, recipient: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('zktRecipientPlaceholder')} />
+                <label htmlFor="zakat-form-recipient" className="block text-sm font-medium text-gray-700 mb-1">{t('zktRecipientOptional')}</label>
+                <input id="zakat-form-recipient" value={form.recipient} onChange={e => setForm({ ...form, recipient: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('zktRecipientPlaceholder')} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('zktNotesOptional')}</label>
-                <input value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('zktNotesPlaceholder')} />
+                <label htmlFor="zakat-form-notes" className="block text-sm font-medium text-gray-700 mb-1">{t('zktNotesOptional')}</label>
+                <input id="zakat-form-notes" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('zktNotesPlaceholder')} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date paid</label>

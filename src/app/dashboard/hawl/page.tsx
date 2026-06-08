@@ -769,12 +769,13 @@ function HawlPageContent() {
                 <select value={form.assetType} onChange={e => setForm({ ...form, assetType: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {TYPES.map(ty => <option key={ty} value={ty}>{typeLabel(ty)}</option>)}
                 </select></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldValue')}</label>
-                <input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldNisab')}</label>
-                <input type="number" step="0.01" value={form.nisabThreshold} onChange={e => setForm({ ...form, nisabThreshold: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldStartDate')} <span className="text-gray-400">{t('hawlStartDateHint')}</span></label>
-                <input type="date" value={form.startDate} min={minBackdateInput} max={maxStartInput} onChange={e => setForm({ ...form, startDate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              {/* 2026-06-08 (A11Y-DASHBOARD-FORM-LABELS-1 part 3/6): htmlFor + id */}
+              <div><label htmlFor="hawl-form-value" className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldValue')}</label>
+                <input id="hawl-form-value" type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div><label htmlFor="hawl-form-nisab" className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldNisab')}</label>
+                <input id="hawl-form-nisab" type="number" step="0.01" value={form.nisabThreshold} onChange={e => setForm({ ...form, nisabThreshold: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div><label htmlFor="hawl-form-start-date" className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldStartDate')} <span className="text-gray-400">{t('hawlStartDateHint')}</span></label>
+                <input id="hawl-form-start-date" type="date" value={form.startDate} min={minBackdateInput} max={maxStartInput} onChange={e => setForm({ ...form, startDate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             </div>
             {saveError && <div className="text-sm text-red-600 bg-red-50 p-2 rounded mb-3 mt-3">{saveError}</div>}
             <div className="flex gap-3 mt-6">
