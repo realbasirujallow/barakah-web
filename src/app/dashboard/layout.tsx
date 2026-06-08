@@ -236,6 +236,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const tNavLabel = (label: string) => t(NAV_LABEL_KEYS[label] || label);
   const tSectionLabel = (label: string) => t(NAV_SECTION_KEYS[label] || label);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // 2026-06-08 (A11Y-MOBILE-SIDEBAR-CLOSE-1): close sidebar on Escape.
+  // Keyboard users had no non-mouse way to close the mobile drawer once
+  // open. Listener only mounts while sidebar is open to minimize cost.
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSidebarOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [sidebarOpen]);
   // Dark-mode flag is a view over the `dark` class on <html> — the authoritative
   // source of truth (set before hydration by a bootstrap script to avoid FOUC).
   // useSyncExternalStore subscribes to class-attribute changes so the UI stays

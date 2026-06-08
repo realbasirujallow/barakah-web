@@ -1181,9 +1181,12 @@ export default function TransactionsPage() {
                     <p className="font-semibold text-gray-900" title={tx.description || ''}>
                       {tx.merchantName
                         ? <>
-                            <span className="font-bold">{tx.merchantName}</span>
+                            {/* 2026-06-08 (EDGE-OVERFLOW-TXN-1): truncate
+                                long merchant+description so the daily
+                                total stays aligned right of the row. */}
+                            <span className="font-bold truncate">{tx.merchantName}</span>
                             {tx.description && tx.description !== tx.merchantName
-                              ? <span className="font-normal text-gray-500 text-sm ms-1">— {prettifyDescription(tx.description)}</span>
+                              ? <span className="font-normal text-gray-500 text-sm ms-1 truncate">— {prettifyDescription(tx.description)}</span>
                               : ''}
                           </>
                         : (prettifyDescription(tx.description) || categoryLabel(tx.category))}

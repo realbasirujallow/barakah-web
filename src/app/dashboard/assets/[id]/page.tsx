@@ -5,6 +5,7 @@ import { api } from '../../../../lib/api';
 import { useCurrency } from '../../../../lib/useCurrency';
 import { logError } from '../../../../lib/logError';
 import { useToast } from '../../../../lib/toast';
+import { useI18n } from '../../../../lib/i18n';
 import { PageHeader } from '../../../../components/dashboard/PageHeader';
 import { SkeletonPage } from '../../SkeletonCard';
 
@@ -84,6 +85,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const assetId = Number(id);
   const { fmt, locale } = useCurrency();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [asset, setAsset] = useState<Asset | null>(null);
   const [txs, setTxs] = useState<Tx[]>([]);
   const [holdings, setHoldings] = useState<Holding[]>([]);
@@ -150,10 +152,10 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     try {
       await api.updateAsset(asset.id, { name: asset.name, type: typeDraft, value: asset.value });
       setAsset({ ...asset, type: typeDraft });
-      toast('Asset type updated', 'success');
+      toast(t('assetTypeUpdated'), 'success');
     } catch (e) {
       logError(e, { tags: { area: 'asset-detail.updateType' } });
-      toast('Could not update asset type', 'error');
+      toast(t('assetTypeUpdateFailed'), 'error');
       setTypeDraft(asset.type);
     } finally {
       setSavingType(false);
@@ -162,11 +164,12 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
 
   if (loading) return <SkeletonPage />;
   if (notFound || !asset) {
+    // 2026-06-08 (ERR-RAW-ASSET-WEB-5): localized + link back to /assets.
     return (
       <div className="max-w-3xl mx-auto p-6">
-        <PageHeader title="Asset not found" />
-        <p className="text-sm text-gray-500 mt-4">This asset doesn’t exist or has been deleted.</p>
-        <Link href="/dashboard/assets" className="text-primary hover:underline text-sm mt-4 inline-block">← Back to assets</Link>
+        <PageHeader title={t('assetNotFoundTitle')} />
+        <p className="text-sm text-gray-500 mt-4">{t('assetNotFoundBody')}</p>
+        <Link href="/dashboard/assets" className="text-primary hover:underline text-sm mt-4 inline-block">← {t('assetBackToAssets')}</Link>
       </div>
     );
   }
