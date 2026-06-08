@@ -1386,9 +1386,12 @@ export default function TransactionsPage() {
             <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editTx ? t('txnModalEditTitle') : t('txnModalAddTitle')}</h2>
             <div className="space-y-4">
               {/* Type */}
+              {/* 2026-06-08 (A11Y-DASHBOARD-FORM-LABELS-1 part 2/6):
+                  htmlFor + id pairs across the transactions modal so
+                  screen readers announce each field correctly. */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldType')}</label>
-                <select value={form.type} onChange={e => {
+                <label htmlFor="txn-form-type" className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldType')}</label>
+                <select id="txn-form-type" value={form.type} onChange={e => {
                   const nextType = e.target.value;
                   setForm({
                     ...form,
@@ -1404,8 +1407,8 @@ export default function TransactionsPage() {
               </div>
               {form.type === 'transfer' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldDirection')}</label>
-                  <select value={form.direction} onChange={e => setForm({ ...form, direction: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                  <label htmlFor="txn-form-direction" className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldDirection')}</label>
+                  <select id="txn-form-direction" value={form.direction} onChange={e => setForm({ ...form, direction: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                     <option value="inflow">{t('txnDirInflow')}</option>
                     <option value="outflow">{t('txnDirOutflow')}</option>
                     <option value="neutral">{t('txnDirNeutral')}</option>
@@ -1414,8 +1417,8 @@ export default function TransactionsPage() {
               )}
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldCategory')}</label>
-                <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                <label htmlFor="txn-form-category" className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldCategory')}</label>
+                <select id="txn-form-category" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {categoriesForType(form.type).map(c => <option key={c} value={c}>{categoryLabel(c)}</option>)}
                 </select>
               </div>
@@ -1428,8 +1431,8 @@ export default function TransactionsPage() {
               {/* Amount + Currency (side by side) */}
               <div className="grid grid-cols-5 gap-3">
                 <div className="col-span-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldAmount')}</label>
-                  <input type="number" step="0.01" min="0.01" value={form.amount} onChange={e => { setForm({ ...form, amount: e.target.value }); setFormError(null); }}
+                  <label htmlFor="txn-form-amount" className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldAmount')}</label>
+                  <input id="txn-form-amount" type="number" step="0.01" min="0.01" value={form.amount} onChange={e => { setForm({ ...form, amount: e.target.value }); setFormError(null); }}
                     className={`w-full border rounded-lg px-3 py-2 text-gray-900 ${formError ? 'border-red-400' : ''}`} placeholder={t('txnAmountPlaceholder')} />
                 </div>
                 <div className="col-span-2">
@@ -1443,8 +1446,8 @@ export default function TransactionsPage() {
               </div>
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldDescription')}</label>
-                <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                <label htmlFor="txn-form-description" className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldDescription')}</label>
+                <input id="txn-form-description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('txnDescPlaceholder')} />
               </div>
               {/* Date — the EFFECTIVE date: drives which month's budget & cash-flow
@@ -1463,10 +1466,10 @@ export default function TransactionsPage() {
                     didn't realize editing this moves the transaction to a
                     different month. Now: explicit label, prominent
                     amber-bg helper block, fully localized. */}
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="txn-form-date" className="block text-sm font-medium text-gray-700 mb-1">
                   {t('txnFieldEffectiveDateLabel')}
                 </label>
-                <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
+                <input id="txn-form-date" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
                   max={new Date(Date.now() + 400 * 86400000).toISOString().slice(0, 10)}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" />
                 <div className="mt-2 flex gap-2 text-xs bg-amber-50 border border-amber-200 rounded-lg p-2.5">
@@ -1483,14 +1486,14 @@ export default function TransactionsPage() {
               </div>
               {/* Tags */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldTags')}</label>
-                <input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })}
+                <label htmlFor="txn-form-tags" className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldTags')}</label>
+                <input id="txn-form-tags" value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('txnTagsPlaceholder')} />
               </div>
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldNotes')}</label>
-                <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
+                <label htmlFor="txn-form-notes" className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldNotes')}</label>
+                <textarea id="txn-form-notes" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
                   rows={2}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none" placeholder={t('txnNotesPlaceholder')} />
               </div>
