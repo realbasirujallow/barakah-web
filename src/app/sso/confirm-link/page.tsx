@@ -29,18 +29,56 @@ function ConfirmSsoLinkInner() {
   const [message, setMessage] = useState('');
   const router = useRouter();
 
-  // 2026-06-07: when the user clicks the email link, the email client
-  // typically opens a NEW tab/window (we can't control that). Once
-  // confirmation succeeds in this tab, auto-bounce the user to
-  // /login?ssoAuto=1 — the login page reads the flag and immediately
-  // re-prompts the Google One Tap. End result: ONE extra click from
-  // the email-click to a signed-in dashboard, no orphan-tab confusion.
+  // 2026-06-07 v2: email clients always open links in a NEW tab — we
+  // can't control that — so the user ends up with TWO Barakah tabs:
+  //   (A) /login (the original, showing "check your email")
+  //   (B) /sso/confirm-link (this one, opened by the email)
+  // Goal: collapse the experience to feel like ONE tab. Strategy:
+  //   1. On success here in tab B, broadcast "ssoConfirmed" via
+  //      BroadcastChannel('barakah-sso'). Same-origin tabs on /login
+  //      (which subscribes — see GoogleSignInButton.tsx) receive the
+  //      message and immediately fire GIS One-Tap inside tab A.
+  //   2. Try window.close() — works if the browser allows scripted
+  //      close (email-opened tabs sometimes do, sometimes don't).
+  //   3. If close was blocked, fall back to auto-bouncing THIS tab
+  //      to /login?ssoAuto=1 so the user still ends up signed in
+  //      even if tab A wasn't there (e.g. they're on a different
+  //      device and only have the email).
   useEffect(() => {
     if (phase !== 'success') return;
-    const timer = setTimeout(() => {
-      router.replace('/login?ssoAuto=1');
-    }, 2500);
-    return () => clearTimeout(timer);
+    let bc: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        bc = new BroadcastChannel('barakah-sso');
+        bc.postMessage({ type: 'ssoConfirmed', at: Date.now() });
+      }
+      // Storage-event fallback for browsers without BroadcastChannel.
+      // Setting + immediately removing a localStorage key fires a
+      // `storage` event in every OTHER same-origin tab.
+      const k = 'barakah-sso-confirmed-at';
+      localStorage.setItem(k, String(Date.now()));
+      localStorage.removeItem(k);
+    } catch { /* private mode / Safari quirks — silent */ }
+
+    // Try to close this tab. Works if window.opener is set OR if the
+    // browser allows scripted close on tabs that navigated here from
+    // outside. Many browsers block this — that's why we have the
+    // fallback below.
+    let closeAttemptOk = false;
+    try { window.close(); closeAttemptOk = true; } catch { /* blocked */ }
+
+    // If close didn't take effect within 1s, fall back to in-tab
+    // auto-bounce so the user still ends up signed in.
+    const fallback = setTimeout(() => {
+      if (!document.hidden) {
+        router.replace('/login?ssoAuto=1');
+      }
+    }, closeAttemptOk ? 1000 : 2500);
+
+    return () => {
+      try { bc?.close(); } catch { /* no-op */ }
+      clearTimeout(fallback);
+    };
   }, [phase, router]);
 
   useEffect(() => {

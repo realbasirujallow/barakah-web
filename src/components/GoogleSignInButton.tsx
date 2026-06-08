@@ -80,7 +80,43 @@ export default function GoogleSignInButton({ ctaLabel = 'continue_with' }: Props
   // the user clicks the email confirmation link. We immediately re-prompt
   // the GIS One Tap so the user signs in with ONE click after the email
   // bounce — no orphaned tabs.
-  const autoTrigger = searchParams.get('ssoAuto') === '1';
+  const [crossTabAuto, setCrossTabAuto] = useState(false);
+  const autoTrigger = searchParams.get('ssoAuto') === '1' || crossTabAuto;
+
+  // 2026-06-07 v2: cross-tab signal. When /sso/confirm-link succeeds
+  // in ANOTHER tab of the same origin, it broadcasts "ssoConfirmed".
+  // Catching the broadcast HERE flips autoTrigger to true so the
+  // ORIGINAL tab (the one that opened /login first) fires One-Tap on
+  // its own — user signs in here even though they clicked the email
+  // in a different tab. Eliminates the orphaned-tab feeling.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let bc: BroadcastChannel | null = null;
+    const onMsg = (e: MessageEvent) => {
+      if (e.data?.type === 'ssoConfirmed') {
+        setCrossTabAuto(true);
+        try { window.focus(); } catch { /* no-op */ }
+      }
+    };
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        bc = new BroadcastChannel('barakah-sso');
+        bc.addEventListener('message', onMsg);
+      }
+    } catch { /* no-op */ }
+    // Storage-event fallback.
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'barakah-sso-confirmed-at') {
+        setCrossTabAuto(true);
+        try { window.focus(); } catch { /* no-op */ }
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => {
+      try { bc?.removeEventListener('message', onMsg); bc?.close(); } catch { /* no-op */ }
+      window.removeEventListener('storage', onStorage);
+    };
+  }, []);
 
   useEffect(() => {
     if (!clientId || !targetRef.current) return;
