@@ -247,7 +247,17 @@ export default function DashboardPage() {
       if (cancelled) return;
       setHideNetWorth(safeGetItem('hideNetWorth') === 'true');
       setHideZakat(safeGetItem('hideZakatDashboard') === 'true');
-      setShowOnboarding(!safeGetItem('barakah_onboarded'));
+      // 2026-06-09 (ONB-WIZARD-7STEPS-STACKED): no longer auto-open.
+      // The /setup wizard already collects focus + intent; this 7-step
+      // modal wizard was redundant cognitive load. Set the localStorage
+      // flag so future re-renders treat the user as onboarded; the
+      // wizard JSX stays in place but only renders when something
+      // explicitly toggles showOnboarding (e.g. a manual "Tour the app"
+      // chip — not yet wired).
+      if (!safeGetItem('barakah_onboarded')) {
+        try { window.localStorage.setItem('barakah_onboarded', 'true'); } catch { /* SSR */ }
+      }
+      setShowOnboarding(false);
       setReferralBannerDismissed(safeGetItem('barakah_referral_banner_dismissed') === 'true');
     }, 0);
     return () => { cancelled = true; window.clearTimeout(id); };
@@ -988,7 +998,11 @@ export default function DashboardPage() {
           dismissal. The checklist persisted on the founder's prod
           dashboard at 3/5 forever; the long-tail nudge value is
           gone once 80%+ of items are done. */}
-      {!gettingStartedDismissed && !hasNoData
+      {/* 2026-06-09 (ONB-CHECKLIST-INVERTED): removed `&& !hasNoData`.
+          The checklist is MORE useful when the user has nothing yet —
+          it makes all 5 onboarding milestones visible at once. The
+          empty-state card below only covers one of them. */}
+      {!gettingStartedDismissed
         && gettingStartedItems.filter((i) => i.done).length < 4 && (
         <GettingStartedChecklist
           items={gettingStartedItems}

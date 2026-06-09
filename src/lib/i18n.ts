@@ -262,9 +262,9 @@ const en: Translations = {
   // substituted at render time via .replace(). Mirror keys exist in all
   // four dictionaries below.
   trialBannerTitle: 'Your Barakah {plan} trial — {time}',
-  trialBannerBody: 'Keep unlimited transactions, bank sync, and premium reports after your trial ends.',
+  trialBannerBody: "Your trial is active. When it ends, you'll move to Free automatically — no charge, no card needed. Upgrade only if you want to keep bank sync and unlimited transactions.",
   trialBannerUrgentBody: 'Upgrade now so you don’t lose unlimited transactions, bank sync, and {plan} reports.',
-  trialBannerKeepPlan: 'Keep {plan}',
+  trialBannerKeepPlan: 'See plans',
   trialBannerCancel: 'Cancel trial',
   // Navigation
   dashboard: 'Dashboard',
@@ -1009,6 +1009,8 @@ const en: Translations = {
   sadaqahDeleteBtn: 'Del',
   sadaqahShowMore: 'Show More',
   sadaqahEmptyBody: 'No sadaqah recorded. Every act of kindness is sadaqah.',
+  sadaqahEmptyDesc: 'Track gifts of any size — money, time, a smile. Even small amounts build over time, in shaa\' Allah.',
+  sadaqahAddFirst: 'Add your first sadaqah',
   sadaqahModalTitle: 'Record Sadaqah',
   sadaqahFieldAmount: 'Amount',
   sadaqahAmountPlaceholder: '50.00',
@@ -4413,9 +4415,9 @@ const ar: Translations = {
   dashUpcomingBills: 'الفواتير القادمة',
   // QA-2026-05-12 Bug #17: trial-banner translations
   trialBannerTitle: 'تجربة {plan} من بركة — {time}',
-  trialBannerBody: 'احتفظ بالمعاملات غير المحدودة ومزامنة البنك والتقارير المميزة بعد انتهاء التجربة.',
+  trialBannerBody: 'تجربتك نشطة. عند انتهائها سنحوّلك تلقائيًا إلى الخطة المجانية — بدون رسوم، بدون بطاقة. ارقِ خطّتك فقط إذا أردت الإبقاء على مزامنة البنك والمعاملات غير المحدودة.',
   trialBannerUrgentBody: 'قم بالترقية الآن حتى لا تفقد المعاملات غير المحدودة ومزامنة البنك وتقارير {plan}.',
-  trialBannerKeepPlan: 'الاحتفاظ بـ {plan}',
+  trialBannerKeepPlan: 'عرض الخطط',
   trialBannerCancel: 'إلغاء التجربة',
   // Navigation
   dashboard: 'لوحة القيادة',
@@ -5137,6 +5139,8 @@ const ar: Translations = {
   sadaqahDeleteBtn: 'حذف',
   sadaqahShowMore: 'عرض المزيد',
   sadaqahEmptyBody: 'لا توجد صدقات مسجّلة. كل عمل خير صدقة.',
+  sadaqahEmptyDesc: 'سجّل أي عطاء — مالًا أو وقتًا أو ابتسامة. حتى المبالغ الصغيرة تتراكم مع الوقت إن شاء الله.',
+  sadaqahAddFirst: 'أضف أول صدقة لك',
   sadaqahModalTitle: 'تسجيل صدقة',
   sadaqahFieldAmount: 'المبلغ',
   sadaqahAmountPlaceholder: '50.00',
@@ -8528,9 +8532,9 @@ const ur: Translations = {
   dashUpcomingBills: 'آنے والے بل',
   // QA-2026-05-12 Bug #17: trial-banner translations
   trialBannerTitle: 'برکہ {plan} ٹرائل — {time}',
-  trialBannerBody: 'ٹرائل ختم ہونے کے بعد بھی لامحدود ٹرانزیکشنز، بینک سنک، اور پریمیم رپورٹس برقرار رکھیں۔',
+  trialBannerBody: 'آپ کا ٹرائل فعال ہے۔ ختم ہونے پر آپ خود بخود مفت پلان پر منتقل ہو جائیں گے — کوئی چارج نہیں، کارڈ کی ضرورت نہیں۔ بینک سنک اور لامحدود ٹرانزیکشنز چاہیے ہوں تو ہی اپ گریڈ کریں۔',
   trialBannerUrgentBody: 'ابھی اپ گریڈ کریں تاکہ آپ لامحدود ٹرانزیکشنز، بینک سنک، اور {plan} رپورٹس نہ کھو دیں۔',
-  trialBannerKeepPlan: '{plan} برقرار رکھیں',
+  trialBannerKeepPlan: 'پلان دیکھیں',
   trialBannerCancel: 'ٹرائل منسوخ کریں',
   // Navigation
   dashboard: 'ڈیش بورڈ',
@@ -9252,6 +9256,8 @@ const ur: Translations = {
   sadaqahDeleteBtn: 'حذف',
   sadaqahShowMore: 'مزید دکھائیں',
   sadaqahEmptyBody: 'کوئی صدقہ ریکارڈ نہیں۔ ہر نیکی صدقہ ہے۔',
+  sadaqahEmptyDesc: 'کسی بھی مقدار کا عطیہ ٹریک کریں — رقم، وقت، یا مسکراہٹ۔ ان شاء اللہ چھوٹی رقمیں بھی وقت کے ساتھ بڑھ جاتی ہیں۔',
+  sadaqahAddFirst: 'اپنا پہلا صدقہ شامل کریں',
   sadaqahModalTitle: 'صدقہ ریکارڈ کریں',
   sadaqahFieldAmount: 'رقم',
   sadaqahAmountPlaceholder: '50.00',
@@ -12643,9 +12649,9 @@ const fr: Translations = {
   dashUpcomingBills: 'Factures à venir',
   // QA-2026-05-12 Bug #17: trial-banner translations
   trialBannerTitle: 'Votre essai Barakah {plan} — {time}',
-  trialBannerBody: 'Conservez les transactions illimitées, la synchronisation bancaire et les rapports premium après la fin de votre essai.',
+  trialBannerBody: "Votre essai est actif. À sa fin, vous passerez automatiquement au plan Gratuit — sans frais, sans carte. Mettez à niveau uniquement si vous voulez conserver la synchronisation bancaire et les transactions illimitées.",
   trialBannerUrgentBody: 'Mettez à niveau maintenant pour ne pas perdre les transactions illimitées, la synchronisation bancaire et les rapports {plan}.',
-  trialBannerKeepPlan: 'Garder {plan}',
+  trialBannerKeepPlan: 'Voir les plans',
   trialBannerCancel: 'Annuler l’essai',
   // Navigation
   dashboard: 'Tableau de bord',
@@ -13367,6 +13373,8 @@ const fr: Translations = {
   sadaqahDeleteBtn: 'Suppr.',
   sadaqahShowMore: 'Afficher plus',
   sadaqahEmptyBody: 'Aucune sadaqah enregistrée. Tout acte de bonté est une sadaqah.',
+  sadaqahEmptyDesc: 'Enregistrez tous les dons — argent, temps, sourire. Même les petits montants s\'accumulent au fil du temps, in shaa\' Allah.',
+  sadaqahAddFirst: 'Ajouter votre première sadaqah',
   sadaqahModalTitle: 'Enregistrer une Sadaqah',
   sadaqahFieldAmount: 'Montant',
   sadaqahAmountPlaceholder: '50,00',

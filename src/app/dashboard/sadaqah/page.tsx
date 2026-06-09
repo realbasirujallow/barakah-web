@@ -385,7 +385,22 @@ function SadaqahContent() {
           )}
         </>
       ) : (
-        <div className="text-center py-12 text-gray-400"><p className="text-4xl mb-3">💝</p><p>{t('sadaqahEmptyBody')}</p></div>
+        // 2026-06-09 (ONB-SADAQAH-EMPTY-NO-CTA): replace dead-end emoji
+        // with an empty-state that explains + offers a CTA. Even at zero
+        // contributions there's value in surfacing what Sadaqah does +
+        // letting the user start one.
+        <div className="text-center py-12">
+          <p className="text-5xl mb-3">💝</p>
+          <p className="text-lg font-semibold text-gray-800 mb-2">{t('sadaqahEmptyBody')}</p>
+          <p className="text-sm text-gray-500 max-w-md mx-auto mb-4">{t('sadaqahEmptyDesc')}</p>
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+          >
+            {t('sadaqahAddFirst')}
+          </button>
+        </div>
       )}
 
       {/* Add Sadaqah modal */}
