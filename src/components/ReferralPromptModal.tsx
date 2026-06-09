@@ -47,6 +47,13 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // 2026-06-08 (FREEZE-MODAL-2): stash onDismiss in a ref so the
+  // API-fetch + Escape-handler effects can have empty deps. Without
+  // this, every parent re-render re-fired the API call + ripped the
+  // keydown listener, same cause as the ModalShell freeze.
+  const onDismissRef = useRef(onDismiss);
+  useEffect(() => { onDismissRef.current = onDismiss; }, [onDismiss]);
+
   useEffect(() => {
     api.getReferralCode().then((data: Record<string, unknown>) => {
       if (data?.referralCode) setCode(data.referralCode as string);
@@ -59,9 +66,10 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
       // the modal re-opened on every future dashboard mount (infinite
       // loop for degraded-network users).
       safeSetItem(STORAGE_KEY, 'true');
-      onDismiss();
+      onDismissRef.current();
     });
-  }, [onDismiss]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCopy = async () => {
     if (!shareUrl) return;
@@ -110,12 +118,13 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         safeSetItem(STORAGE_KEY, 'true');
-        onDismiss();
+        onDismissRef.current();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [onDismiss]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Round 29: trap Tab focus inside the modal so keyboard users don't
   // leak focus to the marketing page behind and accidentally click a

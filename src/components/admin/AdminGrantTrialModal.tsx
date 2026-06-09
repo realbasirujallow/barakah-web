@@ -45,13 +45,18 @@ export function AdminGrantTrialModal(props: AdminGrantTrialModalProps) {
 
   // Round 26: Escape-key closes. Admin surface but still a modal that can
   // grant paid trials to any user — keyboard dismissal is expected.
+  // 2026-06-08 (FREEZE-MODAL-2): onClose lives in a ref so the keydown
+  // effect can have empty deps. Parent re-renders no longer churn the
+  // listener add/remove cycle.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, []);
 
   // Round 27: trap Tab focus inside the modal.
   const modalRef = useRef<HTMLDivElement>(null);

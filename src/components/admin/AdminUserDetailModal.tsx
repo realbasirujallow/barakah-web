@@ -16,7 +16,7 @@
  * updates still roll in without prop drilling the whole response shape.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '../../lib/api';
 import ViewAsUserButton from '../ViewAsUserButton';
 import { useBodyScrollLock } from '../../lib/useBodyScrollLock';
@@ -257,11 +257,14 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
     onClose,
   } = props;
   // Escape-key closes (backdrop click + stopPropagation already handled below).
+  // 2026-06-08 (FREEZE-MODAL-2): onClose in ref so effect has empty deps.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCloseRef.current(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, []);
   const {
     onSavePlan,
     onResetPassword,

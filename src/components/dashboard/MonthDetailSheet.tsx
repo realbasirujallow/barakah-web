@@ -17,7 +17,7 @@
  */
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { CategoryIcon } from '../../lib/categoryIcon';
 import { useBodyScrollLock } from '../../lib/useBodyScrollLock';
@@ -101,21 +101,35 @@ export function MonthDetailSheet({
   // through adjacent months when onNavigate is wired. Mirrors how
   // Monarch handles month-detail sheets: the user never has to
   // touch the mouse to compare consecutive months.
+  // 2026-06-08 (FREEZE-MODAL-2): all four callback/state values
+  // live in refs so the keydown effect can have empty deps. Without
+  // refs, every parent re-render churned the listener add/remove
+  // cycle.
+  const onCloseRef = useRef(onClose);
+  const onNavigateRef = useRef(onNavigate);
+  const hasPrevRef = useRef(hasPrev);
+  const hasNextRef = useRef(hasNext);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    onNavigateRef.current = onNavigate;
+    hasPrevRef.current = hasPrev;
+    hasNextRef.current = hasNext;
+  }, [onClose, onNavigate, hasPrev, hasNext]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
-      } else if (e.key === 'ArrowLeft' && onNavigate && hasPrev) {
+        onCloseRef.current();
+      } else if (e.key === 'ArrowLeft' && onNavigateRef.current && hasPrevRef.current) {
         e.preventDefault();
-        onNavigate(-1);
-      } else if (e.key === 'ArrowRight' && onNavigate && hasNext) {
+        onNavigateRef.current(-1);
+      } else if (e.key === 'ArrowRight' && onNavigateRef.current && hasNextRef.current) {
         e.preventDefault();
-        onNavigate(1);
+        onNavigateRef.current(1);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose, onNavigate, hasPrev, hasNext]);
+  }, []);
 
   return (
     <div
