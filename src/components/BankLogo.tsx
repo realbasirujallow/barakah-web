@@ -113,6 +113,10 @@ export function BankLogo({
       alt={`${institutionName} logo`}
       width={size}
       height={size}
+      // 2026-06-09 (PERF-IMG-LAZYLOAD-1): defer off-screen bank-logo
+      // favicon fetches until scroll.
+      loading="lazy"
+      decoding="async"
       onError={() => setErrored(true)}
       className="rounded-full object-cover bg-gray-100"
       style={{ width: size, height: size }}

@@ -284,6 +284,11 @@ export function MerchantLogo({
       alt={`${merchantName ?? 'merchant'} logo`}
       width={size}
       height={size}
+      // 2026-06-09 (PERF-IMG-LAZYLOAD-1): defer off-screen favicon
+      // fetches until scroll. Transaction lists with 50+ rows used to
+      // eagerly request every logo on render.
+      loading="lazy"
+      decoding="async"
       onError={() => setErrored(true)}
       className="rounded-full object-cover bg-gray-100"
       style={{ width: size, height: size }}

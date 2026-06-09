@@ -4,6 +4,7 @@ import {
   DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL,
 } from '../../lib/trial';
 import PricingPageClient from './PricingPageClient';
+import JsonLdScript from '../../components/JsonLdScript';
 
 // Pricing strings come from the PRICING constant so SEO metadata can
 // never drift from the pricing-card UI. Previously hardcoded "$9.99/mo"
@@ -90,23 +91,21 @@ const faqItems = [
 export default function PricingPage() {
   return (
     <>
-      {/* FAQPage JSON-LD */}
-      <script
-        id="pricing-faq-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'FAQPage',
-            mainEntity: faqItems.map((item) => ({
-              '@type': 'Question',
-              name: item.question,
-              acceptedAnswer: {
-                '@type': 'Answer',
-                text: item.answer,
-              },
-            })),
-          }),
+      {/* 2026-06-09 (SEO-FAQ-XSS-VECTOR-1): JsonLdScript escapes the
+          </script> sequence in the serialized payload, removing the
+          theoretical content-derived script-tag breakout. */}
+      <JsonLdScript
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: faqItems.map((item) => ({
+            '@type': 'Question',
+            name: item.question,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: item.answer,
+            },
+          })),
         }}
       />
 

@@ -809,8 +809,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       keysToWipe.forEach(k => localStorage.removeItem(k));
       // 2026-06-08 (AUTH-LOGOUT-WEB-2): super-admin support-mode token
       // also survived logout. Wipe sessionStorage too.
+      // 2026-06-09 (SEC-LOGOUT-SS-1): scope this to the support-mode keys
+      // specifically — sessionStorage.clear() also wiped UTM/referral
+      // first-touch attribution and the previewAsFree flag, which the
+      // original AUTH-LOGOUT-WEB-2 intent didn't mean to nuke.
       try {
-        sessionStorage.clear();
+        sessionStorage.removeItem('barakah_support_token');
+        sessionStorage.removeItem('barakah_support_meta');
+        sessionStorage.removeItem('barakah:previewAsFree');
       } catch { /* sessionStorage access failed */ }
     } catch {
       // localStorage access failed

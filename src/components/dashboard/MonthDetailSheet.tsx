@@ -134,7 +134,7 @@ export function MonthDetailSheet({
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={() => onCloseRef.current()}
       role="dialog"
       aria-modal="true"
       aria-labelledby="month-detail-title"
@@ -154,7 +154,7 @@ export function MonthDetailSheet({
               <>
                 <button
                   type="button"
-                  onClick={() => onNavigate(-1)}
+                  onClick={() => onNavigateRef.current?.(-1)}
                   disabled={!hasPrev}
                   className="text-gray-500 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed transition rounded-full p-1 hover:bg-gray-100"
                   aria-label="Previous month"
@@ -166,7 +166,7 @@ export function MonthDetailSheet({
                 </button>
                 <button
                   type="button"
-                  onClick={() => onNavigate(1)}
+                  onClick={() => onNavigateRef.current?.(1)}
                   disabled={!hasNext}
                   className="text-gray-500 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed transition rounded-full p-1 hover:bg-gray-100"
                   aria-label="Next month"
@@ -186,7 +186,7 @@ export function MonthDetailSheet({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={() => onCloseRef.current()}
             className="text-gray-400 hover:text-gray-600 transition rounded-full p-1 hover:bg-gray-100 shrink-0"
             aria-label="Close"
           >
