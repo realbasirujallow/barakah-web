@@ -121,11 +121,12 @@ export const metadata: Metadata = {
     // forward to ar/fr/ur breaks the cluster. Adding the map (no copy
     // change) closes the loop. x-default points at the English root
     // because EN is the most-likely fallback for unknown locales.
+    // 2026-06-08 (SEO-HREFLANG-404-1): the previous map pointed fr/ar/ur
+    // at /fr, /ar, /ur — none of which exist as locale homepages today,
+    // so Google saw the cluster collapse into 404s. Reverted to en +
+    // x-default until a real /fr, /ar, /ur landing page ships.
     languages: {
       en: "https://trybarakah.com",
-      fr: "https://trybarakah.com/fr",
-      ar: "https://trybarakah.com/ar",
-      ur: "https://trybarakah.com/ur",
       "x-default": "https://trybarakah.com",
     },
   },

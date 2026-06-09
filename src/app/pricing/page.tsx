@@ -18,6 +18,12 @@ export const metadata: Metadata = {
     `Compare Barakah plans: Free, Plus (${PLUS_MONTHLY}), and Family (${FAMILY_MONTHLY}). See how Barakah compares to Monarch, YNAB, and Zoya. The most affordable Islamic finance platform.`,
   alternates: {
     canonical: 'https://trybarakah.com/pricing',
+    // 2026-06-08 (SEO-HREFLANG-MARKETING-1): self-referencing en + x-default
+    // until /fr/pricing, /ar/pricing, /ur/pricing ship.
+    languages: {
+      en: 'https://trybarakah.com/pricing',
+      'x-default': 'https://trybarakah.com/pricing',
+    },
   },
   openGraph: {
     title: 'Pricing — Barakah Islamic Finance | Compare Plans',

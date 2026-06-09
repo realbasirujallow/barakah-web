@@ -111,7 +111,13 @@ export default function ModalShell({
       document.body.style.overflow = prev;
       // Restore focus to the trigger on close so keyboard users don't get
       // dumped at the top of the document.
-      try { restoreFocusToRef.current?.focus({ preventScroll: true }); } catch { /* no-op */ }
+      // 2026-06-08 (DESIGN-MODAL-1): guard against restoring focus to a
+      // detached node — that would silently yank scroll position. Only
+      // restore when the trigger is still attached.
+      const target = restoreFocusToRef.current;
+      if (target && document.contains(target)) {
+        try { target.focus({ preventScroll: true }); } catch { /* no-op */ }
+      }
     };
     // Empty deps: setup once on mount, tear down on unmount. Latest
     // onClose closure is reached via onCloseRef.

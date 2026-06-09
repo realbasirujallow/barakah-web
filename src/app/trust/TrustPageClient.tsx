@@ -208,10 +208,11 @@ export default function TrustPageClient() {
             <div>
               <h3 className="text-base font-bold text-[#1B5E20] mb-1">Can I trust the zakat calculations?</h3>
               <p className="text-sm leading-7 text-gray-700">
-                The zakat math is deterministic — same inputs always produce the same number. We follow
-                the AAOIFI / AMJA accessible-balance methodology by default (used by Zakat Foundation of
-                America, Islamic Relief, NZF UK and most North-American mosque programmes). Each calculation
-                produces an integrity hash you can verify on{' '}
+                The zakat math is deterministic — same inputs always produce the same number. Our
+                default methodology is the accessible-balance approach commonly described in contemporary
+                fiqh literature (notably AAOIFI Shariah Standard 35 and AMJA position papers). We are
+                not affiliated with, endorsed by, or operating under licence from any zakat-collection
+                organization. Each calculation produces an integrity hash you can verify on{' '}
                 <Link href="/verify" className="text-[#1B5E20] underline">/verify</Link> so the figure you
                 saw last year is the exact figure that ran. Beyond the math, the app surfaces the
                 <em> assumptions </em> it used (which madhab, which methodology, which fiqh toggles)
@@ -253,9 +254,9 @@ export default function TrustPageClient() {
             <div>
               <h3 className="text-base font-bold text-[#1B5E20] mb-1">Is this scholar reviewed?</h3>
               <p className="text-sm leading-7 text-gray-700">
-                The defaults Barakah ships with — gold-nisab, AAOIFI / AMJA accessible-balance,
-                multi-madhab toggles, hawl reset rules — track mainstream fiqh references and the same
-                methodology North-American mosque zakat programmes use. We do not currently claim a
+                The defaults Barakah ships with — gold-nisab, accessible-balance methodology,
+                multi-madhab toggles, hawl reset rules — track mainstream fiqh references found in
+                contemporary literature. We do not currently claim a
                 named scholar has formally reviewed and signed every line of the calculator. A
                 pre-launch independent review is on our roadmap and will be published on this page
                 with the scholar&apos;s name, the scope of their review, and the date the review was
