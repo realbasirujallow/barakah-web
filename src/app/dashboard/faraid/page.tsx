@@ -293,7 +293,7 @@ export default function FaraidPage() {
 
   /* ── Plan gate ────────────────────────────────────────────────────── */
 
-  const isFreePlan = !user || !hasAccess(user.plan, 'plus', user.planExpiresAt);
+  const isFreePlan = !user || !hasAccess(user.plan, 'plus', user.planExpiresAt, user.isAdmin);
 
   if (isFreePlan) {
     return (

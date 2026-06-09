@@ -172,7 +172,7 @@ export default function RibaPage() {
   const { toast } = useToast();
   const { fmt, symbol, locale: dateLocale } = useCurrency();
   const { t, tFmt } = useI18n();
-  const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
+  const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt, user.isAdmin) : false;
 
   // GA4 feature-engagement event — fires once per browser on first riba-
   // detector open. Plus-gated feature so volume here is a leading

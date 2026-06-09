@@ -52,7 +52,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
   if (isLoading) return null;
   if (!user) return null;
 
-  if (hasAccess(user.plan, required, user.planExpiresAt)) {
+  if (hasAccess(user.plan, required, user.planExpiresAt, user.isAdmin)) {
     return <>{children}</>;
   }
 

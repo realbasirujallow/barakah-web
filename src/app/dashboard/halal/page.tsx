@@ -37,7 +37,7 @@ export default function HalalPage() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const { t, tFmt } = useI18n();
-  const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
+  const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt, user.isAdmin) : false;
 
   // GA4 feature-engagement event — fires once per browser when a user
   // opens the halal screener page. This is a Plus-gated feature so the

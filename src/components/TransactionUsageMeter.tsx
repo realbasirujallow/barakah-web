@@ -57,7 +57,7 @@ export function TransactionUsageMeter() {
   const now = useSyncExternalStore(subscribeMinute, getNowClient, getNowServer);
 
   useEffect(() => {
-    if (!user || hasAccess(user.plan, 'plus', user.planExpiresAt)) return;
+    if (!user || hasAccess(user.plan, 'plus', user.planExpiresAt, user.isAdmin)) return;
 
     api.getTransactionUsage()
       .then((data: UsageData) => setUsage(data))
@@ -65,7 +65,7 @@ export function TransactionUsageMeter() {
   }, [user]);
 
   // Don't render for paid users or if no data
-  if (!user || hasAccess(user.plan, 'plus', user.planExpiresAt) || !usage) return null;
+  if (!user || hasAccess(user.plan, 'plus', user.planExpiresAt, user.isAdmin) || !usage) return null;
   if (usage.limit === 'unlimited') return null;
 
   const used = usage.used;

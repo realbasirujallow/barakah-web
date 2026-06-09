@@ -82,7 +82,7 @@ export default function NetWorthPage() {
   const { fmt } = useCurrency();
   const { toast } = useToast();
   const { t, tFmt } = useI18n();
-  const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt) : false;
+  const hasPaidAccess = user ? hasAccess(user.plan, 'plus', user.planExpiresAt, user.isAdmin) : false;
 
   const [history, setHistory] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(true);

@@ -212,7 +212,7 @@ export default function SavingsPage() {
   // MEDIUM BUG FIX: check plan gate BEFORE skeleton so free users never see a
   // skeleton flash before the upgrade prompt. Skeleton was previously rendered
   // first, causing a jarring UI flicker on every visit for non-paying users.
-  const isFreePlan = !user || !hasAccess(user.plan, 'plus', user.planExpiresAt);
+  const isFreePlan = !user || !hasAccess(user.plan, 'plus', user.planExpiresAt, user.isAdmin);
 
   if (isFreePlan) {
     return (

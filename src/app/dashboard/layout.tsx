@@ -445,8 +445,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const sectionItems = navItems
         .filter(item => config.items.includes(item.label))
         .filter(item => !item.adminOnly || user.isAdmin);
-    const filteredItems = sectionItems.filter(item => !item.gate || hasAccess(user.plan, item.gate, user.planExpiresAt));
-    const lockedInSection = sectionItems.filter(item => item.gate && !hasAccess(user.plan, item.gate, user.planExpiresAt));
+    const filteredItems = sectionItems.filter(item => !item.gate || hasAccess(user.plan, item.gate, user.planExpiresAt, user.isAdmin));
+    const lockedInSection = sectionItems.filter(item => item.gate && !hasAccess(user.plan, item.gate, user.planExpiresAt, user.isAdmin));
 
     if (filteredItems.length === 0 && lockedInSection.length === 0) return null;
 

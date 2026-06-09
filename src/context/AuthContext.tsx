@@ -899,12 +899,20 @@ export function useAuth() {
 
 /** Returns true if the user's plan meets the minimum required plan.
  *  Also checks planExpiresAt — if the subscription has expired, treat as free.
- *  NOTE: The backend stores planExpiresAt as epoch SECONDS (from Stripe). */
+ *  NOTE: The backend stores planExpiresAt as epoch SECONDS (from Stripe).
+ *  2026-06-08 (FOUNDER-ADMIN-PAYWALL-1): added optional isAdmin shortcut.
+ *  Admins bypass plan+expiry checks entirely. Without this, a founder
+ *  whose admin-granted Family trial expired sees an "Upgrade to Plus"
+ *  paywall on every Plus-gated route — even though their plan field
+ *  still says "family". An admin with a stale planExpiresAt should
+ *  never be paywalled. */
 export function hasAccess(
   userPlan: string | undefined,
   required: 'plus' | 'family',
-  planExpiresAt?: string | number | null
+  planExpiresAt?: string | number | null,
+  isAdmin?: boolean
 ): boolean {
+  if (isAdmin) return true;
   if (!userPlan || userPlan === 'free') return false;
   // If planExpiresAt is set and in the past, subscription has lapsed
   if (planExpiresAt) {
