@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Nisab is the minimum wealth threshold that triggers zakat. Explained with the gold standard, silver standard, and the scholarly reasoning behind each.',
   keywords: ['nisab', 'nisab definition', 'nisab threshold', 'zakat threshold', 'nisab meaning'],
-  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/nisab' },
+  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/nisab', languages: { en: 'https://trybarakah.com/fiqh-terms/nisab', 'x-default': 'https://trybarakah.com/fiqh-terms/nisab' } },
   openGraph: {
     title: 'Nisab (نصاب) — Definition & Meaning',
     description: 'The minimum wealth threshold that triggers zakat.',

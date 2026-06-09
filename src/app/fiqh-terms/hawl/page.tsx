@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Hawl is the lunar year holding period that makes zakat due. Explained with scholarly rulings on interruptions, resets, and daily wealth tracking.',
   keywords: ['hawl', 'hawl definition', 'zakat hawl', 'hawl meaning', 'lunar year zakat'],
-  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/hawl' },
+  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/hawl', languages: { en: 'https://trybarakah.com/fiqh-terms/hawl', 'x-default': 'https://trybarakah.com/fiqh-terms/hawl' } },
   openGraph: {
     title: 'Hawl (حول) — Definition & Meaning',
     description: 'The lunar year holding period that makes zakat due.',

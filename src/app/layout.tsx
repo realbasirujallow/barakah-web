@@ -282,8 +282,12 @@ export default async function RootLayout({
   // structured-data spec allows only one FAQPage per page; emitting one
   // sitewide collided with the per-page FAQPage on every /learn/* article
   // (Search Console flagged "Duplicate field 'FAQPage'", WNC-10030322,
-  // 2026-04-25). The homepage FAQ now lives in src/app/page.tsx so it
-  // ships only on `/`.
+  // 2026-04-25). The homepage currently has no FAQ section — we removed
+  // it during Phase 20 simplification and have not yet restored it.
+  // 2026-06-09 (SEO-HOMEPAGE-FAQ-MISSING-1): corrected the previous
+  // claim that "homepage FAQ now lives in src/app/page.tsx" — there
+  // is no FAQPage JSON-LD on the homepage today. Restoring it is
+  // tracked separately; until then, do not emit FAQPage globally.
 
   return (
     <html lang="en" suppressHydrationWarning>

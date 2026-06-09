@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Zakat is the 2.5% obligatory annual charity on qualifying wealth held above the nisab for a lunar year. Scholar-aligned definition, calculation, and modern application.',
   keywords: ['zakat', 'zakat definition', 'zakat meaning', 'what is zakat', 'zakat in islam'],
-  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/zakat' },
+  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/zakat', languages: { en: 'https://trybarakah.com/fiqh-terms/zakat', 'x-default': 'https://trybarakah.com/fiqh-terms/zakat' } },
   openGraph: {
     title: 'Zakat (زكاة) — Definition & Meaning',
     description: 'Scholar-aligned definition of zakat in Islamic finance.',

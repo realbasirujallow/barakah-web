@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Sadaqah is voluntary charity — any time, any amount, any asset. Learn the distinction from zakat, the reward structure, and types (sadaqah jariyah).',
   keywords: ['sadaqah', 'sadaqah definition', 'sadaqah meaning', 'voluntary charity', 'sadaqah jariyah'],
-  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/sadaqah' },
+  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/sadaqah', languages: { en: 'https://trybarakah.com/fiqh-terms/sadaqah', 'x-default': 'https://trybarakah.com/fiqh-terms/sadaqah' } },
   openGraph: {
     title: 'Sadaqah (صدقة) — Definition & Meaning',
     description: 'Voluntary charity given any time, any amount, any asset.',

@@ -912,7 +912,16 @@ export function hasAccess(
   planExpiresAt?: string | number | null,
   isAdmin?: boolean
 ): boolean {
-  if (isAdmin) return true;
+  // 2026-06-09 (UX-ADMIN-PREVIEW-1): allow admin to preview the real-user
+  // paywall by setting `sessionStorage.barakah:previewAsFree = '1'` in
+  // DevTools (or via a dev-only toggle when wired). When the flag is set,
+  // the admin shortcut is disabled and the user sees real paywall state.
+  // Cleared automatically on logout (sessionStorage.clear()).
+  let previewAsFree = false;
+  if (typeof window !== 'undefined') {
+    try { previewAsFree = sessionStorage.getItem('barakah:previewAsFree') === '1'; } catch { /* SSR */ }
+  }
+  if (isAdmin && !previewAsFree) return true;
   if (!userPlan || userPlan === 'free') return false;
   // If planExpiresAt is set and in the past, subscription has lapsed
   if (planExpiresAt) {

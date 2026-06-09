@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Sukuk are Shariah-compliant investment certificates — the Islamic equivalent of bonds, but backed by real assets rather than debt. Explained with common structures.',
   keywords: ['sukuk', 'sukuk definition', 'islamic bonds', 'sukuk meaning', 'halal bonds'],
-  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/sukuk' },
+  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/sukuk', languages: { en: 'https://trybarakah.com/fiqh-terms/sukuk', 'x-default': 'https://trybarakah.com/fiqh-terms/sukuk' } },
   openGraph: {
     title: 'Sukuk (صكوك) — Definition & Meaning',
     description: 'Asset-backed Islamic investment certificates, often called "Islamic bonds".',

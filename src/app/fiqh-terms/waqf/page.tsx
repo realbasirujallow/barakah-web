@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "Waqf is a perpetual endowment: the asset's principal is preserved forever and only its income is used for charitable purposes. The oldest form of sadaqah jariyah.",
   keywords: ['waqf', 'awqaf', 'waqf definition', 'islamic endowment', 'sadaqah jariyah', 'waqf meaning'],
-  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/waqf' },
+  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/waqf', languages: { en: 'https://trybarakah.com/fiqh-terms/waqf', 'x-default': 'https://trybarakah.com/fiqh-terms/waqf' } },
   openGraph: {
     title: 'Waqf (وقف) — Definition & Meaning',
     description: 'Perpetual Islamic endowment — the oldest form of continuous charity.',

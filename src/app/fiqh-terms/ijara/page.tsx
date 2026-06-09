@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Ijara is the Islamic leasing contract — a transfer of usufruct (use) for rent, while ownership stays with the lessor. The backbone of halal auto and equipment finance.',
   keywords: ['ijara', 'ijarah', 'ijara definition', 'islamic leasing', 'halal lease'],
-  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/ijara' },
+  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/ijara', languages: { en: 'https://trybarakah.com/fiqh-terms/ijara', 'x-default': 'https://trybarakah.com/fiqh-terms/ijara' } },
   openGraph: {
     title: 'Ijara (إجارة) — Definition & Meaning',
     description: 'The Islamic lease contract that underpins halal auto and equipment finance.',

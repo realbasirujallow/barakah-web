@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Riba is interest or usury — categorically forbidden in Islam. Learn the two classical types (riba al-nasi\'a, riba al-fadl) and what counts today.',
   keywords: ['riba', 'riba definition', 'riba meaning', 'what is riba', 'interest in islam', 'islamic interest'],
-  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/riba' },
+  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/riba', languages: { en: 'https://trybarakah.com/fiqh-terms/riba', 'x-default': 'https://trybarakah.com/fiqh-terms/riba' } },
   openGraph: {
     title: 'Riba (ربا) — Definition & Meaning',
     description: 'Interest or usury — categorically prohibited in Islam.',

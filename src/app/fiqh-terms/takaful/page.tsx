@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Takaful is cooperative mutual-aid risk-sharing — the halal alternative to conventional insurance. Learn the structures, models, and why it avoids gharar and riba.',
   keywords: ['takaful', 'takaful definition', 'islamic insurance', 'halal insurance', 'takaful meaning'],
-  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/takaful' },
+  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/takaful', languages: { en: 'https://trybarakah.com/fiqh-terms/takaful', 'x-default': 'https://trybarakah.com/fiqh-terms/takaful' } },
   openGraph: {
     title: 'Takaful (تكافل) — Definition & Meaning',
     description: 'The halal alternative to conventional insurance.',

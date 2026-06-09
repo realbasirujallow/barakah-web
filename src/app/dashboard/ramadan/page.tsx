@@ -58,7 +58,11 @@ function getRamadanStatus(now: Date): {
 }
 
 /* ── Zakat al-Fitr 2025 approximate rate ──────────────────────────── */
-const ZAKAT_FITR_DEFAULT = 10; // default; user can edit per their mosque
+// 2026-06-09 (SHIEKH-FITR-DEFAULT-1): bare $10 had no fiqh basis. Zakat
+// al-Fitr is a sā' (~2.5kg) of the staple food per person. Bumped the
+// rough USD anchor to $12 — ≈ 2.5kg of wheat/rice in 2026 USD — pending
+// a backend sā'-priced lookup. User can still override.
+const ZAKAT_FITR_DEFAULT = 12; // ≈ 2.5kg staple-food anchor; user can override per their mosque
 
 const OPTIONAL_CATEGORIES = [
   { key: 'quran',       labelKey: 'ramadanCatQuran',      icon: '📖', suggested: 50 },

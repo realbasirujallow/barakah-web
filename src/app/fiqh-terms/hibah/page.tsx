@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "Hibah is a gift transferring ownership during the giver's lifetime. Unlike wassiyah (will), hibah is irrevocable once accepted and takes effect immediately.",
   keywords: ['hibah', 'hiba', 'hibah definition', 'islamic gift', 'lifetime gift', 'hibah meaning'],
-  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/hibah' },
+  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/hibah', languages: { en: 'https://trybarakah.com/fiqh-terms/hibah', 'x-default': 'https://trybarakah.com/fiqh-terms/hibah' } },
   openGraph: {
     title: 'Hibah (هبة) — Definition & Meaning',
     description: "The Islamic gift that transfers ownership during the giver's lifetime.",

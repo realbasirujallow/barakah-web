@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "Faraid is the Qur'anic science of inheritance — fixed, divinely-allocated shares for each heir. Learn the spouse, parent, child, and residuary shares.",
   keywords: ['faraid', "fara'id", 'faraid definition', 'islamic inheritance', 'faraid meaning'],
-  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/faraid' },
+  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/faraid', languages: { en: 'https://trybarakah.com/fiqh-terms/faraid', 'x-default': 'https://trybarakah.com/fiqh-terms/faraid' } },
   openGraph: {
     title: 'Faraid (فرائض) — Definition & Meaning',
     description: 'Qur\'anically-fixed inheritance shares for Muslim heirs.',

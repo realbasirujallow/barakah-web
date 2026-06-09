@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Musharaka is a profit-and-loss partnership contract — the foundation of Shariah-compliant home financing and Islamic venture capital. Learn how it works.',
   keywords: ['musharaka', 'musharakah', 'musharaka definition', 'islamic partnership', 'diminishing musharaka'],
-  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/musharaka' },
+  alternates: { canonical: 'https://trybarakah.com/fiqh-terms/musharaka', languages: { en: 'https://trybarakah.com/fiqh-terms/musharaka', 'x-default': 'https://trybarakah.com/fiqh-terms/musharaka' } },
   openGraph: {
     title: 'Musharaka (مشاركة) — Definition & Meaning',
     description: 'The profit-and-loss partnership behind halal home finance.',
