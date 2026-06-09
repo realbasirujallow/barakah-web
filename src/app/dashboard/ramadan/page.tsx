@@ -282,6 +282,13 @@ export default function RamadanPage() {
               />
             </div>
             <p className="text-green-200 text-xs mt-1">{tFmt('ramadanDayProgressFmt', [ramadan.day, ramadan.total, ramadan.total - ramadan.day])}</p>
+            {/* 2026-06-09 (SHIEKH-RAMADAN-DATES-1): also show the
+                moon-sighting disclaimer while IN Ramadan. The hardcoded
+                start date can disagree with the user's local calendar
+                (Saudi vs ISNA-NA vs Pakistan/India vs Morocco/global)
+                by ±1 day; previously the disclaimer was only on the
+                future-Ramadan card. */}
+            <p className="text-green-200 text-[11px] mt-2 opacity-90">{t('ramadanSubjectMoonSighting')}</p>
           </div>
         </div>
       ) : (

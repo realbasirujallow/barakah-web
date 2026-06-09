@@ -409,9 +409,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     //     to not-admin would silently lock real admins out of /admin/**
     //     (same "click Funnel, bounce to dashboard" bug). Force a refresh.
     // Either signal triggers the same reconciliation path.
+    //
+    // 2026-06-09 (ENG-AUTH-LSADMIN-1 defense-in-depth): if isAdmin is true
+    // in localStorage, force a profile refresh too. A DevTools-edit that
+    // flips isAdmin to true gets corrected back to the server's truth on
+    // next mount. Window of UI-only admin-flag spoof shrinks from
+    // "indefinite" to "until the next AuthContext mount". The backend
+    // continues to be the actual gate.
     const planMissing = parsed != null && !parsed.plan;
     const isAdminMissing = parsed != null && typeof parsed.isAdmin === 'undefined';
-    const needsSync = planMissing || isAdminMissing;
+    const isAdminClaimed = parsed != null && parsed.isAdmin === true;
+    const needsSync = planMissing || isAdminMissing || isAdminClaimed;
     if (planMissing) {
       // Temporary safe placeholder (type-safe) — overwritten below immediately.
       parsed!.plan = 'free';
@@ -911,7 +919,14 @@ export function useAuth() {
  *  whose admin-granted Family trial expired sees an "Upgrade to Plus"
  *  paywall on every Plus-gated route — even though their plan field
  *  still says "family". An admin with a stale planExpiresAt should
- *  never be paywalled. */
+ *  never be paywalled.
+ *  ⚠️ CLIENT-SIDE ONLY (SEC-ADMIN-CLIENT-1): this is a UI gate. Backend
+ *  MUST also call AuthHelper.requirePlusPlan / requireFamilyPlan on
+ *  every gated endpoint — never trust the isAdmin/plan flags coming
+ *  from a browser localStorage. The backend has an env-derived admin
+ *  allow-list and re-validates plan + expiry independently. A user
+ *  who DevTools-edits localStorage.user can unlock paywall UI but
+ *  every API call still 403s. */
 export function hasAccess(
   userPlan: string | undefined,
   required: 'plus' | 'family',
