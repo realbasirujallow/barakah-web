@@ -125,8 +125,14 @@ export const metadata: Metadata = {
     // at /fr, /ar, /ur — none of which exist as locale homepages today,
     // so Google saw the cluster collapse into 404s. Reverted to en +
     // x-default until a real /fr, /ar, /ur landing page ships.
+    // 2026-06-09 (intl SEO round 3): real /ar, /fr, /ur locale homepages
+    // now exist (src/app/{ar,fr,ur}/page.tsx) with reciprocal maps, so
+    // the full cluster is restored — the 404 condition is gone.
     languages: {
       en: "https://trybarakah.com",
+      fr: "https://trybarakah.com/fr",
+      ar: "https://trybarakah.com/ar",
+      ur: "https://trybarakah.com/ur",
       "x-default": "https://trybarakah.com",
     },
   },

@@ -68,7 +68,7 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
       safeSetItem(STORAGE_KEY, 'true');
       onDismissRef.current();
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const handleCopy = async () => {
@@ -123,7 +123,7 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // Round 29: trap Tab focus inside the modal so keyboard users don't

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'YNAB Alternative for Muslims — Halal Budgeting App That Adds the Islamic Layer (2026)',
+  title: 'YNAB Alternative for Muslims — Halal Budgeting App (2026)',
   description:
     "Looking for a YNAB alternative as a Muslim? Barakah keeps YNAB's envelope-budgeting discipline and adds the Islamic layer: zakat across all assets, hawl tracking, halal stock screening, riba detection, and an Islamic will planner — for households YNAB never accounted for.",
   keywords: [
