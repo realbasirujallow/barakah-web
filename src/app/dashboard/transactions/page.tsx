@@ -12,6 +12,7 @@ import EmptyState from '../../../components/EmptyState';
 import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n, t as tStandalone } from '../../../lib/i18n';
+import { CATEGORIES, categoriesForType, txPresentation } from '../../../lib/transactionPresentation';
 import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon } from 'lucide-react';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
@@ -41,19 +42,6 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 };
 
 // ── Categories ────────────────────────────────────────────────────────────────
-const CATEGORIES = [
-  'food', 'dining', 'groceries', 'coffee',
-  'transportation', 'fuel', 'parking', 'public_transit',
-  'housing', 'utilities', 'rent', 'home_maintenance', 'insurance',
-  'shopping', 'clothing', 'electronics',
-  'healthcare', 'fitness', 'pharmacy',
-  'education', 'kids', 'childcare',
-  'entertainment', 'subscriptions', 'travel', 'gifts', 'personal_care', 'pets',
-  'income', 'investment', 'savings', 'debt_payment', 'taxes', 'transfer',
-  'charity', 'zakat', 'sadaqah',
-  'business', 'other',
-];
-const TRANSFER_CATEGORIES = ['transfer', 'savings', 'investment', 'debt_payment', 'other'];
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
 interface Tx {
@@ -95,29 +83,6 @@ function categoryLabel(code: string): string {
   const translated = tStandalone(key);
   if (translated !== key) return translated;
   return code.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
-}
-
-function categoriesForType(type: string) {
-  if (type === 'income') return CATEGORIES.filter(c => ['income', 'investment', 'savings', 'transfer', 'business', 'other', 'charity', 'gift', 'gifts', 'taxes'].includes(c) || ['salary'].includes(c));
-  if (type === 'transfer') return TRANSFER_CATEGORIES;
-  return CATEGORIES.filter(c => !['income', 'investment', 'savings'].includes(c));
-}
-
-function txPresentation(tx: Tx) {
-  if (tx.type === 'income') {
-    return { amountClass: 'text-green-600', badgeClass: 'bg-green-100 text-green-700', badge: tStandalone('txnBadgeIncome'), sign: '+' };
-  }
-  if (tx.type === 'transfer') {
-    const inflow = tx.direction === 'inflow';
-    const outflow = tx.direction === 'outflow';
-    return {
-      amountClass: 'text-cyan-700',
-      badgeClass: 'bg-cyan-100 text-cyan-700',
-      badge: inflow ? tStandalone('txnBadgeTransferIn') : outflow ? tStandalone('txnBadgeTransferOut') : tStandalone('txnBadgeTransfer'),
-      sign: inflow ? '↔ +' : outflow ? '↔ −' : '↔',
-    };
-  }
-  return { amountClass: 'text-red-600', badgeClass: 'bg-red-100 text-red-700', badge: tStandalone('txnBadgeExpense'), sign: '−' };
 }
 
 export default function TransactionsPage() {
