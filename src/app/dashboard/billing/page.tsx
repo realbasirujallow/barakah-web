@@ -201,7 +201,7 @@ function BillingContent() {
           ? ((result as { currency: string }).currency).toUpperCase()
           : 'USD';
         trackUpgrade(plan, billing, price, chargedCurrency);
-        toast('Plan updated! You\u2019re now on ' + (plan === 'family' ? 'Barakah Family' : 'Barakah Plus'), 'success');
+        toast(tFmt('billingPlanUpdatedFmt', [plan === 'family' ? 'Barakah Family' : 'Barakah Plus']), 'success');
         setLoading(null);
       } else {
         toast('Something went wrong. Please try again.', 'error');
@@ -302,7 +302,7 @@ function BillingContent() {
     setLoading('save-offer');
     try {
       const response = await api.acceptSaveOffer();
-      toast((response?.message as string) || 'Your save offer has been applied.', 'success');
+      toast((response?.message as string) || t('billingSaveOfferApplied'), 'success');
       setSaveOffer(null);
       await loadStatus();
     } catch (err) {
@@ -344,7 +344,7 @@ function BillingContent() {
       // Stripe-trial path: subscription.update succeeded, status flipped.
       setStatus(prev => prev ? { ...prev, status: result?.status || 'active' } : prev);
       await refreshPlan();
-      toast('Trial ended. Your plan is now active.', 'success');
+      toast(t('billingTrialEndedActive'), 'success');
       setLoading(null);
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to start billing. Please try again.', 'error');
@@ -368,7 +368,7 @@ function BillingContent() {
               {tFmt('billingOnPlanFmt', [currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)])}
               {isPastDue && (
                 <span className="ml-2 text-red-600 font-medium text-sm">
-                  ⚠️ Payment past due — please update your payment method
+                  ⚠️ {t('billingPastDue')}
                 </span>
               )}
               {isCanceled && (
@@ -412,7 +412,7 @@ function BillingContent() {
               <span className="text-2xl" aria-hidden>🎁</span>
               <div>
                 <p className="font-bold text-amber-900 text-base sm:text-lg">
-                  You&apos;ve been given {status.pendingDiscount.label ?? 'a discount'}
+                  {tFmt('billingDiscountGrantedFmt', [status.pendingDiscount.label ?? t('billingADiscount')])}
                 </p>
                 <p className="text-sm text-amber-800">
                   It&apos;ll be applied automatically at checkout — choose any plan below to claim it.

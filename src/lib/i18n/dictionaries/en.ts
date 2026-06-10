@@ -613,6 +613,13 @@ export const en: Translations = {
   // 2026-06-10 (LOC-BILLING-PLANLINE-1): billing subtitle was hardcoded
   // English ("You're on the {plan} plan") on the localized billing page.
   billingOnPlanFmt: "You're on the {0} plan",
+  // 2026-06-10 (LOC-BILLING-2): remaining billing toasts + banners were hardcoded English.
+  billingPlanUpdatedFmt: "Plan updated! You're now on {0}",
+  billingSaveOfferApplied: "Your save offer has been applied.",
+  billingTrialEndedActive: "Trial ended. Your plan is now active.",
+  billingPastDue: "Payment past due — please update your payment method",
+  billingDiscountGrantedFmt: "You've been given {0}",
+  billingADiscount: "a discount",
   billingNotNow: 'Not now',
   billingKeepPlanWithOffer: 'Keep My Plan With This Offer',
   billingApplyingOffer: 'Applying offer...',
