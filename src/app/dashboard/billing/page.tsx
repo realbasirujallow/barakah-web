@@ -373,7 +373,7 @@ function BillingContent() {
               )}
               {isCanceled && (
                 <span className="ml-2 text-orange-600 font-medium text-sm">
-                  (Canceled — access ends at period end)
+                  {t('billingCanceledNotice')}
                 </span>
               )}
             </>
@@ -386,15 +386,15 @@ function BillingContent() {
         <div className="bg-green-50 border border-green-200 text-green-800 rounded-2xl p-4 mb-6 flex items-center gap-3">
           <span className="text-2xl">✅</span>
           <div>
-            <p className="font-semibold">Subscription activated!</p>
-            <p className="text-sm">Jazakallah khayran — your Barakah plan is now active.</p>
+            <p className="font-semibold">{t('billingSubActivated')}</p>
+            <p className="text-sm">{t('billingSubActivatedSub')}</p>
           </div>
         </div>
       )}
       {params.get('canceled') === 'true' && (
         <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl p-4 mb-6 flex items-center gap-3">
           <span className="text-2xl">ℹ️</span>
-          <p className="text-sm">Checkout was canceled — no charge was made.</p>
+          <p className="text-sm">{t('billingCheckoutCanceled')}</p>
         </div>
       )}
 
@@ -415,7 +415,7 @@ function BillingContent() {
                   {tFmt('billingDiscountGrantedFmt', [status.pendingDiscount.label ?? t('billingADiscount')])}
                 </p>
                 <p className="text-sm text-amber-800">
-                  It&apos;ll be applied automatically at checkout — choose any plan below to claim it.
+                  {t('billingDiscountAutoApply')}
                 </p>
               </div>
             </div>
