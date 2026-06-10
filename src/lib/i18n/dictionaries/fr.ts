@@ -4074,6 +4074,7 @@ export const fr: Translations = {
   // word-for-word translation.
   referralModalMaybeLater: "Plus tard",
   referralModalFootnote: "Retrouvez votre lien dans Paramètres → Inviter un ami.",
+  referralModalLeadFmt: "Lorsqu'un ami s'inscrit avec votre lien et confirme son e-mail, vous obtenez un mois supplémentaire gratuit de Barakah — et il obtient son premier mois pour seulement {0}.",
   referralModalCloseAria: "Fermer",
   referralModalWhatsAppBodyFmt: "Assalamu Alaikum ! Je viens de commencer à utiliser Barakah pour gérer mes finances de manière halal — calculateur de zakat, suivi du hawl, budgets et bien plus. Essayez-le gratuitement : {0}",
 

@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../lib/api';
 import { useFocusTrap } from '../lib/useFocusTrap';
-import { REFERRAL_MODAL_LEAD } from '../lib/referralCopy';
+import { REFEREE_FIRST_MONTH_PRICE } from '../lib/referralCopy';
 import { useI18n } from '../lib/i18n';
 
 const STORAGE_KEY = 'barakah_referral_prompted';
@@ -164,10 +164,12 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
           {t('referralModalTitle')}
         </h2>
 
-        {/* Round 32: copy constants imported from lib/referralCopy.ts so the
-            backend reward contract stays in sync with every UI surface. */}
+        {/* 2026-06-10 (LOC-REFERRAL-MODAL-1): localized lead. The price still
+            comes from referralCopy (single source of truth for the backend
+            reward contract); only the surrounding prose is localized via i18n
+            so ar/ur/fr users no longer see an English sentence in an RTL modal. */}
         <p className="text-gray-600 mb-6">
-          {REFERRAL_MODAL_LEAD.prefix}<strong>{REFERRAL_MODAL_LEAD.referrerSegment}</strong>{REFERRAL_MODAL_LEAD.middle}<strong>{REFERRAL_MODAL_LEAD.refereeSegment}</strong>{REFERRAL_MODAL_LEAD.suffix}
+          {tFmt('referralModalLeadFmt', [REFEREE_FIRST_MONTH_PRICE])}
         </p>
 
         {/* Referral code display */}

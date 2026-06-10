@@ -4068,6 +4068,7 @@ export const ur: Translations = {
   referralModalCopiedCta: "✓ لنک کاپی ہو گیا!",
   referralModalMaybeLater: "بعد میں",
   referralModalFootnote: "حوالہ لنک سیٹنگز ← دوست کو دعوت دیں میں دستیاب ہے۔",
+  referralModalLeadFmt: "جب کوئی دوست آپ کے لنک سے سائن اپ کرے اور اپنا ای میل تصدیق کرے، تو آپ کو برکہ کا ایک اضافی مہینہ مفت ملتا ہے — اور اسے اپنا پہلا مہینہ صرف {0} میں ملتا ہے۔",
   referralModalCloseAria: "بند کریں",
   referralModalWhatsAppBodyFmt: "السلام علیکم! میں نے ابھی برکہ استعمال کرنا شروع کیا ہے تاکہ اپنی مالیات کو حلال طریقے سے سنبھال سکوں — زکوٰۃ کیلکولیٹر، حول ٹریکر، بجٹ اور بہت کچھ۔ مفت آزمائیں: {0}",
 

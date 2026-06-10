@@ -7,6 +7,7 @@ import { getPlaidUiErrorMessage } from '../lib/plaid';
 import { hasPaidSyncAccess, type SubscriptionStatusLike } from '../lib/subscription';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../lib/toast';
+import { useI18n } from '../lib/i18n';
 
 /**
  * Shared "Sync Banks" control surfaced on /dashboard/assets and
@@ -45,11 +46,16 @@ export interface SyncBanksButtonProps {
 
 export function SyncBanksButton({
   onSynced,
-  label = 'Sync banks',
+  label,
   className = '',
 }: SyncBanksButtonProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  // 2026-06-10 (LOC-SYNCBANKS-1): this control was English-only on the
+  // assets/transactions pages — ar/ur/fr users saw "Link a bank" / "Sync
+  // banks" / "Upgrade to sync" / "Syncing…" in English. Reuse the already-
+  // translated dict keys (no new strings needed).
+  const { t } = useI18n();
   const [accountCount, setAccountCount] = useState<number | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] =
     useState<SubscriptionStatusLike | null>(null);
@@ -187,7 +193,7 @@ export function SyncBanksButton({
         href="/dashboard/import"
         className={`inline-flex items-center gap-2 px-4 py-2 text-sm bg-white border border-[#1B5E20] text-[#1B5E20] rounded-lg hover:bg-green-50 transition font-medium ${className}`}
       >
-        🔗 Link a bank
+        🔗 {t('dashConnectAccountsDesc')}
       </Link>
     );
   }
@@ -200,7 +206,7 @@ export function SyncBanksButton({
         href="/dashboard/billing"
         className={`inline-flex items-center gap-2 px-4 py-2 text-sm bg-amber-50 border border-amber-300 text-amber-800 rounded-lg hover:bg-amber-100 transition font-medium ${className}`}
       >
-        🔒 Upgrade to sync
+        🔒 {t('txnUpgradeToSync')}
       </Link>
     );
   }
@@ -220,10 +226,10 @@ export function SyncBanksButton({
       {syncing ? (
         <>
           <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          Syncing…
+          {t('importSyncing')}
         </>
       ) : (
-        <>↻ {label}</>
+        <>↻ {label ?? t('txnSyncBanks')}</>
       )}
     </button>
   );

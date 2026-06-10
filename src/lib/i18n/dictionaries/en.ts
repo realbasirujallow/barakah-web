@@ -4121,6 +4121,12 @@ export const en: Translations = {
   referralModalCopiedCta: "✓ Link Copied!",
   referralModalMaybeLater: "Maybe Later",
   referralModalFootnote: "You can always find your referral link in Settings → Refer a Friend",
+  // 2026-06-10 (LOC-REFERRAL-MODAL-1): the modal lead was a hardcoded English
+  // constant (REFERRAL_MODAL_LEAD) shown verbatim to ar/ur/fr users. Localized
+  // here; {0} is the referee first-month price, still sourced from the single
+  // source of truth (referralCopy.REFEREE_FIRST_MONTH_PRICE — a global USD
+  // Stripe coupon price, correct for every locale).
+  referralModalLeadFmt: "When a friend signs up with your link and verifies their email, you get a free extra month of Barakah — and they get their first month for just {0}.",
   referralModalCloseAria: "Close",
   referralModalWhatsAppBodyFmt: "Assalamu Alaikum! I just started using Barakah to manage my finances the halal way — zakat calculator, hawl tracker, budgets & more. Try it free: {0}",
 

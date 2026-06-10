@@ -4068,6 +4068,7 @@ export const ar: Translations = {
   referralModalCopiedCta: "✓ تم نسخ الرابط!",
   referralModalMaybeLater: "لاحقًا",
   referralModalFootnote: "تجد رابط الإحالة في الإعدادات ← دعوة صديق.",
+  referralModalLeadFmt: "عندما يسجّل صديق عبر رابطك ويؤكّد بريده الإلكتروني، تحصل على شهر إضافي مجاني من بركة — ويحصل هو على شهره الأول مقابل {0} فقط.",
   referralModalCloseAria: "إغلاق",
   referralModalWhatsAppBodyFmt: "السلام عليكم! بدأت للتو باستخدام بركة لإدارة أموالي بطريقة حلال — حاسبة الزكاة وتتبع الحول والميزانيات والمزيد. جرّبها مجانًا: {0}",
 
