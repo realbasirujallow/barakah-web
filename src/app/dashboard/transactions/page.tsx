@@ -306,7 +306,6 @@ export default function TransactionsPage() {
   // newest fetch's setState actually lands.
   const loadGenRef = useRef(0);
   const subscriptionFetchedRef = useRef(false);
-  const lastFilterForSummaryRef = useRef<string | null>(null);
 
   const load = () => {
     setLoading(true);
