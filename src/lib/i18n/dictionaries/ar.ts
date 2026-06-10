@@ -572,6 +572,7 @@ export const ar: Translations = {
   billingCheckingOptions: 'جاري التحقق من الخيارات...',
   billingChooseAPlan: 'اختر خطة',
   billingCurrentPlan: 'الخطة الحالية',
+  billingOnPlanFmt: 'أنت مشترك في باقة {0}',
   billingNotNow: 'ليس الآن',
   billingKeepPlanWithOffer: 'احتفظ بخطتي مع هذا العرض',
   billingApplyingOffer: 'جاري تطبيق العرض...',

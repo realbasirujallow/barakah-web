@@ -572,6 +572,7 @@ export const ur: Translations = {
   billingCheckingOptions: 'اختیارات چیک ہو رہے ہیں...',
   billingChooseAPlan: 'پلان منتخب کریں',
   billingCurrentPlan: 'موجودہ پلان',
+  billingOnPlanFmt: 'آپ {0} پلان پر ہیں',
   billingNotNow: 'ابھی نہیں',
   billingKeepPlanWithOffer: 'اس آفر کے ساتھ پلان رکھیں',
   billingApplyingOffer: 'آفر لاگو ہو رہی ہے...',

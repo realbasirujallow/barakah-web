@@ -363,8 +363,9 @@ function BillingContent() {
             <span className="inline-block w-32 h-4 bg-gray-200 rounded animate-pulse" />
           ) : (
             <>
-              You&apos;re on the{' '}
-              <span className="font-semibold capitalize text-foreground">{currentPlan}</span> plan
+              {/* 2026-06-10 (LOC-BILLING-PLANLINE-1): localized; was hardcoded
+                  English "You're on the {plan} plan" on the localized billing page. */}
+              {tFmt('billingOnPlanFmt', [currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)])}
               {isPastDue && (
                 <span className="ml-2 text-red-600 font-medium text-sm">
                   ⚠️ Payment past due — please update your payment method

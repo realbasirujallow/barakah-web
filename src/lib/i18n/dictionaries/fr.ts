@@ -572,6 +572,7 @@ export const fr: Translations = {
   billingCheckingOptions: 'Vérification des options...',
   billingChooseAPlan: 'Choisir une formule',
   billingCurrentPlan: 'Formule actuelle',
+  billingOnPlanFmt: 'Vous êtes sur la formule {0}',
   billingNotNow: 'Pas maintenant',
   billingKeepPlanWithOffer: 'Conserver mon abonnement avec cette offre',
   billingApplyingOffer: 'Application de l’offre...',

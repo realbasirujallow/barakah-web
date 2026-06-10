@@ -610,6 +610,9 @@ export const en: Translations = {
   billingCheckingOptions: 'Checking options...',
   billingChooseAPlan: 'Choose a Plan',
   billingCurrentPlan: 'Current Plan',
+  // 2026-06-10 (LOC-BILLING-PLANLINE-1): billing subtitle was hardcoded
+  // English ("You're on the {plan} plan") on the localized billing page.
+  billingOnPlanFmt: "You're on the {0} plan",
   billingNotNow: 'Not now',
   billingKeepPlanWithOffer: 'Keep My Plan With This Offer',
   billingApplyingOffer: 'Applying offer...',
