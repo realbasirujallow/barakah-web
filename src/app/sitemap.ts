@@ -292,6 +292,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/fr/learn/application-finance-islamique`,   changeFrequency: 'monthly', priority: 0.78, lastModified: now },
     { url: `${baseUrl}/ur/learn/islamic-finance-app`,             changeFrequency: 'monthly', priority: 0.78, lastModified: now },
 
+    // ── 2026-06-09: locale homepages (close the homepage hreflang cluster) ──
+    { url: `${baseUrl}/ar`, changeFrequency: 'weekly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/fr`, changeFrequency: 'weekly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/ur`, changeFrequency: 'weekly', priority: 0.90, lastModified: now },
+
     // ── 2026-06-09: international SEO round 3 — 3 high-value localized clusters (ar/ur/fr) ──
     // zakat-on-gold (#1 missing localized page by demand), riba-elimination (brand-core),
     // halal-budgeting (maps to the core product). hreflang reciprocity added on the EN sources.

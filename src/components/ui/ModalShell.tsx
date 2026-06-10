@@ -121,7 +121,7 @@ export default function ModalShell({
     };
     // Empty deps: setup once on mount, tear down on unmount. Latest
     // onClose closure is reached via onCloseRef.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   return (
