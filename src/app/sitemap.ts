@@ -292,6 +292,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/fr/learn/application-finance-islamique`,   changeFrequency: 'monthly', priority: 0.78, lastModified: now },
     { url: `${baseUrl}/ur/learn/islamic-finance-app`,             changeFrequency: 'monthly', priority: 0.78, lastModified: now },
 
+    // ── 2026-06-09: international SEO round 3 — 3 high-value localized clusters (ar/ur/fr) ──
+    // zakat-on-gold (#1 missing localized page by demand), riba-elimination (brand-core),
+    // halal-budgeting (maps to the core product). hreflang reciprocity added on the EN sources.
+    { url: `${baseUrl}/ar/learn/zakat-on-gold`,                   changeFrequency: 'monthly', priority: 0.82, lastModified: now },
+    { url: `${baseUrl}/fr/learn/zakat-on-gold`,                   changeFrequency: 'monthly', priority: 0.82, lastModified: now },
+    { url: `${baseUrl}/ur/learn/zakat-on-gold`,                   changeFrequency: 'monthly', priority: 0.82, lastModified: now },
+    { url: `${baseUrl}/ar/learn/riba-elimination`,                changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/fr/learn/riba-elimination`,                changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/ur/learn/riba-elimination`,                changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/ar/learn/halal-budgeting`,                 changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/fr/learn/halal-budgeting`,                 changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+    { url: `${baseUrl}/ur/learn/halal-budgeting`,                 changeFrequency: 'monthly', priority: 0.80, lastModified: now },
+
     // ── Legal & contact ───────────────────────────────────────────────────────
     { url: `${baseUrl}/contact`,    changeFrequency: 'yearly', priority: 0.40, lastModified: now },
     { url: `${baseUrl}/privacy`,    changeFrequency: 'yearly', priority: 0.30, lastModified: now },

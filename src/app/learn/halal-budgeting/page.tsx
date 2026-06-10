@@ -17,7 +17,16 @@ export const metadata: Metadata = {
     'islamic money management',
     'halal finance tips',
   ],
-  alternates: { canonical: 'https://trybarakah.com/learn/halal-budgeting' },
+  alternates: {
+    canonical: 'https://trybarakah.com/learn/halal-budgeting',
+    languages: {
+      en: 'https://trybarakah.com/learn/halal-budgeting',
+      fr: 'https://trybarakah.com/fr/learn/halal-budgeting',
+      ar: 'https://trybarakah.com/ar/learn/halal-budgeting',
+      ur: 'https://trybarakah.com/ur/learn/halal-budgeting',
+      'x-default': 'https://trybarakah.com/learn/halal-budgeting',
+    },
+  },
   openGraph: {
     title: 'Halal Budgeting 2026 — Complete Islamic Guide',
     description:

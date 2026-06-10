@@ -8,6 +8,13 @@ export const metadata: Metadata = {
   keywords: ['zakat on gold', 'zakat on gold jewelry', 'how to calculate zakat on gold', 'is jewelry zakatable', 'gold nisab'],
   alternates: {
     canonical: 'https://trybarakah.com/learn/zakat-on-gold',
+    languages: {
+      en: 'https://trybarakah.com/learn/zakat-on-gold',
+      fr: 'https://trybarakah.com/fr/learn/zakat-on-gold',
+      ar: 'https://trybarakah.com/ar/learn/zakat-on-gold',
+      ur: 'https://trybarakah.com/ur/learn/zakat-on-gold',
+      'x-default': 'https://trybarakah.com/learn/zakat-on-gold',
+    },
   },
   openGraph: {
     title: 'Zakat on Gold & Jewelry: Complete 2026 Guide',

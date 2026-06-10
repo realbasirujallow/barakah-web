@@ -16,6 +16,13 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://trybarakah.com/learn/riba-elimination',
+    languages: {
+      en: 'https://trybarakah.com/learn/riba-elimination',
+      fr: 'https://trybarakah.com/fr/learn/riba-elimination',
+      ar: 'https://trybarakah.com/ar/learn/riba-elimination',
+      ur: 'https://trybarakah.com/ur/learn/riba-elimination',
+      'x-default': 'https://trybarakah.com/learn/riba-elimination',
+    },
   },
   openGraph: {
     title: 'How to Eliminate Riba from Your Finances',
