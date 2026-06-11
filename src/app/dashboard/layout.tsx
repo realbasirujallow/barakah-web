@@ -512,7 +512,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <button
             onClick={toggleDarkMode}
             className="w-full text-left px-3 py-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md text-sm transition-colors flex items-center gap-2"
-            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={darkMode ? t('navLightMode') : t('navDarkMode')}
           >
             <span aria-hidden="true">{darkMode ? '☀️' : '🌙'}</span>
             <span>{darkMode ? t('navLightMode') : t('navDarkMode')}</span>
@@ -592,8 +592,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <button
                 onClick={toggleDarkMode}
                 className="text-gray-500 hover:text-primary text-lg transition"
-                title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-                aria-label="Toggle dark mode"
+                title={darkMode ? t('navLightMode') : t('navDarkMode')}
+                aria-label={darkMode ? t('navLightMode') : t('navDarkMode')}
               >
                 {darkMode ? '☀️' : '🌙'}
               </button>
