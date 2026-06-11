@@ -13,7 +13,7 @@ import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n, t as tStandalone } from '../../../lib/i18n';
 import { CATEGORIES, categoriesForType, txPresentation } from '../../../lib/transactionPresentation';
-import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon, EyeOff } from 'lucide-react';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
@@ -62,6 +62,11 @@ interface Tx {
    *  endpoint; the UI just hadn't surfaced it. Toggled via
    *  api.toggleRecurring(id). */
   isRecurring?: boolean | null;
+  /** 2026-06-11 (Monarch parity): serialized in every txn map. Excluded
+   *  rows stay visible in the list but are left out of totals, budgets,
+   *  and reports. Toggled via PUT /api/transactions/{id} (single) or
+   *  PATCH /api/transactions/bulk (multi). */
+  excludedFromReports?: boolean | null;
 }
 
 interface SubscriptionStatus {
@@ -149,6 +154,10 @@ export default function TransactionsPage() {
   // we're surfacing here. Local state for the dropdown menu + spinner.
   const [bulkCategorizing, setBulkCategorizing] = useState(false);
   const [bulkCategoryMenuOpen, setBulkCategoryMenuOpen] = useState(false);
+  // 2026-06-11 (Monarch parity): exclude-from-reports spinners — one for
+  // the bulk-bar action, one for the edit-modal checkbox.
+  const [bulkExcluding, setBulkExcluding] = useState(false);
+  const [togglingExcluded, setTogglingExcluded] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
 
@@ -596,6 +605,58 @@ export default function TransactionsPage() {
     }
   };
 
+  /**
+   * 2026-06-11 (Monarch parity): single-transaction "Exclude from reports"
+   * toggle. Optimistically flips the local row + the open edit-modal
+   * snapshot (same pattern as handleToggleRecurring), then reloads so the
+   * server-side summary KPIs drop/regain the row — unlike recurring, this
+   * flag changes totals.
+   */
+  const handleToggleExcluded = async (tx: Tx) => {
+    const next = !tx.excludedFromReports;
+    setTogglingExcluded(true);
+    setTxs(prev => prev.map(t => t.id === tx.id ? { ...t, excludedFromReports: next } : t));
+    setEditTx(prev => prev && prev.id === tx.id ? { ...prev, excludedFromReports: next } : prev);
+    try {
+      await api.updateTransaction(tx.id, { excludedFromReports: next });
+      const noun = t('txnNounSingular');
+      toast(tFmt(next ? 'txnExcludedToastFmt' : 'txnIncludedToastFmt', [1, noun]), 'success');
+      load();
+    } catch {
+      // Revert optimistic update on both states.
+      setTxs(prev => prev.map(t => t.id === tx.id ? { ...t, excludedFromReports: !next } : t));
+      setEditTx(prev => prev && prev.id === tx.id ? { ...prev, excludedFromReports: !next } : prev);
+      toast(t('txnExcludeFailed'), 'error');
+    } finally {
+      setTogglingExcluded(false);
+    }
+  };
+
+  /**
+   * 2026-06-11 (Monarch parity): bulk exclude/include from reports.
+   * selectAllPages mode is not supported — the PATCH /api/transactions/bulk
+   * endpoint takes an explicit ids[] payload, same constraint as
+   * bulk-categorize / mark-reviewed above, and the UI hides the button
+   * when "Select all pages" is on.
+   */
+  const handleBulkExclude = async (exclude: boolean) => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setBulkExcluding(true);
+    try {
+      const result = await api.bulkUpdateTransactions(ids, { excludedFromReports: exclude });
+      const updated = (result as { updated?: number })?.updated ?? ids.length;
+      const noun = updated === 1 ? t('txnNounSingular') : t('txnNounPlural');
+      toast(tFmt(exclude ? 'txnExcludedToastFmt' : 'txnIncludedToastFmt', [updated, noun]), 'success');
+      exitSelectMode();
+      load();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('txnExcludeFailed'), 'error');
+    } finally {
+      setBulkExcluding(false);
+    }
+  };
+
   const handleExportCsv = async () => {
     setExportingCsv(true); setExportError(null);
     // trackFeatureUse fires on every click (not scoped to first-use) so
@@ -640,6 +701,10 @@ export default function TransactionsPage() {
   const expense = summary?.totalExpenses  ?? sameCurrencyTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
   const transfers = summary?.totalTransfers ?? sameCurrencyTxns.filter(t => t.type === 'transfer').reduce((s, t) => s + t.amount, 0);
   const allPageSelected = txs.length > 0 && selectedIds.size === txs.length;
+  // 2026-06-11 (Monarch parity): the bulk exclude button flips to "Include
+  // in reports" when every selected row is already excluded.
+  const selectedTxs = txs.filter(tx => selectedIds.has(tx.id));
+  const allSelectedExcluded = selectedTxs.length > 0 && selectedTxs.every(tx => Boolean(tx.excludedFromReports));
   const hasMorePages = totalPages > 1;
   const hasLinkedPlaidTransactions = txs.some(tx => tx.importSource === 'plaid');
   const plaidSyncAccess = hasPaidSyncAccess(subscriptionStatus) || (user?.plan === 'plus' || user?.plan === 'family');
@@ -990,6 +1055,21 @@ export default function TransactionsPage() {
                 {tFmt('txnMarkReviewedBtnFmt', [selectedIds.size])}
               </button>
             )}
+            {/* 2026-06-11 (Monarch parity): bulk exclude/include from
+                reports. Follows the Recategorize / Mark-reviewed pattern —
+                hidden when selectAllPages is on because the PATCH bulk
+                endpoint takes explicit ids[]. */}
+            {selectedIds.size > 0 && !selectAllPages && (
+              <button
+                type="button"
+                onClick={() => handleBulkExclude(!allSelectedExcluded)}
+                disabled={bulkExcluding}
+                className="bg-slate-600 text-white px-3.5 py-1.5 rounded-lg text-sm font-medium hover:bg-slate-700 disabled:opacity-40 flex items-center gap-1.5"
+              >
+                {bulkExcluding ? <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" /> : <EyeOff className="w-3.5 h-3.5" />}
+                {allSelectedExcluded ? tFmt('txnBulkIncludeFmt', [selectedIds.size]) : tFmt('txnBulkExcludeFmt', [selectedIds.size])}
+              </button>
+            )}
             <button onClick={handleBulkDelete}
               disabled={(selectAllPages ? totalElements : selectedIds.size) === 0 || bulkDeleting}
               className={`${selectedIds.size > 0 && !selectAllPages ? '' : 'ms-auto'} bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5`}>
@@ -1107,7 +1187,7 @@ export default function TransactionsPage() {
                 }
               }}
               aria-label={tFmt('txnRowAria', [tx.description || categoryLabel(tx.category), selectMode ? t('txnRowActionSelect') : t('txnRowActionEdit')])}
-              className={`group bg-card rounded-xl p-4 flex justify-between items-center cursor-pointer border border-transparent transition-all hover:border-primary/20 hover:bg-accent/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
+              className={`group bg-card rounded-xl p-4 flex justify-between items-center cursor-pointer border border-transparent transition-all hover:border-primary/20 hover:bg-accent/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-primary bg-primary/5' : ''} ${tx.excludedFromReports ? 'opacity-60' : ''}`}>
               <div className="flex items-center gap-3">
                 {selectMode && (
                   <input type="checkbox" checked={selectedIds.has(tx.id) || selectAllPages}
@@ -1176,6 +1256,15 @@ export default function TransactionsPage() {
                       <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 inline-flex items-center gap-1">
                         <RefreshCw className="w-3 h-3" />
                         {t('txnRecurringPill')}
+                      </span>
+                    )}
+                    {tx.excludedFromReports && (
+                      // 2026-06-11 (Monarch parity): subtle mark — paired
+                      // with the row-level reduced opacity — showing this
+                      // row is left out of totals/budgets/reports.
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 inline-flex items-center gap-1">
+                        <EyeOff className="w-3 h-3" />
+                        {t('txnExcludedBadge')}
                       </span>
                     )}
                   </div>
@@ -1521,6 +1610,33 @@ export default function TransactionsPage() {
                       </select>
                     </div>
                   )}
+                  {/* 2026-06-11 (Monarch parity): exclude-from-reports
+                      toggle. Saves immediately (like the recurring
+                      checkbox above) via handleToggleExcluded, which
+                      also refreshes the list + summary since this flag
+                      changes totals. */}
+                  <label className="flex items-start gap-3 cursor-pointer select-none mt-3 pt-3 border-t border-gray-200">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(editTx.excludedFromReports)}
+                      onChange={() => handleToggleExcluded(editTx)}
+                      disabled={togglingExcluded}
+                      className="mt-0.5 w-4 h-4 accent-primary rounded flex-shrink-0"
+                    />
+                    <span className="flex-1">
+                      <span className="block text-sm font-medium text-gray-900">
+                        {t('txnExcludeFromReports')}
+                      </span>
+                      <span className="block text-xs text-gray-500 mt-0.5">
+                        {t('txnExcludeFromReportsHint')}
+                      </span>
+                    </span>
+                    {Boolean(editTx.excludedFromReports) && (
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 flex-shrink-0">
+                        {t('txnExcludedBadge')}
+                      </span>
+                    )}
+                  </label>
                 </div>
               )}
             </div>

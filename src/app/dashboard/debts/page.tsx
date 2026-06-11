@@ -183,6 +183,26 @@ function addMonths(n: number) {
   return d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
 }
 
+/* ── 2026-06-11 Monarch parity: Plaid liabilities reconnect banner ─────
+   Per-day dismissal key, mirroring TrialBanner's pattern:
+   "barakah_liab_reconnect_dismissed_YYYY-MM-DD" — the banner comes back
+   the next day while the institution still needs a reconnect. */
+const LIAB_RECONNECT_DISMISS_PREFIX = 'barakah_liab_reconnect_dismissed_';
+
+function liabReconnectTodayKey(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${LIAB_RECONNECT_DISMISS_PREFIX}${y}-${m}-${day}`;
+}
+
+interface LiabReconnectItem {
+  plaidItemId: string;
+  institutionName: string | null;
+  creditAccountCount: number;
+}
+
 /* ── Component ─────────────────────────────────────────────────── */
 export default function DebtsPage() {
   const { t, tFmt } = useI18n();
@@ -208,6 +228,12 @@ export default function DebtsPage() {
   const [suggestions, setSuggestions] = useState<Array<{ transactionId: number; debtId: number; debtName: string; amount: number; principalPreview: number; profitPreview: number; description?: string; date: number }>>([]);
   const [applyingSug, setApplyingSug] = useState<number | null>(null);
   const [dismissedSug, setDismissedSug] = useState<Set<number>>(new Set());
+  // 2026-06-11 Monarch parity: accounts whose Plaid item lost liabilities
+  // coverage (statement/bill detection). Empty array = no banner.
+  const [reconnectNeeded, setReconnectNeeded] = useState<LiabReconnectItem[]>([]);
+  // SSR-safe: start false and hydrate from localStorage post-mount, same
+  // as TrialBanner's dismissed flag.
+  const [reconnectDismissed, setReconnectDismissed] = useState(false);
   const { toast } = useToast();
   const { symbol, fmt, locale: dateLocale } = useCurrency();
   const { user } = useAuth();
@@ -237,6 +263,32 @@ export default function DebtsPage() {
       .finally(() => setLoading(false));
   }, [toast]);
   useEffect(() => { load(); }, [load]);
+
+  // 2026-06-11 Monarch parity: hydrate the per-day dismissal flag
+  // post-mount (SSR-safe — localStorage is unavailable during SSR), then
+  // probe liabilities coverage. Both fail silent: the banner is a
+  // best-effort nudge, never a blocker.
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      try { setReconnectDismissed(localStorage.getItem(liabReconnectTodayKey()) === 'true'); } catch { /* localStorage unavailable */ }
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
+  useEffect(() => {
+    let cancelled = false;
+    api.getPlaidLiabilitiesCoverage()
+      .then((r: { items?: LiabReconnectItem[]; error?: string }) => {
+        if (cancelled || r?.error) return;
+        setReconnectNeeded(Array.isArray(r?.items) ? r.items : []);
+      })
+      .catch(() => { /* fail silent — no banner on API error */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  const dismissReconnect = () => {
+    setReconnectDismissed(true);
+    try { localStorage.setItem(liabReconnectTodayKey(), 'true'); } catch { /* localStorage unavailable */ }
+  };
 
   const openAdd = () => { setEditDebt(null); setForm(emptyForm); setSaveError(null); setShowForm(true); };
   const openEdit = (d: DebtItem) => {
@@ -452,6 +504,34 @@ export default function DebtsPage() {
           </button>
         ))}
       </div>
+
+      {/* 2026-06-11 Monarch parity: liabilities-coverage reconnect banner.
+          Shows when at least one Plaid item lost statement/bill coverage;
+          the Reconnect link lands on /dashboard/import, which owns Plaid
+          update-mode. Dismissal persists per-day in localStorage. */}
+      {reconnectNeeded.length > 0 && !reconnectDismissed && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex items-start gap-3 text-sm text-amber-900">
+          <span className="text-xl" aria-hidden="true">⚠️</span>
+          <p className="flex-1">
+            {tFmt('debtLiabReconnectBodyFmt', [
+              Array.from(new Set(reconnectNeeded.map(a =>
+                a.institutionName ?? t('debtLiabReconnectGenericInst')
+              ))).join(', '),
+            ])}{' '}
+            <Link href="/dashboard/import" className="font-semibold underline whitespace-nowrap">
+              {t('debtLiabReconnectCta')}
+            </Link>
+          </p>
+          <button
+            type="button"
+            onClick={dismissReconnect}
+            aria-label={t('debtLiabReconnectDismissAria')}
+            className="text-amber-500 hover:text-amber-700 text-xl leading-none px-1 flex-shrink-0"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <div className={`mb-4 rounded-2xl border p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between ${
         plaidSyncAccess ? 'bg-[#F7FBF7] border-green-200' : 'bg-amber-50 border-amber-200'

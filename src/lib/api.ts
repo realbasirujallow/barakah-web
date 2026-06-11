@@ -905,6 +905,14 @@ export const api = {
     apiFetch(`/api/transactions/${id}`, { method: 'DELETE' }),
   bulkDeleteTransactions: (ids: number[]) =>
     apiFetch('/api/transactions/bulk', { method: 'DELETE', body: JSON.stringify({ ids }) }),
+  /**
+   * 2026-06-11 (Monarch parity): bulk field update via PATCH on the same
+   * /bulk endpoint the delete uses. Takes explicit ids[] plus a partial
+   * delta (currently `excludedFromReports`). User-initiated — no
+   * suppressUnauthorized, same as the other bulk mutations.
+   */
+  bulkUpdateTransactions: (ids: number[], data: Record<string, unknown>) =>
+    apiFetch('/api/transactions/bulk', { method: 'PATCH', body: JSON.stringify({ ids, ...data }) }),
   /** Get transactions needing review (uncategorized/imported). */
   getReviewQueue: (page = 0, size = 50) =>
     apiFetch(`/api/transactions/review-queue?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
@@ -2092,6 +2100,18 @@ export const api = {
     apiFetch('/api/plaid/accounts', {}, API_TIMEOUT, true),
   plaidUnlinkAccount: (linkedAccountId: number) =>
     apiFetch(`/api/plaid/accounts/${linkedAccountId}`, { method: 'DELETE' }),
+  /**
+   * 2026-06-11 (Monarch parity): liabilities-coverage probe backing the
+   * debts-page reconnect banner. Hits the SAME /items-needing-relink
+   * endpoint the mobile app already consumes — returns { items: [{
+   * plaidItemId, institutionName, creditAccountCount }] }; empty array
+   * means every linked credit/loan item still has liabilities coverage.
+   * Mount-fired on /dashboard/debts → suppressUnauthorized=true so a
+   * transient 401 never cascades into a global logout (same rule as
+   * plaidGetAccounts above; regression: backgroundPollsDoNotLogout.test.ts).
+   */
+  getPlaidLiabilitiesCoverage: (suppressUnauthorized = true) =>
+    apiFetch('/api/plaid/items-needing-relink', {}, API_TIMEOUT, suppressUnauthorized),
 
   // Exports
   downloadTransactionsCsv: (period = 'month') => {

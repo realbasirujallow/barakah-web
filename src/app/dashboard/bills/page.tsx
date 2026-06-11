@@ -196,6 +196,142 @@ function Section({ title, items, color, now, deletingId, dismissingName, onPaid,
   );
 }
 
+// ─── BillsCalendar ── 2026-06-11 Monarch parity: month-grid view of bills.
+// Hoisted to module scope for the same remount-prevention reason as BillRow.
+// Each bill renders as a small chip on its due-date cell; clicking a chip
+// opens the same edit modal the list rows use (readOnly rows stay inert,
+// matching the list view which hides their edit button).
+interface BillsCalendarProps {
+  bills: BillItem[];
+  year: number;
+  month: number; // 0-based
+  now: number;
+  dateLocale?: string;
+  fmt: (n: number) => string;
+  onPrev: () => void;
+  onNext: () => void;
+  onEdit: (b: BillItem) => void;
+}
+
+function BillsCalendar({ bills, year, month, now, dateLocale, fmt, onPrev, onNext, onEdit }: BillsCalendarProps) {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstWeekday = new Date(year, month, 1).getDay(); // 0 = Sunday
+  // Weekday headers in the user's locale — 2024-01-07 is a Sunday, so
+  // offsetting it 0..6 days yields Sun..Sat labels without hardcoding.
+  const weekdayLabels = Array.from({ length: 7 }, (_, i) =>
+    new Date(Date.UTC(2024, 0, 7 + i)).toLocaleDateString(dateLocale, { weekday: 'short', timeZone: 'UTC' }));
+
+  // Bucket bills by day-of-month. nextDueDate is the source of truth (read
+  // with UTC accessors, matching formatDueDate/getDaysUntilDue); bills
+  // without one fall back to their recurring dueDay, clamped to the
+  // displayed month's length (e.g. dueDay 31 lands on Feb 28).
+  const byDay = new Map<number, BillItem[]>();
+  for (const b of bills) {
+    let day: number | null = null;
+    if (b.nextDueDate) {
+      const d = new Date(b.nextDueDate);
+      if (d.getUTCFullYear() === year && d.getUTCMonth() === month) day = d.getUTCDate();
+    } else if (b.dueDay) {
+      day = Math.min(b.dueDay, daysInMonth);
+    }
+    if (day === null) continue;
+    const list = byDay.get(day) ?? [];
+    list.push(b);
+    byDay.set(day, list);
+  }
+
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+  const monthLabel = new Date(year, month, 1).toLocaleDateString(dateLocale, { month: 'long', year: 'numeric' });
+  // Keep cells clean: at most 3 chips, then a "+N more" line.
+  const MAX_CHIPS = 3;
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm p-4 mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={onPrev}
+          aria-label={tStandalone('billsCalPrevMonth')}
+          className="px-2.5 py-1 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-primary text-lg leading-none"
+        >
+          ‹
+        </button>
+        <h2 className="text-base font-semibold text-gray-900">{monthLabel}</h2>
+        <button
+          type="button"
+          onClick={onNext}
+          aria-label={tStandalone('billsCalNextMonth')}
+          className="px-2.5 py-1 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-primary text-lg leading-none"
+        >
+          ›
+        </button>
+      </div>
+      {/* Horizontal scroll on small screens keeps the 7-column grid intact. */}
+      <div className="overflow-x-auto">
+        <div className="min-w-[640px]">
+          <div className="grid grid-cols-7 mb-1">
+            {weekdayLabels.map(w => (
+              <div key={w} className="text-center text-xs font-semibold text-gray-500 py-1">{w}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: firstWeekday }, (_, i) => (
+              <div key={`pad-${i}`} className="min-h-[84px] rounded-lg bg-gray-50/50" />
+            ))}
+            {Array.from({ length: daysInMonth }, (_, i) => {
+              const day = i + 1;
+              const isToday = isCurrentMonth && today.getDate() === day;
+              const dayBills = byDay.get(day) ?? [];
+              return (
+                <div
+                  key={day}
+                  className={`min-h-[84px] rounded-lg border p-1 ${isToday ? 'border-primary bg-primary/5' : 'border-gray-100 bg-gray-50/50'}`}
+                >
+                  <p className={`text-xs font-semibold mb-1 px-0.5 ${isToday ? 'text-primary' : 'text-gray-500'}`}>{day}</p>
+                  <div className="space-y-0.5">
+                    {dayBills.slice(0, MAX_CHIPS).map(b => {
+                      const days = getDaysUntilDue(b);
+                      const isOverdue = b.nextDueDate && b.nextDueDate < now && !b.paid;
+                      const isUpcoming = !isOverdue && days !== null && days <= 7 && !b.paid;
+                      // Mirrors the list rows' border accents: red for
+                      // overdue, orange ≤7 days out, green when paid.
+                      const chipCls = b.paid
+                        ? 'bg-green-50 text-green-700 border-green-200'
+                        : isOverdue
+                          ? 'bg-red-50 text-red-700 border-red-300'
+                          : isUpcoming
+                            ? 'bg-orange-50 text-orange-700 border-orange-200'
+                            : 'bg-white text-gray-700 border-gray-200';
+                      return (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onClick={() => { if (!b.readOnly) onEdit(b); }}
+                          disabled={b.readOnly}
+                          title={`${b.name} • ${fmt(b.amount)}`}
+                          className={`block w-full text-start text-[11px] leading-tight rounded border px-1 py-0.5 truncate ${chipCls} ${b.readOnly ? 'cursor-default' : 'hover:ring-1 hover:ring-primary/40'}`}
+                        >
+                          {b.name} <span className="font-semibold whitespace-nowrap">{fmt(b.amount)}</span>
+                        </button>
+                      );
+                    })}
+                    {dayBills.length > MAX_CHIPS && (
+                      <p className="text-[10px] text-gray-400 px-1">
+                        {tFmtStandalone('billsCalMoreFmt', [dayBills.length - MAX_CHIPS])}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /**
  * R37 (2026-04-30): per-frequency breakdown card for the bills page.
  *
@@ -276,8 +412,15 @@ function FrequencyBreakdownCard({
 }
 
 export default function BillsPage() {
-  const { fmt } = useCurrency();
+  const { fmt, locale: dateLocale } = useCurrency();
   const [bills, setBills]           = useState<BillItem[]>([]);
+  // 2026-06-11 Monarch parity: list/calendar toggle (default stays list)
+  // plus the month the calendar grid is currently showing.
+  const [view, setView]             = useState<'list' | 'calendar'>('list');
+  const [calMonth, setCalMonth]     = useState(() => {
+    const d = new Date();
+    return { year: d.getFullYear(), month: d.getMonth() };
+  });
   const [loading, setLoading]       = useState(true);
   const [showForm, setShowForm]     = useState(false);
   const [editBill, setEditBill]     = useState<BillItem | null>(null);
@@ -603,12 +746,46 @@ export default function BillsPage() {
         </div>
       )}
 
+      {/* 2026-06-11 Monarch parity: list/calendar view toggle. Default stays
+          list; calendar renders the month grid below in place of sections. */}
+      {bills.length > 0 && (
+        <div className="flex gap-2 mb-4">
+          {(['list', 'calendar'] as const).map(v => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setView(v)}
+              aria-pressed={view === v}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${view === v ? 'bg-primary text-primary-foreground' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+            >
+              {v === 'list' ? `📋 ${t('billsViewList')}` : `🗓️ ${t('billsViewCalendar')}`}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Sections */}
-      <Section title={t('billsSectionOverdue')}      items={overdue}   color="text-red-700"    now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
-      <Section title={t('billsSectionDueWeek')} items={upcoming}  color="text-orange-600" now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
-      <Section title={t('billsSectionUpcoming')}     items={future}    color="text-gray-700"   now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
-      <Section title={t('billsSectionScheduled')}    items={noDueDate} color="text-gray-500"   now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
-      <Section title={t('billsSectionPaid')}          items={paid}      color="text-green-700"  now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+      {view === 'list' ? (
+        <>
+          <Section title={t('billsSectionOverdue')}      items={overdue}   color="text-red-700"    now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+          <Section title={t('billsSectionDueWeek')} items={upcoming}  color="text-orange-600" now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+          <Section title={t('billsSectionUpcoming')}     items={future}    color="text-gray-700"   now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+          <Section title={t('billsSectionScheduled')}    items={noDueDate} color="text-gray-500"   now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+          <Section title={t('billsSectionPaid')}          items={paid}      color="text-green-700"  now={now} deletingId={deletingId} dismissingName={dismissingName} onPaid={handlePaid} onEdit={openEdit} onDelete={handleDelete} onDismissDetected={handleDismissDetected} />
+        </>
+      ) : (
+        <BillsCalendar
+          bills={bills}
+          year={calMonth.year}
+          month={calMonth.month}
+          now={now}
+          dateLocale={dateLocale}
+          fmt={fmt}
+          onPrev={() => setCalMonth(({ year, month }) => month === 0 ? { year: year - 1, month: 11 } : { year, month: month - 1 })}
+          onNext={() => setCalMonth(({ year, month }) => month === 11 ? { year: year + 1, month: 0 } : { year, month: month + 1 })}
+          onEdit={openEdit}
+        />
+      )}
 
       {bills.length === 0 && (
         <EmptyState
