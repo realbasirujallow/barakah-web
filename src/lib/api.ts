@@ -2327,7 +2327,10 @@ export const api = {
   // ── Household profile (gender/DOB/marital + dependents/spouse) ─────────────
   // Drives Faraid prefill, Wasiyyah beneficiary suggestions, and the gender-
   // aware gold jewelry fiqh classifier. See HouseholdController.java.
-  getHousehold: () => apiFetch('/api/household'),
+  // 2026-06-11 (sweep): mount-fired on HouseholdSection + faraid prefill —
+  // MUST suppress 401-logout per the backgroundPollsDoNotLogout rule.
+  getHousehold: (suppressUnauthorized = true) =>
+    apiFetch('/api/household', {}, API_TIMEOUT, suppressUnauthorized),
   updateHouseholdProfile: (data: { gender?: string | null; dateOfBirth?: number | null; maritalStatus?: string | null }) =>
     apiFetch('/api/household/profile', { method: 'PUT', body: JSON.stringify(data) }),
   createHouseholdMember: (data: { relationship: string; fullName: string; dateOfBirth?: number | null; gender?: string | null; notes?: string | null }) =>
@@ -2340,7 +2343,10 @@ export const api = {
   // ── Family Plan ─────────────────────────────────────────────────────────────
   // Owner can invite up to 5 additional members onto a single Family subscription.
   // See FamilyController.java for the server contract; preview is public (no auth).
-  getFamily: () => apiFetch('/api/family'),
+  // 2026-06-11 (sweep): mount-fired on /dashboard/family — suppress
+  // 401-logout per the backgroundPollsDoNotLogout rule.
+  getFamily: (suppressUnauthorized = true) =>
+    apiFetch('/api/family', {}, API_TIMEOUT, suppressUnauthorized),
   createFamilyInvite: (email: string) =>
     apiFetch('/api/family/invites', { method: 'POST', body: JSON.stringify({ email }) }),
   listFamilyInvites: () => apiFetch('/api/family/invites'),
@@ -2424,11 +2430,13 @@ export const api = {
     apiFetch('/api/fiqh/schools', {}, API_TIMEOUT, suppressUnauthorized),
 
   // ─── Financial Ledger ────────────────────────────────────────
-  getFinancialLedger: (page = 0, size = 50) =>
-    apiFetch(`/api/ledger?page=${page}&size=${size}`),
+  // 2026-06-11 (sweep): both fire on /dashboard/ledger mount — suppress
+  // 401-logout per the backgroundPollsDoNotLogout rule.
+  getFinancialLedger: (page = 0, size = 50, suppressUnauthorized = true) =>
+    apiFetch(`/api/ledger?page=${page}&size=${size}`, {}, API_TIMEOUT, suppressUnauthorized),
 
-  getLedgerByType: (type: string, page = 0, size = 50) =>
-    apiFetch(`/api/ledger/type/${encodeURIComponent(type)}?page=${page}&size=${size}`),
+  getLedgerByType: (type: string, page = 0, size = 50, suppressUnauthorized = true) =>
+    apiFetch(`/api/ledger/type/${encodeURIComponent(type)}?page=${page}&size=${size}`, {}, API_TIMEOUT, suppressUnauthorized),
 
   // ─── Zakat Snapshots ─────────────────────────────────────────
   getZakatSnapshots: () =>

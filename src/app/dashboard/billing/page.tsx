@@ -153,6 +153,34 @@ function BillingContent() {
     return () => { cancelled = true; };
   }, []);
 
+  // 2026-06-11 (sweep BILLING-SUCCESS-RACE): the ?success=true return from
+  // Stripe Checkout races the webhook that actually flips the plan — the
+  // page congratulated the user while status (and every plan gate) still
+  // said "free" until a manual reload. Poll status until the webhook lands
+  // (≤10 tries × 3s), then update in place; the page is status-driven
+  // (currentPlan = status?.plan) so no reload is needed. Other surfaces
+  // fetch their own status on mount, so they correct on next navigation.
+  useEffect(() => {
+    if (params.get('success') !== 'true') return;
+    let cancelled = false;
+    let tries = 0;
+    const tick = async () => {
+      if (cancelled) return;
+      tries += 1;
+      try {
+        const s = (await api.subscriptionStatus()) as { plan?: string; status?: string; hasSubscription?: boolean };
+        if (!cancelled && s?.plan && s.plan !== 'free') {
+          setStatus(s as { plan: string; status: string; hasSubscription: boolean });
+          return; // webhook landed — stop polling
+        }
+      } catch { /* transient — poll again */ }
+      if (!cancelled && tries < 10) setTimeout(tick, 3000);
+    };
+    const starter = setTimeout(tick, 1500);
+    return () => { cancelled = true; clearTimeout(starter); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const copyCode = () => {
     if (!referral) return;
     navigator.clipboard.writeText(referral.shareUrl).then(() => {

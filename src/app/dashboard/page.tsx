@@ -3,7 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { trackDemoDataLoaded } from '../../lib/analytics';
 import { useCurrency } from '../../lib/useCurrency';
-import { useI18n, getLocale } from '../../lib/i18n';
+// 2026-06-11 (i18n bug cluster): tStandalone/tFmtStandalone are the non-hook
+// translate functions for module-level helpers (timeAgo, categoryLabel) —
+// same pattern as transactions/page.tsx. Components re-render on locale
+// change via useI18n, so render-path calls resolve the live locale.
+import { useI18n, getLocale, t as tStandalone, tFmt as tFmtStandalone } from '../../lib/i18n';
 import { formatHijriLocalized } from '../../lib/format';
 import { useToast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
@@ -90,14 +94,40 @@ const safeSetItem = (key: string, value: string): void => {
 function timeAgo(timestamp: number): string {
   const diff = Date.now() - timestamp;
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return tStandalone('halalAgoJustNow');
+  if (mins < 60) return tFmtStandalone('halalAgoMinFmt', [mins]);
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return tFmtStandalone('halalAgoHrFmt', [hours]);
   const days = Math.floor(hours / 24);
-  if (days === 1) return 'yesterday';
-  if (days < 7) return `${days}d ago`;
+  if (days === 1) return tStandalone('dashYesterday');
+  if (days < 7) return tFmtStandalone('halalAgoDayFmt', [days]);
   return new Date(timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+// Localized display label for a backend category code — same helper the
+// transactions page uses (txnCat_* keys); falls back to the prettified raw
+// code for categories without a static translation.
+function categoryLabel(code: string | null | undefined): string {
+  if (!code) return '';
+  const key = `txnCat_${code}`;
+  const translated = tStandalone(key);
+  if (translated !== key) return translated;
+  return code.replace(/_/g, ' ');
+}
+
+// Bill frequency enum → existing billsFreq* keys; raw value as fallback.
+const BILL_FREQ_KEYS: Record<string, string> = {
+  weekly: 'billsFreqWeekly',
+  monthly: 'billsFreqMonthly',
+  quarterly: 'billsFreqQuarterly',
+  yearly: 'billsFreqYearly',
+  one_time: 'billsFreqOneTime',
+  'one-time': 'billsFreqOneTime',
+};
+function billFrequencyLabel(freq: string | null | undefined): string {
+  if (!freq) return '';
+  const key = BILL_FREQ_KEYS[freq.toLowerCase()];
+  return key ? tStandalone(key) : freq;
 }
 
 export default function DashboardPage() {
@@ -614,14 +644,14 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3 mb-2">
             <span className="text-3xl">🌙</span>
             <div>
-              <p className="font-bold text-lg">Ramadan Mubarak!</p>
-              <p className="text-purple-200 text-sm">May this blessed month bring you barakah and acceptance.</p>
+              <p className="font-bold text-lg">{t('dashRamadanMubarak')}</p>
+              <p className="text-purple-200 text-sm">{t('dashRamadanBody')}</p>
             </div>
           </div>
           <div className="flex gap-3 flex-wrap mt-3">
-            <Link href="/dashboard/sadaqah" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition">🤲 Track Sadaqah</Link>
-            <Link href="/dashboard/zakat" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition">🕌 Pay Zakat</Link>
-            <Link href="/dashboard/hawl" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition">📅 Hawl Tracker</Link>
+            <Link href="/dashboard/sadaqah" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition">🤲 {t('dashRamadanTrackSadaqah')}</Link>
+            <Link href="/dashboard/zakat" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition">🕌 {t('dashRamadanPayZakat')}</Link>
+            <Link href="/dashboard/hawl" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-medium transition">📅 {t('hawlTracker')}</Link>
           </div>
         </div>
       )}
@@ -834,7 +864,7 @@ export default function DashboardPage() {
             <button
               onClick={() => { safeSetItem('barakah_referral_banner_dismissed', 'true'); setReferralBannerDismissed(true); }}
               className="text-gray-400 hover:text-gray-600 text-lg leading-none"
-              aria-label="Dismiss referral banner"
+              aria-label={t('dashAriaDismissReferral')}
             >
               ×
             </button>
@@ -877,14 +907,14 @@ export default function DashboardPage() {
           <div className={`rounded-xl p-4 border ${hawlDue.dueCount > 0 ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800' : 'bg-card border-border'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Hawl / Zakat</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('dashHawlZakatLabel')}</p>
                 {hawlDue.dueCount > 0 ? (
-                  <p className="text-base font-bold text-amber-700 dark:text-amber-300">{hawlDue.dueCount} due now</p>
+                  <p className="text-base font-bold text-amber-700 dark:text-amber-300">{tFmt('dashHawlDueNowFmt', [hawlDue.dueCount])}</p>
                 ) : (
-                  <p className="text-base font-bold text-primary">{hawlDue.upcomingCount} upcoming</p>
+                  <p className="text-base font-bold text-primary">{tFmt('dashHawlUpcomingFmt', [hawlDue.upcomingCount])}</p>
                 )}
               </div>
-              <Link href="/dashboard/hawl" className="text-xs text-primary font-medium hover:underline">View →</Link>
+              <Link href="/dashboard/hawl" className="text-xs text-primary font-medium hover:underline">{t('dashViewArrow')}</Link>
             </div>
           </div>
         )}
@@ -937,7 +967,7 @@ export default function DashboardPage() {
                   trackDemoDataLoaded();
                   window.location.reload();
                 } catch (err) {
-                  const msg = err instanceof Error ? err.message : 'Could not load sample data.';
+                  const msg = err instanceof Error ? err.message : t('dashSampleDataError');
                   toast(msg, 'error');
                 }
               }}
@@ -1020,10 +1050,10 @@ export default function DashboardPage() {
            heading, exactly like Monarch's "Last 30 days / 90 days / YTD /
            1Y" toggle above the summary row. */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Overview</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('zktTabOverview')}</h2>
         <PeriodPicker value={kpiPeriod} onChange={setKpiPeriod} />
       </div>
-      <div role="region" aria-label="Financial summary" className={`stagger-fade grid gap-3 sm:gap-4 mb-5 ${hasInvestmentPulse ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'}`}>
+      <div role="region" aria-label={t('dashAriaFinancialSummary')} className={`stagger-fade grid gap-3 sm:gap-4 mb-5 ${hasInvestmentPulse ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'}`}>
         {loading && !widgets ? (
           // Phase 7.1: skeleton placeholders sized identically to KpiCard
           // so layout doesn't shift when /api/dashboard/widgets returns.
@@ -1037,7 +1067,7 @@ export default function DashboardPage() {
         ) : (
         <>
         <KpiCard
-          label="Net Worth"
+          label={t('netWorth')}
           value={hideNetWorth ? '••••••' : (loading ? '…' : fmt(netWorthValue))}
           // R41 (2026-05-01): card is now a hero link. Clicking morphs
           // the KPI into the /net-worth detail-page hero via the View
@@ -1046,7 +1076,7 @@ export default function DashboardPage() {
           heroName="net-worth-hero"
           trailingLabel={
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleHideNetWorth(); }} className="text-[10px] text-muted-foreground hover:text-foreground">
-              {hideNetWorth ? 'Show' : 'Hide'}
+              {hideNetWorth ? t('zktShow') : t('zktHide')}
             </button>
           }
           footer={
@@ -1064,7 +1094,7 @@ export default function DashboardPage() {
                         ? ` (${widgets.netWorthMini.dayChangePercent >= 0 ? '+' : ''}${widgets.netWorthMini.dayChangePercent.toFixed(2)}%)`
                         : ''}
                     </span>
-                    <span className="text-muted-foreground">Today</span>
+                    <span className="text-muted-foreground">{t('netWorthToday')}</span>
                   </p>
                 )}
               <div className="flex items-center justify-between gap-2">
@@ -1087,7 +1117,7 @@ export default function DashboardPage() {
                   }}
                   className="text-[10px] text-primary hover:underline whitespace-nowrap font-medium"
                 >
-                  {netWorthDrilldownOpen ? 'Hide details' : "What changed?"}
+                  {netWorthDrilldownOpen ? t('dashNetWorthHideDetails') : t('dashNetWorthWhatChanged')}
                 </button>
               </div>
               </div>
@@ -1120,7 +1150,7 @@ export default function DashboardPage() {
             paid progress now lives in the sub-line so the headline
             stays consistent across surfaces. */}
         <KpiCard
-          label="Zakat Due"
+          label={t('zakatDue')}
           // 2026-05-12 overnight QA (UI-007 + UI-007b): when `zakatEligible
           // === false`, the backend means "zakatable wealth < nisab" (see
           // AssetService.java line 596: `zakatEligible = zakatableWealthBD
@@ -1149,29 +1179,29 @@ export default function DashboardPage() {
           trailingLabel={
             <div className="flex items-center gap-1">
               {Boolean(totals?.zakatFullyPaid) && (
-                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 text-[10px] font-bold uppercase">Paid</Badge>
+                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 text-[10px] font-bold uppercase">{t('hawlPaidBtn')}</Badge>
               )}
               <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleHideZakat(); }} className="text-[10px] text-muted-foreground hover:text-foreground">
-                {hideZakat ? 'Show' : 'Hide'}
+                {hideZakat ? t('zktShow') : t('zktHide')}
               </button>
             </div>
           }
           footer={
             !hideZakat && !loading && totals && totals.zakatEligible === false
-              ? <span title="Zakat is owed once your zakatable wealth (cash, gold, stocks, savings — excluding your home and personal-use assets) crosses the nisab threshold. Visit /dashboard/zakat to see the breakdown.">{t('dashBelowNisab')}</span>
+              ? <span title={t('dashZakatBelowNisabTooltip')}>{t('dashBelowNisab')}</span>
             : !hideZakat && !loading && ((totals?.zakatPaid as number) || 0) > 0 && !Boolean(totals?.zakatFullyPaid)
-              ? <>Paid {fmt((totals?.zakatPaid as number) || 0)} · Remaining {fmt((totals?.zakatRemaining as number) ?? Math.max(0, ((totals?.zakatDue as number) || 0) - ((totals?.zakatPaid as number) || 0)))}</>
+              ? <>{tFmt('dashZakatPaidRemainingFmt', [fmt((totals?.zakatPaid as number) || 0), fmt((totals?.zakatRemaining as number) ?? Math.max(0, ((totals?.zakatDue as number) || 0) - ((totals?.zakatPaid as number) || 0)))])}</>
               : null
           }
         />
         <KpiCard
-          label="Zakat Eligible"
+          label={t('zakatEligible')}
           tone={totals?.zakatEligible ? 'positive' : 'muted'}
           value={loading ? '…' : (totals?.zakatEligible ? t('dashYes') : t('dashNotYet'))}
         />
         {hasInvestmentPulse && (
           <KpiCard
-            label="Market Today"
+            label={t('dashMarketToday')}
             tone={dayMove >= 0 ? 'positive' : 'negative'}
             value={`${dayMove >= 0 ? '+' : ''}${fmt(dayMove)}`}
             footer={`${(Number(dayMovePct) || 0) >= 0 ? '+' : ''}${(Number(dayMovePct) || 0).toFixed(2)}% · ${fmt(portfolioSummary?.totalValue || 0)}`}
@@ -1240,7 +1270,7 @@ export default function DashboardPage() {
         const todayPct = widgets?.investments?.dayGainLossPercent ?? latestPortfolioSnapshot?.dayGainLossPercent;
         const hasToday = typeof todayAmt === 'number' && typeof todayPct === 'number';
         const marketOpen = widgets?.investments?.marketOpen !== false;
-        const dayLabel = widgets?.investments?.dayLabel ?? 'Today';
+        const dayLabel = widgets?.investments?.dayLabel ?? t('investmentsToday');
         const periodAmt = widgets?.investments?.periodGainLoss;
         const periodPct = widgets?.investments?.periodGainLossPercent;
         const periodDays = widgets?.investments?.periodDays;
@@ -1249,7 +1279,7 @@ export default function DashboardPage() {
           <div className="bg-white rounded-2xl shadow-sm mb-6 overflow-hidden">
             <Link href="/dashboard/investments" className="block p-5 hover:bg-gray-50 transition">
               <p className="text-2xl font-bold text-gray-900 tabular-nums">
-                {fmt(totalValue)} <span className="text-gray-500 font-medium">investments</span>
+                {fmt(totalValue)} <span className="text-gray-500 font-medium">{t('dashInvestmentsSuffix')}</span>
               </p>
               {hasToday && (
                 <p className="mt-1 flex items-center gap-1.5 text-sm">
@@ -1265,7 +1295,7 @@ export default function DashboardPage() {
                   <span className={periodAmt! >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
                     {periodAmt! >= 0 ? '↗' : '↘'} {fmt(Math.abs(periodAmt!))} ({periodPct! >= 0 ? '+' : ''}{periodPct!.toFixed(2)}%)
                   </span>
-                  <span className="text-gray-500">Past {periodDays}d</span>
+                  <span className="text-gray-500">{tFmt('dashPastNDaysFmt', [periodDays!])}</span>
                   <span className="text-gray-400">›</span>
                 </p>
               )}
@@ -1277,13 +1307,13 @@ export default function DashboardPage() {
                 const hasCostBasis = Math.abs(gain) > 0 && Math.abs(pct) > 0.005;
                 return (
                   <p className="mt-1 text-xs text-gray-500">
-                    All-time {gain >= 0 ? '+' : ''}{fmt(gain)}
+                    {tFmt('dashAllTimeFmt', [`${gain >= 0 ? '+' : ''}${fmt(gain)}`])}
                     {hasCostBasis && <> ({pct.toFixed(2)}%)</>}
                   </p>
                 );
               })()}
               {!hasPortfolio && !hasToday && !hasPeriod && (
-                <p className="mt-1 text-xs text-gray-500">Sync banks to refresh today&apos;s prices</p>
+                <p className="mt-1 text-xs text-gray-500">{t('dashSyncBanksRefresh')}</p>
               )}
             </Link>
             {(gainers.length > 0 || losers.length > 0) && (() => {
@@ -1312,7 +1342,7 @@ export default function DashboardPage() {
                   {gainers.length > 0 && (
                     <div className="border-t border-gray-100">
                       <p className="text-xs text-gray-500 px-5 pt-3 pb-2 bg-gray-50">
-                        {allHaveDay && marketOpen ? 'Top movers today' : 'Top movers'}
+                        {allHaveDay && marketOpen ? t('dashTopMoversToday') : t('dashTopMovers')}
                       </p>
                       <ul>{gainers.map(moverRow)}</ul>
                     </div>
@@ -1320,7 +1350,7 @@ export default function DashboardPage() {
                   {losers.length > 0 && (
                     <div className="border-t border-gray-100">
                       <p className="text-xs text-gray-500 px-5 pt-3 pb-2 bg-gray-50">
-                        {allHaveDay && marketOpen ? 'Low movers today' : 'Low movers'}
+                        {allHaveDay && marketOpen ? t('dashLowMoversToday') : t('dashLowMovers')}
                       </p>
                       <ul>{losers.map(moverRow)}</ul>
                     </div>
@@ -1334,7 +1364,7 @@ export default function DashboardPage() {
 
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          More details
+          {t('dashMoreDetails')}
         </h2>
         <button
           type="button"
@@ -1343,7 +1373,7 @@ export default function DashboardPage() {
           aria-controls="dashboard-more-details"
           className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
         >
-          {moreDetailsOpen ? 'Hide' : 'Show'}
+          {moreDetailsOpen ? t('zktHide') : t('zktShow')}
           <span aria-hidden="true" className={`transition-transform inline-block ${moreDetailsOpen ? 'rotate-180' : ''}`}>▾</span>
         </button>
       </div>
@@ -1358,7 +1388,7 @@ export default function DashboardPage() {
       <div className="space-y-5">
 
       {/* ── Spending + Budget ──────────────────────────────────────────────── */}
-      <div role="region" aria-label="Spending and budget overview" className="stagger-fade grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div role="region" aria-label={t('dashAriaSpendingBudgetRegion')} className="stagger-fade grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Spending Summary
             Phase 2.4 (2026-04-27): card now opens <SpendingDrillDown> on
             click. Whole card is the click target (button) so the user
@@ -1368,8 +1398,8 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={() => setSpendingDrillOpen(true)}
-          className="bg-card rounded-2xl p-5 border border-border overflow-hidden text-left w-full hover:shadow-md hover:border-primary/20 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label="Open spending breakdown for this month"
+          className="bg-card rounded-2xl p-5 border border-border overflow-hidden text-start w-full hover:shadow-md hover:border-primary/20 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label={t('dashAriaOpenSpendingBreakdown')}
           // R43 (2026-05-01): viewTransitionName makes this card the
           // source of a hero morph into /dashboard/summary's KPI grid
           // when the user clicks "Open full monthly summary" inside
@@ -1403,7 +1433,7 @@ export default function DashboardPage() {
                 return (
                   <div key={cat.category} className="flex items-center gap-2 min-w-0">
                     <CategoryIcon category={cat.category} className="w-4 h-4 flex-shrink-0" />
-                    <span className="text-xs text-gray-700 w-16 md:w-24 truncate capitalize flex-shrink-0">{cat.category.replace(/_/g, ' ')}</span>
+                    <span className="text-xs text-gray-700 w-16 md:w-24 truncate capitalize flex-shrink-0">{categoryLabel(cat.category)}</span>
                     <div className="flex-1 bg-gray-100 rounded-full h-2 min-w-0">
                       <div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${Math.min((cat.amount / max) * 100, 100)}%` }} />
                     </div>
@@ -1414,7 +1444,7 @@ export default function DashboardPage() {
             </div>
           )}
           {(!widgets?.spending || widgets.spending.thisMonth === 0) && !widgetsLoading && (
-            <p className="text-gray-400 text-sm mt-2">No spending recorded yet this month.</p>
+            <p className="text-gray-400 text-sm mt-2">{t('dashNoSpendingYet')}</p>
           )}
           <span className="inline-block mt-3 text-sm font-medium text-primary">
             {t('dashSeeBreakdown')}
@@ -1455,7 +1485,7 @@ export default function DashboardPage() {
               {widgets.budgetOverview.categories.slice(0, 4).map((cat) => (
                 <div key={cat.category}>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-gray-700 capitalize">{cat.category.replace(/_/g, ' ')}</span>
+                    <span className="text-gray-700 capitalize">{categoryLabel(cat.category)}</span>
                     <span className="text-gray-500">{fmt(cat.spent)} / {fmt(cat.monthlyLimit)}</span>
                   </div>
                   <div className="bg-gray-100 rounded-full h-2.5">
@@ -1477,7 +1507,7 @@ export default function DashboardPage() {
           )}
           {widgets?.budgetOverview?.categories && widgets.budgetOverview.categories.length > 0 && (
             <HeroLink href="/dashboard/budget" className="inline-block mt-3 text-sm font-medium text-primary hover:underline">
-              Manage budgets →
+              {t('dashManageBudgets')}
             </HeroLink>
           )}
         </div>
@@ -1486,25 +1516,25 @@ export default function DashboardPage() {
       {/* ── Safe to Spend ──────────────────────────────────────────────── */}
       {safeToSpend && (
         <div className="bg-card rounded-2xl p-5 border border-border mb-6">
-          <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Safe to Spend</p>
+          <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{t('dashSafeToSpend')}</p>
           <p className={`text-3xl font-bold ${safeToSpend.safeToSpend > 0 ? 'text-green-600' : 'text-red-600'}`}>
             {fmt(safeToSpend.safeToSpend)}
           </p>
           {safeToSpend.safeToSpend > 0 ? (
             <p className="text-sm text-gray-500 mt-1">
-              {fmt(safeToSpend.dailySafeToSpend ?? (safeToSpend.daysRemainingInMonth > 0 ? safeToSpend.safeToSpend / safeToSpend.daysRemainingInMonth : 0))} per day for {safeToSpend.daysRemainingInMonth} days remaining
+              {tFmt('dashPerDayForDaysFmt', [fmt(safeToSpend.dailySafeToSpend ?? (safeToSpend.daysRemainingInMonth > 0 ? safeToSpend.safeToSpend / safeToSpend.daysRemainingInMonth : 0)), safeToSpend.daysRemainingInMonth])}
             </p>
           ) : safeToSpend.totalIncome <= 0 && safeToSpend.totalSpent <= 0 && safeToSpend.totalBillsDue <= 0 ? (
             <p className="text-sm text-gray-500 mt-1">{t('dashSafeToSpendEmpty')}</p>
           ) : (
-            <p className="text-sm text-red-500 mt-1 font-medium">You&apos;ve exceeded your budget this month</p>
+            <p className="text-sm text-red-500 mt-1 font-medium">{t('dashBudgetExceededMonth')}</p>
           )}
           <div className="flex items-center gap-2 text-xs text-gray-400 mt-3 flex-wrap">
-            <span>{fmt(safeToSpend.totalIncome)} income</span>
+            <span>{tFmt('dashStsIncomeFmt', [fmt(safeToSpend.totalIncome)])}</span>
             <span>-</span>
-            <span>{fmt(safeToSpend.totalBillsDue)} bills</span>
+            <span>{tFmt('dashStsBillsFmt', [fmt(safeToSpend.totalBillsDue)])}</span>
             <span>-</span>
-            <span>{fmt(safeToSpend.totalSpent)} spent</span>
+            <span>{tFmt('dashStsSpentFmt', [fmt(safeToSpend.totalSpent)])}</span>
             <span>=</span>
             <span className={`font-semibold ${safeToSpend.safeToSpend > 0 ? 'text-green-600' : 'text-red-600'}`}>
               {fmt(safeToSpend.safeToSpend)}
@@ -1518,7 +1548,7 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl p-4 border border-gray-100">
           <div className="flex items-center justify-between mb-1">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Net Worth — 90 Days</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">{t('dashNetWorth90d')}</p>
               <div className="flex items-baseline gap-2 mt-1">
                 <p className="text-xl font-bold text-gray-900">
                   {hideNetWorth ? '••••••' : fmt(widgets.netWorthMini.currentNetWorth)}
@@ -1537,7 +1567,7 @@ export default function DashboardPage() {
                 })()}
               </div>
             </div>
-            <Link href="/dashboard/net-worth" className="text-xs text-primary font-medium hover:underline">Details →</Link>
+            <Link href="/dashboard/net-worth" className="text-xs text-primary font-medium hover:underline">{t('dashDetailsArrow')}</Link>
           </div>
           {!hideNetWorth && (
             <div className="h-32 mt-1">
@@ -1554,7 +1584,7 @@ export default function DashboardPage() {
                   </defs>
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
                   <YAxis hide domain={['dataMin', 'dataMax']} />
-                  <Tooltip formatter={(value) => [fmt(Number(value)), 'Net Worth']} labelStyle={{ fontSize: 11 }} />
+                  <Tooltip formatter={(value) => [fmt(Number(value)), t('netWorthChartTooltip')]} labelStyle={{ fontSize: 11 }} />
                   <Area type="monotone" dataKey="netWorth" stroke="#1B5E20" strokeWidth={2} fill="url(#nwGradientLeft)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -1589,7 +1619,7 @@ export default function DashboardPage() {
                     <CategoryIcon category={txn.category} className="w-5 h-5 flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{txn.merchantName || txn.description}</p>
-                      <p className="text-xs text-gray-400 capitalize">{txn.category?.replace(/_/g, ' ')} &middot; {timeAgo(txn.timestamp)}</p>
+                      <p className="text-xs text-gray-400 capitalize">{categoryLabel(txn.category)} &middot; {timeAgo(txn.timestamp)}</p>
                     </div>
                   </div>
                   <span className={`text-sm font-semibold flex-shrink-0 ml-2 ${txn.type === 'income' ? 'text-green-600' : 'text-gray-900'}`}>
@@ -1620,7 +1650,7 @@ export default function DashboardPage() {
               <p className="text-xs text-gray-500 uppercase tracking-wide">{t('upcomingBills')}</p>
               {widgets?.upcomingBills && (widgets.upcomingBills.totalMonthlyBills || 0) > 0 && (
                 <p className="text-sm text-gray-600 mt-0.5">
-                  {fmt(widgets.upcomingBills.totalMonthlyBills)} /month
+                  {fmt(widgets.upcomingBills.totalMonthlyBills)} {t('profPerMonth')}
                 </p>
               )}
             </div>
@@ -1632,12 +1662,12 @@ export default function DashboardPage() {
                 <div key={bill.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50">
                   <div>
                     <p className="text-sm font-medium text-gray-900">{bill.name}</p>
-                    <p className="text-xs text-gray-400 capitalize">{bill.category?.replace(/_/g, ' ')} &middot; {bill.frequency}</p>
+                    <p className="text-xs text-gray-400 capitalize">{categoryLabel(bill.category)} &middot; {billFrequencyLabel(bill.frequency)}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-sm font-semibold text-gray-900">{fmt(bill.amount)}</p>
                     <p className={`text-xs font-medium ${bill.overdue ? 'text-red-600' : bill.dueInDays <= 3 ? 'text-amber-600' : 'text-gray-400'}`}>
-                      {bill.overdue ? 'Overdue' : bill.dueInDays === 0 ? 'Due today' : bill.dueInDays === 1 ? 'Tomorrow' : `in ${bill.dueInDays}d`}
+                      {bill.overdue ? t('billsOverdueLabel') : bill.dueInDays === 0 ? t('dashBillDueToday') : bill.dueInDays === 1 ? t('dashEventTomorrow') : tFmt('dashBillInDaysShortFmt', [bill.dueInDays])}
                     </p>
                   </div>
                 </div>
@@ -1653,7 +1683,7 @@ export default function DashboardPage() {
           )}
           {widgets?.upcomingBills && (widgets.upcomingBills.overdueCount || 0) > 0 && (
             <div className="mt-2 bg-red-50 text-red-700 text-xs font-medium px-3 py-1.5 rounded-lg">
-              {widgets.upcomingBills.overdueCount} bill{widgets.upcomingBills.overdueCount !== 1 ? 's' : ''} overdue
+              {tFmt(widgets.upcomingBills.overdueCount === 1 ? 'dashBillsOverdueOneFmt' : 'dashBillsOverdueManyFmt', [widgets.upcomingBills.overdueCount])}
             </div>
           )}
         </div>
@@ -1672,9 +1702,9 @@ export default function DashboardPage() {
             <div className="bg-card rounded-2xl p-5 border border-border">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Recurring</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">{t('recurringTitle')}</p>
                   <p className="text-base font-bold text-foreground mt-0.5">
-                    {fmt(recurringSummary.income + recurringSummary.expense)} <span className="text-xs text-gray-500 font-normal">/month</span>
+                    {fmt(recurringSummary.income + recurringSummary.expense)} <span className="text-xs text-gray-500 font-normal">{t('profPerMonth')}</span>
                   </p>
                 </div>
                 <Link href="/dashboard/recurring" className="text-sm text-primary font-medium hover:underline">{t('dashViewAll')}</Link>
@@ -1683,20 +1713,20 @@ export default function DashboardPage() {
                 <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900 p-3">
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-600" aria-hidden="true" />
-                    <p className="text-[11px] uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-semibold">Income</p>
+                    <p className="text-[11px] uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-semibold">{t('recurringPillarIncome')}</p>
                   </div>
                   <p className="text-base font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">{fmt(recurringSummary.income)}</p>
                 </div>
                 <div className="rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900 p-3">
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="w-2 h-2 rounded-full bg-rose-600" aria-hidden="true" />
-                    <p className="text-[11px] uppercase tracking-wide text-rose-700 dark:text-rose-400 font-semibold">Expenses</p>
+                    <p className="text-[11px] uppercase tracking-wide text-rose-700 dark:text-rose-400 font-semibold">{t('recurringPillarExpenses')}</p>
                   </div>
                   <p className="text-base font-bold text-rose-700 dark:text-rose-300 tabular-nums">{fmt(recurringSummary.expense)}</p>
                 </div>
               </div>
               <p className="text-[11px] text-gray-400 mt-2">
-                {recurringSummary.count} active recurring transaction{recurringSummary.count === 1 ? '' : 's'}
+                {tFmt(recurringSummary.count === 1 ? 'dashActiveRecurringOneFmt' : 'dashActiveRecurringManyFmt', [recurringSummary.count])}
               </p>
             </div>
           )}
@@ -1738,14 +1768,14 @@ export default function DashboardPage() {
       {user?.plan === 'free' && (
         <div className="bg-gradient-to-r from-[#1B5E20] to-green-600 rounded-xl p-4 flex items-center justify-between gap-4">
           <div className="text-white min-w-0">
-            <p className="font-bold text-sm sm:text-base">🌙 Unlock Barakah Plus — from {PRICING.plus.monthly}/mo</p>
-            <p className="text-green-200 text-xs mt-0.5">Unlimited transactions · Bank sync · Halal screener · Zakat autopilot</p>
+            <p className="font-bold text-sm sm:text-base">🌙 {tFmt('dashUnlockPlusFmt', [PRICING.plus.monthly])}</p>
+            <p className="text-green-200 text-xs mt-0.5">{t('dashUnlockPlusFeatures')}</p>
           </div>
           <Link
             href="/dashboard/billing"
             className="bg-white text-primary px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-50 transition flex-shrink-0"
           >
-            Upgrade
+            {t('upgrade')}
           </Link>
         </div>
       )}
@@ -1768,38 +1798,39 @@ export default function DashboardPage() {
           {/* Feature teaser cards */}
           <div className="grid md:grid-cols-3 gap-4">
             <Link href="/dashboard/barakah-score" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
-              <div className="absolute top-3 right-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
+              {/* "Plus" badge stays Latin — plan names are brand terms in all locales (see billing page). */}
+              <div className="absolute top-3 end-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
               <div className="text-2xl mb-2">📊</div>
-              <h4 className="font-semibold text-gray-900 group-hover:text-primary">Financial Insights</h4>
-              <p className="text-xs text-gray-500 mt-1">Barakah Score, spending trends, and halal ratio — see your full picture.</p>
+              <h4 className="font-semibold text-gray-900 group-hover:text-primary">{t('dashTeaserInsightsTitle')}</h4>
+              <p className="text-xs text-gray-500 mt-1">{t('dashTeaserInsightsBody')}</p>
             </Link>
 
             <Link href="/dashboard/halal" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
-              <div className="absolute top-3 right-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
+              <div className="absolute top-3 end-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
               <div className="text-2xl mb-2">🔍</div>
-              <h4 className="font-semibold text-gray-900 group-hover:text-primary">Halal Finance Check</h4>
-              <p className="text-xs text-gray-500 mt-1">Screen 30,000+ stocks and detect interest in your accounts.</p>
+              <h4 className="font-semibold text-gray-900 group-hover:text-primary">{t('dashTeaserHalalTitle')}</h4>
+              <p className="text-xs text-gray-500 mt-1">{t('dashTeaserHalalBody')}</p>
             </Link>
 
             <Link href="/dashboard/net-worth" className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition group relative overflow-hidden">
-              <div className="absolute top-3 right-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
+              <div className="absolute top-3 end-3 bg-green-100 text-primary text-xs font-bold px-2 py-0.5 rounded-full">Plus</div>
               <div className="text-2xl mb-2">📈</div>
-              <h4 className="font-semibold text-gray-900 group-hover:text-primary">Net Worth Tracking</h4>
-              <p className="text-xs text-gray-500 mt-1">Assets minus debts, tracked over time with trend analysis.</p>
+              <h4 className="font-semibold text-gray-900 group-hover:text-primary">{t('dashTeaserNetWorthTitle')}</h4>
+              <p className="text-xs text-gray-500 mt-1">{t('dashTeaserNetWorthBody')}</p>
             </Link>
           </div>
 
           {/* Bottom CTA */}
           <div className="bg-gradient-to-r from-[#1B5E20] to-green-600 rounded-xl p-5 flex items-center justify-between">
             <div className="text-white">
-              <p className="font-bold text-lg">Barakah Plus — from {PRICING.plus.monthly}/mo</p>
-              <p className="text-green-200 text-sm">Unlimited transactions + 11 premium features</p>
+              <p className="font-bold text-lg">{tFmt('dashPlusCtaTitleFmt', [PRICING.plus.monthly])}</p>
+              <p className="text-green-200 text-sm">{t('dashPlusCtaBody')}</p>
             </div>
             <Link
               href="/dashboard/billing"
               className="bg-white text-primary px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-green-50 transition flex-shrink-0"
             >
-              View Plans
+              {t('halalViewPlans')}
             </Link>
           </div>
         </div>

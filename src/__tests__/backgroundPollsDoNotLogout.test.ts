@@ -239,4 +239,24 @@ describe('background-poll API helpers do not force-logout on 401', () => {
       expect(logoutSpy).not.toHaveBeenCalled();
     });
   }
+
+  // 2026-06-11 (principal sweep): four more mount-fired calls found without
+  // the flag — family page (getFamily), HouseholdSection + faraid prefill
+  // (getHousehold), and the audit-ledger page (getFinancialLedger /
+  // getLedgerByType). Same contract as above.
+  const sweepRound2MountFiredCalls: Array<[string, () => Promise<unknown>]> = [
+    ['getFamily',          () => import('../lib/api').then(({api}) => api.getFamily())],
+    ['getHousehold',       () => import('../lib/api').then(({api}) => api.getHousehold())],
+    ['getFinancialLedger', () => import('../lib/api').then(({api}) => api.getFinancialLedger())],
+    ['getLedgerByType',    () => import('../lib/api').then(({api}) => api.getLedgerByType('zakat'))],
+  ];
+
+  for (const [name, call] of sweepRound2MountFiredCalls) {
+    it(`${name} — no global logout on 401 (sweep 2026-06-11 mount-fired)`, async () => {
+      await expect(call()).rejects.toThrow(
+        /session has expired|API error|Network|connection/,
+      );
+      expect(logoutSpy).not.toHaveBeenCalled();
+    });
+  }
 });

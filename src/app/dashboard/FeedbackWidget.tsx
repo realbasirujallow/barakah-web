@@ -6,17 +6,22 @@ import { useI18n } from '../../lib/i18n';
 
 type Status = 'idle' | 'open' | 'sending' | 'sent' | 'error';
 
-const TOPICS = [
-  'Feature request',
-  'Bug report',
-  'Billing question',
-  'General feedback',
-  'Islamic finance question',
-  'Other',
+// 2026-06-11 (i18n bug cluster): topic labels are now localized, but the
+// VALUE submitted to /api/contact stays English so founder-side triage /
+// email filters keep working regardless of the sender's UI language.
+const TOPICS: Array<{ value: string; labelKey: string }> = [
+  { value: 'Feature request',          labelKey: 'fbwTopicFeature' },
+  { value: 'Bug report',               labelKey: 'fbwTopicBug' },
+  { value: 'Billing question',         labelKey: 'fbwTopicBilling' },
+  { value: 'General feedback',         labelKey: 'fbwTopicGeneral' },
+  { value: 'Islamic finance question', labelKey: 'fbwTopicIslamic' },
+  { value: 'Other',                    labelKey: 'wasRelOther' },
 ];
 
 export function FeedbackWidget() {
   // 2026-05-19 Round 9: localize the floating-button label.
+  // 2026-06-11: the panel itself (header, labels, placeholder, submit,
+  // thanks state) was still hardcoded English — localized now.
   const { t } = useI18n();
   const [status, setStatus] = useState<Status>('idle');
   const [form, setForm] = useState({ subject: '', message: '' });
@@ -40,11 +45,11 @@ export function FeedbackWidget() {
       if (result?.success) {
         setStatus('sent');
       } else {
-        setErrorMsg(result?.error || 'Something went wrong.');
+        setErrorMsg(result?.error || t('errSomethingWentWrong'));
         setStatus('error');
       }
     } catch {
-      setErrorMsg('Network error. Please try again.');
+      setErrorMsg(t('fbwNetworkError'));
       setStatus('error');
     }
   };
@@ -55,7 +60,7 @@ export function FeedbackWidget() {
       {status === 'idle' && (
         <button
           onClick={open}
-          title="Send feedback"
+          title={t('fbwPanelTitle')}
           className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground text-sm font-semibold px-4 py-2.5 rounded-full shadow-lg hover:bg-primary/90 transition"
         >
           <span>💬</span>
@@ -68,11 +73,11 @@ export function FeedbackWidget() {
         <div className="fixed bottom-6 right-6 z-50 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
           {/* Header */}
           <div className="bg-primary px-4 py-3 flex items-center justify-between">
-            <span className="text-white font-semibold text-sm">Send Feedback</span>
+            <span className="text-white font-semibold text-sm">{t('fbwPanelTitle')}</span>
             <button
               onClick={close}
               className="text-green-200 hover:text-white text-lg leading-none"
-              aria-label="Close"
+              aria-label={t('askBarakahCloseShortLabel')}
             >
               ×
             </button>
@@ -83,13 +88,13 @@ export function FeedbackWidget() {
             {status === 'sent' ? (
               <div className="text-center py-6">
                 <div className="text-4xl mb-3">🙏</div>
-                <p className="font-semibold text-gray-800 text-sm">JazakAllahu Khayran!</p>
-                <p className="text-gray-500 text-xs mt-1">Your feedback helps us improve Barakah for everyone.</p>
+                <p className="font-semibold text-gray-800 text-sm">{t('fbwThanksTitle')}</p>
+                <p className="text-gray-500 text-xs mt-1">{t('fbwThanksBody')}</p>
                 <button
                   onClick={close}
                   className="mt-4 text-xs text-primary underline hover:no-underline"
                 >
-                  Close
+                  {t('askBarakahCloseShortLabel')}
                 </button>
               </div>
             ) : (
@@ -97,7 +102,7 @@ export function FeedbackWidget() {
                 {/* Round 22: label/input association via htmlFor+id.
                     Matches the Round 19 auth-form-labels pattern. */}
                 <div>
-                  <label htmlFor="feedback-subject" className="block text-xs font-semibold text-gray-500 mb-1">Type</label>
+                  <label htmlFor="feedback-subject" className="block text-xs font-semibold text-gray-500 mb-1">{t('txnFieldType')}</label>
                   <select
                     id="feedback-subject"
                     required
@@ -105,18 +110,18 @@ export function FeedbackWidget() {
                     onChange={e => setForm({ ...form, subject: e.target.value })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white"
                   >
-                    <option value="">Select…</option>
-                    {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
+                    <option value="">{t('fbwSelectPlaceholder')}</option>
+                    {TOPICS.map(topic => <option key={topic.value} value={topic.value}>{t(topic.labelKey)}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label htmlFor="feedback-message" className="block text-xs font-semibold text-gray-500 mb-1">Message</label>
+                  <label htmlFor="feedback-message" className="block text-xs font-semibold text-gray-500 mb-1">{t('fbwMessageLabel')}</label>
                   <textarea
                     id="feedback-message"
                     required
                     rows={4}
-                    placeholder="What's on your mind?"
+                    placeholder={t('fbwMessagePlaceholder')}
                     value={form.message}
                     onChange={e => setForm({ ...form, message: e.target.value })}
                     maxLength={2000}
@@ -133,10 +138,10 @@ export function FeedbackWidget() {
                   disabled={status === 'sending'}
                   className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-60"
                 >
-                  {status === 'sending' ? 'Sending…' : 'Submit Feedback'}
+                  {status === 'sending' ? t('familySending') : t('fbwSubmit')}
                 </button>
 
-                <p className="text-center text-xs text-gray-400">We read every message ✉️</p>
+                <p className="text-center text-xs text-gray-400">{t('fbwFooterNote')}</p>
               </form>
             )}
           </div>

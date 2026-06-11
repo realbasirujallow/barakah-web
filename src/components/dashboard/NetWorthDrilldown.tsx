@@ -19,6 +19,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../lib/api';
 import { useCurrency } from '../../lib/useCurrency';
+import { useI18n } from '../../lib/i18n';
 
 interface AssetItem {
   id: number;
@@ -59,6 +60,25 @@ function groupForDebt(t: string): string {
   return 'Other';
 }
 
+// 2026-06-11 (i18n bug cluster): groupForAsset/groupForDebt keep returning
+// stable English identifiers (they double as Map/React keys); display
+// localization happens at render via these maps, reusing the existing
+// netWorthGroup* keys from /dashboard/net-worth. 'Other' diverges per
+// section (Other Assets vs the generic debt 'Other'), hence two maps.
+const ASSET_GROUP_LABEL_KEYS: Record<string, string> = {
+  'Cash': 'netWorthGroupCash',
+  'Investments': 'netWorthGroupInvestments',
+  'Real Estate': 'netWorthGroupRealEstate',
+  'Vehicles': 'netWorthGroupVehicles',
+  'Metals': 'netWorthGroupPreciousMetals',
+  'Other': 'netWorthGroupOtherAssets',
+};
+const DEBT_GROUP_LABEL_KEYS: Record<string, string> = {
+  'Credit Cards': 'netWorthGroupCreditCards',
+  'Loans': 'netWorthGroupLoans',
+  'Other': 'debtTypeOther',
+};
+
 interface NetWorthDrilldownProps {
   /** When false, the panel is collapsed (renders nothing). */
   expanded: boolean;
@@ -67,6 +87,7 @@ interface NetWorthDrilldownProps {
 
 export function NetWorthDrilldown({ expanded, onClose }: NetWorthDrilldownProps) {
   const { fmt } = useCurrency();
+  const { t } = useI18n();
   const [assets, setAssets] = useState<AssetItem[]>([]);
   const [debts, setDebts] = useState<DebtRow[]>([]);
   const [history, setHistory] = useState<HistoryPoint[]>([]);
@@ -144,14 +165,14 @@ export function NetWorthDrilldown({ expanded, onClose }: NetWorthDrilldownProps)
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Net Worth Breakdown</p>
-          <p className="text-base font-semibold text-foreground">Last 1 month</p>
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">{t('nwdTitle')}</p>
+          <p className="text-base font-semibold text-foreground">{t('nwdLastMonth')}</p>
         </div>
         {onClose && (
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close drilldown"
+            aria-label={t('nwdCloseAria')}
             className="text-gray-500 hover:text-gray-800 transition rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100"
           >
             ×
@@ -160,26 +181,26 @@ export function NetWorthDrilldown({ expanded, onClose }: NetWorthDrilldownProps)
       </div>
 
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground text-sm">Loading…</div>
+        <div className="text-center py-8 text-muted-foreground text-sm">{t('loading')}</div>
       ) : (
         <>
           {/* Three-stat row: Assets / Debts / Net Worth with deltas */}
           <div className="grid grid-cols-3 gap-3 mb-5">
-            <DeltaStat label="Assets"    value={totals.totalAssets} delta={totals.dAssets} positiveIsGood fmt={fmt} />
-            <DeltaStat label="Debts"     value={totals.totalDebts}  delta={totals.dDebts}  positiveIsGood={false} fmt={fmt} />
-            <DeltaStat label="Net Worth" value={totals.netWorth}    delta={totals.dNet}    positiveIsGood fmt={fmt} bold />
+            <DeltaStat label={t('assets')}   value={totals.totalAssets} delta={totals.dAssets} positiveIsGood fmt={fmt} />
+            <DeltaStat label={t('debts')}    value={totals.totalDebts}  delta={totals.dDebts}  positiveIsGood={false} fmt={fmt} />
+            <DeltaStat label={t('netWorth')} value={totals.netWorth}    delta={totals.dNet}    positiveIsGood fmt={fmt} bold />
           </div>
 
           {/* Asset breakdown by category */}
           {assetGroups.length > 0 && (
             <div className="mb-5">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-semibold text-foreground">Assets by category</p>
+                <p className="text-sm font-semibold text-foreground">{t('nwdAssetsByCategory')}</p>
                 <Link href="/dashboard/net-worth" className="text-xs text-primary font-semibold hover:underline">
-                  View all →
+                  {t('nwdViewAll')}
                 </Link>
               </div>
-              <BreakdownBars rows={assetGroups} total={totals.totalAssets} barClass="bg-emerald-500" fmt={fmt} />
+              <BreakdownBars rows={assetGroups} total={totals.totalAssets} barClass="bg-emerald-500" fmt={fmt} labelKeys={ASSET_GROUP_LABEL_KEYS} />
             </div>
           )}
 
@@ -187,19 +208,18 @@ export function NetWorthDrilldown({ expanded, onClose }: NetWorthDrilldownProps)
           {debtGroups.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-semibold text-foreground">Debts by category</p>
+                <p className="text-sm font-semibold text-foreground">{t('nwdDebtsByCategory')}</p>
                 <Link href="/dashboard/debts" className="text-xs text-primary font-semibold hover:underline">
-                  View all →
+                  {t('nwdViewAll')}
                 </Link>
               </div>
-              <BreakdownBars rows={debtGroups} total={totals.totalDebts} barClass="bg-rose-500" fmt={fmt} />
+              <BreakdownBars rows={debtGroups} total={totals.totalDebts} barClass="bg-rose-500" fmt={fmt} labelKeys={DEBT_GROUP_LABEL_KEYS} />
             </div>
           )}
 
           {history.length < 2 && (
             <p className="mt-4 text-xs text-muted-foreground italic">
-              Per-asset deltas need at least 2 net-worth snapshots. Take a snapshot
-              on the Net Worth page to start tracking change over time.
+              {t('nwdSnapshotHint')}
             </p>
           )}
         </>
@@ -238,13 +258,16 @@ function DeltaStat({
 }
 
 function BreakdownBars({
-  rows, total, barClass, fmt,
+  rows, total, barClass, fmt, labelKeys,
 }: {
   rows: Array<[string, number]>;
   total: number;
   barClass: string;
   fmt: (n: number) => string;
+  /** Group identifier → i18n key. Unknown groups fall back to the raw id. */
+  labelKeys: Record<string, string>;
 }) {
+  const { t } = useI18n();
   return (
     <ul className="space-y-2">
       {rows.map(([label, value]) => {
@@ -252,10 +275,10 @@ function BreakdownBars({
         return (
           <li key={label}>
             <div className="flex items-center justify-between text-xs mb-1">
-              <span className="text-foreground font-medium">{label}</span>
+              <span className="text-foreground font-medium">{labelKeys[label] ? t(labelKeys[label]) : label}</span>
               <span className="tabular-nums text-foreground">
                 {fmt(value)}
-                <span className="text-muted-foreground ml-1">· {pct.toFixed(0)}%</span>
+                <span className="text-muted-foreground ms-1">· {pct.toFixed(0)}%</span>
               </span>
             </div>
             <div className="bg-gray-200 rounded-full h-1.5">

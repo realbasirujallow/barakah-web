@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { api } from '../../lib/api';
 import { isSafeInternalPath } from '../../lib/safePath';
+import { useI18n } from '../../lib/i18n';
 import Link from 'next/link';
 
 interface Notification {
@@ -26,6 +27,10 @@ const TYPE_ICONS: Record<string, string> = {
 };
 
 export function NotificationBell() {
+  // 2026-06-11 (i18n bug cluster): component was fully hardcoded English —
+  // header, empty state, mark-all-read, relative times, aria-labels — even
+  // though the /dashboard/notifications page it links to was localized.
+  const { t, tFmt } = useI18n();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
@@ -140,9 +145,9 @@ export function NotificationBell() {
     const ms = ts < 1e12 ? ts * 1000 : ts;
     const d = new Date(ms);
     const diff = now - ms;
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
-    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+    if (diff < 60000) return t('halalAgoJustNow');
+    if (diff < 3600000) return tFmt('halalAgoMinFmt', [Math.floor(diff / 60000)]);
+    if (diff < 86400000) return tFmt('halalAgoHrFmt', [Math.floor(diff / 3600000)]);
     // Round 23: undefined locale → browser default. See useCurrency.
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   };
@@ -152,27 +157,31 @@ export function NotificationBell() {
       <button
         onClick={() => setOpen(!open)}
         className="relative p-2 rounded-lg hover:bg-green-50 text-gray-600 hover:text-primary transition"
-        aria-label="Notifications"
+        aria-label={t('navNotifications')}
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <title>Notifications</title>
+          <title>{t('navNotifications')}</title>
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold leading-none">
+          <span className="absolute -top-0.5 -end-0.5 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold leading-none">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
+      {/* 2026-06-11 RTL fix: `right-0` anchored the 20rem dropdown to the
+          bell's physical right edge, so under dir="rtl" (ar/ur) it extended
+          off-viewport. `end-0` is the logical equivalent — right in LTR,
+          left in RTL. */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-700 z-50 overflow-hidden">
+        <div className="absolute end-0 top-full mt-2 w-80 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-700 z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-neutral-700">
-            <p className="font-semibold text-gray-800 dark:text-neutral-100 text-sm">Notifications</p>
+            <p className="font-semibold text-gray-800 dark:text-neutral-100 text-sm">{t('navNotifications')}</p>
             {unreadCount > 0 && (
               <button onClick={markAllRead} className="text-xs text-primary hover:underline font-medium">
-                Mark all read
+                {t('notificationsMarkAllRead')}
               </button>
             )}
           </div>
@@ -187,7 +196,7 @@ export function NotificationBell() {
             {!loading && notifications.length === 0 && (
               <div className="text-center py-10 text-gray-400">
                 <p className="text-2xl mb-2">🔔</p>
-                <p className="text-sm">No notifications yet</p>
+                <p className="text-sm">{t('notifBellEmpty')}</p>
               </div>
             )}
 
@@ -211,7 +220,9 @@ export function NotificationBell() {
               // (button inside button/a) and non-keyboard-focusable
               // on the no-link fallback.
               const rowClass = `flex gap-3 border-b border-gray-50 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 transition group relative ${!n.read ? 'bg-green-50/40 dark:bg-emerald-900/20' : ''}`;
-              const activationClass = 'flex flex-1 gap-3 px-4 py-3 pr-8 cursor-pointer text-left';
+              // Logical utilities (pe-8 / text-start) so the delete-✕ gutter
+              // and text alignment flip correctly under dir="rtl".
+              const activationClass = 'flex flex-1 gap-3 px-4 py-3 pe-8 cursor-pointer text-start';
 
               const activation = isSafeInternalPath(n.link) ? (
                 <Link
@@ -237,8 +248,8 @@ export function NotificationBell() {
                   <button
                     type="button"
                     onClick={(e) => deleteOne(n.id, e)}
-                    aria-label="Delete notification"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 focus:opacity-100 text-gray-300 hover:text-red-400 transition text-xs p-0.5"
+                    aria-label={t('notificationsDeleteAria')}
+                    className="absolute top-2 end-2 opacity-0 group-hover:opacity-100 focus:opacity-100 text-gray-300 hover:text-red-400 transition text-xs p-0.5"
                   >✕</button>
                 </div>
               );
@@ -250,7 +261,7 @@ export function NotificationBell() {
             className="block text-center py-3 text-xs text-primary dark:text-emerald-400 font-medium hover:bg-green-50 dark:hover:bg-emerald-900/20 transition border-t border-gray-100 dark:border-neutral-700"
             onClick={() => setOpen(false)}
           >
-            View all notifications →
+            {t('notifViewAll')}
           </Link>
         </div>
       )}

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n';
 
 /**
  * Phase 6.2 (Apr 27 2026) — period picker for KPI rows.
@@ -38,10 +39,13 @@ export function PeriodPicker({
   options = DEFAULT_OPTIONS,
   className,
 }: PeriodPickerProps) {
+  // 2026-06-11 (i18n bug cluster): localized tablist label. The option
+  // labels themselves (30D / 90D / YTD / 1Y) are locale-neutral period codes.
+  const { t } = useI18n();
   return (
     <div
       role="tablist"
-      aria-label="Select reporting period"
+      aria-label={t('dashPeriodPickerAria')}
       className={cn(
         'inline-flex items-center gap-0.5 rounded-md border border-border bg-card p-0.5',
         className,

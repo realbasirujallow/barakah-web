@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth, hasAccess } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { useToast } from '../lib/toast';
+import { useI18n } from '../lib/i18n';
 import { validateStripeUrl } from '../lib/validateUrl';
 
 interface UsageData {
@@ -53,6 +54,8 @@ export function TransactionUsageMeter() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  // 2026-06-11 (i18n bug cluster): meter copy was hardcoded English.
+  const { t, tFmt } = useI18n();
   const [usage, setUsage] = useState<UsageData | null>(null);
   const now = useSyncExternalStore(subscribeMinute, getNowClient, getNowServer);
 
@@ -84,7 +87,7 @@ export function TransactionUsageMeter() {
       if (result?.url) {
         // Validate URL before redirecting — only allow HTTPS Stripe URLs
         if (!validateStripeUrl(result.url)) {
-          toast('Invalid checkout URL.', 'error');
+          toast(t('sadaqahCheckoutError'), 'error');
           return;
         }
         window.location.href = result.url;
@@ -99,21 +102,20 @@ export function TransactionUsageMeter() {
     return (
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold text-amber-800">Monthly limit reached</span>
-          <span className="text-xs text-amber-600">Resets in {daysUntilReset} days</span>
+          <span className="text-sm font-semibold text-amber-800">{t('tumLimitReached')}</span>
+          <span className="text-xs text-amber-600">{tFmt('tumResetsInFmt', [daysUntilReset])}</span>
         </div>
         <div className="w-full bg-amber-200 rounded-full h-2 mb-3">
           <div className="bg-amber-600 h-2 rounded-full" style={{ width: '100%' }} />
         </div>
         <p className="text-sm text-amber-700 mb-3">
-          You&apos;ve used all {limit} free transactions this month.
-          Upgrade to Plus for unlimited transactions and 11 premium features.
+          {tFmt('tumUsedAllFmt', [limit])}
         </p>
         <button
           onClick={handleUpgrade}
           className="w-full bg-[#1B5E20] hover:bg-[#2E7D32] text-white py-2 px-4 rounded-lg text-sm font-semibold transition"
         >
-          Upgrade to Plus — Unlimited Transactions
+          {t('tumUpgradeCta')}
         </button>
       </div>
     );
@@ -125,9 +127,9 @@ export function TransactionUsageMeter() {
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-amber-800">
-            {remaining} transaction{remaining !== 1 ? 's' : ''} remaining
+            {tFmt(remaining === 1 ? 'tumRemainingOneFmt' : 'tumRemainingManyFmt', [remaining])}
           </span>
-          <span className="text-xs text-amber-600">Resets in {daysUntilReset} days</span>
+          <span className="text-xs text-amber-600">{tFmt('tumResetsInFmt', [daysUntilReset])}</span>
         </div>
         <div className="w-full bg-amber-200 rounded-full h-2 mb-2">
           <div
@@ -137,13 +139,13 @@ export function TransactionUsageMeter() {
         </div>
         <div className="flex items-center justify-between">
           <span className="text-xs text-amber-600">
-            {used} of {limit} used this month
+            {tFmt('tumUsedOfFmt', [used, limit])}
           </span>
           <button
             onClick={handleUpgrade}
             className="text-xs font-semibold text-[#1B5E20] hover:underline"
           >
-            Go unlimited →
+            {t('tumGoUnlimited')}
           </button>
         </div>
       </div>
@@ -155,9 +157,9 @@ export function TransactionUsageMeter() {
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-4">
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-xs text-gray-500">
-          {used} of {limit} transactions this month
+          {tFmt('tumUsageFmt', [used, limit])}
         </span>
-        <span className="text-xs text-gray-400">Resets in {daysUntilReset} days</span>
+        <span className="text-xs text-gray-400">{tFmt('tumResetsInFmt', [daysUntilReset])}</span>
       </div>
       <div className="w-full bg-gray-200 rounded-full h-1.5">
         <div

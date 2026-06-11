@@ -24,6 +24,11 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../lib/api';
 import { useCurrency } from '../../lib/useCurrency';
+// 2026-06-11 (i18n bug cluster): panel copy was hardcoded English. Reuses
+// the cashFlow* keys (this panel mirrors /dashboard/cash-flow) plus new
+// imb* keys. `t as tStandalone` is for non-hook contexts (catch handlers),
+// same pattern as transactions/page.tsx.
+import { useI18n, t as tStandalone } from '../../lib/i18n';
 
 type BreakdownRow = {
   key: string;
@@ -92,6 +97,7 @@ interface InlineMonthBreakdownProps {
 
 export function InlineMonthBreakdown({ month, onClose }: InlineMonthBreakdownProps) {
   const { fmt } = useCurrency();
+  const { t } = useI18n();
   const [data, setData] = useState<BreakdownResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -115,7 +121,7 @@ export function InlineMonthBreakdown({ month, onClose }: InlineMonthBreakdownPro
       })
       .catch((e: unknown) => {
         if (cancelled) return;
-        setError(e instanceof Error ? e.message : 'Failed to load breakdown');
+        setError(e instanceof Error ? e.message : tStandalone('imbLoadError'));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -174,7 +180,7 @@ export function InlineMonthBreakdown({ month, onClose }: InlineMonthBreakdownPro
       })
       .catch((e: unknown) => {
         if (cancelled) return;
-        setCategoryError(e instanceof Error ? e.message : 'Failed to load transactions');
+        setCategoryError(e instanceof Error ? e.message : tStandalone('txnLoadFailed'));
       })
       .finally(() => {
         if (!cancelled) setCategoryLoading(false);
@@ -193,10 +199,10 @@ export function InlineMonthBreakdown({ month, onClose }: InlineMonthBreakdownPro
   const savingsRate = income > 0 ? Math.round((savings / income) * 100) : 0;
 
   const sections = useMemo(() => ([
-    { title: 'Income',           tone: 'income',   rows: data?.income ?? [],       total: totals.income ?? 0 },
-    { title: 'Expenses',         tone: 'expense',  rows: data?.expenses ?? [],     total: totals.expenses ?? 0 },
-    { title: 'Sadaqah / Zakat',  tone: 'sadaqah',  rows: data?.sadaqahZakat ?? [], total: totals.sadaqahZakat ?? 0 },
-  ]), [data, totals.income, totals.expenses, totals.sadaqahZakat]);
+    { title: t('cashFlowIncome'),       tone: 'income',   rows: data?.income ?? [],       total: totals.income ?? 0 },
+    { title: t('cashFlowExpenses'),     tone: 'expense',  rows: data?.expenses ?? [],     total: totals.expenses ?? 0 },
+    { title: t('cashFlowSadaqahZakat'), tone: 'sadaqah',  rows: data?.sadaqahZakat ?? [], total: totals.sadaqahZakat ?? 0 },
+  ]), [data, totals.income, totals.expenses, totals.sadaqahZakat, t]);
 
   if (!month) return null;
 
@@ -205,14 +211,14 @@ export function InlineMonthBreakdown({ month, onClose }: InlineMonthBreakdownPro
       {/* Header — month + close button */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Selected Period</p>
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">{t('cashFlowSelectedPeriod')}</p>
           <p className="text-xl font-bold text-foreground">{monthLong(month)}</p>
         </div>
         {onClose && (
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close breakdown"
+            aria-label={t('imbCloseAria')}
             className="text-gray-500 hover:text-gray-800 transition rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100"
           >
             ×
@@ -222,7 +228,7 @@ export function InlineMonthBreakdown({ month, onClose }: InlineMonthBreakdownPro
 
       {loading && (
         <div className="text-center py-12 text-muted-foreground text-sm">
-          Loading breakdown…
+          {t('cashFlowLoadingBreakdown')}
         </div>
       )}
 
@@ -236,10 +242,10 @@ export function InlineMonthBreakdown({ month, onClose }: InlineMonthBreakdownPro
         <>
           {/* 4-stat KPI strip — Income / Expenses / Savings / Savings Rate */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-            <Stat label="Income"        value={fmt(income)}     dotClass="bg-emerald-600" valueClass="text-emerald-700" />
-            <Stat label="Expenses"      value={fmt(expenses)}   dotClass="bg-rose-600"    valueClass="text-rose-700" />
-            <Stat label="Total savings" value={fmt(savings)}    dotClass="bg-slate-700"   valueClass="text-foreground" />
-            <Stat label="Savings rate"  value={`${savingsRate}%`} dotClass="bg-amber-500" valueClass={savingsRate >= 20 ? 'text-emerald-700' : 'text-foreground'} />
+            <Stat label={t('cashFlowIncome')}       value={fmt(income)}     dotClass="bg-emerald-600" valueClass="text-emerald-700" />
+            <Stat label={t('cashFlowExpenses')}     value={fmt(expenses)}   dotClass="bg-rose-600"    valueClass="text-rose-700" />
+            <Stat label={t('cashFlowTotalSavings')} value={fmt(savings)}    dotClass="bg-slate-700"   valueClass="text-foreground" />
+            <Stat label={t('cashFlowSavingsRate')}  value={`${savingsRate}%`} dotClass="bg-amber-500" valueClass={savingsRate >= 20 ? 'text-emerald-700' : 'text-foreground'} />
           </div>
 
           {selectedCategory ? (
@@ -281,7 +287,7 @@ export function InlineMonthBreakdown({ month, onClose }: InlineMonthBreakdownPro
               href={`/dashboard/cash-flow?month=${month}`}
               className="text-sm text-primary font-semibold hover:underline"
             >
-              View full Cash Flow →
+              {t('imbViewFullCashFlow')}
             </Link>
           </div>
         </>
@@ -316,6 +322,7 @@ function BreakdownColumn({ title, tone, rows, total, fmt, onSelectCategory }: {
   /** Tap a row to drill down inside this same panel (Monarch parity). */
   onSelectCategory: (row: BreakdownRow) => void;
 }) {
+  const { t, tFmt } = useI18n();
   const colorClass =
     tone === 'income'   ? 'text-emerald-700' :
     tone === 'expense'  ? 'text-rose-700' :
@@ -326,11 +333,15 @@ function BreakdownColumn({ title, tone, rows, total, fmt, onSelectCategory }: {
                           'bg-amber-500';
 
   if (rows.length === 0) {
+    const emptyKey =
+      tone === 'income'  ? 'cashFlowNoIncomeMonth' :
+      tone === 'expense' ? 'cashFlowNoExpensesMonth' :
+                           'cashFlowNoCharityMonth';
     return (
       <div>
         <p className="text-sm font-semibold text-foreground mb-2">{title}</p>
         <p className="text-xs text-muted-foreground italic py-3">
-          No {tone === 'sadaqah' ? 'charity given' : tone} this month.
+          {t(emptyKey)}
         </p>
       </div>
     );
@@ -352,8 +363,8 @@ function BreakdownColumn({ title, tone, rows, total, fmt, onSelectCategory }: {
               <button
                 type="button"
                 onClick={() => onSelectCategory(row)}
-                className="w-full text-left block py-1.5 px-1 hover:bg-accent/40 rounded transition focus:outline-none focus:ring-2 focus:ring-primary/40"
-                aria-label={`Drill into ${(row.label ?? row.key).replace(/_/g, ' ')} transactions`}
+                className="w-full text-start block py-1.5 px-1 hover:bg-accent/40 rounded transition focus:outline-none focus:ring-2 focus:ring-primary/40"
+                aria-label={tFmt('imbDrillAriaFmt', [(row.label ?? row.key).replace(/_/g, ' ')])}
               >
                 <div className="flex items-center justify-between text-xs mb-1">
                   <span className="capitalize text-foreground">{(row.label ?? row.key).replace(/_/g, ' ')}</span>
@@ -388,12 +399,17 @@ function CategoryDrilldown({
   fmt: (n: number) => string;
   onBack: () => void;
 }) {
+  const { t, tFmt } = useI18n();
   const tonePill =
     category.tone === 'income'  ? 'bg-emerald-50 text-emerald-700' :
     category.tone === 'expense' ? 'bg-rose-50 text-rose-700' :
                                   'bg-amber-50 text-amber-700';
   const amountClass =
     category.tone === 'income' ? 'text-emerald-700' : 'text-rose-700';
+  const toneLabel =
+    category.tone === 'income'  ? t('txnBadgeIncome') :
+    category.tone === 'expense' ? t('txnBadgeExpense') :
+                                  t('sadaqah');
 
   return (
     <div>
@@ -402,12 +418,12 @@ function CategoryDrilldown({
           type="button"
           onClick={onBack}
           className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary/40 rounded px-1"
-          aria-label="Back to month breakdown"
+          aria-label={t('imbBackToBreakdown')}
         >
-          ← Back to breakdown
+          {t('imbBackToBreakdown')}
         </button>
         <span className={`text-xs font-medium px-2 py-1 rounded-full capitalize ${tonePill}`}>
-          {category.label.replace(/_/g, ' ')} · {category.tone}
+          {category.label.replace(/_/g, ' ')} · {toneLabel}
         </span>
       </div>
 
@@ -416,13 +432,13 @@ function CategoryDrilldown({
           {category.label.replace(/_/g, ' ')}
         </p>
         <p className="text-sm text-muted-foreground tabular-nums">
-          Total: <span className="font-bold text-foreground">{fmt(category.total)}</span>
+          {t('imbTotalLabel')} <span className="font-bold text-foreground">{fmt(category.total)}</span>
         </p>
       </div>
 
       {loading && (
         <div className="text-center py-8 text-muted-foreground text-sm">
-          Loading transactions…
+          {t('imbLoadingTransactions')}
         </div>
       )}
 
@@ -432,7 +448,7 @@ function CategoryDrilldown({
 
       {!loading && !error && transactions && transactions.length === 0 && (
         <div className="text-center py-8 text-muted-foreground text-sm">
-          No transactions found for this category in {monthLong(month)}.
+          {tFmt('imbNoTransactionsFmt', [monthLong(month)])}
         </div>
       )}
 
@@ -440,11 +456,11 @@ function CategoryDrilldown({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left">
-                <th className="py-2 px-2 text-xs font-medium text-muted-foreground">Date</th>
-                <th className="py-2 px-2 text-xs font-medium text-muted-foreground">Description</th>
-                <th className="py-2 px-2 text-xs font-medium text-muted-foreground">Merchant</th>
-                <th className="py-2 px-2 text-xs font-medium text-muted-foreground text-right">Amount</th>
+              <tr className="border-b border-border text-start">
+                <th className="py-2 px-2 text-xs font-medium text-muted-foreground">{t('ledgerColDate')}</th>
+                <th className="py-2 px-2 text-xs font-medium text-muted-foreground">{t('ledgerColDescription')}</th>
+                <th className="py-2 px-2 text-xs font-medium text-muted-foreground">{t('importColMerchant')}</th>
+                <th className="py-2 px-2 text-xs font-medium text-muted-foreground text-right">{t('ledgerColAmount')}</th>
               </tr>
             </thead>
             <tbody>
@@ -472,7 +488,7 @@ function CategoryDrilldown({
             </tbody>
           </table>
           <p className="mt-2 text-[11px] text-muted-foreground">
-            Showing {transactions.length} transaction{transactions.length === 1 ? '' : 's'} in {monthLong(month)}.
+            {tFmt(transactions.length === 1 ? 'imbShowingOneFmt' : 'imbShowingManyFmt', [transactions.length, monthLong(month)])}
           </p>
         </div>
       )}

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { logError } from '../lib/logError';
 import { useToast } from '../lib/toast';
+import { useI18n } from '../lib/i18n';
 
 /**
  * Household profile section — lives on /dashboard/profile.
@@ -34,13 +35,16 @@ interface HouseholdResponse {
   members: Member[];
 }
 
-const RELATIONSHIPS: { value: string; label: string }[] = [
-  { value: 'spouse', label: 'Spouse' },
-  { value: 'son', label: 'Son' },
-  { value: 'daughter', label: 'Daughter' },
-  { value: 'father', label: 'Father' },
-  { value: 'mother', label: 'Mother' },
-  { value: 'other', label: 'Other dependent' },
+// 2026-06-11 (i18n bug cluster): labels are dictionary keys, resolved via
+// t() at render. The wasRel* keys are reused from the Wasiyyah surface
+// (identical wording); only "Other dependent" needed a household-specific key.
+const RELATIONSHIPS: { value: string; labelKey: string }[] = [
+  { value: 'spouse', labelKey: 'wasRelSpouse' },
+  { value: 'son', labelKey: 'wasRelSon' },
+  { value: 'daughter', labelKey: 'wasRelDaughter' },
+  { value: 'father', labelKey: 'wasRelFather' },
+  { value: 'mother', labelKey: 'wasRelMother' },
+  { value: 'other', labelKey: 'hhRelOtherDependent' },
 ];
 
 function fmtDob(ms: number | null): string {
@@ -56,6 +60,7 @@ function parseDob(iso: string): number | null {
 
 export default function HouseholdSection() {
   const { toast } = useToast();
+  const { t, tFmt } = useI18n();
   const [data, setData] = useState<HouseholdResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -81,11 +86,11 @@ export default function HouseholdSection() {
       setMarital(res.maritalStatus ?? '');
     } catch (err) {
       logError(err, { context: 'Failed to load household' });
-      toast('Could not load your household info.', 'error');
+      toast(t('hhLoadError'), 'error');
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -97,10 +102,10 @@ export default function HouseholdSection() {
         dateOfBirth: parseDob(dob),
         maritalStatus: marital || null,
       });
-      toast('Household info saved', 'success');
+      toast(t('hhSaved'), 'success');
       await load();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not save', 'error');
+      toast(err instanceof Error ? err.message : t('hhSaveError'), 'error');
     } finally {
       setSavingProfile(false);
     }
@@ -116,32 +121,33 @@ export default function HouseholdSection() {
         fullName: newName.trim(),
         dateOfBirth: parseDob(newDob),
       });
-      toast(`${newName.trim()} added`, 'success');
+      toast(tFmt('hhMemberAddedFmt', [newName.trim()]), 'success');
       setNewName('');
       setNewDob('');
       await load();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not add member', 'error');
+      toast(err instanceof Error ? err.message : t('hhAddMemberError'), 'error');
     } finally {
       setAddingMember(false);
     }
   };
 
   const removeMember = async (id: number, name: string) => {
-    if (!confirm(`Remove ${name} from your household? You can always re-add them.`)) return;
+    // Same localized-confirm pattern as /dashboard/family (familyRemoveMemberConfirmFmt).
+    if (!confirm(tFmt('hhRemoveConfirmFmt', [name]))) return;
     try {
       await api.deleteHouseholdMember(id);
-      toast(`${name} removed`, 'success');
+      toast(tFmt('hhMemberRemovedFmt', [name]), 'success');
       await load();
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Could not remove', 'error');
+      toast(err instanceof Error ? err.message : t('hhRemoveError'), 'error');
     }
   };
 
   if (loading) {
     return (
       <div className="bg-white rounded-2xl shadow-sm p-6 text-gray-500 text-sm">
-        Loading household…
+        {t('hhLoading')}
       </div>
     );
   }
@@ -151,10 +157,9 @@ export default function HouseholdSection() {
   return (
     <div className="bg-white rounded-2xl shadow-sm">
       <div className="p-6 border-b border-gray-100">
-        <h2 className="text-lg font-bold text-[#1B5E20]">Household</h2>
+        <h2 className="text-lg font-bold text-[#1B5E20]">{t('hhTitle')}</h2>
         <p className="text-xs text-gray-500 mt-1">
-          Used to auto-fill the Faraid inheritance calculator, suggest Wasiyyah
-          beneficiaries, and apply your madhab&apos;s jewelry zakat rules.
+          {t('hhSubtitle')}
         </p>
       </div>
 
@@ -165,20 +170,20 @@ export default function HouseholdSection() {
             section was missed. Screen readers now announce the label when
             focus lands on the select/input. */}
         <div>
-          <label htmlFor="household-gender" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Gender</label>
+          <label htmlFor="household-gender" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">{t('hhGender')}</label>
           <select
             id="household-gender"
             value={gender}
             onChange={e => setGender(e.target.value)}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
           >
-            <option value="">Prefer not to say</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
+            <option value="">{t('hhPreferNotToSay')}</option>
+            <option value="male">{t('hhMale')}</option>
+            <option value="female">{t('hhFemale')}</option>
           </select>
         </div>
         <div>
-          <label htmlFor="household-dob" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Date of birth</label>
+          <label htmlFor="household-dob" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">{t('hhDob')}</label>
           <input
             id="household-dob"
             type="date"
@@ -188,7 +193,7 @@ export default function HouseholdSection() {
           />
         </div>
         <div>
-          <label htmlFor="household-marital" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Marital status</label>
+          <label htmlFor="household-marital" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">{t('hhMarital')}</label>
           <select
             id="household-marital"
             value={marital}
@@ -196,10 +201,10 @@ export default function HouseholdSection() {
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
           >
             <option value="">—</option>
-            <option value="single">Single</option>
-            <option value="married">Married</option>
-            <option value="divorced">Divorced</option>
-            <option value="widowed">Widowed</option>
+            <option value="single">{t('hhSingle')}</option>
+            <option value="married">{t('hhMarried')}</option>
+            <option value="divorced">{t('hhDivorced')}</option>
+            <option value="widowed">{t('hhWidowed')}</option>
           </select>
         </div>
         <div className="sm:col-span-3 flex justify-end">
@@ -209,37 +214,46 @@ export default function HouseholdSection() {
             disabled={savingProfile}
             className="bg-[#1B5E20] text-white py-2 px-5 rounded-lg font-semibold text-sm hover:bg-[#2E7D32] transition disabled:opacity-60"
           >
-            {savingProfile ? 'Saving…' : 'Save'}
+            {savingProfile ? t('txnSavingEllipsis') : t('save')}
           </button>
         </div>
       </div>
 
       {/* Members list */}
       <div className="p-6 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-[#1B5E20] mb-3">Spouse &amp; dependents</h3>
+        <h3 className="text-sm font-semibold text-[#1B5E20] mb-3">{t('hhMembersHeading')}</h3>
         {members.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">None added yet.</p>
+          <p className="text-sm text-gray-400 italic">{t('hhNoneYet')}</p>
         ) : (
           <ul className="divide-y divide-gray-100">
-            {members.map(m => (
-              <li key={m.id} className="py-3 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{m.fullName}</p>
-                  <p className="text-xs text-gray-500 capitalize">
-                    {m.relationship}
-                    {m.dateOfBirth ? ` · born ${fmtDob(m.dateOfBirth)}` : ''}
-                    {m.gender ? ` · ${m.gender}` : ''}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeMember(m.id, m.fullName)}
-                  className="text-xs text-red-700 border border-red-200 rounded-lg px-3 py-1 hover:bg-red-50 transition flex-shrink-0"
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
+            {members.map(m => {
+              // Localize the backend enum values; fall back to the raw
+              // string for any relationship/gender we don't recognize.
+              const relKey = RELATIONSHIPS.find(r => r.value === m.relationship)?.labelKey;
+              const relLabel = relKey ? t(relKey) : m.relationship;
+              const genderLabel = m.gender === 'male' ? t('hhMale')
+                : m.gender === 'female' ? t('hhFemale')
+                : m.gender;
+              return (
+                <li key={m.id} className="py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{m.fullName}</p>
+                    <p className="text-xs text-gray-500">
+                      {relLabel}
+                      {m.dateOfBirth ? ` · ${tFmt('hhBornFmt', [fmtDob(m.dateOfBirth)])}` : ''}
+                      {genderLabel ? ` · ${genderLabel}` : ''}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeMember(m.id, m.fullName)}
+                    className="text-xs text-red-700 border border-red-200 rounded-lg px-3 py-1 hover:bg-red-50 transition flex-shrink-0"
+                  >
+                    {t('familyRemoveBtn')}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
@@ -250,7 +264,7 @@ export default function HouseholdSection() {
           on every field in this admin-style form. */}
       <form onSubmit={addMember} className="p-6 grid grid-cols-1 sm:grid-cols-[1fr_1.2fr_1fr_auto] gap-3 items-end">
         <div>
-          <label htmlFor="household-new-relationship" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Relationship</label>
+          <label htmlFor="household-new-relationship" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">{t('hhRelationship')}</label>
           <select
             id="household-new-relationship"
             value={newRel}
@@ -258,24 +272,24 @@ export default function HouseholdSection() {
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
           >
             {RELATIONSHIPS.map(r => (
-              <option key={r.value} value={r.value}>{r.label}</option>
+              <option key={r.value} value={r.value}>{t(r.labelKey)}</option>
             ))}
           </select>
         </div>
         <div>
-          <label htmlFor="household-new-name" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Full name</label>
+          <label htmlFor="household-new-name" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">{t('authFullName')}</label>
           <input
             id="household-new-name"
             type="text"
             required
-            placeholder="e.g. Fatima"
+            placeholder={t('hhNamePlaceholder')}
             value={newName}
             onChange={e => setNewName(e.target.value)}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none"
           />
         </div>
         <div>
-          <label htmlFor="household-new-dob" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Date of birth (optional)</label>
+          <label htmlFor="household-new-dob" className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">{t('hhDobOptional')}</label>
           <input
             id="household-new-dob"
             type="date"
@@ -289,7 +303,7 @@ export default function HouseholdSection() {
           disabled={addingMember || !newName.trim()}
           className="bg-[#1B5E20] text-white py-2 px-4 rounded-lg font-semibold text-sm hover:bg-[#2E7D32] transition disabled:opacity-60 whitespace-nowrap"
         >
-          {addingMember ? 'Adding…' : 'Add'}
+          {addingMember ? t('hhAdding') : t('txnAddBtn')}
         </button>
       </form>
     </div>

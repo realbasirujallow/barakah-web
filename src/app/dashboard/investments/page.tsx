@@ -767,6 +767,9 @@ export default function InvestmentsPage() {
                                 </div>
                                 <button
                                   onClick={() => handleDeleteHolding(h.id)}
+                                  // 2026-06-11: icon-only destructive button needed an
+                                  // accessible name; reuses txnDeleteRowAria ("Delete {0}").
+                                  aria-label={tFmt('txnDeleteRowAria', [h.symbol])}
                                   className="text-gray-300 hover:text-red-500 text-sm"
                                 >
                                   ✕

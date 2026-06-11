@@ -1,5 +1,7 @@
 'use client';
 
+import { t } from './i18n';
+
 /**
  * Phase 14 (Apr 30 2026) — last-visited dashboard page tracker.
  *
@@ -79,46 +81,53 @@ export function getLastVisit(): LastVisit | null {
 /** Map a route to its sidebar label. The dashboard layout already
  *  has the canonical labels (post-Phase-10 plain-language pass) — this
  *  is a smaller subset for the surfaces the user is most likely to
- *  return to. Falls back to the prettified route if not in the table. */
-const ROUTE_TO_LABEL: Record<string, string> = {
-  '/dashboard/transactions': 'Transactions',
-  '/dashboard/budget': 'Budget',
-  '/dashboard/recurring': 'Recurring',
-  '/dashboard/zakat': 'Zakat',
-  '/dashboard/hawl': 'Zakat Anniversary',
-  '/dashboard/sadaqah': 'Sadaqah',
-  '/dashboard/savings': 'Savings Goals',
-  '/dashboard/debts': 'Debts',
-  '/dashboard/bills': 'Bills',
-  '/dashboard/assets': 'Assets',
-  '/dashboard/net-worth': 'Net Worth',
-  '/dashboard/investments': 'Investments',
-  '/dashboard/halal': 'Stock Screener',
-  '/dashboard/riba': 'Riba Detector',
-  '/dashboard/wasiyyah': 'Islamic Will',
-  '/dashboard/faraid': 'Inheritance Calculator',
-  '/dashboard/waqf': 'Endowment',
-  '/dashboard/family': 'Family',
-  '/dashboard/shared': 'Shared Finances',
-  '/dashboard/analytics': 'Analytics',
-  '/dashboard/categorize': 'Transaction Rules',
-  '/dashboard/subscriptions': 'Subscription Detector',
-  '/dashboard/ramadan': 'Ramadan Mode',
-  '/dashboard/fiqh': 'Fiqh Settings',
-  '/dashboard/ibadah': 'Ibadah Finance',
-  '/dashboard/retirement-zakat': 'Retirement Zakat',
-  '/dashboard/profile': 'Profile & Settings',
-  '/dashboard/notifications': 'Notifications',
-  '/dashboard/referral': 'Refer a Friend',
-  '/dashboard/reports': 'Reports',
-  '/dashboard/summary': 'Financial Summary',
-  '/dashboard/barakah-score': 'Barakah Score',
-  '/dashboard/market-prices': 'Market Prices',
-  '/dashboard/ledger': 'Audit Ledger',
+ *  return to. Falls back to the prettified route if not in the table.
+ *
+ *  2026-06-11 (i18n bug cluster): values are now the sidebar's nav* i18n
+ *  KEYS instead of hardcoded English, so the dashboard's "Pick up where
+ *  you left off — {route}" chip renders localized for ar/ur/fr users.
+ *  labelForRoute resolves via the standalone t() (current locale); the
+ *  consuming dashboard component already re-renders on locale change. */
+const ROUTE_TO_LABEL_KEY: Record<string, string> = {
+  '/dashboard/transactions': 'navTransactions',
+  '/dashboard/budget': 'navBudget',
+  '/dashboard/recurring': 'navRecurring',
+  '/dashboard/zakat': 'navZakat',
+  '/dashboard/hawl': 'navZakatAnniversary',
+  '/dashboard/sadaqah': 'navSadaqah',
+  '/dashboard/savings': 'navSavingsGoals',
+  '/dashboard/debts': 'navDebts',
+  '/dashboard/bills': 'navBills',
+  '/dashboard/assets': 'navAssets',
+  '/dashboard/net-worth': 'navNetWorth',
+  '/dashboard/investments': 'navInvestments',
+  '/dashboard/halal': 'navStockScreener',
+  '/dashboard/riba': 'navRibaDetector',
+  '/dashboard/wasiyyah': 'navIslamicWill',
+  '/dashboard/faraid': 'navInheritanceCalculator',
+  '/dashboard/waqf': 'navEndowment',
+  '/dashboard/family': 'navFamily',
+  '/dashboard/shared': 'navSharedFinances',
+  '/dashboard/analytics': 'navAnalytics',
+  '/dashboard/categorize': 'navTransactionSorting',
+  '/dashboard/subscriptions': 'navSubscriptionDetector',
+  '/dashboard/ramadan': 'navRamadanMode',
+  '/dashboard/fiqh': 'navFiqhSettings',
+  '/dashboard/ibadah': 'navIbadahFinance',
+  '/dashboard/retirement-zakat': 'navRetirementZakat',
+  '/dashboard/profile': 'navProfileSettings',
+  '/dashboard/notifications': 'navNotifications',
+  '/dashboard/referral': 'navReferAFriend',
+  '/dashboard/reports': 'navReports',
+  '/dashboard/summary': 'navFinancialSummary',
+  '/dashboard/barakah-score': 'navBarakahScore',
+  '/dashboard/market-prices': 'navMarketPrices',
+  '/dashboard/ledger': 'navAuditLedger',
 };
 
 export function labelForRoute(pathname: string): string {
-  if (ROUTE_TO_LABEL[pathname]) return ROUTE_TO_LABEL[pathname];
+  const key = ROUTE_TO_LABEL_KEY[pathname];
+  if (key) return t(key);
   // Fallback: take the last path segment, capitalize, replace dashes.
   const tail = pathname.split('/').filter(Boolean).pop() ?? 'page';
   return tail.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());

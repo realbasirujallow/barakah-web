@@ -526,6 +526,7 @@ export default function SharedPage() {
                             <p className="font-bold text-gray-900">{fmt(tx.amount)}</p>
                             <button
                               onClick={() => handleDeleteTx(tx.id)}
+                              aria-label={t('sharedDeleteTxAria')}
                               className="text-gray-300 hover:text-red-500 text-sm"
                             >
                               ✕
@@ -572,6 +573,7 @@ export default function SharedPage() {
                             <p className="font-bold text-gray-900">{fmt(budget.monthlyLimit)}</p>
                             <button
                               onClick={() => handleDeleteBudget(budget.id)}
+                              aria-label={t('sharedDeleteBudgetAria')}
                               className="text-gray-300 hover:text-red-500 text-sm"
                             >
                               ✕
@@ -621,6 +623,7 @@ export default function SharedPage() {
                               </div>
                               <button
                                 onClick={() => handleDeleteGoal(goal.id)}
+                                aria-label={t('sharedDeleteGoalAria')}
                                 className="text-gray-300 hover:text-red-500 text-sm"
                               >
                                 ✕
