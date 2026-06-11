@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { api, readCapturedReferralCode } from '../../lib/api';
+import { api, readCapturedReferralCode, clearCapturedReferralCode } from '../../lib/api';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../lib/trial';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
@@ -37,9 +37,24 @@ function SignupContent() {
     const captured = readCapturedReferralCode();
     const ref = urlRef || captured;
     if (ref) {
-      setReferralCode(ref.toUpperCase());
-      // Fire-and-forget referral click tracking
-      api.trackReferralClick(ref).catch(() => {});  // Silent fail is OK for tracking
+      const code = ref.toUpperCase();
+      setReferralCode(code);
+      // 2026-06-11: only fire the click metric ONCE per captured code.
+      // This effect re-runs on every /signup mount (back-nav, remounts),
+      // which was inflating referral click counts. A sessionStorage guard
+      // keyed by code dedupes within the browsing session; the captured
+      // code itself is cleared on successful signup (see handleSubmit).
+      try {
+        const trackedKey = `barakah_referral_click_tracked_${code}`;
+        if (!window.sessionStorage.getItem(trackedKey)) {
+          window.sessionStorage.setItem(trackedKey, '1');
+          // Fire-and-forget referral click tracking
+          api.trackReferralClick(ref).catch(() => {});  // Silent fail is OK for tracking
+        }
+      } catch {
+        // sessionStorage blocked — skip tracking rather than risk
+        // re-firing on every mount with no way to dedupe.
+      }
     }
   }, [searchParams]);
 
@@ -499,6 +514,10 @@ function SignupContent() {
       const result = await api.signup(name, email, password, state, country, referralCode.trim().toUpperCase() || undefined, phoneNumber.trim());
       setEmailSent(result?.emailSent !== false);
       setSignupSuccess(true);
+      // 2026-06-11: the referral has been attributed server-side at signup —
+      // clear the captured code so later visits to /signup in this session
+      // don't re-prefill or re-track a code that already converted.
+      clearCapturedReferralCode();
       // Track signup conversion in GA4
       const { trackSignUp } = await import('../../lib/analytics');
       trackSignUp('email');

@@ -2202,7 +2202,14 @@ export const api = {
    * checkout but takes no charge until the trial ends, then auto-charges.
    * This is the conversion lever for free/expired users. Omit (or 0) for
    * the immediate-billing path.
+   *
+   * 2026-06-11: cancelPath now DEFAULTS to '/dashboard/billing?canceled=true'
+   * so a user who backs out of Stripe Checkout lands on the billing page's
+   * localized "checkout canceled" banner. Callers with a deliberate flow
+   * still override it (e.g. /setup onboarding, billing-page trial CTA which
+   * routes to /dashboard?checkout=canceled per SUB-002).
    */
+
   createCheckout: (
     plan: 'plus' | 'family',
     billing: 'monthly' | 'yearly' = 'monthly',
@@ -2214,7 +2221,7 @@ export const api = {
         plan,
         billing,
         successPath: options?.successPath,
-        cancelPath: options?.cancelPath,
+        cancelPath: options?.cancelPath ?? '/dashboard/billing?canceled=true',
         // Stringified so it matches the backend's Map<String,String> body
         // contract; the backend parses + clamps it to 1..30.
         ...(options?.trialDays ? { trialDays: String(options.trialDays) } : {}),
@@ -2225,6 +2232,10 @@ export const api = {
    * Upgrade/downgrade an existing subscription in-place (no redirect needed).
    * Falls back to createCheckout for free users with no subscription.
    * Returns { success, plan, status } OR { url } if redirect is needed.
+   *
+   * 2026-06-11: same default cancelPath as createCheckout — the free-user
+   * fallback redirects to Stripe Checkout, and backing out should land on
+   * the billing page's localized "checkout canceled" banner.
    */
   upgradeSubscription: (
     plan: 'plus' | 'family',
@@ -2237,7 +2248,7 @@ export const api = {
         plan,
         billing,
         successPath: options?.successPath,
-        cancelPath: options?.cancelPath,
+        cancelPath: options?.cancelPath ?? '/dashboard/billing?canceled=true',
       }),
     }),
 
