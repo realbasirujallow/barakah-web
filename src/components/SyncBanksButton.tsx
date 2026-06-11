@@ -55,7 +55,7 @@ export function SyncBanksButton({
   // assets/transactions pages — ar/ur/fr users saw "Link a bank" / "Sync
   // banks" / "Upgrade to sync" / "Syncing…" in English. Reuse the already-
   // translated dict keys (no new strings needed).
-  const { t } = useI18n();
+  const { t, tFmt } = useI18n();
   const [accountCount, setAccountCount] = useState<number | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] =
     useState<SubscriptionStatusLike | null>(null);
@@ -144,10 +144,12 @@ export function SyncBanksButton({
           // 'idle' = server restarted mid-sync; treat as finished and let
           // the parent refetch surface whatever landed.
           const total = status?.totalAdded ?? 0;
+          // 2026-06-10 (LOC-SYNCBANKS-2): result toasts were hardcoded English
+          // on localized pages — reuse the import page's translated keys.
           toast(
             total > 0
-              ? `Synced ${total} new transaction${total === 1 ? '' : 's'} across your banks`
-              : 'All banks synced — no new transactions',
+              ? tFmt('importSyncedAllFmt', [total])
+              : t('importSyncedAllNone'),
             'success',
           );
           setLastSyncedAt(Date.now());
@@ -165,7 +167,7 @@ export function SyncBanksButton({
       if (!settled) {
         // Poll budget exhausted but the job is still running server-side.
         // It will complete in the background; tell the user to refresh.
-        toast('Still syncing in the background — refresh in a moment to see updates.', 'success');
+        toast(t('importStillSyncingBg'), 'success');
         onSynced?.();
       }
     } catch (err) {
@@ -212,7 +214,7 @@ export function SyncBanksButton({
   }
 
   const lastLabel = lastSyncedAt
-    ? ` · synced ${Math.max(1, Math.round((Date.now() - lastSyncedAt) / 1000))}s ago`
+    ? ` ${tFmt('txnSyncedSecsAgoFmt', [Math.max(1, Math.round((Date.now() - lastSyncedAt) / 1000))])}`
     : '';
 
   return (
@@ -220,7 +222,7 @@ export function SyncBanksButton({
       type="button"
       onClick={handleSync}
       disabled={syncing}
-      title={`Syncs every linked bank${lastLabel}`}
+      title={`${t('txnSyncsEveryBankTooltip')}${lastLabel}`}
       className={`inline-flex items-center gap-2 px-4 py-2 text-sm bg-[#1B5E20] text-white rounded-lg hover:bg-[#2E7D32] transition font-medium disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
     >
       {syncing ? (

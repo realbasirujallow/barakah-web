@@ -577,7 +577,10 @@ export default function DebtsPage() {
                 // 2026-05-21: revolving credit (cards) shows utilization
                 // (balance/limit, lower is better) instead of the always-0
                 // "% paid". Backend sends utilizationPercentage + revolving.
-                const isRevolving = !!d.revolving;
+                // 2026-06-10: `revolving` is only stamped on Plaid-linked maps,
+                // so MANUAL credit cards still showed the misleading "0%" —
+                // treat every credit_card as revolving regardless of source.
+                const isRevolving = !!d.revolving || d.type === 'credit_card';
                 const hasUtil = typeof d.utilizationPercentage === 'number';
                 const barPct = hasUtil ? (d.utilizationPercentage as number) : pct;
                 const showBar = !isRevolving || hasUtil; // revolving w/o a credit limit → no misleading bar

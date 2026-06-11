@@ -180,7 +180,7 @@ function BillingContent() {
         if (validateStripeUrl(result.url)) {
           window.location.href = result.url;
         } else {
-          toast('Invalid Stripe URL. Please contact support.', 'error');
+          toast(t('profInvalidStripeUrl'), 'error');
           setLoading(null);
         }
       } else if (result?.success) {
@@ -204,7 +204,7 @@ function BillingContent() {
         toast(tFmt('billingPlanUpdatedFmt', [plan === 'family' ? 'Barakah Family' : 'Barakah Plus']), 'success');
         setLoading(null);
       } else {
-        toast('Something went wrong. Please try again.', 'error');
+        toast(t('profSomethingWrong'), 'error');
         setLoading(null);
       }
     } catch (err) {
@@ -231,7 +231,7 @@ function BillingContent() {
       if (result?.url && validateStripeUrl(result.url)) {
         window.location.href = result.url;
       } else {
-        toast('Invalid Stripe URL. Please contact support.', 'error');
+        toast(t('profInvalidStripeUrl'), 'error');
         setLoading(null);
       }
     } catch (err) {
@@ -273,15 +273,15 @@ function BillingContent() {
         if (validateStripeUrl(res.url)) {
           window.location.href = res.url;
         } else {
-          toast('Invalid Stripe URL. Please contact support.', 'error');
+          toast(t('profInvalidStripeUrl'), 'error');
           setLoading(null);
         }
       } else {
-        toast('No active subscription found. Please contact support.', 'error');
+        toast(t('billingNoActiveSub'), 'error');
         setLoading(null);
       }
     } catch {
-      toast('No active subscription found. Please contact support.', 'error');
+      toast(t('billingNoActiveSub'), 'error');
       setLoading(null);
     }
   };
@@ -337,7 +337,7 @@ function BillingContent() {
           window.location.href = result.url;
           return;
         }
-        toast('Invalid Stripe URL. Please contact support.', 'error');
+        toast(t('profInvalidStripeUrl'), 'error');
         setLoading(null);
         return;
       }
