@@ -144,7 +144,7 @@ export default function IslamicWillChecklistPage() {
         <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">
           <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">Related</h2>
           <ul className="space-y-2 text-base">
-            <li>· <Link href="/islamic-will" className="text-[#1B5E20] underline">How to write an Islamic will (full guide)</Link></li>
+            <li>· <Link href="/learn/islamic-will" className="text-[#1B5E20] underline">How to write an Islamic will (full guide)</Link></li>
             <li>· <Link href="/learn/islamic-estate-planning" className="text-[#1B5E20] underline">Islamic estate planning</Link></li>
             <li>· <Link href="/learn/faraid-awl-radd-explained" className="text-[#1B5E20] underline">Faraid Awl &amp; Radd explained</Link></li>
             <li>· <Link href="/methodology" className="text-[#1B5E20] underline">Methodology + sources</Link></li>
