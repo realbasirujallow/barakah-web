@@ -2127,6 +2127,13 @@ export const api = {
     return apiDownload('/api/zakat/export-report', `barakah_zakat_${date}.pdf`);
   },
 
+  // Import (generic bank CSV — client-side column mapping; rows are
+  // validated per-row server-side. Parity W2 with mobile's CSV mapper.)
+  bulkImportTransactions: (transactions: Record<string, unknown>[]) =>
+    apiFetch('/api/transactions/bulk-import', {
+      method: 'POST', body: JSON.stringify({ transactions }),
+    }, IMPORT_TIMEOUT),
+
   // Import (Monarch Money — Balances or Transactions CSV)
   monarchPreview: (file: File) =>
     apiUpload('/api/import/monarch/preview', file),

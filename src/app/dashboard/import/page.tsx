@@ -14,6 +14,7 @@ import { hasPaidSyncAccess } from '../../../lib/subscription';
 import { useCurrency } from '../../../lib/useCurrency';
 import { trackFirstAccountLink, trackOnce } from '../../../lib/analytics';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
+import GenericCsvImport from './GenericCsvImport';
 import { useI18n, t as tStandalone } from '../../../lib/i18n';
 
 /* -- Asset / Debt type options (match the assets + debts pages) ------------ */
@@ -742,6 +743,12 @@ function ImportPageInner() {
           )}
         </div>
       )}
+
+      {/* 2026-06-12 (parity W2): generic any-bank CSV importer with column
+          mapping — web equivalent of mobile's "Map CSV Columns" sheet. Shown
+          alongside the Monarch dropzone (only while it's idle, so the two
+          flows never stack mid-import). */}
+      {step === 'upload' && <GenericCsvImport />}
 
       {step === 'preview' && csvFormat === 'balances' && (
         <>

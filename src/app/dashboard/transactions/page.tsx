@@ -13,7 +13,7 @@ import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n, t as tStandalone } from '../../../lib/i18n';
 import { CATEGORIES, categoriesForType, txPresentation } from '../../../lib/transactionPresentation';
-import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon, EyeOff } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon, EyeOff, Landmark } from 'lucide-react';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
@@ -67,6 +67,10 @@ interface Tx {
    *  and reports. Toggled via PUT /api/transactions/{id} (single) or
    *  PATCH /api/transactions/bulk (multi). */
   excludedFromReports?: boolean | null;
+  /** 2026-06-12 (parity W1): optional user-owned asset link. Backend
+   *  ownership-gates via resolveOwnedAssetId; mobile has had the picker
+   *  since launch. */
+  assetId?: number | null;
 }
 
 interface SubscriptionStatus {
@@ -190,7 +194,24 @@ export default function TransactionsPage() {
     // mobile already exposes the picker; web modal was the gap. Default
     // 'monthly' mirrors backend toggleRecurring fallback.
     frequency: 'monthly',
+    // 2026-06-12 (parity W1/W3): optional asset link (select value as
+    // string, '' = none) and recurring-on-create (edit mode keeps the
+    // immediate-save toggle instead).
+    assetId: '',
+    recurring: false,
   });
+  // parity W1: user's assets for the link-to-asset picker + row chips.
+  const [assetOptions, setAssetOptions] = useState<{ id: number; name: string }[]>([]);
+  useEffect(() => {
+    // suppressUnauthorized default — mount-fired background call must not
+    // bounce the session (see backgroundPollsDoNotLogout.test).
+    api.getAssets()
+      .then((res: { assets?: { id: number; name: string }[] } | { id: number; name: string }[]) => {
+        const list = Array.isArray(res) ? res : (res.assets ?? []);
+        setAssetOptions(list.map(a => ({ id: a.id, name: a.name })));
+      })
+      .catch(() => setAssetOptions([]));
+  }, []);
   const [formError, setFormError] = useState<string | null>(null);
 
   // Sync form currency with user's preferred currency on first load
@@ -378,7 +399,7 @@ export default function TransactionsPage() {
 
   const openAdd = () => {
     setEditTx(null);
-    setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '', frequency: 'monthly' });
+    setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '', frequency: 'monthly', assetId: '', recurring: false });
     // BUG FIX: clear any stale validation error from a previous (failed) save
     // so it does not immediately show when the modal opens on a fresh attempt.
     setFormError(null);
@@ -388,7 +409,7 @@ export default function TransactionsPage() {
   const openEdit = (tx: Tx) => {
     setEditTx(tx);
     const txDate = localDateKey(tx.timestamp);
-    setForm({ type: tx.type, direction: tx.direction || (tx.type === 'income' ? 'inflow' : tx.type === 'transfer' ? 'neutral' : 'outflow'), category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate, tags: tx.tags || '', notes: tx.notes || '', frequency: (tx as Tx & { frequency?: string }).frequency || 'monthly' });
+    setForm({ type: tx.type, direction: tx.direction || (tx.type === 'income' ? 'inflow' : tx.type === 'transfer' ? 'neutral' : 'outflow'), category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate, tags: tx.tags || '', notes: tx.notes || '', frequency: (tx as Tx & { frequency?: string }).frequency || 'monthly', assetId: tx.assetId ? String(tx.assetId) : '', recurring: false });
     // BUG FIX: clear stale form error when editing a different transaction
     setFormError(null);
     setShowForm(true);
@@ -429,9 +450,16 @@ export default function TransactionsPage() {
       // Jackson to fail "invalid request body" when the user edited a
       // Zelle / transfer transaction. Prior to this we spread the whole
       // form which included both `date: "YYYY-MM-DD"` and `timestamp: Long`.
-      const { date: _date, ...formWithoutDate } = form;
+      const { date: _date, assetId: formAssetId, recurring: formRecurring, ...formWithoutDate } = form;
       void _date;
-      const payload = { ...formWithoutDate, amount: amt, timestamp };
+      const payload: Record<string, unknown> = { ...formWithoutDate, amount: amt, timestamp };
+      // parity W1: '' = no link; backend ownership-gates the id. Omitted
+      // (rather than null) when empty — the update DTO treats null as
+      // "no change", matching mobile.
+      if (formAssetId) payload.assetId = Number(formAssetId);
+      // parity W3: recurring-on-create. Edit mode keeps the immediate-save
+      // checkbox (handleToggleRecurring), so only the create path sends it.
+      if (!editTx && formRecurring) payload.recurring = true;
       if (editTx) {
         await api.updateTransaction(editTx.id, payload);
         toast(t('txnUpdated'), 'success');
@@ -441,7 +469,7 @@ export default function TransactionsPage() {
       }
       setShowForm(false);
       setEditTx(null);
-      setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '', frequency: 'monthly' });
+      setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '', frequency: 'monthly', assetId: '', recurring: false });
       load();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : (editTx ? t('txnUpdateFailed') : t('txnAddFailed'));
@@ -1267,6 +1295,17 @@ export default function TransactionsPage() {
                         {t('txnExcludedBadge')}
                       </span>
                     )}
+                    {tx.assetId != null && (() => {
+                      // 2026-06-12 (parity W1): linked-asset chip, named when
+                      // the asset list has loaded.
+                      const linked = assetOptions.find(a => a.id === tx.assetId);
+                      return (
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 inline-flex items-center gap-1" title={linked?.name || t('txnFieldLinkAsset')}>
+                          <Landmark className="w-3 h-3" />
+                          {linked?.name || t('txnLinkedAssetBadge')}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <p className="text-sm text-gray-500 capitalize">
                     {/* 2026-05-12 overnight QA (TX-002): transfer rows
@@ -1555,6 +1594,62 @@ export default function TransactionsPage() {
                   rows={2}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none" placeholder={t('txnNotesPlaceholder')} />
               </div>
+              {/* 2026-06-12 (parity W1): link to asset — mobile has had this
+                  picker since launch; backend ownership-gates the id. */}
+              {assetOptions.length > 0 && (
+                <div>
+                  <label htmlFor="txn-form-asset" className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldLinkAsset')}</label>
+                  <select id="txn-form-asset" value={form.assetId}
+                    onChange={e => setForm({ ...form, assetId: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                    <option value="">{t('txnNoAsset')}</option>
+                    {assetOptions.map(a => (
+                      <option key={a.id} value={String(a.id)}>{a.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {/* 2026-06-12 (parity W3): recurring-on-create. The backend
+                  create DTO now accepts recurring+frequency; edit mode keeps
+                  the immediate-save toggle below instead. */}
+              {!editTx && (
+                <div className="border-t border-gray-200 pt-3">
+                  <label className="flex items-start gap-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={form.recurring}
+                      onChange={e => setForm({ ...form, recurring: e.target.checked })}
+                      className="mt-0.5 w-4 h-4 accent-primary rounded flex-shrink-0"
+                    />
+                    <span className="flex-1">
+                      <span className="block text-sm font-medium text-gray-900">
+                        {t('txnMarkRecurringLabel')}
+                      </span>
+                      <span className="block text-xs text-gray-500 mt-0.5">
+                        {t('txnMarkRecurringHint')}
+                      </span>
+                    </span>
+                  </label>
+                  {form.recurring && (
+                    <div className="mt-3 ms-7">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        {t('txnFrequencyLabel')}
+                      </label>
+                      <select
+                        value={form.frequency}
+                        onChange={e => setForm({ ...form, frequency: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 text-sm text-gray-900"
+                      >
+                        <option value="daily">{t('txnFreqDaily')}</option>
+                        <option value="weekly">{t('txnFreqWeekly')}</option>
+                        <option value="biweekly">{t('txnFreqBiweekly')}</option>
+                        <option value="monthly">{t('txnFreqMonthly')}</option>
+                        <option value="yearly">{t('txnFreqYearly')}</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
               {/* Mark as recurring (edit mode only — doesn't make sense for
                   a transaction that doesn't exist yet). 2026-05-01: founder
                   asked "where do I mark this as recurring?" — the row-level
