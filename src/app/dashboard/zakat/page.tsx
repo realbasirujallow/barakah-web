@@ -415,9 +415,13 @@ export default function ZakatPage() {
     try {
       // Noon avoids the date shifting a day under timezone conversion.
       const paidAt = form.date ? new Date(`${form.date}T12:00:00`).getTime() : undefined;
+      // 2026-06-11 (sweep R3 Z1): send the currency the user is entering in —
+      // omitting it made the backend label every payment 'USD', corrupting
+      // zakatPaid/remaining math for non-USD users.
       if (editPaymentId != null) {
         await api.updateZakatPayment(editPaymentId, {
           amount,
+          currency,
           recipient: form.recipient || undefined,
           notes: form.notes || undefined,
           paidAt,
@@ -425,6 +429,7 @@ export default function ZakatPage() {
       } else {
         await api.addZakatPayment({
           amount,
+          currency,
           recipient: form.recipient || undefined,
           notes: form.notes || undefined,
           lunarYear,
