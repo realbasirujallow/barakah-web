@@ -220,8 +220,10 @@ export default function TransactionsPage() {
   const [assetOptions, setAssetOptions] = useState<{ id: number; name: string }[]>([]);
   useEffect(() => {
     // suppressUnauthorized default — mount-fired background call must not
-    // bounce the session (see backgroundPollsDoNotLogout.test).
-    api.getAssets()
+    // bounce the session (see backgroundPollsDoNotLogout.test). size=200 so a
+    // user with >50 assets can still link any of them (the list endpoint
+    // defaults to 50; backend clamps to 200).
+    api.getAssets(true, 200)
       .then((res: { assets?: { id: number; name: string }[] } | { id: number; name: string }[]) => {
         const list = Array.isArray(res) ? res : (res.assets ?? []);
         setAssetOptions(list.map(a => ({ id: a.id, name: a.name })));

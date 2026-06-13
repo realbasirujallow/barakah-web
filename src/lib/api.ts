@@ -888,7 +888,12 @@ export const api = {
   // getAssets + getAssetTotal both fire on mount from /dashboard and
   // /dashboard/assets — a transient 401 on either used to cascade into
   // a forced /login?reason=expired. Same bug class as R12/R13.
-  getAssets: (suppressUnauthorized = true) => apiFetch('/api/assets/list', {}, API_TIMEOUT, suppressUnauthorized),
+  // 2026-06-13: optional size (backend defaults 50, clamps to 200). The
+  // transaction asset-link picker passes 200 so a user with >50 assets can
+  // still link any of them (ASSET-PICKER-PAGINATION-50). Existing callers omit
+  // it and are unchanged.
+  getAssets: (suppressUnauthorized = true, size?: number) =>
+    apiFetch(size ? `/api/assets/list?size=${size}` : '/api/assets/list', {}, API_TIMEOUT, suppressUnauthorized),
   getAssetTotal: (suppressUnauthorized = true) => apiFetch('/api/assets/total', {}, API_TIMEOUT, suppressUnauthorized),
   // Assets bucketed by category group (Cash / Investments / Real Estate /
   // …) with per-group totals + % of assets. See AssetController#getGroupedAssets.
