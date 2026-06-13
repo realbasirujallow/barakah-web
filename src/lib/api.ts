@@ -142,7 +142,28 @@ function acquisitionHeaders(): Record<string, string> {
   // The browser's live Referer on /auth/signup is usually just /signup, which
   // makes organic / social signups collapse into "internal" or "direct".
   if (a.referer) h['X-App-Referer'] = a.referer;
+  // 2026-06-13: optional self-reported source ("How did you hear about us?").
+  // The backend resolver uses it as the last resort before "direct" → it's
+  // sent even with no UTM/referer, which is the whole point.
+  const self = readSelfReportedSource();
+  if (self) h['X-App-Self-Source'] = self;
   return h;
+}
+
+const SELF_SOURCE_KEY = 'barakah_self_source';
+
+/** Persist the user's "How did you hear about us?" answer (first-touch wins). */
+export function setSelfReportedSource(value: string | null | undefined): void {
+  if (typeof window === 'undefined' || !value || !value.trim()) return;
+  try {
+    if (window.localStorage.getItem(SELF_SOURCE_KEY)) return; // first-touch wins
+    window.localStorage.setItem(SELF_SOURCE_KEY, value.trim());
+  } catch { /* storage disabled — non-fatal */ }
+}
+
+function readSelfReportedSource(): string | null {
+  if (typeof window === 'undefined') return null;
+  try { return window.localStorage.getItem(SELF_SOURCE_KEY); } catch { return null; }
 }
 
 /**
