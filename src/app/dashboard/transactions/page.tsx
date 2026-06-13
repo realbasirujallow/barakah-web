@@ -79,9 +79,25 @@ interface SubscriptionStatus {
   hasSubscription: boolean;
 }
 
-// Friendly amount string for a transaction, respecting its own stored currency
-function txAmount(tx: Tx, fmt: (n: number) => string): string {
-  return fmt(tx.amount);
+// Friendly amount string for a transaction, respecting its OWN stored currency.
+// 2026-06-13 (TXN-ROW-CURRENCY-IGNORED): previously this used the preferred-
+// currency `fmt`, so a GBP £50 row rendered as "$50.00" for a USD-preferred
+// user — wrong currency, not just wrong rate. Now each row formats with its own
+// currency symbol (no FX conversion — we show the native amount honestly). The
+// preferred-currency `fmt` is the fast path when the row matches.
+export function txAmount(
+  tx: Tx,
+  fmt: (n: number) => string,
+  numberLocale: string | undefined,
+  preferredCurrency: string,
+): string {
+  const ccy = tx.currency || preferredCurrency;
+  if (ccy === preferredCurrency) return fmt(tx.amount);
+  try {
+    return new Intl.NumberFormat(numberLocale, { style: 'currency', currency: ccy }).format(tx.amount);
+  } catch {
+    return fmt(tx.amount); // unknown currency code → fall back to preferred fmt
+  }
 }
 
 // Localized display label for a static UI category code. Falls back to a
@@ -1344,7 +1360,7 @@ export default function TransactionsPage() {
               </div>
               <div className="flex items-center gap-3">
                 <p className={`text-lg font-bold tabular-nums ${presentation.amountClass}`}>
-                  {presentation.sign}{txAmount(tx, fmt)}
+                  {presentation.sign}{txAmount(tx, fmt, dateLocale, preferredCurrency)}
                 </p>
                 {!selectMode && (
                   // Inline actions — always visible on touch (no group-hover
