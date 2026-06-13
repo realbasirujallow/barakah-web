@@ -263,9 +263,9 @@ export function WeeklyRecap({
       {top3.length === 0 && !hasNetWorth && !hasSpending && (
         <div className="border-t border-border px-5 py-4 text-sm text-muted-foreground bg-muted/30">
           <p className="leading-snug">
-            No recap yet — your first few transactions will populate this.{' '}
-            <Link href="/dashboard/accounts" className="text-primary font-semibold hover:underline whitespace-nowrap">
-              Connect a bank →
+            {t('weeklyRecapEmptyText')}{' '}
+            <Link href="/dashboard/import" className="text-primary font-semibold hover:underline whitespace-nowrap">
+              {t('weeklyRecapConnectBank')}
             </Link>
           </p>
         </div>

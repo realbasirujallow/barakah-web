@@ -453,10 +453,12 @@ export default function TransactionsPage() {
       const { date: _date, assetId: formAssetId, recurring: formRecurring, ...formWithoutDate } = form;
       void _date;
       const payload: Record<string, unknown> = { ...formWithoutDate, amount: amt, timestamp };
-      // parity W1: '' = no link; backend ownership-gates the id. Omitted
-      // (rather than null) when empty — the update DTO treats null as
-      // "no change", matching mobile.
+      // parity W1: asset link. A chosen id links/changes. '' = "No asset":
+      // on CREATE we just omit it; on EDIT of a txn that already had a link we
+      // must send the unlink sentinel (0), because the backend treats an absent
+      // assetId as "no change" — so omitting it would leave the old link stuck.
       if (formAssetId) payload.assetId = Number(formAssetId);
+      else if (editTx?.assetId != null) payload.assetId = 0;
       // parity W3: recurring-on-create. Edit mode keeps the immediate-save
       // checkbox (handleToggleRecurring), so only the create path sends it.
       if (!editTx && formRecurring) payload.recurring = true;
