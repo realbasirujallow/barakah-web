@@ -1083,6 +1083,9 @@ export const api = {
     apiFetch(`/api/transactions/${id}/toggle-recurring`, { method: 'PUT', body: JSON.stringify({}) }),
   processRecurring: () =>
     apiFetch('/api/transactions/process-recurring', { method: 'POST', body: JSON.stringify({}) }),
+  // Consolidated month overview (income + bills + credit-card statements).
+  getRecurringOverview: (month?: string) =>
+    apiFetch(`/api/recurring/overview${month ? `?month=${encodeURIComponent(month)}` : ''}`, {}, API_TIMEOUT, true),
 
   // Hawl
   getHawl: () => apiFetch('/api/hawl/list', {}, API_TIMEOUT, true),

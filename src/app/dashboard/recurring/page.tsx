@@ -21,42 +21,79 @@ interface RecurringTx {
   frequency?: string;
 }
 
-// Phase 24f (2026-04-30): emoji map removed in favour of the
-// centralized <CategoryIcon /> Lucide component (lib/categoryIcon.tsx).
-// Cross-platform consistent rendering, brand-coloured icons per category,
-// no duplication across the recurring/notifications/summary/etc pages.
+// ── Consolidated month overview (GET /api/recurring/overview) ────────────────
+interface OverviewTile {
+  expected?: number; received?: number;   // income tiles
+  total?: number; paid?: number;          // expense / credit-card tiles
+  remaining: number;
+  count: number; totalCount: number; pendingCount: number;
+}
+interface OverviewItem {
+  id: number;
+  name: string;
+  date: number;             // epoch millis of this occurrence
+  paymentAccount: string | null;
+  category: string;
+  amount: number;
+  group: 'income' | 'expense' | 'credit_card';
+  frequency: string;
+  paid: boolean;            // cleared (date already passed) / explicitly paid
+  readOnly: boolean;
+  source: string;
+}
+interface Overview {
+  month: string;            // "YYYY-MM"
+  currency: string;
+  income: OverviewTile;
+  expenses: OverviewTile;
+  creditCards: OverviewTile;
+  items: OverviewItem[];
+  net: number;
+}
 
 function formatDate(epoch: number) {
   const ms = epoch < 1e12 ? epoch * 1000 : epoch;
   return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+// ── Date helpers for the month navigator ──────────────────────────────────────
+function currentMonthString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+function shiftMonth(month: string, delta: number): string {
+  const [y, m] = month.split('-').map(Number);
+  const d = new Date(y, (m - 1) + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+function monthLabel(month: string): string {
+  const [y, m] = month.split('-').map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+}
+
 /**
- * 2026-05-02 (Monarch parity): one of the three header pillars on the
- * Recurring page. Shows count, total, and a thin progress bar.
- * Visual reference: Monarch's `/recurring` 3-pillar header.
+ * 2026-06-15 (Monarch parity): real summary tile fed by the backend overview
+ * endpoint — shows the headline amount, a cleared/remaining progress bar, and
+ * the "N of M pending" statement count. Replaces the old client-side heuristic
+ * pillars (which faked the credit-card bucket via a description regex and had a
+ * binary progress bar).
  */
-function PillarCard({
-  label, count, total, fmt, color, labelTotal, foot,
+function OverviewTileCard({
+  label, headline, sub, foot, pct, color, fmt,
 }: {
   label: string;
-  count: number;
-  total: number;
-  fmt: (n: number) => string;
-  color: 'emerald' | 'rose' | 'slate';
-  labelTotal: string;
+  headline: number;
+  sub: string;
   foot: string;
+  pct: number;
+  color: 'emerald' | 'rose' | 'slate';
+  fmt: (n: number) => string;
 }) {
   const colors = {
     emerald: { dot: 'bg-emerald-600', bar: 'bg-emerald-500', amt: 'text-emerald-700 dark:text-emerald-400' },
     rose: { dot: 'bg-rose-600', bar: 'bg-rose-500', amt: 'text-rose-700 dark:text-rose-400' },
     slate: { dot: 'bg-slate-700 dark:bg-slate-300', bar: 'bg-slate-500', amt: 'text-foreground' },
   }[color];
-  // The progress bar shows count visually (we don't have a paid/remaining
-  // split for our data model the way Monarch does for cleared statements,
-  // so we render proportional density: full bar means there are recurring
-  // rows in this pillar, empty means none).
-  const pct = count > 0 ? 100 : 0;
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
@@ -64,16 +101,16 @@ function PillarCard({
           <span className={`w-2.5 h-2.5 rounded-full ${colors.dot}`} aria-hidden="true" />
           <p className="text-sm font-semibold text-foreground">{label}</p>
         </div>
-        <p className={`text-sm font-bold tabular-nums ${colors.amt}`}>{fmt(total)}</p>
+        <p className={`text-sm font-bold tabular-nums ${colors.amt}`}>{fmt(headline)}</p>
       </div>
       <div className="relative h-1.5 bg-muted/50 rounded-full overflow-hidden mb-1.5">
         <div
           className={`absolute inset-y-0 left-0 ${colors.bar} rounded-full transition-all`}
-          style={{ width: `${pct}%` }}
+          style={{ width: `${Math.max(0, Math.min(100, pct))}%` }}
         />
       </div>
       <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>{labelTotal}</span>
+        <span>{sub}</span>
         <span>{foot}</span>
       </div>
     </div>
@@ -81,17 +118,11 @@ function PillarCard({
 }
 
 // Defined outside RecurringPage to avoid recreating the component type on every render.
-// Recreating causes React to unmount/remount on each parent re-render, losing focus/state.
 interface TxRowProps {
   tx: RecurringTx;
   fmt: (v: number) => string;
   toggling: number | null;
   onToggle: (id: number) => void;
-  // 2026-06-08: founder reported "/dashboard/recurring i cant click any of
-  // the recurring charges/transactions so i can edit them to say monthly
-  // weekly or biweekly". The row used to only expose the on/off toggle —
-  // no path to change the frequency. Now: click anywhere on the row
-  // EXCEPT the toggle opens an edit modal. The toggle still pauses/resumes.
   onEdit: (tx: RecurringTx) => void;
 }
 function TxRow({ tx, fmt, toggling, onToggle, onEdit }: TxRowProps) {
@@ -139,16 +170,6 @@ function TxRow({ tx, fmt, toggling, onToggle, onEdit }: TxRowProps) {
 
 /**
  * 2026-05-03 (Section B·5): month-grid view of recurring transactions.
- *
- * The backend stores `tx.timestamp` as the LAST-seen epoch for each
- * recurring row, so we use day-of-month from that as a proxy for
- * "this is the day each cycle the user gets charged." Good enough
- * for the visualization — the user can still edit the row from the
- * list view if the day shifts. We render the current calendar month
- * with each day showing a dot per recurring row hitting that day,
- * coloured emerald (income) or rose (expense), plus a count badge
- * if more than one row lands on the same day. Hover tooltip lists
- * the rows + amounts.
  */
 function RecurringCalendar({
   transactions,
@@ -158,7 +179,6 @@ function RecurringCalendar({
   fmt: (n: number) => string;
 }) {
   const { t, tFmt } = useI18n();
-  // Group rows by day-of-month (1..31).
   const byDay = useMemo(() => {
     const map = new Map<number, RecurringTx[]>();
     transactions.forEach(tx => {
@@ -171,27 +191,24 @@ function RecurringCalendar({
     return map;
   }, [transactions]);
 
-  // Build the current month's grid: 7 cols × N rows, with leading
-  // blanks so day 1 lands on the correct weekday column.
   const today = new Date();
   const year = today.getFullYear();
-  const month = today.getMonth(); // 0-indexed
-  const firstWeekday = new Date(year, month, 1).getDay(); // 0=Sun
+  const month = today.getMonth();
+  const firstWeekday = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const cells: Array<{ day: number; rows: RecurringTx[] } | null> = [];
   for (let i = 0; i < firstWeekday; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) {
     cells.push({ day: d, rows: byDay.get(d) ?? [] });
   }
-  // Pad to a multiple of 7 so the last row aligns.
   while (cells.length % 7 !== 0) cells.push(null);
 
-  const monthLabel = today.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  const calMonthLabel = today.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
   return (
     <div className="p-5">
       <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium mb-3">
-        {tFmt('recurringCalendarCaptionFmt', [monthLabel])}
+        {tFmt('recurringCalendarCaptionFmt', [calMonthLabel])}
       </p>
       <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-wide text-gray-400 mb-1">
         {[t('recurringDowSun'), t('recurringDowMon'), t('recurringDowTue'), t('recurringDowWed'), t('recurringDowThu'), t('recurringDowFri'), t('recurringDowSat')].map(d => (
@@ -256,34 +273,23 @@ export default function RecurringPage() {
   const [loading, setLoading]           = useState(true);
   const [processing, setProcessing]     = useState(false);
   const [toggling, setToggling]         = useState<number | null>(null);
-  // 2026-05-03 (Section B·5): list ↔ calendar toggle on Active rows.
   const [activeView, setActiveView]     = useState<'list' | 'calendar'>('list');
-  // 2026-06-08 (founder): edit-frequency modal for a recurring row.
-  // Clicking anywhere on a TxRow except the toggle opens this modal.
   const [editTx, setEditTx]             = useState<RecurringTx | null>(null);
   const [editFrequency, setEditFrequency] = useState<string>('monthly');
   const [savingEdit, setSavingEdit]     = useState(false);
+  // 2026-06-15 (Monarch parity): consolidated month overview + month navigator.
+  const [month, setMonth]               = useState<string>(currentMonthString());
+  const [overview, setOverview]         = useState<Overview | null>(null);
   const { toast } = useToast();
   const { fmt } = useCurrency();
   const { t, tFmt } = useI18n();
-  // 2026-06-08 (founder): when the user clicks a row, seed the edit
-  // modal's frequency from the row's current value. Declared AFTER
-  // toast + t so the save handler below can close over them.
   useEffect(() => {
     if (editTx) setEditFrequency(editTx.frequency || 'monthly');
   }, [editTx]);
 
-  // RCR-1 fix (2026-05-15): surface what the backend already auto-detected
-  // (recurring income streams + subscription charges) so the empty state
-  // doesn't lie when /dashboard/cash-flow + /dashboard/subscriptions are
-  // showing detected patterns. User can jump to the source page to act.
   type Detected = { name: string; cycle: string; amount: number; href: string };
   const [detected, setDetected] = useState<Detected[]>([]);
 
-  // 2026-06-08 (STALE-DETECTED-RECURRING-WEB-1): factor the auto-detected
-  // refetch out so it can be re-run alongside load() after a toggle /
-  // edit / processNow. Moved above handleSaveEdit so the closure can
-  // capture it.
   const loadDetected = useCallback(async () => {
     try {
       const [streams, subs] = await Promise.allSettled([
@@ -319,25 +325,34 @@ export default function RecurringPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 2026-06-15: month overview fetch — re-runs whenever the navigator month
+  // changes. Mount-fired + secondary, so suppressUnauthorized is handled in api.
+  const loadOverview = useCallback(async (m: string) => {
+    try {
+      const data = await api.getRecurringOverview(m) as Overview | null;
+      setOverview(data ?? null);
+    } catch {
+      setOverview(null);
+    }
+  }, []);
+
   const handleSaveEdit = useCallback(async () => {
     if (!editTx) return;
     setSavingEdit(true);
     try {
       await api.updateTransaction(editTx.id, { frequency: editFrequency, recurring: true });
-      // Optimistic local update so the row reflects the new frequency
-      // immediately even if a load() refresh is debounced.
       setTransactions(prev => prev.map(r => r.id === editTx.id ? { ...r, frequency: editFrequency } : r));
       toast(t('recurringFrequencyUpdated'), 'success');
       setEditTx(null);
-      // 2026-06-08 (STALE-DETECTED-RECURRING-WEB-1): saving an edit can
-      // change which detected entries match — refresh the panel.
       void loadDetected();
+      void loadOverview(month);
     } catch {
       toast(t('recurringFrequencyUpdateFailed'), 'error');
     } finally {
       setSavingEdit(false);
     }
-  }, [editTx, editFrequency, toast, t, loadDetected]);
+  }, [editTx, editFrequency, toast, t, loadDetected, loadOverview, month]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -351,7 +366,6 @@ export default function RecurringPage() {
     }
   }, [toast, t]);
 
-  // 2026-06-08 (A11Y-MODAL-RECURRING-EDIT-1): Escape on the edit modal.
   useEffect(() => {
     if (!editTx) return;
     const onKey = (e: KeyboardEvent) => {
@@ -366,14 +380,16 @@ export default function RecurringPage() {
     void loadDetected();
   }, [load, loadDetected]);
 
+  // Refetch the overview whenever the selected month changes.
+  useEffect(() => {
+    void loadOverview(month);
+  }, [month, loadOverview]);
+
   const handleToggle = async (id: number) => {
     setToggling(id);
     try {
       await api.toggleRecurring(id);
-      // 2026-06-08 (STALE-DETECTED-RECURRING-WEB-1): also refresh the
-      // auto-detected panel — toggling a row marked-recurring should
-      // make the matching detected entry disappear.
-      await Promise.all([load(), loadDetected()]);
+      await Promise.all([load(), loadDetected(), loadOverview(month)]);
       toast(t('recurringStatusUpdated'), 'success');
     } catch {
       toast(t('recurringStatusUpdateError'), 'error');
@@ -388,13 +404,24 @@ export default function RecurringPage() {
       const result = await api.processRecurring();
       const count = result?.processedCount ?? result?.processed ?? 0;
       toast(tFmt(count === 1 ? 'recurringProcessedFmt' : 'recurringProcessedPluralFmt', [count]), 'success');
-      await Promise.all([load(), loadDetected()]);
+      await Promise.all([load(), loadDetected(), loadOverview(month)]);
     } catch {
       toast(t('recurringProcessError'), 'error');
     } finally {
       setProcessing(false);
     }
   };
+
+  // Relative-day label for an occurrence date ("Today", "in 3 days", "cleared").
+  const relLabel = useCallback((epochMs: number, paid: boolean): string => {
+    const now = Date.now();
+    const days = Math.round((epochMs - now) / (24 * 60 * 60 * 1000));
+    if (paid && epochMs <= now) return t('recurringRelClearedTag');
+    if (days === 0) return t('recurringRelToday');
+    if (days === 1) return t('recurringRelInOneDay');
+    if (days > 1) return tFmt('recurringRelInDaysFmt', [days]);
+    return tFmt('recurringRelDaysAgoFmt', [Math.abs(days)]);
+  }, [t, tFmt]);
 
   if (loading) return (
     <div className="flex justify-center py-20">
@@ -405,30 +432,16 @@ export default function RecurringPage() {
   const active   = transactions.filter(tx => tx.recurringActive);
   const inactive = transactions.filter(tx => !tx.recurringActive);
 
-  const monthlyImpact = active.reduce((sum, tx) => {
-    const amt = tx.type === 'income' ? tx.amount : -tx.amount;
-    return sum + amt;
-  }, 0);
-
-  // 2026-05-02 (Monarch parity): 3-pillar header — Income / Expenses /
-  // Credit cards. Recurring transactions don't have a "credit card" tag
-  // in our data model, so we approximate it as the subset of expenses
-  // that match Monarch's credit-card patterns (description includes
-  // "credit", "card", "card payment", "minimum payment", "statement").
-  // Where the heuristic doesn't fire, those rows fall back into the
-  // Expenses pillar — which is correct in Monarch too.
-  const isCreditCardLike = (tx: RecurringTx) => {
-    if (tx.type === 'income') return false;
-    const blob = `${tx.description ?? ''} ${tx.category ?? ''}`.toLowerCase();
-    return /\b(credit\s*card|card\s*payment|minimum\s*payment|statement|amex|chase\s*card|capital\s*one)\b/.test(blob);
-  };
-  const incomeTxs = active.filter(tx => tx.type === 'income');
-  const ccTxs = active.filter(isCreditCardLike);
-  const expenseTxs = active.filter(tx => tx.type !== 'income' && !isCreditCardLike(tx));
-  const sumAbs = (rows: RecurringTx[]) => rows.reduce((s, r) => s + Math.abs(r.amount), 0);
-  const incomeTotal = sumAbs(incomeTxs);
-  const expenseTotal = sumAbs(expenseTxs);
-  const ccTotal = sumAbs(ccTxs);
+  // Overview tile math (cleared progress %). Income → received/expected; the
+  // expense/credit-card tiles → paid/total.
+  const incExpected = overview?.income.expected ?? 0;
+  const incReceived = overview?.income.received ?? 0;
+  const expTotal = overview?.expenses.total ?? 0;
+  const expPaid = overview?.expenses.paid ?? 0;
+  const ccTotal = overview?.creditCards.total ?? 0;
+  const ccPaid = overview?.creditCards.paid ?? 0;
+  const pctOf = (a: number, b: number) => (b > 0 ? (a / b) * 100 : 0);
+  const isThisMonth = month === currentMonthString();
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -446,16 +459,116 @@ export default function RecurringPage() {
         }
       />
 
-      {/* 2026-05-03 (Monarch parity, second pass): orange "review now"
-          banner surfacing paused recurring patterns. Monarch's recurring
-          page lights up an orange strip whenever there are merchants
-          the user hasn't actioned ("There are 13 new recurring merchants
-          and accounts for you to review."). We don't have a separate
-          "detected but unconfirmed" inbox yet, so the banner pulls
-          double duty for inactive (paused) recurring rows — same
-          behaviour shape: count + CTA that scrolls to the relevant
-          section. Hidden when there's nothing to review.
-          Visual reference: monarch-walkthrough.mov frame f_035. */}
+      {/* 2026-06-15 (Monarch parity): month navigator. */}
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-semibold text-foreground">{monthLabel(month)}</h2>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Previous month"
+            onClick={() => setMonth(m => shiftMonth(m, -1))}
+            className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:bg-muted/50"
+          >‹</button>
+          <button
+            type="button"
+            onClick={() => setMonth(currentMonthString())}
+            disabled={isThisMonth}
+            className="px-3 h-8 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-muted/50 disabled:opacity-40"
+          >{t('recurringTodayBtn')}</button>
+          <button
+            type="button"
+            aria-label="Next month"
+            onClick={() => setMonth(m => shiftMonth(m, 1))}
+            className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:bg-muted/50"
+          >›</button>
+        </div>
+      </div>
+
+      {/* Real 3-tile overview fed by /api/recurring/overview. */}
+      <div className="bg-card rounded-2xl border border-border p-5 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <OverviewTileCard
+            label={t('recurringPillarIncome')}
+            headline={incExpected}
+            sub={tFmt('recurringReceivedRemainingFmt', [fmt(incReceived), fmt(Math.max(0, incExpected - incReceived))])}
+            foot={tFmt(
+              (overview?.income.totalCount ?? 0) === 1 ? 'recurringSourceFootFmt' : 'recurringSourceFootPluralFmt',
+              [overview?.income.totalCount ?? 0],
+            )}
+            pct={pctOf(incReceived, incExpected)}
+            color="emerald"
+            fmt={fmt}
+          />
+          <OverviewTileCard
+            label={t('recurringPillarExpenses')}
+            headline={expTotal}
+            sub={tFmt('recurringPaidRemainingFmt', [fmt(expPaid), fmt(Math.max(0, expTotal - expPaid))])}
+            foot={(overview?.expenses.pendingCount ?? 0) > 0
+              ? tFmt('recurringPendingOfFmt', [overview?.expenses.pendingCount ?? 0, overview?.expenses.totalCount ?? 0])
+              : t('recurringAllClear')}
+            pct={pctOf(expPaid, expTotal)}
+            color="rose"
+            fmt={fmt}
+          />
+          <OverviewTileCard
+            label={t('recurringPillarCreditCards')}
+            headline={ccTotal}
+            sub={tFmt('recurringPaidRemainingFmt', [fmt(ccPaid), fmt(Math.max(0, ccTotal - ccPaid))])}
+            foot={(overview?.creditCards.pendingCount ?? 0) > 0
+              ? tFmt('recurringPendingOfFmt', [overview?.creditCards.pendingCount ?? 0, overview?.creditCards.totalCount ?? 0])
+              : t('recurringAllClear')}
+            pct={pctOf(ccPaid, ccTotal)}
+            color="slate"
+            fmt={fmt}
+          />
+        </div>
+        <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">{t('recurringNetThisMonth')}</p>
+          <p className={`text-base font-bold tabular-nums ${(overview?.net ?? 0) >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
+            {(overview?.net ?? 0) >= 0 ? '+' : ''}{fmt(overview?.net ?? 0)}
+          </p>
+        </div>
+      </div>
+
+      {/* Unified "this month" list — every income / bill / card occurrence,
+          date-sorted. The Monarch single-list layout: name, date, account,
+          category, amount. */}
+      <div className="bg-card rounded-2xl border border-border mb-5 overflow-hidden">
+        <div className="px-5 py-3 border-b border-border">
+          <h2 className="font-semibold text-foreground">{t('recurringUpcomingTitle')}</h2>
+        </div>
+        {(overview?.items?.length ?? 0) === 0 ? (
+          <p className="px-5 py-8 text-center text-sm text-muted-foreground">{t('recurringEmptyMonth')}</p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {(overview?.items ?? []).map((it, i) => {
+              const income = it.group === 'income';
+              return (
+                <li key={`${it.group}-${it.id}-${i}`} className={`flex items-center gap-3 px-5 py-3 ${it.paid ? 'opacity-60' : ''}`}>
+                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center shrink-0">
+                    <CategoryIcon category={it.category} className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{it.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {formatDate(it.date)} <span className="opacity-70">· {relLabel(it.date, it.paid)}</span>
+                      {it.paymentAccount ? <span className="opacity-70"> · {it.paymentAccount}</span> : ''}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={`text-sm font-bold tabular-nums ${income ? 'text-emerald-700 dark:text-emerald-400' : 'text-foreground'}`}>
+                      {income ? '+' : ''}{fmt(it.amount)}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground capitalize">{it.category}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {/* Review-now banner for paused recurring rows. */}
       {inactive.length > 0 && (
         <a
           href="#paused-recurring"
@@ -477,69 +590,11 @@ export default function RecurringPage() {
         </a>
       )}
 
-      {/* Monarch-parity 3-pillar header card.
-          Income · Expenses · Credit cards. Each pillar shows the count
-          of recurring rows ("X / Y statements"-style label), the
-          received-vs-remaining split, and a thin progress bar.
-          Visual reference: marketing/Monarch Screenshots screenshot
-          captured 2026-05-01 22:36. */}
-      {transactions.length > 0 && (
-        <div className="bg-card rounded-2xl border border-border p-5 mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <PillarCard
-              label={t('recurringPillarIncome')}
-              count={incomeTxs.length}
-              total={incomeTotal}
-              fmt={fmt}
-              color="emerald"
-              labelTotal={tFmt('recurringExpectedFmt', [fmt(incomeTotal)])}
-              foot={tFmt(incomeTxs.length === 1 ? 'recurringSourceFootFmt' : 'recurringSourceFootPluralFmt', [incomeTxs.length])}
-            />
-            <PillarCard
-              label={t('recurringPillarExpenses')}
-              count={expenseTxs.length}
-              total={expenseTotal}
-              fmt={fmt}
-              color="rose"
-              labelTotal={tFmt('recurringExpectedFmt', [fmt(expenseTotal)])}
-              foot={tFmt(expenseTxs.length === 1 ? 'recurringExpenseFootFmt' : 'recurringExpenseFootPluralFmt', [expenseTxs.length])}
-            />
-            <PillarCard
-              label={t('recurringPillarCreditCards')}
-              count={ccTxs.length}
-              total={ccTotal}
-              fmt={fmt}
-              color="slate"
-              labelTotal={ccTotal > 0 ? tFmt('recurringDueFmt', [fmt(ccTotal)]) : t('recurringNoCardPayments')}
-              foot={tFmt(ccTxs.length === 1 ? 'recurringCardFootFmt' : 'recurringCardFootPluralFmt', [ccTxs.length])}
-            />
-          </div>
-          {/* Net monthly impact strip */}
-          <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">{t('recurringMonthlyImpact')}</p>
-            <p className={`text-base font-bold tabular-nums ${monthlyImpact >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
-              {monthlyImpact >= 0 ? '+' : ''}{fmt(monthlyImpact)}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Info box */}
-      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5 text-sm text-blue-800">
-        <p className="font-semibold mb-1">{t('recurringInfoTitle')}</p>
-        <p>{t('recurringInfoBodyPrefix')} <strong>{t('recurringInfoBodyEmphasis')}</strong> {t('recurringInfoBodySuffix')}</p>
-      </div>
-
-      {/* Active — list ↔ calendar view toggle (Section B·5).
-          Calendar view groups recurring rows by day-of-month based on
-          the last-seen date and surfaces them as dots on a 7-column
-          month grid. Same data, different shape — list is best for
-          editing, calendar is best for "when does my money move."
-          Visual reference: monarch-walkthrough.mov frame f_038. */}
+      {/* Manage recurring rules — the editable list (pause/resume + edit cadence). */}
       {active.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center">
-            <h2 className="font-semibold text-primary">{tFmt('recurringActiveHeadingFmt', [active.length])}</h2>
+            <h2 className="font-semibold text-primary">{t('recurringManageRulesTitle')}</h2>
             <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
               <button
                 type="button"
@@ -600,7 +655,7 @@ export default function RecurringPage() {
         </div>
       )}
 
-      {transactions.length === 0 && (
+      {transactions.length === 0 && (overview?.items?.length ?? 0) === 0 && (
         <EmptyState
           illustration="receipt"
           title={detected.length > 0 ? t('recurringEmptyTitleManual') : t('recurringEmptyTitle')}
@@ -628,10 +683,7 @@ export default function RecurringPage() {
         />
       )}
 
-      {/* 2026-06-08 (founder): edit-frequency modal. Single-purpose: change
-          the cadence of an existing recurring row. Other fields (amount,
-          description, category) live on /dashboard/transactions and would
-          bloat this modal. */}
+      {/* Edit-frequency modal. */}
       {editTx && (
         <div
           role="dialog"
