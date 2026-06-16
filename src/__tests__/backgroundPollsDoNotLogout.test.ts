@@ -259,4 +259,18 @@ describe('background-poll API helpers do not force-logout on 401', () => {
       expect(logoutSpy).not.toHaveBeenCalled();
     });
   }
+
+  // 2026-06-15 (DATA-CUR-1 sweep): getInvestmentBenchmarks fires on mount
+  // from /dashboard/investments as part of the benchmark overlay load.
+  // Before this fix it had no suppressUnauthorized, meaning a transient
+  // 401 could cascade into forced logout — same bug class as R14.
+  it('getInvestmentBenchmarks — no global logout on 401 (mount-fired from /dashboard/investments)', async () => {
+    const { api } = await import('../lib/api');
+
+    await expect(api.getInvestmentBenchmarks()).rejects.toThrow(
+      /session has expired|API error|Network|connection/,
+    );
+
+    expect(logoutSpy).not.toHaveBeenCalled();
+  });
 });

@@ -1451,8 +1451,11 @@ export const api = {
   // for S&P 500 / US Stocks / US Bonds plus period totals so the
   // /dashboard/investments page can render Monarch's Backtested
   // Performance comparison card.
-  getInvestmentBenchmarks: (period: string = '6m') =>
-    apiFetch(`/api/investments/benchmarks?period=${encodeURIComponent(period)}`),
+  // suppressUnauthorized=true: mount-fired from /dashboard/investments;
+  // a transient 401 must not cascade into a forced logout (same class
+  // as R14 hardening).
+  getInvestmentBenchmarks: (period: string = '6m', suppressUnauthorized = true) =>
+    apiFetch(`/api/investments/benchmarks?period=${encodeURIComponent(period)}`, {}, API_TIMEOUT, suppressUnauthorized),
 
   // Forecasting (2026-05-03 — backs /dashboard/forecasting). Single
   // scenario per user today; schema supports multi-scenario for future
