@@ -680,7 +680,7 @@ function AnalyticsPageContent() {
       {/* Charts Row 1: Overview Bar + Period Comparison */}
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         {/* Income vs Expense Bar */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm" role="region" aria-label="Income vs Expenses chart">
+        <div className="bg-white rounded-2xl p-6 shadow-sm" role="region" aria-label={t('analyticsIncomeVsExpensesRegionAria')}>
           <h2 className="text-lg font-semibold text-primary mb-4">{t('analyticsIncomeVsExpensesTitle')}</h2>
           {overviewData.every((d) => d.amount === 0) ? (
             <p className="text-gray-400 text-center py-12">No transaction data for this period</p>
@@ -708,7 +708,7 @@ function AnalyticsPageContent() {
         </div>
 
         {/* Period Comparison Trend */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm" role="region" aria-label="Period Comparison chart">
+        <div className="bg-white rounded-2xl p-6 shadow-sm" role="region" aria-label={t('analyticsPeriodComparisonRegionAria')}>
           <h2 className="text-lg font-semibold text-primary mb-4">{t('analyticsPeriodComparisonTitle')}</h2>
           {[allPeriods.week, allPeriods.month, allPeriods.year].every(p => !p || (p.totalIncome === 0 && p.totalExpenses === 0)) ? (
             <p className="text-gray-400 text-center py-12">No transaction data available</p>

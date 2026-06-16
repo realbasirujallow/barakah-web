@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { api } from '../lib/api';
+import { useFocusTrap } from '../lib/useFocusTrap';
 
 /**
  * Feature 1 UI (2026-04-18): "I paid zakat for lunar year N before I joined
@@ -38,6 +39,18 @@ export default function HistoricalZakatModal({ currentLunarYear, open, onClose }
   const [notes, setNotes] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef, open);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !submitting) onClose(null);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [open, submitting, onClose]);
 
   if (!open) return null;
 
@@ -98,6 +111,7 @@ export default function HistoricalZakatModal({ currentLunarYear, open, onClose }
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       role="dialog"
       aria-modal="true"

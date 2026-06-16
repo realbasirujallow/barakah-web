@@ -429,7 +429,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
         <span className="flex-1 truncate">{tNavLabel(item.label)}</span>
         {locked && (
-          <span className="text-[10px] uppercase tracking-wider opacity-60 font-semibold" aria-label="Premium only">
+          <span className="text-[10px] uppercase tracking-wider opacity-60 font-semibold" aria-label={t('navPremiumOnly')}>
             Plus
           </span>
         )}

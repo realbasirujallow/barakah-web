@@ -29,7 +29,7 @@
  * options. The disclaimer footer says exactly that.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ReferenceLine, ReferenceDot,
@@ -120,6 +120,13 @@ function ForecastingPageContent() {
   const [monthlyContribution, setMonthlyContribution] = useState(DEFAULTS.monthlyContribution);
   const [annualReturnPct, setAnnualReturnPct] = useState(DEFAULTS.annualReturnPct);
   const [scenarioId, setScenarioId] = useState<number | undefined>(undefined);
+  // Keep a ref that's always up-to-date so the debounced save callback
+  // below can read the latest scenarioId without a stale closure.
+  // Without this, sliders after the first save always read scenarioId as
+  // undefined (the initial render's closure) and POST a new row instead
+  // of PUT-ing the existing one.
+  const scenarioIdRef = useRef<number | undefined>(undefined);
+  useEffect(() => { scenarioIdRef.current = scenarioId; }, [scenarioId]);
   const [scenarioLoaded, setScenarioLoaded] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
@@ -182,13 +189,19 @@ function ForecastingPageContent() {
   // wait for `scenarioLoaded` to flip true so the initial-load values
   // don't immediately overwrite the user's saved scenario with the
   // defaults during the brief render window before the GET resolves.
+  //
+  // scenarioId is included in deps so that after the first POST returns
+  // and sets scenarioId, any subsequent slider change re-arms the timer
+  // and PUTs with the real id. scenarioIdRef.current is read inside the
+  // async callback so it gets the value at fire-time, not at schedule-time
+  // (avoids a stale-closure race on rapid adjustments).
   useEffect(() => {
     if (!scenarioLoaded) return;
     setSaveStatus('saving');
     const timeoutId = window.setTimeout(async () => {
       try {
         const result = await api.saveForecastScenario({
-          id: scenarioId,
+          id: scenarioIdRef.current,
           currentAge,
           retirementAge,
           hajjYearsFromNow,
@@ -196,7 +209,7 @@ function ForecastingPageContent() {
           annualReturnPct,
         });
         const saved = (result as { scenario?: { id: number } })?.scenario;
-        if (saved?.id && !scenarioId) setScenarioId(saved.id);
+        if (saved?.id && !scenarioIdRef.current) setScenarioId(saved.id);
         setSaveStatus('saved');
         // Reset the chip back to idle so it doesn't permanently say "Saved".
         window.setTimeout(() => setSaveStatus('idle'), 1500);
@@ -205,8 +218,7 @@ function ForecastingPageContent() {
       }
     }, 800);
     return () => window.clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scenarioLoaded, currentAge, retirementAge, hajjYearsFromNow, monthlyContribution, annualReturnPct]);
+  }, [scenarioLoaded, scenarioId, currentAge, retirementAge, hajjYearsFromNow, monthlyContribution, annualReturnPct]);
 
   const projection = useMemo(() => {
     if (startingValue == null) return [];

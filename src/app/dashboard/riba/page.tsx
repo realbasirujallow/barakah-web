@@ -920,8 +920,9 @@ export default function RibaPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="text-xs font-medium text-gray-700 mb-1 block">{t('ribaFieldSourceType')}</label>
+                    <label htmlFor="riba-source-type" className="text-xs font-medium text-gray-700 mb-1 block">{t('ribaFieldSourceType')}</label>
                     <select
+                      id="riba-source-type"
                       value={goalForm.sourceType}
                       onChange={e => setGoalForm(prev => ({ ...prev, sourceType: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
@@ -932,8 +933,9 @@ export default function RibaPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-700 mb-1 block">{t('ribaFieldSourceName')}</label>
+                    <label htmlFor="riba-source-name" className="text-xs font-medium text-gray-700 mb-1 block">{t('ribaFieldSourceName')}</label>
                     <input
+                      id="riba-source-name"
                       type="text"
                       value={goalForm.sourceName}
                       onChange={e => setGoalForm(prev => ({ ...prev, sourceName: e.target.value }))}
@@ -942,8 +944,9 @@ export default function RibaPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-700 mb-1 block">{tFmt('ribaFieldCurrentAmountFmt', [symbol])}</label>
+                    <label htmlFor="riba-current-amount" className="text-xs font-medium text-gray-700 mb-1 block">{tFmt('ribaFieldCurrentAmountFmt', [symbol])}</label>
                     <input
+                      id="riba-current-amount"
                       type="number"
                       min="0"
                       step="0.01"
@@ -954,8 +957,9 @@ export default function RibaPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-700 mb-1 block">{t('ribaFieldNotes')}</label>
+                    <label htmlFor="riba-notes" className="text-xs font-medium text-gray-700 mb-1 block">{t('ribaFieldNotes')}</label>
                     <textarea
+                      id="riba-notes"
                       value={goalForm.notes}
                       onChange={e => setGoalForm(prev => ({ ...prev, notes: e.target.value }))}
                       placeholder={t('ribaNotesPlaceholder')}

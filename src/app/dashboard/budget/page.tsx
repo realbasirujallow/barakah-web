@@ -519,18 +519,18 @@ export default function BudgetPage() {
             <h2 className="text-xl font-bold text-primary mb-4">{editItem ? t('budgetModalEditTitle') : t('budgetModalAddTitle')}</h2>
             <div className="space-y-4">
               <div>
-                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="budget-form-category" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
                   {t('budgetFieldCategory')}
                   <FormHelp ariaLabel={t('budgetHelpCategory')}>
                     {t('budgetHelpCategoryBody')}
                   </FormHelp>
                 </label>
-                <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                <select id="budget-form-category" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {CATEGORIES.map(c => <option key={c} value={c}>{catLabel(c)}</option>)}
                 </select>
               </div>
               <div>
-                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="budget-form-limit" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
                   {t('budgetFieldMonthlyLimit')}
                   <FormHelp ariaLabel={t('budgetHelpLimit')}>
                     {t('budgetHelpLimitBody')}
@@ -553,21 +553,21 @@ export default function BudgetPage() {
                   state. The pattern attribute keeps mobile keyboard
                   validation hints. Validation still runs on save.
                 */}
-                <input type="text" inputMode="decimal" pattern="[0-9]*\.?[0-9]*"
+                <input id="budget-form-limit" type="text" inputMode="decimal" pattern="[0-9]*\.?[0-9]*"
                   value={form.monthlyLimit}
                   onChange={e => setForm({ ...form, monthlyLimit: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('budgetLimitPlaceholder')} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('budgetFieldMonth')}</label>
-                  <select value={form.month} onChange={e => setForm({ ...form, month: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                  <label htmlFor="budget-form-month" className="block text-sm font-medium text-gray-700 mb-1">{t('budgetFieldMonth')}</label>
+                  <select id="budget-form-month" value={form.month} onChange={e => setForm({ ...form, month: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                     {MONTH_KEYS.map((mk, i) => <option key={i} value={String(i + 1)}>{t(mk)}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('budgetFieldYear')}</label>
-                  <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4}
+                  <label htmlFor="budget-form-year" className="block text-sm font-medium text-gray-700 mb-1">{t('budgetFieldYear')}</label>
+                  <input id="budget-form-year" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4}
                     value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900" />
                 </div>
@@ -582,13 +582,14 @@ export default function BudgetPage() {
                   pattern. */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="budget-form-cat-kind" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
                     {t('budgetFieldCategoryType')}
                     <FormHelp ariaLabel={t('budgetHelpType')}>
                       <strong>{t('budgetHelpTypeBodyPrefix')}</strong> {t('budgetHelpTypeBodyMid')} <strong>{t('budgetHelpTypeBodyFlexLabel')}</strong> {t('budgetHelpTypeBodySuffix')}
                     </FormHelp>
                   </label>
                   <select
+                    id="budget-form-cat-kind"
                     value={form.categoryKind}
                     onChange={e => {
                       const next = e.target.value as CategoryKind;
@@ -609,7 +610,7 @@ export default function BudgetPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="budget-form-rollover" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
                     {t('budgetFieldRollover')}
                     <FormHelp ariaLabel={t('budgetHelpRollover')}>
                       <strong>{t('budgetHelpRolloverRefillLabel')}</strong> {t('budgetHelpRolloverRefillBody')}
@@ -618,6 +619,7 @@ export default function BudgetPage() {
                     </FormHelp>
                   </label>
                   <select
+                    id="budget-form-rollover"
                     value={form.rolloverStrategy}
                     onChange={e => setForm({ ...form, rolloverStrategy: e.target.value as RolloverStrategy })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"

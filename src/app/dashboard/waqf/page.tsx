@@ -11,7 +11,7 @@ import { useFocusTrap } from '../../../lib/useFocusTrap';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 
 interface WaqfItem { id: number; organizationName: string; type: string; purpose: string; amount: number; date: number; recurring: boolean; status: string; description?: string; }
-interface Beneficiary { id: number; name: string; category: string; percentage: number; contact?: string; notes?: string; calculatedAmount: number; }
+interface Beneficiary { id: number; name: string; category: string; percentage: number; contact?: string; notes?: string; calculatedAmount?: number; }
 
 const PURPOSES = ['education', 'healthcare', 'mosque', 'water', 'orphanage', 'general', 'other'];
 const TYPES = ['cash', 'property', 'equipment', 'books', 'land', 'other'];
@@ -376,7 +376,7 @@ export default function WaqfPage() {
                       </div>
                       <div className="text-right ms-4">
                         <p className="text-xl font-bold text-primary">{b.percentage}%</p>
-                        {totalWaqf > 0 && <p className="text-sm text-teal-700 font-medium">{fmt(b.calculatedAmount)}</p>}
+                        {totalWaqf > 0 && <p className="text-sm text-teal-700 font-medium">{fmt(b.calculatedAmount ?? 0)}</p>}
                       </div>
                     </div>
                     <div className="mt-3 w-full bg-gray-100 rounded-full h-1.5">

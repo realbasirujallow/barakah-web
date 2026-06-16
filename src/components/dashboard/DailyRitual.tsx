@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { t, tFmt } from '@/lib/i18n';
 
 /**
  * Phase 11 (Apr 30 2026) — "Daily Ritual" card.
@@ -65,8 +66,8 @@ export function DailyRitual({ items, className }: DailyRitualProps) {
   if (items.length === 0) return null;
 
   const ritualLabel = items.length === 1
-    ? '1 thing to look at today'
-    : `${items.length} things to look at today`;
+    ? t('ritualOneItem')
+    : tFmt('ritualManyItemsFmt', [items.length]);
 
   return (
     <Card className={cn('mb-5 py-0 overflow-hidden', className)}>
@@ -155,9 +156,9 @@ export function buildRitualItems({
       id: 'bills-overdue',
       severity: 'critical',
       icon: AlertCircle,
-      title: bills.overdueCount === 1 ? '1 bill past due' : `${bills.overdueCount} bills past due`,
-      body: 'Pay now to avoid late fees',
-      cta: { label: 'View bills', href: '/dashboard/bills' },
+      title: bills.overdueCount === 1 ? t('ritualBillOverdueOne') : tFmt('ritualBillOverdueManyFmt', [bills.overdueCount]),
+      body: t('ritualBillOverdueBody'),
+      cta: { label: t('ritualBillOverdueCta'), href: '/dashboard/bills' },
     });
   }
 
@@ -168,10 +169,10 @@ export function buildRitualItems({
       severity: 'warning',
       icon: CalendarClock,
       title: hawlDue.dueCount === 1
-        ? '1 asset reached its zakat anniversary'
-        : `${hawlDue.dueCount} assets reached their zakat anniversary`,
-      body: 'Calculate and pay zakat for the lunar year',
-      cta: { label: 'Open zakat', href: '/dashboard/zakat' },
+        ? t('ritualHawlDueOne')
+        : tFmt('ritualHawlDueManyFmt', [hawlDue.dueCount]),
+      body: t('ritualHawlDueBody'),
+      cta: { label: t('ritualHawlDueCta'), href: '/dashboard/zakat' },
     });
   }
 
@@ -181,10 +182,10 @@ export function buildRitualItems({
       severity: 'warning',
       icon: FileText,
       title: reviewCount === 1
-        ? '1 transaction needs review'
-        : `${reviewCount} transactions need review`,
-      body: 'Confirm category or flag as needs investigation',
-      cta: { label: 'Review', href: '/dashboard/transactions?filter=needs_review' },
+        ? t('ritualTxReviewOne')
+        : tFmt('ritualTxReviewManyFmt', [reviewCount]),
+      body: t('ritualTxReviewBody'),
+      cta: { label: t('ritualTxReviewCta'), href: '/dashboard/transactions?filter=needs_review' },
     });
   }
 
@@ -193,9 +194,9 @@ export function buildRitualItems({
       id: 'budget-over',
       severity: 'warning',
       icon: Wallet,
-      title: `Over budget by ${fmt(Math.abs(budget.totalRemaining))} this month`,
-      body: 'Adjust limits or trim discretionary spending',
-      cta: { label: 'View budget', href: '/dashboard/budget' },
+      title: tFmt('ritualBudgetOverFmt', [fmt(Math.abs(budget.totalRemaining))]),
+      body: t('ritualBudgetOverBody'),
+      cta: { label: t('ritualBudgetOverCta'), href: '/dashboard/budget' },
     });
   }
 
@@ -205,9 +206,9 @@ export function buildRitualItems({
       id: 'zakat-eligible',
       severity: 'info',
       icon: Coins,
-      title: `You're eligible to pay ${fmt(zakatDue)} in zakat`,
-      body: 'Your wealth is above nisab and the lunar year has passed',
-      cta: { label: 'Calculate', href: '/dashboard/zakat' },
+      title: tFmt('ritualZakatEligibleFmt', [fmt(zakatDue)]),
+      body: t('ritualZakatEligibleBody'),
+      cta: { label: t('ritualZakatEligibleCta'), href: '/dashboard/zakat' },
     });
   }
 
@@ -217,10 +218,10 @@ export function buildRitualItems({
       severity: 'info',
       icon: CalendarClock,
       title: hawlDue.upcomingCount === 1
-        ? '1 asset reaches zakat anniversary soon'
-        : `${hawlDue.upcomingCount} assets reach zakat anniversary soon`,
-      body: 'Get ahead — review your zakatable wealth this week',
-      cta: { label: 'Open zakat tracker', href: '/dashboard/hawl' },
+        ? t('ritualHawlUpcomingOne')
+        : tFmt('ritualHawlUpcomingManyFmt', [hawlDue.upcomingCount]),
+      body: t('ritualHawlUpcomingBody'),
+      cta: { label: t('ritualHawlUpcomingCta'), href: '/dashboard/hawl' },
     });
   }
 
@@ -233,7 +234,7 @@ export function buildRitualItems({
       icon: CheckCircle2,
       title: firstGoodInsight.title,
       body: firstGoodInsight.body.slice(0, 70) + (firstGoodInsight.body.length > 70 ? '…' : ''),
-      cta: { label: 'Open analytics', href: '/dashboard/analytics' },
+      cta: { label: t('ritualInsightCta'), href: '/dashboard/analytics' },
     });
   }
 
@@ -253,8 +254,8 @@ export function DailyRitualAllClear() {
             <Check className="w-4 h-4" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-sm font-semibold text-foreground">All clear today</p>
-            <p className="text-xs text-muted-foreground">No bills past due, no zakat anniversaries, no over-budget categories.</p>
+            <p className="text-sm font-semibold text-foreground">{t('ritualAllClearTitle')}</p>
+            <p className="text-xs text-muted-foreground">{t('ritualAllClearBody')}</p>
           </div>
         </div>
       </CardContent>

@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
@@ -7,7 +7,8 @@ import { useToast } from '../../../lib/toast';
 import EmptyState from '../../../components/EmptyState';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { CategoryIcon } from '../../../lib/categoryIcon';
-import { useI18n } from '../../../lib/i18n';
+import { useI18n, t as tStandalone } from '../../../lib/i18n';
+import { useFocusTrap } from '../../../lib/useFocusTrap';
 
 interface RecurringTx {
   id: number;
@@ -54,6 +55,14 @@ interface Overview {
 function formatDate(epoch: number) {
   const ms = epoch < 1e12 ? epoch * 1000 : epoch;
   return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// Localized display label for a category code — mirrors transactions/page.tsx.
+function categoryLabel(code: string): string {
+  const key = `txnCat_${code}`;
+  const translated = tStandalone(key);
+  if (translated !== key) return translated;
+  return code.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
 }
 
 // ── Date helpers for the month navigator ──────────────────────────────────────
@@ -142,7 +151,7 @@ function TxRow({ tx, fmt, toggling, onToggle, onEdit }: TxRowProps) {
         <div>
           <p className="font-medium text-gray-900 text-sm">{tx.description || t('recurringNoDescription')}</p>
           <p className="text-xs text-gray-500 capitalize">
-            {tx.category} • {tFmt('recurringLastFmt', [formatDate(tx.timestamp)])}
+            {categoryLabel(tx.category)} • {tFmt('recurringLastFmt', [formatDate(tx.timestamp)])}
             {tx.frequency && <span className="ml-1">• {tx.frequency}</span>}
           </p>
         </div>
@@ -277,6 +286,8 @@ export default function RecurringPage() {
   const [editTx, setEditTx]             = useState<RecurringTx | null>(null);
   const [editFrequency, setEditFrequency] = useState<string>('monthly');
   const [savingEdit, setSavingEdit]     = useState(false);
+  const editDialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(editDialogRef, Boolean(editTx));
   // 2026-06-15 (Monarch parity): consolidated month overview + month navigator.
   const [month, setMonth]               = useState<string>(currentMonthString());
   const [overview, setOverview]         = useState<Overview | null>(null);
@@ -465,7 +476,7 @@ export default function RecurringPage() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            aria-label="Previous month"
+            aria-label={t('recurringPrevMonthAriaLabel')}
             onClick={() => setMonth(m => shiftMonth(m, -1))}
             className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:bg-muted/50"
           >‹</button>
@@ -477,7 +488,7 @@ export default function RecurringPage() {
           >{t('recurringTodayBtn')}</button>
           <button
             type="button"
-            aria-label="Next month"
+            aria-label={t('recurringNextMonthAriaLabel')}
             onClick={() => setMonth(m => shiftMonth(m, 1))}
             className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:bg-muted/50"
           >›</button>
@@ -559,7 +570,7 @@ export default function RecurringPage() {
                     <p className={`text-sm font-bold tabular-nums ${income ? 'text-emerald-700 dark:text-emerald-400' : 'text-foreground'}`}>
                       {income ? '+' : ''}{fmt(it.amount)}
                     </p>
-                    <p className="text-[11px] text-muted-foreground capitalize">{it.category}</p>
+                    <p className="text-[11px] text-muted-foreground capitalize">{categoryLabel(it.category)}</p>
                   </div>
                 </li>
               );
@@ -686,13 +697,14 @@ export default function RecurringPage() {
       {/* Edit-frequency modal. */}
       {editTx && (
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="recurring-edit-title"
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
           onClick={() => !savingEdit && setEditTx(null)}
         >
           <div
+            ref={editDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="recurring-edit-title"
             className="bg-white rounded-2xl shadow-lg max-w-sm w-full p-6"
             onClick={(e) => e.stopPropagation()}
           >
