@@ -323,7 +323,7 @@ export default function EmailPreviewPage() {
                         srcDoc={preview.html}
                         className="w-full bg-white"
                         style={{ height: zoomLocale === 'all' ? '520px' : '820px', border: 0 }}
-                        sandbox="allow-same-origin"
+                        sandbox=""
                       />
                     ) : (
                       <div className="p-8 text-center text-sm text-gray-500">Loading…</div>
