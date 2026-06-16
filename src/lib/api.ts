@@ -1164,8 +1164,9 @@ export const api = {
   getZakatReceipt: () => apiFetch('/api/zakat/receipt'),
 
   /** Ibadah Finance Dashboard — aggregated Islamic obligations summary */
-  getIbadahSummary: () =>
-    apiFetch('/api/ibadah/summary'),
+  // mount-fired on /dashboard/ibadah — suppress 401 to avoid forced logout.
+  getIbadahSummary: (suppressUnauthorized = true) =>
+    apiFetch('/api/ibadah/summary', {}, API_TIMEOUT, suppressUnauthorized),
 
   // Waqf
   // 2026-06-08 (ERR-UNAUTH-WEB-1): mount-fired on /dashboard/waqf.
@@ -1237,7 +1238,9 @@ export const api = {
   getRibaGoalSuggestions: () => apiFetch('/api/riba/journey/suggestions'),
 
   // Auto-Categorize
-  reviewCategories: () => apiFetch('/api/categorize/review'),
+  // mount-fired on /dashboard/categorize — suppress 401 to avoid forced logout.
+  reviewCategories: (suppressUnauthorized = true) =>
+    apiFetch('/api/categorize/review', {}, API_TIMEOUT, suppressUnauthorized),
   // 2026-05-02 fix: send an explicit empty JSON body. Without it, fetch
   // sends a POST with `Content-Type: application/json` (set by apiFetch
   // for every request) and no payload, which the Idempotency filter +
@@ -1255,7 +1258,9 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({}),
     }),
-  getTransactionRules: () => apiFetch('/api/categorize/rules'),
+  // mount-fired on /dashboard/categorize — suppress 401 to avoid forced logout.
+  getTransactionRules: (suppressUnauthorized = true) =>
+    apiFetch('/api/categorize/rules', {}, API_TIMEOUT, suppressUnauthorized),
   createTransactionRule: (data: Record<string, unknown>) =>
     apiFetch('/api/categorize/rules', { method: 'POST', body: JSON.stringify(data) }),
   updateTransactionRule: (id: number, data: Record<string, unknown>) =>
@@ -1331,7 +1336,8 @@ export const api = {
     }
     return apiFetch(`/api/halal/check/${encodeURIComponent(symbol.trim())}`);
   },
-  getHalalStocks: (params?: { search?: string; sector?: string; compliance?: string; page?: number; size?: number }) => {
+  // mount-fired on /dashboard/halal — suppress 401 to avoid forced logout.
+  getHalalStocks: (params?: { search?: string; sector?: string; compliance?: string; page?: number; size?: number }, suppressUnauthorized = true) => {
     const p = new URLSearchParams();
     if (params?.search) p.set('search', params.search);
     if (params?.sector) p.set('sector', params.sector);
@@ -1339,7 +1345,7 @@ export const api = {
     if (params?.page !== undefined) p.set('page', String(params.page));
     if (params?.size !== undefined) p.set('size', String(params.size));
     const qs = p.toString();
-    return apiFetch(`/api/halal/list${qs ? `?${qs}` : ''}`);
+    return apiFetch(`/api/halal/list${qs ? `?${qs}` : ''}`, {}, API_TIMEOUT, suppressUnauthorized);
   },
   // R15 hardening (2026-04-26): default suppressUnauthorized=true.
   // Both are mount-fired from /dashboard/halal — a 401 during a stale
@@ -1388,7 +1394,9 @@ export const api = {
     apiFetch('/api/cashflow/income-streams', {}, API_TIMEOUT, suppressUnauthorized),
 
   // Multi-currency
-  getCurrencyRates: () => apiFetch('/api/currency/rates'),
+  // defensive: endpoint is public but blanket rule — suppress 401.
+  getCurrencyRates: (suppressUnauthorized = true) =>
+    apiFetch('/api/currency/rates', {}, API_TIMEOUT, suppressUnauthorized),
   convertCurrency: (from: string, to: string, amount: number) => {
     // Validate currency codes: 3-letter uppercase codes
     if (!from || !/^[A-Z]{3}$/.test(from.trim().toUpperCase())) {
@@ -1430,8 +1438,9 @@ export const api = {
     apiFetch(`/api/investments/accounts/${accountId}/holdings`),
   /** Holdings by accountId — works for Plaid-linked accounts that don't
    *  have an InvestmentAccount row. Powers the per-asset detail page. */
-  getHoldingsByAccount: (accountId: number) =>
-    apiFetch(`/api/investments/holdings/by-account?accountId=${accountId}`),
+  // mount-fired on the asset detail page — suppress 401 to avoid forced logout.
+  getHoldingsByAccount: (accountId: number, suppressUnauthorized = true) =>
+    apiFetch(`/api/investments/holdings/by-account?accountId=${accountId}`, {}, API_TIMEOUT, suppressUnauthorized),
   addHolding: (accountId: number, data: Record<string, unknown>) =>
     apiFetch(`/api/investments/accounts/${accountId}/holdings/add`, { method: 'POST', body: JSON.stringify(data) }),
   updateHolding: (id: number, data: Record<string, unknown>) =>
@@ -1473,7 +1482,9 @@ export const api = {
     apiFetch('/api/forecasting/scenarios', { method: 'POST', body: JSON.stringify(data) }),
 
   // Shared Finances
-  getSharedGroups: () => apiFetch('/api/shared/groups/list'),
+  // mount-fired on /dashboard/shared — suppress 401 to avoid forced logout.
+  getSharedGroups: (suppressUnauthorized = true) =>
+    apiFetch('/api/shared/groups/list', {}, API_TIMEOUT, suppressUnauthorized),
   getGroupDetails: (groupId: number) => apiFetch(`/api/shared/groups/${groupId}`),
   createSharedGroup: (data: Record<string, unknown>) =>
     apiFetch('/api/shared/groups/create', { method: 'POST', body: JSON.stringify(data) }),

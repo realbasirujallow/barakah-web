@@ -273,4 +273,35 @@ describe('background-poll API helpers do not force-logout on 401', () => {
 
     expect(logoutSpy).not.toHaveBeenCalled();
   });
+
+  // 2026-06-16 sweep: seven more mount-fired calls found without
+  // suppressUnauthorized. Each was a potential forced-logout vector:
+  // a transient 401 on page load would cascade through the global
+  // refresh + verify loop into /login?reason=expired. These tests
+  // pin the default so the flag can't be silently flipped back.
+  const sweepRound3MountFiredCalls: Array<[string, () => Promise<unknown>]> = [
+    // /dashboard/ibadah — Islamic obligations summary card
+    ['getIbadahSummary',    () => import('../lib/api').then(({api}) => api.getIbadahSummary())],
+    // /dashboard/categorize — review suggestions loaded on mount
+    ['reviewCategories',    () => import('../lib/api').then(({api}) => api.reviewCategories())],
+    // /dashboard/categorize — transaction rules panel loaded on mount
+    ['getTransactionRules', () => import('../lib/api').then(({api}) => api.getTransactionRules())],
+    // multi-currency widget — defensive even though endpoint is public
+    ['getCurrencyRates',    () => import('../lib/api').then(({api}) => api.getCurrencyRates())],
+    // asset detail page — holdings loaded on mount
+    ['getHoldingsByAccount',() => import('../lib/api').then(({api}) => api.getHoldingsByAccount(1))],
+    // /dashboard/shared — shared-finances groups list loaded on mount
+    ['getSharedGroups',     () => import('../lib/api').then(({api}) => api.getSharedGroups())],
+    // /dashboard/halal — halal stock list loaded on mount
+    ['getHalalStocks',      () => import('../lib/api').then(({api}) => api.getHalalStocks())],
+  ];
+
+  for (const [name, call] of sweepRound3MountFiredCalls) {
+    it(`${name} — no global logout on 401 (sweep 2026-06-16 mount-fired)`, async () => {
+      await expect(call()).rejects.toThrow(
+        /session has expired|API error|Network|connection/,
+      );
+      expect(logoutSpy).not.toHaveBeenCalled();
+    });
+  }
 });
