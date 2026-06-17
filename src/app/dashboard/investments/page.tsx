@@ -16,6 +16,7 @@ import { useI18n } from '../../../lib/i18n';
 interface Account {
   id: number;
   name: string;
+  assetId?: number | null; // silo unification: FK to the mirror Asset (for dedup)
   accountType: string;   // backend: accountType (not type)
   institution: string;   // backend: institution (not broker)
   totalValue: number;
@@ -334,30 +335,19 @@ export default function InvestmentsPage() {
   const isDayGain        = dayGainLoss >= 0;
 
   // Combined total: only count Asset-ledger investment rows that are NOT already
-  // represented in `totalValue` (the InvestmentAccount/Holding aggregate). Two
-  // kinds of duplicates are excluded:
-  //   1. Plaid-mirrored rows (notes "Linked from Plaid…") — the Asset row mirrors
-  //      a Plaid-synced holding already in totalValue.
-  //   2. Account-identity duplicates — the SAME account entered in BOTH the
-  //      Investments feature (InvestmentAccount) AND the Assets ledger. The prior
-  //      guard caught only case 1, so accounts added via the Assets page / CSV
-  //      import ("Added via Assets…") were summed on top of the holdings that
-  //      already represent them — double-counting the whole portfolio (a ~$278k
-  //      portfolio rendered as ~$553k). Identity = the account name with all
-  //      non-alphanumerics stripped, so masking differences ("(...*****9245)" vs
-  //      "(…9245)") still match while the discriminating last-4 is preserved.
-  // Only InvestmentAccounts with a positive balance seed the dedup set, so an
-  // empty holdings-less account never suppresses its real Asset-row value.
-  const acctIdentity = (s?: string) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const portfolioIdentities = new Set(
-    accounts.filter(a => (a.totalValue || 0) > 0).map(a => acctIdentity(a.name)).filter(Boolean)
+  // represented in `totalValue` (the InvestmentAccount/Holding aggregate).
+  // Silo unification (2026-06-17): the backend now links each InvestmentAccount to
+  // its mirror Asset via `account.assetId`, so we dedup by that FOREIGN KEY — the
+  // authoritative link — instead of the earlier fragile name-matching heuristic
+  // (commit 11d1b66). An Asset already represented by a portfolio account, or a
+  // Plaid mirror (notes "Linked from Plaid…"), is excluded; everything left is a
+  // genuinely-standalone manual investment that adds on top.
+  const linkedAssetIds = new Set<number>(
+    accounts.map(a => a.assetId).filter((id): id is number => typeof id === 'number')
   );
-  const additiveAssets = assetAccounts.filter((a) => {
-    if (a.notes?.startsWith('Linked from Plaid')) return false; // case 1: Plaid mirror
-    const id = acctIdentity(a.name);
-    if (id && portfolioIdentities.has(id)) return false;        // case 2: dup of an InvestmentAccount
-    return true;
-  });
+  const additiveAssets = assetAccounts.filter(a =>
+    !linkedAssetIds.has(a.id) && !a.notes?.startsWith('Linked from Plaid')
+  );
   // Convert each non-Plaid asset's native value to the user's preferred
   // currency before summing. A £30k UK property and a $50k US brokerage
   // account previously both landed as raw numbers and were added directly
