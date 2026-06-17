@@ -8,28 +8,21 @@
  * directly to the founder's investor pitch — Barakah is what Monarch
  * would be if it understood Muslim financial life-stages.
  *
- * This is a CLIENT-SIDE-ONLY stub. No new backend endpoint, no
- * persistence — the whole projection runs as React state with simple
- * compound-growth math. Easy to evolve into a server-persisted scenario
- * later. Pulls current net-worth from the existing /api/networth/summary
- * endpoint as the starting principal.
+ * 2026-06-17 — Multi-scenario wiring:
+ *   1. SCENARIO MANAGEMENT — switcher dropdown listing all user scenarios,
+ *      with create-new (name prompt), rename, delete, and set-active.
+ *      Auto-save per scenario via PUT /api/forecasting/scenarios/{id}.
+ *   2. REAL vs FUTURE DOLLARS — toggle sets inflationMode on the scenario
+ *      and drives the projection off the server-side GET …/{id}/projection
+ *      endpoint (realBalance for "today", nominalBalance for "future").
+ *   3. GROWTH-RATE CONTROLS — forecast events (income/expense) let the
+ *      user pick growthMode (inflation/custom/flat) and a custom rate.
  *
- * Math:
- *   FV(t) = P · (1+r)^t + C · (((1+r)^t − 1) / r)
- * where:
- *   P = current net worth
- *   r = annual return (decimal, default 6%)
- *   C = annual contribution (= monthly contribution × 12)
- *   t = years from now
- *
- * Returns a simple line series over 25 years with milestone markers for
- * Hajj timing, retirement age, and 1st-Umrah year. The projection isn't
- * meant to be a financial-planning oracle — it's a "feel the trajectory"
- * surface that gives a Muslim user a tangible sense of their long-horizon
- * options. The disclaimer footer says exactly that.
+ * Falls back to client-side compound-growth math if the server projection
+ * endpoint is unavailable (same resilience as the original page).
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ReferenceLine, ReferenceDot,
@@ -40,36 +33,61 @@ import { useI18n } from '../../../lib/i18n';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ScenarioDTO {
+  id: number;
+  name: string;
+  isActive: boolean;
+  currentAge: number;
+  retirementAge: number;
+  hajjYearsFromNow: number;
+  monthlyContribution: number;
+  annualReturnPct: number;
+  inflationMode: 'today' | 'future';
+  inflationRate: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface ForecastEventDTO {
+  id: number;
+  label: string;
+  type: 'income' | 'expense';
+  annualAmount: number;
+  growthMode: 'inflation' | 'custom' | 'flat';
+  customGrowthRate: number | null;
+  startYearOffset: number;
+  endYearOffset: number;
+  sortOrder: number;
+}
+
 interface ProjectionPoint {
   year: number;
   age: number;
-  /** Net worth at this year, given current assumptions. */
+  /** Displayed balance — real or nominal depending on inflationMode. */
   value: number;
-  /** Optional milestone label (Hajj, Retirement, etc.) for ReferenceDot. */
   milestone?: string;
 }
 
-// Horizon stretches to accommodate the user's retirement-age slider
-// (always show retirement on the chart) but never below 25 years and
-// never above 50 — the curve gets visually noisy past ~50 years and
-// the underlying compound-growth assumption breaks down past that
-// horizon anyway (life events the user can't model now).
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const MIN_HORIZON = 25;
 const MAX_HORIZON = 50;
 
-// Default scenario knobs — investor-friendly, conservative numbers. The
-// user can tweak each in the UI; everything below is a starting point
-// keyed off "this is what a typical 30-year-old Muslim professional
-// should plug in to get a feel for the curve."
 const DEFAULTS = {
   currentAge: 30,
   retirementAge: 65,
   hajjYearsFromNow: 8,
   monthlyContribution: 1500,
   annualReturnPct: 6,
+  inflationMode: 'today' as const,
+  inflationRate: 3,
 };
 
-function computeProjection(opts: {
+// ─── Client-side fallback projection (same math as before) ────────────────────
+
+function computeProjectionLocal(opts: {
   startingValue: number;
   monthlyContribution: number;
   annualReturnPct: number;
@@ -80,16 +98,12 @@ function computeProjection(opts: {
   const { startingValue, monthlyContribution, annualReturnPct, currentAge, retirementAge, hajjYearsFromNow } = opts;
   const r = annualReturnPct / 100;
   const C = monthlyContribution * 12;
-  // Stretch the horizon so retirement is always visible on the chart,
-  // but cap at MAX_HORIZON to avoid 60-year curves that break the
-  // compound-growth assumption.
   const yearsToRetirement = Math.max(0, retirementAge - currentAge);
   const horizon = Math.max(MIN_HORIZON, Math.min(MAX_HORIZON, yearsToRetirement + 2));
   const points: ProjectionPoint[] = [];
   for (let t = 0; t <= horizon; t++) {
     let value: number;
     if (r === 0) {
-      // Linear case avoids the divide-by-zero in the standard FV formula
       value = startingValue + C * t;
     } else {
       const growth = Math.pow(1 + r, t);
@@ -104,45 +118,609 @@ function computeProjection(opts: {
   return points;
 }
 
+// ─── ScenarioSwitcher ─────────────────────────────────────────────────────────
+
+interface ScenarioSwitcherProps {
+  scenarios: ScenarioDTO[];
+  activeId: number | undefined;
+  loading: boolean;
+  onSelect: (id: number) => void;
+  onCreate: (name: string) => Promise<void>;
+  onRename: (id: number, name: string) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
+  onSetActive: (id: number) => Promise<void>;
+  createError: string | null;
+  renameError: string | null;
+  deleteError: string | null;
+}
+
+function ScenarioSwitcher({
+  scenarios, activeId, loading, onSelect, onCreate, onRename, onDelete, onSetActive,
+  createError, renameError, deleteError,
+}: ScenarioSwitcherProps) {
+  const { t, tFmt } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<'list' | 'create' | 'rename' | 'confirmDelete'>('list');
+  const [pendingName, setPendingName] = useState('');
+  const [pendingId, setPendingId] = useState<number | undefined>(undefined);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setMode('list');
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const activeScenario = scenarios.find(s => s.id === activeId);
+
+  const handleCreate = async () => {
+    const name = pendingName.trim();
+    if (!name) return;
+    await onCreate(name);
+    setPendingName('');
+    setMode('list');
+    setOpen(false);
+  };
+
+  const handleRename = async () => {
+    const name = pendingName.trim();
+    if (!name || !pendingId) return;
+    await onRename(pendingId, name);
+    setPendingName('');
+    setPendingId(undefined);
+    setMode('list');
+    setOpen(false);
+  };
+
+  const handleDelete = async () => {
+    if (!pendingId) return;
+    await onDelete(pendingId);
+    setPendingId(undefined);
+    setMode('list');
+    setOpen(false);
+  };
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        onClick={() => { setOpen(o => !o); setMode('list'); }}
+        className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-50 transition-colors"
+      >
+        <span className="text-xs text-gray-400 uppercase tracking-wide mr-1">{t('forecastingScenarioSwitcherLabel')}</span>
+        <span className="max-w-[140px] truncate">{activeScenario?.name ?? '—'}</span>
+        <svg className="w-4 h-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg w-72">
+          {loading && (
+            <p className="px-4 py-3 text-sm text-gray-400">{t('forecastingScenarioLoadingList')}</p>
+          )}
+
+          {!loading && mode === 'list' && (
+            <>
+              <ul className="py-1 max-h-56 overflow-y-auto">
+                {scenarios.map(s => (
+                  <li
+                    key={s.id}
+                    className={`flex items-center justify-between px-4 py-2.5 cursor-pointer group hover:bg-gray-50 ${s.id === activeId ? 'bg-emerald-50' : ''}`}
+                  >
+                    <button
+                      className="flex-1 text-left text-sm text-gray-800 truncate"
+                      onClick={() => { onSelect(s.id); setOpen(false); }}
+                    >
+                      {s.name}
+                      {s.isActive && (
+                        <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 bg-emerald-100 rounded-full px-1.5 py-0.5">
+                          {t('forecastingScenarioActiveLabel')}
+                        </span>
+                      )}
+                    </button>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                      {!s.isActive && (
+                        <button
+                          title={t('forecastingScenarioSetActive')}
+                          onClick={async (e) => { e.stopPropagation(); await onSetActive(s.id); setOpen(false); }}
+                          className="text-xs text-emerald-600 hover:text-emerald-800 px-1"
+                        >
+                          ★
+                        </button>
+                      )}
+                      <button
+                        title={t('forecastingScenarioRename')}
+                        onClick={(e) => { e.stopPropagation(); setPendingId(s.id); setPendingName(s.name); setMode('rename'); }}
+                        className="text-xs text-gray-500 hover:text-gray-800 px-1"
+                      >
+                        ✎
+                      </button>
+                      {scenarios.length > 1 && (
+                        <button
+                          title={t('forecastingScenarioDelete')}
+                          onClick={(e) => { e.stopPropagation(); setPendingId(s.id); setMode('confirmDelete'); }}
+                          className="text-xs text-rose-400 hover:text-rose-600 px-1"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <div className="border-t border-gray-100">
+                <button
+                  onClick={() => setMode('create')}
+                  className="w-full px-4 py-2.5 text-sm text-emerald-700 font-medium hover:bg-emerald-50 text-left"
+                >
+                  {t('forecastingScenarioNewLabel')}
+                </button>
+              </div>
+              {(createError || renameError || deleteError) && (
+                <p className="px-4 py-2 text-xs text-rose-600">{createError || renameError || deleteError}</p>
+              )}
+            </>
+          )}
+
+          {!loading && mode === 'create' && (
+            <div className="p-4">
+              <p className="text-sm font-medium text-gray-800 mb-2">{t('forecastingScenarioCreateTitle')}</p>
+              <input
+                autoFocus
+                type="text"
+                value={pendingName}
+                onChange={e => setPendingName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') setMode('list'); }}
+                placeholder={t('forecastingScenarioNamePlaceholder')}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-2"
+              />
+              {createError && <p className="text-xs text-rose-600 mb-2">{createError}</p>}
+              <div className="flex gap-2">
+                <button onClick={handleCreate} className="flex-1 bg-emerald-700 text-white rounded-lg py-1.5 text-sm font-medium hover:bg-emerald-800">{t('forecastingScenarioSave')}</button>
+                <button onClick={() => setMode('list')} className="flex-1 border border-gray-200 text-gray-600 rounded-lg py-1.5 text-sm hover:bg-gray-50">{t('forecastingScenarioCancel')}</button>
+              </div>
+            </div>
+          )}
+
+          {!loading && mode === 'rename' && (
+            <div className="p-4">
+              <p className="text-sm font-medium text-gray-800 mb-2">{t('forecastingScenarioRenameTitle')}</p>
+              <input
+                autoFocus
+                type="text"
+                value={pendingName}
+                onChange={e => setPendingName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') setMode('list'); }}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-2"
+              />
+              {renameError && <p className="text-xs text-rose-600 mb-2">{renameError}</p>}
+              <div className="flex gap-2">
+                <button onClick={handleRename} className="flex-1 bg-emerald-700 text-white rounded-lg py-1.5 text-sm font-medium hover:bg-emerald-800">{t('forecastingScenarioSave')}</button>
+                <button onClick={() => setMode('list')} className="flex-1 border border-gray-200 text-gray-600 rounded-lg py-1.5 text-sm hover:bg-gray-50">{t('forecastingScenarioCancel')}</button>
+              </div>
+            </div>
+          )}
+
+          {!loading && mode === 'confirmDelete' && pendingId != null && (
+            <div className="p-4">
+              <p className="text-sm text-gray-700 mb-3">
+                {tFmt('forecastingScenarioDeleteConfirmFmt', [scenarios.find(s => s.id === pendingId)?.name ?? ''])}
+              </p>
+              {deleteError && <p className="text-xs text-rose-600 mb-2">{deleteError}</p>}
+              <div className="flex gap-2">
+                <button onClick={handleDelete} className="flex-1 bg-rose-600 text-white rounded-lg py-1.5 text-sm font-medium hover:bg-rose-700">{t('forecastingScenarioDelete')}</button>
+                <button onClick={() => setMode('list')} className="flex-1 border border-gray-200 text-gray-600 rounded-lg py-1.5 text-sm hover:bg-gray-50">{t('forecastingScenarioCancel')}</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── InflationToggle ──────────────────────────────────────────────────────────
+
+interface InflationToggleProps {
+  inflationMode: 'today' | 'future';
+  inflationRate: number;
+  onModeChange: (mode: 'today' | 'future') => void;
+  onRateChange: (rate: number) => void;
+}
+
+function InflationToggle({ inflationMode, inflationRate, onModeChange, onRateChange }: InflationToggleProps) {
+  const { t } = useI18n();
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+      <p className="text-xs uppercase tracking-wide text-gray-500 font-medium mb-2">{t('forecastingInflationToggleLabel')}</p>
+      <div className="flex flex-col gap-1 mb-3">
+        {(['today', 'future'] as const).map(mode => (
+          <label key={mode} className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="inflationMode"
+              value={mode}
+              checked={inflationMode === mode}
+              onChange={() => onModeChange(mode)}
+              className="accent-emerald-700"
+            />
+            <span className="text-sm text-gray-800">
+              {mode === 'today' ? t('forecastingInflationToday') : t('forecastingInflationFuture')}
+            </span>
+          </label>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-gray-500 shrink-0">{t('forecastingInflationRateLabel')}</label>
+        <input
+          type="number"
+          value={inflationRate}
+          onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) onRateChange(Math.max(0, Math.min(20, v))); }}
+          step={0.5}
+          min={0}
+          max={20}
+          className="w-16 text-sm font-bold tabular-nums text-gray-900 border border-gray-200 rounded-lg px-2 py-1 bg-transparent focus:outline-none focus:ring-1 focus:ring-emerald-500"
+        />
+        <span className="text-xs text-gray-500">%</span>
+      </div>
+      <p className="text-xs text-gray-400 mt-1">{t('forecastingInflationRateSubtitle')}</p>
+    </div>
+  );
+}
+
+// ─── EventForm ────────────────────────────────────────────────────────────────
+
+interface EventFormProps {
+  type: 'income' | 'expense';
+  initial?: Partial<ForecastEventDTO>;
+  onSave: (data: {
+    label: string;
+    type: 'income' | 'expense';
+    annualAmount: number;
+    growthMode: 'inflation' | 'custom' | 'flat';
+    customGrowthRate: number | null;
+    startYearOffset: number;
+    endYearOffset: number;
+  }) => Promise<void>;
+  onCancel: () => void;
+  saveError: string | null;
+}
+
+function EventForm({ type, initial, onSave, onCancel, saveError }: EventFormProps) {
+  const { t } = useI18n();
+  const { symbol } = useCurrency();
+  const [label, setLabel] = useState(initial?.label ?? '');
+  const [annualAmount, setAnnualAmount] = useState(initial?.annualAmount ?? 0);
+  const [growthMode, setGrowthMode] = useState<'inflation' | 'custom' | 'flat'>(initial?.growthMode ?? 'inflation');
+  const [customGrowthRate, setCustomGrowthRate] = useState<number>(initial?.customGrowthRate ?? 2);
+  const [startYearOffset, setStartYearOffset] = useState(initial?.startYearOffset ?? 0);
+  const [endYearOffset, setEndYearOffset] = useState(initial?.endYearOffset ?? 10);
+  const [busy, setBusy] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!label.trim()) return;
+    setBusy(true);
+    try {
+      await onSave({
+        label: label.trim(),
+        type,
+        annualAmount,
+        growthMode,
+        customGrowthRate: growthMode === 'custom' ? customGrowthRate : null,
+        startYearOffset,
+        endYearOffset,
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const accentColor = type === 'income' ? 'emerald' : 'rose';
+
+  return (
+    <div className={`bg-white border border-${accentColor}-200 rounded-xl p-4 shadow-sm`}>
+      <div className="grid sm:grid-cols-2 gap-3">
+        <div className="sm:col-span-2">
+          <label className="block text-xs text-gray-500 mb-1">{t('forecastingEventsLabelLabel')}</label>
+          <input
+            autoFocus
+            type="text"
+            value={label}
+            onChange={e => setLabel(e.target.value)}
+            placeholder={t('forecastingEventsLabelPlaceholder')}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">{t('forecastingEventsAnnualAmountLabel')}</label>
+          <div className="flex items-center gap-1">
+            <span className="text-gray-500 text-sm">{symbol}</span>
+            <input
+              type="number"
+              value={annualAmount}
+              onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) setAnnualAmount(Math.max(0, v)); }}
+              min={0}
+              step={100}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">{t('forecastingEventsGrowthModeLabel')}</label>
+          <select
+            value={growthMode}
+            onChange={e => setGrowthMode(e.target.value as 'inflation' | 'custom' | 'flat')}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+          >
+            <option value="inflation">{t('forecastingEventsGrowthInflation')}</option>
+            <option value="custom">{t('forecastingEventsGrowthCustom')}</option>
+            <option value="flat">{t('forecastingEventsGrowthFlat')}</option>
+          </select>
+        </div>
+        {growthMode === 'custom' && (
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">{t('forecastingEventsCustomRateLabel')}</label>
+            <input
+              type="number"
+              value={customGrowthRate}
+              onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) setCustomGrowthRate(v); }}
+              step={0.5}
+              min={-20}
+              max={50}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+        )}
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">{t('forecastingEventsStartYearLabel')}</label>
+          <input
+            type="number"
+            value={startYearOffset}
+            onChange={e => { const v = parseInt(e.target.value, 10); if (!isNaN(v)) setStartYearOffset(Math.max(0, v)); }}
+            min={0}
+            max={MAX_HORIZON}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">{t('forecastingEventsEndYearLabel')}</label>
+          <input
+            type="number"
+            value={endYearOffset}
+            onChange={e => { const v = parseInt(e.target.value, 10); if (!isNaN(v)) setEndYearOffset(Math.max(startYearOffset + 1, v)); }}
+            min={startYearOffset + 1}
+            max={MAX_HORIZON}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+      </div>
+      {saveError && <p className="text-xs text-rose-600 mt-2">{saveError}</p>}
+      <div className="flex gap-2 mt-3">
+        <button
+          onClick={handleSubmit}
+          disabled={busy || !label.trim()}
+          className="flex-1 bg-emerald-700 text-white rounded-lg py-1.5 text-sm font-medium hover:bg-emerald-800 disabled:opacity-50"
+        >
+          {t('forecastingScenarioSave')}
+        </button>
+        <button
+          onClick={onCancel}
+          className="flex-1 border border-gray-200 text-gray-600 rounded-lg py-1.5 text-sm hover:bg-gray-50"
+        >
+          {t('forecastingScenarioCancel')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── ForecastEventsList ───────────────────────────────────────────────────────
+
+interface ForecastEventsListProps {
+  scenarioId: number | undefined;
+  events: ForecastEventDTO[];
+  onEventsChange: (events: ForecastEventDTO[]) => void;
+}
+
+function ForecastEventsList({ scenarioId, events, onEventsChange }: ForecastEventsListProps) {
+  const { t, tFmt } = useI18n();
+  const { fmt, symbol } = useCurrency();
+  const [addingType, setAddingType] = useState<'income' | 'expense' | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const handleSave = async (data: Parameters<EventFormProps['onSave']>[0]) => {
+    if (!scenarioId) return;
+    setSaveError(null);
+    try {
+      if (editingId != null) {
+        const updated = await api.updateForecastEvent(scenarioId, editingId, data) as ForecastEventDTO;
+        onEventsChange(events.map(e => e.id === editingId ? updated : e));
+        setEditingId(null);
+      } else {
+        const created = await api.createForecastEvent(scenarioId, data) as ForecastEventDTO;
+        onEventsChange([...events, created]);
+        setAddingType(null);
+      }
+    } catch {
+      setSaveError(t('forecastingEventsSaveError'));
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!scenarioId) return;
+    setDeleteError(null);
+    setDeletingId(id);
+    try {
+      await api.deleteForecastEvent(scenarioId, id);
+      onEventsChange(events.filter(e => e.id !== id));
+    } catch {
+      setDeleteError(t('forecastingEventsDeleteError'));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const growthLabel = (e: ForecastEventDTO) => {
+    if (e.growthMode === 'inflation') return t('forecastingEventsGrowthInflation');
+    if (e.growthMode === 'flat') return t('forecastingEventsGrowthFlat');
+    return `${e.customGrowthRate ?? 0}%/yr`;
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
+      <div className="flex items-baseline justify-between mb-3">
+        <div>
+          <h2 className="text-lg font-semibold text-primary">{t('forecastingEventsTitle')}</h2>
+          <p className="text-xs text-gray-500 mt-0.5">{t('forecastingEventsSubtitle')}</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => { setAddingType('income'); setEditingId(null); }}
+            className="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg px-3 py-1.5 font-medium hover:bg-emerald-100"
+          >
+            {t('forecastingEventsAddIncome')}
+          </button>
+          <button
+            onClick={() => { setAddingType('expense'); setEditingId(null); }}
+            className="text-xs bg-rose-50 text-rose-800 border border-rose-200 rounded-lg px-3 py-1.5 font-medium hover:bg-rose-100"
+          >
+            {t('forecastingEventsAddExpense')}
+          </button>
+        </div>
+      </div>
+
+      {events.length === 0 && !addingType && (
+        <p className="text-sm text-gray-400 py-4 text-center">{t('forecastingEventsEmpty')}</p>
+      )}
+
+      {deleteError && <p className="text-xs text-rose-600 mb-2">{deleteError}</p>}
+
+      <ul className="space-y-2 mb-3">
+        {events.map(ev => (
+          <li key={ev.id}>
+            {editingId === ev.id ? (
+              <EventForm
+                type={ev.type}
+                initial={ev}
+                onSave={handleSave}
+                onCancel={() => setEditingId(null)}
+                saveError={saveError}
+              />
+            ) : (
+              <div className={`flex items-center justify-between rounded-xl border px-4 py-2.5 ${ev.type === 'income' ? 'border-emerald-100 bg-emerald-50' : 'border-rose-100 bg-rose-50'}`}>
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{ev.label}</p>
+                  <p className="text-xs text-gray-500">
+                    {symbol}{fmt(ev.annualAmount)}/yr · {growthLabel(ev)} · yr {ev.startYearOffset}–{ev.endYearOffset}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => { setEditingId(ev.id); setAddingType(null); setSaveError(null); }}
+                    className="text-xs text-gray-400 hover:text-gray-700"
+                  >
+                    {t('forecastingEventsEdit')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm(tFmt('forecastingEventsDeleteConfirmFmt', [ev.label]))) {
+                        handleDelete(ev.id);
+                      }
+                    }}
+                    disabled={deletingId === ev.id}
+                    className="text-xs text-rose-400 hover:text-rose-600 disabled:opacity-50"
+                  >
+                    {t('forecastingEventsDelete')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {addingType && (
+        <EventForm
+          type={addingType}
+          onSave={handleSave}
+          onCancel={() => { setAddingType(null); setSaveError(null); }}
+          saveError={saveError}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Main page content ────────────────────────────────────────────────────────
+
 function ForecastingPageContent() {
   const { fmt, symbol } = useCurrency();
   const { t, tFmt } = useI18n();
 
-  // Scenario knobs. 2026-05-03: now persisted via
-  // /api/forecasting/scenarios/active. The defaults below are used as
-  // the initial state until the saved scenario (if any) lands; once
-  // loaded, the user's saved values overwrite. Each tweak gets
-  // debounce-saved back to the server so the next visit (and any
-  // future device sync) start from where they left off.
+  // ── Scenario list ─────────────────────────────────────────────────────────
+  const [scenarios, setScenarios] = useState<ScenarioDTO[]>([]);
+  const [scenariosLoading, setScenariosLoading] = useState(true);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [renameError, setRenameError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // ── Active scenario knobs ──────────────────────────────────────────────────
+  const [scenarioId, setScenarioId] = useState<number | undefined>(undefined);
+  const scenarioIdRef = useRef<number | undefined>(undefined);
+  useEffect(() => { scenarioIdRef.current = scenarioId; }, [scenarioId]);
+
   const [currentAge, setCurrentAge] = useState(DEFAULTS.currentAge);
   const [retirementAge, setRetirementAge] = useState(DEFAULTS.retirementAge);
   const [hajjYearsFromNow, setHajjYearsFromNow] = useState(DEFAULTS.hajjYearsFromNow);
   const [monthlyContribution, setMonthlyContribution] = useState(DEFAULTS.monthlyContribution);
   const [annualReturnPct, setAnnualReturnPct] = useState(DEFAULTS.annualReturnPct);
-  const [scenarioId, setScenarioId] = useState<number | undefined>(undefined);
-  // Keep a ref that's always up-to-date so the debounced save callback
-  // below can read the latest scenarioId without a stale closure.
-  // Without this, sliders after the first save always read scenarioId as
-  // undefined (the initial render's closure) and POST a new row instead
-  // of PUT-ing the existing one.
-  const scenarioIdRef = useRef<number | undefined>(undefined);
-  useEffect(() => { scenarioIdRef.current = scenarioId; }, [scenarioId]);
+  const [inflationMode, setInflationMode] = useState<'today' | 'future'>(DEFAULTS.inflationMode);
+  const [inflationRate, setInflationRate] = useState(DEFAULTS.inflationRate);
+
   const [scenarioLoaded, setScenarioLoaded] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  // Starting principal pulled from /api/networth/summary so the curve
-  // begins at the user's actual current net worth.
+  // ── Starting net worth ─────────────────────────────────────────────────────
   const [startingValue, setStartingValue] = useState<number | null>(null);
   const [loadError, setLoadError] = useState(false);
 
-  // Initial load — net worth + saved scenario in parallel.
+  // ── Server projection ──────────────────────────────────────────────────────
+  const [serverProjection, setServerProjection] = useState<ProjectionPoint[] | null>(null);
+  const projectionAbortRef = useRef<AbortController | null>(null);
+
+  // ── Forecast events ────────────────────────────────────────────────────────
+  const [events, setEvents] = useState<ForecastEventDTO[]>([]);
+
+  // Apply a loaded ScenarioDTO into local state
+  const applyScenario = useCallback((s: ScenarioDTO) => {
+    setScenarioId(s.id);
+    setCurrentAge(s.currentAge);
+    setRetirementAge(s.retirementAge);
+    setHajjYearsFromNow(s.hajjYearsFromNow);
+    setMonthlyContribution(s.monthlyContribution);
+    setAnnualReturnPct(s.annualReturnPct);
+    setInflationMode(s.inflationMode ?? 'today');
+    setInflationRate(s.inflationRate ?? DEFAULTS.inflationRate);
+  }, []);
+
+  // ── Initial load — net worth + scenario list + active scenario ────────────
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [nwResult, scenarioResult] = await Promise.allSettled([
+        const [nwResult, scenariosResult] = await Promise.allSettled([
           api.getNetWorthHistory('6m'),
-          api.getActiveForecastScenario(),
+          api.getForecastScenarios(),
         ]);
         if (cancelled) return;
 
@@ -150,79 +728,187 @@ function ForecastingPageContent() {
           const nw = (nwResult.value as { currentNetWorth?: number })?.currentNetWorth;
           setStartingValue(typeof nw === 'number' ? nw : 0);
         } else {
-          // Demo-friendly fallback so the page still tells a story even
-          // if the API hiccups during the investor demo.
           setStartingValue(100_000);
           setLoadError(true);
         }
 
-        if (scenarioResult.status === 'fulfilled') {
-          const s = (scenarioResult.value as { scenario?: {
-            id: number; currentAge: number; retirementAge: number;
-            hajjYearsFromNow: number; monthlyContribution: number;
-            annualReturnPct: number;
-          } | null })?.scenario;
-          if (s) {
-            // Apply saved values atomically so the projection only
-            // recomputes once.
-            setScenarioId(s.id);
-            setCurrentAge(s.currentAge);
-            setRetirementAge(s.retirementAge);
-            setHajjYearsFromNow(s.hajjYearsFromNow);
-            setMonthlyContribution(s.monthlyContribution);
-            setAnnualReturnPct(s.annualReturnPct);
+        if (scenariosResult.status === 'fulfilled') {
+          const list = (scenariosResult.value as ScenarioDTO[] | null) ?? [];
+          setScenarios(list);
+          // Find active scenario or fall back to first
+          const active = list.find(s => s.isActive) ?? list[0];
+          if (active) {
+            applyScenario(active);
+            // Also load its events
+            try {
+              const evts = await api.getForecastEvents(active.id) as ForecastEventDTO[];
+              if (!cancelled) setEvents(evts ?? []);
+            } catch { /* events are non-critical */ }
           }
         }
-        setScenarioLoaded(true);
+
+        if (!cancelled) setScenarioLoaded(true);
+        setScenariosLoading(false);
       } catch {
         if (!cancelled) {
           setStartingValue(100_000);
           setLoadError(true);
           setScenarioLoaded(true);
+          setScenariosLoading(false);
         }
       }
     })();
     return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Debounced save — fires 800ms after the user stops adjusting. We
-  // wait for `scenarioLoaded` to flip true so the initial-load values
-  // don't immediately overwrite the user's saved scenario with the
-  // defaults during the brief render window before the GET resolves.
-  //
-  // scenarioId is included in deps so that after the first POST returns
-  // and sets scenarioId, any subsequent slider change re-arms the timer
-  // and PUTs with the real id. scenarioIdRef.current is read inside the
-  // async callback so it gets the value at fire-time, not at schedule-time
-  // (avoids a stale-closure race on rapid adjustments).
+  // When user selects a different scenario from the switcher
+  const handleSelectScenario = useCallback(async (id: number) => {
+    const scenario = scenarios.find(s => s.id === id);
+    if (!scenario) return;
+    applyScenario(scenario);
+    setServerProjection(null);
+    try {
+      const evts = await api.getForecastEvents(id) as ForecastEventDTO[];
+      setEvents(evts ?? []);
+    } catch { setEvents([]); }
+  }, [scenarios, applyScenario]);
+
+  // ── Scenario management handlers ─────────────────────────────────────────
+  const handleCreateScenario = async (name: string) => {
+    setCreateError(null);
+    try {
+      const created = await api.createForecastScenario({
+        name,
+        currentAge,
+        retirementAge,
+        hajjYearsFromNow,
+        monthlyContribution,
+        annualReturnPct,
+        inflationMode,
+        inflationRate,
+        makeActive: false,
+      }) as ScenarioDTO;
+      setScenarios(prev => [...prev, created]);
+      applyScenario(created);
+      setEvents([]);
+    } catch {
+      setCreateError(t('forecastingScenarioCreateError'));
+    }
+  };
+
+  const handleRenameScenario = async (id: number, name: string) => {
+    setRenameError(null);
+    try {
+      const updated = await api.updateForecastScenario(id, { name }) as ScenarioDTO;
+      setScenarios(prev => prev.map(s => s.id === id ? { ...s, name: updated.name } : s));
+    } catch {
+      setRenameError(t('forecastingScenarioRenameError'));
+    }
+  };
+
+  const handleDeleteScenario = async (id: number) => {
+    setDeleteError(null);
+    try {
+      await api.deleteForecastScenario(id);
+      const remaining = scenarios.filter(s => s.id !== id);
+      setScenarios(remaining);
+      // If we deleted the selected scenario, switch to first remaining
+      if (scenarioIdRef.current === id && remaining.length > 0) {
+        const next = remaining.find(s => s.isActive) ?? remaining[0];
+        applyScenario(next);
+        setEvents([]);
+        try {
+          const evts = await api.getForecastEvents(next.id) as ForecastEventDTO[];
+          setEvents(evts ?? []);
+        } catch { /* non-critical */ }
+      }
+    } catch {
+      setDeleteError(t('forecastingScenarioDeleteError'));
+    }
+  };
+
+  const handleSetActive = async (id: number) => {
+    try {
+      await api.activateForecastScenario(id);
+      setScenarios(prev => prev.map(s => ({ ...s, isActive: s.id === id })));
+    } catch { /* silent — active is cosmetic */ }
+  };
+
+  // ── Debounced auto-save per scenario (PUT /{id}) ──────────────────────────
   useEffect(() => {
     if (!scenarioLoaded) return;
+    const sid = scenarioIdRef.current;
+    if (!sid) return;
     setSaveStatus('saving');
     const timeoutId = window.setTimeout(async () => {
       try {
-        const result = await api.saveForecastScenario({
-          id: scenarioIdRef.current,
+        await api.updateForecastScenario(sid, {
           currentAge,
           retirementAge,
           hajjYearsFromNow,
           monthlyContribution,
           annualReturnPct,
+          inflationMode,
+          inflationRate,
         });
-        const saved = (result as { scenario?: { id: number } })?.scenario;
-        if (saved?.id && !scenarioIdRef.current) setScenarioId(saved.id);
         setSaveStatus('saved');
-        // Reset the chip back to idle so it doesn't permanently say "Saved".
         window.setTimeout(() => setSaveStatus('idle'), 1500);
       } catch {
         setSaveStatus('error');
       }
     }, 800);
     return () => window.clearTimeout(timeoutId);
-  }, [scenarioLoaded, scenarioId, currentAge, retirementAge, hajjYearsFromNow, monthlyContribution, annualReturnPct]);
+  // scenarioId included so changing scenario re-arms correctly
+  }, [scenarioLoaded, scenarioId, currentAge, retirementAge, hajjYearsFromNow, monthlyContribution, annualReturnPct, inflationMode, inflationRate]);
 
-  const projection = useMemo(() => {
+  // ── Server-side projection fetch ──────────────────────────────────────────
+  useEffect(() => {
+    const sid = scenarioId;
+    const nw = startingValue;
+    if (!sid || nw == null) return;
+
+    // Cancel any in-flight fetch
+    projectionAbortRef.current?.abort();
+    const controller = new AbortController();
+    projectionAbortRef.current = controller;
+
+    const yearsToRetirement = Math.max(0, retirementAge - currentAge);
+    const years = Math.max(MIN_HORIZON, Math.min(MAX_HORIZON, yearsToRetirement + 2));
+
+    (async () => {
+      try {
+        const result = await api.getForecastProjection(sid, nw, years) as {
+          scenarioId: number;
+          inflationMode: 'today' | 'future';
+          inflationRate: number;
+          points: { year: number; age: number; nominalBalance: number; realBalance: number }[];
+        };
+        if (controller.signal.aborted) return;
+        const useReal = inflationMode === 'today';
+        const mapped: ProjectionPoint[] = (result.points ?? []).map(p => {
+          const value = useReal ? p.realBalance : p.nominalBalance;
+          let milestone: string | undefined;
+          if (p.year === hajjYearsFromNow) milestone = 'Hajj';
+          else if (p.age === retirementAge) milestone = 'Retirement';
+          return { year: p.year, age: p.age, value, milestone };
+        });
+        setServerProjection(mapped);
+      } catch {
+        if (!controller.signal.aborted) {
+          // Fall back to client-side — serverProjection stays null
+          setServerProjection(null);
+        }
+      }
+    })();
+
+    return () => controller.abort();
+  }, [scenarioId, startingValue, currentAge, retirementAge, hajjYearsFromNow, annualReturnPct, inflationMode, inflationRate]);
+
+  // ── Client-side projection (fallback) ─────────────────────────────────────
+  const clientProjection = useMemo(() => {
     if (startingValue == null) return [];
-    return computeProjection({
+    return computeProjectionLocal({
       startingValue,
       monthlyContribution,
       annualReturnPct,
@@ -231,6 +917,8 @@ function ForecastingPageContent() {
       hajjYearsFromNow,
     });
   }, [startingValue, monthlyContribution, annualReturnPct, currentAge, retirementAge, hajjYearsFromNow]);
+
+  const projection = serverProjection ?? clientProjection;
 
   const finalValue = projection.length ? projection[projection.length - 1].value : 0;
   const retirementPoint = projection.find(p => p.age === retirementAge);
@@ -242,34 +930,52 @@ function ForecastingPageContent() {
     return fmt(n);
   };
 
+  const chartLabel = inflationMode === 'today'
+    ? t('forecastingChartLabelReal')
+    : t('forecastingChartLabelNominal');
+
   return (
     <div role="main" className="max-w-6xl mx-auto">
       <PageHeader
         title={t('forecastingTitle')}
         subtitle={t('forecastingSubtitle')}
         actions={
-          // Tiny save-status chip — same idea as Linear's "saving…/saved"
-          // affordance. Tells the user the scenario syncs without making
-          // them save manually.
-          <span
-            className={
-              'text-xs px-2.5 py-1 rounded-full font-medium tabular-nums transition-colors ' +
-              (saveStatus === 'saving' ? 'bg-amber-50 text-amber-700' :
-               saveStatus === 'saved' ? 'bg-emerald-50 text-emerald-700' :
-               saveStatus === 'error' ? 'bg-rose-50 text-rose-700' :
-               'bg-gray-50 text-gray-500')
-            }
-            aria-live="polite"
-          >
-            {saveStatus === 'saving' ? t('forecastingSaving') :
-             saveStatus === 'saved' ? t('forecastingSaved') :
-             saveStatus === 'error' ? t('forecastingSaveFailed') :
-             t('forecastingSynced')}
-          </span>
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Scenario switcher */}
+            <ScenarioSwitcher
+              scenarios={scenarios}
+              activeId={scenarioId}
+              loading={scenariosLoading}
+              onSelect={handleSelectScenario}
+              onCreate={handleCreateScenario}
+              onRename={handleRenameScenario}
+              onDelete={handleDeleteScenario}
+              onSetActive={handleSetActive}
+              createError={createError}
+              renameError={renameError}
+              deleteError={deleteError}
+            />
+            {/* Save status chip */}
+            <span
+              className={
+                'text-xs px-2.5 py-1 rounded-full font-medium tabular-nums transition-colors ' +
+                (saveStatus === 'saving' ? 'bg-amber-50 text-amber-700' :
+                 saveStatus === 'saved' ? 'bg-emerald-50 text-emerald-700' :
+                 saveStatus === 'error' ? 'bg-rose-50 text-rose-700' :
+                 'bg-gray-50 text-gray-500')
+              }
+              aria-live="polite"
+            >
+              {saveStatus === 'saving' ? t('forecastingSaving') :
+               saveStatus === 'saved' ? t('forecastingSaved') :
+               saveStatus === 'error' ? t('forecastingSaveFailed') :
+               t('forecastingSynced')}
+            </span>
+          </div>
         }
       />
 
-      {/* Hero summary — the answer in numbers, before the chart. */}
+      {/* Hero summary */}
       <div className="bg-gradient-to-br from-[#1B5E20] via-emerald-700 to-emerald-600 text-white rounded-2xl p-6 mb-6 shadow-md">
         <div className="grid md:grid-cols-3 gap-6">
           <div>
@@ -308,6 +1014,8 @@ function ForecastingPageContent() {
             <h2 className="text-lg font-semibold text-primary">{t('forecastingChartTitle')}</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               {tFmt('forecastingChartSubtitleFmt', [annualReturnPct])}
+              {' · '}
+              <span className={inflationMode === 'today' ? 'text-emerald-700 font-medium' : 'text-amber-700 font-medium'}>{chartLabel}</span>
             </p>
           </div>
           <p className="text-2xl font-bold tabular-nums text-emerald-700">
@@ -337,7 +1045,7 @@ function ForecastingPageContent() {
                 tick={{ fill: '#374151', fontSize: 11 }}
               />
               <Tooltip
-                formatter={(v: number | undefined) => fmt(v ?? 0)}
+                formatter={(v: number | undefined) => [fmt(v ?? 0), chartLabel]}
                 labelFormatter={y => y === 0 ? t('forecastingTooltipToday') : tFmt('forecastingTooltipYearsFmt', [y, y === 1 ? '' : 's'])}
                 contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
               />
@@ -351,7 +1059,6 @@ function ForecastingPageContent() {
                 isAnimationActive
                 animationDuration={500}
               />
-              {/* Hajj milestone marker */}
               {hajjPoint && (
                 <ReferenceDot
                   x={hajjPoint.year}
@@ -363,7 +1070,6 @@ function ForecastingPageContent() {
                   label={{ value: t('forecastingMilestoneHajj'), position: 'top', fill: '#FF6B35', fontSize: 12, fontWeight: 600 }}
                 />
               )}
-              {/* Retirement milestone marker */}
               {retirementPoint && (
                 <ReferenceDot
                   x={retirementPoint.year}
@@ -381,7 +1087,7 @@ function ForecastingPageContent() {
         )}
       </div>
 
-      {/* Scenario inputs */}
+      {/* Scenario inputs + inflation toggle */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <ScenarioCard
           label={t('forecastingCurrentAgeLabel')}
@@ -441,20 +1147,34 @@ function ForecastingPageContent() {
           suffix="%"
           sliderAriaLabel={tFmt('forecastingSliderAriaFmt', [t('forecastingAnnualReturnLabel')])}
         />
-        <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-sm text-emerald-900 leading-relaxed">
-          <p className="font-semibold mb-1">{t('forecastingTipTitle')}</p>
-          <p>
-            {t('forecastingTipBody')}
-          </p>
-        </div>
+        {/* Inflation toggle replaces the old static tip card */}
+        <InflationToggle
+          inflationMode={inflationMode}
+          inflationRate={inflationRate}
+          onModeChange={setInflationMode}
+          onRateChange={setInflationRate}
+        />
+      </div>
+
+      {/* Forecast events panel */}
+      {scenarioId != null && (
+        <ForecastEventsList
+          scenarioId={scenarioId}
+          events={events}
+          onEventsChange={setEvents}
+        />
+      )}
+
+      {/* Tip */}
+      <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-sm text-emerald-900 leading-relaxed mb-6">
+        <p className="font-semibold mb-1">{t('forecastingTipTitle')}</p>
+        <p>{t('forecastingTipBody')}</p>
       </div>
 
       {/* Disclaimer */}
       <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-xs text-amber-900 leading-relaxed mb-8">
         <p className="font-semibold mb-1">{t('forecastingDisclaimerTitle')}</p>
-        <p>
-          {t('forecastingDisclaimerBody')}
-        </p>
+        <p>{t('forecastingDisclaimerBody')}</p>
       </div>
     </div>
   );
@@ -472,7 +1192,6 @@ interface ScenarioCardProps {
   suffix?: string;
   accent?: 'primary' | 'orange';
   icon?: string;
-  /** Localized aria-label for the range slider (the input falls back to `label`). */
   sliderAriaLabel: string;
 }
 

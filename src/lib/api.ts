@@ -1466,10 +1466,60 @@ export const api = {
   getInvestmentBenchmarks: (period: string = '6m', suppressUnauthorized = true) =>
     apiFetch(`/api/investments/benchmarks?period=${encodeURIComponent(period)}`, {}, API_TIMEOUT, suppressUnauthorized),
 
-  // Forecasting (2026-05-03 — backs /dashboard/forecasting). Single
-  // scenario per user today; schema supports multi-scenario for future
-  // "compare" UI.
+  // Forecasting (2026-05-03 — backs /dashboard/forecasting). Multi-scenario
+  // (2026-06-17): scenario switcher, real/future dollar toggle, forecast events.
   getActiveForecastScenario: () => apiFetch('/api/forecasting/scenarios/active', {}, API_TIMEOUT, true),
+  // List all scenarios for the switcher — suppressUnauthorized (mount-fired).
+  getForecastScenarios: () => apiFetch('/api/forecasting/scenarios', {}, API_TIMEOUT, true),
+  // Create a new scenario. makeActive optionally sets it as active.
+  createForecastScenario: (data: {
+    name: string;
+    currentAge: number;
+    retirementAge: number;
+    hajjYearsFromNow: number;
+    monthlyContribution: number;
+    annualReturnPct: number;
+    inflationMode?: 'today' | 'future';
+    inflationRate?: number;
+    makeActive?: boolean;
+  }) =>
+    apiFetch('/api/forecasting/scenarios', { method: 'POST', body: JSON.stringify(data) }),
+  // Partial-update an existing scenario (auto-save path).
+  updateForecastScenario: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/forecasting/scenarios/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteForecastScenario: (id: number) =>
+    apiFetch(`/api/forecasting/scenarios/${id}`, { method: 'DELETE' }),
+  activateForecastScenario: (id: number) =>
+    apiFetch(`/api/forecasting/scenarios/${id}/activate`, { method: 'POST', body: JSON.stringify({}) }),
+  // Server-side projection endpoint (multi-scenario aware).
+  // suppressUnauthorized because it fires on slider change (mount-adjacent).
+  getForecastProjection: (scenarioId: number, initialNetWorth: number, years: number) =>
+    apiFetch(
+      `/api/forecasting/scenarios/${scenarioId}/projection?initialNetWorth=${initialNetWorth}&years=${years}`,
+      {},
+      API_TIMEOUT,
+      true,
+    ),
+  // Forecast events (income/expense entries with growth modes).
+  getForecastEvents: (scenarioId: number) =>
+    apiFetch(`/api/forecasting/scenarios/${scenarioId}/events`, {}, API_TIMEOUT, true),
+  createForecastEvent: (scenarioId: number, data: {
+    label: string;
+    type: 'income' | 'expense';
+    annualAmount: number;
+    growthMode: 'inflation' | 'custom' | 'flat';
+    customGrowthRate?: number | null;
+    startYearOffset: number;
+    endYearOffset: number;
+    sortOrder?: number;
+  }) =>
+    apiFetch(`/api/forecasting/scenarios/${scenarioId}/events`, { method: 'POST', body: JSON.stringify(data) }),
+  updateForecastEvent: (scenarioId: number, eventId: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/forecasting/scenarios/${scenarioId}/events/${eventId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteForecastEvent: (scenarioId: number, eventId: number) =>
+    apiFetch(`/api/forecasting/scenarios/${scenarioId}/events/${eventId}`, { method: 'DELETE' }),
+  // Legacy create-or-update helper kept for backward compat; new code uses
+  // createForecastScenario / updateForecastScenario above.
   saveForecastScenario: (data: {
     id?: number;
     name?: string;
