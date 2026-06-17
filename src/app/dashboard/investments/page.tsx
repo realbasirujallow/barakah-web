@@ -333,14 +333,31 @@ export default function InvestmentsPage() {
   const dayGainLossPct   = portfolio?.dayGainLossPercent ?? 0;
   const isDayGain        = dayGainLoss >= 0;
 
-  // Combined total: exclude Plaid-linked asset accounts because their balances
-  // are already captured in `totalValue` (holdings synced via Plaid). Adding them
-  // again would double-count every Fidelity/brokerage account that was imported
-  // via Plaid — the Asset row is a mirror of the Plaid account balance, not an
-  // additional account. Only manually-entered (non-Plaid) asset accounts are additive.
-  const nonPlaidAssets = assetAccounts.filter(
-    (a) => !a.notes?.startsWith('Linked from Plaid')
+  // Combined total: only count Asset-ledger investment rows that are NOT already
+  // represented in `totalValue` (the InvestmentAccount/Holding aggregate). Two
+  // kinds of duplicates are excluded:
+  //   1. Plaid-mirrored rows (notes "Linked from Plaid…") — the Asset row mirrors
+  //      a Plaid-synced holding already in totalValue.
+  //   2. Account-identity duplicates — the SAME account entered in BOTH the
+  //      Investments feature (InvestmentAccount) AND the Assets ledger. The prior
+  //      guard caught only case 1, so accounts added via the Assets page / CSV
+  //      import ("Added via Assets…") were summed on top of the holdings that
+  //      already represent them — double-counting the whole portfolio (a ~$278k
+  //      portfolio rendered as ~$553k). Identity = the account name with all
+  //      non-alphanumerics stripped, so masking differences ("(...*****9245)" vs
+  //      "(…9245)") still match while the discriminating last-4 is preserved.
+  // Only InvestmentAccounts with a positive balance seed the dedup set, so an
+  // empty holdings-less account never suppresses its real Asset-row value.
+  const acctIdentity = (s?: string) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const portfolioIdentities = new Set(
+    accounts.filter(a => (a.totalValue || 0) > 0).map(a => acctIdentity(a.name)).filter(Boolean)
   );
+  const additiveAssets = assetAccounts.filter((a) => {
+    if (a.notes?.startsWith('Linked from Plaid')) return false; // case 1: Plaid mirror
+    const id = acctIdentity(a.name);
+    if (id && portfolioIdentities.has(id)) return false;        // case 2: dup of an InvestmentAccount
+    return true;
+  });
   // Convert each non-Plaid asset's native value to the user's preferred
   // currency before summing. A £30k UK property and a $50k US brokerage
   // account previously both landed as raw numbers and were added directly
@@ -351,7 +368,7 @@ export default function InvestmentsPage() {
   // already backend-converted to the user's preferred currency (the backend
   // portfolio endpoint returns a single-currency aggregate). Only the
   // manually-entered / CSV-imported asset accounts go through the FX path.
-  const assetTotal = nonPlaidAssets.reduce((sum, a) => {
+  const assetTotal = additiveAssets.reduce((sum, a) => {
     const converted = convertToUserCurrency(a.value || 0, a.currency, currency, fxRates);
     return sum + converted;
   }, 0);
@@ -869,8 +886,11 @@ export default function InvestmentsPage() {
         </div>
       )}
 
-      {/* ── Asset-Backed Accounts (401k, IRA, HSA, 529 from Assets page or CSV import) ── */}
-      {assetAccounts.length > 0 && (
+      {/* ── Asset-Backed Accounts (401k, IRA, HSA, 529 from Assets page or CSV import) ──
+          Only renders accounts NOT already shown in the holdings section above —
+          `additiveAssets` excludes Plaid mirrors and account-identity duplicates so
+          the same account never appears (or is summed) twice. */}
+      {additiveAssets.length > 0 && (
         <div className="space-y-3 mb-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-gray-700">{t('investmentsRetirementSavingsHeading')}</h2>
@@ -881,7 +901,7 @@ export default function InvestmentsPage() {
           <p className="text-xs text-gray-500 -mt-1">
             {t('investmentsAssetBackedNote')}
           </p>
-          {assetAccounts.map(asset => {
+          {additiveAssets.map(asset => {
             const isPlaidLinked = asset.notes?.startsWith('Linked from Plaid');
             return (
               <Link
