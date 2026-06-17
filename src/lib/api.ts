@@ -1468,11 +1468,28 @@ export const api = {
 
   // Forecasting (2026-05-03 — backs /dashboard/forecasting). Multi-scenario
   // (2026-06-17): scenario switcher, real/future dollar toggle, forecast events.
-  getActiveForecastScenario: () => apiFetch('/api/forecasting/scenarios/active', {}, API_TIMEOUT, true),
+  //
+  // All methods UNWRAP the backend envelope so callers receive the inner value:
+  //   GET /scenarios          → {scenarios:[...]}  unwrapped → ScenarioDTO[]
+  //   GET /scenarios/active   → {scenario:{...}}|{} unwrapped → ScenarioDTO|null
+  //   POST/PUT /scenarios     → {scenario:{...}}   unwrapped → ScenarioDTO
+  //   POST /activate          → {scenario:{...}}   unwrapped → ScenarioDTO
+  //   GET /projection         → {scenarioId,inflationMode,inflationRate,points:[...]} returned as-is
+  //   GET /events             → {events:[...]}     unwrapped → ForecastEventDTO[]
+  //   POST/PUT /events        → {event:{...}}      unwrapped → ForecastEventDTO
+  getActiveForecastScenario: async () => {
+    const res = await apiFetch('/api/forecasting/scenarios/active', {}, API_TIMEOUT, true) as { scenario?: unknown } | null;
+    return (res && typeof res === 'object' && 'scenario' in res ? res.scenario : null) ?? null;
+  },
   // List all scenarios for the switcher — suppressUnauthorized (mount-fired).
-  getForecastScenarios: () => apiFetch('/api/forecasting/scenarios', {}, API_TIMEOUT, true),
+  // Returns ScenarioDTO[] (unwrapped from {scenarios:[...]}).
+  getForecastScenarios: async () => {
+    const res = await apiFetch('/api/forecasting/scenarios', {}, API_TIMEOUT, true) as { scenarios?: unknown[] } | null;
+    return (res && Array.isArray(res.scenarios) ? res.scenarios : []) as unknown[];
+  },
   // Create a new scenario. makeActive optionally sets it as active.
-  createForecastScenario: (data: {
+  // Returns ScenarioDTO (unwrapped from {scenario:{...}}).
+  createForecastScenario: async (data: {
     name: string;
     currentAge: number;
     retirementAge: number;
@@ -1482,17 +1499,27 @@ export const api = {
     inflationMode?: 'today' | 'future';
     inflationRate?: number;
     makeActive?: boolean;
-  }) =>
-    apiFetch('/api/forecasting/scenarios', { method: 'POST', body: JSON.stringify(data) }),
+  }) => {
+    const res = await apiFetch('/api/forecasting/scenarios', { method: 'POST', body: JSON.stringify(data) }) as { scenario?: unknown } | null;
+    return (res && typeof res === 'object' && 'scenario' in res ? res.scenario : res) ?? null;
+  },
   // Partial-update an existing scenario (auto-save path).
-  updateForecastScenario: (id: number, data: Record<string, unknown>) =>
-    apiFetch(`/api/forecasting/scenarios/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  // Returns ScenarioDTO (unwrapped from {scenario:{...}}).
+  updateForecastScenario: async (id: number, data: Record<string, unknown>) => {
+    const res = await apiFetch(`/api/forecasting/scenarios/${id}`, { method: 'PUT', body: JSON.stringify(data) }) as { scenario?: unknown } | null;
+    return (res && typeof res === 'object' && 'scenario' in res ? res.scenario : res) ?? null;
+  },
   deleteForecastScenario: (id: number) =>
     apiFetch(`/api/forecasting/scenarios/${id}`, { method: 'DELETE' }),
-  activateForecastScenario: (id: number) =>
-    apiFetch(`/api/forecasting/scenarios/${id}/activate`, { method: 'POST', body: JSON.stringify({}) }),
+  // Returns ScenarioDTO (unwrapped from {scenario:{...}}).
+  activateForecastScenario: async (id: number) => {
+    const res = await apiFetch(`/api/forecasting/scenarios/${id}/activate`, { method: 'POST', body: JSON.stringify({}) }) as { scenario?: unknown } | null;
+    return (res && typeof res === 'object' && 'scenario' in res ? res.scenario : res) ?? null;
+  },
   // Server-side projection endpoint (multi-scenario aware).
   // suppressUnauthorized because it fires on slider change (mount-adjacent).
+  // Returns the full envelope {scenarioId, inflationMode, inflationRate, points:[...]} as-is —
+  // page.tsx already destructures result.points directly.
   getForecastProjection: (scenarioId: number, initialNetWorth: number, years: number) =>
     apiFetch(
       `/api/forecasting/scenarios/${scenarioId}/projection?initialNetWorth=${initialNetWorth}&years=${years}`,
@@ -1501,9 +1528,13 @@ export const api = {
       true,
     ),
   // Forecast events (income/expense entries with growth modes).
-  getForecastEvents: (scenarioId: number) =>
-    apiFetch(`/api/forecasting/scenarios/${scenarioId}/events`, {}, API_TIMEOUT, true),
-  createForecastEvent: (scenarioId: number, data: {
+  // Returns ForecastEventDTO[] (unwrapped from {events:[...]}).
+  getForecastEvents: async (scenarioId: number) => {
+    const res = await apiFetch(`/api/forecasting/scenarios/${scenarioId}/events`, {}, API_TIMEOUT, true) as { events?: unknown[] } | null;
+    return (res && Array.isArray(res.events) ? res.events : []) as unknown[];
+  },
+  // Returns ForecastEventDTO (unwrapped from {event:{...}}).
+  createForecastEvent: async (scenarioId: number, data: {
     label: string;
     type: 'income' | 'expense';
     annualAmount: number;
@@ -1512,10 +1543,15 @@ export const api = {
     startYearOffset: number;
     endYearOffset: number;
     sortOrder?: number;
-  }) =>
-    apiFetch(`/api/forecasting/scenarios/${scenarioId}/events`, { method: 'POST', body: JSON.stringify(data) }),
-  updateForecastEvent: (scenarioId: number, eventId: number, data: Record<string, unknown>) =>
-    apiFetch(`/api/forecasting/scenarios/${scenarioId}/events/${eventId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  }) => {
+    const res = await apiFetch(`/api/forecasting/scenarios/${scenarioId}/events`, { method: 'POST', body: JSON.stringify(data) }) as { event?: unknown } | null;
+    return (res && typeof res === 'object' && 'event' in res ? res.event : res) ?? null;
+  },
+  // Returns ForecastEventDTO (unwrapped from {event:{...}}).
+  updateForecastEvent: async (scenarioId: number, eventId: number, data: Record<string, unknown>) => {
+    const res = await apiFetch(`/api/forecasting/scenarios/${scenarioId}/events/${eventId}`, { method: 'PUT', body: JSON.stringify(data) }) as { event?: unknown } | null;
+    return (res && typeof res === 'object' && 'event' in res ? res.event : res) ?? null;
+  },
   deleteForecastEvent: (scenarioId: number, eventId: number) =>
     apiFetch(`/api/forecasting/scenarios/${scenarioId}/events/${eventId}`, { method: 'DELETE' }),
   // Legacy create-or-update helper kept for backward compat; new code uses

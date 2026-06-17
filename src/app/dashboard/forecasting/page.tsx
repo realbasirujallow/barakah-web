@@ -543,12 +543,18 @@ function ForecastEventsList({ scenarioId, events, onEventsChange }: ForecastEven
     setSaveError(null);
     try {
       if (editingId != null) {
-        const updated = await api.updateForecastEvent(scenarioId, editingId, data) as ForecastEventDTO;
-        onEventsChange(events.map(e => e.id === editingId ? updated : e));
+        const res = await api.updateForecastEvent(scenarioId, editingId, data);
+        const updated = (res && typeof res === 'object' && 'id' in (res as object) ? res : null) as ForecastEventDTO | null;
+        if (updated) {
+          onEventsChange(events.map(e => e.id === editingId ? updated : e));
+        }
         setEditingId(null);
       } else {
-        const created = await api.createForecastEvent(scenarioId, data) as ForecastEventDTO;
-        onEventsChange([...events, created]);
+        const res = await api.createForecastEvent(scenarioId, data);
+        const created = (res && typeof res === 'object' && 'id' in (res as object) ? res : null) as ForecastEventDTO | null;
+        if (created) {
+          onEventsChange([...events, created]);
+        }
         setAddingType(null);
       }
     } catch {
@@ -733,7 +739,8 @@ function ForecastingPageContent() {
         }
 
         if (scenariosResult.status === 'fulfilled') {
-          const list = (scenariosResult.value as ScenarioDTO[] | null) ?? [];
+          const raw = scenariosResult.value;
+          const list: ScenarioDTO[] = Array.isArray(raw) ? (raw as ScenarioDTO[]) : [];
           setScenarios(list);
           // Find active scenario or fall back to first
           const active = list.find(s => s.isActive) ?? list[0];
@@ -741,8 +748,8 @@ function ForecastingPageContent() {
             applyScenario(active);
             // Also load its events
             try {
-              const evts = await api.getForecastEvents(active.id) as ForecastEventDTO[];
-              if (!cancelled) setEvents(evts ?? []);
+              const evts = await api.getForecastEvents(active.id);
+              if (!cancelled) setEvents(Array.isArray(evts) ? (evts as ForecastEventDTO[]) : []);
             } catch { /* events are non-critical */ }
           }
         }
@@ -769,8 +776,8 @@ function ForecastingPageContent() {
     applyScenario(scenario);
     setServerProjection(null);
     try {
-      const evts = await api.getForecastEvents(id) as ForecastEventDTO[];
-      setEvents(evts ?? []);
+      const evts = await api.getForecastEvents(id);
+      setEvents(Array.isArray(evts) ? (evts as ForecastEventDTO[]) : []);
     } catch { setEvents([]); }
   }, [scenarios, applyScenario]);
 
@@ -778,7 +785,7 @@ function ForecastingPageContent() {
   const handleCreateScenario = async (name: string) => {
     setCreateError(null);
     try {
-      const created = await api.createForecastScenario({
+      const res = await api.createForecastScenario({
         name,
         currentAge,
         retirementAge,
@@ -788,9 +795,12 @@ function ForecastingPageContent() {
         inflationMode,
         inflationRate,
         makeActive: false,
-      }) as ScenarioDTO;
-      setScenarios(prev => [...prev, created]);
-      applyScenario(created);
+      });
+      const created = (res && typeof res === 'object' && 'id' in (res as object) ? res : null) as ScenarioDTO | null;
+      if (created) {
+        setScenarios(prev => [...prev, created]);
+        applyScenario(created);
+      }
       setEvents([]);
     } catch {
       setCreateError(t('forecastingScenarioCreateError'));
@@ -800,8 +810,9 @@ function ForecastingPageContent() {
   const handleRenameScenario = async (id: number, name: string) => {
     setRenameError(null);
     try {
-      const updated = await api.updateForecastScenario(id, { name }) as ScenarioDTO;
-      setScenarios(prev => prev.map(s => s.id === id ? { ...s, name: updated.name } : s));
+      const res = await api.updateForecastScenario(id, { name });
+      const updated = (res && typeof res === 'object' && 'id' in (res as object) ? res : null) as ScenarioDTO | null;
+      setScenarios(prev => prev.map(s => s.id === id ? { ...s, name: updated?.name ?? name } : s));
     } catch {
       setRenameError(t('forecastingScenarioRenameError'));
     }
@@ -819,8 +830,8 @@ function ForecastingPageContent() {
         applyScenario(next);
         setEvents([]);
         try {
-          const evts = await api.getForecastEvents(next.id) as ForecastEventDTO[];
-          setEvents(evts ?? []);
+          const evts = await api.getForecastEvents(next.id);
+          setEvents(Array.isArray(evts) ? (evts as ForecastEventDTO[]) : []);
         } catch { /* non-critical */ }
       }
     } catch {
@@ -883,10 +894,12 @@ function ForecastingPageContent() {
           inflationMode: 'today' | 'future';
           inflationRate: number;
           points: { year: number; age: number; nominalBalance: number; realBalance: number }[];
-        };
+        } | null;
         if (controller.signal.aborted) return;
+        if (!result) return; // null = 403 (not on Plus) or empty; fall back to client-side
         const useReal = inflationMode === 'today';
-        const mapped: ProjectionPoint[] = (result.points ?? []).map(p => {
+        const points = Array.isArray(result.points) ? result.points : [];
+        const mapped: ProjectionPoint[] = points.map(p => {
           const value = useReal ? p.realBalance : p.nominalBalance;
           let milestone: string | undefined;
           if (p.year === hajjYearsFromNow) milestone = 'Hajj';
