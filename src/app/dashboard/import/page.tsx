@@ -11,6 +11,7 @@ import {
   savePendingPlaidLinkToken,
 } from '../../../lib/plaid';
 import { hasPaidSyncAccess } from '../../../lib/subscription';
+import { safeDate } from '../../../lib/format';
 import { useCurrency } from '../../../lib/useCurrency';
 import { trackFirstAccountLink, trackOnce } from '../../../lib/analytics';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
@@ -101,6 +102,8 @@ interface PlaidAccount {
   availableBalance: number | null;
   currencyCode: string;
   lastSyncedAt: number | null;
+  syncStatus?: 'idle' | 'syncing' | 'error' | null;
+  lastSyncError?: string | null;
 }
 
 interface SubscriptionStatus {
@@ -678,9 +681,22 @@ function ImportPageInner() {
                               {tFmt('importAcctAvailableFmt', [formatPlaidBalance(acct.availableBalance, acct.currencyCode) ?? ''])}
                             </p>
                           )}
-                          {acct.lastSyncedAt && (
-                            <p className="text-xs text-gray-400">{tFmt('importAcctLastSyncedFmt', [new Date(acct.lastSyncedAt).toLocaleDateString(dateLocale)])}</p>
-                          )}
+                          {/* Per-account sync status indicator (Monarch parity) */}
+                          {acct.syncStatus === 'syncing' ? (
+                            <p className="text-xs text-blue-600 flex items-center gap-1 mt-1">
+                              <span className="inline-block w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                              {t('importAcctSyncing')}
+                            </p>
+                          ) : acct.syncStatus === 'error' ? (
+                            <p className="text-xs text-red-600 bg-red-50 rounded px-2 py-0.5 mt-1 inline-block">
+                              {t('importAcctSyncErrorPrefix')}{acct.lastSyncError || t('importAcctSyncErrorFallback')}
+                            </p>
+                          ) : (() => {
+                            const d = safeDate(acct.lastSyncedAt);
+                            return d ? (
+                              <p className="text-xs text-gray-400">{tFmt('importAcctSyncedRelFmt', [d.toLocaleDateString(dateLocale)])}</p>
+                            ) : null;
+                          })()}
                         </div>
                 <div className="flex gap-2">
                   <button

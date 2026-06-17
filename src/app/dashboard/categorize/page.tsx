@@ -33,6 +33,12 @@ interface TransactionRule {
   maxAmount?: number | null;
   typeOverride?: string | null;
   categoryOverride?: string | null;
+  goalId?: number | null;
+}
+
+interface SavingsGoal {
+  id: number;
+  name: string;
 }
 
 const MATCH_FIELDS = [
@@ -75,6 +81,7 @@ const DEFAULT_RULE_FORM = {
   maxAmount: '',
   typeOverride: '',
   categoryOverride: '',
+  goalId: '',
 };
 
 function formatCategory(value: string) {
@@ -95,6 +102,7 @@ export default function CategorizePage() {
   };
   const [suggestions, setSuggestions] = useState<CategorySuggestion[]>([]);
   const [rules, setRules] = useState<TransactionRule[]>([]);
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [savingRule, setSavingRule] = useState(false);
@@ -110,9 +118,10 @@ export default function CategorizePage() {
     // Also surface the specific error message instead of a generic toast —
     // a user reported "failed to load transaction automation" with no hint
     // whether suggestions, rules, or both were the problem.
-    const [reviewResult, ruleResult] = await Promise.allSettled([
+    const [reviewResult, ruleResult, goalsResult] = await Promise.allSettled([
       api.reviewCategories(),
       api.getTransactionRules(),
+      api.getSavingsGoals(), // suppressUnauthorized=true (mount-fired, must not trigger logout)
     ]);
     if (reviewResult.status === 'fulfilled') {
       setSuggestions(reviewResult.value?.transactions || []);
@@ -130,6 +139,11 @@ export default function CategorizePage() {
         : t('catLoadRulesFallback');
       toast(`${t('catLoadRulesErrorPrefix')}${msg}`, 'error');
     }
+    if (goalsResult.status === 'fulfilled') {
+      const gd = goalsResult.value;
+      setSavingsGoals(Array.isArray(gd?.goals) ? gd.goals : Array.isArray(gd) ? gd : []);
+    }
+    // goals failure is silent — it's optional UI (the dropdown just stays empty)
     setLoading(false);
   };
 
@@ -170,6 +184,7 @@ export default function CategorizePage() {
         ...ruleForm,
         minAmount: ruleForm.minAmount ? Number(ruleForm.minAmount) : null,
         maxAmount: ruleForm.maxAmount ? Number(ruleForm.maxAmount) : null,
+        goalId: ruleForm.goalId ? Number(ruleForm.goalId) : null,
       };
       if (editingRuleId) {
         await api.updateTransactionRule(editingRuleId, payload);
@@ -200,6 +215,7 @@ export default function CategorizePage() {
       maxAmount: rule.maxAmount?.toString() || '',
       typeOverride: rule.typeOverride || '',
       categoryOverride: rule.categoryOverride || '',
+      goalId: rule.goalId?.toString() || '',
     });
   };
 
@@ -271,6 +287,7 @@ export default function CategorizePage() {
       maxAmount: '',
       typeOverride: suggestion.suggestedType,
       categoryOverride: suggestion.suggestedCategory,
+      goalId: '',
     });
     toast(t('catPrefillToast'), 'success');
   };
@@ -439,6 +456,20 @@ export default function CategorizePage() {
                 {CATEGORY_OPTIONS.map(option => <option key={option || 'blank'} value={option}>{option ? formatCategory(option) : t('catKeepCategory')}</option>)}
               </select>
             </Field>
+            {savingsGoals.length > 0 && (
+              <Field label={t('catFieldLinkGoal')}>
+                <select
+                  value={ruleForm.goalId}
+                  onChange={e => setRuleForm({ ...ruleForm, goalId: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                >
+                  <option value="">{t('catGoalNone')}</option>
+                  {savingsGoals.map(g => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </Field>
+            )}
           </div>
 
           <div className="mt-5 flex gap-3">
