@@ -30,6 +30,7 @@ import { useAuth } from '../../../../context/AuthContext';
 import { useToast } from '../../../../lib/toast';
 import { logError } from '../../../../lib/logError';
 import { useCurrency } from '../../../../lib/useCurrency';
+import { safeDate } from '../../../../lib/format';
 import type { Overview } from '../../../../components/admin/adminTypes';
 import DataFreshness from '../../../../components/admin/DataFreshness';
 import KpiTrendCard from '../../../../components/admin/KpiTrendCard';
@@ -90,17 +91,22 @@ export default function ScorecardPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [o, f, g, d] = await Promise.all([
+      const [oRes, fRes, gRes, dRes] = await Promise.allSettled([
         api.getAdminOverview() as Promise<Overview>,
         api.getAdminFunnel(30) as Promise<FunnelResponse>,
         api.getAdminGrowth() as Promise<GrowthResponse>,
         api.getAdminDropoffAnalysis(30) as Promise<DropoffResponse>,
       ]);
-      setOverview(o);
-      setFunnel(f);
-      setGrowth(g);
-      setDropoff(d);
+      if (oRes.status === 'fulfilled') setOverview(oRes.value);
+      if (fRes.status === 'fulfilled') setFunnel(fRes.value);
+      if (gRes.status === 'fulfilled') setGrowth(gRes.value);
+      if (dRes.status === 'fulfilled') setDropoff(dRes.value);
       setFetchedAt(Date.now());
+      const failures = [oRes, fRes, gRes, dRes].filter(r => r.status === 'rejected').length;
+      if (failures > 0) {
+        logError(new Error(`${failures} scorecard call(s) failed`), { context: 'ScorecardPage.load' });
+        toast(`${failures} of 4 scorecard section${failures > 1 ? 's' : ''} failed to load.`, 'error');
+      }
     } catch (err) {
       logError(err, { context: 'ScorecardPage.load' });
       toast('Failed to load scorecard data — admin access required?', 'error');
@@ -416,9 +422,9 @@ export default function ScorecardPage() {
                             >
                               <span className="text-gray-700">
                                 #{tl.userId} · {tl.emailHash}{' '}
-                                {tl.signupAt && (
+                                {safeDate(tl.signupAt) && (
                                   <span className="text-gray-400">
-                                    · signup {new Date(tl.signupAt).toISOString().slice(0, 10)}
+                                    · signup {safeDate(tl.signupAt)!.toISOString().slice(0, 10)}
                                   </span>
                                 )}
                               </span>
@@ -431,7 +437,7 @@ export default function ScorecardPage() {
                                 {tl.events.map((e, i) => (
                                   <li key={i}>
                                     <span className="text-gray-400">
-                                      {new Date(e.createdAt).toISOString().slice(0, 19).replace('T', ' ')}
+                                      {safeDate(e.createdAt)?.toISOString().slice(0, 19).replace('T', ' ') ?? '—'}
                                     </span>{' '}
                                     <span className="text-primary">{e.eventType}</span>
                                     {e.source && <span className="text-gray-400"> · {e.source}</span>}

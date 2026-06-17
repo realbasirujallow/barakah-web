@@ -1,4 +1,16 @@
 /**
+ * Safely parse a date value and return a Date, or null if the value is
+ * null/undefined/empty/zero or results in an Invalid Date.
+ * Usage: const d = safeDate(value); if (d) { ... }
+ */
+export function safeDate(value: string | number | null | undefined): Date | null {
+  if (value === null || value === undefined || value === '' || value === 0) return null;
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return null;
+  return d;
+}
+
+/**
  * Raw currency formatter — always formats in the given currency (defaults to USD).
  *
  * For React components, prefer the `useCurrency()` hook from `./useCurrency`

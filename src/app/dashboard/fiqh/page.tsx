@@ -58,8 +58,8 @@ export default function FiqhSettingsPage() {
       setLoading(true);
       try {
         const [configData, schoolsData, nisabData] = await Promise.all([
-          api.getFiqhConfig(),
-          api.getFiqhSchools(),
+          api.getFiqhConfig().catch(() => null),
+          api.getFiqhSchools().catch(() => null),
           api.getNisabMethodology().catch(() => null),
         ]);
         if (configData) {

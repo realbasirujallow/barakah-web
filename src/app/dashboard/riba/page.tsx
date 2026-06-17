@@ -5,6 +5,7 @@ import { api } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { useCurrency } from '../../../lib/useCurrency';
+import { safeDate } from '../../../lib/format';
 import { useRouter } from 'next/navigation';
 import { trackFeatureUse, trackOnce } from '../../../lib/analytics';
 import EmptyState from '../../../components/EmptyState';
@@ -1037,9 +1038,9 @@ export default function RibaPage() {
                             </div>
                             <p className="font-semibold text-green-800 truncate">{goal.sourceName}</p>
                             <p className="text-sm text-green-700">{tFmt('ribaMilestoneEliminatedFmt', [fmt(goal.originalAmount)])}</p>
-                            {goal.eliminatedAt && (
+                            {goal.eliminatedAt && safeDate(goal.eliminatedAt) && (
                               <p className="text-xs text-green-600 mt-1">
-                                {new Date(goal.eliminatedAt).toLocaleDateString(dateLocale)}
+                                {safeDate(goal.eliminatedAt)!.toLocaleDateString(dateLocale)}
                               </p>
                             )}
                           </div>

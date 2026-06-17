@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '../../../../lib/api';
 import { useAuth } from '../../../../context/AuthContext';
 import { logError } from '../../../../lib/logError';
+import { useToast } from '../../../../lib/toast';
 import { formatLocation } from '../../../../components/admin/adminFormatting';
 
 /**
@@ -69,6 +70,7 @@ type Tab = 'signins' | 'referrals' | 'shares';
 export default function AdminActivityPage() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
   const isAdmin = user?.isAdmin === true;
   const isAdminKnown = typeof user?.isAdmin === 'boolean';
 
@@ -99,10 +101,11 @@ export default function AdminActivityPage() {
       setShares(sh?.shares ?? []);
     } catch (e) {
       logError(e, { context: 'Failed to load admin activity' });
+      toast('Failed to load activity data. Try refreshing.', 'error');
     } finally {
       setLoading(false);
     }
-  }, [includeTest, isAdmin, isAuthLoading, user]);
+  }, [includeTest, isAdmin, isAuthLoading, user, toast]);
 
   useEffect(() => { void reload(); }, [reload]);
 

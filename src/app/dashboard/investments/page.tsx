@@ -173,15 +173,16 @@ export default function InvestmentsPage() {
 
   const fmtPct = (n: number) => `${n >= 0 ? '+' : ''}${(n || 0).toFixed(2)}%`;
 
-  const load = useCallback(() => {
+  const load = useCallback((cancelled: { current: boolean }) => {
     setLoading(true);
     setError('');
     Promise.allSettled([
-      api.getPortfolioSummary().then(d => setPortfolio(d)).catch(() => {
-        setError(t('investmentsLoadError'));
+      api.getPortfolioSummary().then(d => { if (!cancelled.current) setPortfolio(d); }).catch(() => {
+        if (!cancelled.current) setError(t('investmentsLoadError'));
       }),
       // Pull investment-type assets (401k, IRA, HSA, 529 etc.) tracked via the Assets page
       api.getAssets().then((res: { assets?: AssetAccount[] } | AssetAccount[]) => {
+        if (cancelled.current) return;
         const list: AssetAccount[] = Array.isArray(res) ? res : (res?.assets || []);
         const investmentAssets = list.filter((a: AssetAccount) =>
           INVESTMENT_ASSET_TYPES.includes(a.type)
@@ -190,6 +191,7 @@ export default function InvestmentsPage() {
       }).catch(() => { /* graceful — don't block portfolio load */ }),
       // Load portfolio history for chart
       api.getPortfolioHistory(historyDays).then((res: { history?: PortfolioHistorySnapshot[] }) => {
+        if (cancelled.current) return;
         const history: PortfolioHistorySnapshot[] = res?.history || [];
         setPortfolioHistory(history);
       }).catch(() => { /* graceful — don't block if history unavailable */ }),
@@ -199,16 +201,21 @@ export default function InvestmentsPage() {
       api.getInvestmentBenchmarks(
         historyDays === 7 ? '1m' : historyDays === 30 ? '1m' : historyDays === 90 ? '3m' : historyDays === 365 ? '1y' : '6m'
       ).then((res: { series?: BenchmarkSeries }) => {
+        if (cancelled.current) return;
         if (res?.series) setBenchmarks(res.series);
-      }).catch(() => { setBenchmarks(null); }),
-    ]).finally(() => setLoading(false));
+      }).catch(() => { if (!cancelled.current) setBenchmarks(null); }),
+    ]).finally(() => { if (!cancelled.current) setLoading(false); });
   }, [historyDays]);
 
   useEffect(() => {
+    const cancelled = { current: false };
     const timeoutId = window.setTimeout(() => {
-      load();
+      load(cancelled);
     }, 0);
-    return () => window.clearTimeout(timeoutId);
+    return () => {
+      cancelled.current = true;
+      window.clearTimeout(timeoutId);
+    };
   }, [load]);
 
   const handleAddAccount = async () => {
@@ -217,7 +224,7 @@ export default function InvestmentsPage() {
       await api.addInvestmentAccount(accountForm);
       setShowAccountForm(false);
       setAccountForm(emptyAccountForm);
-      load();
+      load({ current: false });
     } catch (err: unknown) { logError(err); toast(err instanceof Error ? err.message : t('investmentsAddAccountError'), 'error'); }
     setSavingAccount(false);
   };
@@ -227,7 +234,7 @@ export default function InvestmentsPage() {
       message: t('investmentsDeleteAccountConfirm'),
       action: async () => {
         await api.deleteInvestmentAccount(id).catch((err) => { logError(err); toast(t('investmentsDeleteAccountError'), 'error'); });
-        load();
+        load({ current: false });
       }
     });
   };
@@ -251,7 +258,7 @@ export default function InvestmentsPage() {
       });
       setAddHoldingFor(null);
       setHoldingForm(emptyHoldingForm);
-      load();
+      load({ current: false });
     } catch (err: unknown) { logError(err); toast(err instanceof Error ? err.message : t('investmentsAddHoldingError'), 'error'); }
     setSavingHolding(false);
   };
@@ -261,7 +268,7 @@ export default function InvestmentsPage() {
       message: t('investmentsRemoveHoldingConfirm'),
       action: async () => {
         await api.deleteHolding(id).catch((err) => { logError(err); });
-        load();
+        load({ current: false });
       }
     });
   };
@@ -658,7 +665,7 @@ export default function InvestmentsPage() {
               users can recover from a transient backend hiccup without
               leaving the page. */}
           <button
-            onClick={load}
+            onClick={() => load({ current: false })}
             className="shrink-0 bg-yellow-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-yellow-800 transition"
           >
             {t('zktRetry')}

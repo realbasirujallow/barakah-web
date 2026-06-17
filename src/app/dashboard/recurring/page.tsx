@@ -339,12 +339,12 @@ export default function RecurringPage() {
 
   // 2026-06-15: month overview fetch — re-runs whenever the navigator month
   // changes. Mount-fired + secondary, so suppressUnauthorized is handled in api.
-  const loadOverview = useCallback(async (m: string) => {
+  const loadOverview = useCallback(async (m: string, cancelled?: { current: boolean }) => {
     try {
       const data = await api.getRecurringOverview(m) as Overview | null;
-      setOverview(data ?? null);
+      if (!cancelled?.current) setOverview(data ?? null);
     } catch {
-      setOverview(null);
+      if (!cancelled?.current) setOverview(null);
     }
   }, []);
 
@@ -392,8 +392,12 @@ export default function RecurringPage() {
   }, [load, loadDetected]);
 
   // Refetch the overview whenever the selected month changes.
+  // The cancelled flag prevents a slow response for a previous month
+  // from overwriting state after the user has already navigated away.
   useEffect(() => {
-    void loadOverview(month);
+    const cancelled = { current: false };
+    void loadOverview(month, cancelled);
+    return () => { cancelled.current = true; };
   }, [month, loadOverview]);
 
   const handleToggle = async (id: number) => {

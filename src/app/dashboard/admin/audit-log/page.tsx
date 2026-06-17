@@ -20,6 +20,7 @@ import { useToast } from '../../../../lib/toast';
 import { logError } from '../../../../lib/logError';
 import { useAuth } from '../../../../context/AuthContext';
 import { useI18n } from '../../../../lib/i18n';
+import { safeDate } from '../../../../lib/format';
 
 interface AuditRow {
   id: number;
@@ -224,7 +225,7 @@ export default function AdminAuditLogPage() {
                   {rows.map((r) => (
                     <tr key={r.id} className="border-b border-gray-100 align-top">
                       <td className="py-2 pr-3 whitespace-nowrap text-gray-500 text-xs">
-                        {new Date(r.createdAt).toLocaleString()}
+                        {safeDate(r.createdAt)?.toLocaleString() ?? '—'}
                       </td>
                       <td className="py-2 pr-3 whitespace-nowrap text-gray-700">
                         {r.actorId != null ? `#${r.actorId}` : '—'}

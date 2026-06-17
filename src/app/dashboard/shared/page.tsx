@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
+import { safeDate } from '../../../lib/format';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import ModalShell from '../../../components/ui/ModalShell';
 import EmptyState from '../../../components/EmptyState';
@@ -140,8 +141,10 @@ export default function SharedPage() {
   // from a previous selection don't overwrite data for a newer one.
   const loadingForGroupRef = useRef<number | null>(null);
 
-  const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const formatDate = (d: string) => {
+    const dt = safeDate(d);
+    return dt ? dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—';
+  };
 
   const loadGroups = () => {
     setLoading(true);
@@ -617,8 +620,8 @@ export default function SharedPage() {
                             <div className="flex justify-between items-start mb-2">
                               <div>
                                 <p className="font-medium text-gray-900">{goal.name}</p>
-                                {goal.targetDate && (
-                                  <p className="text-xs text-gray-500">{tFmt('sharedGoalTargetFmt', [new Date(goal.targetDate).toLocaleDateString(dateLocale)])}</p>
+                                {goal.targetDate && safeDate(goal.targetDate) && (
+                                  <p className="text-xs text-gray-500">{tFmt('sharedGoalTargetFmt', [safeDate(goal.targetDate)!.toLocaleDateString(dateLocale)])}</p>
                                 )}
                               </div>
                               <button

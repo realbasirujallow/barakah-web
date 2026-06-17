@@ -61,7 +61,7 @@ interface Tx {
   /** R44 (2026-05-01): backend already exposes this via the transactions
    *  endpoint; the UI just hadn't surfaced it. Toggled via
    *  api.toggleRecurring(id). */
-  isRecurring?: boolean | null;
+  recurring?: boolean | null;
   /** 2026-06-11 (Monarch parity): serialized in every txn map. Excluded
    *  rows stay visible in the list but are left out of totals, budgets,
    *  and reports. Toggled via PUT /api/transactions/{id} (single) or
@@ -512,19 +512,19 @@ export default function TransactionsPage() {
     On API failure, the optimistic update is reverted.
   */
   const handleToggleRecurring = async (tx: Tx) => {
-    const next = !tx.isRecurring;
-    setTxs(prev => prev.map(t => t.id === tx.id ? { ...t, isRecurring: next } : t));
+    const next = !tx.recurring;
+    setTxs(prev => prev.map(t => t.id === tx.id ? { ...t, recurring: next } : t));
     // 2026-05-01: also update editTx so the modal's checkbox flips
     // immediately when toggled from inside the modal. Without this,
     // editTx is a snapshot from openEdit() and stays stale after toggle.
-    setEditTx(prev => prev && prev.id === tx.id ? { ...prev, isRecurring: next } : prev);
+    setEditTx(prev => prev && prev.id === tx.id ? { ...prev, recurring: next } : prev);
     try {
       await api.toggleRecurring(tx.id);
       toast(next ? t('txnMarkedRecurring') : t('txnRecurringRemoved'), 'success');
     } catch {
       // Revert optimistic update on both states.
-      setTxs(prev => prev.map(t => t.id === tx.id ? { ...t, isRecurring: !next } : t));
-      setEditTx(prev => prev && prev.id === tx.id ? { ...prev, isRecurring: !next } : prev);
+      setTxs(prev => prev.map(t => t.id === tx.id ? { ...t, recurring: !next } : t));
+      setEditTx(prev => prev && prev.id === tx.id ? { ...prev, recurring: !next } : prev);
       toast(t('txnRecurringUpdateFailed'), 'error');
     }
   };
@@ -1320,7 +1320,7 @@ export default function TransactionsPage() {
                         {t('txnLinkedViaPlaid')}
                       </span>
                     )}
-                    {tx.isRecurring && (
+                    {tx.recurring && (
                       // R44 (2026-05-01): "Recurring" pill — visible
                       // confirmation that this row is in the recurring
                       // set, mirrors the bills/recurring page styling.
@@ -1434,9 +1434,9 @@ export default function TransactionsPage() {
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); handleToggleRecurring(tx); }}
-                      aria-label={tx.isRecurring ? tFmt('txnRemoveRecurringAria', [tx.description || categoryLabel(tx.category)]) : tFmt('txnMarkRecurringAria', [tx.description || categoryLabel(tx.category)])}
-                      title={tx.isRecurring ? t('txnRemoveRecurringTitle') : t('txnMarkRecurringTitle')}
-                      className={`p-1.5 rounded-md transition-colors ${tx.isRecurring ? 'text-violet-700 bg-violet-50 hover:bg-violet-100' : 'text-muted-foreground hover:text-violet-700 hover:bg-violet-50'}`}
+                      aria-label={tx.recurring ? tFmt('txnRemoveRecurringAria', [tx.description || categoryLabel(tx.category)]) : tFmt('txnMarkRecurringAria', [tx.description || categoryLabel(tx.category)])}
+                      title={tx.recurring ? t('txnRemoveRecurringTitle') : t('txnMarkRecurringTitle')}
+                      className={`p-1.5 rounded-md transition-colors ${tx.recurring ? 'text-violet-700 bg-violet-50 hover:bg-violet-100' : 'text-muted-foreground hover:text-violet-700 hover:bg-violet-50'}`}
                     >
                       <RefreshCw className="w-4 h-4" />
                     </button>
@@ -1704,7 +1704,7 @@ export default function TransactionsPage() {
                   <label className="flex items-start gap-3 cursor-pointer select-none">
                     <input
                       type="checkbox"
-                      checked={Boolean(editTx.isRecurring)}
+                      checked={Boolean(editTx.recurring)}
                       onChange={() => handleToggleRecurring(editTx)}
                       className="mt-0.5 w-4 h-4 accent-primary rounded flex-shrink-0"
                     />
@@ -1716,7 +1716,7 @@ export default function TransactionsPage() {
                         {t('txnMarkRecurringHint')}
                       </span>
                     </span>
-                    {Boolean(editTx.isRecurring) && (
+                    {Boolean(editTx.recurring) && (
                       <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 flex-shrink-0">
                         {t('txnRecurringPill')}
                       </span>
@@ -1730,7 +1730,7 @@ export default function TransactionsPage() {
                       `frequency` field, which TransactionController.update
                       validates against VALID_FREQUENCIES and uses to bump
                       nextOccurrence. */}
-                  {Boolean(editTx.isRecurring) && (
+                  {Boolean(editTx.recurring) && (
                     <div className="mt-3 ms-7">
                       <label className="block text-xs font-medium text-gray-700 mb-1">
                         {t('txnFrequencyLabel')}
