@@ -916,7 +916,11 @@ function ForecastingPageContent() {
     })();
 
     return () => controller.abort();
-  }, [scenarioId, startingValue, currentAge, retirementAge, hajjYearsFromNow, annualReturnPct, inflationMode, inflationRate]);
+    // monthlyContribution IS included: the server projection is computed from
+    // the persisted scenario row (which the sibling persist effect above keys
+    // on monthlyContribution too), so omitting it here left the chart stale
+    // when only the contribution slider changed.
+  }, [scenarioId, startingValue, currentAge, retirementAge, hajjYearsFromNow, monthlyContribution, annualReturnPct, inflationMode, inflationRate]);
 
   // ── Client-side projection (fallback) ─────────────────────────────────────
   const clientProjection = useMemo(() => {
