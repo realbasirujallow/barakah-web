@@ -66,8 +66,44 @@ interface AssetAccount {
   name: string;
   type: string;
   value: number;
+  currency?: string;  // native currency of this asset (e.g. "GBP", "USD"); backend: assetToMap → asset.getCurrency()
   institution?: string;
   notes?: string;
+}
+
+interface FxRates { base: string; rates: Record<string, number> }
+
+/**
+ * Convert a value from `fromCurrency` to `toCurrency` using the provided
+ * FX-rate snapshot. Returns the original value unchanged when rates are
+ * unavailable or the currencies match.
+ */
+function convertToUserCurrency(
+  value: number,
+  fromCurrency: string | undefined,
+  toCurrency: string,
+  rates: FxRates | null,
+): number {
+  if (!fromCurrency || fromCurrency === toCurrency) return value;
+  if (!rates?.rates) return value; // no rates yet — preserve raw value rather than silently mis-sum
+  // All rates are relative to `rates.base` (typically USD).
+  // To convert from → to:  value / rate[from] * rate[to]
+  // When from === base the rate is implicitly 1.
+  const baseIsFrom = rates.base === fromCurrency;
+  const baseIsTo   = rates.base === toCurrency;
+  if (baseIsFrom && baseIsTo) return value;
+  if (baseIsFrom) {
+    const r = rates.rates[toCurrency];
+    return r ? value * r : value;
+  }
+  if (baseIsTo) {
+    const r = rates.rates[fromCurrency];
+    return r ? value / r : value;
+  }
+  const fromRate = rates.rates[fromCurrency];
+  const toRate   = rates.rates[toCurrency];
+  if (!fromRate || !toRate) return value;
+  return (value / fromRate) * toRate;
 }
 
 // label resolved via t() at render time (keys added centrally to i18n.ts)
@@ -113,11 +149,12 @@ const emptyHoldingForm = { symbol: '', name: '', quantity: '', averageCost: '', 
 
 export default function InvestmentsPage() {
   const { toast } = useToast();
-  const { fmt } = useCurrency();
+  const { fmt, currency } = useCurrency();
   const { t, tFmt } = useI18n();
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [assetAccounts, setAssetAccounts] = useState<AssetAccount[]>([]);
+  const [fxRates, setFxRates] = useState<FxRates | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedAccount, setExpandedAccount] = useState<number | null>(null);
@@ -189,6 +226,14 @@ export default function InvestmentsPage() {
         );
         setAssetAccounts(investmentAssets);
       }).catch(() => { /* graceful — don't block portfolio load */ }),
+      // Fetch FX rates so we can convert non-Plaid asset values to the user's
+      // preferred currency before summing. Failure is non-blocking — we fall
+      // back to raw values (which at least don't silently mis-sum for same-
+      // currency assets); a console warning is emitted so it shows in devtools.
+      api.getCurrencyRates().then((rates: FxRates) => {
+        if (cancelled.current) return;
+        if (rates?.base && rates?.rates) setFxRates(rates);
+      }).catch(() => { /* non-blocking — raw asset values used as fallback */ }),
       // Load portfolio history for chart
       api.getPortfolioHistory(historyDays).then((res: { history?: PortfolioHistorySnapshot[] }) => {
         if (cancelled.current) return;
@@ -296,7 +341,20 @@ export default function InvestmentsPage() {
   const nonPlaidAssets = assetAccounts.filter(
     (a) => !a.notes?.startsWith('Linked from Plaid')
   );
-  const assetTotal    = nonPlaidAssets.reduce((sum, a) => sum + (a.value || 0), 0);
+  // Convert each non-Plaid asset's native value to the user's preferred
+  // currency before summing. A £30k UK property and a $50k US brokerage
+  // account previously both landed as raw numbers and were added directly
+  // (the DATA-CUR-1 bug). Now each asset.value is converted using live FX
+  // rates from /api/currency/rates before the reduce.
+  //
+  // The Plaid portfolio summary (totalValue) is NOT touched here — it is
+  // already backend-converted to the user's preferred currency (the backend
+  // portfolio endpoint returns a single-currency aggregate). Only the
+  // manually-entered / CSV-imported asset accounts go through the FX path.
+  const assetTotal = nonPlaidAssets.reduce((sum, a) => {
+    const converted = convertToUserCurrency(a.value || 0, a.currency, currency, fxRates);
+    return sum + converted;
+  }, 0);
   const combinedTotal = totalValue + assetTotal;
 
   return (
@@ -852,8 +910,13 @@ export default function InvestmentsPage() {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-gray-900 text-lg">
-                    {fmt(asset.value || 0)}
+                    {fmt(convertToUserCurrency(asset.value || 0, asset.currency, currency, fxRates))}
                   </p>
+                  {asset.currency && asset.currency !== currency && (
+                    <p className="text-xs text-gray-400">
+                      {new Intl.NumberFormat(undefined, { style: 'currency', currency: asset.currency }).format(asset.value || 0)}
+                    </p>
+                  )}
                   <p className="text-xs text-primary">{t('investmentsViewDetailsLink')}</p>
                 </div>
               </Link>
