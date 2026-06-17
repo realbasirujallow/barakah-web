@@ -234,13 +234,37 @@ export default function CategorizePage() {
   };
 
   const prefillRuleFromSuggestion = (suggestion: CategorySuggestion) => {
-    const seedText = suggestion.description.split('—')[0].trim();
+    // ── Feature 4: SMARTER RULE DEFAULTS (2026-06-17) ──────────────────────
+    // Problem: when a user renames a merchant (e.g. sets description to
+    // "Whole Foods" after the bank sent "WHOLEFDS #1234 SEATTLE WA"), the
+    // stored `suggestion.description` is the renamed value. If we use that as
+    // matchValue on the `description` field, the rule will NEVER match new
+    // imports — those arrive with the original bank statement text.
+    //
+    // Heuristic: if the description looks like a clean user-entered label
+    // (contains only normal word characters + spaces, no raw-bank artifacts
+    // like all-caps sequences, asterisks, #, or trailing location codes),
+    // treat it as a potentially renamed merchant name and switch matchField
+    // to 'any_text'. 'any_text' searches description, merchantName, account,
+    // AND institution — so the rule will match future imports regardless of
+    // which field the categorization engine populates.
+    //
+    // If the description still looks like raw bank text (all-caps, digits,
+    // asterisks, slashes), keep matchField:'description' and use it directly —
+    // these are the original statement strings and will match new imports fine.
+    const rawDesc = suggestion.description;
+    const looksLikeRawBankText = /[A-Z]{3,}/.test(rawDesc) || /[*#/\\]/.test(rawDesc) || /\d{3,}/.test(rawDesc);
+    const seedText = looksLikeRawBankText
+      ? rawDesc.split('—')[0].trim()  // raw bank text: strip trailing merchant annotation
+      : rawDesc;                       // clean/renamed label: use as-is
+    const matchField = looksLikeRawBankText ? 'description' : 'any_text';
+
     setEditingRuleId(null);
     setRuleForm({
       name: `${formatTypeLabel2(suggestion.suggestedType)} ${formatCategory(suggestion.suggestedCategory)}${t('catRuleNameSuffix')}`,
       enabled: true,
       priority: 100,
-      matchField: 'description',
+      matchField,
       matchOperator: 'contains',
       matchValue: seedText,
       minAmount: '',

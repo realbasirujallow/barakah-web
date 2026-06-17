@@ -4368,4 +4368,17 @@ export const ar: Translations = {
   sharedDeleteTxAria: 'حذف المعاملة',
   sharedDeleteBudgetAria: 'حذف الميزانية',
   sharedDeleteGoalAria: 'حذف الهدف',
+  // Transactions page — power-user features (Monarch parity, 2026-06-17)
+  // Feature 2: Custom column visibility
+  txnColumnsBtn: 'الأعمدة',
+  txnColCategory: 'الفئة',
+  txnColAccount: 'الحساب',
+  txnColOwner: 'المالك',
+  // Feature 3: Right-click quick-tag
+  txnQuickTagTitle: 'وسم سريع',
+  txnQuickTagPlaceholder: 'أضف وسمًا…',
+  txnQuickTagAdd: 'إضافة وسم',
+  txnQuickTagSaved: 'تمت إضافة الوسم',
+  txnQuickTagFailed: 'فشل حفظ الوسم',
+  txnQuickTagClose: 'إغلاق قائمة الوسوم',
 };

@@ -4434,4 +4434,17 @@ export const en: Translations = {
   sharedDeleteTxAria: 'Delete transaction',
   sharedDeleteBudgetAria: 'Delete budget',
   sharedDeleteGoalAria: 'Delete goal',
+  // Transactions page — power-user features (Monarch parity, 2026-06-17)
+  // Feature 2: Custom column visibility
+  txnColumnsBtn: 'Columns',
+  txnColCategory: 'Category',
+  txnColAccount: 'Account',
+  txnColOwner: 'Owner',
+  // Feature 3: Right-click quick-tag
+  txnQuickTagTitle: 'Quick Tag',
+  txnQuickTagPlaceholder: 'Add a tag…',
+  txnQuickTagAdd: 'Add tag',
+  txnQuickTagSaved: 'Tag added',
+  txnQuickTagFailed: 'Failed to save tag',
+  txnQuickTagClose: 'Close tag menu',
 };

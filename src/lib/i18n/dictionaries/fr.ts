@@ -4373,5 +4373,18 @@ export const fr: Translations = {
   // Shared-finances page: icon-only delete buttons
   sharedDeleteTxAria: 'Supprimer la transaction',
   sharedDeleteBudgetAria: 'Supprimer le budget',
-  sharedDeleteGoalAria: 'Supprimer l’objectif',
+  sharedDeleteGoalAria: "Supprimer l'objectif",
+  // Transactions page -- power-user features (Monarch parity, 2026-06-17)
+  // Feature 2: Custom column visibility
+  txnColumnsBtn: 'Colonnes',
+  txnColCategory: 'Catégorie',
+  txnColAccount: 'Compte',
+  txnColOwner: 'Propriétaire',
+  // Feature 3: Right-click quick-tag
+  txnQuickTagTitle: 'Tag rapide',
+  txnQuickTagPlaceholder: 'Ajouter un tag…',
+  txnQuickTagAdd: 'Ajouter le tag',
+  txnQuickTagSaved: 'Tag ajouté',
+  txnQuickTagFailed: 'Échec de la sauvegarde du tag',
+  txnQuickTagClose: 'Fermer le menu des tags',
 };

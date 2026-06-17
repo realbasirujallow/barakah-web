@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { hasPaidSyncAccess } from '../../../lib/subscription';
@@ -13,7 +13,7 @@ import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n, t as tStandalone } from '../../../lib/i18n';
 import { CATEGORIES, categoriesForType, txPresentation } from '../../../lib/transactionPresentation';
-import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon, EyeOff, Landmark } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon, EyeOff, Landmark, Columns3 } from 'lucide-react';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
@@ -164,6 +164,41 @@ export default function TransactionsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
   const [selectAllPages, setSelectAllPages] = useState(false);
+
+  // ── Feature 1: SHIFT+CLICK RANGE SELECT ──────────────────────────────────
+  // Tracks the flat index (in the rendered monthFilteredTxs order) of the
+  // last row the user clicked in bulk-select mode, so shift-click can fill
+  // the contiguous range between last click and current click.
+  const lastClickedIndexRef = useRef<number | null>(null);
+
+  // ── Feature 2: CUSTOM COLUMN VISIBILITY ──────────────────────────────────
+  const COL_VIS_KEY = 'barakah_txn_columns';
+  const defaultColVis = { category: true, account: true, owner: true };
+  const [colVis, setColVis] = useState<{ category: boolean; account: boolean; owner: boolean }>(() => {
+    if (typeof window === 'undefined') return defaultColVis;
+    try {
+      const stored = localStorage.getItem(COL_VIS_KEY);
+      if (stored) return { ...defaultColVis, ...JSON.parse(stored) };
+    } catch { /* ignore corrupt storage */ }
+    return defaultColVis;
+  });
+  const [colMenuOpen, setColMenuOpen] = useState(false);
+
+  const toggleCol = useCallback((col: keyof typeof defaultColVis) => {
+    setColVis(prev => {
+      const next = { ...prev, [col]: !prev[col] };
+      try { localStorage.setItem(COL_VIS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
+
+  // ── Feature 3: RIGHT-CLICK QUICK-TAG ─────────────────────────────────────
+  // When non-null, the quick-tag popover is open for this transaction.
+  const [quickTag, setQuickTag] = useState<{ tx: Tx; x: number; y: number } | null>(null);
+  const [quickTagInput, setQuickTagInput] = useState('');
+  const [quickTagSaving, setQuickTagSaving] = useState(false);
+  const quickTagRef = useRef<HTMLDivElement>(null);
+
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ type: 'single' | 'bulk'; id?: number; count?: number } | null>(null);
   // 2026-05-03 (Monarch parity): bulk recategorize. The backend has had
@@ -415,6 +450,48 @@ export default function TransactionsPage() {
     }, 'web_transactions').catch(() => {});
   }, [txs]);
 
+  // ── Feature 3: close quick-tag popover on outside click / Escape ─────────
+  useEffect(() => {
+    if (!quickTag) return;
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setQuickTag(null); setQuickTagInput(''); } };
+    const handleClick = (e: MouseEvent) => {
+      if (quickTagRef.current && !quickTagRef.current.contains(e.target as Node)) {
+        setQuickTag(null);
+        setQuickTagInput('');
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    document.addEventListener('mousedown', handleClick);
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.removeEventListener('mousedown', handleClick);
+    };
+  }, [quickTag]);
+
+  const handleQuickTagSave = async () => {
+    if (!quickTag || !quickTagInput.trim()) return;
+    const tx = quickTag.tx;
+    const newTag = quickTagInput.trim();
+    // Merge with existing tags (comma-separated). Deduplicate.
+    const existingTags = (tx.tags || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (existingTags.includes(newTag)) { setQuickTag(null); setQuickTagInput(''); return; }
+    const merged = [...existingTags, newTag].join(', ');
+    setQuickTagSaving(true);
+    try {
+      // User-triggered → no suppressUnauthorized needed.
+      await api.updateTransaction(tx.id, { tags: merged });
+      // Optimistically update the local list so the tag chip appears immediately.
+      setTxs(prev => prev.map(t => t.id === tx.id ? { ...t, tags: merged } : t));
+      toast(t('txnQuickTagSaved'), 'success');
+      setQuickTag(null);
+      setQuickTagInput('');
+    } catch {
+      toast(t('txnQuickTagFailed'), 'error');
+    } finally {
+      setQuickTagSaving(false);
+    }
+  };
+
   const openAdd = () => {
     setEditTx(null);
     setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '', frequency: 'monthly', assetId: '', recurring: false });
@@ -543,14 +620,45 @@ export default function TransactionsPage() {
     }
   };
 
-  const toggleSelect = (id: number) => {
+  const toggleSelect = (id: number, rowIndex?: number, shiftHeld?: boolean) => {
     setSelectAllPages(false);
+    // ── Feature 1: SHIFT+CLICK RANGE SELECT ────────────────────────────────
+    // When shift is held and we have a previous click anchor, select/deselect
+    // the entire contiguous range between the two indices. The resulting
+    // selection state (select or deselect) mirrors what the anchor row did:
+    // if the anchor was a SELECT, range rows are added; if DESELECT, removed.
+    if (shiftHeld && rowIndex != null && lastClickedIndexRef.current != null) {
+      const lo = Math.min(lastClickedIndexRef.current, rowIndex);
+      const hi = Math.max(lastClickedIndexRef.current, rowIndex);
+      // Determine intent from the anchor row: if anchor is currently selected
+      // the range should be selected; if deselected, range should be deselected.
+      // We read the anchor's state BEFORE mutating (selectedIds is closed over).
+      const anchorId = flatTxListRef.current[lastClickedIndexRef.current];
+      const selecting = anchorId != null ? !selectedIds.has(anchorId) : true;
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        for (let i = lo; i <= hi; i++) {
+          const rangeId = flatTxListRef.current[i];
+          if (rangeId == null) continue;
+          if (selecting) next.add(rangeId); else next.delete(rangeId);
+        }
+        return next;
+      });
+      lastClickedIndexRef.current = rowIndex;
+      return;
+    }
+    if (rowIndex != null) lastClickedIndexRef.current = rowIndex;
     setSelectedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   };
+
+  // Flat ordered list of transaction ids in render order, kept in sync with
+  // the current page's filtered+grouped rows. Required by range-select so
+  // we can map an index back to an id when computing the shift-click range.
+  const flatTxListRef = useRef<number[]>([]);
 
   const toggleSelectAll = () => {
     if (selectedIds.size === txs.length) {
@@ -566,6 +674,7 @@ export default function TransactionsPage() {
     setSelectMode(false);
     setSelectedIds(new Set());
     setSelectAllPages(false);
+    lastClickedIndexRef.current = null;
   };
 
   const handlePageSizeChange = (newSize: number) => {
@@ -1019,6 +1128,55 @@ export default function TransactionsPage() {
         </button>
         {totalElements > 0 && <span className="text-sm text-gray-500">{tFmt('txnTotalCountFmt', [totalElements])}</span>}
         <div className="ms-auto flex items-center gap-1.5">
+          {/* ── Feature 2: CUSTOM COLUMN VISIBILITY ──────────────────────── */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setColMenuOpen(o => !o)}
+              aria-haspopup="menu"
+              aria-expanded={colMenuOpen}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition"
+            >
+              <Columns3 className="w-3.5 h-3.5" />
+              {t('txnColumnsBtn')}
+            </button>
+            {colMenuOpen && (
+              <>
+                <button
+                  type="button"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                  className="fixed inset-0 z-30 cursor-default"
+                  onClick={() => setColMenuOpen(false)}
+                />
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full mt-1 z-40 w-44 bg-white border border-gray-200 rounded-lg shadow-lg py-1"
+                >
+                  {([
+                    ['category', 'txnColCategory'],
+                    ['account', 'txnColAccount'],
+                    ['owner', 'txnColOwner'],
+                  ] as const).map(([col, labelKey]) => (
+                    <label
+                      key={col}
+                      role="menuitemcheckbox"
+                      aria-checked={colVis[col]}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer select-none"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={colVis[col]}
+                        onChange={() => toggleCol(col)}
+                        className="w-3.5 h-3.5 accent-[#1B5E20] rounded"
+                      />
+                      {t(labelKey)}
+                    </label>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
           <span className="text-xs text-gray-500">{t('txnShow')}</span>
           {PAGE_SIZE_OPTIONS.map(n => (
             <button key={n} onClick={() => handlePageSizeChange(n)}
@@ -1233,6 +1391,11 @@ export default function TransactionsPage() {
             else if (t.type === 'expense') g.net -= t.amount;
           }
 
+          // ── Feature 1: populate flat id list for shift-click range ──────────
+          flatTxListRef.current = monthFilteredTxs.map(t => t.id);
+          // Running flat index across all groups; incremented per row.
+          let flatRowIndex = -1;
+
           return (
             <div className="space-y-3">
               {groups.map((group) => (
@@ -1246,15 +1409,30 @@ export default function TransactionsPage() {
                   <div className="space-y-2">
                     {group.rows.map((tx) => {
                       const presentation = txPresentation(tx);
+                      // Capture current flat index for this row (closure-safe).
+                      const rowIdx = ++flatRowIndex;
                       return (
             <div key={tx.id}
-              onClick={selectMode ? () => toggleSelect(tx.id) : () => openEdit(tx)}
+              onClick={(e) => {
+                if (selectMode) {
+                  toggleSelect(tx.id, rowIdx, e.shiftKey);
+                } else {
+                  openEdit(tx);
+                }
+              }}
+              // ── Feature 3: RIGHT-CLICK QUICK-TAG ───────────────────────
+              onContextMenu={(e) => {
+                if (selectMode) return; // don't interrupt bulk select
+                e.preventDefault();
+                setQuickTag({ tx, x: e.clientX, y: e.clientY });
+                setQuickTagInput('');
+              }}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  if (selectMode) toggleSelect(tx.id); else openEdit(tx);
+                  if (selectMode) toggleSelect(tx.id, rowIdx, false); else openEdit(tx);
                 }
               }}
               aria-label={tFmt('txnRowAria', [tx.description || categoryLabel(tx.category), selectMode ? t('txnRowActionSelect') : t('txnRowActionEdit')])}
@@ -1262,7 +1440,8 @@ export default function TransactionsPage() {
               <div className="flex items-center gap-3">
                 {selectMode && (
                   <input type="checkbox" checked={selectedIds.has(tx.id) || selectAllPages}
-                    onChange={() => toggleSelect(tx.id)} onClick={e => e.stopPropagation()}
+                    onChange={(e) => toggleSelect(tx.id, rowIdx, e.nativeEvent instanceof MouseEvent ? (e.nativeEvent as MouseEvent).shiftKey : false)}
+                    onClick={e => e.stopPropagation()}
                     aria-label={tFmt('txnSelectRowFmt', [tx.description || categoryLabel(tx.category)])}
                     className="w-4 h-4 accent-[#1B5E20] rounded flex-shrink-0" />
                 )}
@@ -1358,8 +1537,10 @@ export default function TransactionsPage() {
                         negative "Transfer Out" row (admin's Wells Fargo
                         CARD transfer on May 10). Hide the category
                         subtitle for transfers — the pill already says
-                        what it is — and just show the date. */}
-                    {tx.type !== 'transfer' && (
+                        what it is — and just show the date.
+                        Feature 2 (2026-06-17): also respect colVis.category
+                        toggle — if hidden, omit the category prefix. */}
+                    {colVis.category && tx.type !== 'transfer' && (
                       <>{categoryLabel(tx.category)} • </>
                     )}
                     {new Date(tx.timestamp).toLocaleDateString(dateLocale)}
@@ -1376,9 +1557,16 @@ export default function TransactionsPage() {
                       ))}
                     </div>
                   )}
-                  {(tx.sourceInstitutionName || tx.sourceAccountName) && (
+                  {/* Feature 2 (2026-06-17): account line gated by colVis.account;
+                      owner (institution) gated by colVis.owner. Either flag off
+                      hides that piece of the combined line. */}
+                  {(colVis.account || colVis.owner) && (tx.sourceInstitutionName || tx.sourceAccountName) && (
                     <p className="text-xs text-emerald-700 mt-1">
-                      {[tx.sourceInstitutionName, tx.sourceAccountName, tx.sourceAccountType].filter(Boolean).join(' • ')}
+                      {[
+                        colVis.owner ? tx.sourceInstitutionName : null,
+                        colVis.account ? tx.sourceAccountName : null,
+                        colVis.account ? tx.sourceAccountType : null,
+                      ].filter(Boolean).join(' • ')}
                     </p>
                   )}
                 </div>
@@ -1833,6 +2021,77 @@ export default function TransactionsPage() {
             </div>
           </div>
         </ModalShell>
+      )}
+
+      {/* ── Feature 3: RIGHT-CLICK QUICK-TAG POPOVER (2026-06-17) ──────────
+           A small fixed-position menu that appears at the cursor when the
+           user right-clicks a transaction row. Lets them add a tag without
+           opening the full edit drawer. The browser's native context menu is
+           suppressed via onContextMenu → e.preventDefault() on the row.
+           Calls api.updateTransaction (PUT /api/transactions/{id}) which
+           already accepts a `tags` field — no new endpoint needed.
+           Dismissed by clicking outside, pressing Escape, or submitting. */}
+      {quickTag && (
+        <div
+          ref={quickTagRef}
+          role="dialog"
+          aria-modal="false"
+          aria-label={t('txnQuickTagTitle')}
+          style={{
+            position: 'fixed',
+            left: Math.min(quickTag.x, window.innerWidth - 240),
+            top: Math.min(quickTag.y, window.innerHeight - 140),
+            zIndex: 9999,
+          }}
+          className="w-56 bg-white border border-gray-200 rounded-xl shadow-xl p-3"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-gray-700">
+              🏷️ {t('txnQuickTagTitle')}
+            </span>
+            <button
+              type="button"
+              aria-label={t('txnQuickTagClose')}
+              onClick={() => { setQuickTag(null); setQuickTagInput(''); }}
+              className="text-gray-400 hover:text-gray-600 text-base leading-none"
+            >×</button>
+          </div>
+          <p className="text-[11px] text-gray-500 mb-2 truncate" title={quickTag.tx.description || ''}>
+            {quickTag.tx.merchantName || quickTag.tx.description || ''}
+          </p>
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleQuickTagSave(); }}
+            className="flex gap-1.5"
+          >
+            <input
+              autoFocus
+              type="text"
+              value={quickTagInput}
+              onChange={e => setQuickTagInput(e.target.value)}
+              placeholder={t('txnQuickTagPlaceholder')}
+              className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            <button
+              type="submit"
+              disabled={!quickTagInput.trim() || quickTagSaving}
+              className="bg-primary text-primary-foreground px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-primary/90 disabled:opacity-40"
+            >
+              {quickTagSaving
+                ? <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" />
+                : t('txnQuickTagAdd')
+              }
+            </button>
+          </form>
+          {quickTag.tx.tags && quickTag.tx.tags.trim() && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {quickTag.tx.tags.split(',').map(tag => tag.trim()).filter(Boolean).map((tag, i) => (
+                <span key={i} className="text-[11px] px-1.5 py-0.5 rounded-full bg-green-100 text-primary font-medium">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* ── Split transaction modal (2026-05-10) ─────────────────────────── */}

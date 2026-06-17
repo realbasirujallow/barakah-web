@@ -4368,4 +4368,17 @@ export const ur: Translations = {
   sharedDeleteTxAria: 'لین دین حذف کریں',
   sharedDeleteBudgetAria: 'بجٹ حذف کریں',
   sharedDeleteGoalAria: 'ہدف حذف کریں',
+  // Transactions page — power-user features (Monarch parity, 2026-06-17)
+  // Feature 2: Custom column visibility
+  txnColumnsBtn: 'کالم',
+  txnColCategory: 'زمرہ',
+  txnColAccount: 'اکاؤنٹ',
+  txnColOwner: 'مالک',
+  // Feature 3: Right-click quick-tag
+  txnQuickTagTitle: 'فوری ٹیگ',
+  txnQuickTagPlaceholder: 'ٹیگ شامل کریں…',
+  txnQuickTagAdd: 'ٹیگ شامل کریں',
+  txnQuickTagSaved: 'ٹیگ شامل ہو گیا',
+  txnQuickTagFailed: 'ٹیگ محفوظ کرنے میں ناکامی',
+  txnQuickTagClose: 'ٹیگ مینو بند کریں',
 };
