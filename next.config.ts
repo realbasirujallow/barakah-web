@@ -2,12 +2,21 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 // ── Bundle analyzer ─────────────────────────────────────────────────────────
 // Activated only when ANALYZE=true is set (e.g. `npm run analyze`). Produces
-// an interactive treemap of client/server chunks in .next/analyze/. Keeps
-// production builds fast by no-op'ing in the common case.
-import bundleAnalyzer from "@next/bundle-analyzer";
-const withBundleAnalyzer = bundleAnalyzer({
-  enabled: process.env.ANALYZE === "true",
-});
+// an interactive treemap of client/server chunks in .next/analyze/.
+//
+// @next/bundle-analyzer is a devDependency and Railway builds with
+// NPM_CONFIG_OMIT=dev, so the package is NOT installed in production. A
+// top-level `import` would therefore crash every prod build with
+// "Cannot find module '@next/bundle-analyzer'". We instead require it lazily,
+// only when ANALYZE=true (`npm run analyze`, run locally where devDeps exist).
+// In every other build the wrapper is a no-op identity — byte-for-byte
+// equivalent to the previous `bundleAnalyzer({ enabled: false })`.
+type NextConfigWrapper = (config: NextConfig) => NextConfig;
+let withBundleAnalyzer: NextConfigWrapper = (config) => config;
+if (process.env.ANALYZE === "true") {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  withBundleAnalyzer = require("@next/bundle-analyzer")({ enabled: true });
+}
 
 // ── Environment validation ─────────────────────────────────────────────
 // H-R4-2 fix (2026-04-18): fail the build if BACKEND_URL / NEXT_PUBLIC_API_URL
