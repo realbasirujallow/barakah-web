@@ -304,4 +304,25 @@ describe('background-poll API helpers do not force-logout on 401', () => {
       expect(logoutSpy).not.toHaveBeenCalled();
     });
   }
+
+  // 2026-06-18 (Side Hustle Phase 1): the three Side Hustle READS all fire
+  // from a mount useEffect — getSideHustles from BOTH /dashboard/side-hustles
+  // and the transactions-page picker, getSideHustle + getSideHustleSummary
+  // from the detail page. Each defaults suppressUnauthorized=true so a
+  // transient 401 on landing can't cascade into a forced /login?reason=expired.
+  // Pins the default so it can't be silently flipped back to false.
+  const sideHustleMountFiredCalls: Array<[string, () => Promise<unknown>]> = [
+    ['getSideHustles',       () => import('../lib/api').then(({api}) => api.getSideHustles())],
+    ['getSideHustle',        () => import('../lib/api').then(({api}) => api.getSideHustle(1))],
+    ['getSideHustleSummary', () => import('../lib/api').then(({api}) => api.getSideHustleSummary(1))],
+  ];
+
+  for (const [name, call] of sideHustleMountFiredCalls) {
+    it(`${name} — no global logout on 401 (Side Hustle Phase 1 mount-fired)`, async () => {
+      await expect(call()).rejects.toThrow(
+        /session has expired|API error|Network|connection/,
+      );
+      expect(logoutSpy).not.toHaveBeenCalled();
+    });
+  }
 });

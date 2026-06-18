@@ -905,6 +905,46 @@ export const api = {
   deleteAsset: (id: number) =>
     apiFetch(`/api/assets/${id}`, { method: 'DELETE' }),
 
+  // Side Hustles (Phase 1 — "Side Hustle" tax tracking, Family-gated).
+  // 2026-06-18: parallels the Assets block above. The backend gates WRITES
+  // with requireFamilyPlan (403 + fires PAYWALL_SHOWN, user-initiated) and
+  // READS with a non-firing hasFamilyPlan check that returns an HTTP-200
+  // locked payload {locked:true,requiredPlan:'family'} (never 403, service
+  // never consulted) so mount-polled background reads don't trip the paywall
+  // analytics or the global-logout path. Reads therefore default
+  // suppressUnauthorized=true, exactly like getAssets/getTransactions — see
+  // backgroundPollsDoNotLogout.test.ts and the suppressUnauthorized audit rule.
+  // Callers must treat a {locked:true} response as "no access" rather than data.
+  getSideHustles: (suppressUnauthorized = true) =>
+    apiFetch('/api/side-hustles', {}, API_TIMEOUT, suppressUnauthorized),
+  getSideHustle: (id: number, suppressUnauthorized = true) =>
+    apiFetch(`/api/side-hustles/${id}`, {}, API_TIMEOUT, suppressUnauthorized),
+  // year is optional — backend defaults to the current fiscal year per the
+  // hustle's taxYearStartMonth.
+  getSideHustleSummary: (id: number, year?: number, suppressUnauthorized = true) =>
+    apiFetch(
+      year !== undefined ? `/api/side-hustles/${id}/summary?year=${year}` : `/api/side-hustles/${id}/summary`,
+      {}, API_TIMEOUT, suppressUnauthorized,
+    ),
+  createSideHustle: (data: Record<string, unknown>) =>
+    apiFetch('/api/side-hustles', { method: 'POST', body: JSON.stringify(data) }),
+  updateSideHustle: (id: number, data: Record<string, unknown>) =>
+    apiFetch(`/api/side-hustles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  // DELETE is a soft-archive on the backend (sets archived=true, never nulls
+  // business_id on transactions). Still a WRITE → no suppressUnauthorized.
+  archiveSideHustle: (id: number) =>
+    apiFetch(`/api/side-hustles/${id}`, { method: 'DELETE' }),
+  downloadSideHustleCsv: (id: number, slug: string, year?: number) => {
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const qs = year !== undefined ? `?year=${year}` : '';
+    return apiDownload(`/api/side-hustles/${id}/export/csv${qs}`, `barakah_side_hustle_${slug}_${date}.csv`);
+  },
+  downloadSideHustlePdf: (id: number, slug: string, year?: number) => {
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const qs = year !== undefined ? `?year=${year}` : '';
+    return apiDownload(`/api/side-hustles/${id}/export/pdf${qs}`, `barakah_side_hustle_${slug}_${date}.pdf`);
+  },
+
   // Transactions
   getTransactions: (type?: string, page?: number, size?: number, search?: string, accountId?: number, suppressUnauthorized = true) => {
     const params = new URLSearchParams();

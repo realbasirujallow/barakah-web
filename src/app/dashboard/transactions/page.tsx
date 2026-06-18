@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { hasPaidSyncAccess } from '../../../lib/subscription';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { logError } from '../../../lib/logError';
@@ -13,7 +13,7 @@ import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n, t as tStandalone } from '../../../lib/i18n';
 import { CATEGORIES, categoriesForType, txPresentation } from '../../../lib/transactionPresentation';
-import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon, EyeOff, Landmark, Columns3 } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon, EyeOff, Landmark, Columns3, Briefcase } from 'lucide-react';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
@@ -71,6 +71,11 @@ interface Tx {
    *  ownership-gates via resolveOwnedAssetId; mobile has had the picker
    *  since launch. */
   assetId?: number | null;
+  /** 2026-06-18 (Side Hustle Phase 1): optional user-owned "Side Hustle"
+   *  link. Internal wire field is `businessId` (parallels `assetId`);
+   *  user-facing label is always "Side Hustle". Backend ownership-gates
+   *  via resolveOwnedBusinessId; sentinel 0 = unlink on update. */
+  businessId?: number | null;
 }
 
 interface SubscriptionStatus {
@@ -249,6 +254,9 @@ export default function TransactionsPage() {
     // string, '' = none) and recurring-on-create (edit mode keeps the
     // immediate-save toggle instead).
     assetId: '',
+    // 2026-06-18 (Side Hustle Phase 1): optional "Side Hustle" link (select
+    // value as string, '' = none). Wire field is `businessId`.
+    businessId: '',
     recurring: false,
   });
   // parity W1: user's assets for the link-to-asset picker + row chips.
@@ -275,6 +283,27 @@ export default function TransactionsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { t, tFmt } = useI18n();
+
+  // 2026-06-18 (Side Hustle Phase 1): the picker + bulk "Attribute to" + row
+  // chip are Family-only. Gate the WHOLE surface client-side so non-Family
+  // users never see it (don't render-then-403). The backend also returns a
+  // {locked} payload for non-Family reads — guarded below — but computing
+  // access up front means we never even fire the list call for free/Plus users.
+  const hasSideHustleAccess = !!user && hasAccess(user.plan, 'family', user.planExpiresAt, user.isAdmin);
+  const [sideHustleOptions, setSideHustleOptions] = useState<{ id: number; name: string }[]>([]);
+  const [bulkSideHustleMenuOpen, setBulkSideHustleMenuOpen] = useState(false);
+  const [bulkAttributing, setBulkAttributing] = useState(false);
+  useEffect(() => {
+    if (!hasSideHustleAccess) { setSideHustleOptions([]); return; }
+    // suppressUnauthorized default (true) — mount-fired background read must
+    // not bounce the session, same convention as getAssets above.
+    api.getSideHustles()
+      .then((res: { sideHustles?: { id: number; name: string }[]; locked?: boolean }) => {
+        if (res?.locked) { setSideHustleOptions([]); return; }
+        setSideHustleOptions((res?.sideHustles ?? []).map(h => ({ id: h.id, name: h.name })));
+      })
+      .catch(() => setSideHustleOptions([]));
+  }, [hasSideHustleAccess]);
 
   // ── Modal accessibility: focus trap + Escape close ──────────────────────
   const formModalRef = useRef<HTMLDivElement>(null);
@@ -494,7 +523,7 @@ export default function TransactionsPage() {
 
   const openAdd = () => {
     setEditTx(null);
-    setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '', frequency: 'monthly', assetId: '', recurring: false });
+    setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '', frequency: 'monthly', assetId: '', businessId: '', recurring: false });
     // BUG FIX: clear any stale validation error from a previous (failed) save
     // so it does not immediately show when the modal opens on a fresh attempt.
     setFormError(null);
@@ -504,7 +533,7 @@ export default function TransactionsPage() {
   const openEdit = (tx: Tx) => {
     setEditTx(tx);
     const txDate = localDateKey(tx.timestamp);
-    setForm({ type: tx.type, direction: tx.direction || (tx.type === 'income' ? 'inflow' : tx.type === 'transfer' ? 'neutral' : 'outflow'), category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate, tags: tx.tags || '', notes: tx.notes || '', frequency: (tx as Tx & { frequency?: string }).frequency || 'monthly', assetId: tx.assetId ? String(tx.assetId) : '', recurring: false });
+    setForm({ type: tx.type, direction: tx.direction || (tx.type === 'income' ? 'inflow' : tx.type === 'transfer' ? 'neutral' : 'outflow'), category: tx.category, amount: String(tx.amount), description: tx.description, currency: tx.currency || preferredCurrency || 'USD', date: txDate, tags: tx.tags || '', notes: tx.notes || '', frequency: (tx as Tx & { frequency?: string }).frequency || 'monthly', assetId: tx.assetId ? String(tx.assetId) : '', businessId: tx.businessId ? String(tx.businessId) : '', recurring: false });
     // BUG FIX: clear stale form error when editing a different transaction
     setFormError(null);
     setShowForm(true);
@@ -545,7 +574,7 @@ export default function TransactionsPage() {
       // Jackson to fail "invalid request body" when the user edited a
       // Zelle / transfer transaction. Prior to this we spread the whole
       // form which included both `date: "YYYY-MM-DD"` and `timestamp: Long`.
-      const { date: _date, assetId: formAssetId, recurring: formRecurring, ...formWithoutDate } = form;
+      const { date: _date, assetId: formAssetId, businessId: formBusinessId, recurring: formRecurring, ...formWithoutDate } = form;
       void _date;
       const payload: Record<string, unknown> = { ...formWithoutDate, amount: amt, timestamp };
       // parity W1: asset link. A chosen id links/changes. '' = "No asset":
@@ -554,6 +583,15 @@ export default function TransactionsPage() {
       // assetId as "no change" — so omitting it would leave the old link stuck.
       if (formAssetId) payload.assetId = Number(formAssetId);
       else if (editTx?.assetId != null) payload.assetId = 0;
+      // 2026-06-18 (Side Hustle Phase 1): identical sentinel convention for the
+      // `businessId` link. A chosen id links/changes; '' = "No side hustle" —
+      // on CREATE we omit it, on EDIT of a txn that already had a link we send
+      // the unlink sentinel (0). Only wire it for Family users with the picker
+      // visible so a non-Family edit never sends a stray businessId.
+      if (hasSideHustleAccess) {
+        if (formBusinessId) payload.businessId = Number(formBusinessId);
+        else if (editTx?.businessId != null) payload.businessId = 0;
+      }
       // parity W3: recurring-on-create. Edit mode keeps the immediate-save
       // checkbox (handleToggleRecurring), so only the create path sends it.
       if (!editTx && formRecurring) payload.recurring = true;
@@ -566,7 +604,7 @@ export default function TransactionsPage() {
       }
       setShowForm(false);
       setEditTx(null);
-      setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '', frequency: 'monthly', assetId: '', recurring: false });
+      setForm({ type: 'expense', direction: 'outflow', category: 'food', amount: '', description: '', currency: preferredCurrency || 'USD', date: localToday(), tags: '', notes: '', frequency: 'monthly', assetId: '', businessId: '', recurring: false });
       load();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : (editTx ? t('txnUpdateFailed') : t('txnAddFailed'));
@@ -811,6 +849,39 @@ export default function TransactionsPage() {
       toast(err instanceof Error ? err.message : t('txnExcludeFailed'), 'error');
     } finally {
       setBulkExcluding(false);
+    }
+  };
+
+  /**
+   * 2026-06-18 (Side Hustle Phase 1): bulk "Attribute to Side Hustle". Clones
+   * the bulk-recategorize / bulk-exclude pattern — explicit ids[] via PATCH
+   * /api/transactions/bulk with a `businessId` delta. `businessId: 0` is the
+   * unlink sentinel ("Not attributed"); any other id is ownership-gated server-
+   * side (foreign/non-existent id → 400). Hidden when selectAllPages is on
+   * (same ids[]-only constraint as the sibling bulk actions) and Family-only.
+   */
+  const handleBulkAttribute = async (businessId: number) => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setBulkSideHustleMenuOpen(false);
+    setBulkAttributing(true);
+    try {
+      const result = await api.bulkUpdateTransactions(ids, { businessId });
+      const updated = (result as { updated?: number })?.updated ?? ids.length;
+      const noun = updated === 1 ? t('txnNounSingular') : t('txnNounPlural');
+      const linked = sideHustleOptions.find(h => h.id === businessId);
+      toast(
+        businessId === 0
+          ? tFmt('sideHustlesBulkUnattributedFmt', [updated, noun])
+          : tFmt('sideHustlesBulkAttributedFmt', [updated, noun, linked?.name ?? '']),
+        'success',
+      );
+      exitSelectMode();
+      load();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('sideHustlesBulkAttributeFailed'), 'error');
+    } finally {
+      setBulkAttributing(false);
     }
   };
 
@@ -1299,6 +1370,87 @@ export default function TransactionsPage() {
                 {allSelectedExcluded ? tFmt('txnBulkIncludeFmt', [selectedIds.size]) : tFmt('txnBulkExcludeFmt', [selectedIds.size])}
               </button>
             )}
+            {/* 2026-06-18 (Side Hustle Phase 1): bulk "Attribute to Side
+                Hustle". Family-only (hidden entirely for non-Family — do not
+                render-then-403) and only when the user has at least one side
+                hustle. Same ids[]-only constraint as the sibling bulk actions,
+                so hidden when selectAllPages is on. Clones the Recategorize
+                dropdown structure (keyboard-navigable menu). */}
+            {hasSideHustleAccess && sideHustleOptions.length > 0 && selectedIds.size > 0 && !selectAllPages && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setBulkSideHustleMenuOpen(o => !o)}
+                  disabled={bulkAttributing}
+                  className="bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 flex items-center gap-1.5"
+                  aria-haspopup="menu"
+                  aria-expanded={bulkSideHustleMenuOpen}
+                >
+                  {bulkAttributing ? <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full inline-block" /> : <Briefcase className="w-3.5 h-3.5" />}
+                  {tFmt('sideHustlesBulkAttributeBtnFmt', [selectedIds.size])}
+                </button>
+                {bulkSideHustleMenuOpen && (
+                  <>
+                    <button
+                      type="button"
+                      aria-hidden="true"
+                      tabIndex={-1}
+                      className="fixed inset-0 z-30 cursor-default"
+                      onClick={() => setBulkSideHustleMenuOpen(false)}
+                    />
+                    <div
+                      role="menu"
+                      className="absolute right-0 top-full mt-1 z-40 w-56 max-h-72 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg py-1"
+                      onKeyDown={(e) => {
+                        const menu = e.currentTarget;
+                        const items = Array.from(
+                          menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])')
+                        );
+                        const idx = items.indexOf(document.activeElement as HTMLButtonElement);
+                        if (e.key === 'ArrowDown') {
+                          e.preventDefault();
+                          items[(idx + 1) % items.length]?.focus();
+                        } else if (e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          items[(idx - 1 + items.length) % items.length]?.focus();
+                        } else if (e.key === 'Home') {
+                          e.preventDefault();
+                          items[0]?.focus();
+                        } else if (e.key === 'End') {
+                          e.preventDefault();
+                          items[items.length - 1]?.focus();
+                        } else if (e.key === 'Escape') {
+                          e.preventDefault();
+                          setBulkSideHustleMenuOpen(false);
+                        }
+                      }}
+                    >
+                      {sideHustleOptions.map(h => (
+                        <button
+                          key={h.id}
+                          type="button"
+                          role="menuitem"
+                          onClick={() => handleBulkAttribute(h.id)}
+                          className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 truncate"
+                        >
+                          {h.name}
+                        </button>
+                      ))}
+                      {/* Unlink sentinel (businessId: 0) — "Not attributed". */}
+                      <div className="border-t border-gray-100 my-1" />
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => handleBulkAttribute(0)}
+                        className="w-full text-left px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-50"
+                      >
+                        {t('sideHustlesBulkUnattribute')}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
             <button onClick={handleBulkDelete}
               disabled={(selectAllPages ? totalElements : selectedIds.size) === 0 || bulkDeleting}
               className={`${selectedIds.size > 0 && !selectAllPages ? '' : 'ms-auto'} bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5`}>
@@ -1525,6 +1677,18 @@ export default function TransactionsPage() {
                         <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 inline-flex items-center gap-1" title={linked?.name || t('txnFieldLinkAsset')}>
                           <Landmark className="w-3 h-3" />
                           {linked?.name || t('txnLinkedAssetBadge')}
+                        </span>
+                      );
+                    })()}
+                    {/* 2026-06-18 (Side Hustle Phase 1): attributed-side-hustle
+                        chip. Family-only — non-Family users never receive a
+                        businessId on the wire, but guard the chip too. */}
+                    {hasSideHustleAccess && tx.businessId != null && (() => {
+                      const linked = sideHustleOptions.find(h => h.id === tx.businessId);
+                      return (
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 inline-flex items-center gap-1" title={linked?.name || t('sideHustlesFieldLink')}>
+                          <Briefcase className="w-3 h-3" />
+                          {linked?.name || t('sideHustlesLinkedBadge')}
                         </span>
                       );
                     })()}
@@ -1836,6 +2000,24 @@ export default function TransactionsPage() {
                     <option value="">{t('txnNoAsset')}</option>
                     {assetOptions.map(a => (
                       <option key={a.id} value={String(a.id)}>{a.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {/* 2026-06-18 (Side Hustle Phase 1): attribute this transaction to
+                  a Side Hustle. Family-only (hidden entirely for non-Family —
+                  do not render-then-403) and only when the user has at least
+                  one side hustle. Backend ownership-gates the id; '' here = the
+                  "No side hustle" sentinel handled in handleSave. */}
+              {hasSideHustleAccess && sideHustleOptions.length > 0 && (
+                <div>
+                  <label htmlFor="txn-form-side-hustle" className="block text-sm font-medium text-gray-700 mb-1">{t('sideHustlesFieldLink')}</label>
+                  <select id="txn-form-side-hustle" value={form.businessId}
+                    onChange={e => setForm({ ...form, businessId: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                    <option value="">{t('sideHustlesNone')}</option>
+                    {sideHustleOptions.map(h => (
+                      <option key={h.id} value={String(h.id)}>{h.name}</option>
                     ))}
                   </select>
                 </div>

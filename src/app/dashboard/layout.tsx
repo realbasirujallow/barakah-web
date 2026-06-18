@@ -16,7 +16,7 @@ import {
   Moon, User, RefreshCw, Gift, FileBarChart, HandHeart, Target,
   ArrowLeftRight, Coins, BarChart3, Tags, Star, FileText, ShieldCheck,
   TrendingUp, Gem, Shield, ShoppingCart, Building2, ScrollText, Wrench,
-  Globe, Eye, Crosshair, Filter, Award,
+  Globe, Eye, Crosshair, Filter, Award, Briefcase,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -86,6 +86,8 @@ const navItems: { href: string; icon: LucideIcon; label: string; gate?: 'plus' |
   { href: '/dashboard/riba', icon: Shield, label: 'Riba Detector', gate: 'plus' },
   { href: '/dashboard/subscriptions', icon: ShoppingCart, label: 'Subscription Detector', gate: 'plus' },
   { href: '/dashboard/shared', icon: Users, label: 'Shared Finances', gate: 'family' },
+  // 2026-06-18 (Side Hustle Phase 1): Family-only "Side Hustle" tax tracking.
+  { href: '/dashboard/side-hustles', icon: Briefcase, label: 'Side Hustles', gate: 'family' },
   { href: '/dashboard/waqf', icon: Building2, label: 'Endowment', gate: 'plus' },
   { href: '/dashboard/wasiyyah', icon: ScrollText, label: 'Islamic Will', gate: 'plus' },
   // ── Admin (founder/staff only — gated by user.isAdmin) ───────────────────
@@ -140,6 +142,7 @@ const NAV_LABEL_KEYS: Record<string, string> = {
   'Riba Detector': 'navRibaDetector',
   'Subscription Detector': 'navSubscriptionDetector',
   'Shared Finances': 'navSharedFinances',
+  'Side Hustles': 'navSideHustles',
   'Endowment': 'navEndowment',
   'Islamic Will': 'navIslamicWill',
   'Admin Home': 'navAdminHome',
@@ -206,7 +209,7 @@ const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> 
   },
   plan: {
     label: 'Plan',
-    items: ['Savings Goals', 'Debts', 'Bills', 'Retirement Zakat', 'Assets', 'Net Worth', 'Investments', 'Stock Screener', 'Market Prices', 'Barakah Score', 'Financial Summary', 'Reports', 'Import Data'],
+    items: ['Savings Goals', 'Debts', 'Bills', 'Retirement Zakat', 'Assets', 'Side Hustles', 'Net Worth', 'Investments', 'Stock Screener', 'Market Prices', 'Barakah Score', 'Financial Summary', 'Reports', 'Import Data'],
   },
   islamic: {
     label: 'Islamic',
