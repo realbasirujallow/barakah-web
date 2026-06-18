@@ -1019,6 +1019,35 @@ export const api = {
   clearTransactionSplits: (id: number) =>
     apiFetch(`/api/transactions/${id}/splits`, { method: 'DELETE' }),
 
+  // ── Transaction receipts (2026-06-18, Side Hustle Phase 3) ─────────────
+  // Attach proof (photo/PDF) to a transaction for tax substantiation.
+  // Family-gated, mirroring Side Hustle: WRITES (upload/delete) require
+  // requireFamilyPlan (403 + PAYWALL_SHOWN, user-initiated); READS
+  // (list/download) use the non-firing hasFamilyPlan → HTTP-200 locked
+  // payload {locked:true,requiredPlan:'family'} so mount-polled background
+  // reads never trip the paywall analytics or the global-logout path.
+  // Callers must treat a {locked:true} response as "no access" not data.
+  //
+  // Upload: multipart POST to the singular /receipt endpoint, field name
+  // "file" (apiUpload's default). Ownership + size + type are enforced
+  // server-side; the page also fast-fails oversize/wrong-type files first.
+  uploadTransactionReceipt: (id: number, file: File) =>
+    apiUpload(`/api/transactions/${id}/receipt`, file, 'file'),
+  // List is a READ → suppressUnauthorized=true (mount-adjacent: opened from
+  // the edit modal, but the same transactions surface polls in the
+  // background). See backgroundPollsDoNotLogout.test.ts + the
+  // suppressUnauthorized audit rule. Returns {receipts:[...],count} or the
+  // {locked} payload for non-Family users.
+  listTransactionReceipts: (id: number, suppressUnauthorized = true) =>
+    apiFetch(`/api/transactions/${id}/receipts`, {}, API_TIMEOUT, suppressUnauthorized),
+  // Stream the blob. apiDownload already handles 401-refresh + 403 friendly
+  // messaging; the filename comes from the receipt metadata so the saved
+  // file matches what the user attached.
+  downloadTransactionReceipt: (id: number, receiptId: number, filename: string) =>
+    apiDownload(`/api/transactions/${id}/receipts/${receiptId}`, filename),
+  deleteTransactionReceipt: (id: number, receiptId: number) =>
+    apiFetch(`/api/transactions/${id}/receipts/${receiptId}`, { method: 'DELETE' }),
+
   // ── Subscription cancellation (2026-05-10) ─────────────────────────────
   // Rocket-Money-style: user clicks Cancel → we POST cancel-request
   // (status: "requested"); after they confirm it stuck → mark-cancelled

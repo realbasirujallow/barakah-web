@@ -13,7 +13,8 @@ import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n, t as tStandalone } from '../../../lib/i18n';
 import { CATEGORIES, categoriesForType, txPresentation } from '../../../lib/transactionPresentation';
-import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon, EyeOff, Landmark, Columns3, Briefcase } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon, EyeOff, Landmark, Columns3, Briefcase, Paperclip, Download } from 'lucide-react';
+import { type ReceiptMeta, isLocked as isLockedReceipt, isAcceptedReceiptType, formatReceiptSize, RECEIPT_MAX_BYTES, RECEIPT_ACCEPT } from '../../../lib/receipts';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
 import { SyncBanksButton } from '../../../components/SyncBanksButton';
 import { SkeletonPage } from '../SkeletonCard';
@@ -76,6 +77,11 @@ interface Tx {
    *  user-facing label is always "Side Hustle". Backend ownership-gates
    *  via resolveOwnedBusinessId; sentinel 0 = unlink on update. */
   businessId?: number | null;
+  /** 2026-06-18 (Side Hustle Phase 3): ownership-scoped count of receipts
+   *  attached to this transaction (countByUserIdAndTransactionId — never
+   *  loads any blob). Emitted on every serialized transaction; used as the
+   *  "has receipt" row indicator. */
+  receiptCount?: number | null;
 }
 
 interface SubscriptionStatus {
@@ -304,6 +310,115 @@ export default function TransactionsPage() {
       })
       .catch(() => setSideHustleOptions([]));
   }, [hasSideHustleAccess]);
+
+  // ── 2026-06-18 (Side Hustle Phase 3): transaction receipts ───────────────
+  // Receipts (photo/PDF proof for tax) are Family-only, same gate as the
+  // side-hustle picker above. The list/upload/delete UI lives inside the
+  // edit modal (only meaningful for an existing transaction). Loaded lazily
+  // when the modal opens for a Family user; the row indicator uses the
+  // receiptCount already on the txn payload (no extra fetch).
+  const [receipts, setReceipts] = useState<ReceiptMeta[]>([]);
+  const [receiptsLoading, setReceiptsLoading] = useState(false);
+  const [receiptUploading, setReceiptUploading] = useState(false);
+  const [deletingReceiptId, setDeletingReceiptId] = useState<number | null>(null);
+  const receiptInputRef = useRef<HTMLInputElement>(null);
+
+  const loadReceipts = useCallback((txId: number) => {
+    setReceiptsLoading(true);
+    // suppressUnauthorized default (true) — the modal-open read must not
+    // bounce the session, same convention as the other reads. A {locked}
+    // payload (non-Family) just yields an empty list.
+    api.listTransactionReceipts(txId)
+      .then((res: unknown) => {
+        if (isLockedReceipt(res)) { setReceipts([]); return; }
+        const r = res as { receipts?: ReceiptMeta[] } | null;
+        setReceipts(Array.isArray(r?.receipts) ? r!.receipts : []);
+      })
+      .catch(() => setReceipts([]))
+      .finally(() => setReceiptsLoading(false));
+  }, []);
+
+  // Load receipts whenever the edit modal opens on a transaction (Family
+  // users only — non-Family never see the section, and we skip the call so
+  // free/Plus users don't even fire the read).
+  useEffect(() => {
+    if (editTx && hasSideHustleAccess) {
+      loadReceipts(editTx.id);
+    } else {
+      setReceipts([]);
+    }
+  }, [editTx, hasSideHustleAccess, loadReceipts]);
+
+  // Keep the txn list's receiptCount in sync after an upload/delete so the
+  // row paperclip updates without a full reload.
+  const bumpReceiptCount = useCallback((txId: number, delta: number) => {
+    setTxs(prev => prev.map(tx =>
+      tx.id === txId
+        ? { ...tx, receiptCount: Math.max(0, (tx.receiptCount ?? 0) + delta) }
+        : tx,
+    ));
+    setEditTx(prev => prev && prev.id === txId
+      ? { ...prev, receiptCount: Math.max(0, (prev.receiptCount ?? 0) + delta) }
+      : prev);
+  }, []);
+
+  const handleReceiptUpload = async (txId: number, file: File) => {
+    // Client-side fast-fail (the backend re-checks both): wrong type or
+    // oversize → instant localized error, no round-trip.
+    if (!isAcceptedReceiptType(file.type)) {
+      toast(t('receiptsErrorType'), 'error');
+      return;
+    }
+    if (file.size > RECEIPT_MAX_BYTES) {
+      toast(t('receiptsErrorTooLarge'), 'error');
+      return;
+    }
+    if (file.size === 0) {
+      toast(t('receiptsErrorEmpty'), 'error');
+      return;
+    }
+    setReceiptUploading(true);
+    try {
+      const res = await api.uploadTransactionReceipt(txId, file);
+      const created = (res as { receipt?: ReceiptMeta } | null)?.receipt;
+      if (created) {
+        // Prepend (list is createdAt DESC) for instant feedback, then bump
+        // the row indicator.
+        setReceipts(prev => [created, ...prev]);
+        bumpReceiptCount(txId, 1);
+      } else {
+        // Defensive: re-fetch if the response shape was unexpected.
+        loadReceipts(txId);
+      }
+      toast(t('receiptsUploaded'), 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('receiptsUploadFailed'), 'error');
+    } finally {
+      setReceiptUploading(false);
+    }
+  };
+
+  const handleReceiptDownload = async (txId: number, receipt: ReceiptMeta) => {
+    try {
+      await api.downloadTransactionReceipt(txId, receipt.id, receipt.filename);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('receiptsDownloadFailed'), 'error');
+    }
+  };
+
+  const handleReceiptDelete = async (txId: number, receiptId: number) => {
+    setDeletingReceiptId(receiptId);
+    try {
+      await api.deleteTransactionReceipt(txId, receiptId);
+      setReceipts(prev => prev.filter(r => r.id !== receiptId));
+      bumpReceiptCount(txId, -1);
+      toast(t('receiptsDeleted'), 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('receiptsDeleteFailed'), 'error');
+    } finally {
+      setDeletingReceiptId(null);
+    }
+  };
 
   // ── Modal accessibility: focus trap + Escape close ──────────────────────
   const formModalRef = useRef<HTMLDivElement>(null);
@@ -1692,6 +1807,20 @@ export default function TransactionsPage() {
                         </span>
                       );
                     })()}
+                    {/* 2026-06-18 (Side Hustle Phase 3): "has receipt"
+                        indicator — paperclip + count. Family-only (the
+                        count is server-emitted on every txn but the feature
+                        is gated; guard the chip too so non-Family never see
+                        it). receiptCount is ownership-scoped server-side. */}
+                    {hasSideHustleAccess && (tx.receiptCount ?? 0) > 0 && (
+                      <span
+                        className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 inline-flex items-center gap-1"
+                        title={tFmt('receiptsRowCountFmt', [tx.receiptCount ?? 0])}
+                      >
+                        <Paperclip className="w-3 h-3" />
+                        {tx.receiptCount}
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-500 capitalize">
                     {/* 2026-05-12 overnight QA (TX-002): transfer rows
@@ -2145,6 +2274,101 @@ export default function TransactionsPage() {
                       </span>
                     )}
                   </label>
+                </div>
+              )}
+              {/* 2026-06-18 (Side Hustle Phase 3): Receipts — attach proof
+                  (photo/PDF) to a transaction for tax substantiation. Edit
+                  mode only (the transaction must exist to attach to) and
+                  Family-only — hidden entirely for non-Family (don't
+                  render-then-403); the upload/delete WRITES would 403 and
+                  the list READ returns a {locked} payload we treat as empty.
+                  Files are validated client-side (image/* or PDF, <10 MB)
+                  before the round-trip; the backend re-checks both. */}
+              {editTx && hasSideHustleAccess && (
+                <div className="border-t border-gray-200 pt-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-gray-900 inline-flex items-center gap-1.5">
+                      <Paperclip className="w-4 h-4 text-gray-500" />
+                      {t('receiptsSectionTitle')}
+                      {receipts.length > 0 && (
+                        <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-800">
+                          {receipts.length}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-3">{t('receiptsSectionHint')}</p>
+
+                  {/* Hidden native input + a styled trigger button so the
+                      control matches the rest of the modal. accept mirrors
+                      the backend (image/* or PDF). */}
+                  <input
+                    ref={receiptInputRef}
+                    type="file"
+                    accept={RECEIPT_ACCEPT}
+                    className="hidden"
+                    aria-hidden="true"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      // Reset the input value so re-selecting the same file
+                      // fires onChange again.
+                      e.target.value = '';
+                      if (file && editTx) handleReceiptUpload(editTx.id, file);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => receiptInputRef.current?.click()}
+                    disabled={receiptUploading}
+                    className="w-full border border-dashed border-gray-300 rounded-lg py-2.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                  >
+                    {receiptUploading
+                      ? <><span className="animate-spin w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full inline-block" />{t('receiptsUploading')}</>
+                      : <><Paperclip className="w-4 h-4" />{t('receiptsAddBtn')}</>}
+                  </button>
+
+                  {/* Receipt list — filename + size + download + delete. */}
+                  {receiptsLoading ? (
+                    <p className="text-xs text-gray-500 mt-3">{t('receiptsLoading')}</p>
+                  ) : receipts.length === 0 ? (
+                    <p className="text-xs text-gray-400 mt-3">{t('receiptsEmpty')}</p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {receipts.map(r => (
+                        <li
+                          key={r.id}
+                          className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2"
+                        >
+                          <Paperclip className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-900 truncate" title={r.filename}>{r.filename}</p>
+                            <p className="text-xs text-gray-500">{formatReceiptSize(r.sizeBytes, dateLocale)}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => editTx && handleReceiptDownload(editTx.id, r)}
+                            aria-label={tFmt('receiptsDownloadAria', [r.filename])}
+                            title={t('receiptsDownload')}
+                            className="p-1.5 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-md flex-shrink-0"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editTx && handleReceiptDelete(editTx.id, r.id)}
+                            disabled={deletingReceiptId === r.id}
+                            aria-label={tFmt('receiptsDeleteAria', [r.filename])}
+                            title={t('receiptsDelete')}
+                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-md disabled:opacity-50 flex-shrink-0"
+                          >
+                            {deletingReceiptId === r.id
+                              ? <span className="animate-spin w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full inline-block" />
+                              : <Trash2 className="w-4 h-4" />}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
             </div>
