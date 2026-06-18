@@ -55,7 +55,7 @@ export const EXPENSE_CATEGORIES = TRANSACTION_CATEGORIES.filter(
 );
 
 /** Income-only categories. */
-export const INCOME_CATEGORIES = ['income', 'salary', 'business', 'investment', 'gift', 'other'] as const;
+export const INCOME_CATEGORIES = ['income', 'salary', 'business', 'investment', 'gifts', 'other'] as const;
 
 /** Transfer-only categories. */
 export const TRANSFER_CATEGORIES = ['transfer', 'savings', 'investment', 'debt_payment', 'other'] as const;
