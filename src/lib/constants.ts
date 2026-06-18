@@ -25,6 +25,8 @@ export const TRANSACTION_CATEGORIES = [
   'transportation', 'fuel', 'parking', 'public_transit',
   // Housing
   'housing', 'rent', 'utilities', 'home_maintenance',
+  // Side hustle / jobs — materials + contractor labor for one job
+  'materials', 'labor',
   // Insurance
   'insurance',
   // Shopping
