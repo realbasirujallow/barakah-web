@@ -1169,6 +1169,8 @@ export const ur: Translations = {
   catKeepCategory: 'موجودہ زمرہ برقرار رکھیں',
   catFieldLinkGoal: 'مطابق لین دین کو ہدف سے منسلک کریں (اختیاری)',
   catGoalNone: 'کوئی ہدف نہیں',
+  catFieldSetSideHustle: 'مطابق لین دین کو سائیڈ ہسل سے منسلک کریں (اختیاری)',
+  catSideHustleNone: 'کوئی سائیڈ ہسل نہیں',
   catSavingBtn: 'محفوظ ہو رہا ہے…',
   catUpdateRule: 'قاعدہ اپ ڈیٹ کریں',
   catSaveRule: 'قاعدہ محفوظ کریں',

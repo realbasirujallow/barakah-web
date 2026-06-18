@@ -1218,6 +1218,8 @@ export const en: Translations = {
   catKeepCategory: 'Keep current category',
   catFieldLinkGoal: 'Link matched transactions to a goal (optional)',
   catGoalNone: 'No goal',
+  catFieldSetSideHustle: 'Attribute matched transactions to a side hustle (optional)',
+  catSideHustleNone: 'No side hustle',
   catSavingBtn: 'Saving…',
   catUpdateRule: 'Update Rule',
   catSaveRule: 'Save Rule',

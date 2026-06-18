@@ -1169,6 +1169,8 @@ export const fr: Translations = {
   catKeepCategory: 'Conserver la catégorie actuelle',
   catFieldLinkGoal: 'Lier les transactions correspondantes à un objectif (optionnel)',
   catGoalNone: 'Aucun objectif',
+  catFieldSetSideHustle: 'Attribuer les transactions correspondantes à une activité secondaire (optionnel)',
+  catSideHustleNone: 'Aucune activité secondaire',
   catSavingBtn: 'Enregistrement…',
   catUpdateRule: 'Mettre à jour la règle',
   catSaveRule: 'Enregistrer la règle',

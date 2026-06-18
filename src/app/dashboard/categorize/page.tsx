@@ -5,6 +5,8 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n } from '../../../lib/i18n';
+import { useAuth, hasAccess } from '../../../context/AuthContext';
+import { SideHustle, isLocked } from '../../../lib/sideHustle';
 
 interface CategorySuggestion {
   transactionId: number;
@@ -34,6 +36,9 @@ interface TransactionRule {
   typeOverride?: string | null;
   categoryOverride?: string | null;
   goalId?: number | null;
+  // Side Hustle Phase 2: the "Set Side Hustle" action. User-facing label is
+  // "Side Hustle"; the wire/DB field is businessId (mirrors goalId exactly).
+  businessId?: number | null;
 }
 
 interface SavingsGoal {
@@ -82,6 +87,7 @@ const DEFAULT_RULE_FORM = {
   typeOverride: '',
   categoryOverride: '',
   goalId: '',
+  businessId: '',
 };
 
 function formatCategory(value: string) {
@@ -103,6 +109,7 @@ export default function CategorizePage() {
   const [suggestions, setSuggestions] = useState<CategorySuggestion[]>([]);
   const [rules, setRules] = useState<TransactionRule[]>([]);
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
+  const [sideHustles, setSideHustles] = useState<SideHustle[]>([]);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [savingRule, setSavingRule] = useState(false);
@@ -118,10 +125,11 @@ export default function CategorizePage() {
     // Also surface the specific error message instead of a generic toast —
     // a user reported "failed to load transaction automation" with no hint
     // whether suggestions, rules, or both were the problem.
-    const [reviewResult, ruleResult, goalsResult] = await Promise.allSettled([
+    const [reviewResult, ruleResult, goalsResult, sideHustlesResult] = await Promise.allSettled([
       api.reviewCategories(),
       api.getTransactionRules(),
       api.getSavingsGoals(), // suppressUnauthorized=true (mount-fired, must not trigger logout)
+      api.getSideHustles(),  // suppressUnauthorized=true; Family-gated → locked payload for non-Family
     ]);
     if (reviewResult.status === 'fulfilled') {
       setSuggestions(reviewResult.value?.transactions || []);
@@ -144,6 +152,11 @@ export default function CategorizePage() {
       setSavingsGoals(Array.isArray(gd?.goals) ? gd.goals : Array.isArray(gd) ? gd : []);
     }
     // goals failure is silent — it's optional UI (the dropdown just stays empty)
+    if (sideHustlesResult.status === 'fulfilled' && !isLocked(sideHustlesResult.value)) {
+      const sh = sideHustlesResult.value;
+      setSideHustles(Array.isArray(sh?.sideHustles) ? sh.sideHustles : []);
+    }
+    // side hustles failure / locked (non-Family) is silent — the dropdown just stays hidden
     setLoading(false);
   };
 
@@ -185,6 +198,7 @@ export default function CategorizePage() {
         minAmount: ruleForm.minAmount ? Number(ruleForm.minAmount) : null,
         maxAmount: ruleForm.maxAmount ? Number(ruleForm.maxAmount) : null,
         goalId: ruleForm.goalId ? Number(ruleForm.goalId) : null,
+        businessId: ruleForm.businessId ? Number(ruleForm.businessId) : null,
       };
       if (editingRuleId) {
         await api.updateTransactionRule(editingRuleId, payload);
@@ -216,6 +230,7 @@ export default function CategorizePage() {
       typeOverride: rule.typeOverride || '',
       categoryOverride: rule.categoryOverride || '',
       goalId: rule.goalId?.toString() || '',
+      businessId: rule.businessId?.toString() || '',
     });
   };
 
@@ -288,6 +303,7 @@ export default function CategorizePage() {
       typeOverride: suggestion.suggestedType,
       categoryOverride: suggestion.suggestedCategory,
       goalId: '',
+      businessId: '',
     });
     toast(t('catPrefillToast'), 'success');
   };
@@ -466,6 +482,20 @@ export default function CategorizePage() {
                   <option value="">{t('catGoalNone')}</option>
                   {savingsGoals.map(g => (
                     <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </Field>
+            )}
+            {sideHustles.length > 0 && (
+              <Field label={t('catFieldSetSideHustle')}>
+                <select
+                  value={ruleForm.businessId}
+                  onChange={e => setRuleForm({ ...ruleForm, businessId: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-900"
+                >
+                  <option value="">{t('catSideHustleNone')}</option>
+                  {sideHustles.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>
               </Field>

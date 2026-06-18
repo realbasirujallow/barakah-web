@@ -1169,6 +1169,8 @@ export const ar: Translations = {
   catKeepCategory: 'الإبقاء على الفئة الحالية',
   catFieldLinkGoal: 'ربط المعاملات المطابقة بهدف (اختياري)',
   catGoalNone: 'بدون هدف',
+  catFieldSetSideHustle: 'ربط المعاملات المطابقة بعمل جانبي (اختياري)',
+  catSideHustleNone: 'بدون عمل جانبي',
   catSavingBtn: 'جارٍ الحفظ…',
   catUpdateRule: 'تحديث القاعدة',
   catSaveRule: 'حفظ القاعدة',
