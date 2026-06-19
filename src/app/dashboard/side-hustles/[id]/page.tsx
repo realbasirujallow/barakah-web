@@ -88,7 +88,10 @@ export default function SideHustleDetailPage({ params }: { params: Promise<{ id:
       try {
         const res = await api.getSideHustleSummary(hustle.id, year);
         if (cancelled) return;
-        if (isLocked(res)) { setSummary(null); return; }
+        // Lost Family access mid-session (e.g. trial downgrade) → treat like
+        // not-found and show the back-to-list block, instead of a silent all-zero
+        // page with a live (will-403) Add button. Mirrors mobile's bounce-to-hub.
+        if (isLocked(res)) { setNotFound(true); return; }
         const s = res as SideHustleSummary;
         setSummary(s);
         if (year === undefined && typeof s?.year === 'number') setYear(s.year);
