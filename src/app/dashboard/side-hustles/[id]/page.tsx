@@ -31,7 +31,7 @@ const YEARS_BACK = 6;
 export default function SideHustleDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const hustleId = Number(id);
-  const { fmt, locale } = useCurrency();
+  const { locale } = useCurrency();
   const { toast } = useToast();
   const { t, tFmt } = useI18n();
 
@@ -201,6 +201,11 @@ export default function SideHustleDetailPage({ params }: { params: Promise<{ id:
 
   const incomeEntries = Object.entries(summary?.incomeByCategory ?? {}).sort((a, b) => b[1] - a[1]);
   const expenseEntries = Object.entries(summary?.expensesByCategory ?? {}).sort((a, b) => b[1] - a[1]);
+  // Side-hustle amounts are in the hustle's BASE currency (summary.currency), not
+  // the viewer's preferred currency — format with the base so the symbol matches
+  // the values (the shared `fmt` always uses the preferred currency).
+  const shCurrency = summary?.currency || hustle.defaultCurrency || 'USD';
+  const fmtBase = (n: number) => new Intl.NumberFormat(locale, { style: 'currency', currency: shCurrency }).format(n);
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
@@ -239,15 +244,15 @@ export default function SideHustleDetailPage({ params }: { params: Promise<{ id:
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wide">{t('sideHustlesIncome')}</p>
-          <p className="text-2xl font-bold text-emerald-700 tabular-nums mt-1">{fmt(summary?.totalIncome ?? 0)}</p>
+          <p className="text-2xl font-bold text-emerald-700 tabular-nums mt-1">{fmtBase(summary?.totalIncome ?? 0)}</p>
         </div>
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wide">{t('sideHustlesExpenses')}</p>
-          <p className="text-2xl font-bold text-rose-700 tabular-nums mt-1">{fmt(summary?.totalExpenses ?? 0)}</p>
+          <p className="text-2xl font-bold text-rose-700 tabular-nums mt-1">{fmtBase(summary?.totalExpenses ?? 0)}</p>
         </div>
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wide">{t('sideHustlesNet')}</p>
-          <p className="text-2xl font-bold text-primary tabular-nums mt-1">{fmt(summary?.netIncome ?? 0)}</p>
+          <p className="text-2xl font-bold text-primary tabular-nums mt-1">{fmtBase(summary?.netIncome ?? 0)}</p>
         </div>
       </div>
 
@@ -297,7 +302,7 @@ export default function SideHustleDetailPage({ params }: { params: Promise<{ id:
               {incomeEntries.map(([cat, amt]) => (
                 <li key={cat} className="py-2 flex items-center justify-between gap-3">
                   <span className="text-sm text-gray-700 truncate">{categoryLabel(cat)}</span>
-                  <span className="text-sm font-semibold tabular-nums text-emerald-700">{fmt(amt)}</span>
+                  <span className="text-sm font-semibold tabular-nums text-emerald-700">{fmtBase(amt)}</span>
                 </li>
               ))}
             </ul>
@@ -312,7 +317,7 @@ export default function SideHustleDetailPage({ params }: { params: Promise<{ id:
               {expenseEntries.map(([cat, amt]) => (
                 <li key={cat} className="py-2 flex items-center justify-between gap-3">
                   <span className="text-sm text-gray-700 truncate">{categoryLabel(cat)}</span>
-                  <span className="text-sm font-semibold tabular-nums text-rose-700">{fmt(amt)}</span>
+                  <span className="text-sm font-semibold tabular-nums text-rose-700">{fmtBase(amt)}</span>
                 </li>
               ))}
             </ul>
