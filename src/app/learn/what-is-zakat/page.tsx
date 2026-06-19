@@ -105,7 +105,7 @@ const faqSchema = {
       name: 'What is nisab for zakat?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Nisab is the minimum threshold of wealth above which zakat becomes obligatory. It is based on the current market value of either 85 grams of gold (gold nisab standard, used by AMJA) or 612 grams of silver (silver nisab standard, historically lower). The nisab changes daily as gold and silver prices fluctuate. Use Barakah\'s live nisab tracker to see today\'s threshold.',
+        text: 'Nisab is the minimum threshold of wealth above which zakat becomes obligatory. It is based on the current market value of either 85 grams of gold (gold nisab standard, used by AMJA) or 595 grams of silver (silver nisab standard, historically lower; classical texts specify ~612g). The nisab changes daily as gold and silver prices fluctuate. Use Barakah\'s live nisab tracker to see today\'s threshold.',
       },
     },
     {
@@ -236,8 +236,8 @@ export default function WhatIsZakatPage() {
             </div>
             <div className="bg-gray-50 rounded-xl p-5 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
               <p className="font-bold text-gray-700 text-lg mb-1 dark:text-gray-300">⚪ Silver Nisab</p>
-              <p className="text-2xl font-extrabold text-gray-900 mb-1 dark:text-gray-100">612 grams</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">of silver at current market price. Historically lower than gold nisab. Some scholars prefer this as more inclusive for those with modest wealth.</p>
+              <p className="text-2xl font-extrabold text-gray-900 mb-1 dark:text-gray-100">595 grams</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">of silver at current market price (classical fiqh texts specify ~612g). Historically lower than gold nisab; some scholars prefer it as more inclusive for those with modest wealth.</p>
             </div>
           </div>
           <p className="text-gray-700 leading-relaxed mb-4 dark:text-gray-300">

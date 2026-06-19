@@ -77,7 +77,7 @@ const faqSchema = {
       name: 'What is nisab and how does it affect my zakat?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Nisab is the minimum wealth threshold above which zakat becomes obligatory. If your net zakatable wealth is below nisab, you owe no zakat. There are two nisab standards: Gold nisab = 85 grams of gold (approximately $7,500–$8,500 in 2026 depending on gold price). Silver nisab = 595 grams of silver (approximately $450–$500 in 2026). Hanafi scholars use the silver nisab. Shafi\'i, Maliki, and Hanbali scholars use the gold nisab. Barakah lets you choose your madhab and uses live gold and silver prices.',
+        text: 'Nisab is the minimum wealth threshold above which zakat becomes obligatory. If your net zakatable wealth is below nisab, you owe no zakat. There are two nisab standards: Gold nisab = 85 grams of gold (approximately $11,000–$14,000 in 2026 depending on gold price). Silver nisab = 595 grams of silver (approximately $1,600–$1,700 in 2026). Hanafi scholars use the silver nisab. Shafi\'i, Maliki, and Hanbali scholars use the gold nisab. Barakah lets you choose your madhab and uses live gold and silver prices.',
       },
     },
     {
@@ -186,7 +186,7 @@ export default function HowMuchZakatPage() {
                 {
                   step: '1',
                   title: 'Choose Your Nisab Standard',
-                  body: 'Your madhab determines which nisab threshold you use. Hanafi: silver nisab (595g silver ≈ $450–$500). Shafi\'i, Maliki, Hanbali: gold nisab (85g gold ≈ $7,500–$8,500). Most scholars today recommend using the gold nisab as it better reflects the purpose of zakat — ensuring only those with significant wealth pay. Barakah shows you both and lets you choose.',
+                  body: 'Your madhab determines which nisab threshold you use. Hanafi: silver nisab (595g silver ≈ $1,600–$1,700). Shafi\'i, Maliki, Hanbali: gold nisab (85g gold ≈ $11,000–$14,000). Most scholars today recommend using the gold nisab as it better reflects the purpose of zakat — ensuring only those with significant wealth pay. Barakah shows you both and lets you choose.',
                 },
                 {
                   step: '2',

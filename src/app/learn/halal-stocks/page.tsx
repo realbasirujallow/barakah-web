@@ -62,7 +62,7 @@ const FaqSchema = {
       name: 'Do I need to purify dividends from halal stocks?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. Even if a stock passes Shariah screening, it may have a small percentage of impermissible income (up to 5%). You should purify your dividends by donating the equivalent percentage to charity. For example, if 3% of a company revenue is from interest income, donate 3% of your dividends.',
+        text: 'Yes. Even if a stock passes Shariah screening, it may have a small percentage of impermissible income (up to 5%). You should purify your dividends by donating the equivalent percentage to charity (many scholars hold this is obligatory; others consider it recommended — consult your scholar). For example, if 3% of a company revenue is from interest income, donate 3% of your dividends.',
       },
     },
     {
@@ -184,7 +184,7 @@ export default function HalalStocksPage() {
                 <div className="border-l-4 border-purple-600 bg-purple-50 p-4 rounded">
                   <h3 className="font-bold text-purple-900 mb-2">4. Impermissible Income Ratio</h3>
                   <p className="text-gray-700 text-sm dark:text-gray-300">
-                    <strong>Impermissible income / Total revenue &lt; 5%.</strong> This catches any residual haram income from interest, prohibited activities, or other non-compliant sources. Any dividends received must be purified by this same percentage.
+                    <strong>Impermissible income / Total revenue &lt; 5%.</strong> This catches any residual haram income from interest, prohibited activities, or other non-compliant sources. Any dividends received should be purified by this same percentage (many scholars hold purification is obligatory; others consider it recommended — consult your scholar).
                   </p>
                 </div>
               </div>

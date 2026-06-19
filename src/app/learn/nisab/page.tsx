@@ -44,7 +44,7 @@ const FaqSchema = {
       name: 'What is nisab?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Nisab is the minimum amount of wealth a Muslim must own — above basic needs and debts — before zakat becomes obligatory. Barakah uses the AMJA standard of 85g of gold or 595g of silver (classical fiqh texts specify 87.48g / 612.36g; the modern rounded values are within ~3% and are what AMJA and most practical calculators use today). In 2026 USD, gold nisab sits around $13,000–14,000 and silver nisab around $1,500–1,700, depending on daily spot prices.',
+        text: 'Nisab is the minimum amount of wealth a Muslim must own — above basic needs and debts — before zakat becomes obligatory. Barakah uses the AMJA gold-nisab standard (85g of gold); a silver option (595g) follows the classical Hanafi position (classical fiqh texts specify 87.48g gold / 612.36g silver; the modern rounded values are within ~3% and are what most practical calculators use today). In 2026 USD, gold nisab sits around $13,000–14,000 and silver nisab around $1,500–1,700, depending on daily spot prices.',
       },
     },
     {

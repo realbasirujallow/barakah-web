@@ -112,8 +112,8 @@ export default function FounderPage() {
           <p className="text-base text-gray-700 mb-3">
             I am an engineer, not a scholar. The methodology behind Barakah is
             sourced from published references — AMJA resolutions, AAOIFI Standard
-            21, the Quran, classical hadith, and the four Sunni madhabs — and
-            reviewed by qualified scholars on a per-feature basis as our{' '}
+            21, the Quran, classical hadith, and the four Sunni madhabs — with
+            independent scholar review slated on a per-feature basis as our{' '}
             <Link href="/scholars" className="underline text-[#1B5E20]">
               Scholar Board
             </Link>
