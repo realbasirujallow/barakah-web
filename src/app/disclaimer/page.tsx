@@ -39,7 +39,7 @@ export default function DisclaimerPage() {
               <strong>AMJA (Assembly of Muslim Jurists of America)</strong> — Resolutions and fatwas on zakat,
               Islamic finance, and estate planning. Key references:
               <ul className="list-disc list-inside ml-6 mt-1 text-sm text-gray-600">
-                <li>AMJA&apos;s published gold-nisab figure — 85 grams of gold</li>
+                <li>AMJA fatwa <a href="https://www.amjaonline.org/fatwa/en/79050/how-much-is-the-nisab-for-zakat-now" target="_blank" rel="noopener noreferrer" className="underline">&ldquo;How Much Is The Nisab For Zakat Now?&rdquo;</a> — nisab at 85 grams of gold</li>
                 <li>AMJA Resolutions on zakat of stocks and investments</li>
                 <li>AMJA guidance on debt deduction methodology</li>
               </ul>

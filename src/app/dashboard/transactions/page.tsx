@@ -813,6 +813,18 @@ export default function TransactionsPage() {
   // we can map an index back to an id when computing the shift-click range.
   const flatTxListRef = useRef<number[]>([]);
 
+  // Feature 1 (shift-click range select): keep the flat id list in sync with
+  // the rendered rows. Written in an effect — never during render — because
+  // mutating a ref mid-render is unsafe under concurrent rendering
+  // (react-hooks/refs). txs + urlMonth are the real inputs; localDateKey is a
+  // stable pure formatter, so it's intentionally not a dependency.
+  useEffect(() => {
+    flatTxListRef.current = (urlMonth
+      ? txs.filter(t => localDateKey(t.timestamp).startsWith(urlMonth))
+      : txs
+    ).map(t => t.id);
+  }, [txs, urlMonth]);
+
   const toggleSelectAll = () => {
     if (selectedIds.size === txs.length) {
       setSelectedIds(new Set());
@@ -1658,8 +1670,6 @@ export default function TransactionsPage() {
             else if (t.type === 'expense') g.net -= t.amount;
           }
 
-          // ── Feature 1: populate flat id list for shift-click range ──────────
-          flatTxListRef.current = monthFilteredTxs.map(t => t.id);
           // Running flat index across all groups; incremented per row.
           let flatRowIndex = -1;
 
@@ -1682,6 +1692,9 @@ export default function TransactionsPage() {
             <div key={tx.id}
               onClick={(e) => {
                 if (selectMode) {
+                  // Event handler (not render): reading flatTxListRef inside
+                  // toggleSelect here is the correct, safe ref-usage pattern.
+                  // eslint-disable-next-line react-hooks/refs
                   toggleSelect(tx.id, rowIdx, e.shiftKey);
                 } else {
                   openEdit(tx);
