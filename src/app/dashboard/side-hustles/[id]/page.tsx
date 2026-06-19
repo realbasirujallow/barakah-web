@@ -141,7 +141,7 @@ export default function SideHustleDetailPage({ params }: { params: Promise<{ id:
   const handleAddTransaction = async () => {
     if (!hustle) return;
     const amt = parseFloat(addForm.amount);
-    if (!Number.isFinite(amt) || amt <= 0) { toast('Enter an amount greater than 0.', 'error'); return; }
+    if (!Number.isFinite(amt) || amt <= 0) { toast(t('sideHustlesAmountInvalid'), 'error'); return; }
     const laborAmt = addForm.type === 'expense' ? parseFloat(addForm.labor) : NaN;
     const hasLabor = Number.isFinite(laborAmt) && laborAmt > 0;
     const currency = summary?.currency || hustle.defaultCurrency || 'USD';
@@ -156,7 +156,7 @@ export default function SideHustleDetailPage({ params }: { params: Promise<{ id:
       });
     } catch (e) {
       logError(e, { context: 'side-hustle-detail.addPrimary' });
-      toast(e instanceof Error ? e.message : 'Could not add the transaction.', 'error');
+      toast(e instanceof Error ? e.message : t('sideHustlesAddTxnFailed'), 'error');
       setAdding(false);
       return;
     }
@@ -178,8 +178,8 @@ export default function SideHustleDetailPage({ params }: { params: Promise<{ id:
     setRefreshKey(k => k + 1);
     toast(
       laborFailed
-        ? 'Materials saved, but the Labor line failed — add it from Transactions.'
-        : 'Transaction added.',
+        ? t('sideHustlesLaborPartialFail')
+        : t('sideHustlesTxnAdded'),
       laborFailed ? 'error' : 'success',
     );
   };
@@ -271,7 +271,7 @@ export default function SideHustleDetailPage({ params }: { params: Promise<{ id:
             onClick={() => { setAddForm(f => ({ ...f, date: new Date().toISOString().slice(0, 10) })); setShowAdd(true); }}
             className="inline-flex items-center gap-1.5 bg-primary text-white px-3 py-2 rounded-lg text-sm font-medium hover:opacity-90"
           >
-            <Plus className="w-4 h-4" /> Add transaction
+            <Plus className="w-4 h-4" /> {t('sideHustlesAddTxn')}
           </button>
           <button
             type="button"
@@ -336,14 +336,14 @@ export default function SideHustleDetailPage({ params }: { params: Promise<{ id:
         <ModalShell onClose={() => { if (!adding) setShowAdd(false); }} ariaLabel="Add transaction">
           <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-primary">Add transaction</h2>
+              <h2 className="text-lg font-bold text-primary">{t('sideHustlesAddTxn')}</h2>
               <button type="button" onClick={() => { if (!adding) setShowAdd(false); }} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-gray-500">
               <Briefcase className="w-3.5 h-3.5" /> <span className="truncate">{hustle.name}</span>
             </div>
             <label className="block">
-              <span className="text-xs text-gray-500">Type</span>
+              <span className="text-xs text-gray-500">{t('sideHustlesTxnType')}</span>
               <select
                 value={addForm.type}
                 onChange={e => { const ty = e.target.value; setAddForm(f => { const cats = ty === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES; return { ...f, type: ty, category: (cats as readonly string[]).includes(f.category) ? f.category : cats[0] }; }); }}
@@ -354,7 +354,7 @@ export default function SideHustleDetailPage({ params }: { params: Promise<{ id:
               </select>
             </label>
             <label className="block">
-              <span className="text-xs text-gray-500">Category</span>
+              <span className="text-xs text-gray-500">{t('sideHustlesFieldCategory')}</span>
               <select
                 value={addForm.category}
                 onChange={e => setAddForm(f => ({ ...f, category: e.target.value }))}
@@ -366,39 +366,39 @@ export default function SideHustleDetailPage({ params }: { params: Promise<{ id:
               </select>
             </label>
             <label className="block">
-              <span className="text-xs text-gray-500">Amount</span>
+              <span className="text-xs text-gray-500">{t('sideHustlesFieldAmount')}</span>
               <input type="number" inputMode="decimal" min="0" step="0.01" value={addForm.amount}
                 onChange={e => setAddForm(f => ({ ...f, amount: e.target.value }))}
                 placeholder="0.00" className="mt-1 w-full border rounded-lg px-3 py-2 text-sm text-gray-900" />
             </label>
             {addForm.type === 'expense' && (
               <label className="block">
-                <span className="text-xs text-gray-500">Labor (optional)</span>
+                <span className="text-xs text-gray-500">{t('sideHustlesLaborOptional')}</span>
                 <input type="number" inputMode="decimal" min="0" step="0.01" value={addForm.labor}
                   onChange={e => setAddForm(f => ({ ...f, labor: e.target.value }))}
                   placeholder="0.00" className="mt-1 w-full border rounded-lg px-3 py-2 text-sm text-gray-900" />
-                <span className="block text-[11px] text-gray-400 mt-1">Adds a separate Labor line for the same job (e.g. a contractor charge).</span>
+                <span className="block text-[11px] text-gray-400 mt-1">{t('sideHustlesLaborHelper')}</span>
               </label>
             )}
             <label className="block">
-              <span className="text-xs text-gray-500">Description</span>
+              <span className="text-xs text-gray-500">{t('sideHustlesFieldDescription')}</span>
               <input type="text" value={addForm.description}
                 onChange={e => setAddForm(f => ({ ...f, description: e.target.value }))}
-                placeholder="e.g. Roof repair" className="mt-1 w-full border rounded-lg px-3 py-2 text-sm text-gray-900" />
+                placeholder={t('sideHustlesTxnDescPlaceholder')} className="mt-1 w-full border rounded-lg px-3 py-2 text-sm text-gray-900" />
             </label>
             <label className="block">
-              <span className="text-xs text-gray-500">Date</span>
+              <span className="text-xs text-gray-500">{t('sideHustlesFieldDate')}</span>
               <input type="date" value={addForm.date}
                 onChange={e => setAddForm(f => ({ ...f, date: e.target.value }))}
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm text-gray-900" />
             </label>
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={() => setShowAdd(false)} disabled={adding}
-                className="px-4 py-2 rounded-lg text-sm border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50">Cancel</button>
+                className="px-4 py-2 rounded-lg text-sm border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50">{t('cancel')}</button>
               <button type="button" onClick={handleAddTransaction} disabled={adding}
                 className="px-4 py-2 rounded-lg text-sm bg-primary text-white font-medium hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1.5">
                 {adding && <span className="animate-spin w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full inline-block" />}
-                Add
+                {t('sideHustlesAddTxnSubmit')}
               </button>
             </div>
           </div>
