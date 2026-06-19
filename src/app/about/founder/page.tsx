@@ -58,7 +58,7 @@ export default function FounderPage() {
             <div className="w-32 h-32 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-[#1B5E20]/20">
               <Image
                 src="/basiru-jallow.png"
-                alt="Basiru Jallow"
+                alt="Basiru Jallow, founder of Barakah"
                 width={128}
                 height={128}
                 className="w-full h-full object-cover"

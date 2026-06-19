@@ -5,7 +5,6 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useToast } from '../../../lib/toast';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n } from '../../../lib/i18n';
-import { useAuth, hasAccess } from '../../../context/AuthContext';
 import { SideHustle, isLocked } from '../../../lib/sideHustle';
 
 interface CategorySuggestion {
