@@ -33,7 +33,7 @@ const faqJsonLd = {
       name: 'What is nisab?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Nisab is the minimum wealth threshold above which paying zakat becomes obligatory. There are two classical thresholds: 87.48 grams of gold or 612 grams of silver. Below either, no zakat is due.',
+        text: 'Nisab is the minimum wealth threshold above which paying zakat becomes obligatory. There are two classical thresholds: 87.48 grams of gold or 612 grams of silver. Below either, no zakat is due. (Barakah\'s calculator uses the modern rounded values — 85g gold / 595g silver — within ~3% of these classical figures.)',
       },
     },
     {

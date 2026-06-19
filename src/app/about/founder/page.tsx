@@ -117,7 +117,7 @@ export default function FounderPage() {
             <Link href="/scholars" className="underline text-[#1B5E20]">
               Scholar Board
             </Link>
-            {' '}fills out (target: Q3 2026).
+            {' '}fills out (target: Q4 2026).
           </p>
           <p className="text-base text-gray-700">
             Where there is scholarly disagreement, Barakah surfaces the

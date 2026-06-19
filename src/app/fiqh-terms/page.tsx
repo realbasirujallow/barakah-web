@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   // in SERPs); trimmed to 70 + frontloaded the 5 highest-intent terms.
   // Description was 207 chars; trimmed to 158. Critically: REMOVED the
   // "Scholar-reviewed" claim because the Scholar Board is currently
-  // empty (DRAFT, target Q3 2026) — making that claim in public-facing
+  // empty (DRAFT, target Q4 2026) — making that claim in public-facing
   // metadata is the kind of overconfidence the disclaimer page warns
   // against. "Methodology-first" is the honest framing while we work
   // toward signing the first named scholar.

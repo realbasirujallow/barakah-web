@@ -96,7 +96,7 @@ export default function AmbassadorsPage() {
               <li><strong>Not paid endorsers.</strong> We pay for product and content, never for statements.</li>
               <li><strong>Not bound.</strong> You can leave anytime. If Barakah stops meeting your standards, say so publicly.</li>
               <li><strong>Not required to post.</strong> There&apos;s no quota. Recommend Barakah only when it&apos;s the right answer for your audience.</li>
-              <li><strong>Not a substitute for Scholar Board.</strong> Ambassadors amplify; our Scholar Board (forming Q3 2026) reviews methodology.</li>
+              <li><strong>Not a substitute for Scholar Board.</strong> Ambassadors amplify; our Scholar Board (forming Q4 2026) reviews methodology.</li>
             </ul>
           </section>
 

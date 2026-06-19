@@ -132,7 +132,7 @@ export default function TransparencyIndexPage() {
             <ul className="list-disc space-y-1 pl-6 text-sm leading-7 text-amber-900">
               <li><Link href="/methodology" className="underline font-semibold">/methodology</Link> — current methodology and fiqh-config decisions</li>
               <li><Link href="/methodology/changelog" className="underline font-semibold">/methodology/changelog</Link> — every change, dated, reasoned</li>
-              <li><Link href="/scholars" className="underline font-semibold">/scholars</Link> — Scholar Board roster (forming Q3 2026) and scholar review briefs</li>
+              <li><Link href="/scholars" className="underline font-semibold">/scholars</Link> — Scholar Board roster (forming Q4 2026) and scholar review briefs</li>
               <li><Link href="/verify" className="underline font-semibold">/verify</Link> — per-snapshot integrity-hash verification</li>
             </ul>
           </section>

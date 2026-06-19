@@ -35,11 +35,11 @@ const upcomingEngagements = [
   },
   {
     focus: "Shafi'i / Maliki jurisprudence (zakat of retirement & investment holdings)",
-    target: 'Q3 2026',
+    target: 'Q4 2026',
   },
   {
     focus: 'Contemporary fiqh & AAOIFI standards (sukuk, halal stock screening, purification)',
-    target: 'Q3 2026',
+    target: 'Q4 2026',
   },
 ];
 
@@ -48,9 +48,9 @@ export default function ScholarsPage() {
     <>
       {/* Visible status banner so casual visitors can't mistake this page for
           a shipped Scholar Board with named reviewers. Final roster + reviews
-          target Q3 2026. */}
+          target Q4 2026. */}
       <div className="bg-amber-100 border-b-2 border-amber-400 px-4 py-2 text-center text-xs font-semibold text-amber-900">
-        ⚠ DRAFT · Scholar Board roster fills in as reviewers approve public naming · Target: Q3 2026
+        ⚠ DRAFT · Scholar Board roster fills in as reviewers approve public naming · Target: Q4 2026
       </div>
       <main className="min-h-screen bg-[#FFF8E1] px-6 py-16">
         <div className="mx-auto max-w-4xl">
@@ -69,7 +69,7 @@ export default function ScholarsPage() {
         {/* Transparency note */}
         <section className="mb-8 rounded-2xl border-2 border-amber-300 bg-amber-50 p-6">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-900">
-            Launching Q3 2026
+            Launching Q4 2026
           </p>
           <h2 className="mb-3 text-xl font-bold text-amber-900">
             We&apos;re being honest about where we are
@@ -95,7 +95,7 @@ export default function ScholarsPage() {
           <h2 className="mb-4 text-2xl font-bold text-[#1B5E20]">Current Reviewers</h2>
           {scholars.length === 0 ? (
             <p className="text-sm italic text-gray-600">
-              No reviewers listed yet. See &ldquo;Launching Q3 2026&rdquo; above for the engagement
+              No reviewers listed yet. See &ldquo;Launching Q4 2026&rdquo; above for the engagement
               plan.
             </p>
           ) : (
