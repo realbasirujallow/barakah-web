@@ -60,7 +60,7 @@ const faqSchema = {
       name: 'How does a halal stock screener work?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'A halal stock screener checks companies against AAOIFI Standard 21 criteria in two stages: (1) Business Screen — checks whether the company\'s primary business is in a halal sector. If the company\'s core business is alcohol, tobacco, pork, weapons, gambling, or conventional finance, it fails immediately. (2) Financial Ratio Screen — checks whether the company\'s financial structure (debt, interest income, liquid assets) stays within permissible thresholds even for mostly-halal businesses. Barakah runs the full two-stage screen — business activity plus live AAOIFI Standard 21 financial ratios — on demand for any ticker you check, backed by a 30,000+ stock business-activity library.',
+        text: 'A halal stock screener checks companies against AAOIFI Standard 21 criteria in two stages: (1) Business Screen — checks whether the company\'s primary business is in a halal sector. If the company\'s core business is alcohol, tobacco, pork, weapons, gambling, or conventional finance, it fails immediately. (2) Financial Ratio Screen — checks whether the company\'s financial structure (debt, interest income, interest-bearing investments) stays within permissible thresholds even for mostly-halal businesses. Barakah runs the full two-stage screen — business activity plus live AAOIFI Standard 21 financial ratios — on demand for any ticker you check, backed by a 30,000+ stock business-activity library.',
       },
     },
     {
@@ -76,7 +76,7 @@ const faqSchema = {
       name: 'What are the AAOIFI financial ratio screens for halal stocks?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'AAOIFI Standard 21 sets three financial ratio limits: (1) Debt ratio — total interest-bearing debt must be less than 30% of the company\'s total market capitalization or assets; (2) Interest income ratio — income from interest and impermissible sources must be less than 5% of total revenue; (3) Liquid assets ratio — accounts receivable and liquid assets must be less than 67% of total assets (to ensure the stock is not just trading in money/debt). If all three ratios pass, the stock is considered Sharia-compliant from a financial structure standpoint.',
+        text: 'AAOIFI Standard 21 sets three financial ratio limits: (1) Debt ratio — total interest-bearing debt must be less than 30% of the company\'s total market capitalization or assets; (2) Interest income ratio — income from interest and impermissible sources must be less than 5% of total revenue; (3) Interest-bearing investments ratio — interest-bearing deposits and securities must be less than 30% of the company\'s total market capitalization (so the stock isn\'t effectively an interest-earning vehicle). If all three ratios pass, the stock is considered Sharia-compliant from a financial structure standpoint.',
       },
     },
     {
