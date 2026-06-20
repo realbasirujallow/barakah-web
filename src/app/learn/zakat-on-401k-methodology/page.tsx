@@ -39,7 +39,7 @@ const faqJsonLd = {
       name: 'What is the AMJA position on zakat for 401(k) accounts?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'AMJA Resolution #96 supports the accessible-value approach: the zakat base is the amount you could actually access after subtracting estimated income tax + early-withdrawal penalty. The reasoning is that the inaccessible portion (taxes you owe to the government, penalties) isn&apos;t truly your wealth.',
+        text: 'AMJA&apos;s published guidance — its retirement-account fatwas and the 16th Annual Imams&apos; Conference recommendation on retirement accounts — supports the accessible-value approach: the zakat base is the amount you could actually access after subtracting estimated income tax + early-withdrawal penalty. The reasoning is that the inaccessible portion (taxes you owe to the government, penalties) isn&apos;t truly your wealth.',
       },
     },
     {
@@ -47,7 +47,7 @@ const faqJsonLd = {
       name: 'What does Barakah use by default?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Barakah uses the accessible-value approach by default, aligned with AMJA Resolution #96. In your dashboard you can override this to use the gross-balance approach (more conservative, follows the strictest position) or the deferred approach (only at withdrawal, simpler but disputed).',
+        text: 'Barakah uses the accessible-value approach by default, aligned with AMJA&apos;s published accessible-value guidance for retirement accounts. In your dashboard you can override this to use the gross-balance approach (more conservative, follows the strictest position) or the deferred approach (only at withdrawal, simpler but disputed).',
       },
     },
   ],
