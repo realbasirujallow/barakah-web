@@ -334,8 +334,8 @@ export default function ZakatCalculatorPage() {
                   <p className="text-gray-700 leading-relaxed">
                     If your net wealth after debts meets or exceeds the nisab threshold, multiply
                     the full zakatable amount by 2.5% (or 0.025). This is the amount of zakat you owe.
-                    The 2.5% rate is unanimous across all four Islamic schools of thought (madhabs)
-                    and is established from the Quran and Sunnah.
+                    The 2.5% rate is the agreed position of all four Sunni schools of thought (madhabs),
+                    established in the Sunnah and by long-standing scholarly consensus (ijmāʿ).
                   </p>
                 </div>
               </div>

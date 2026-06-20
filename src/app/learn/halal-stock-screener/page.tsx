@@ -92,7 +92,7 @@ const faqSchema = {
       name: 'Is Apple stock halal?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Apple (AAPL) passes the business screen — it is primarily a technology and consumer electronics company with no haram primary business. It must then pass the financial ratio tests: check its interest-bearing debt ratio, interest income ratio, and liquid assets ratio. These ratios change quarterly as Apple\'s financials update. Use Barakah\'s live halal stock screener for the current status — most analysis services rate AAPL as Sharia-compliant subject to quarterly purification on interest income.',
+        text: 'Barakah does not issue a Shariah verdict on any individual stock — a company\'s compliance can change every quarter as its financials update, so always check the live screener for current status. As an illustration of the process: a company like Apple would clear the business screen (technology and consumer electronics, no impermissible primary business), then would need to pass the financial-ratio tests — interest-bearing debt < 30%, interest-bearing investments < 30%, and impermissible income < 5%. Even a permissible holding still requires quarterly purification of any incidental interest income.',
       },
     },
   ],
@@ -199,10 +199,10 @@ export default function HalalStockScreenerPage() {
                   purpose: 'Ensures haram income is less than 5% of total revenue — any more and the business becomes predominantly haram',
                 },
                 {
-                  test: 'Liquid Assets Test',
-                  limit: '< 67%',
-                  formula: '(Cash + Receivables) ÷ Total Assets',
-                  purpose: "Ensures the stock represents real business assets, not just money trading (which would require special Islamic rules for exchange)",
+                  test: 'Interest-Bearing Investments Test',
+                  limit: '< 30%',
+                  formula: '(Interest-Bearing Deposits + Securities) ÷ Market Capitalization',
+                  purpose: "Ensures the company isn't effectively an interest-earning vehicle — cash parked in interest-bearing instruments stays below 30% (AAOIFI Standard 21's second ratio)",
                 },
               ].map((test) => (
                 <div key={test.test} className="border border-gray-200 rounded-xl p-5 dark:border-gray-700">
