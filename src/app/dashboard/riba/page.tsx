@@ -1135,8 +1135,8 @@ export default function RibaPage() {
               {purification.remainingToPurify > 0 ? (
                 <div className="flex gap-2 items-end">
                   <div className="flex-1">
-                    <label className="text-xs font-medium text-purple-700 mb-1 block">{tFmt('ribaDonationAmountFmt', [symbol])}</label>
-                    <input
+                    <label htmlFor="ribaDonationAmountFmt" className="text-xs font-medium text-purple-700 mb-1 block">{tFmt('ribaDonationAmountFmt', [symbol])}</label>
+                    <input id="ribaDonationAmountFmt"
                       type="number"
                       min="0.01"
                       step="0.01"

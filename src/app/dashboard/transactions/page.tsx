@@ -2070,8 +2070,8 @@ export default function TransactionsPage() {
                     className={`w-full border rounded-lg px-3 py-2 text-gray-900 ${formError ? 'border-red-400' : ''}`} placeholder={t('txnAmountPlaceholder')} />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldCurrency')}</label>
-                  <select value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm">
+                  <label htmlFor="txnFieldCurrency" className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldCurrency')}</label>
+                  <select id="txnFieldCurrency" value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm">
                     {CURRENCIES.map(c => (
                       <option key={c} value={c}>{CURRENCY_SYMBOLS[c] || ''} {c} — {CURRENCY_NAMES[c]}</option>
                     ))}

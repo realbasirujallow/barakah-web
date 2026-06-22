@@ -891,8 +891,8 @@ export default function AssetsPage() {
 
               {ADDRESS_TYPES.includes(form.type) && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('assetsFieldAddress')}</label>
-                  <input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}
+                  <label htmlFor="assetsFieldAddress" className="block text-sm font-medium text-gray-700 mb-1">{t('assetsFieldAddress')}</label>
+                  <input id="assetsFieldAddress" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
                     placeholder={t('assetsAddressPlaceholder')} />
                   {form.address && (
@@ -924,8 +924,8 @@ export default function AssetsPage() {
                       placeholder={EDUCATION_TYPES.includes(form.type) || IRA_TYPES.includes(form.type) ? '0' : '10'} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('assetsFieldTaxRate')}</label>
-                    <input type="number" step="0.1" min="0" max="100" value={form.taxRate}
+                    <label htmlFor="assetsFieldTaxRate" className="block text-sm font-medium text-gray-700 mb-1">{t('assetsFieldTaxRate')}</label>
+                    <input id="assetsFieldTaxRate" type="number" step="0.1" min="0" max="100" value={form.taxRate}
                       onChange={e => setForm({ ...form, taxRate: e.target.value })}
                       className="w-full border rounded-lg px-3 py-2 text-gray-900"
                       placeholder={EDUCATION_TYPES.includes(form.type) || IRA_TYPES.includes(form.type) ? '0' : '25'} />
@@ -947,8 +947,8 @@ export default function AssetsPage() {
               {INVESTMENT_TYPES.includes(form.type) && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('assetsFieldCapitalGainsTaxRate')}</label>
-                    <input type="number" step="0.1" min="0" max="100" value={form.taxRate}
+                    <label htmlFor="assetsFieldCapitalGainsTaxRate" className="block text-sm font-medium text-gray-700 mb-1">{t('assetsFieldCapitalGainsTaxRate')}</label>
+                    <input id="assetsFieldCapitalGainsTaxRate" type="number" step="0.1" min="0" max="100" value={form.taxRate}
                       onChange={e => setForm({ ...form, taxRate: e.target.value })}
                       className="w-full border rounded-lg px-3 py-2 text-gray-900"
                       placeholder="0" />

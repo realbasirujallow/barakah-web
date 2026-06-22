@@ -736,8 +736,8 @@ function HawlPageContent() {
             <p className="text-sm text-gray-600 mb-4">{t('hawlResetDesc')}</p>
             <div className="space-y-3 mb-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">{t('hawlReasonLabel')}</label>
-                <select value={resetReason} onChange={e => setResetReason(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm text-gray-900">
+                <label htmlFor="hawlReasonLabel" className="block text-xs font-medium text-gray-700 mb-1">{t('hawlReasonLabel')}</label>
+                <select id="hawlReasonLabel" value={resetReason} onChange={e => setResetReason(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm text-gray-900">
                   <option value="nisab_drop">{t('hawlReasonNisabDrop')}</option>
                   <option value="sold_asset">{t('hawlReasonSold')}</option>
                   <option value="gave_gift">{t('hawlReasonGift')}</option>
@@ -747,8 +747,8 @@ function HawlPageContent() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">{t('hawlNoteOptional')}</label>
-                <textarea value={resetNote} onChange={e => setResetNote(e.target.value)} rows={2} maxLength={500} placeholder={t('hawlResetNotePlaceholder')} className="w-full border rounded-lg px-3 py-2 text-sm text-gray-900" />
+                <label htmlFor="hawlNoteOptional" className="block text-xs font-medium text-gray-700 mb-1">{t('hawlNoteOptional')}</label>
+                <textarea id="hawlNoteOptional" value={resetNote} onChange={e => setResetNote(e.target.value)} rows={2} maxLength={500} placeholder={t('hawlResetNotePlaceholder')} className="w-full border rounded-lg px-3 py-2 text-sm text-gray-900" />
               </div>
             </div>
             <div className="flex gap-3">
@@ -764,10 +764,10 @@ function HawlPageContent() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-primary mb-4">{t('hawlModalTitle')}</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldAssetName')}</label>
-                <input value={form.assetName} onChange={e => setForm({ ...form, assetName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('hawlAssetNamePlaceholder')} /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldType')}</label>
-                <select value={form.assetType} onChange={e => setForm({ ...form, assetType: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+              <div><label htmlFor="hawlFieldAssetName" className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldAssetName')}</label>
+                <input id="hawlFieldAssetName" value={form.assetName} onChange={e => setForm({ ...form, assetName: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('hawlAssetNamePlaceholder')} /></div>
+              <div><label htmlFor="hawlFieldType" className="block text-sm font-medium text-gray-700 mb-1">{t('hawlFieldType')}</label>
+                <select id="hawlFieldType" value={form.assetType} onChange={e => setForm({ ...form, assetType: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {TYPES.map(ty => <option key={ty} value={ty}>{typeLabel(ty)}</option>)}
                 </select></div>
               {/* 2026-06-08 (A11Y-DASHBOARD-FORM-LABELS-1 part 3/6): htmlFor + id */}

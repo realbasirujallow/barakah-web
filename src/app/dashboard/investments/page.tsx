@@ -984,8 +984,8 @@ export default function InvestmentsPage() {
             <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{t('investmentsAddAccountModalTitle')}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsAccountNameLabel')}</label>
-                <input
+                <label htmlFor="investmentsAccountNameLabel" className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsAccountNameLabel')}</label>
+                <input id="investmentsAccountNameLabel"
                   value={accountForm.name}
                   onChange={e => setAccountForm({ ...accountForm, name: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -993,8 +993,8 @@ export default function InvestmentsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsAccountTypeLabel')}</label>
-                <select
+                <label htmlFor="investmentsAccountTypeLabel" className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsAccountTypeLabel')}</label>
+                <select id="investmentsAccountTypeLabel"
                   value={accountForm.type}
                   onChange={e => setAccountForm({ ...accountForm, type: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -1003,8 +1003,8 @@ export default function InvestmentsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsBrokerPlatformLabel')}</label>
-                <input
+                <label htmlFor="investmentsBrokerPlatformLabel" className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsBrokerPlatformLabel')}</label>
+                <input id="investmentsBrokerPlatformLabel"
                   value={accountForm.broker}
                   onChange={e => setAccountForm({ ...accountForm, broker: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -1046,8 +1046,8 @@ export default function InvestmentsPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsTickerSymbolLabel')}</label>
-                  <input
+                  <label htmlFor="investmentsTickerSymbolLabel" className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsTickerSymbolLabel')}</label>
+                  <input id="investmentsTickerSymbolLabel"
                     value={holdingForm.symbol}
                     onChange={e => setHoldingForm({ ...holdingForm, symbol: e.target.value.toUpperCase() })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900 uppercase"
@@ -1055,8 +1055,8 @@ export default function InvestmentsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsCompanyNameLabel')}</label>
-                  <input
+                  <label htmlFor="investmentsCompanyNameLabel" className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsCompanyNameLabel')}</label>
+                  <input id="investmentsCompanyNameLabel"
                     value={holdingForm.name}
                     onChange={e => setHoldingForm({ ...holdingForm, name: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -1066,8 +1066,8 @@ export default function InvestmentsPage() {
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsSharesLabel')}</label>
-                  <input
+                  <label htmlFor="investmentsSharesLabel" className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsSharesLabel')}</label>
+                  <input id="investmentsSharesLabel"
                     type="number" step="0.0001"
                     value={holdingForm.quantity}
                     onChange={e => setHoldingForm({ ...holdingForm, quantity: e.target.value })}
@@ -1076,8 +1076,8 @@ export default function InvestmentsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsAvgCostLabel')}</label>
-                  <input
+                  <label htmlFor="investmentsAvgCostLabel" className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsAvgCostLabel')}</label>
+                  <input id="investmentsAvgCostLabel"
                     type="number" step="0.01"
                     value={holdingForm.averageCost}
                     onChange={e => setHoldingForm({ ...holdingForm, averageCost: e.target.value })}
@@ -1086,8 +1086,8 @@ export default function InvestmentsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsCurrentPriceLabel')}</label>
-                  <input
+                  <label htmlFor="investmentsCurrentPriceLabel" className="block text-sm font-medium text-gray-700 mb-1">{t('investmentsCurrentPriceLabel')}</label>
+                  <input id="investmentsCurrentPriceLabel"
                     type="number" step="0.01"
                     value={holdingForm.currentPrice}
                     onChange={e => setHoldingForm({ ...holdingForm, currentPrice: e.target.value })}

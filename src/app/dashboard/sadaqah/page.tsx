@@ -285,8 +285,9 @@ function SadaqahContent() {
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">{t('sadaqahCauseLabel')}</label>
+          <label htmlFor="sadaqah-cause" className="block text-sm font-medium text-gray-700 mb-2">{t('sadaqahCauseLabel')}</label>
           <select
+            id="sadaqah-cause"
             value={donatePurpose}
             onChange={e => setDonatePurpose(e.target.value)}
             className="w-full border rounded-lg px-3 py-2 text-gray-900 text-sm"

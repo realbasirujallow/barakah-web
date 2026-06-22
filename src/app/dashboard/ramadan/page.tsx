@@ -371,8 +371,8 @@ export default function RamadanPage() {
         </p>
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">{tFmt('ramadanAmountPerPersonFmt', [symbol])}</label>
-            <input
+            <label htmlFor="ramadanAmountPerPersonFmt" className="text-sm font-medium text-gray-700 block mb-1">{tFmt('ramadanAmountPerPersonFmt', [symbol])}</label>
+            <input id="ramadanAmountPerPersonFmt"
               type="number" min="1" step="1" value={fitrahPerPerson}
               onChange={e => setFitrahPerPerson(Math.max(1, parseFloat(e.target.value) || ZAKAT_FITR_DEFAULT))}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
@@ -380,8 +380,8 @@ export default function RamadanPage() {
             <p className="text-xs text-gray-400 mt-0.5">{tFmt('ramadanDefaultEditMosqueFmt', [`${symbol}10`])}</p>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">{t('ramadanFamilyMembers')}</label>
-            <input
+            <label htmlFor="ramadanFamilyMembers" className="text-sm font-medium text-gray-700 block mb-1">{t('ramadanFamilyMembers')}</label>
+            <input id="ramadanFamilyMembers"
               type="number" min="1" max="20" value={members}
               onChange={e => setMembers(Math.max(1, parseInt(e.target.value) || 1))}
               className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"

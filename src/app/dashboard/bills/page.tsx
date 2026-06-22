@@ -829,8 +829,8 @@ export default function BillsPage() {
             <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editBill ? t('billsModalEditTitle') : t('billsModalAddTitle')}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldName')}</label>
-                <input
+                <label htmlFor="billsFieldName" className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldName')}</label>
+                <input id="billsFieldName"
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
@@ -838,8 +838,8 @@ export default function BillsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldCategory')}</label>
-                <select
+                <label htmlFor="billsFieldCategory" className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldCategory')}</label>
+                <select id="billsFieldCategory"
                   value={form.category}
                   onChange={e => setForm({ ...form, category: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
@@ -850,8 +850,8 @@ export default function BillsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldAmount')}</label>
-                <input
+                <label htmlFor="billsFieldAmount" className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldAmount')}</label>
+                <input id="billsFieldAmount"
                   type="number" step="0.01" min="0"
                   value={form.amount}
                   onChange={e => setForm({ ...form, amount: e.target.value })}
@@ -861,8 +861,8 @@ export default function BillsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldFrequency')}</label>
-                  <select
+                  <label htmlFor="billsFieldFrequency" className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldFrequency')}</label>
+                  <select id="billsFieldFrequency"
                     value={form.frequency}
                     onChange={e => setForm({ ...form, frequency: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-primary"
@@ -871,8 +871,8 @@ export default function BillsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldDueDay')}</label>
-                  <input
+                  <label htmlFor="billsFieldDueDay" className="block text-sm font-medium text-gray-700 mb-1">{t('billsFieldDueDay')}</label>
+                  <input id="billsFieldDueDay"
                     type="number" min="1" max="31"
                     value={form.dueDay}
                     onChange={e => setForm({ ...form, dueDay: e.target.value })}

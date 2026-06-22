@@ -499,8 +499,8 @@ export default function FiqhSettingsPage() {
 
               {/* Fitr Type */}
               <div className="p-4 border border-gray-200 rounded-lg">
-                <label className="block font-semibold text-primary mb-2">{t('fiqhFitrLabel')}</label>
-                <select
+                <label htmlFor="fiqhFitrLabel" className="block font-semibold text-primary mb-2">{t('fiqhFitrLabel')}</label>
+                <select id="fiqhFitrLabel"
                   value={rules.fitrType}
                   onChange={(e) => handleRuleChange('fitrType', e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
@@ -514,8 +514,8 @@ export default function FiqhSettingsPage() {
 
               {/* Debt Method */}
               <div className="p-4 border border-gray-200 rounded-lg">
-                <label className="block font-semibold text-primary mb-2">{t('fiqhDebtLabel')}</label>
-                <select
+                <label htmlFor="fiqhDebtLabel" className="block font-semibold text-primary mb-2">{t('fiqhDebtLabel')}</label>
+                <select id="fiqhDebtLabel"
                   value={rules.debtMethod}
                   onChange={(e) => handleRuleChange('debtMethod', e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
@@ -529,8 +529,8 @@ export default function FiqhSettingsPage() {
 
               {/* Retirement Method */}
               <div className="p-4 border border-gray-200 rounded-lg">
-                <label className="block font-semibold text-primary mb-2">{t('fiqhRetirementLabel')}</label>
-                <select
+                <label htmlFor="fiqhRetirementLabel" className="block font-semibold text-primary mb-2">{t('fiqhRetirementLabel')}</label>
+                <select id="fiqhRetirementLabel"
                   value={rules.retirementMethod}
                   onChange={(e) => handleRuleChange('retirementMethod', e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"

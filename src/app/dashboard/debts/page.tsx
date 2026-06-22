@@ -1001,8 +1001,8 @@ export default function DebtsPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <h2 className="text-xl font-bold text-primary mb-2">{t('debtPayModalTitle')}</h2>
             <p className="text-gray-500 text-sm mb-4">{tFmt('debtPayModalSubtitleFmt', [payModal.name, fmt(payModal.remainingAmount)])}</p>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('debtPayAmount')}</label>
-              <input type="number" step="0.01" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+            <div><label htmlFor="debt-pay-amount" className="block text-sm font-medium text-gray-700 mb-1">{t('debtPayAmount')}</label>
+              <input id="debt-pay-amount" type="number" step="0.01" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             {payError && <div className="mt-4 bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{payError}</div>}
             <div className="flex gap-3 mt-4">
               <button type="button" onClick={() => { setPayModal(null); setPayError(null); }} disabled={saving} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('debtFormCancel')}</button>

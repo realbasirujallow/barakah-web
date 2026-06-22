@@ -428,8 +428,8 @@ function EventForm({ type, initial, onSave, onCancel, saveError }: EventFormProp
     <div className={`bg-white border border-${accentColor}-200 rounded-xl p-4 shadow-sm`}>
       <div className="grid sm:grid-cols-2 gap-3">
         <div className="sm:col-span-2">
-          <label className="block text-xs text-gray-500 mb-1">{t('forecastingEventsLabelLabel')}</label>
-          <input
+          <label htmlFor="forecastingEventsLabelLabel" className="block text-xs text-gray-500 mb-1">{t('forecastingEventsLabelLabel')}</label>
+          <input id="forecastingEventsLabelLabel"
             autoFocus
             type="text"
             value={label}
@@ -439,10 +439,10 @@ function EventForm({ type, initial, onSave, onCancel, saveError }: EventFormProp
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">{t('forecastingEventsAnnualAmountLabel')}</label>
+          <label htmlFor="forecastingEventsAnnualAmountLabel" className="block text-xs text-gray-500 mb-1">{t('forecastingEventsAnnualAmountLabel')}</label>
           <div className="flex items-center gap-1">
             <span className="text-gray-500 text-sm">{symbol}</span>
-            <input
+            <input id="forecastingEventsAnnualAmountLabel"
               type="number"
               value={annualAmount}
               onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) setAnnualAmount(Math.max(0, v)); }}
@@ -453,8 +453,8 @@ function EventForm({ type, initial, onSave, onCancel, saveError }: EventFormProp
           </div>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">{t('forecastingEventsGrowthModeLabel')}</label>
-          <select
+          <label htmlFor="forecastingEventsGrowthModeLabel" className="block text-xs text-gray-500 mb-1">{t('forecastingEventsGrowthModeLabel')}</label>
+          <select id="forecastingEventsGrowthModeLabel"
             value={growthMode}
             onChange={e => setGrowthMode(e.target.value as 'inflation' | 'custom' | 'flat')}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
@@ -466,8 +466,8 @@ function EventForm({ type, initial, onSave, onCancel, saveError }: EventFormProp
         </div>
         {growthMode === 'custom' && (
           <div>
-            <label className="block text-xs text-gray-500 mb-1">{t('forecastingEventsCustomRateLabel')}</label>
-            <input
+            <label htmlFor="forecastingEventsCustomRateLabel" className="block text-xs text-gray-500 mb-1">{t('forecastingEventsCustomRateLabel')}</label>
+            <input id="forecastingEventsCustomRateLabel"
               type="number"
               value={customGrowthRate}
               onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) setCustomGrowthRate(v); }}
@@ -479,8 +479,8 @@ function EventForm({ type, initial, onSave, onCancel, saveError }: EventFormProp
           </div>
         )}
         <div>
-          <label className="block text-xs text-gray-500 mb-1">{t('forecastingEventsStartYearLabel')}</label>
-          <input
+          <label htmlFor="forecastingEventsStartYearLabel" className="block text-xs text-gray-500 mb-1">{t('forecastingEventsStartYearLabel')}</label>
+          <input id="forecastingEventsStartYearLabel"
             type="number"
             value={startYearOffset}
             onChange={e => { const v = parseInt(e.target.value, 10); if (!isNaN(v)) setStartYearOffset(Math.max(0, v)); }}
@@ -490,8 +490,8 @@ function EventForm({ type, initial, onSave, onCancel, saveError }: EventFormProp
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">{t('forecastingEventsEndYearLabel')}</label>
-          <input
+          <label htmlFor="forecastingEventsEndYearLabel" className="block text-xs text-gray-500 mb-1">{t('forecastingEventsEndYearLabel')}</label>
+          <input id="forecastingEventsEndYearLabel"
             type="number"
             value={endYearOffset}
             onChange={e => { const v = parseInt(e.target.value, 10); if (!isNaN(v)) setEndYearOffset(Math.max(startYearOffset + 1, v)); }}

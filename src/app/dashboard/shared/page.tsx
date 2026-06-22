@@ -840,8 +840,8 @@ export default function SharedPage() {
               <h2 className="text-xl font-bold text-primary mb-4">{t('sharedAddTransactionTitle')}</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldDescription')}</label>
-                  <input
+                  <label htmlFor="sharedFieldDescription" className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldDescription')}</label>
+                  <input id="sharedFieldDescription"
                     value={txForm.description}
                     onChange={e => setTxForm({ ...txForm, description: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -849,8 +849,8 @@ export default function SharedPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{tFmt('sharedFieldAmountFmt', [currency])}</label>
-                  <input
+                  <label htmlFor="sharedFieldAmountFmt" className="block text-sm font-medium text-gray-700 mb-1">{tFmt('sharedFieldAmountFmt', [currency])}</label>
+                  <input id="sharedFieldAmountFmt"
                     type="number" step="0.01"
                     value={txForm.amount}
                     onChange={e => setTxForm({ ...txForm, amount: e.target.value })}
@@ -859,8 +859,8 @@ export default function SharedPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldCategoryOptional')}</label>
-                  <input
+                  <label htmlFor="sharedFieldCategoryOptional" className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldCategoryOptional')}</label>
+                  <input id="sharedFieldCategoryOptional"
                     value={txForm.category}
                     onChange={e => setTxForm({ ...txForm, category: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -895,8 +895,8 @@ export default function SharedPage() {
               <h2 className="text-xl font-bold text-primary mb-4">{t('sharedAddBudgetTitle')}</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldCategory')}</label>
-                  <input
+                  <label htmlFor="sharedFieldCategory" className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldCategory')}</label>
+                  <input id="sharedFieldCategory"
                     value={budgetForm.category}
                     onChange={e => setBudgetForm({ ...budgetForm, category: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -904,8 +904,8 @@ export default function SharedPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{tFmt('sharedFieldMonthlyLimitFmt', [currency])}</label>
-                  <input
+                  <label htmlFor="sharedFieldMonthlyLimitFmt" className="block text-sm font-medium text-gray-700 mb-1">{tFmt('sharedFieldMonthlyLimitFmt', [currency])}</label>
+                  <input id="sharedFieldMonthlyLimitFmt"
                     type="number" step="0.01"
                     value={budgetForm.monthlyLimit}
                     onChange={e => setBudgetForm({ ...budgetForm, monthlyLimit: e.target.value })}
@@ -940,8 +940,8 @@ export default function SharedPage() {
               <h2 className="text-xl font-bold text-primary mb-4">{t('sharedAddGoalTitle')}</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldGoalName')}</label>
-                  <input
+                  <label htmlFor="sharedFieldGoalName" className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldGoalName')}</label>
+                  <input id="sharedFieldGoalName"
                     value={goalForm.name}
                     onChange={e => setGoalForm({ ...goalForm, name: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -949,8 +949,8 @@ export default function SharedPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{tFmt('sharedFieldTargetAmountFmt', [currency])}</label>
-                  <input
+                  <label htmlFor="sharedFieldTargetAmountFmt" className="block text-sm font-medium text-gray-700 mb-1">{tFmt('sharedFieldTargetAmountFmt', [currency])}</label>
+                  <input id="sharedFieldTargetAmountFmt"
                     type="number" step="0.01"
                     value={goalForm.targetAmount}
                     onChange={e => setGoalForm({ ...goalForm, targetAmount: e.target.value })}
@@ -959,8 +959,8 @@ export default function SharedPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldTargetDateOptional')}</label>
-                  <input
+                  <label htmlFor="sharedFieldTargetDateOptional" className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldTargetDateOptional')}</label>
+                  <input id="sharedFieldTargetDateOptional"
                     type="date"
                     value={goalForm.targetDate}
                     onChange={e => setGoalForm({ ...goalForm, targetDate: e.target.value })}
@@ -968,8 +968,8 @@ export default function SharedPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldDescriptionOptional')}</label>
-                  <textarea
+                  <label htmlFor="sharedFieldDescriptionOptional" className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldDescriptionOptional')}</label>
+                  <textarea id="sharedFieldDescriptionOptional"
                     value={goalForm.description}
                     onChange={e => setGoalForm({ ...goalForm, description: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -1003,8 +1003,8 @@ export default function SharedPage() {
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
               <h2 className="text-xl font-bold text-primary mb-4">{t('sharedContributeTitle')}</h2>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{tFmt('sharedFieldAmountFmtContribute', [currency])}</label>
-                <input
+                <label htmlFor="sharedFieldAmountFmtContribute" className="block text-sm font-medium text-gray-700 mb-1">{tFmt('sharedFieldAmountFmtContribute', [currency])}</label>
+                <input id="sharedFieldAmountFmtContribute"
                   type="number" step="0.01"
                   value={contributeAmount}
                   onChange={e => setContributeAmount(e.target.value)}
@@ -1096,8 +1096,8 @@ export default function SharedPage() {
             <h2 className="text-xl font-bold text-primary mb-4">{t('sharedCreateGroupTitle')}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldGroupName')}</label>
-                <input
+                <label htmlFor="sharedFieldGroupName" className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldGroupName')}</label>
+                <input id="sharedFieldGroupName"
                   value={groupForm.name}
                   onChange={e => setGroupForm({ ...groupForm, name: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -1105,8 +1105,8 @@ export default function SharedPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldDescriptionOptional')}</label>
-                <input
+                <label htmlFor="sharedFieldDescriptionOptional-2" className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldDescriptionOptional')}</label>
+                <input id="sharedFieldDescriptionOptional-2"
                   value={groupForm.description}
                   onChange={e => setGroupForm({ ...groupForm, description: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900"
@@ -1139,8 +1139,8 @@ export default function SharedPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-primary mb-4">{t('sharedJoinGroupTitle')}</h2>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldInviteCode')}</label>
-              <input
+              <label htmlFor="sharedFieldInviteCode" className="block text-sm font-medium text-gray-700 mb-1">{t('sharedFieldInviteCode')}</label>
+              <input id="sharedFieldInviteCode"
                 value={joinCode}
                 onChange={e => setJoinCode(e.target.value)}
                 className="w-full border rounded-lg px-3 py-2 text-gray-900 font-mono text-lg"

@@ -162,8 +162,8 @@ export default function RetirementZakatPage() {
               <form onSubmit={handleCalculate} className="space-y-4">
                 {/* Balance */}
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">{tFmt('retirementZakatTotalBalanceLabelFmt', [symbol])}</label>
-                  <input
+                  <label htmlFor="retirementZakatTotalBalanceLabelFmt" className="block text-sm font-semibold text-primary mb-2">{tFmt('retirementZakatTotalBalanceLabelFmt', [symbol])}</label>
+                  <input id="retirementZakatTotalBalanceLabelFmt"
                     type="number"
                     step="0.01"
                     value={balance}
@@ -176,8 +176,8 @@ export default function RetirementZakatPage() {
 
                 {/* Account Type */}
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">{t('retirementZakatAccountTypeLabel')}</label>
-                  <select
+                  <label htmlFor="retirementZakatAccountTypeLabel" className="block text-sm font-semibold text-primary mb-2">{t('retirementZakatAccountTypeLabel')}</label>
+                  <select id="retirementZakatAccountTypeLabel"
                     value={accountType}
                     onChange={(e) => setAccountType(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
@@ -215,8 +215,8 @@ export default function RetirementZakatPage() {
 
                 {/* State */}
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">{t('retirementZakatStateLabel')}</label>
-                  <select
+                  <label htmlFor="retirementZakatStateLabel" className="block text-sm font-semibold text-primary mb-2">{t('retirementZakatStateLabel')}</label>
+                  <select id="retirementZakatStateLabel"
                     value={state}
                     onChange={(e) => setState(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-700"
