@@ -184,7 +184,13 @@ export default async function RootLayout({
   // so our inline dark-mode bootstrap script executes under nonce-based
   // CSP in production. In development the nonce is undefined and the
   // script falls through to the permissive dev CSP.
-  const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const reqHeaders = await headers();
+  const nonce = reqHeaders.get('x-nonce') ?? undefined;
+  // SSR locale/dir from the proxy's x-locale header (set per URL segment), so
+  // /ar /ur /fr render <html lang dir=rtl> server-side for crawlers + no-JS,
+  // not the old hardcoded lang="en" that only the client script fixed up.
+  const htmlLocale = reqHeaders.get('x-locale') ?? 'en';
+  const htmlDir = htmlLocale === 'ar' || htmlLocale === 'ur' ? 'rtl' : 'ltr';
 
   const organizationSchema = {
     '@context': 'https://schema.org',
@@ -296,7 +302,7 @@ export default async function RootLayout({
   // tracked separately; until then, do not emit FAQPage globally.
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={htmlLocale} dir={htmlDir} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.png" type="image/png" sizes="512x512" />

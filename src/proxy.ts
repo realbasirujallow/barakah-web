@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import {
   DEFAULT_LOCALE,
+  SUPPORTED_LOCALES,
   isLocaleExempt,
   hasLocalePrefix,
 } from './lib/i18n-routing';
@@ -130,6 +131,12 @@ function applyCsp(response: NextResponse, csp?: string): NextResponse {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  // SSR locale: first path segment when it's a supported locale (/ar, /ur, /fr),
+  // else the default. Stamped on x-locale so the root layout can set
+  // <html lang dir> server-side (a11y + crawler hreflang) instead of the
+  // client-only swap that leaves SSR / no-JS / crawlers at lang="en".
+  const seg = pathname.split('/')[1] ?? '';
+  const ssrLocale = (SUPPORTED_LOCALES as readonly string[]).includes(seg) ? seg : DEFAULT_LOCALE;
   const hasAuthToken    = request.cookies.has('auth_token');
   // H-R4-4: treat refresh_token as a valid session indicator on protected
   // routes so silent refresh can succeed before we kick the user to /login.
@@ -171,6 +178,7 @@ export function proxy(request: NextRequest) {
       // Intentional logout/expiry — clear cookies and let /login render
       const requestHeaders = new Headers(request.headers);
       if (nonce) requestHeaders.set('x-nonce', nonce);
+      requestHeaders.set('x-locale', ssrLocale);
       const response = NextResponse.next({ request: { headers: requestHeaders } });
       response.cookies.delete('auth_token');
       response.cookies.delete('refresh_token');
@@ -242,6 +250,7 @@ export function proxy(request: NextRequest) {
   // Default path: apply nonce to request headers so layout.tsx can read it.
   const requestHeaders = new Headers(request.headers);
   if (nonce) requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('x-locale', ssrLocale);
   return applyCsp(NextResponse.next({ request: { headers: requestHeaders } }), csp);
 }
 
