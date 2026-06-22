@@ -13,16 +13,36 @@
  *   trackEvent('sign_up', { method: 'email' });
  */
 
+import posthog from 'posthog-js';
+
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
   }
 }
 
-/** Send a GA4 event. No-op if gtag isn't loaded. */
+/** Fields never forwarded to PostHog (monetary / ids / PII). GA4 still gets them. */
+const POSTHOG_DENY = new Set(['amount', 'value', 'price', 'transaction_id', 'items', 'institution']);
+function sanitizeForPostHog(params?: Record<string, unknown>): Record<string, unknown> | undefined {
+  if (!params) return params;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(params)) if (!POSTHOG_DENY.has(k)) out[k] = v;
+  return out;
+}
+
+/** Send the event to GA4 (gtag) AND mirror it to PostHog when loaded.
+ *  GA4 receives the full params; PostHog receives the event minus monetary/PII
+ *  fields (privacy). No-op for whichever provider isn't configured. */
 export function trackEvent(eventName: string, params?: Record<string, unknown>) {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', eventName, params);
+  }
+  try {
+    if ((posthog as unknown as { __loaded?: boolean }).__loaded) {
+      posthog.capture(eventName, sanitizeForPostHog(params));
+    }
+  } catch {
+    // Analytics must never break the user flow.
   }
 }
 
