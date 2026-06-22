@@ -451,22 +451,22 @@ export default function WaqfPage() {
           >
             <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{editBenef ? t('waqfBenefModalEditTitle') : t('waqfBenefModalAddTitle')}</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldName')}</label>
-                <input value={benefForm.name} onChange={e => setBenefForm({ ...benefForm, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('waqfNamePlaceholder')} /></div>
+              <div><label htmlFor="waqf-benef-name" className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldName')}</label>
+                <input id="waqf-benef-name" value={benefForm.name} onChange={e => setBenefForm({ ...benefForm, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('waqfNamePlaceholder')} /></div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldCategory')}</label>
-                  <select value={benefForm.category} onChange={e => setBenefForm({ ...benefForm, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+                <div><label htmlFor="waqf-benef-category" className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldCategory')}</label>
+                  <select id="waqf-benef-category" value={benefForm.category} onChange={e => setBenefForm({ ...benefForm, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                     {CATEGORIES.map(c => <option key={c} value={c}>{t(CATEGORY_KEY[c] || 'waqfCatOther')}</option>)}</select></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldShare')}</label>
-                  <input type="number" min="0" max="100" step="0.1" value={benefForm.percentage} onChange={e => setBenefForm({ ...benefForm, percentage: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('waqfSharePlaceholder')} /></div>
+                <div><label htmlFor="waqf-benef-share" className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldShare')}</label>
+                  <input id="waqf-benef-share" type="number" min="0" max="100" step="0.1" value={benefForm.percentage} onChange={e => setBenefForm({ ...benefForm, percentage: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('waqfSharePlaceholder')} /></div>
               </div>
               {benefForm.percentage && totalWaqf > 0 && (
                 <p className="text-xs text-teal-700 bg-teal-50 rounded-lg px-3 py-2">{tFmt('waqfShareCalcFmt', [fmt(totalWaqf * (parseFloat(benefForm.percentage) || 0) / 100), fmt(totalWaqf)])}</p>
               )}
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldContact')}</label>
-                <input value={benefForm.contact} onChange={e => setBenefForm({ ...benefForm, contact: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('waqfContactPlaceholder')} /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldNotes')}</label>
-                <textarea value={benefForm.notes} onChange={e => setBenefForm({ ...benefForm, notes: e.target.value })} rows={2} className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none" placeholder={t('waqfNotesPlaceholder')} /></div>
+              <div><label htmlFor="waqf-benef-contact" className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldContact')}</label>
+                <input id="waqf-benef-contact" value={benefForm.contact} onChange={e => setBenefForm({ ...benefForm, contact: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('waqfContactPlaceholder')} /></div>
+              <div><label htmlFor="waqf-benef-notes" className="block text-sm font-medium text-gray-700 mb-1">{t('waqfFieldNotes')}</label>
+                <textarea id="waqf-benef-notes" value={benefForm.notes} onChange={e => setBenefForm({ ...benefForm, notes: e.target.value })} rows={2} className="w-full border rounded-lg px-3 py-2 text-gray-900 resize-none" placeholder={t('waqfNotesPlaceholder')} /></div>
             </div>
             <div className="flex gap-3 mt-6">
               <button aria-label={t('waqfCloseBenefAria')} onClick={() => setShowBenefForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('waqfCancel')}</button>

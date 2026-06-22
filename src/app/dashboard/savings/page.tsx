@@ -441,23 +441,23 @@ export default function SavingsPage() {
           >
             <h2 id="modal-title" className="text-xl font-bold text-primary mb-4">{t('savingsModalNewTitle')}</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('savingsFieldName')}</label>
-                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('savingsNamePlaceholder')} /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('savingsFieldCategory')}</label>
-                <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
+              <div><label htmlFor="savings-name" className="block text-sm font-medium text-gray-700 mb-1">{t('savingsFieldName')}</label>
+                <input id="savings-name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('savingsNamePlaceholder')} /></div>
+              <div><label htmlFor="savings-category" className="block text-sm font-medium text-gray-700 mb-1">{t('savingsFieldCategory')}</label>
+                <select id="savings-category" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900">
                   {CATS.map(c => <option key={c} value={c}>{catLabel(c)}</option>)}
                 </select></div>
               <div>
-                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="savings-target" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
                   {t('savingsFieldTarget')}
                   <FormHelp ariaLabel={t('savingsHelpTarget')}>
                     {t('savingsHelpTargetBody')}
                   </FormHelp>
                 </label>
-                <input type="number" step="0.01" value={form.targetAmount} onChange={e => setForm({ ...form, targetAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="10000" />
+                <input id="savings-target" type="number" step="0.01" value={form.targetAmount} onChange={e => setForm({ ...form, targetAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="10000" />
               </div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">{t('savingsFieldDescription')}</label>
-                <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
+              <div><label htmlFor="savings-description" className="block text-sm font-medium text-gray-700 mb-1">{t('savingsFieldDescription')}</label>
+                <input id="savings-description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
             </div>
             <div className="flex gap-3 mt-6">
               <button type="button" aria-label={t('savingsCloseNewModalAria')} onClick={() => setShowForm(false)} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('savingsCancelBtn')}</button>
