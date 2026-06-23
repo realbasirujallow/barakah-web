@@ -2497,8 +2497,13 @@ export const api = {
 
   /** Personalized financial insights (spending trends, nisab streak, zakat estimates, etc.). */
   // R14: mount-fired on /dashboard — suppress 401 default.
-  getDashboardInsights: (suppressUnauthorized = true) =>
-    apiFetch('/api/dashboard/insights', {}, API_TIMEOUT, suppressUnauthorized),
+  getDashboardInsights: (suppressUnauthorized = true) => {
+    // Render insights in the active UI locale (the stored user.locale can
+    // diverge across devices). Backend falls back to user.locale if absent.
+    let lang = 'en';
+    try { if (typeof window !== 'undefined') lang = localStorage.getItem('barakah_locale') || 'en'; } catch { /* localStorage blocked/absent */ }
+    return apiFetch(`/api/dashboard/insights?lang=${encodeURIComponent(lang)}`, {}, API_TIMEOUT, suppressUnauthorized);
+  },
 
   /** Start churn save flow — returns personalized save offers. */
   startChurnSaveFlow: () =>
