@@ -102,6 +102,31 @@ export default defineConfig({
         },
       },
     },
+    // Mobile-web viewports for the persona walk (2026-06-24). persona-walk
+    // creates its own per-persona context and reads `test.info().project.name`
+    // to size that context to the device, so responsive layout, the hamburger
+    // drawer, and modal sizing get exercised at real phone widths.
+    {
+      name: 'mobile-chrome',
+      use: {
+        ...devices['Pixel 7'],
+        launchOptions: {
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+          ],
+        },
+      },
+    },
+    {
+      name: 'mobile-safari',
+      use: {
+        // devices['iPhone 14'] defaults to the WebKit engine (real Safari
+        // emulation). Requires `npx playwright install webkit`.
+        ...devices['iPhone 14'],
+      },
+    },
   ],
 
   // Auto-boot the Next.js dev server when running against localhost. If the

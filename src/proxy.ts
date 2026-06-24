@@ -119,7 +119,12 @@ function buildCspHeaders(): { nonce?: string; csp?: string } {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
+    // upgrade-insecure-requests is PRODUCTION ONLY — see next.config.ts. Over
+    // plain http://localhost (dev) it's meaningless and breaks WebKit/Safari,
+    // which (unlike Chromium) does NOT exempt localhost from the upgrade and
+    // fails every sub-resource with an SSL error. NODE_ENV is inlined into the
+    // middleware bundle at build time.
+    ...((process.env.NODE_ENV as string) === 'development' ? [] : ['upgrade-insecure-requests']),
   ].join('; ');
   return { nonce, csp };
 }

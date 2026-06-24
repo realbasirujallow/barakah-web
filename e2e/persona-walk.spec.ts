@@ -105,9 +105,30 @@ async function loginViaUI(browser: Browser, persona: Persona): Promise<{
   // UI-driven login. The earlier apiRequest approach produced cookies that
   // didn't round-trip into a fresh browser context cleanly. browser-
   // authenticated.spec.ts uses the same pattern and is the proven path.
+  // Size the per-persona context to the active project: desktop keeps the
+  // wide 1366×900; the mobile-chrome / mobile-safari projects inherit the
+  // device viewport/UA/touch (Pixel 7 / iPhone 14) so responsive layout, the
+  // hamburger drawer, and modal sizing are exercised at real phone widths.
+  // (isMobile is intentionally omitted — it's Chromium-only and would throw
+  // when creating a WebKit context for mobile-safari.)
+  const proj = test.info().project;
+  const isMobileProject = proj.name.startsWith('mobile');
+  const du = proj.use as {
+    viewport?: { width: number; height: number } | null;
+    userAgent?: string;
+    deviceScaleFactor?: number;
+    hasTouch?: boolean;
+  };
   const ctx = await browser.newContext({
-    viewport: { width: 1366, height: 900 },
-    baseURL: 'http://localhost:3000',
+    ...(isMobileProject
+      ? {
+          viewport: du.viewport ?? { width: 412, height: 915 },
+          userAgent: du.userAgent,
+          deviceScaleFactor: du.deviceScaleFactor,
+          hasTouch: du.hasTouch ?? true,
+        }
+      : { viewport: { width: 1366, height: 900 } }),
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
   });
   const page = await ctx.newPage();
   await page.goto('/login', { waitUntil: 'networkidle' }).catch(() => {});

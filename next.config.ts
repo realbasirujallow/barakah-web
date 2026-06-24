@@ -116,8 +116,12 @@ const csp = [
   "form-action 'self'",
   // Disallow embedding in iframes anywhere — clickjacking protection
   "frame-ancestors 'none'",
-  // Force all sub-resource requests to HTTPS
-  "upgrade-insecure-requests",
+  // Force all sub-resource requests to HTTPS — PRODUCTION ONLY. Over plain
+  // http://localhost (dev), this directive is meaningless and actively breaks
+  // WebKit/Safari, which (unlike Chromium) does NOT exempt localhost from the
+  // upgrade and fails every sub-resource with an SSL error. Prod is always
+  // https, so the directive still ships there.
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ]
   .join("; ");
 
