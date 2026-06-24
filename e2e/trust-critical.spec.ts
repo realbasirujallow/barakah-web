@@ -44,8 +44,12 @@ test.describe('Round 33: trust-critical surfaces', () => {
     await page.fill('input[type="email"]', EMAIL);
     await page.fill('input[type="password"]', PASSWORD);
     await page.click('button[type="submit"]');
-    // Accept either /dashboard (setup complete) or /setup (first-run).
-    await page.waitForURL(/\/(dashboard|setup)/, { timeout: 15000 });
+    // Accept /dashboard (setup complete), /setup (first-run), or the
+    // /onboarding/locale-confirm shell (Wave 2, 2026-05-27 — shown once per
+    // device after setup until the user confirms/skips a locale). A fresh
+    // Playwright context never has the "seen" flag, so login always lands
+    // there; the priming below clears it and we force-navigate to /dashboard.
+    await page.waitForURL(/\/(dashboard|setup|onboarding\/locale-confirm)/, { timeout: 15000 });
 
     // R5 follow-up (2026-04-18): prime localStorage to mark guided setup
     // as completed for this session, same pattern that already unblocks
@@ -65,6 +69,9 @@ test.describe('Round 33: trust-critical surfaces', () => {
             window.localStorage.setItem(`barakah_guided_setup_v1:${id}`, 'true');
             window.localStorage.setItem('barakah_onboarded', 'true');
             window.localStorage.setItem('barakah_referral_prompted', 'true');
+            // Wave 2 (2026-05-27): mark the one-time locale-confirm shell as
+            // seen so navigation lands on /dashboard, not the onboarding step.
+            window.localStorage.setItem('barakah_onboarding_locale_seen', '1');
           }, userId);
         }
       }
@@ -72,9 +79,13 @@ test.describe('Round 33: trust-critical surfaces', () => {
       // localStorage quirk — fall back to the legacy skip behaviour below.
     }
 
-    // If we landed on /setup, force-navigate to /dashboard now that the
-    // guided-setup flag is primed. The layout won't bounce us anymore.
-    if (/\/setup(\/|$)/.test(page.url())) {
+    // If we landed on /setup or the /onboarding/locale-confirm shell,
+    // force-navigate to /dashboard now that the guided-setup + locale-seen
+    // flags are primed. The layout won't bounce us anymore.
+    if (
+      /\/setup(\/|$)/.test(page.url()) ||
+      /\/onboarding\/locale-confirm/.test(page.url())
+    ) {
       await page.goto(`${BASE}/dashboard`);
       await page.waitForLoadState('networkidle').catch(() => {});
     }
@@ -116,7 +127,12 @@ test.describe('Round 33: trust-critical surfaces', () => {
   test('/dashboard/categorize has the Re-categorize button', async () => {
     test.skip(!setupCompleted, 'E2E account is on /setup — finish onboarding to run dashboard assertions');
     await page.goto(`${BASE}/dashboard/categorize`);
-    await page.waitForLoadState('networkidle').catch(() => {});
+    // Do NOT wait for 'networkidle' here: the backfill button is part of the
+    // page chrome (rendered immediately, not data-dependent — see
+    // categorize/page.tsx commit 017803f), but the page's two data fetches
+    // (rules + transactions) keep the network busy long enough on a
+    // data-heavy account to blow the test budget. The auto-waiting assertion
+    // below is sufficient and reliable.
     // R32 backfill feature — if this button ever disappears, the user lost
     // the only way to apply new categorization rules to historical data.
     await expect(page.getByText(/Re-categorize my existing transactions/i)).toBeVisible({
