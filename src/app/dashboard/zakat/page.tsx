@@ -742,7 +742,7 @@ export default function ZakatPage() {
                 multi-currency users. Pre-fix display showed
                 "Rs <USD-amount>" which mis-led non-USD users into believing
                 the figure was already in their currency. */}
-            <p className="text-5xl font-bold">
+            <p className="text-3xl sm:text-4xl md:text-5xl font-bold break-words">
               {hideZakat
                 ? '••••••'
                 : fmt((data?.zakatDueUserCurrency as number | undefined) ?? zakatDue ?? 0)}
