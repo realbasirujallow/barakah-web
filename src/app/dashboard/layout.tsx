@@ -475,8 +475,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     );
   };
 
+  // overflow-x-clip on the shell stops the off-canvas sidebar + sr-only
+  // skip-link from producing a few px of phantom horizontal scroll (most
+  // visible under dir="rtl"). `clip` (not `hidden`) leaves overflow-y
+  // visible, so the window stays the vertical scroll container — see the
+  // main scroll note below. The fixed sidebar isn't clipped (this div isn't
+  // a containing block for it), so the drawer still slides fully into view.
   return (
-    <div className="min-h-screen bg-[#FFF8E1] flex">
+    <div className="min-h-screen bg-[#FFF8E1] flex overflow-x-clip">
       {/*
         Phase 4.3 sidebar — Monarch-style light surface with semantic
         shadcn tokens. The sidebar is now a 3-row flex column (header /

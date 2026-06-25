@@ -1716,8 +1716,8 @@ export default function TransactionsPage() {
                 }
               }}
               aria-label={tFmt('txnRowAria', [tx.description || categoryLabel(tx.category), selectMode ? t('txnRowActionSelect') : t('txnRowActionEdit')])}
-              className={`group bg-card rounded-xl p-4 flex justify-between items-center cursor-pointer border border-transparent transition-all hover:border-primary/20 hover:bg-accent/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-primary bg-primary/5' : ''} ${tx.excludedFromReports ? 'opacity-60' : ''}`}>
-              <div className="flex items-center gap-3">
+              className={`group bg-card rounded-xl p-4 flex justify-between items-center gap-3 cursor-pointer border border-transparent transition-all hover:border-primary/20 hover:bg-accent/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectMode && (selectedIds.has(tx.id) || selectAllPages) ? 'ring-2 ring-primary bg-primary/5' : ''} ${tx.excludedFromReports ? 'opacity-60' : ''}`}>
+              <div className="flex items-center gap-3 flex-1 min-w-0">
                 {selectMode && (
                   <input type="checkbox" checked={selectedIds.has(tx.id) || selectAllPages}
                     onChange={(e) => toggleSelect(tx.id, rowIdx, e.nativeEvent instanceof MouseEvent ? (e.nativeEvent as MouseEvent).shiftKey : false)}
@@ -1741,7 +1741,7 @@ export default function TransactionsPage() {
                     size={32}
                   />
                 )}
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     {/* 2026-05-03: prettifyDescription compresses raw
                         ACH/POS/Zelle blobs ("ORIG CO NAME:IN 529 Dir
@@ -1877,7 +1877,7 @@ export default function TransactionsPage() {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-shrink-0">
                 <p className={`text-lg font-bold tabular-nums ${presentation.amountClass}`}>
                   {presentation.sign}{txAmount(tx, fmt, dateLocale, preferredCurrency)}
                 </p>
