@@ -15,7 +15,18 @@ import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { FormHelp } from '../../../components/dashboard/FormHelp';
 import { useI18n } from '../../../lib/i18n';
 
-interface Goal { id: number; name: string; category: string; targetAmount: number; currentAmount: number; description: string; deadline: number | null; }
+interface Goal {
+  id: number; name: string; category: string; targetAmount: number; currentAmount: number;
+  description: string; deadline: number | null;
+  // 2026-06-22 on-track projection (server-computed; all optional/nullable)
+  monthlyContribution?: number | null;
+  expectedGrowthRate?: number | null;
+  monthsToGoal?: number | null;
+  projectedCompletionDate?: number | null;
+  onTrack?: boolean | null;
+  requiredMonthlyContribution?: number | null;
+  projectedAmountAtDeadline?: number | null;
+}
 const CATS = ['hajj', 'umrah', 'emergency', 'education', 'wedding', 'home', 'vehicle', 'business', 'retirement', 'other'];
 const CAT_KEYS: Record<string, string> = {
   hajj: 'savingsCatHajj', umrah: 'savingsCatUmrah', emergency: 'savingsCatEmergency',
@@ -37,11 +48,12 @@ export default function SavingsPage() {
   const { fmt, symbol } = useCurrency();
   const { t, tFmt } = useI18n();
   const catLabel = (c: string) => CAT_KEYS[c] ? t(CAT_KEYS[c]) : c.charAt(0).toUpperCase() + c.slice(1);
+  const fmtMonthYear = (ms: number) => new Date(ms).toLocaleDateString(undefined, { month: 'short', year: 'numeric', timeZone: 'UTC' });
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [contModal, setContModal] = useState<Goal | null>(null);
-  const [form, setForm] = useState({ name: '', category: 'emergency', targetAmount: '', description: '' });
+  const [form, setForm] = useState({ name: '', category: 'emergency', targetAmount: '', description: '', monthlyContribution: '', targetDate: '', growthPct: '' });
   const [contAmount, setContAmount] = useState('');
   const [saving, setSaving] = useState(false);
   const [showHajjPrompt, setShowHajjPrompt] = useState(true);
@@ -148,8 +160,22 @@ export default function SavingsPage() {
         setSaving(false);
         return;
       }
-      await api.addSavingsGoal({ ...form, name: form.name.trim(), targetAmount: target });
-      setShowForm(false); setForm({ name: '', category: 'emergency', targetAmount: '', description: '' }); load();
+      // Build explicit payload: omit empty optionals (backend parses any present
+      // value as BigDecimal, so a blank string would 400), convert the date to
+      // epoch millis and the growth % to a fraction (parity with forecasting).
+      const payload: Record<string, unknown> = {
+        name: form.name.trim(), category: form.category, targetAmount: target, description: form.description,
+      };
+      const monthly = parseFloat(form.monthlyContribution);
+      if (form.monthlyContribution.trim() && Number.isFinite(monthly) && monthly > 0) payload.monthlyContribution = monthly;
+      if (form.targetDate) {
+        const ms = new Date(form.targetDate + 'T00:00:00Z').getTime();
+        if (Number.isFinite(ms)) payload.deadline = ms;
+      }
+      const growth = parseFloat(form.growthPct);
+      if (form.growthPct.trim() && Number.isFinite(growth)) payload.expectedGrowthRate = growth / 100;
+      await api.addSavingsGoal(payload);
+      setShowForm(false); setForm({ name: '', category: 'emergency', targetAmount: '', description: '', monthlyContribution: '', targetDate: '', growthPct: '' }); load();
       toast(t('savingsCreatedToast'), 'success');
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('savingsCreateError');
@@ -293,7 +319,7 @@ export default function SavingsPage() {
             </div>
           </div>
           <button onClick={() => {
-            setForm({ name: t('savingsHajjGoalName'), category: 'hajj', targetAmount: '10000', description: t('savingsHajjGoalDesc') });
+            setForm({ name: t('savingsHajjGoalName'), category: 'hajj', targetAmount: '10000', description: t('savingsHajjGoalDesc'), monthlyContribution: '', targetDate: '', growthPct: '' });
             setShowForm(true);
           }} className="bg-white text-amber-700 font-bold px-4 py-2 rounded-lg text-sm hover:bg-amber-50 transition">
             {t('savingsHajjPromptBtn')}
@@ -313,7 +339,7 @@ export default function SavingsPage() {
             </div>
           </div>
           <button onClick={() => {
-            setForm({ name: t('savingsUmrahGoalName'), category: 'umrah', targetAmount: '3000', description: t('savingsUmrahGoalDesc') });
+            setForm({ name: t('savingsUmrahGoalName'), category: 'umrah', targetAmount: '3000', description: t('savingsUmrahGoalDesc'), monthlyContribution: '', targetDate: '', growthPct: '' });
             setShowForm(true);
           }} className="bg-white text-teal-700 font-bold px-4 py-2 rounded-lg text-sm hover:bg-teal-50 transition">
             {t('savingsUmrahPromptBtn')}
@@ -397,6 +423,29 @@ export default function SavingsPage() {
                     </p>
                   )}
                 </div>
+                {/* On-track projection (2026-06-22). Shows only when the goal has a
+                    plan: a deadline gives an on/off-track verdict; otherwise just a
+                    projected finish date. No plan → a subtle hint to add one. */}
+                {!done && (g.onTrack === true || g.onTrack === false) && (
+                  <div className="mt-2 flex items-center gap-2 text-xs">
+                    <span className={`px-2 py-0.5 rounded-full font-semibold ${g.onTrack ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {g.onTrack ? t('savingsOnTrackBadge') : t('savingsOffTrackBadge')}
+                    </span>
+                    <span className="text-gray-500">
+                      {g.onTrack
+                        ? (g.projectedCompletionDate ? tFmt('savingsOnTrackByFmt', [fmtMonthYear(g.projectedCompletionDate)]) : '')
+                        : (g.requiredMonthlyContribution != null ? tFmt('savingsOffTrackNeedFmt', [fmt(g.requiredMonthlyContribution)]) : '')}
+                    </span>
+                  </div>
+                )}
+                {!done && (g.onTrack === null || g.onTrack === undefined) && g.projectedCompletionDate && g.monthlyContribution != null && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    {tFmt('savingsProjectedReachFmt', [fmt(g.monthlyContribution), fmtMonthYear(g.projectedCompletionDate)])}
+                  </p>
+                )}
+                {!done && g.monthlyContribution == null && (
+                  <p className="mt-2 text-xs text-gray-400">{t('savingsAddPlanHint')}</p>
+                )}
               </div>
             );
           })}
@@ -455,6 +504,24 @@ export default function SavingsPage() {
                   </FormHelp>
                 </label>
                 <input id="savings-target" type="number" step="0.01" value={form.targetAmount} onChange={e => setForm({ ...form, targetAmount: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="10000" />
+              </div>
+              <div>
+                <label htmlFor="savings-monthly" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                  {t('savingsFieldMonthly')}
+                  <FormHelp ariaLabel={t('savingsHelpMonthly')}>{t('savingsHelpMonthlyBody')}</FormHelp>
+                </label>
+                <input id="savings-monthly" type="number" step="0.01" min="0" value={form.monthlyContribution} onChange={e => setForm({ ...form, monthlyContribution: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="500" />
+              </div>
+              <div>
+                <label htmlFor="savings-target-date" className="block text-sm font-medium text-gray-700 mb-1">{t('savingsFieldTargetDate')}</label>
+                <input id="savings-target-date" type="date" value={form.targetDate} onChange={e => setForm({ ...form, targetDate: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" />
+              </div>
+              <div>
+                <label htmlFor="savings-growth" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+                  {t('savingsFieldGrowth')}
+                  <FormHelp ariaLabel={t('savingsHelpGrowth')}>{t('savingsHelpGrowthBody')}</FormHelp>
+                </label>
+                <input id="savings-growth" type="number" step="0.1" min="0" value={form.growthPct} onChange={e => setForm({ ...form, growthPct: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder="5" />
               </div>
               <div><label htmlFor="savings-description" className="block text-sm font-medium text-gray-700 mb-1">{t('savingsFieldDescription')}</label>
                 <input id="savings-description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-gray-900" /></div>
