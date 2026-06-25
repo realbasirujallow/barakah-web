@@ -549,7 +549,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {t('a11ySkipToMain')}
       </a>
       <ToastProvider>
-        <div className="flex-1 flex flex-col min-h-screen">
+        <div className="flex-1 flex flex-col min-h-screen min-w-0">
           <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between lg:justify-end">
             {/* Round 19: added aria-expanded / aria-controls so screen
                 readers and keyboard users can tell whether the sidebar
@@ -617,7 +617,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               scrolling itself (clientHeight === scrollHeight). The window is the
               real scroll container here, so let content flow to it. Inner wide
               tables keep their own `overflow-x-auto`. */}
-          <main id="dashboard-main" tabIndex={-1} className="flex-1 p-6 pb-28">
+          <main id="dashboard-main" tabIndex={-1} className="flex-1 p-6 pb-28 min-w-0">
             {/* Lane 10 (2026-05-09): super-admin "View as user" support banner */}
             <SupportModeBanner />
             <TrialBanner />

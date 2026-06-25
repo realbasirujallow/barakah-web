@@ -197,7 +197,7 @@ async function observe(page: Page, persona: Persona, surface: { slug: string; pa
   const htmlLang = await page.evaluate(() => document.documentElement.getAttribute('lang'));
 
   // Save screenshot
-  const outDir = join('test-results', 'persona-walk', persona.id);
+  const outDir = join('test-results', 'persona-walk', test.info().project.name, persona.id);
   mkdirSync(outDir, { recursive: true });
   await page
     .screenshot({ path: join(outDir, `${surface.slug}.png`), fullPage: true })
@@ -243,42 +243,63 @@ test.describe('Multi-persona headed visual walk', () => {
     });
   }
 
-  test.afterAll(async () => {
-    const reportPath = 'test-results/persona-walk/observations.json';
-    mkdirSync('test-results/persona-walk', { recursive: true });
-    writeFileSync(reportPath, JSON.stringify(observations, null, 2));
+  test.afterAll(async ({}, testInfo) => {
+    // Per-project output dir so chromium / mobile-chrome / mobile-safari runs
+    // don't overwrite each other's evidence.
+    const proj = testInfo.project.name;
+    const outBase = join('test-results', 'persona-walk', proj);
+    mkdirSync(outBase, { recursive: true });
+    writeFileSync(join(outBase, 'observations.json'), JSON.stringify(observations, null, 2));
 
-    // Also write a human-readable findings summary
-    const findings: string[] = [];
-    findings.push('# Persona walk observations\n');
+    // An offender is "expected (plan-gated)" when its ONLY issue is one or more
+    // 403/Forbidden console errors — these are free/limited-plan personas whose
+    // dashboard fires a plus/family-gated request that correctly returns 403.
+    // The browser logs the network failure regardless; it is not a product bug.
+    const is403Only = (o: PageObservation) =>
+      o.consoleErrorCount > 0 &&
+      o.consoleErrorSamples.length > 0 &&
+      o.consoleErrorSamples.every((s) => /\b403\b|Forbidden/i.test(s)) &&
+      !o.hadUntranslatedKey && !o.hadNaN && !o.hadUndefinedShown &&
+      !o.hadHorizontalScroll && o.status < 400;
+
     const offenders = observations.filter(
       (o) =>
-        o.hadUntranslatedKey ||
-        o.hadNaN ||
-        o.hadUndefinedShown ||
-        o.hadHorizontalScroll ||
-        o.consoleErrorCount > 0 ||
-        o.status >= 400,
+        o.hadUntranslatedKey || o.hadNaN || o.hadUndefinedShown ||
+        o.hadHorizontalScroll || o.consoleErrorCount > 0 || o.status >= 400,
     );
-    findings.push(`Total surfaces walked: ${observations.length}`);
-    findings.push(`Offending surfaces: ${offenders.length}\n`);
-    for (const o of offenders) {
-      const tags = [
+    const expected = offenders.filter(is403Only);
+    const real = offenders.filter((o) => !is403Only(o));
+
+    const tagsFor = (o: PageObservation) =>
+      [
         o.hadUntranslatedKey && 'UNTRANSLATED_KEY',
         o.hadNaN && 'NaN_SHOWN',
         o.hadUndefinedShown && 'UNDEFINED_SHOWN',
         o.hadHorizontalScroll && 'H_SCROLL',
         o.consoleErrorCount > 0 && `CONSOLE_ERR(${o.consoleErrorCount})`,
         o.status >= 400 && `HTTP_${o.status}`,
-      ]
-        .filter(Boolean)
-        .join(' ');
-      findings.push(`- [${o.persona}] ${o.surface} → ${tags}`);
-      if (o.consoleErrorSamples.length) {
-        for (const s of o.consoleErrorSamples) findings.push(`    console: ${s}`);
-      }
+      ].filter(Boolean).join(' ');
+
+    const findings: string[] = [];
+    findings.push(`# Persona walk observations — project: ${proj}\n`);
+    findings.push(`Total surfaces walked: ${observations.length}`);
+    findings.push(`Real-error surfaces: ${real.length}`);
+    findings.push(`Expected plan-gated (403-only) surfaces: ${expected.length}\n`);
+
+    findings.push('## Real errors (need attention)');
+    if (real.length === 0) findings.push('- none ✅');
+    for (const o of real) {
+      findings.push(`- [${o.persona}] ${o.surface} → ${tagsFor(o)}`);
+      for (const s of o.consoleErrorSamples) findings.push(`    console: ${s}`);
     }
-    writeFileSync('test-results/persona-walk/findings.md', findings.join('\n'));
+
+    findings.push('\n## Expected — plan-gated 403s (not bugs)');
+    if (expected.length === 0) findings.push('- none');
+    for (const o of expected) {
+      findings.push(`- [${o.persona}] ${o.surface} → ${tagsFor(o)} (free/limited plan hitting a gated endpoint)`);
+    }
+
+    writeFileSync(join(outBase, 'findings.md'), findings.join('\n'));
     expect(true).toBe(true); // afterAll is allowed to call expect
   });
 });
