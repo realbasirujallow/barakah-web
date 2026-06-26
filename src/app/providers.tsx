@@ -44,7 +44,12 @@ function PostHogInit({ children }: { children: React.ReactNode }) {
         api_host: '/ingest',
         ui_host: uiHost,
         person_profiles: 'identified_only',
-        capture_pageview: false,
+        // 'history_change' captures $pageview on initial load AND on every
+        // client-side route change via the History API. Plain `false` left
+        // Web Analytics blind (no $pageview ever sent) on this Next.js App
+        // Router app, while autocapture/custom events still flowed — so the
+        // dashboard showed 0 pageviews/visitors despite live traffic.
+        capture_pageview: 'history_change',
         capture_pageleave: true,
       });
     }
