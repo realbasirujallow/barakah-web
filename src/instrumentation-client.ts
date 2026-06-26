@@ -3,8 +3,36 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import posthog from 'posthog-js';
 
 const isProd = process.env.NODE_ENV === 'production';
+
+// --- PostHog ---------------------------------------------------------------
+// Initialize PostHog HERE (client bootstrap, runs before the app renders) —
+// NOT in a React provider/effect. The earlier provider-based inits ran after
+// (or raced) hydration, so the initial `capture('$pageview')` fired before
+// posthog finished init and posthog-js silently dropped it (Web Analytics
+// showed 0 pageviews despite live traffic). With init here, posthog captures
+// $pageview itself on initial load + every App Router navigation.
+const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+if (POSTHOG_KEY) {
+  posthog.init(POSTHOG_KEY, {
+    // Prod uses the '/ingest' reverse-proxy (next.config rewrites → us.i.posthog.com).
+    // NEXT_PUBLIC_POSTHOG_HOST lets the local proof point straight at PostHog
+    // (the localhost proxy doesn't complete posthog's init); unset in prod.
+    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || '/ingest',
+    ui_host: process.env.NEXT_PUBLIC_POSTHOG_UI_HOST || 'https://us.posthog.com',
+    person_profiles: 'identified_only',
+    // `true` captures $pageview on the initial page load (full navigation);
+    // posthog-js also tracks SPA navigations via the History API in this
+    // version. ('history_change' alone fired only on history changes, NOT the
+    // initial load, so full-page landings — the bulk of marketing traffic —
+    // went uncounted.)
+    capture_pageview: true,
+    capture_pageleave: true,
+  });
+}
+// ---------------------------------------------------------------------------
 
 // DSN is REQUIRED via NEXT_PUBLIC_SENTRY_DSN. There is intentionally no
 // hardcoded fallback: a fallback to the production project would cause

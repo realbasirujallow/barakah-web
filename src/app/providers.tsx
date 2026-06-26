@@ -5,8 +5,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import { captureAcquisitionFromUrl, captureReferralCodeFromUrl } from '../lib/api';
 import { Toaster } from '../components/ui/sonner';
 import posthog from 'posthog-js';
-import { PostHogProvider, usePostHog } from 'posthog-js/react';
-import { usePathname } from 'next/navigation';
+import { PostHogProvider } from 'posthog-js/react';
 import { useEffect } from 'react';
 import Script from 'next/script';
 
@@ -32,62 +31,17 @@ function AcquisitionCapture() {
   return null;
 }
 
-// Module-scoped guard so init runs exactly once, even across re-renders.
-let posthogInitialized = false;
-
 function PostHogInit({ children }: { children: React.ReactNode }) {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  // Round 34: move `ui_host` out of source and into an env var so that
-  // self-hosted PostHog instances and EU-region deployments don't require a
-  // code change. Defaults to the US region to preserve the prior behavior.
-  const uiHost = process.env.NEXT_PUBLIC_POSTHOG_UI_HOST || 'https://us.posthog.com';
-
-  // Initialize SYNCHRONOUSLY during render (client-only, once) — NOT in a
-  // useEffect. <PostHogPageView/> is a child of this provider, so React runs
-  // its capture effect BEFORE a parent useEffect would run init; an init in
-  // useEffect therefore meant the first `capture('$pageview')` fired pre-init
-  // and posthog-js dropped it (verified: 0 $pageview, only $pageleave, in the
-  // event store). Initializing in render guarantees init precedes every child
-  // effect, so the initial + every route-change $pageview is captured.
-  if (typeof window !== 'undefined' && key && !posthogInitialized) {
-    posthog.init(key, {
-      api_host: '/ingest',
-      ui_host: uiHost,
-      person_profiles: 'identified_only',
-      // $pageview captured manually by <PostHogPageView/> (usePathname).
-      capture_pageview: false,
-      capture_pageleave: true,
-    });
-    posthogInitialized = true;
-  }
-
+  // PostHog is initialized in `src/instrumentation-client.ts` — a Next.js
+  // client bootstrap that runs BEFORE the app renders — which also captures
+  // $pageview/$pageleave itself (capture_pageview: true). Here we only expose
+  // the already-initialized client via context so components can use
+  // `usePostHog()`. No init/manual-capture happens at render time.
   if (key) {
-    return (
-      <PostHogProvider client={posthog}>
-        <PostHogPageView />
-        {children}
-      </PostHogProvider>
-    );
+    return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
   }
   return <>{children}</>;
-}
-
-/**
- * Manually captures a `$pageview` on first mount and on every Next.js App
- * Router client-side navigation. Uses `usePathname` only (no
- * `useSearchParams`) so it needs no Suspense boundary; `posthog.capture`
- * fills `$current_url` from `window.location`. This is what makes Web
- * Analytics (which is built on `$pageview`) record traffic.
- */
-function PostHogPageView() {
-  const pathname = usePathname();
-  const posthog = usePostHog();
-  useEffect(() => {
-    if (pathname && posthog) {
-      posthog.capture('$pageview');
-    }
-  }, [pathname, posthog]);
-  return null;
 }
 
 /** Google Analytics 4 — only loads when NEXT_PUBLIC_GA_MEASUREMENT_ID is set */
