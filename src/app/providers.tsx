@@ -5,7 +5,8 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import { captureAcquisitionFromUrl, captureReferralCodeFromUrl } from '../lib/api';
 import { Toaster } from '../components/ui/sonner';
 import posthog from 'posthog-js';
-import { PostHogProvider } from 'posthog-js/react';
+import { PostHogProvider, usePostHog } from 'posthog-js/react';
+import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import Script from 'next/script';
 
@@ -44,21 +45,45 @@ function PostHogInit({ children }: { children: React.ReactNode }) {
         api_host: '/ingest',
         ui_host: uiHost,
         person_profiles: 'identified_only',
-        // 'history_change' captures $pageview on initial load AND on every
-        // client-side route change via the History API. Plain `false` left
-        // Web Analytics blind (no $pageview ever sent) on this Next.js App
-        // Router app, while autocapture/custom events still flowed — so the
-        // dashboard showed 0 pageviews/visitors despite live traffic.
-        capture_pageview: 'history_change',
+        // $pageview is captured MANUALLY by <PostHogPageView /> below.
+        // Auto-capture is unreliable on Next.js App Router: `false` sent
+        // nothing, and `'history_change'` did not emit on initial page
+        // loads — both left Web Analytics blind (0 pageviews) despite live
+        // traffic. The usePathname effect fires on first mount and on every
+        // client-side navigation, which is PostHog's recommended pattern.
+        capture_pageview: false,
         capture_pageleave: true,
       });
     }
   }, [key, uiHost]);
 
   if (key) {
-    return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
+    return (
+      <PostHogProvider client={posthog}>
+        <PostHogPageView />
+        {children}
+      </PostHogProvider>
+    );
   }
   return <>{children}</>;
+}
+
+/**
+ * Manually captures a `$pageview` on first mount and on every Next.js App
+ * Router client-side navigation. Uses `usePathname` only (no
+ * `useSearchParams`) so it needs no Suspense boundary; `posthog.capture`
+ * fills `$current_url` from `window.location`. This is what makes Web
+ * Analytics (which is built on `$pageview`) record traffic.
+ */
+function PostHogPageView() {
+  const pathname = usePathname();
+  const posthog = usePostHog();
+  useEffect(() => {
+    if (pathname && posthog) {
+      posthog.capture('$pageview');
+    }
+  }, [pathname, posthog]);
+  return null;
 }
 
 /** Google Analytics 4 — only loads when NEXT_PUBLIC_GA_MEASUREMENT_ID is set */
