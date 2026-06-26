@@ -32,6 +32,9 @@ function AcquisitionCapture() {
   return null;
 }
 
+// Module-scoped guard so init runs exactly once, even across re-renders.
+let posthogInitialized = false;
+
 function PostHogInit({ children }: { children: React.ReactNode }) {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
   // Round 34: move `ui_host` out of source and into an env var so that
@@ -39,23 +42,24 @@ function PostHogInit({ children }: { children: React.ReactNode }) {
   // code change. Defaults to the US region to preserve the prior behavior.
   const uiHost = process.env.NEXT_PUBLIC_POSTHOG_UI_HOST || 'https://us.posthog.com';
 
-  useEffect(() => {
-    if (key) {
-      posthog.init(key, {
-        api_host: '/ingest',
-        ui_host: uiHost,
-        person_profiles: 'identified_only',
-        // $pageview is captured MANUALLY by <PostHogPageView /> below.
-        // Auto-capture is unreliable on Next.js App Router: `false` sent
-        // nothing, and `'history_change'` did not emit on initial page
-        // loads — both left Web Analytics blind (0 pageviews) despite live
-        // traffic. The usePathname effect fires on first mount and on every
-        // client-side navigation, which is PostHog's recommended pattern.
-        capture_pageview: false,
-        capture_pageleave: true,
-      });
-    }
-  }, [key, uiHost]);
+  // Initialize SYNCHRONOUSLY during render (client-only, once) — NOT in a
+  // useEffect. <PostHogPageView/> is a child of this provider, so React runs
+  // its capture effect BEFORE a parent useEffect would run init; an init in
+  // useEffect therefore meant the first `capture('$pageview')` fired pre-init
+  // and posthog-js dropped it (verified: 0 $pageview, only $pageleave, in the
+  // event store). Initializing in render guarantees init precedes every child
+  // effect, so the initial + every route-change $pageview is captured.
+  if (typeof window !== 'undefined' && key && !posthogInitialized) {
+    posthog.init(key, {
+      api_host: '/ingest',
+      ui_host: uiHost,
+      person_profiles: 'identified_only',
+      // $pageview captured manually by <PostHogPageView/> (usePathname).
+      capture_pageview: false,
+      capture_pageleave: true,
+    });
+    posthogInitialized = true;
+  }
 
   if (key) {
     return (
