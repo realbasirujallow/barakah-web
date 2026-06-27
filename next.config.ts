@@ -347,11 +347,12 @@ const nextConfig: NextConfig = {
         { source: "/health", destination: `${BACKEND_URL}/health` },
       ],
       afterFiles: [
-        // PostHog reverse proxy
-        {
-          source: "/ingest/static/:path*",
-          destination: "https://us-assets.i.posthog.com/static/:path*",
-        },
+        // PostHog reverse proxy.
+        // NOTE: /ingest/static/* is handled by the Route Handler at
+        // src/app/ingest/static/[...path]/route.ts (NOT a rewrite) — a plain
+        // rewrite forwards `Host: trybarakah.com` to us-assets.i.posthog.com,
+        // which rejects it with 403, breaking replay/surveys/web-vitals in
+        // production (config/decide/flags still work via us.i.posthog.com).
         {
           source: "/ingest/:path*",
           destination: "https://us.i.posthog.com/:path*",
