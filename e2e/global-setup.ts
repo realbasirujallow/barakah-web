@@ -48,8 +48,19 @@ async function globalSetup() {
 
   const ctx = await apiRequest.newContext({ baseURL: API });
   try {
+    // Bootstrap CSRF cookie FIRST. The backend enforces CSRF double-submit on
+    // POST /auth/login, so logging in before /auth/csrf returns 403 and the
+    // whole authenticated suite silently skips. /auth/csrf returns 204 +
+    // Set-Cookie XSRF-TOKEN; the cookie jar picks it up and we snapshot the
+    // value for the double-submit header.
+    await ctx.get('/auth/csrf');
+    const xsrf = (await ctx.storageState()).cookies.find(
+      (c) => c.name === 'XSRF-TOKEN',
+    )?.value;
+
     const loginRes = await ctx.post('/auth/login', {
       data: { email: EMAIL, password: PASSWORD },
+      headers: xsrf ? { 'X-XSRF-TOKEN': xsrf } : {},
     });
     if (!loginRes.ok()) {
       // Don't hard-fail the whole run — write empty state and let the
@@ -65,17 +76,16 @@ async function globalSetup() {
       return;
     }
 
-    // Bootstrap CSRF cookie. /auth/csrf is same-origin and returns 204 +
-    // Set-Cookie XSRF-TOKEN. The cookie jar auto-picks it up; we also
-    // snapshot the value for the double-submit header env var.
+    // Re-snapshot the CSRF token (login may rotate the cookie) for spec
+    // workers. Playwright's FullConfig doesn't let us pass env to spec files
+    // directly, but process.env mutations in globalSetup ARE visible to spec
+    // workers because Playwright spawns them as children AFTER setup resolves
+    // (documented, stable since 1.18).
     await ctx.get('/auth/csrf');
-    const state = await ctx.storageState();
-    const csrf = state.cookies.find((c) => c.name === 'XSRF-TOKEN');
+    const csrf = (await ctx.storageState()).cookies.find(
+      (c) => c.name === 'XSRF-TOKEN',
+    );
     if (csrf?.value) {
-      // Playwright's FullConfig doesn't let us pass env to spec files
-      // directly, but process.env mutations in globalSetup ARE visible
-      // to spec workers because Playwright spawns them as children AFTER
-      // setup resolves. Documented behaviour; stable since 1.18.
       process.env.E2E_CSRF_TOKEN = csrf.value;
     }
     await ctx.storageState({ path: STORAGE_STATE_FILE });
