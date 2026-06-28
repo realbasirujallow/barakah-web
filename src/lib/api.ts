@@ -1808,8 +1808,17 @@ export const api = {
   // (e.g. expired token) shows a "session expired" prompt on the admin page
   // instead of silently logging the user out site-wide.
   getAdminUserCount: () => apiFetch('/admin/user-count', {}, API_TIMEOUT, true),
-  getAdminUsers: (page = 0, size = 50) =>
-    apiFetch(`/admin/active-users?page=${page}&size=${size}`, {}, API_TIMEOUT, true),
+  getAdminUsers: (
+    page = 0,
+    size = 50,
+    sort = 'id',
+    dir: 'asc' | 'desc' = 'asc',
+    country = '',
+  ) => {
+    const qs = new URLSearchParams({ page: String(page), size: String(size), sort, dir });
+    if (country) qs.set('country', country);
+    return apiFetch(`/admin/active-users?${qs.toString()}`, {}, API_TIMEOUT, true);
+  },
   /**
    * Full-database admin user search — hits the server so it works across ALL
    * users, not just the current page. Searches email, name, country, state,

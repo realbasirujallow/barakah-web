@@ -26,6 +26,10 @@ export interface AdminUsersTabProps {
   page: number;
   setPage: (p: number) => void;
   loadData: (p: number) => void | Promise<void>;
+  sortBy: string;
+  sortDir: 'asc' | 'desc';
+  countryFilter: string;
+  onQueryChange: (q: { sort?: string; dir?: 'asc' | 'desc'; country?: string }) => void;
   openUser: (u: AdminUser, listContext?: AdminUser[]) => void;
   onBulkDelete?: (ids: number[]) => Promise<void>;
 }
@@ -42,6 +46,10 @@ export function AdminUsersTab({
   page,
   setPage,
   loadData,
+  sortBy,
+  sortDir,
+  countryFilter,
+  onQueryChange,
   openUser,
   onBulkDelete,
 }: AdminUsersTabProps) {
@@ -83,6 +91,53 @@ export function AdminUsersTab({
 
   const allSelected = filteredUsers.length > 0 && selected.size === filteredUsers.length;
   const someSelected = selected.size > 0 && !allSelected;
+
+  // Server-side sort presets (value encodes "field|dir"). Applied via
+  // onQueryChange, which resets to page 0 and refetches.
+  const SORT_OPTIONS: { value: string; label: string }[] = [
+    { value: 'id|asc', label: 'Joined (oldest first)' },
+    { value: 'createdAt|desc', label: 'Joined (newest first)' },
+    { value: 'loginCount|desc', label: 'Most logins' },
+    { value: 'loginCount|asc', label: 'Fewest logins' },
+    { value: 'lastLoginAt|desc', label: 'Recently active' },
+    { value: 'country|asc', label: 'Country (A–Z)' },
+    { value: 'email|asc', label: 'Email (A–Z)' },
+  ];
+  const currentSortValue = `${sortBy}|${sortDir}`;
+
+  // Country options: codes present on the current page, plus the active filter
+  // (so it stays selected even if this page has no rows for it), sorted.
+  const countryOptions = Array.from(
+    new Set(
+      [
+        ...(usersData?.users ?? []).map(u => u.country).filter((c): c is string => !!c && c.trim() !== ''),
+        countryFilter,
+      ].filter(c => !!c && c.trim() !== ''),
+    ),
+  ).sort();
+
+  // Shared pager (top + bottom). Server-side paging, so hidden during a
+  // full-database search (search results aren't paged through here).
+  const totalPages = usersData?.totalPages ?? 1;
+  const pager = totalPages > 1 && !search ? (
+    <div className="flex items-center justify-center gap-2">
+      <button
+        onClick={() => { const p = page - 1; setPage(p); loadData(p); }}
+        disabled={page === 0}
+        className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition"
+      >
+        ← Prev
+      </button>
+      <span className="text-xs text-gray-500 px-2">Page {page + 1} of {totalPages}</span>
+      <button
+        onClick={() => { const p = page + 1; setPage(p); loadData(p); }}
+        disabled={page + 1 >= totalPages}
+        className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition"
+      >
+        Next →
+      </button>
+    </div>
+  ) : null;
 
   return (
     <div className="space-y-4">
@@ -191,25 +246,33 @@ export function AdminUsersTab({
                   ? `${filteredUsers.length} result${filteredUsers.length !== 1 ? 's' : ''} for "${search.trim()}"`
                   : `${usersData?.totalElements ?? 0} total`}
               </span>
-              {(usersData?.totalPages ?? 1) > 1 && !search && (
+              {!search && (
                 <>
-                  <button
-                    onClick={() => { const p = page - 1; setPage(p); loadData(p); }}
-                    disabled={page === 0}
-                    className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition"
+                  <label className="text-xs text-gray-500" htmlFor="admin-users-sort">Sort:</label>
+                  <select
+                    id="admin-users-sort"
+                    value={currentSortValue}
+                    onChange={(e) => {
+                      const [field, dir] = e.target.value.split('|');
+                      onQueryChange({ sort: field, dir: dir as 'asc' | 'desc' });
+                    }}
+                    className="px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-gray-700 hover:bg-gray-50 transition"
                   >
-                    ← Prev
-                  </button>
-                  <span className="text-xs text-gray-500 px-2">Page {page + 1} of {usersData!.totalPages}</span>
-                  <button
-                    onClick={() => { const p = page + 1; setPage(p); loadData(p); }}
-                    disabled={page + 1 >= usersData!.totalPages}
-                    className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition"
+                    {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                  <label className="text-xs text-gray-500" htmlFor="admin-users-country">Country:</label>
+                  <select
+                    id="admin-users-country"
+                    value={countryFilter}
+                    onChange={(e) => onQueryChange({ country: e.target.value })}
+                    className="px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-gray-700 hover:bg-gray-50 transition"
                   >
-                    Next →
-                  </button>
+                    <option value="">All countries</option>
+                    {countryOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
                 </>
               )}
+              {pager}
               <button
                 onClick={() => {
                   const users = filteredUsers;
@@ -391,6 +454,15 @@ export function AdminUsersTab({
             </tbody>
           </table>
         </div>
+        {/* Bottom pagination — mirrors the top pager so admins don't have to
+            scroll back up after reading a long page of users. */}
+        {pager && (
+          <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-gray-100 bg-gray-50/60">
+            <span className="text-xs text-gray-400">{usersData?.totalElements ?? 0} total</span>
+            {pager}
+            <span className="w-16" />
+          </div>
+        )}
       </div>
     </div>
   );

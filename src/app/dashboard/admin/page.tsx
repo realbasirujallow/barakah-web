@@ -80,6 +80,10 @@ export default function AdminPage() {
 
   // UI state
   const [page, setPage] = useState(0);
+  // Server-side sort + country filter for the Users table (GET /admin/active-users).
+  const [usersSort, setUsersSort] = useState('id');
+  const [usersDir, setUsersDir] = useState<'asc' | 'desc'>('asc');
+  const [usersCountry, setUsersCountry] = useState('');
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
@@ -109,12 +113,20 @@ export default function AdminPage() {
   const { fmt: fmtMoney } = useCurrency();
 
   /* ── Data loading ── */
-  const loadData = useCallback(async (p: number) => {
+  const loadData = useCallback(async (
+    p: number,
+    override?: { sort?: string; dir?: 'asc' | 'desc'; country?: string },
+  ) => {
+    // Explicit overrides win over state so a just-changed sort/filter isn't
+    // read stale (React state updates are async).
+    const sort = override?.sort ?? usersSort;
+    const dir = override?.dir ?? usersDir;
+    const country = override?.country ?? usersCountry;
     setLoading(true);
     try {
       const results = await Promise.allSettled([
         api.getAdminOverview().catch(() => null),
-        api.getAdminUsers(p, 50),
+        api.getAdminUsers(p, 50, sort, dir, country),
         api.getAdminAnalytics().catch(() => null),
         api.getAdminFeatureUsage().catch(() => null),
         api.getAdminOnboardingTrialSettings().catch(() => null),
@@ -167,7 +179,20 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, usersSort, usersDir, usersCountry]);
+
+  // Apply a new Users-table sort/country filter: reset to page 0 and reload
+  // with explicit params (avoids reading the just-set state stale).
+  const onUsersQueryChange = useCallback(
+    (q: { sort?: string; dir?: 'asc' | 'desc'; country?: string }) => {
+      if (q.sort !== undefined) setUsersSort(q.sort);
+      if (q.dir !== undefined) setUsersDir(q.dir);
+      if (q.country !== undefined) setUsersCountry(q.country);
+      setPage(0);
+      loadData(0, q);
+    },
+    [loadData],
+  );
 
   // Round 21: only fire loadData when the user is known to be admin.
   // For non-admins the isAdmin redirect effect above handles the
@@ -687,6 +712,10 @@ export default function AdminPage() {
           page={page}
           setPage={setPage}
           loadData={loadData}
+          sortBy={usersSort}
+          sortDir={usersDir}
+          countryFilter={usersCountry}
+          onQueryChange={onUsersQueryChange}
           openUser={openUser}
           onBulkDelete={handleBulkDelete}
         />
