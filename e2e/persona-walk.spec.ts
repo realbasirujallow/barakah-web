@@ -37,7 +37,7 @@ const PERSONAS: Persona[] = [
   { id: 'p01-free-us',         email: 'demo+p01-free-us@trybarakah.com',         expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'free' },
   { id: 'p02-plus-us',         email: 'demo+p02-plus-us@trybarakah.com',         expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'plus' },
   { id: 'p03-family-us',       email: 'demo+p03-family-us@trybarakah.com',       expectedLocale: 'en-US', expectedCurrency: 'USD', expectedRTL: false, plan: 'family' },
-  { id: 'p04-invitee-ca',      email: 'demo+p04-invitee-ca@trybarakah.com',      expectedLocale: 'en-CA', expectedCurrency: 'CAD', expectedRTL: false, plan: 'plus' },
+  { id: 'p04-invitee-ca',      email: 'demo+p04-invitee-ca@trybarakah.com',      expectedLocale: 'en-CA', expectedCurrency: 'CAD', expectedRTL: false, plan: 'family' },
   { id: 'p05-trial-uk',        email: 'demo+p05-trial-uk@trybarakah.com',        expectedLocale: 'en-GB', expectedCurrency: 'GBP', expectedRTL: false, plan: 'plus' },
   { id: 'p06-arabic-sa',       email: 'demo+p06-arabic-sa@trybarakah.com',       expectedLocale: 'ar-SA', expectedCurrency: 'SAR', expectedRTL: true,  plan: 'family' },
   { id: 'p07-french',          email: 'demo+p07-french@trybarakah.com',          expectedLocale: 'fr-FR', expectedCurrency: 'EUR', expectedRTL: false, plan: 'plus' },
