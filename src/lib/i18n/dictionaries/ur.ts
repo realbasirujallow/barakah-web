@@ -355,7 +355,7 @@ export const ur: Translations = {
   homePricingSubheading: 'واضح قیمتیں، کوئی چھپی ہوئی اپ سیلز نہیں، اور کوئی ڈیٹا فروخت نہیں۔',
   monthly: 'ماہانہ',
   annual: 'سالانہ',
-  saveRange: '17-34٪ بچائیں',
+  saveRange: '17٪ بچائیں',
   homeCompareHeading: 'Barakah کا تقابل',
   homeCompareSubheading: 'وہی طاقتور بجٹنگ، ساتھ میں اسلامی مالیاتی ٹولز جو کسی اور کے پاس نہیں۔',
   viewFullPricing: 'مکمل قیمتوں کی تفصیل دیکھیں',

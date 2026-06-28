@@ -355,7 +355,7 @@ export const fr: Translations = {
   homePricingSubheading: 'Tarification claire, sans ventes additionnelles cachées et sans revente de données.',
   monthly: 'Mensuel',
   annual: 'Annuel',
-  saveRange: 'Économisez 17 à 34 %',
+  saveRange: 'Économisez 17 %',
   homeCompareHeading: 'Comment Barakah se compare',
   homeCompareSubheading: 'La même puissance de budget, avec des outils de finance islamique que les autres n\'ont pas.',
   viewFullPricing: 'Voir tous les détails des tarifs',

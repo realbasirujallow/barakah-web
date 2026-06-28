@@ -355,7 +355,7 @@ export const ar: Translations = {
   homePricingSubheading: 'أسعار واضحة، بدون زيادات خفية، وبدون بيع للبيانات.',
   monthly: 'شهري',
   annual: 'سنوي',
-  saveRange: 'وفّر 17-34٪',
+  saveRange: 'وفّر 17٪',
   homeCompareHeading: 'كيف يقارن Barakah',
   homeCompareSubheading: 'نفس قوة إدارة الميزانية، مع أدوات مالية إسلامية لا يملكها غيره.',
   viewFullPricing: 'عرض تفاصيل الأسعار كاملة',
