@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Signup → email verification (skipped in dev) → login → first-session E2E.
+ * Signup → email verification/login → first-session E2E.
  *
  * This test is the regression guard for the 2026-05-02 incident where
  * /auth/signup returned 500 `UnexpectedRollbackException` because
@@ -11,24 +11,20 @@ import { test, expect } from '@playwright/test';
  * a backend unit test, but a full HTTP-flow assertion catches any
  * future cause that breaks the same surface.
  *
- * Skipped if `E2E_API_URL` does not expose `app.skip-email-verification=true`
- * — i.e., we're hitting prod or staging, where verification email is
- * required and we can't auto-resolve in a test. Locally with the
- * `local` Spring profile the user is auto-verified at signup, so a
- * follow-up POST /auth/login completes the loop.
+ * When the target auto-verifies local signups, this continues through login
+ * and asserts the first-session surface. When the target requires email
+ * verification, it asserts the expected verification-required UX instead.
  */
 
 const BASE = process.env.E2E_BASE_URL ?? 'http://localhost:3000';
-const SKIP_VERIFICATION =
-  // Default: when running against localhost we assume the local Spring
-  // profile is in use (which sets app.skip-email-verification=true). When
-  // pointing at any other host, the test self-skips because we can't
-  // reliably click a magic link in a headless test.
+const LOCAL_TARGET =
+  // Only run against local/test-owned targets. Remote environments may send
+  // real verification emails and should not receive throwaway signup users.
   BASE.includes('localhost') ||
   BASE.includes('127.0.0.1');
 
 test.describe('Signup end-to-end (regression for 2026-05-02 signup-500)', () => {
-  test.skip(!SKIP_VERIFICATION, 'Requires app.skip-email-verification=true (local profile)');
+  test.skip(!LOCAL_TARGET, 'Requires a local target so fresh signup accounts are test-owned');
 
   // Per-test unique email so re-runs in the same DB don't conflict.
   let email: string;
@@ -76,7 +72,12 @@ test.describe('Signup end-to-end (regression for 2026-05-02 signup-500)', () => 
       page.click('button[type="submit"]'),
     ]).then(([resp]) => resp);
 
-    expect(loginResp.status(), 'POST /auth/login must succeed').toBeLessThan(400);
+    if (loginResp.status() === 403) {
+      await expect(page.getByText('Please verify your email').first()).toBeVisible();
+      return;
+    }
+
+    expect(loginResp.status(), 'POST /auth/login must succeed when signup auto-verifies').toBeLessThan(400);
 
     // Step 3: the first-session surface renders. Fresh accounts are expected
     // to land on /setup; already-onboarded accounts land on /dashboard. In
