@@ -457,6 +457,16 @@ export default function AdminPage() {
         return !u.state?.trim() && !u.country?.trim();
       case 'paying':
         return u.subscriptionStatus === 'active' || u.subscriptionStatus === 'trialing' || u.subscriptionStatus === 'trial';
+      case 'plus':
+        return u.plan === 'plus';
+      case 'family':
+        return u.plan === 'family';
+      case 'free':
+        return !u.plan || u.plan === 'free';
+      case 'monthly':
+        return u.billingInterval === 'month';
+      case 'annual':
+        return u.billingInterval === 'year';
       default:
         return true;
     }

@@ -14,6 +14,21 @@ export const PLAN_LABELS: Record<string, { label: string; color: string }> = {
   family: { label: 'Family', color: 'bg-purple-100 text-purple-700' },
 };
 
+/**
+ * Billing-cadence chip for paid plans. Returns null for free/comp users
+ * (no interval), so the caller can skip rendering the chip entirely.
+ * Lets admins see monthly-vs-annual paid subscribers at a glance.
+ */
+export function cadenceLabel(
+  interval: string | undefined,
+  plan: string | undefined,
+): { label: string; color: string } | null {
+  if (plan === 'free' || !plan) return null;
+  if (interval === 'year')  return { label: 'Annual',  color: 'bg-emerald-100 text-emerald-700' };
+  if (interval === 'month') return { label: 'Monthly', color: 'bg-sky-100 text-sky-700' };
+  return null;
+}
+
 export const SUB_STATUS_LABELS: Record<string, { label: string; color: string }> = {
   active:   { label: 'Active',   color: 'bg-green-100 text-green-700' },
   trialing: { label: 'Trial',    color: 'bg-amber-100 text-amber-700' },

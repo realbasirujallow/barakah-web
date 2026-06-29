@@ -12,7 +12,7 @@
 
 import { useState, useEffect } from 'react';
 import type { AdminUser, UsersResponse, UserFilter } from './adminTypes';
-import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDateMs, fmtFullTs, formatLocation } from './adminFormatting';
+import { PLAN_LABELS, SUB_STATUS_LABELS, cadenceLabel, fmtDateMs, fmtFullTs, formatLocation } from './adminFormatting';
 
 export interface AdminUsersTabProps {
   usersData: UsersResponse | null;
@@ -100,6 +100,8 @@ export function AdminUsersTab({
     { value: 'loginCount|desc', label: 'Most logins' },
     { value: 'loginCount|asc', label: 'Fewest logins' },
     { value: 'lastLoginAt|desc', label: 'Recently active' },
+    { value: 'plan|asc', label: 'Plan (A–Z)' },
+    { value: 'billingInterval|desc', label: 'Cadence (annual first)' },
     { value: 'country|asc', label: 'Country (A–Z)' },
     { value: 'email|asc', label: 'Email (A–Z)' },
   ];
@@ -208,12 +210,17 @@ export function AdminUsersTab({
               <div className="flex flex-wrap gap-2">
                 {[
                   ['all', 'All Users'],
-                  ['unverified', 'Unverified'],
-                  ['past_due', 'Past Due'],
+                  ['plus', 'Plus'],
+                  ['family', 'Family'],
+                  ['free', 'Free'],
+                  ['monthly', 'Monthly'],
+                  ['annual', 'Annual'],
                   ['trialing', 'Trials'],
+                  ['paying', 'Paying'],
+                  ['past_due', 'Past Due'],
+                  ['unverified', 'Unverified'],
                   ['missing_phone', 'Missing Phone'],
                   ['missing_location', 'Missing Location'],
-                  ['paying', 'Paying'],
                 ].map(([value, label]) => (
                   <button
                     key={value}
@@ -393,6 +400,7 @@ export function AdminUsersTab({
                 filteredUsers.map(u => {
                   const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
                   const subInfo = SUB_STATUS_LABELS[u.subscriptionStatus ?? 'inactive'] ?? SUB_STATUS_LABELS.inactive;
+                  const cadence = cadenceLabel(u.billingInterval, u.plan);
                   const isSelected = selected.has(u.id);
                   return (
                     <tr
@@ -414,8 +422,9 @@ export function AdminUsersTab({
                         <p className="text-xs text-gray-400">{u.email}</p>
                       </td>
                       <td className="px-3 py-3">
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 flex-wrap">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span>
+                          {cadence && <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${cadence.color}`}>{cadence.label}</span>}
                           <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${subInfo.color}`}>{subInfo.label}</span>
                         </div>
                       </td>

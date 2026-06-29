@@ -13,6 +13,8 @@ export interface AdminUser {
   name: string;
   plan: string;
   subscriptionStatus?: string;
+  /** "month" | "year" — billing cadence for paid plans (null for free/comp). */
+  billingInterval?: string;
   planExpiresAt?: number;
   emailVerified?: boolean;
   emailVerifiedAt?: number;
@@ -187,7 +189,12 @@ export type UserFilter =
   | 'trialing'
   | 'missing_phone'
   | 'missing_location'
-  | 'paying';
+  | 'paying'
+  | 'plus'
+  | 'family'
+  | 'free'
+  | 'monthly'
+  | 'annual';
 
 export type AdminTab =
   | 'overview'
