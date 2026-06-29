@@ -27,6 +27,7 @@ export function fmtDate(unixSec: number | undefined) {
   if (!unixSec) return '—';
   return new Date(unixSec * 1000).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
+    timeZone: 'America/New_York',
   });
 }
 
@@ -34,6 +35,7 @@ export function fmtDateMs(unixMs: number | undefined) {
   if (!unixMs) return '—';
   return new Date(unixMs).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
+    timeZone: 'America/New_York',
   });
 }
 
@@ -47,6 +49,8 @@ export function fmtDateTimeMs(unixMs: number | undefined) {
     minute: '2-digit',
     second: '2-digit',
     hour12: true,
+    timeZone: 'America/New_York',
+    timeZoneName: 'short',
   });
 }
 
@@ -61,6 +65,8 @@ export function fmtFullTs(unixMs: number | undefined) {
     minute: '2-digit',
     second: '2-digit',
     hour12: true,
+    timeZone: 'America/New_York',
+    timeZoneName: 'short',
   });
 }
 
