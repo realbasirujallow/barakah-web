@@ -58,3 +58,7 @@ e2e/.auth/
 
 # Claude Code MCP preview server config (per-workspace, not versioned)
 .claude/
+
+# PII DB dumps — never commit
+*.dump
+.db-backups/
