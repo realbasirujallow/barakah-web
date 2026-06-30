@@ -466,7 +466,7 @@ function ImportPageInner() {
           amount: 0,
           notes: '',
           ...t,
-          skip: false,
+          skip: Boolean(t.skip),
         }));
         setTransactions(parsed);
         setTxnMeta({
