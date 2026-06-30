@@ -33,6 +33,14 @@ export interface AdminUser {
   loginCount?: number;
   country?: string;
   state?: string;
+  /** Admin-derived: raw country normalized, or 'US' inferred from a US state, or 'UNKNOWN'. */
+  effectiveCountry?: string;
+  /** True when effectiveCountry was inferred from state (raw country was blank). */
+  countryInferred?: boolean;
+  /** lastSeenAt (app usage) else lastLoginAt — the activity signal (epoch ms). */
+  lastActivityAt?: number;
+  /** Coarse activity bucket: never_logged_in | seen_24h | seen_7d | seen_30d | inactive_30d | inactive_90d. */
+  activityBucket?: string;
   phoneNumber?: string;
   locale?: string;
 }
@@ -195,6 +203,25 @@ export type UserFilter =
   | 'free'
   | 'monthly'
   | 'annual';
+
+/**
+ * Server-side recent/last-login activity filter (P0.5). Distinct from the
+ * per-user detail {@link UserActivity}. Empty string / 'all' = no filter.
+ * Mirrors the backend AdminUserActivityFilter keys.
+ */
+export type UserActivityFilter =
+  | ''
+  | 'all'
+  | 'never_logged_in'
+  | 'seen_24h'
+  | 'seen_7d'
+  | 'seen_30d'
+  | 'inactive_30d'
+  | 'inactive_90d'
+  | 'new_no_login_24h'
+  | 'new_no_login_7d'
+  | 'paid_inactive_30d'
+  | 'trial_inactive_3d';
 
 export type AdminTab =
   | 'overview'

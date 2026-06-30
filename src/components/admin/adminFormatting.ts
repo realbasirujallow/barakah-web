@@ -165,3 +165,38 @@ export function formatLocation(state: string | null | undefined, country: string
   if (stateName && countryDisp) return `${stateName}, ${countryDisp}`;
   return countryDisp || stateName || '—';
 }
+
+/** Display for an effective-country code; UNKNOWN → "Unknown / legacy blank". */
+export function formatEffectiveCountry(code: string | null | undefined): string {
+  if (!code) return '';
+  if (code.trim().toUpperCase() === 'UNKNOWN') return 'Unknown / legacy blank';
+  return formatCountry(code) || code;
+}
+
+/** Common country codes always shown in the admin country dropdown (P0). */
+export const COMMON_COUNTRY_CODES = ['US', 'CA', 'GB', 'AE', 'SA', 'PK', 'IN', 'NG', 'GM', 'UNKNOWN'];
+
+/** Server-side activity filter options for the admin Users dropdown (P0.5). */
+export const ACTIVITY_FILTER_OPTIONS: { value: string; label: string }[] = [
+  { value: '',                 label: 'All activity' },
+  { value: 'seen_24h',         label: 'Seen last 24h' },
+  { value: 'seen_7d',          label: 'Seen last 7d' },
+  { value: 'seen_30d',         label: 'Seen last 30d' },
+  { value: 'never_logged_in',  label: 'Never logged in' },
+  { value: 'new_no_login_24h', label: 'New / no login 24h' },
+  { value: 'new_no_login_7d',  label: 'New / no login 7d' },
+  { value: 'inactive_30d',     label: 'Inactive 30d+' },
+  { value: 'inactive_90d',     label: 'Inactive 90d+' },
+  { value: 'paid_inactive_30d',label: 'Paid inactive 30d' },
+  { value: 'trial_inactive_3d',label: 'Trial inactive 3d' },
+];
+
+/** Human label for an activity key (filter value or row activityBucket). */
+export function activityLabel(value: string | null | undefined): string {
+  if (!value || value === 'all') return '';
+  const opt = ACTIVITY_FILTER_OPTIONS.find(o => o.value === value);
+  if (opt) return opt.label;
+  // activityBucket-only values not in the filter list
+  if (value === 'never_logged_in') return 'Never logged in';
+  return value;
+}

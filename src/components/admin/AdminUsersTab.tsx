@@ -11,8 +11,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import type { AdminUser, UsersResponse, UserFilter } from './adminTypes';
-import { PLAN_LABELS, SUB_STATUS_LABELS, cadenceLabel, fmtDateMs, fmtFullTs, formatLocation } from './adminFormatting';
+import type { AdminUser, UsersResponse, UserFilter, UserActivityFilter } from './adminTypes';
+import {
+  PLAN_LABELS, SUB_STATUS_LABELS, cadenceLabel, fmtDateMs, fmtFullTs, formatLocation,
+  formatEffectiveCountry, ACTIVITY_FILTER_OPTIONS, activityLabel, COMMON_COUNTRY_CODES,
+} from './adminFormatting';
 
 export interface AdminUsersTabProps {
   usersData: UsersResponse | null;
@@ -29,7 +32,8 @@ export interface AdminUsersTabProps {
   sortBy: string;
   sortDir: 'asc' | 'desc';
   countryFilter: string;
-  onQueryChange: (q: { sort?: string; dir?: 'asc' | 'desc'; country?: string }) => void;
+  activityFilter: string;
+  onQueryChange: (q: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter }) => void;
   openUser: (u: AdminUser, listContext?: AdminUser[]) => void;
   onBulkDelete?: (ids: number[]) => Promise<void>;
 }
@@ -49,6 +53,7 @@ export function AdminUsersTab({
   sortBy,
   sortDir,
   countryFilter,
+  activityFilter,
   onQueryChange,
   openUser,
   onBulkDelete,
@@ -100,6 +105,7 @@ export function AdminUsersTab({
     { value: 'loginCount|desc', label: 'Most logins' },
     { value: 'loginCount|asc', label: 'Fewest logins' },
     { value: 'lastLoginAt|desc', label: 'Recently active' },
+    { value: 'lastSeenAt|desc', label: 'Recently seen' },
     { value: 'plan|asc', label: 'Plan (A–Z)' },
     { value: 'billingInterval|desc', label: 'Cadence (annual first)' },
     { value: 'country|asc', label: 'Country (A–Z)' },
@@ -107,16 +113,17 @@ export function AdminUsersTab({
   ];
   const currentSortValue = `${sortBy}|${sortDir}`;
 
-  // Country options: codes present on the current page, plus the active filter
-  // (so it stays selected even if this page has no rows for it), sorted.
+  // Country options (P0): always offer the common codes (so US/UNKNOWN stay
+  // reachable even if the current page has none of them), merged with effective
+  // countries present on this page + the active filter. Uses effectiveCountry so
+  // inferred-US rows group under US. UNKNOWN sorts last.
   const countryOptions = Array.from(
-    new Set(
-      [
-        ...(usersData?.users ?? []).map(u => u.country).filter((c): c is string => !!c && c.trim() !== ''),
-        countryFilter,
-      ].filter(c => !!c && c.trim() !== ''),
-    ),
-  ).sort();
+    new Set([
+      ...COMMON_COUNTRY_CODES,
+      ...(usersData?.users ?? []).map(u => u.effectiveCountry || u.country).filter((c): c is string => !!c && c.trim() !== ''),
+      countryFilter,
+    ].filter(c => !!c && c.trim() !== '')),
+  ).sort((a, b) => (a === 'UNKNOWN' ? 1 : b === 'UNKNOWN' ? -1 : a.localeCompare(b)));
 
   // Shared pager (top + bottom). Server-side paging, so hidden during a
   // full-database search (search results aren't paged through here).
@@ -196,7 +203,7 @@ export function AdminUsersTab({
               <div className="relative flex-1">
                 <input
                   type="text"
-                  placeholder="Search by name, email, country, plan… (searches all users)"
+                  placeholder="Search by name, email, location, plan… (searches all users)"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   className="w-full px-4 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none pr-8"
@@ -252,6 +259,8 @@ export function AdminUsersTab({
                 {search.trim().length >= 2
                   ? `${filteredUsers.length} result${filteredUsers.length !== 1 ? 's' : ''} for "${search.trim()}"`
                   : `${usersData?.totalElements ?? 0} total`}
+                {countryFilter ? ` · ${formatEffectiveCountry(countryFilter)}` : ''}
+                {activityFilter && activityFilter !== 'all' ? ` · ${activityLabel(activityFilter)}` : ''}
               </span>
               {!search && (
                 <>
@@ -267,37 +276,55 @@ export function AdminUsersTab({
                   >
                     {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
-                  <label className="text-xs text-gray-500" htmlFor="admin-users-country">Country:</label>
-                  <select
-                    id="admin-users-country"
-                    value={countryFilter}
-                    onChange={(e) => onQueryChange({ country: e.target.value })}
-                    className="px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-gray-700 hover:bg-gray-50 transition"
-                  >
-                    <option value="">All countries</option>
-                    {countryOptions.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
                 </>
               )}
+              {/* Country + Activity are server-side filters; shown in both list and
+                  search modes so a filtered search stays full-database (P0/P0.5). */}
+              <label className="text-xs text-gray-500" htmlFor="admin-users-country">Country:</label>
+              <select
+                id="admin-users-country"
+                value={countryFilter}
+                onChange={(e) => onQueryChange({ country: e.target.value })}
+                className="px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-gray-700 hover:bg-gray-50 transition"
+              >
+                <option value="">All countries</option>
+                {countryOptions.map(c => <option key={c} value={c}>{formatEffectiveCountry(c)}</option>)}
+              </select>
+              <label className="text-xs text-gray-500" htmlFor="admin-users-activity">Activity:</label>
+              <select
+                id="admin-users-activity"
+                value={activityFilter || ''}
+                onChange={(e) => onQueryChange({ activity: (e.target.value || '') as UserActivityFilter })}
+                className="px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-gray-700 hover:bg-gray-50 transition"
+              >
+                {ACTIVITY_FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
               {pager}
               <button
                 onClick={() => {
                   const users = filteredUsers;
-                  const csv = ['ID,Name,Email,Phone,Plan,Status,Verified,VerifiedAt,Location,Joined,SignupSource,SignupIp,LastLogin,LastLoginIp,LoginCount']
+                  // Quote any field that may contain a comma (dates, location).
+                  const csvq = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+                  const csv = ['ID,Name,Email,Phone,Plan,Status,Verified,VerifiedAt,Location,EffectiveCountry,CountryInferred,Joined,SignupSource,SignupIp,LastLogin,LastSeen,LastActivity,ActivityBucket,LastLoginIp,LoginCount']
                     .concat(users.map(u => [
                       u.id,
-                      `"${(u.name || '').replace(/"/g, '""')}"`,
+                      csvq(u.name),
                       u.email,
                       u.phoneNumber || '',
                       u.plan,
                       u.subscriptionStatus || 'inactive',
                       u.emailVerified === false ? 'No' : 'Yes',
-                      fmtFullTs(u.emailVerifiedAt),
-                      [u.state, u.country].filter(Boolean).join(', '),
-                      fmtFullTs(u.createdAt),
+                      csvq(fmtFullTs(u.emailVerifiedAt)),
+                      csvq(formatLocation(u.state, u.country || u.effectiveCountry)),
+                      u.effectiveCountry || '',
+                      u.countryInferred ? 'Yes' : 'No',
+                      csvq(fmtFullTs(u.createdAt)),
                       u.signupSource || '',
                       u.signupIp || '',
-                      fmtFullTs(u.lastLoginAt),
+                      csvq(fmtFullTs(u.lastLoginAt)),
+                      csvq(fmtFullTs(u.lastSeenAt)),
+                      csvq(fmtFullTs(u.lastActivityAt)),
+                      u.activityBucket || '',
                       u.lastLoginIp || '',
                       String(u.loginCount ?? 0),
                     ].join(','))).join('\n');
@@ -438,14 +465,30 @@ export function AdminUsersTab({
                         }
                       </td>
                       <td className="px-3 py-3 text-xs text-gray-500">
-                        {formatLocation(u.state, u.country)}
+                        {formatLocation(u.state, u.country || u.effectiveCountry)}
+                        {u.countryInferred && (
+                          <span
+                            className="ml-1 px-1 py-0.5 rounded bg-gray-100 text-gray-400 text-[9px]"
+                            title="Country inferred from state (raw country was blank)"
+                          >
+                            inferred
+                          </span>
+                        )}
                       </td>
                       <td className="px-3 py-3 text-gray-500 text-xs">
                         <p>{fmtFullTs(u.createdAt)}</p>
                         {u.signupSource && <p className="text-[10px] text-gray-400">{u.signupSource}</p>}
                       </td>
                       <td className="px-3 py-3 text-gray-500 text-xs">
-                        {u.lastLoginAt ? fmtFullTs(u.lastLoginAt) : '—'}
+                        {u.activityBucket === 'never_logged_in'
+                          ? <span className="text-gray-400 italic">Never logged in</span>
+                          : <>
+                              <p>{u.lastLoginAt ? fmtFullTs(u.lastLoginAt) : '—'}</p>
+                              {u.lastSeenAt && u.lastSeenAt !== u.lastLoginAt && (
+                                <p className="text-[10px] text-gray-400">seen {fmtFullTs(u.lastSeenAt)}</p>
+                              )}
+                            </>
+                        }
                       </td>
                       <td className="px-3 py-3 text-gray-400 font-mono text-[10px]">
                         {u.lastLoginIp || '—'}

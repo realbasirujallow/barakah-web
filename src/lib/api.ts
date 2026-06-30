@@ -1814,18 +1814,26 @@ export const api = {
     sort = 'id',
     dir: 'asc' | 'desc' = 'asc',
     country = '',
+    activity = '',
   ) => {
     const qs = new URLSearchParams({ page: String(page), size: String(size), sort, dir });
     if (country) qs.set('country', country);
+    if (activity && activity !== 'all') qs.set('activity', activity);
     return apiFetch(`/admin/active-users?${qs.toString()}`, {}, API_TIMEOUT, true);
   },
   /**
    * Full-database admin user search — hits the server so it works across ALL
    * users, not just the current page. Searches email, name, country, state,
    * plan, subscriptionStatus, and signupSource (e.g. "test", "e2e", "longsmile").
+   * Honours the same effective-country + activity filters as the list (P0.5)
+   * so filtered search stays full-database, not current-page only.
    */
-  adminSearchUsers: (q: string, page = 0, size = 50) =>
-    apiFetch(`/admin/users/search?q=${encodeURIComponent(q)}&page=${page}&size=${size}`, {}, API_TIMEOUT, true),
+  adminSearchUsers: (q: string, page = 0, size = 50, country = '', activity = '') => {
+    const qs = new URLSearchParams({ q, page: String(page), size: String(size) });
+    if (country) qs.set('country', country);
+    if (activity && activity !== 'all') qs.set('activity', activity);
+    return apiFetch(`/admin/users/search?${qs.toString()}`, {}, API_TIMEOUT, true);
+  },
   /**
    * Returns ALL unverified users (email_verified = false), newest first.
    * No pagination — the unverified set is bounded and the admin "Unverified"

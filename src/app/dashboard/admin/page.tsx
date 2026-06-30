@@ -41,6 +41,7 @@ import type {
   OnboardingTrialSettings,
   EmailLogStats,
   UserActivity,
+  UserActivityFilter,
   UsersResponse,
   Overview,
   AdminTab,
@@ -84,6 +85,8 @@ export default function AdminPage() {
   const [usersSort, setUsersSort] = useState('id');
   const [usersDir, setUsersDir] = useState<'asc' | 'desc'>('asc');
   const [usersCountry, setUsersCountry] = useState('');
+  // Server-side recent/last-login activity filter for the Users table (P0.5).
+  const [usersActivity, setUsersActivity] = useState<UserActivityFilter>('');
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
@@ -115,18 +118,19 @@ export default function AdminPage() {
   /* ── Data loading ── */
   const loadData = useCallback(async (
     p: number,
-    override?: { sort?: string; dir?: 'asc' | 'desc'; country?: string },
+    override?: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter },
   ) => {
     // Explicit overrides win over state so a just-changed sort/filter isn't
     // read stale (React state updates are async).
     const sort = override?.sort ?? usersSort;
     const dir = override?.dir ?? usersDir;
     const country = override?.country ?? usersCountry;
+    const activity = override?.activity ?? usersActivity;
     setLoading(true);
     try {
       const results = await Promise.allSettled([
         api.getAdminOverview().catch(() => null),
-        api.getAdminUsers(p, 50, sort, dir, country),
+        api.getAdminUsers(p, 50, sort, dir, country, activity),
         api.getAdminAnalytics().catch(() => null),
         api.getAdminFeatureUsage().catch(() => null),
         api.getAdminOnboardingTrialSettings().catch(() => null),
@@ -179,15 +183,16 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  }, [toast, usersSort, usersDir, usersCountry]);
+  }, [toast, usersSort, usersDir, usersCountry, usersActivity]);
 
-  // Apply a new Users-table sort/country filter: reset to page 0 and reload
-  // with explicit params (avoids reading the just-set state stale).
+  // Apply a new Users-table sort/country/activity filter: reset to page 0 and
+  // reload with explicit params (avoids reading the just-set state stale).
   const onUsersQueryChange = useCallback(
-    (q: { sort?: string; dir?: 'asc' | 'desc'; country?: string }) => {
+    (q: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter }) => {
       if (q.sort !== undefined) setUsersSort(q.sort);
       if (q.dir !== undefined) setUsersDir(q.dir);
       if (q.country !== undefined) setUsersCountry(q.country);
+      if (q.activity !== undefined) setUsersActivity(q.activity);
       setPage(0);
       loadData(0, q);
     },
@@ -425,7 +430,9 @@ export default function AdminPage() {
     setSearchLoading(true); // show spinner immediately when debounce is armed (≥2 chars)
     searchDebounceRef.current = setTimeout(async () => {
       try {
-        const res = await api.adminSearchUsers(q, 0, 200);
+        // P0.5: search honours the same effective-country + activity filters as
+        // the list, so a filtered search stays full-database (not page-only).
+        const res = await api.adminSearchUsers(q, 0, 200, usersCountry, usersActivity);
         setSearchResults(res as UsersResponse);
       } catch {
         // silently keep old results if search fails
@@ -434,7 +441,7 @@ export default function AdminPage() {
       }
     }, 400);
     return () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current); };
-  }, [search]);
+  }, [search, usersCountry, usersActivity]);
 
   // When a search query is active, use server results; otherwise use the
   // paginated usersData (client-side filter for plan/status chips still applied).
@@ -454,7 +461,12 @@ export default function AdminPage() {
       case 'missing_phone':
         return !u.phoneNumber?.trim();
       case 'missing_location':
-        return !u.state?.trim() && !u.country?.trim();
+        // No usable location: effective country unknown (covers blank country +
+        // non-US state). A state-only US row (e.g. Indiana) is NOT missing.
+        // Falls back to the raw check when effectiveCountry isn't present.
+        return u.effectiveCountry
+          ? u.effectiveCountry === 'UNKNOWN'
+          : (!u.state?.trim() && !u.country?.trim());
       case 'paying':
         return u.subscriptionStatus === 'active' || u.subscriptionStatus === 'trialing' || u.subscriptionStatus === 'trial';
       case 'plus':
@@ -725,6 +737,7 @@ export default function AdminPage() {
           sortBy={usersSort}
           sortDir={usersDir}
           countryFilter={usersCountry}
+          activityFilter={usersActivity}
           onQueryChange={onUsersQueryChange}
           openUser={openUser}
           onBulkDelete={handleBulkDelete}
