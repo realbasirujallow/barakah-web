@@ -179,6 +179,11 @@ export interface ZakatPayment {
   paidAt?: number;
   lunarYear?: number;
   createdAt?: string | number | null;
+  // Each payment stores its own currency (backend paymentToMap returns it).
+  // Without carrying it here, rows were rendered with the user's *display*
+  // currency symbol, so a payment recorded in another currency showed the
+  // wrong symbol and didn't sum to Total Paid.
+  currency?: string | null;
 }
 
 export function validateZakatPayment(data: unknown): ValidationResult<ZakatPayment> {
@@ -205,6 +210,7 @@ export function validateZakatPayment(data: unknown): ValidationResult<ZakatPayme
       paidAt: isFiniteNumber(obj.paidAt) ? (obj.paidAt as number) : undefined,
       lunarYear: isFiniteNumber(obj.lunarYear) ? (obj.lunarYear as number) : undefined,
       createdAt: (isString(createdAt) || isFiniteNumber(createdAt)) ? createdAt : undefined,
+      currency: isString(obj.currency) ? (obj.currency as string) : undefined,
     },
   };
 }

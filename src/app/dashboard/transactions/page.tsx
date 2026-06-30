@@ -2080,7 +2080,7 @@ export default function TransactionsPage() {
               </div>
               {/* Description */}
               <div>
-                <label htmlFor="txn-form-description" className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldDescription')}</label>
+                <label htmlFor="txn-form-description" className="block text-sm font-medium text-gray-700 mb-1">{t('txnFieldDescription')} <span className="text-red-500" aria-hidden="true">*</span></label>
                 <input id="txn-form-description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-gray-900" placeholder={t('txnDescPlaceholder')} />
               </div>
@@ -2387,7 +2387,9 @@ export default function TransactionsPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button aria-label={t('txnCloseAddModalAria')} onClick={() => { setShowForm(false); setEditTx(null); setFormError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('txnCancel')}</button>
-              <button onClick={handleSave} disabled={saving || !form.amount}
+              {/* Description is @NotBlank on ADD (not on edit) — block submit when
+                  blank on add so the user isn't bounced by an opaque 400. */}
+              <button onClick={handleSave} disabled={saving || !form.amount || (!editTx && !form.description.trim())}
                 className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 disabled:opacity-50">
                 {saving ? t('txnSaving') : (editTx ? t('txnSaveChanges') : t('txnAddBtn'))}
               </button>

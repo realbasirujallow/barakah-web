@@ -1,0 +1,6 @@
+Date,Merchant,Category,Account,Amount,Notes
+2026-06-01,Whole Foods Market,Groceries,Chase Checking,-84.23,Weekly groceries
+2026-06-02,"Trader Joe's, Downtown",Groceries,Chase Checking,-41.10,"Snacks, fruit & ""staples"""
+2026-06-03,قهوة الصباح,Coffee Shops,Chase Checking,-6.50,Arabic merchant name
+2026-06-04,Salary Deposit,Paychecks,Chase Checking,5200.00,Biweekly paycheck
+2026-06-05,Verylong Subscription Service With An Intentionally Extended Description,Software,Chase Checking,-19.99,This note is intentionally long to exercise the description column near the historical 255-character boundary that was widened to 500 — padding padding padding padding padding padding padding padding padding padding padding padding padding padding padding done

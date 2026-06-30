@@ -54,6 +54,7 @@ interface ZakatPayment {
   notes?: string | null;
   lunarYear?: number;
   paidAt?: number;
+  currency?: string | null;
 }
 
 interface NisabInfo {
@@ -443,7 +444,12 @@ export default function ZakatPage() {
       // Calculate new total directly without relying on stale state
       await load();
       // Don't manually compute totalPaid — let it come from the server
-    } catch { toast(t('zktSavePaymentFailed'), 'error'); }
+    } catch (err) {
+      // Surface the backend message (e.g. the 409 "Duplicate payment detected…"
+      // or a 429 rate-limit note) instead of a generic failure — matches the
+      // handleDeletePayment pattern below.
+      toast(err instanceof Error ? err.message : t('zktSavePaymentFailed'), 'error');
+    }
     setSaving(false);
   };
 
@@ -1226,11 +1232,21 @@ export default function ZakatPage() {
               {payments.map((p) => {
                 const paidAt = p.paidAt as number;
                 const date = new Date(paidAt < 1e12 ? paidAt * 1000 : paidAt);
+                // Format each row with the payment's OWN stored currency, not the
+                // user's current display currency — otherwise a payment recorded
+                // in another currency shows the wrong symbol. Falls back to fmt()
+                // when currency matches display or is missing/invalid.
+                let amountStr: string;
+                try {
+                  amountStr = new Intl.NumberFormat(dateLocale, { style: 'currency', currency: (p.currency || currency) as string }).format(p.amount as number);
+                } catch {
+                  amountStr = fmt(p.amount as number);
+                }
                 return (
                   <div key={p.id as number} className="bg-white rounded-xl p-4 flex items-center gap-4">
                     <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center text-xl">🕌</div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-primary">{hideZakat ? '••••' : fmt(p.amount as number)}</p>
+                      <p className="font-bold text-primary">{hideZakat ? '••••' : amountStr}</p>
                       {p.recipient ? <p className="text-gray-500 text-sm truncate">{String(p.recipient)}</p> : null}
                       {p.notes ? <p className="text-gray-400 text-xs truncate">{String(p.notes)}</p> : null}
                       <p className="text-gray-400 text-xs">{date.toLocaleDateString(dateLocale)}</p>

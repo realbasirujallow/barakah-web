@@ -102,12 +102,23 @@ export default function SideHustlesPage() {
     setSaving(true);
     setSaveError(null);
     try {
-      const data: Record<string, unknown> = {
-        name,
-        hustleType: form.hustleType.trim() || null,
-        defaultCurrency: form.defaultCurrency || null,
-        taxYearStartMonth: form.taxYearStartMonth,
-      };
+      // On EDIT, send '' (not null) for cleared optional fields so the backend
+      // actually clears them — null means "field absent / unchanged", which made
+      // clearing Type/Currency impossible (the value silently reverted). On
+      // CREATE keep null (nothing to clear; create doesn't blank-handle currency).
+      const data: Record<string, unknown> = editItem
+        ? {
+            name,
+            hustleType: form.hustleType.trim(),
+            defaultCurrency: form.defaultCurrency,
+            taxYearStartMonth: form.taxYearStartMonth,
+          }
+        : {
+            name,
+            hustleType: form.hustleType.trim() || null,
+            defaultCurrency: form.defaultCurrency || null,
+            taxYearStartMonth: form.taxYearStartMonth,
+          };
       const res = editItem
         ? await api.updateSideHustle(editItem.id, data)
         : await api.createSideHustle(data);
