@@ -2145,6 +2145,8 @@ export const ur: Translations = {
   importTransactionsGeneratedFmt: '{0} لین دین{1} پیدا کیا',
   importTransactionsImportedFmt: '{0} لین دین{1} درآمد کیا',
   importSkippedFmt: '{0} چھوڑے گئے',
+  importDuplicatesSkippedFmt: '{0} پہلے سے برکہ میں موجود، چھوڑ دی گئیں',
+  importMalformedSkippedFmt: '{0} قطاریں پارس نہ ہو سکیں اور چھوڑ دی گئیں',
   importNoChanges: 'کوئی تبدیلی نہیں',
   importNoTxnImported: 'کوئی لین دین درآمد نہیں',
   importSomeFailed: 'کچھ آئٹمز ناکام:',

@@ -2379,6 +2379,7 @@ export const api = {
 
     let totalCreated = 0;
     let totalSkipped = 0;
+    let totalDuplicates = 0;
     const allErrors: string[] = [];
     const chunks: unknown[][] = [];
     for (let i = 0; i < allTxns.length; i += chunkSize) {
@@ -2396,6 +2397,7 @@ export const api = {
         if (data?.error) allErrors.push(data.error);
         totalCreated += data?.transactionsCreated || 0;
         totalSkipped += data?.skipped || 0;
+        totalDuplicates += data?.duplicatesSkipped || 0;
         if (data?.errors) allErrors.push(...data.errors);
       } catch {
         failedChunks++;
@@ -2411,6 +2413,7 @@ export const api = {
       success: allErrors.length === 0,
       transactionsCreated: totalCreated,
       skipped: totalSkipped,
+      duplicatesSkipped: totalDuplicates,
       ...(allErrors.length > 0 ? { errors: allErrors } : {}),
     };
   },

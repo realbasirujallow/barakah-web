@@ -2145,6 +2145,8 @@ export const ar: Translations = {
   importTransactionsGeneratedFmt: 'تم توليد {0} معاملة{1}',
   importTransactionsImportedFmt: 'تم استيراد {0} معاملة{1}',
   importSkippedFmt: 'تم تخطي {0}',
+  importDuplicatesSkippedFmt: 'تم تخطي {0} موجودة بالفعل في بركة',
+  importMalformedSkippedFmt: 'تعذّر تحليل {0} صفًّا فتم تخطيها',
   importNoChanges: 'لم يتم إجراء تغييرات',
   importNoTxnImported: 'لم يتم استيراد معاملات',
   importSomeFailed: 'فشلت بعض العناصر:',

@@ -2202,6 +2202,8 @@ export const en: Translations = {
   importTransactionsGeneratedFmt: '{0} transaction{1} generated',
   importTransactionsImportedFmt: '{0} transaction{1} imported',
   importSkippedFmt: '{0} skipped',
+  importDuplicatesSkippedFmt: '{0} already in Barakah, skipped',
+  importMalformedSkippedFmt: '{0} rows could not be parsed and were skipped',
   importNoChanges: 'No changes made',
   importNoTxnImported: 'No transactions imported',
   importSomeFailed: 'Some items failed:',

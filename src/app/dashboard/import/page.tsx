@@ -135,6 +135,10 @@ interface TransactionsResult {
   format: 'transactions';
   transactionsCreated: number;
   skipped: number;
+  // Rows that were already in Barakah (dedup) and therefore not re-imported.
+  // Surfaced so a re-import of the same CSV reads "N already in Barakah" instead
+  // of the misleading "No transactions imported".
+  duplicatesSkipped?: number;
   errors?: string[];
 }
 
@@ -173,7 +177,7 @@ function ImportPageInner() {
   const [transactions, setTransactions] = useState<PreviewTransaction[]>([]);
   const [txnMeta, setTxnMeta] = useState({
     totalTransactions: 0, incomeCount: 0, expenseCount: 0,
-    totalIncome: 0, totalExpense: 0,
+    totalIncome: 0, totalExpense: 0, skippedMalformed: 0,
   });
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
@@ -471,6 +475,7 @@ function ImportPageInner() {
           expenseCount: data.expenseCount || 0,
           totalIncome: data.totalIncome || 0,
           totalExpense: data.totalExpense || 0,
+          skippedMalformed: data.skippedMalformed || 0,
         });
       } else {
         const assets: ExistingAccount[] = data.existingAssets || [];
@@ -904,6 +909,12 @@ function ImportPageInner() {
             <Stat label={t('importTotalExpensesLabel')} value={fmt(txnMeta.totalExpense)} color="text-red-600" />
           </div>
 
+          {txnMeta.skippedMalformed > 0 && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-3 text-sm" role="alert">
+              {tFmt('importMalformedSkippedFmt', [txnMeta.skippedMalformed])}
+            </div>
+          )}
+
           <div className="flex items-center gap-4 text-sm">
             <span className="text-gray-500">{tFmt('importSelectedTxnFmt', [activeTxnCount, transactions.length])}</span>
             <button onClick={() => setTransactions(prev => prev.map(t => ({ ...t, skip: false })))} className="text-primary hover:underline">{t('importSelectAll')}</button>
@@ -974,11 +985,16 @@ function ImportPageInner() {
             </div>
           ); })()}
 
-          {result.format === 'transactions' && (() => { const r = result as TransactionsResult; return (
+          {result.format === 'transactions' && (() => {
+            const r = result as TransactionsResult;
+            const dupes = r.duplicatesSkipped ?? 0;
+            return (
             <div className="flex justify-center gap-6 text-lg flex-wrap">
               {r.transactionsCreated > 0 && <span className="text-green-700">{tFmt('importTransactionsImportedFmt', [r.transactionsCreated, r.transactionsCreated !== 1 ? 's' : ''])}</span>}
               {r.skipped > 0 && <span className="text-gray-500">{tFmt('importSkippedFmt', [r.skipped])}</span>}
-              {r.transactionsCreated === 0 && <span className="text-gray-500">{t('importNoTxnImported')}</span>}
+              {dupes > 0 && <span className="text-gray-500">{tFmt('importDuplicatesSkippedFmt', [dupes])}</span>}
+              {txnMeta.skippedMalformed > 0 && <span className="text-amber-600">{tFmt('importMalformedSkippedFmt', [txnMeta.skippedMalformed])}</span>}
+              {r.transactionsCreated === 0 && dupes === 0 && <span className="text-gray-500">{t('importNoTxnImported')}</span>}
             </div>
           ); })()}
 

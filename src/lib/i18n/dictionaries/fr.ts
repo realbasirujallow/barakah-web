@@ -2147,6 +2147,8 @@ export const fr: Translations = {
   importTransactionsGeneratedFmt: '{0} transaction{1} générée(s)',
   importTransactionsImportedFmt: '{0} transaction{1} importée(s)',
   importSkippedFmt: '{0} ignorée(s)',
+  importDuplicatesSkippedFmt: '{0} déjà dans Barakah, ignorée(s)',
+  importMalformedSkippedFmt: '{0} ligne(s) illisible(s) ignorée(s)',
   importNoChanges: 'Aucun changement',
   importNoTxnImported: 'Aucune transaction importée',
   importSomeFailed: 'Certains éléments ont échoué :',
