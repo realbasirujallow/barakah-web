@@ -250,6 +250,16 @@ const nextConfig: NextConfig = {
 
   async redirects() {
     return [
+      // GSC-404-2026-07-03: Google discovered this stale, opaque URL from
+      // /compare/barakah-vs-acorns in an older crawl. The current page and
+      // sitemap no longer reference it, but keeping this one narrow redirect
+      // lets Search Console clear the 404 without turning arbitrary unknown
+      // slugs into soft-404 homepage redirects.
+      {
+        source: "/enh1rEfty\\+X37BXpLw2tQ==",
+        destination: "/compare/barakah-vs-acorns",
+        permanent: true,
+      },
       // SEO consolidation: /learn/nisab is the canonical authority page.
       // /learn/nisab-threshold is the legacy slug kept alive only to preserve
       // existing backlinks. 301-permanent redirect tells Google (and all other
