@@ -263,10 +263,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/learn/hawl-reset-rules`,                   changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/islamic-will-checklist`,             changeFrequency: 'monthly', priority: 0.88, lastModified: now },
     { url: `${baseUrl}/learn/nisab-gold-vs-silver`,               changeFrequency: 'monthly', priority: 0.88, lastModified: now },
-    // 2026-05-18: /learn/sadaqah-distribution removed — page is intentionally
-    // `robots: { index: false, follow: true }` (placeholder until full
-    // sadaqah/waqf disclosure ships). Listing it caused a GSC noindex error.
-    // Re-add to sitemap when the full disclosure ships and noindex is lifted.
+    // 2026-07-04: /learn/sadaqah-distribution is now an indexable
+    // current-state transparency disclosure. It says Barakah does not collect,
+    // custody, route, or disburse donations today and lists the launch gates
+    // required before any future donation flow ships.
+    { url: `${baseUrl}/learn/sadaqah-distribution`,               changeFrequency: 'monthly', priority: 0.78, lastModified: now },
     { url: `${baseUrl}/learn/zakat-on-401k-methodology`,          changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/zakat-on-business-inventory`,        changeFrequency: 'monthly', priority: 0.85, lastModified: now },
     { url: `${baseUrl}/learn/zakat-recipients-2026`,              changeFrequency: 'monthly', priority: 0.88, lastModified: now },

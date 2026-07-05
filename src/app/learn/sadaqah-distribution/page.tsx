@@ -4,14 +4,10 @@ import Link from 'next/link';
 /**
  * /learn/sadaqah-distribution
  *
- * Coming-soon disclosure page. The full sadaqah/waqf distribution
- * disclosure (partners, fees, custodian, audit cadence) ships when
- * the founder has provided real values. Until then, this page
- * remains noindex,follow and intentionally carries no speculative
- * partner names, fee percentages, or custodian claims — donation
- * pages are the most trust-sensitive surface in the app and a
- * disclosure with TODO placeholders would be worse than no
- * disclosure at all.
+ * Current-state disclosure page. Barakah does not collect, custody,
+ * route, or disburse sadaqah/waqf donations today, so the honest
+ * disclosure is to say exactly that and list the launch gates that
+ * must be satisfied before any donation flow ships.
  *
  * 2026-05-10 (TRUST-001 fix): the previous version of this page
  * showed literal "Partner organisation #1", "TODO: confirm 0%",
@@ -22,29 +18,26 @@ import Link from 'next/link';
  *   • Acknowledges donations are NOT yet live in Barakah.
  *   • Lists the three commitments we WILL keep when we go live.
  *   • Points to a contact channel for early-access interest.
- * No speculative partner / fee / custodian / 501(c)(3) claims.
+ * 2026-07-04 (GSC noindex cleanup): changed from a noindex placeholder
+ * to an indexable transparency page with current-state facts. It still
+ * makes no speculative partner / fee / custodian / 501(c)(3) claims.
  */
 
 export const metadata: Metadata = {
-  title: 'Sadaqah & Waqf Distribution Disclosure',
+  title: 'Sadaqah & Waqf Transparency Disclosure',
   description:
-    'Barakah is preparing a verified sadaqah and waqf distribution disclosure. Donation flows are not live yet — this page will publish full partner, fee, and custodian detail before any donation feature ships.',
+    'Current status of sadaqah and waqf in Barakah: donations are not collected or disbursed by Barakah today. See what will be verified before any donation flow launches.',
   alternates: {
     canonical: 'https://trybarakah.com/learn/sadaqah-distribution',
   },
-  // Page is intentionally a "coming soon" landing surface. We keep
-  // noindex so search engines do not surface a placeholder
-  // disclosure, but follow so internal crawl signals to /methodology
-  // and /contact still flow. Remove noindex once the full disclosure
-  // ships with real partner/fee/custodian values.
   robots: {
-    index: false,
+    index: true,
     follow: true,
   },
   openGraph: {
-    title: 'Sadaqah & Waqf Distribution Disclosure — Barakah',
+    title: 'Sadaqah & Waqf Transparency Disclosure — Barakah',
     description:
-      'Barakah is preparing a verified sadaqah and waqf distribution disclosure. The full document publishes before any donation feature goes live.',
+      'Barakah does not collect or disburse donations today. This page documents the current status and the verification gates required before launch.',
     url: 'https://trybarakah.com/learn/sadaqah-distribution',
     siteName: 'Barakah',
     type: 'article',
@@ -64,74 +57,75 @@ export default function SadaqahDistributionPage() {
         </nav>
 
         <h1 className="text-4xl md:text-5xl font-extrabold text-[#1B5E20] mb-4">
-          Sadaqah &amp; Waqf Distribution
+          Sadaqah &amp; Waqf Transparency
         </h1>
         <p className="text-base text-gray-600 mb-8">
-          Barakah is preparing a verified disclosure for how sadaqah and waqf
-          donations made through the app will be processed, held, and disbursed.
+          This page documents what Barakah does and does not do with sadaqah
+          and waqf today, and what must be verified before any in-app donation
+          collection launches.
         </p>
 
         <section className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-8">
           <h2 className="text-lg font-bold text-amber-900 mb-2">
-            Donations are not live yet in Barakah
+            Current status: donations are not live
           </h2>
           <p className="text-sm text-amber-900/90">
             Today, the dashboard tracks sadaqah and waqf you have already given
-            elsewhere. Barakah does not yet collect donations on behalf of users.
-            Before we add any donation flow, this page will publish the full
-            partner directory, payment-processor fee schedule, disbursement
-            cadence, and waqf custodian — verified, named, and dated.
+            elsewhere. Barakah does not collect donations, hold donation funds,
+            route money to charities, issue tax receipts, or operate a waqf
+            custodian account.
           </p>
         </section>
 
         <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">
           <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">
-            What this disclosure will cover
+            Current disclosure
           </h2>
-          <ul className="list-disc list-inside space-y-3 text-gray-800">
-            <li>
-              The named charity partners we route sadaqah to, with the basis on
-              which each was vetted (audited financials, last-mile reporting,
-              registration status).
-            </li>
-            <li>
-              The exact payment-processor fee on each donation, and whether the
-              donor or Barakah covers it.
-            </li>
-            <li>
-              The disbursement cadence — how often funds move from the
-              segregated donations account to partner charities.
-            </li>
-            <li>
-              For waqf, the named custodial institution that holds the
-              principal and the income-distribution mechanism.
-            </li>
-            <li>
-              Tax-deductibility status (Barakah is not currently a 501(c)(3) —
-              we will say so plainly when donations launch, and disclose any
-              partnering registered charity that issues tax receipts on our
-              behalf).
-            </li>
-            <li>
-              A quarterly disbursement report once donations are live.
-            </li>
+          <div className="overflow-hidden rounded-xl border border-gray-200">
+            <dl className="divide-y divide-gray-200 text-sm">
+              <div className="grid gap-2 p-4 md:grid-cols-[220px_1fr]">
+                <dt className="font-semibold text-gray-900">Donation collection</dt>
+                <dd className="text-gray-700">Not live. Barakah does not accept sadaqah or waqf payments today.</dd>
+              </div>
+              <div className="grid gap-2 p-4 md:grid-cols-[220px_1fr]">
+                <dt className="font-semibold text-gray-900">Charity partners</dt>
+                <dd className="text-gray-700">None currently routed through Barakah, because Barakah is not collecting donations.</dd>
+              </div>
+              <div className="grid gap-2 p-4 md:grid-cols-[220px_1fr]">
+                <dt className="font-semibold text-gray-900">Fees</dt>
+                <dd className="text-gray-700">No Barakah donation fee exists today. Any future payment-processing fee will be named before launch.</dd>
+              </div>
+              <div className="grid gap-2 p-4 md:grid-cols-[220px_1fr]">
+                <dt className="font-semibold text-gray-900">Custody and disbursement</dt>
+                <dd className="text-gray-700">Not applicable today. Barakah does not hold donation funds or disburse them to third parties.</dd>
+              </div>
+              <div className="grid gap-2 p-4 md:grid-cols-[220px_1fr]">
+                <dt className="font-semibold text-gray-900">Waqf custody</dt>
+                <dd className="text-gray-700">No waqf custodian is active in Barakah today. A named custodian and income-distribution method must be published before any waqf flow launches.</dd>
+              </div>
+              <div className="grid gap-2 p-4 md:grid-cols-[220px_1fr]">
+                <dt className="font-semibold text-gray-900">Tax receipts</dt>
+                <dd className="text-gray-700">Barakah does not issue donation tax receipts today because it does not collect donations.</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+          <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">
+            What must be published before donations launch
+          </h2>
+          <ul className="list-disc space-y-3 pl-5 text-gray-800">
+            <li>Named charity partners, with registration status and vetting basis.</li>
+            <li>The exact payment processor, fee schedule, and who pays each fee.</li>
+            <li>The account structure used to hold funds before disbursement.</li>
+            <li>The cadence for sending funds to partners and publishing reports.</li>
+            <li>For waqf, the named custodian, principal policy, and income-distribution method.</li>
+            <li>Tax receipt handling, including which organization issues receipts if receipts are available.</li>
           </ul>
-        </section>
-
-        <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-          <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">
-            Why this page is empty for now
-          </h2>
-          <p className="text-base text-gray-700 mb-3">
-            Donation flows are the most trust-sensitive surface in any
-            faith-based app. We would rather ship nothing than ship a
-            disclosure with unconfirmed partner names or fee assumptions.
-            This page intentionally carries no speculative figures. When
-            verified values are ready, the full disclosure replaces this
-            placeholder and the page is indexed.
-          </p>
-          <p className="text-base text-gray-700">
-            See our{' '}
+          <p className="mt-4 text-base text-gray-700">
+            We will not publish placeholder partner names, estimated fees, or
+            unverified custody claims. See our{' '}
             <Link
               href="/methodology"
               className="underline text-[#1B5E20] hover:text-[#0d3a14] font-medium"
@@ -145,19 +139,23 @@ export default function SadaqahDistributionPage() {
 
         <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">
           <h2 className="text-2xl font-bold text-[#1B5E20] mb-4">
-            Want a heads-up when donations launch?
+            How Barakah helps today
           </h2>
+          <p className="text-base text-gray-700 mb-3">
+            Barakah can help you record and categorize sadaqah or waqf you give
+            elsewhere, so your household can understand charitable giving
+            alongside budgeting, zakat, and cash flow. Those entries are user
+            records only; they are not payments to Barakah.
+          </p>
           <p className="text-base text-gray-700">
-            Email{' '}
+            Questions or early-access interest? Email{' '}
             <a
               href="mailto:support@trybarakah.com"
               className="text-[#1B5E20] underline"
             >
               support@trybarakah.com
             </a>
-            {' '}with the subject line &quot;Donations early access&quot; and
-            we will let you know when the verified disclosure publishes and
-            the donation flow becomes available in the app.
+            {' '}with the subject line &quot;Donations disclosure&quot;.
           </p>
         </section>
       </div>
