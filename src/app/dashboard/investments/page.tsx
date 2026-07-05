@@ -363,6 +363,87 @@ export default function InvestmentsPage() {
     return sum + converted;
   }, 0);
   const combinedTotal = totalValue + assetTotal;
+  const formatCompactPct = (value: number) => `${Math.max(0, value).toFixed(value >= 10 ? 0 : 1)}%`;
+  const holdingRows = accounts.flatMap(account =>
+    (account.holdings || []).map(holding => ({
+      id: `holding-${holding.id}`,
+      symbol: holding.symbol,
+      name: holding.name || holding.symbol,
+      value: holding.marketValue || 0,
+      gainLoss: holding.gainLoss || 0,
+      gainLossPercent: holding.gainLossPercent || 0,
+      accountName: account.name,
+      halalState: holding.isHalal,
+      type: account.accountType,
+    }))
+  ).filter(row => row.value > 0);
+  const allocationMap = new Map<string, number>();
+  const addAllocation = (label: string, value: number) => {
+    if (value <= 0) return;
+    allocationMap.set(label, (allocationMap.get(label) || 0) + value);
+  };
+  accounts.forEach(account => {
+    const label = ACCOUNT_TYPES.find(type => type.value === account.accountType)?.labelKey;
+    addAllocation(label ? t(label) : account.accountType || 'Brokerage', account.totalValue || 0);
+  });
+  additiveAssets.forEach(asset => {
+    const labelKey = INVESTMENT_ASSET_LABEL_KEYS[asset.type];
+    addAllocation(
+      labelKey ? t(labelKey) : asset.type.replace(/_/g, ' '),
+      convertToUserCurrency(asset.value || 0, asset.currency, currency, fxRates),
+    );
+  });
+  const allocationRows = Array.from(allocationMap.entries())
+    .map(([label, value]) => ({ label, value, pct: combinedTotal > 0 ? (value / combinedTotal) * 100 : 0 }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 6);
+  const topMovers = [...holdingRows]
+    .filter(row => Math.abs(row.gainLossPercent) >= 0.01 || Math.abs(row.gainLoss) >= 0.01)
+    .sort((a, b) => {
+      const pctDiff = Math.abs(b.gainLossPercent) - Math.abs(a.gainLossPercent);
+      return Math.abs(pctDiff) >= 0.01 ? pctDiff : Math.abs(b.gainLoss) - Math.abs(a.gainLoss);
+    })
+    .slice(0, 5);
+  const trackedHoldingValue = holdingRows.reduce((sum, row) => sum + row.value, 0);
+  const halalValue = holdingRows
+    .filter(row => row.halalState === true)
+    .reduce((sum, row) => sum + row.value, 0);
+  const reviewValue = Math.max(0, trackedHoldingValue - halalValue);
+  const halalCoveragePct = trackedHoldingValue > 0 ? (halalValue / trackedHoldingValue) * 100 : 0;
+  const largestPosition = [
+    ...holdingRows.map(row => ({ name: row.symbol || row.name, value: row.value })),
+    ...additiveAssets.map(asset => ({
+      name: asset.name,
+      value: convertToUserCurrency(asset.value || 0, asset.currency, currency, fxRates),
+    })),
+  ].filter(row => row.value > 0).sort((a, b) => b.value - a.value)[0];
+  const largestPositionPct = largestPosition && combinedTotal > 0 ? (largestPosition.value / combinedTotal) * 100 : 0;
+  const cryptoValue =
+    accounts.filter(account => account.accountType === 'crypto').reduce((sum, account) => sum + (account.totalValue || 0), 0) +
+    additiveAssets
+      .filter(asset => asset.type === 'crypto')
+      .reduce((sum, asset) => sum + convertToUserCurrency(asset.value || 0, asset.currency, currency, fxRates), 0);
+  const cryptoPct = combinedTotal > 0 ? (cryptoValue / combinedTotal) * 100 : 0;
+  const riskRows = [
+    {
+      label: 'Concentration',
+      value: largestPosition ? `${largestPosition.name} · ${formatCompactPct(largestPositionPct)}` : 'Not enough data',
+      tone: largestPositionPct > 35 ? 'rose' : largestPositionPct > 20 ? 'amber' : 'emerald',
+      note: largestPositionPct > 35 ? 'One position dominates the portfolio.' : largestPositionPct > 20 ? 'Worth reviewing before adding more.' : 'No single position dominates.',
+    },
+    {
+      label: 'Halal coverage',
+      value: trackedHoldingValue > 0 ? `${formatCompactPct(halalCoveragePct)} screened halal` : 'No screened holdings',
+      tone: trackedHoldingValue === 0 ? 'slate' : reviewValue / trackedHoldingValue > 0.25 ? 'amber' : 'emerald',
+      note: trackedHoldingValue === 0 ? 'Add holdings to unlock screening coverage.' : `${fmt(reviewValue)} still needs review or failed screening.`,
+    },
+    {
+      label: 'Crypto / alternative',
+      value: cryptoValue > 0 ? `${formatCompactPct(cryptoPct)} of portfolio` : 'No crypto concentration',
+      tone: cryptoPct > 20 ? 'amber' : 'emerald',
+      note: cryptoPct > 20 ? 'Volatile exposure is high enough to review.' : 'No obvious crypto concentration risk.',
+    },
+  ];
 
   return (
     <div>
@@ -433,6 +514,98 @@ export default function InvestmentsPage() {
             </p>
           )}
         </div>
+      )}
+
+      {combinedTotal > 0 && (
+        <section className="mb-6">
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Allocation, movers & risk</h2>
+              <p className="text-sm text-gray-500">Monarch-style portfolio intelligence with Barakah&apos;s halal-review lens.</p>
+            </div>
+            <Link href="/dashboard/halal" className="hidden sm:inline text-sm font-medium text-primary hover:underline">
+              Review halal screens →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="bg-white rounded-xl shadow-sm p-5">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Allocation</h3>
+              {allocationRows.length === 0 ? (
+                <p className="text-sm text-gray-500">Add holdings or investment assets to see allocation.</p>
+              ) : (
+                <div className="space-y-3">
+                  {allocationRows.map(row => (
+                    <div key={row.label}>
+                      <div className="mb-1 flex items-center justify-between gap-2 text-sm">
+                        <span className="font-medium text-gray-700 capitalize truncate">{row.label}</span>
+                        <span className="text-gray-500 tabular-nums">{formatCompactPct(row.pct)}</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                        <div
+                          className="h-full rounded-full bg-primary"
+                          style={{ width: `${Math.max(2, Math.min(100, row.pct))}%` }}
+                        />
+                      </div>
+                      <p className="mt-0.5 text-xs text-gray-400 tabular-nums">{fmt(row.value)}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-5">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Top movers</h3>
+              {topMovers.length === 0 ? (
+                <p className="text-sm text-gray-500">No gain/loss movement yet. Add cost basis and current prices to unlock movers.</p>
+              ) : (
+                <div className="space-y-3">
+                  {topMovers.map(row => {
+                    const positive = row.gainLoss >= 0;
+                    return (
+                      <div key={row.id} className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">{row.symbol}</p>
+                          <p className="text-xs text-gray-500 truncate">{row.accountName}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className={`text-sm font-bold tabular-nums ${positive ? 'text-emerald-700' : 'text-rose-700'}`}>
+                            {fmtPct(row.gainLossPercent)}
+                          </p>
+                          <p className="text-xs text-gray-500 tabular-nums">{fmt(row.gainLoss)}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-5">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Risk posture</h3>
+              <div className="space-y-3">
+                {riskRows.map(row => (
+                  <div key={row.label} className="rounded-lg border border-gray-100 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-medium text-gray-700">{row.label}</p>
+                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        row.tone === 'emerald'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : row.tone === 'amber'
+                          ? 'bg-amber-50 text-amber-700'
+                          : row.tone === 'rose'
+                          ? 'bg-rose-50 text-rose-700'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {row.value}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">{row.note}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
       )}
 
       {/* Backtested Performance — Monarch-parity 4-card strip showing

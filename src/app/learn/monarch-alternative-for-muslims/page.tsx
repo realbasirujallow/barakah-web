@@ -23,17 +23,20 @@ export const metadata: Metadata = {
 };
 
 const comparisonRows = [
-  { area: 'Core product', monarch: 'Mint-successor net-worth dashboard with strong joint-account UX for couples.', barakah: 'Fiqh-aware household finance OS — budget + zakat + hawl + halal screen + riba + Islamic will.', winner: 'Different jobs' },
-  { area: 'Pricing', monarch: '$14.99/mo or $99/yr', barakah: 'Free; Plus $9.99/mo; Family $14.99/mo for up to 6 members', winner: 'Barakah on price' },
-  { area: 'Net-worth tracking', monarch: 'Best-in-class — multi-year, custom assets, real-estate auto-valuation', barakah: 'Solid, with integrity-hash snapshots for audit', winner: 'Monarch on depth' },
-  { area: 'Joint household UX', monarch: 'Designed for couples; smooth multi-user experience', barakah: 'Family plan up to 6 members with privacy-preserving roll-up', winner: 'Barakah on scale' },
-  { area: 'Bank sync', monarch: 'Plaid + MX + Finicity — strong US/CA coverage', barakah: 'Plaid — 12,000+ US banks (CA/UK on roadmap)', winner: 'Monarch on country coverage' },
+  { area: 'Core product', monarch: 'Subscription household-finance dashboard with strong mainstream UX.', barakah: 'Fiqh-aware household finance OS — budget + zakat + hawl + halal screen + riba + Islamic will.', winner: 'Different jobs' },
+  { area: 'Pricing model', monarch: 'Paid subscription only, billed monthly or yearly.', barakah: 'Free; Plus and Family paid plans for Muslim household workflows.', winner: 'Barakah on access' },
+  { area: 'Net-worth tracking', monarch: 'Strong reporting, custom assets, real-estate values, and long-history UX.', barakah: 'Linked/manual assets, snapshots, debt coverage, and zakat-aware treatment.', winner: 'Monarch on depth' },
+  { area: 'Dashboard customization', monarch: 'Customizable dashboard widgets and drag-and-drop ordering.', barakah: 'Daily priorities, Islamic finance cards, and dashboard widgets; less customizable today.', winner: 'Monarch on polish' },
+  { area: 'Joint household UX', monarch: 'Household collaboration, partner review, and advisor/pro access.', barakah: 'Family plan up to 6 members with household rollups and Islamic workflows.', winner: 'Different jobs' },
+  { area: 'Bank sync', monarch: 'Multiple financial data providers and broad institution coverage.', barakah: 'Plaid-backed account sync.', winner: 'Monarch on coverage' },
   { area: 'Zakat calculator (multi-asset)', monarch: 'None', barakah: 'Cash, gold, silver, stocks, 401k/IRA, rental, crypto, business inventory — multi-madhab', winner: 'Barakah' },
   { area: 'Hawl anniversary tracking', monarch: 'None', barakah: 'Daily nisab check, fiqh-aware reset rules, anniversary reminders', winner: 'Barakah' },
   { area: 'Halal stock screening', monarch: 'None — investment view shows all your holdings without Shariah filter', barakah: '30,000+ ticker library + on-demand AAOIFI Standard 21 screen', winner: 'Barakah' },
   { area: 'Riba / interest detection', monarch: 'None — interest income shown as positive cash flow', barakah: 'Transaction-level flagging with purification math', winner: 'Barakah' },
   { area: 'Islamic estate planning', monarch: 'None', barakah: 'Faraid calculator + wasiyyah builder', winner: 'Barakah' },
-  { area: 'Budgeting', monarch: 'Flexible category-based with rollover; good but not envelope-strict', barakah: 'Category-based with rollover, integrated with zakat and riba detector', winner: 'Tie' },
+  { area: 'Budgeting', monarch: 'Flex budgeting, category budgeting, rollovers, forecasts, and strong widget UX.', barakah: 'Category budgets, rollovers, safe-to-spend, forecasts, integrated with zakat and riba detector.', winner: 'Tie' },
+  { area: 'Recurring bills', monarch: 'Bills and subscriptions as calendar/list, plus reminders.', barakah: 'Recurring rules, monthly overview, list + calendar; reminders still less mature.', winner: 'Monarch on polish' },
+  { area: 'Investments', monarch: 'Holdings, allocation, movers, and risk profile UX.', barakah: 'Holdings, allocation/risk/movers, benchmarks, halal screening, and zakat handling.', winner: 'Tie' },
   { area: 'Mobile app polish', monarch: 'Mature iOS + Android', barakah: 'iOS + Android live; iterating fast', winner: 'Monarch on maturity' },
   { area: 'Privacy posture', monarch: 'Subscription-funded — no ads, no data sales (per their published privacy stance)', barakah: 'Subscription-funded — no ads, no data sales, self-hosted option on roadmap', winner: 'Tie' },
 ];
@@ -99,12 +102,15 @@ export default function Page() {
         <div className="max-w-3xl mx-auto px-6 py-10">
 
           <h1 className="mb-3 text-4xl md:text-5xl font-extrabold text-[#1B5E20]">Monarch alternative for Muslims</h1>
-          <p className="text-base text-gray-600 mb-6">Last reviewed: 2026-05-28</p>
+          <p className="text-base text-gray-600 mb-6">Last reviewed: 2026-07-04</p>
 
           <section className="mb-8 rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="text-lg font-bold text-[#1B5E20] mb-2">The short version</h2>
             <p className="text-base leading-7 text-gray-800 mb-3">
-              Monarch is the post-Mint pick for most US households — clean net-worth view, well-built joint-account UX, fair pricing. For Muslim households it leaves an entire layer of the finances on the side of the road: there&apos;s no zakat across your multi-asset wealth, no hawl tracker, no halal stock screen, no riba flagging, no wasiyyah planner.
+              Monarch is one of the strongest post-Mint picks for US households — clean net-worth views, flexible budgeting,
+              recurring bills, reports, household collaboration, and a mature mobile experience. For Muslim households it
+              leaves an entire layer of the finances on the side of the road: there&apos;s no zakat across your multi-asset
+              wealth, no hawl tracker, no halal stock screen, no riba flagging, no wasiyyah planner.
             </p>
             <p className="text-base leading-7 text-gray-800">
               Barakah keeps the net-worth + budgeting visibility you came to Monarch for and adds the Islamic-finance layer Muslim families actually need. This page is an honest comparison including where Monarch still wins.
@@ -114,9 +120,9 @@ export default function Page() {
           <section className="mb-8 rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="text-xl font-bold text-[#1B5E20] mb-3">The quick decision</h2>
             <ul className="list-disc space-y-2 pl-6 text-base leading-7 text-gray-800">
-              <li><strong>Stay on Monarch</strong> if: you have a complex portfolio that you love seeing through Monarch&apos;s net-worth view, your zakat is simple enough to do by hand each year, and you don&apos;t need the Islamic-finance layer.</li>
+              <li><strong>Stay on Monarch</strong> if: you love Monarch&apos;s dashboard, reports, recurring calendar, investment UX, and collaboration model, and you are comfortable doing the Islamic layer outside the app.</li>
               <li><strong>Switch to Barakah</strong> if: you want one app that handles budget + zakat + hawl + halal + riba + will for a Muslim household, especially a multi-member one.</li>
-              <li><strong>Use both</strong> if: you have a high-net-worth portfolio and want Monarch&apos;s depth on visualisation alongside Barakah&apos;s Islamic-finance engine.</li>
+              <li><strong>Use both</strong> if: you want Monarch&apos;s mainstream polish today alongside Barakah&apos;s Islamic-finance engine while Barakah keeps closing parity gaps.</li>
             </ul>
           </section>
 
@@ -155,7 +161,11 @@ export default function Page() {
           <section className="mb-10 rounded-2xl border border-amber-200 bg-amber-50 p-6">
             <h2 className="text-xl font-bold text-amber-900 mb-2">The honest take</h2>
             <p className="text-sm leading-6 text-amber-900">
-              Monarch is genuinely good at what it does, and for a non-religious finance dashboard at a reasonable price it&apos;s the right answer for many households. For a Muslim household that wants the same household visibility plus zakat, hawl, halal screening, riba detection, and wasiyyah — without running a parallel spreadsheet — Barakah was built for exactly that gap. Try the free tier for a month alongside Monarch and see whether enough of the Islamic-finance layer pulls itself together that the switch (or the parallel use) is worth it.
+              Monarch is genuinely good at what it does, and for a mainstream finance dashboard it is the right answer for many households.
+              For a Muslim household that wants the same household visibility plus zakat, hawl, halal screening, riba detection,
+              and wasiyyah — without running a parallel spreadsheet — Barakah was built for exactly that gap. Try the free tier
+              alongside Monarch and see whether enough of the Islamic-finance layer pulls itself together that the switch, or the
+              parallel use, is worth it.
             </p>
           </section>
 
