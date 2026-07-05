@@ -34,6 +34,11 @@ DEPLOY_URL="${DEPLOY_URL:-https://trybarakah.com}"
 # [1/4] Build locally exactly like Railway does (next build => type-check).
 # ---------------------------------------------------------------------------
 echo "==> [1/4] Building locally (npm run build) -- same step Railway runs ..."
+# Force a clean Next build. Turbopack/Next incremental artifacts can otherwise
+# keep stale server-route chunks for rarely-touched marketing pages while the
+# root BUILD_ID changes, which makes the deploy look green but leaves old copy
+# live on specific routes.
+rm -rf .next
 if ! npm run build; then
   echo "" >&2
   echo "ERROR: 'npm run build' FAILED locally." >&2
