@@ -134,6 +134,21 @@ function applyCsp(response: NextResponse, csp?: string): NextResponse {
   return response;
 }
 
+const STALE_GSC_URL_REDIRECTS = new Map<string, string>([
+  [
+    '/enh1rEfty+X37BXpLw2tQ==',
+    '/compare/barakah-vs-acorns',
+  ],
+]);
+
+function getDecodedPath(pathname: string): string {
+  try {
+    return decodeURIComponent(pathname);
+  } catch {
+    return pathname;
+  }
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   // SSR locale: first path segment when it's a supported locale (/ar, /ur, /fr),
@@ -149,6 +164,23 @@ export function proxy(request: NextRequest) {
 
   const { nonce, csp } = buildCspHeaders();
   void nonce; // threaded onto request headers further below when NextResponse.next() is called
+
+  // GSC-404-2026-07-13: the Next config redirect catches the literal `+`
+  // variant of this stale opaque URL, but Google validates the URL-encoded
+  // form (`%2B`, `%3D`), which was still reaching the 404 page in production.
+  // Normalize the raw URL path here so both variants permanently consolidate
+  // onto the real comparison page before App Router matching runs.
+  const rawPathname = new URL(request.url).pathname;
+  const staleRedirectDestination =
+    STALE_GSC_URL_REDIRECTS.get(pathname) ??
+    STALE_GSC_URL_REDIRECTS.get(getDecodedPath(rawPathname));
+
+  if (staleRedirectDestination) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = staleRedirectDestination;
+    redirectUrl.search = '';
+    return applyCsp(NextResponse.redirect(redirectUrl, 308), csp);
+  }
 
   // ── Marketing homepage: redirect logged-in users straight to /dashboard ──
   //
