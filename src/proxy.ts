@@ -139,6 +139,10 @@ const STALE_GSC_URL_REDIRECTS = new Map<string, string>([
     '/enh1rEfty+X37BXpLw2tQ==',
     '/compare/barakah-vs-acorns',
   ],
+  [
+    '/p2a6WdnL/O26C70YlpRaQ==',
+    '/compare/barakah-vs-acorns',
+  ],
 ]);
 
 function getDecodedPath(pathname: string): string {

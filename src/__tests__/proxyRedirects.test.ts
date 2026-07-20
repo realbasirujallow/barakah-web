@@ -8,6 +8,8 @@ describe('proxy stale URL redirects', () => {
   it.each([
     'https://trybarakah.com/enh1rEfty+X37BXpLw2tQ==',
     'https://trybarakah.com/enh1rEfty%2BX37BXpLw2tQ%3D%3D',
+    'https://trybarakah.com/p2a6WdnL/O26C70YlpRaQ==',
+    'https://trybarakah.com/p2a6WdnL/O26C70YlpRaQ%3D%3D',
   ])('redirects the GSC 404 URL variant %s', (url) => {
     const response = proxy(new NextRequest(url));
 
