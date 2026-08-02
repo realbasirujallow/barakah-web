@@ -35,6 +35,7 @@ export interface AdminUsersTabProps {
   activityFilter: string;
   onQueryChange: (q: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter }) => void;
   openUser: (u: AdminUser, listContext?: AdminUser[]) => void;
+  loadExportUsers?: () => Promise<AdminUser[]>;
   onBulkDelete?: (ids: number[]) => Promise<void>;
 }
 
@@ -56,11 +57,15 @@ export function AdminUsersTab({
   activityFilter,
   onQueryChange,
   openUser,
+  loadExportUsers,
   onBulkDelete,
 }: AdminUsersTabProps) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(false);
+  const [showSecurityDetails, setShowSecurityDetails] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [copyingEmails, setCopyingEmails] = useState(false);
 
   // Clear selection when the user list changes (page turn, search, filter)
   useEffect(() => { setSelected(new Set()); setBulkConfirm(false); }, [filteredUsers]);
@@ -100,12 +105,12 @@ export function AdminUsersTab({
   // Server-side sort presets (value encodes "field|dir"). Applied via
   // onQueryChange, which resets to page 0 and refetches.
   const SORT_OPTIONS: { value: string; label: string }[] = [
-    { value: 'id|asc', label: 'Joined (oldest first)' },
     { value: 'createdAt|desc', label: 'Joined (newest first)' },
+    { value: 'lastSeenAt|desc', label: 'Recently seen' },
+    { value: 'lastLoginAt|desc', label: 'Recently active' },
+    { value: 'id|asc', label: 'Joined (oldest first)' },
     { value: 'loginCount|desc', label: 'Most logins' },
     { value: 'loginCount|asc', label: 'Fewest logins' },
-    { value: 'lastLoginAt|desc', label: 'Recently active' },
-    { value: 'lastSeenAt|desc', label: 'Recently seen' },
     { value: 'plan|asc', label: 'Plan (A–Z)' },
     { value: 'billingInterval|desc', label: 'Cadence (annual first)' },
     { value: 'country|asc', label: 'Country (A–Z)' },
@@ -147,6 +152,60 @@ export function AdminUsersTab({
       </button>
     </div>
   ) : null;
+
+  const buildCsv = (users: AdminUser[], includeSecurity: boolean) => {
+    const csvq = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const header = [
+      'ID', 'Name', 'Email', 'Phone', 'Plan', 'Status', 'Verified', 'VerifiedAt',
+      'Location', 'EffectiveCountry', 'CountryInferred', 'Joined', 'SignupSource',
+      'LastLogin', 'LastSeen', 'LastActivity', 'ActivityBucket', 'LoginCount',
+      ...(includeSecurity ? ['SignupIp', 'LastLoginIp'] : []),
+    ];
+    return [header.join(',')]
+      .concat(users.map(u => [
+        u.id,
+        csvq(u.name),
+        u.email,
+        u.phoneNumber || '',
+        u.plan,
+        u.subscriptionStatus || 'inactive',
+        u.emailVerified === false ? 'No' : 'Yes',
+        csvq(fmtFullTs(u.emailVerifiedAt)),
+        csvq(formatLocation(u.state, u.country || u.effectiveCountry)),
+        u.effectiveCountry || '',
+        u.countryInferred ? 'Yes' : 'No',
+        csvq(fmtFullTs(u.createdAt)),
+        u.signupSource || '',
+        csvq(fmtFullTs(u.lastLoginAt)),
+        csvq(fmtFullTs(u.lastSeenAt)),
+        csvq(fmtFullTs(u.lastActivityAt)),
+        u.activityBucket || '',
+        String(u.loginCount ?? 0),
+        ...(includeSecurity ? [u.signupIp || '', u.lastLoginIp || ''] : []),
+      ].join(','))).join('\n');
+  };
+
+  const downloadCsv = (users: AdminUser[], label: string) => {
+    const blob = new Blob([buildCsv(users, showSecurityDetails)], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `barakah-users-${label}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const copyOutreachEmails = async () => {
+    if (!loadExportUsers) return;
+    setCopyingEmails(true);
+    try {
+      const users = await loadExportUsers();
+      const emails = Array.from(new Set(users.map(u => u.email).filter(Boolean))).join('\n');
+      await navigator.clipboard.writeText(emails);
+    } finally {
+      setCopyingEmails(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -299,48 +358,52 @@ export function AdminUsersTab({
               >
                 {ACTIVITY_FILTER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
+              <label className="flex items-center gap-1.5 text-xs text-gray-500 px-2 py-1.5 rounded-lg border border-gray-200 bg-white">
+                <input
+                  type="checkbox"
+                  checked={showSecurityDetails}
+                  onChange={e => setShowSecurityDetails(e.target.checked)}
+                  className="accent-[#1B5E20]"
+                />
+                Security details
+              </label>
               {pager}
               <button
-                onClick={() => {
-                  const users = filteredUsers;
-                  // Quote any field that may contain a comma (dates, location).
-                  const csvq = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-                  const csv = ['ID,Name,Email,Phone,Plan,Status,Verified,VerifiedAt,Location,EffectiveCountry,CountryInferred,Joined,SignupSource,SignupIp,LastLogin,LastSeen,LastActivity,ActivityBucket,LastLoginIp,LoginCount']
-                    .concat(users.map(u => [
-                      u.id,
-                      csvq(u.name),
-                      u.email,
-                      u.phoneNumber || '',
-                      u.plan,
-                      u.subscriptionStatus || 'inactive',
-                      u.emailVerified === false ? 'No' : 'Yes',
-                      csvq(fmtFullTs(u.emailVerifiedAt)),
-                      csvq(formatLocation(u.state, u.country || u.effectiveCountry)),
-                      u.effectiveCountry || '',
-                      u.countryInferred ? 'Yes' : 'No',
-                      csvq(fmtFullTs(u.createdAt)),
-                      u.signupSource || '',
-                      u.signupIp || '',
-                      csvq(fmtFullTs(u.lastLoginAt)),
-                      csvq(fmtFullTs(u.lastSeenAt)),
-                      csvq(fmtFullTs(u.lastActivityAt)),
-                      u.activityBucket || '',
-                      u.lastLoginIp || '',
-                      String(u.loginCount ?? 0),
-                    ].join(','))).join('\n');
-                  const blob = new Blob([csv], { type: 'text/csv' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `barakah-users-${new Date().toISOString().slice(0, 10)}.csv`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
-                title="Exports visible rows (use search to filter before exporting)"
+                onClick={() => downloadCsv(filteredUsers, 'visible')}
+                title="Exports the rows currently visible in this table"
                 className="px-3 py-1.5 text-xs font-medium text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition"
               >
-                Export CSV ({search.trim().length >= 2 ? `${filteredUsers.length} results` : `page ${page + 1}`})
+                Export visible CSV
               </button>
+              {loadExportUsers && (
+                <>
+                  <button
+                    type="button"
+                    disabled={exporting}
+                    onClick={async () => {
+                      setExporting(true);
+                      try {
+                        downloadCsv(await loadExportUsers(), 'filtered');
+                      } finally {
+                        setExporting(false);
+                      }
+                    }}
+                    title="Exports every user matching the current search, chips, country, and activity filters"
+                    className="px-3 py-1.5 text-xs font-medium text-[#1B5E20] border border-[#1B5E20] rounded-lg hover:bg-green-50 transition disabled:opacity-50"
+                  >
+                    {exporting ? 'Exporting...' : 'Export filtered CSV'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={copyingEmails}
+                    onClick={copyOutreachEmails}
+                    title="Copies one email per matching user for outreach"
+                    className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:border-[#1B5E20] hover:text-[#1B5E20] transition disabled:opacity-50"
+                  >
+                    {copyingEmails ? 'Copying...' : 'Copy emails'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -411,7 +474,7 @@ export function AdminUsersTab({
                 <th className="px-3 py-3">Location</th>
                 <th className="px-3 py-3">Signed Up</th>
                 <th className="px-3 py-3">Last Login</th>
-                <th className="px-3 py-3">Login IP</th>
+                {showSecurityDetails && <th className="px-3 py-3">Login IP</th>}
                 <th className="px-3 py-3">Logins</th>
                 <th className="px-3 py-3"></th>
               </tr>
@@ -419,7 +482,7 @@ export function AdminUsersTab({
             <tbody className="divide-y divide-gray-100">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="text-center py-10 text-gray-400">
+                  <td colSpan={showSecurityDetails ? 11 : 10} className="text-center py-10 text-gray-400">
                     {search ? 'No users match your search.' : userFilter !== 'all' ? 'No users match this filter on the current page.' : 'No users found.'}
                   </td>
                 </tr>
@@ -429,6 +492,7 @@ export function AdminUsersTab({
                   const subInfo = SUB_STATUS_LABELS[u.subscriptionStatus ?? 'inactive'] ?? SUB_STATUS_LABELS.inactive;
                   const cadence = cadenceLabel(u.billingInterval, u.plan);
                   const isSelected = selected.has(u.id);
+                  const verifiedAt = fmtFullTs(u.emailVerifiedAt);
                   return (
                     <tr
                       key={u.id}
@@ -460,20 +524,22 @@ export function AdminUsersTab({
                           ? <span className="text-red-500 text-xs font-medium">✗ No</span>
                           : <div>
                               <span className="text-green-500 text-xs font-medium">✓ Yes</span>
-                              {u.emailVerifiedAt && <p className="text-[10px] text-gray-400">{fmtFullTs(u.emailVerifiedAt)}</p>}
+                              {verifiedAt !== '—' && <p className="text-[10px] text-gray-400">{verifiedAt}</p>}
                             </div>
                         }
                       </td>
                       <td className="px-3 py-3 text-xs text-gray-500">
-                        {formatLocation(u.state, u.country || u.effectiveCountry)}
-                        {u.countryInferred && (
-                          <span
-                            className="ml-1 px-1 py-0.5 rounded bg-gray-100 text-gray-400 text-[9px]"
-                            title="Country inferred from state (raw country was blank)"
-                          >
-                            inferred
-                          </span>
-                        )}
+                        <span className="inline-flex items-center gap-1.5 flex-wrap">
+                          <span>{formatLocation(u.state, u.country || u.effectiveCountry)}</span>
+                          {u.countryInferred && (
+                            <span
+                              className="px-1 py-0.5 rounded bg-gray-100 text-gray-400 text-[9px]"
+                              title="Country inferred from state (raw country was blank)"
+                            >
+                              inferred
+                            </span>
+                          )}
+                        </span>
                       </td>
                       <td className="px-3 py-3 text-gray-500 text-xs">
                         <p>{fmtFullTs(u.createdAt)}</p>
@@ -490,9 +556,11 @@ export function AdminUsersTab({
                             </>
                         }
                       </td>
-                      <td className="px-3 py-3 text-gray-400 font-mono text-[10px]">
-                        {u.lastLoginIp || '—'}
-                      </td>
+                      {showSecurityDetails && (
+                        <td className="px-3 py-3 text-gray-400 font-mono text-[10px]">
+                          {u.lastLoginIp || '—'}
+                        </td>
+                      )}
                       <td className="px-3 py-3 text-center text-xs text-gray-500">
                         {u.loginCount ?? 0}
                       </td>

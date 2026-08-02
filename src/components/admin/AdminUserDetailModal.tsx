@@ -297,6 +297,7 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
   const [wipeConfirm, setWipeConfirm] = useState<number | null>(null);
   const [isWiping, setIsWiping] = useState(false);
   const [localeUpdating, setLocaleUpdating] = useState(false);
+  const [showSecurityDetails, setShowSecurityDetails] = useState(false);
 
   return (
     // 2026-05-02 (revert): the earlier `flex min-h-full` outer-scroll
@@ -326,15 +327,18 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
               <span className="text-xs text-gray-400">·</span>
               <span className="text-xs text-gray-400">Joined {fmtFullTs(selected.createdAt)}</span>
             </div>
-            {(selected.country || selected.state) && (
+            {(selected.country || selected.state || selected.effectiveCountry) && (
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs text-gray-400">📍</span>
                 <span className="text-xs text-gray-400">
-                  {formatLocation(selected.state, selected.country)}
+                  {formatLocation(selected.state, selected.country || selected.effectiveCountry)}
                 </span>
+                {selected.countryInferred && (
+                  <span className="px-1 py-0.5 rounded bg-gray-100 text-gray-400 text-[9px]">inferred</span>
+                )}
               </div>
             )}
-            {selected.signupIp && (
+            {showSecurityDetails && selected.signupIp && (
               <p className="text-xs text-gray-400 mt-0.5">Signup IP: <span className="font-mono">{selected.signupIp}</span></p>
             )}
             {selected.signupSource && (
@@ -354,10 +358,22 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
                     {selected.hasStripe && (
                       <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-600">Stripe</span>
                     )}
+                    {selected.subscriptionSource && (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">{selected.subscriptionSource}</span>
+                    )}
                   </>
                 );
               })()}
             </div>
+            <label className="mt-2 inline-flex items-center gap-1.5 text-xs text-gray-500">
+              <input
+                type="checkbox"
+                checked={showSecurityDetails}
+                onChange={e => setShowSecurityDetails(e.target.checked)}
+                className="accent-[#1B5E20]"
+              />
+              Security details
+            </label>
             {selected.planExpiresAt && (
               <p className="text-xs text-gray-400 mt-1.5">
                 Plan expires: {fmtDate(selected.planExpiresAt)}
@@ -508,11 +524,13 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
                   <p className="text-gray-700 font-medium mt-1">{userActivity.lastAppVersion || '—'}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
-                <div className="bg-white rounded-lg p-3 border border-gray-100">
-                  <p className="text-gray-400 uppercase tracking-wide">Login IP</p>
-                  <p className="text-gray-700 font-mono font-medium mt-1 text-[11px]">{(userActivity as Record<string, unknown>).lastLoginIp as string || '—'}</p>
-                </div>
+              <div className={`grid gap-2 mt-2 text-xs ${showSecurityDetails ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                {showSecurityDetails && (
+                  <div className="bg-white rounded-lg p-3 border border-gray-100">
+                    <p className="text-gray-400 uppercase tracking-wide">Login IP</p>
+                    <p className="text-gray-700 font-mono font-medium mt-1 text-[11px]">{(userActivity as Record<string, unknown>).lastLoginIp as string || '—'}</p>
+                  </div>
+                )}
                 <div className="bg-white rounded-lg p-3 border border-gray-100">
                   <p className="text-gray-400 uppercase tracking-wide">Total logins</p>
                   <p className="text-gray-700 font-medium mt-1">{(userActivity as Record<string, unknown>).loginCount as number ?? 0}</p>
@@ -521,10 +539,12 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
                   <p className="text-gray-400 uppercase tracking-wide">Email verified</p>
                   <p className="text-gray-700 font-medium mt-1 text-[11px]">{fmtFullTs((userActivity as Record<string, unknown>).emailVerifiedAt as number | undefined)}</p>
                 </div>
-                <div className="bg-white rounded-lg p-3 border border-gray-100">
-                  <p className="text-gray-400 uppercase tracking-wide">Signup IP</p>
-                  <p className="text-gray-700 font-mono font-medium mt-1 text-[11px]">{(userActivity as Record<string, unknown>).signupIp as string || '—'}</p>
-                </div>
+                {showSecurityDetails && (
+                  <div className="bg-white rounded-lg p-3 border border-gray-100">
+                    <p className="text-gray-400 uppercase tracking-wide">Signup IP</p>
+                    <p className="text-gray-700 font-mono font-medium mt-1 text-[11px]">{(userActivity as Record<string, unknown>).signupIp as string || '—'}</p>
+                  </div>
+                )}
               </div>
               {userActivity.lifecycle && (
                 <div className="mt-3 space-y-3">
@@ -861,6 +881,10 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
             />
           </div>
 
+          <div className="border-t pt-5">
+            <AdminRefundOfferConsole selected={selected} toast={toast} />
+          </div>
+
           {/* Language / Locale override */}
           <div className="border-t pt-5">
             <p className="text-sm font-medium text-gray-700 mb-1">Language Override</p>
@@ -1001,6 +1025,84 @@ export function AdminUserDetailModal(props: AdminUserDetailModalProps) {
           onClose={() => setDrilldown(null)}
         />
       )}
+    </div>
+  );
+}
+
+function AdminRefundOfferConsole({
+  selected,
+  toast,
+}: {
+  selected: AdminUser;
+  toast: (msg: string, kind?: 'success' | 'error' | 'info') => void;
+}) {
+  const source = (selected.subscriptionSource || '').toLowerCase();
+  const platform = (selected.lastPlatform || '').toLowerCase();
+  const mobileStore = platform.includes('ios')
+    ? 'Apple App Store'
+    : platform.includes('android')
+      ? 'Google Play'
+      : 'App Store / Google Play';
+  const sourceLabel =
+    source === 'stripe' ? 'Stripe web checkout' :
+    source === 'revenuecat' ? `${mobileStore} via RevenueCat` :
+    source === 'family_member' ? 'Inherited family seat' :
+    source === 'manual' || source === 'manual_admin' ? 'Manual/admin access' :
+    selected.hasStripe ? 'Stripe customer present' :
+    'Unknown or free account';
+  const primaryStep =
+    source === 'stripe' || selected.hasStripe
+      ? 'Use Stripe Dashboard to locate the customer, confirm the charge, then issue the refund there.'
+      : source === 'revenuecat'
+        ? `Use ${mobileStore} purchase history for the refund; RevenueCat updates entitlement state from store webhooks.`
+        : source === 'family_member'
+          ? 'Refund the paying family owner, not this inherited seat.'
+          : 'Confirm the purchase platform before promising a refund.';
+  const discountStep =
+    source === 'revenuecat'
+      ? 'Stripe discounts can only be staged for web checkout; mobile-store invoices cannot be discounted in place.'
+      : source === 'family_member'
+        ? 'Discounts belong on the owner or next web checkout, not the inherited member seat.'
+        : 'Use Issue Discount above for Stripe/web checkout save offers.';
+  const note = [
+    `Refund / offer check for ${selected.email}`,
+    `User ID: ${selected.id}`,
+    `Plan: ${selected.plan || 'free'} / ${selected.subscriptionStatus || 'inactive'}`,
+    `Source: ${sourceLabel}`,
+    `Next step: ${primaryStep}`,
+  ].join('\n');
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-gray-700">Refund / Offer Console</p>
+          <p className="text-xs text-gray-500 mt-1">Confirm platform before refunding or promising a discount.</p>
+        </div>
+        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-600">
+          {sourceLabel}
+        </span>
+      </div>
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 space-y-2">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Refund path</p>
+          <p className="text-xs text-gray-700 mt-1">{primaryStep}</p>
+        </div>
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Save offer</p>
+          <p className="text-xs text-gray-700 mt-1">{discountStep}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={async () => {
+          await navigator.clipboard.writeText(note);
+          toast('Refund support note copied', 'success');
+        }}
+        className="w-full py-2 border border-gray-300 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-50 transition"
+      >
+        Copy refund support note
+      </button>
     </div>
   );
 }

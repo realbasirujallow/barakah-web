@@ -1,11 +1,13 @@
 import '@testing-library/jest-dom/vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import AnnualUpgradeBanner from '../components/AnnualUpgradeBanner';
 import AnnualUpgradeModal from '../components/AnnualUpgradeModal';
 import { AdminDeletedTab } from '../components/admin/AdminDeletedTab';
 import { AdminOverviewTab } from '../components/admin/AdminOverviewTab';
+import { AdminUsersTab } from '../components/admin/AdminUsersTab';
+import { fmtFullTs } from '../components/admin/adminFormatting';
 
 const { adminGetChurnAnalysisMock, adminGetDeletedUsersMock, subscriptionStatusMock, useAuthMock } = vi.hoisted(() => ({
   adminGetChurnAnalysisMock: vi.fn(),
@@ -119,6 +121,118 @@ describe('admin-specific surface behavior', () => {
     expect(screen.getByText(/truly paid/i)).toBeInTheDocument();
     expect(screen.getByText(/on trial, paid, or inherited access/i)).toBeInTheDocument();
     expect(screen.getByText(/not true paid accounts/i)).toBeInTheDocument();
+  });
+
+  it('shows a founder Today Queue with email and support triage items', () => {
+    render(
+      <AdminOverviewTab
+        overview={{
+          totalUsers: 10,
+          freeUsers: 8,
+          plusUsers: 1,
+          familyUsers: 1,
+          subscriptionStatus: { active: 1, trialing: 1 },
+          paidUsers: 2,
+          activePlus: 1,
+          activeFamily: 0,
+          subscribedPlus: 1,
+          subscribedFamily: 1,
+          mrr: 9.99,
+          arr: 119.88,
+          conversionRate: 20,
+          newUsersToday: 1,
+          newUsersThisWeek: 2,
+          newUsersThisMonth: 3,
+          unverifiedEmails: 2,
+          expiringTrialsCount: 1,
+          expiringTrials: [{
+            id: 5,
+            email: 'trial@example.com',
+            name: 'Trial User',
+            plan: 'family',
+            createdAt: Date.now(),
+          }],
+          pastDueCount: 0,
+          pastDueUsers: [],
+          totalReferrals: 0,
+          usersWithReferrals: 0,
+          totalDonationRecords: 0,
+          recentSignups: [],
+          usersMissingProfileInfo: 3,
+          usersMissingPhone: 2,
+          usersMissingLocation: 1,
+        }}
+        featureUsage={null}
+        analytics={null}
+        emailLogStats={{ totalSent: 5, totalFailed: 1, totalElements: 6 }}
+        onboardingTrial={null}
+        setOnboardingTrial={() => undefined}
+        trialSettingsSaving={false}
+        onSaveOnboardingTrial={() => undefined}
+        fmtMoney={(n) => `$${n.toFixed(2)}`}
+        setActiveTab={() => undefined}
+        setUserFilter={() => undefined}
+        setSearch={() => undefined}
+        onUsersQueryChange={() => undefined}
+        openUser={() => undefined}
+      />,
+    );
+
+    expect(screen.getByText('Today Queue')).toBeInTheDocument();
+    expect(screen.getByText('Failed emails')).toBeInTheDocument();
+    expect(screen.getByText('Refund / offer lookup')).toBeInTheDocument();
+    expect(screen.getByText('Trial User')).toBeInTheDocument();
+  });
+
+  it('normalizes seconds timestamps and hides impossible admin dates', () => {
+    expect(fmtFullTs(1768994132)).not.toContain('1970');
+    expect(fmtFullTs(1768994132)).not.toBe('—');
+    expect(fmtFullTs(1769470)).toBe('—');
+  });
+
+  it('hides Users table security details until explicitly enabled', () => {
+    render(
+      <AdminUsersTab
+        usersData={{
+          users: [],
+          count: 1,
+          page: 0,
+          size: 50,
+          totalElements: 1,
+          totalPages: 1,
+        }}
+        filteredUsers={[{
+          id: 42,
+          email: 'support@example.com',
+          name: 'Support User',
+          plan: 'free',
+          emailVerified: true,
+          emailVerifiedAt: 1768994132,
+          createdAt: 1768994132000,
+          lastLoginIp: '203.0.113.42',
+          loginCount: 1,
+        }]}
+        search=""
+        setSearch={() => undefined}
+        userFilter="all"
+        setUserFilter={() => undefined}
+        page={0}
+        setPage={() => undefined}
+        loadData={() => undefined}
+        sortBy="createdAt"
+        sortDir="desc"
+        countryFilter=""
+        activityFilter=""
+        onQueryChange={() => undefined}
+        openUser={() => undefined}
+      />,
+    );
+
+    expect(screen.queryByText('Login IP')).not.toBeInTheDocument();
+    expect(screen.queryByText('203.0.113.42')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Security details'));
+    expect(screen.getByText('Login IP')).toBeInTheDocument();
+    expect(screen.getByText('203.0.113.42')).toBeInTheDocument();
   });
 
   it('auto-loads deleted users and labels privacy-redacted rows clearly', async () => {

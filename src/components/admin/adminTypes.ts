@@ -13,6 +13,7 @@ export interface AdminUser {
   name: string;
   plan: string;
   subscriptionStatus?: string;
+  subscriptionSource?: string;
   /** "month" | "year" — billing cadence for paid plans (null for free/comp). */
   billingInterval?: string;
   planExpiresAt?: number;

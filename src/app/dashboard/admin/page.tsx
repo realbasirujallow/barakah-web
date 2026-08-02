@@ -17,8 +17,8 @@
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { RefreshCw } from 'lucide-react';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../lib/toast';
@@ -47,6 +47,69 @@ import type {
   AdminTab,
   UserFilter,
 } from '../../../components/admin/adminTypes';
+
+type AdminUsersQueryPrefs = {
+  sort: string;
+  dir: 'asc' | 'desc';
+  country: string;
+  activity: UserActivityFilter;
+};
+
+const ADMIN_USERS_QUERY_PREFS_KEY = 'barakah.admin.usersQuery';
+const DEFAULT_ADMIN_USERS_QUERY: AdminUsersQueryPrefs = {
+  sort: 'createdAt',
+  dir: 'desc',
+  country: '',
+  activity: '',
+};
+
+function readStoredAdminUsersQuery(): AdminUsersQueryPrefs {
+  if (typeof window === 'undefined') return DEFAULT_ADMIN_USERS_QUERY;
+  try {
+    const raw = window.localStorage.getItem(ADMIN_USERS_QUERY_PREFS_KEY);
+    if (!raw) return DEFAULT_ADMIN_USERS_QUERY;
+    const parsed = JSON.parse(raw) as Partial<AdminUsersQueryPrefs>;
+    return {
+      sort: typeof parsed.sort === 'string' && parsed.sort.trim() ? parsed.sort : DEFAULT_ADMIN_USERS_QUERY.sort,
+      dir: parsed.dir === 'asc' || parsed.dir === 'desc' ? parsed.dir : DEFAULT_ADMIN_USERS_QUERY.dir,
+      country: typeof parsed.country === 'string' ? parsed.country : DEFAULT_ADMIN_USERS_QUERY.country,
+      activity: typeof parsed.activity === 'string' ? parsed.activity as UserActivityFilter : DEFAULT_ADMIN_USERS_QUERY.activity,
+    };
+  } catch {
+    return DEFAULT_ADMIN_USERS_QUERY;
+  }
+}
+
+function matchesUserFilter(u: AdminUser, userFilter: UserFilter): boolean {
+  switch (userFilter) {
+    case 'unverified':
+      return u.emailVerified === false;
+    case 'past_due':
+      return u.subscriptionStatus === 'past_due';
+    case 'trialing':
+      return u.subscriptionStatus === 'trialing' || u.subscriptionStatus === 'trial';
+    case 'missing_phone':
+      return !u.phoneNumber?.trim();
+    case 'missing_location':
+      return u.effectiveCountry
+        ? u.effectiveCountry === 'UNKNOWN'
+        : (!u.state?.trim() && !u.country?.trim());
+    case 'paying':
+      return u.subscriptionStatus === 'active' || u.subscriptionStatus === 'trialing' || u.subscriptionStatus === 'trial';
+    case 'plus':
+      return u.plan === 'plus';
+    case 'family':
+      return u.plan === 'family';
+    case 'free':
+      return !u.plan || u.plan === 'free';
+    case 'monthly':
+      return u.billingInterval === 'month';
+    case 'annual':
+      return u.billingInterval === 'year';
+    default:
+      return true;
+  }
+}
 
 export default function AdminPage() {
   // Round 21: gate loadData behind user.isAdmin so non-admin visitors
@@ -81,12 +144,13 @@ export default function AdminPage() {
 
   // UI state
   const [page, setPage] = useState(0);
+  const [initialUsersQuery] = useState(readStoredAdminUsersQuery);
   // Server-side sort + country filter for the Users table (GET /admin/active-users).
-  const [usersSort, setUsersSort] = useState('id');
-  const [usersDir, setUsersDir] = useState<'asc' | 'desc'>('asc');
-  const [usersCountry, setUsersCountry] = useState('');
+  const [usersSort, setUsersSort] = useState(initialUsersQuery.sort);
+  const [usersDir, setUsersDir] = useState<'asc' | 'desc'>(initialUsersQuery.dir);
+  const [usersCountry, setUsersCountry] = useState(initialUsersQuery.country);
   // Server-side recent/last-login activity filter for the Users table (P0.5).
-  const [usersActivity, setUsersActivity] = useState<UserActivityFilter>('');
+  const [usersActivity, setUsersActivity] = useState<UserActivityFilter>(initialUsersQuery.activity);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
@@ -114,6 +178,16 @@ export default function AdminPage() {
   const [trialSettingsSaving, setTrialSettingsSaving] = useState(false);
   const { toast } = useToast();
   const { fmt: fmtMoney } = useCurrency();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(ADMIN_USERS_QUERY_PREFS_KEY, JSON.stringify({
+      sort: usersSort,
+      dir: usersDir,
+      country: usersCountry,
+      activity: usersActivity,
+    }));
+  }, [usersSort, usersDir, usersCountry, usersActivity]);
 
   /* ── Data loading ── */
   const loadData = useCallback(async (
@@ -449,40 +523,28 @@ export default function AdminPage() {
     ? (searchResults?.users ?? [])
     : (usersData?.users ?? []);
 
-  const filteredUsers = activeUsers.filter(u => {
-    // In search mode, plan/status filter chips still apply for refinement.
-    switch (userFilter) {
-      case 'unverified':
-        return u.emailVerified === false;
-      case 'past_due':
-        return u.subscriptionStatus === 'past_due';
-      case 'trialing':
-        return u.subscriptionStatus === 'trialing' || u.subscriptionStatus === 'trial';
-      case 'missing_phone':
-        return !u.phoneNumber?.trim();
-      case 'missing_location':
-        // No usable location: effective country unknown (covers blank country +
-        // non-US state). A state-only US row (e.g. Indiana) is NOT missing.
-        // Falls back to the raw check when effectiveCountry isn't present.
-        return u.effectiveCountry
-          ? u.effectiveCountry === 'UNKNOWN'
-          : (!u.state?.trim() && !u.country?.trim());
-      case 'paying':
-        return u.subscriptionStatus === 'active' || u.subscriptionStatus === 'trialing' || u.subscriptionStatus === 'trial';
-      case 'plus':
-        return u.plan === 'plus';
-      case 'family':
-        return u.plan === 'family';
-      case 'free':
-        return !u.plan || u.plan === 'free';
-      case 'monthly':
-        return u.billingInterval === 'month';
-      case 'annual':
-        return u.billingInterval === 'year';
-      default:
-        return true;
+  // In search mode, plan/status filter chips still apply for refinement.
+  const filteredUsers = activeUsers.filter(u => matchesUserFilter(u, userFilter));
+
+  const loadUsersForExport = useCallback(async () => {
+    const pageSize = 200;
+    const q = search.trim();
+    const loadPageForExport = async (targetPage: number) => {
+      const res = q.length >= 2
+        ? await api.adminSearchUsers(q, targetPage, pageSize, usersCountry, usersActivity)
+        : await api.getAdminUsers(targetPage, pageSize, usersSort, usersDir, usersCountry, usersActivity);
+      return res as UsersResponse;
+    };
+
+    const first = await loadPageForExport(0);
+    const pages = Math.max(1, first.totalPages ?? 1);
+    const all = [...(first.users ?? [])];
+    for (let p = 1; p < pages; p += 1) {
+      const next = await loadPageForExport(p);
+      all.push(...(next.users ?? []));
     }
-  });
+    return all.filter(u => matchesUserFilter(u, userFilter));
+  }, [search, usersActivity, usersCountry, usersDir, usersSort, userFilter]);
 
   /* ── Loading / error states ── */
   //
@@ -533,6 +595,18 @@ export default function AdminPage() {
   }
 
   const alertCount = (overview?.expiringTrialsCount ?? 0) + (overview?.pastDueCount ?? 0);
+  const adminToolLinks = [
+    { href: '/dashboard/admin/activity', label: 'Activity' },
+    { href: '/dashboard/admin/funnel', label: 'Funnel' },
+    { href: '/dashboard/admin/growth', label: 'Growth' },
+    { href: '/dashboard/admin/acquisition', label: 'Acquisition' },
+    { href: '/dashboard/admin/notes', label: 'Notes' },
+    { href: '/dashboard/admin/audit-log', label: 'Audit Log' },
+    { href: '/dashboard/admin/email-locales', label: 'Email Locales' },
+    { href: '/dashboard/admin/email-preview', label: 'Email Preview' },
+    { href: '/dashboard/admin/halal-screening', label: 'Halal Screening' },
+    { href: '/dashboard/admin/scorecard', label: 'Scorecard' },
+  ];
 
   /* ──────────────────────── RENDER ──────────────────────── */
   return (
@@ -551,75 +625,33 @@ export default function AdminPage() {
           </span>
         }
         actions={
-          <>
-            <Link
-              href="/dashboard/admin/activity"
-              className="px-3 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-medium"
-            >
-              👋 Activity
-            </Link>
-            <Link
-              href="/dashboard/admin/funnel"
+          <div className="flex flex-wrap items-center gap-2">
+            <label htmlFor="admin-tool-jump" className="sr-only">Admin tools</label>
+            <select
+              id="admin-tool-jump"
+              defaultValue=""
+              onChange={(e) => {
+                const href = e.target.value;
+                if (!href) return;
+                router.push(href);
+                e.currentTarget.value = '';
+              }}
               className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
             >
-              📉 Funnel
-            </Link>
-            <Link
-              href="/dashboard/admin/growth"
-              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
-            >
-              📈 Growth
-            </Link>
-            <Link
-              href="/dashboard/admin/acquisition"
-              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
-            >
-              🎯 Acquisition
-            </Link>
-            <Link
-              href="/dashboard/admin/notes"
-              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
-            >
-              📝 Notes
-            </Link>
-            <Link
-              href="/dashboard/admin/audit-log"
-              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
-            >
-              📋 Audit Log
-            </Link>
-            <Link
-              href="/dashboard/admin/email-locales"
-              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
-            >
-              ✉️ Email Locales
-            </Link>
-            <Link
-              href="/dashboard/admin/email-preview"
-              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
-            >
-              👁️ Email Preview
-            </Link>
-            <Link
-              href="/dashboard/admin/halal-screening"
-              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
-            >
-              ☪️ Halal Screening
-            </Link>
-            <Link
-              href="/dashboard/admin/scorecard"
-              className="px-3 py-2 text-sm bg-white text-primary border border-primary rounded-lg hover:bg-green-50 transition font-medium"
-            >
-              📈 Scorecard
-            </Link>
+              <option value="">Admin tools...</option>
+              {adminToolLinks.map(link => (
+                <option key={link.href} value={link.href}>{link.label}</option>
+              ))}
+            </select>
             <button
               type="button"
               onClick={() => loadData(page)}
-              className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-medium"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-medium"
             >
-              ↻ Refresh
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              Refresh
             </button>
-          </>
+          </div>
         }
       />
 
@@ -660,11 +692,11 @@ export default function AdminPage() {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            {tab === 'overview' && '📊 Overview'}
-            {tab === 'users' && '👥 Users'}
+            {tab === 'overview' && 'Overview'}
+            {tab === 'users' && 'Users'}
             {tab === 'alerts' && (
               <>
-                🔔 Alerts
+                Alerts
                 {alertCount > 0 && (
                   <span className="ml-1.5 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">{alertCount}</span>
                 )}
@@ -672,19 +704,19 @@ export default function AdminPage() {
             )}
             {tab === 'unverified' && (
               <>
-                📧 Unverified
+                Unverified
                 {(overview?.unverifiedEmails ?? 0) > 0 && (
                   <span className="ml-1.5 bg-amber-500 text-white text-xs px-1.5 py-0.5 rounded-full">{overview!.unverifiedEmails}</span>
                 )}
               </>
             )}
-            {tab === 'lifecycle' && '📬 Lifecycle'}
-            {tab === 'experiments' && '🧪 Experiments'}
-            {tab === 'deleted' && '🗑️ Deleted'}
-            {tab === 'locale-audit' && '🌐 Locale Audit'}
+            {tab === 'lifecycle' && 'Lifecycle'}
+            {tab === 'experiments' && 'Experiments'}
+            {tab === 'deleted' && 'Deleted'}
+            {tab === 'locale-audit' && 'Locale Audit'}
             {tab === 'email-log' && (
               <>
-                ✉️ Email Log
+                Email Log
                 {(emailLogStats?.totalFailed ?? 0) > 0 && (
                   <span className="ml-1.5 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">{emailLogStats!.totalFailed}</span>
                 )}
@@ -709,6 +741,7 @@ export default function AdminPage() {
           overview={overview}
           featureUsage={featureUsage}
           analytics={analytics}
+          emailLogStats={emailLogStats}
           onboardingTrial={onboardingTrial}
           setOnboardingTrial={setOnboardingTrial}
           trialSettingsSaving={trialSettingsSaving}
@@ -717,6 +750,7 @@ export default function AdminPage() {
           setActiveTab={setActiveTab}
           setUserFilter={setUserFilter}
           setSearch={setSearch}
+          onUsersQueryChange={onUsersQueryChange}
           openUser={openUser}
         />
       )}
@@ -740,6 +774,7 @@ export default function AdminPage() {
           activityFilter={usersActivity}
           onQueryChange={onUsersQueryChange}
           openUser={openUser}
+          loadExportUsers={loadUsersForExport}
           onBulkDelete={handleBulkDelete}
         />
       )}
@@ -779,6 +814,7 @@ export default function AdminPage() {
           emailLogStats={emailLogStats}
           setEmailLogStats={setEmailLogStats}
           toast={toast}
+          openUser={openUser}
         />
       )}
 

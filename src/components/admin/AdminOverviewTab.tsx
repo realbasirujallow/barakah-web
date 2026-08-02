@@ -10,7 +10,15 @@
  * mutations remain on the parent page so event wiring stays centralized.
  */
 
-import type { AdminUser, Overview, OnboardingTrialSettings, UserFilter, AdminTab } from './adminTypes';
+import type {
+  AdminUser,
+  Overview,
+  OnboardingTrialSettings,
+  UserFilter,
+  AdminTab,
+  EmailLogStats,
+  UserActivityFilter,
+} from './adminTypes';
 import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDateMs, formatCountry, formatLocation } from './adminFormatting';
 import AdminJobHealthCard from './AdminJobHealthCard';
 
@@ -18,6 +26,7 @@ export interface AdminOverviewTabProps {
   overview: Overview | null;
   featureUsage: Record<string, number> | null;
   analytics: { growthByMonth: { month: string; signups: number }[] } | null;
+  emailLogStats?: EmailLogStats | null;
   onboardingTrial: OnboardingTrialSettings | null;
   setOnboardingTrial: (updater: (prev: OnboardingTrialSettings | null) => OnboardingTrialSettings | null) => void;
   trialSettingsSaving: boolean;
@@ -26,6 +35,7 @@ export interface AdminOverviewTabProps {
   setActiveTab: (tab: AdminTab) => void;
   setUserFilter: (f: UserFilter) => void;
   setSearch: (s: string) => void;
+  onUsersQueryChange?: (q: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter }) => void;
   openUser: (u: AdminUser, listContext?: AdminUser[]) => void;
 }
 
@@ -33,6 +43,7 @@ export function AdminOverviewTab({
   overview,
   featureUsage,
   analytics,
+  emailLogStats,
   onboardingTrial,
   setOnboardingTrial,
   trialSettingsSaving,
@@ -41,6 +52,7 @@ export function AdminOverviewTab({
   setActiveTab,
   setUserFilter,
   setSearch,
+  onUsersQueryChange,
   openUser,
 }: AdminOverviewTabProps) {
   const truePaidAccounts = overview
@@ -49,6 +61,19 @@ export function AdminOverviewTab({
   const truePaidConversion = overview && overview.totalUsers > 0
     ? ((truePaidAccounts / overview.totalUsers) * 100).toFixed(1)
     : '0.0';
+  const failedEmails = emailLogStats?.totalFailed ?? 0;
+  const expiringTrials = overview?.expiringTrials ?? [];
+  const recentNoLogin = (overview?.recentSignups ?? [])
+    .filter(u => (u.loginCount ?? 0) === 0 || (!u.lastLoginAt && !u.lastSeenAt));
+
+  const openUsersQueue = (filter: UserFilter = 'all', activity?: UserActivityFilter) => {
+    setActiveTab('users');
+    setUserFilter(filter);
+    setSearch('');
+    if (activity && onUsersQueryChange) {
+      onUsersQueryChange({ activity, sort: 'createdAt', dir: 'desc' });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -117,6 +142,130 @@ export function AdminOverviewTab({
             <p className="text-3xl font-bold text-gray-800">{overview.newUsersToday}</p>
             <p className="text-gray-400 text-xs mt-1">This week: {overview.newUsersThisWeek} · Month: {overview.newUsersThisMonth}</p>
           </button>
+        </div>
+      )}
+
+      {overview && (
+        <div className="bg-white rounded-2xl p-5 border">
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <h2 className="font-semibold text-gray-800 text-sm">Today Queue</h2>
+              <p className="text-xs text-gray-400 mt-1">One place for the founder/support checks that leak trust or revenue.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setActiveTab('email-log'); setSearch(''); }}
+              className="text-xs font-semibold text-[#1B5E20] hover:underline"
+            >
+              Email triage
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            {[
+              {
+                label: 'Failed emails',
+                value: failedEmails,
+                priority: failedEmails > 0 ? 'P0' : 'OK',
+                hint: 'Delivery issues blocking verification, resets, or billing',
+                action: () => setActiveTab('email-log'),
+                tone: failedEmails > 0 ? 'border-red-200 bg-red-50 text-red-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800',
+              },
+              {
+                label: 'Unverified users',
+                value: overview.unverifiedEmails ?? 0,
+                priority: (overview.unverifiedEmails ?? 0) > 0 ? 'P0' : 'OK',
+                hint: 'Users who may be blocked from entering the app',
+                action: () => { setActiveTab('unverified'); setUserFilter('unverified'); setSearch(''); },
+                tone: (overview.unverifiedEmails ?? 0) > 0 ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800',
+              },
+              {
+                label: 'Trials expiring',
+                value: overview.expiringTrialsCount ?? 0,
+                priority: (overview.expiringTrialsCount ?? 0) > 0 ? 'P1' : 'OK',
+                hint: 'Conversion follow-up before the trial goes cold',
+                action: () => setActiveTab('alerts'),
+                tone: (overview.expiringTrialsCount ?? 0) > 0 ? 'border-blue-200 bg-blue-50 text-blue-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800',
+              },
+              {
+                label: 'Past-due billing',
+                value: overview.pastDueCount ?? 0,
+                priority: (overview.pastDueCount ?? 0) > 0 ? 'P1' : 'OK',
+                hint: 'Revenue at immediate churn risk',
+                action: () => openUsersQueue('past_due'),
+                tone: (overview.pastDueCount ?? 0) > 0 ? 'border-red-200 bg-red-50 text-red-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800',
+              },
+              {
+                label: 'Missing contact info',
+                value: overview.usersMissingProfileInfo ?? 0,
+                priority: (overview.usersMissingProfileInfo ?? 0) > 0 ? 'P2' : 'OK',
+                hint: 'Support reachability is weaker',
+                action: () => openUsersQueue('missing_phone'),
+                tone: (overview.usersMissingProfileInfo ?? 0) > 0 ? 'border-gray-200 bg-gray-50 text-gray-700' : 'border-emerald-200 bg-emerald-50 text-emerald-800',
+              },
+              {
+                label: 'New with no login',
+                value: recentNoLogin.length,
+                priority: recentNoLogin.length > 0 ? 'P2' : 'OK',
+                hint: 'Fresh signups who may be stuck after account creation',
+                action: () => openUsersQueue('all', 'new_no_login_7d'),
+                tone: recentNoLogin.length > 0 ? 'border-purple-200 bg-purple-50 text-purple-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800',
+              },
+              {
+                label: 'Paid inactive',
+                value: 'Find',
+                priority: 'P2',
+                hint: 'Paying or trial users inactive for 30+ days',
+                action: () => openUsersQueue('paying', 'paid_inactive_30d'),
+                tone: 'border-slate-200 bg-slate-50 text-slate-700',
+              },
+              {
+                label: 'Refund / offer lookup',
+                value: 'Guide',
+                priority: 'Ops',
+                hint: 'Open the user, confirm platform, then refund or discount',
+                action: () => openUsersQueue('paying'),
+                tone: 'border-indigo-200 bg-indigo-50 text-indigo-800',
+              },
+            ].map(item => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={item.action}
+                className={`text-left rounded-xl border p-4 transition hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/20 ${item.tone}`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold opacity-80">{item.label}</span>
+                  <span className="rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-bold">{item.priority}</span>
+                </div>
+                <p className="text-2xl font-bold mt-2">{item.value}</p>
+                <p className="text-xs mt-2 opacity-80 leading-snug">{item.hint}</p>
+              </button>
+            ))}
+          </div>
+          {expiringTrials.length > 0 && (
+            <div className="mt-4 border-t pt-4">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fast follow-up</p>
+                <button type="button" onClick={() => setActiveTab('alerts')} className="text-xs font-semibold text-[#1B5E20] hover:underline">
+                  Open all alerts
+                </button>
+              </div>
+              <div className="grid gap-2 md:grid-cols-3">
+                {expiringTrials.slice(0, 3).map(u => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => openUser(u, expiringTrials)}
+                    className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-left hover:bg-white hover:border-[#1B5E20]/30 transition"
+                  >
+                    <p className="text-sm font-semibold text-gray-800 truncate">{u.name || 'Unnamed user'}</p>
+                    <p className="text-xs text-gray-500 truncate">{u.email}</p>
+                    <p className="text-[11px] text-gray-400 mt-1">Trial follow-up</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

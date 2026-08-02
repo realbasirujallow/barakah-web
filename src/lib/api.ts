@@ -1826,8 +1826,8 @@ export const api = {
   getAdminUsers: (
     page = 0,
     size = 50,
-    sort = 'id',
-    dir: 'asc' | 'desc' = 'asc',
+    sort = 'createdAt',
+    dir: 'asc' | 'desc' = 'desc',
     country = '',
     activity = '',
   ) => {

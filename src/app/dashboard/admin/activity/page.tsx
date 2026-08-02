@@ -76,6 +76,7 @@ export default function AdminActivityPage() {
 
   const [tab, setTab] = useState<Tab>('signins');
   const [includeTest, setIncludeTest] = useState(false);
+  const [showSecurityDetails, setShowSecurityDetails] = useState(false);
   const [loading, setLoading] = useState(true);
   const [signIns, setSignIns] = useState<SignIn[]>([]);
   const [topReferrers, setTopReferrers] = useState<TopReferrer[]>([]);
@@ -154,6 +155,10 @@ export default function AdminActivityPage() {
               <input type="checkbox" checked={includeTest} onChange={e => setIncludeTest(e.target.checked)} />
               Include test accounts
             </label>
+            <label className="flex items-center gap-1.5 text-sm text-gray-600">
+              <input type="checkbox" checked={showSecurityDetails} onChange={e => setShowSecurityDetails(e.target.checked)} />
+              Security details
+            </label>
             <button type="button" onClick={() => void reload()} disabled={loading}
               className="px-3 py-1.5 rounded-lg text-sm font-medium bg-white border border-primary text-primary hover:bg-green-50 disabled:opacity-50">
               {loading ? 'Refreshing…' : '↻ Refresh'}
@@ -171,7 +176,11 @@ export default function AdminActivityPage() {
                 <li key={i} className="flex items-center justify-between px-5 py-3 gap-3">
                   <div className="min-w-0">
                     <p className="font-semibold text-gray-900 truncate">{name(s.full_name, s.email)}</p>
-                    <p className="text-xs text-gray-500 truncate">{s.email} · {device(s.user_agent)}{(s.country || s.state) ? ` · ${formatLocation(s.state, s.country)}` : ''}{s.ip_address ? ` · ${s.ip_address}` : ''}</p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {s.email} · {device(s.user_agent)}
+                      {(s.country || s.state) ? ` · ${formatLocation(s.state, s.country)}` : ''}
+                      {showSecurityDetails && s.ip_address ? ` · ${s.ip_address}` : ''}
+                    </p>
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-sm text-gray-900">{fmtTime(s.timestamp)}</p>

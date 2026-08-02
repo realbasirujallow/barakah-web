@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../lib/api';
-import type { EmailLogEntry, EmailLogEntryDetail, EmailLogStats } from './adminTypes';
+import type { AdminUser, EmailLogEntry, EmailLogEntryDetail, EmailLogStats } from './adminTypes';
 import { fmtDateTimeMs } from './adminFormatting';
 
 const PAGE_SIZE = 25;
@@ -23,9 +23,10 @@ export interface AdminEmailLogTabProps {
   emailLogStats: EmailLogStats | null;
   setEmailLogStats: (s: EmailLogStats | null) => void;
   toast: (msg: string, kind?: 'success' | 'error' | 'info') => void;
+  openUser?: (u: AdminUser, listContext?: AdminUser[]) => void;
 }
 
-export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast }: AdminEmailLogTabProps) {
+export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast, openUser }: AdminEmailLogTabProps) {
   const [emailLog, setEmailLog] = useState<EmailLogEntry[] | null>(null);
   const [emailLogLoading, setEmailLogLoading] = useState(false);
   const [emailLogFilter, setEmailLogFilter] = useState<'all' | 'sent' | 'failed'>('all');
@@ -74,6 +75,13 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast }: Adm
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emailLogFilter]);
 
+  useEffect(() => {
+    if (emailLog === null && (emailLogStats?.totalFailed ?? 0) > 0) {
+      setEmailLogFilter('failed');
+      void loadPage(0, 'failed');
+    }
+  }, [emailLog, emailLogStats?.totalFailed, loadPage]);
+
   const openDetail = async (entry: EmailLogEntry) => {
     setSelected({ ...entry });
     setSelectedLoading(true);
@@ -89,13 +97,39 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast }: Adm
     }
   };
 
+  const copyEntrySummary = async (entry: EmailLogEntry | EmailLogEntryDetail) => {
+    const summary = [
+      `Email log #${entry.id}`,
+      `Status: ${entry.status}`,
+      `Type: ${entry.emailType}`,
+      `Recipient: ${entry.toEmail}`,
+      `Created: ${fmtDateTimeMs(entry.createdAt)}`,
+      entry.subject ? `Subject: ${entry.subject}` : '',
+      entry.errorMessage ? `Error: ${entry.errorMessage}` : '',
+    ].filter(Boolean).join('\n');
+    await navigator.clipboard.writeText(summary);
+    toast('Email log summary copied', 'success');
+  };
+
+  const openEntryUser = (entry: EmailLogEntryDetail) => {
+    if (!openUser || entry.userId == null) return;
+    openUser({
+      id: entry.userId,
+      email: entry.userEmail || entry.toEmail,
+      name: entry.userFullName || '',
+      plan: entry.userPlan || 'free',
+      emailVerified: entry.userEmailVerified ?? undefined,
+      createdAt: entry.userCreatedAt ?? entry.createdAt,
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-2xl p-5 border">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
             <h2 className="text-lg font-bold text-gray-900">Email Delivery Log</h2>
-            <p className="text-sm text-gray-500">All emails sent: verification, lifecycle, dunning, password reset. Click any row for detail.</p>
+            <p className="text-sm text-gray-500">Failed deliveries auto-load for triage. Click any row for detail.</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {(['all', 'sent', 'failed'] as const).map(f => (
@@ -169,6 +203,15 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast }: Adm
             <p className="text-4xl mb-3">✉️</p>
             <p className="font-medium">Click &quot;Load Email Log&quot; to see email delivery history</p>
             <p className="text-sm mt-1">Shows all outbound emails: verification, lifecycle, dunning, etc. Newest entries first.</p>
+            {(emailLogStats?.totalFailed ?? 0) > 0 && (
+              <button
+                type="button"
+                onClick={() => { setEmailLogFilter('failed'); void loadPage(0, 'failed'); }}
+                className="mt-4 px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700"
+              >
+                Load failed deliveries
+              </button>
+            )}
           </div>
         ) : emailLog.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
@@ -189,6 +232,7 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast }: Adm
                     <th className="px-3 py-3">Status</th>
                     <th className="px-3 py-3">Sent At</th>
                     <th className="px-3 py-3">Error</th>
+                    <th className="px-3 py-3"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -216,6 +260,15 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast }: Adm
                       <td className="px-3 py-2 text-xs text-gray-500">{fmtDateTimeMs(entry.createdAt)}</td>
                       <td className="px-3 py-2 text-xs text-red-500 max-w-xs truncate" title={entry.errorMessage}>
                         {entry.errorMessage || '—'}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); void copyEntrySummary(entry); }}
+                          className="text-xs font-semibold text-[#1B5E20] hover:underline"
+                        >
+                          Copy
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -259,6 +312,8 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast }: Adm
           entry={selected}
           loading={selectedLoading}
           onClose={() => setSelected(null)}
+          onCopy={() => void copyEntrySummary(selected)}
+          onOpenUser={openUser && selected.userId != null ? () => openEntryUser(selected) : undefined}
         />
       )}
     </div>
@@ -269,9 +324,11 @@ interface EmailLogDetailDrawerProps {
   entry: EmailLogEntryDetail;
   loading: boolean;
   onClose: () => void;
+  onCopy: () => void;
+  onOpenUser?: () => void;
 }
 
-function EmailLogDetailDrawer({ entry, loading, onClose }: EmailLogDetailDrawerProps) {
+function EmailLogDetailDrawer({ entry, loading, onClose, onCopy, onOpenUser }: EmailLogDetailDrawerProps) {
   return (
     // 2026-05-02 (revert): centered pattern restored, see useBodyScrollLock.
     <div
@@ -376,6 +433,23 @@ function EmailLogDetailDrawer({ entry, loading, onClose }: EmailLogDetailDrawerP
         </div>
 
         <div className="flex justify-end gap-3 p-5 border-t">
+          {onOpenUser && (
+            <button
+              type="button"
+              onClick={onOpenUser}
+              disabled={loading}
+              className="px-4 py-2 border border-[#1B5E20] text-[#1B5E20] rounded-lg text-sm font-semibold hover:bg-green-50 disabled:opacity-50"
+            >
+              Open User
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onCopy}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50"
+          >
+            Copy Summary
+          </button>
           <button
             type="button"
             onClick={onClose}

@@ -38,25 +38,41 @@ export const SUB_STATUS_LABELS: Record<string, { label: string; color: string }>
   inactive: { label: 'Inactive', color: 'bg-gray-100 text-gray-400' },
 };
 
+const MIN_REASONABLE_EPOCH_MS = Date.UTC(2000, 0, 1);
+const MAX_REASONABLE_FUTURE_MS = 10 * 365 * 24 * 60 * 60 * 1000;
+
+function normalizeEpochMs(epoch: number | undefined): number | null {
+  if (epoch == null) return null;
+  const n = Number(epoch);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  const ms = n < 100_000_000_000 ? n * 1000 : n;
+  if (ms < MIN_REASONABLE_EPOCH_MS) return null;
+  if (ms > Date.now() + MAX_REASONABLE_FUTURE_MS) return null;
+  return ms;
+}
+
 export function fmtDate(unixSec: number | undefined) {
-  if (!unixSec) return '—';
-  return new Date(unixSec * 1000).toLocaleDateString(undefined, {
+  const ms = normalizeEpochMs(unixSec);
+  if (!ms) return '—';
+  return new Date(ms).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
     timeZone: 'America/New_York',
   });
 }
 
 export function fmtDateMs(unixMs: number | undefined) {
-  if (!unixMs) return '—';
-  return new Date(unixMs).toLocaleDateString(undefined, {
+  const ms = normalizeEpochMs(unixMs);
+  if (!ms) return '—';
+  return new Date(ms).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
     timeZone: 'America/New_York',
   });
 }
 
 export function fmtDateTimeMs(unixMs: number | undefined) {
-  if (!unixMs) return '—';
-  return new Date(unixMs).toLocaleString(undefined, {
+  const ms = normalizeEpochMs(unixMs);
+  if (!ms) return '—';
+  return new Date(ms).toLocaleString(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -71,8 +87,9 @@ export function fmtDateTimeMs(unixMs: number | undefined) {
 
 /** Full-precision timestamp for admin troubleshooting: Jan 15, 2026 3:42:15 PM */
 export function fmtFullTs(unixMs: number | undefined) {
-  if (!unixMs) return '—';
-  return new Date(unixMs).toLocaleString(undefined, {
+  const ms = normalizeEpochMs(unixMs);
+  if (!ms) return '—';
+  return new Date(ms).toLocaleString(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
