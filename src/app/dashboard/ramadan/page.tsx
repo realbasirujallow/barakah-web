@@ -185,7 +185,7 @@ export default function RamadanPage() {
       }
     };
     loadGoals();
-  }, []);
+  }, [t]);
 
   // Save to localStorage as cache — skip until server hydration completes
   useEffect(() => {

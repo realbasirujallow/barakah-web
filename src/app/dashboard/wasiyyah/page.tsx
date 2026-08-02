@@ -193,7 +193,7 @@ function WasiyyahPageContent() {
         setLoading(false);
         loadingRef.current = false;
       });
-  }, [toast]);
+  }, [t, toast]);
 
   useEffect(() => {
     const id = window.setTimeout(() => load(), 0);

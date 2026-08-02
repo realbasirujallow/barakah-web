@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { api } from '../../../lib/api';
@@ -212,7 +212,7 @@ export default function AssetsPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     setLoadError(null);
     Promise.allSettled([api.getGroupedAssets(), api.getAssetTotal(), api.subscriptionStatus()])
@@ -276,8 +276,8 @@ export default function AssetsPage() {
         setLoadError(err?.message || t('assetsErrorLoadRefresh'));
       })
       .finally(() => setLoading(false));
-  };
-  useEffect(() => { load(); }, []);
+  }, [t]);
+  useEffect(() => { load(); }, [load]);
 
   const deletableAssets = assets.filter(asset => !asset.readOnly);
   const hasLinkedPlaidAssets = assets.some(asset => asset.linkedSource === 'plaid' || asset.readOnly);

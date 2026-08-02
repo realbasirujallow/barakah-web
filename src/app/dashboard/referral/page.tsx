@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { trackReferralShare } from '../../../lib/analytics';
@@ -42,7 +42,7 @@ export default function ReferralPage() {
     setCanShare(typeof navigator !== 'undefined' && 'share' in navigator);
   }, []);
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     setError(null);
     api.getReferralCode()
@@ -52,7 +52,7 @@ export default function ReferralPage() {
         setError(err?.message || t('referralLoadError'));
       })
       .finally(() => setLoading(false));
-  };
+  }, [t]);
   // Wrapped via setTimeout(0) so the synchronous setLoading/setError
   // calls inside load() don't trip the
   // react-hooks/set-state-in-effect lint rule (same pattern used
@@ -61,7 +61,7 @@ export default function ReferralPage() {
     const id = window.setTimeout(() => { load(); }, 0);
     return () => window.clearTimeout(id);
      
-  }, []);
+  }, [load]);
 
   const copyLink = () => {
     if (!data) return;

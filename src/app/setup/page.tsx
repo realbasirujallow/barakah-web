@@ -145,7 +145,7 @@ function SetupPageInner() {
     }
     // searchParams intentionally NOT in deps — see comment above.
      
-  }, []);
+  }, [t]);
 
   // Round 21: shared mountedRef so both loadSubscriptionStatus and
   // loadPlaidAccounts can bail out after unmount without spamming

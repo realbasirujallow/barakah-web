@@ -240,6 +240,13 @@ export default function DashboardPage() {
   };
   const { toast } = useToast();
   const { user } = useAuth();
+  // 2026-05-12 (QA-2026-05-12, Bug #17): wire useI18n so the time-of-day
+  // greeting respects the active locale. The hook subscribes to locale
+  // changes via useSyncExternalStore so switching language live re-renders
+  // the greeting without a reload.
+  // 2026-05-19 Round 8: extended to also pull tFmt for dashboard chrome
+  // pluralization ("in N day{s}").
+  const { t, tFmt } = useI18n();
 
   // SUB-002 (2026-05-13): when Stripe checkout is cancelled the user
   // now lands on /dashboard?checkout=canceled instead of a deep billing
@@ -254,14 +261,7 @@ export default function DashboardPage() {
       const qs = sp.toString();
       window.history.replaceState({}, '', `/dashboard${qs ? `?${qs}` : ''}`);
     }
-  }, [toast]);
-  // 2026-05-12 (QA-2026-05-12, Bug #17): wire useI18n so the time-of-day
-  // greeting respects the active locale. The hook subscribes to locale
-  // changes via useSyncExternalStore so switching language live re-renders
-  // the greeting without a reload.
-  // 2026-05-19 Round 8: extended to also pull tFmt for dashboard chrome
-  // pluralization ("in N day{s}").
-  const { t, tFmt } = useI18n();
+  }, [t, toast]);
   const { show: showReferralPrompt, dismiss: dismissReferralPrompt } = useReferralPrompt();
   const [referralBannerDismissed, setReferralBannerDismissed] = useState(false);
 
@@ -483,7 +483,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [toast]);
+  }, [t, toast]);
 
   const toggleHideNetWorth = () => {
     const newValue = !hideNetWorth;

@@ -276,7 +276,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) {
       saveLocalePreference(numberLocaleForUi(getI18nLocale(), user.country));
     }
-  }, [user?.preferredCurrency, user?.country]);
+  }, [user]);
 
   useEffect(() => {
     // HIGH BUG FIX: cancellation flag so rapid unmount (e.g. fast-navigation) does

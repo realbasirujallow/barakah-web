@@ -331,7 +331,7 @@ export default function RibaPage() {
       }
     }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [hasPaidAccess, isLoading, router, toast, user]);
+  }, [hasPaidAccess, isLoading, router, t, toast, user]);
 
   // ── Inline per-transaction purification ─────────────────────────────────────
   // Round 32: lets the user "mark this riba as donated/purified" right next

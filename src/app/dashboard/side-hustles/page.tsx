@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Briefcase, ChevronRight } from 'lucide-react';
 import { api } from '../../../lib/api';
@@ -55,7 +55,7 @@ export default function SideHustlesPage() {
 
   const months = monthOptions(locale);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -72,9 +72,9 @@ export default function SideHustlesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   const openAdd = () => {
     setEditItem(null);

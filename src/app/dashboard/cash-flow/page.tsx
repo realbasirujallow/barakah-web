@@ -192,7 +192,7 @@ export default function CashFlowPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [urlMonth]);
+  }, [t, urlMonth]);
 
   // Load detected income streams once on mount.
   React.useEffect(() => {
@@ -442,7 +442,7 @@ export default function CashFlowPage() {
 
     if (links.length === 0) return null;
     return { nodes, links };
-  }, [breakdown]);
+  }, [breakdown, t]);
 
   return (
     <div className="max-w-6xl mx-auto">

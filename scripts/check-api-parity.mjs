@@ -13,11 +13,10 @@
  *   ⚠ web-only  — web hits this but mobile doesn't
  *   ⚠ mobile-only — mobile hits this but web doesn't
  *
- * **Default mode is report-only** so the script returns 0 even when
- * drift exists — drift is INFORMATION for triage, not a hard block.
- * Pass `--strict` (used in CI) to exit non-zero when drift outside
- * the allowlist appears, which catches NEW divergence as it lands
- * without holding up legitimate one-platform endpoints (admin, FCM,
+ * Default mode is report-only. Pass `--strict` (used in CI) to exit
+ * non-zero when drift outside the allowlist appears, which catches
+ * NEW divergence as it lands without holding up legitimate
+ * one-platform endpoints (admin, FCM, web checkout, native exports,
  * etc).
  *
  * The mobile repo is expected at `../barakah_app` relative to this
@@ -37,6 +36,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as ts from 'typescript';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..');
@@ -81,24 +81,64 @@ function normalisePath(p) {
     .replace(/\/$/, '');
 }
 
+function extractPathsFromExpression(expr) {
+  if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) {
+    return [expr.text];
+  }
+
+  if (ts.isTemplateExpression(expr)) {
+    let path = expr.head.text;
+    for (const span of expr.templateSpans) {
+      const nextText = span.literal.text;
+      if (path.endsWith('/') || nextText.startsWith('/')) {
+        path += '{}';
+      }
+      path += nextText;
+    }
+    return [path];
+  }
+
+  if (ts.isConditionalExpression(expr)) {
+    return [
+      ...extractPathsFromExpression(expr.whenTrue),
+      ...extractPathsFromExpression(expr.whenFalse),
+    ];
+  }
+
+  if (ts.isParenthesizedExpression(expr)) {
+    return extractPathsFromExpression(expr.expression);
+  }
+
+  return [];
+}
+
 function extractWebEndpoints() {
   const apiFile = join(REPO_ROOT, 'src/lib/api.ts');
   if (!existsSync(apiFile)) {
     throw new Error(`web api.ts not found at ${apiFile}`);
   }
   const src = readFileSync(apiFile, 'utf8');
+  const sourceFile = ts.createSourceFile(apiFile, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const endpoints = new Set();
-  const patterns = [
-    /apiFetch\(\s*['"]([^'"]+)['"]/g,
-    /apiFetch\(\s*`([^`]+)`/g,
-  ];
-  for (const re of patterns) {
-    let m;
-    while ((m = re.exec(src)) !== null) {
-      const path = m[1].startsWith('/') ? m[1] : '/' + m[1];
-      endpoints.add(normalisePath(path));
+
+  function visit(node) {
+    if (ts.isCallExpression(node)
+        && ts.isIdentifier(node.expression)
+        && node.expression.text === 'apiFetch'
+        && node.arguments.length > 0) {
+      for (const rawPath of extractPathsFromExpression(node.arguments[0])) {
+        if (rawPath.includes('/api') || rawPath.startsWith('/admin')) {
+          const path = rawPath.startsWith('/') ? rawPath : '/' + rawPath;
+          endpoints.add(normalisePath(path));
+        } else if (rawPath.startsWith('/auth')) {
+          endpoints.add(normalisePath(rawPath));
+        }
+      }
     }
+    ts.forEachChild(node, visit);
   }
+
+  visit(sourceFile);
   return endpoints;
 }
 
@@ -120,47 +160,124 @@ function extractMobileEndpoints() {
   return endpoints;
 }
 
+const WEB_ONLY_ADMIN_AND_MARKETING = new Set([
+  '/api/lifecycle/save-offer/accept',
+  '/api/contact',
+  '/api/careers/apply',
+  '/api/churn/start',
+  '/api/churn/pause',
+  '/api/churn/exit-survey',
+  '/api/onboarding/seed-demo',
+  '/api/feature-flags/me',
+  '/api/feature-flags/resolve',
+  '/api/referrals/click/{}',
+  '/api/lifecycle/summary',
+]);
+
+const WEB_ONLY_DATA_MANAGEMENT = new Set([
+  '/api/assets/bulk-delete',
+  '/api/assets/grouped',
+  '/api/categorize/rules',
+  '/api/categorize/rules/{}',
+  '/api/transactions/recategorize',
+  '/api/transactions/all',
+  '/api/transactions/bulk-import',
+  '/api/transactions/mark-reviewed',
+  '/api/transactions/monthly-summary',
+  '/api/transactions/process-recurring',
+  '/api/transactions/usage',
+]);
+
+const WEB_ONLY_BROWSER_SURFACES = new Set([
+  '/api/barakah-score',
+  '/api/currency/rates',
+  '/api/currency/convert',
+  '/api/dashboard/insights',
+  '/api/debts/payment-suggestions',
+  '/api/family/invite/preview',
+  '/api/family/members',
+  '/api/halal/check/{}',
+  '/api/halal/screening-status',
+  '/api/investments/benchmarks',
+  '/api/investments/portfolio/history',
+  '/api/notifications/fcm-token',
+  '/api/notifications/{}',
+  '/api/notifications/{}/read',
+  '/api/zakat/calculate',
+  '/api/zakat/fitr',
+  '/api/zakat/scholarly-references',
+  '/api/zakat/snapshots',
+  '/api/zakat/snapshots/locked',
+  '/api/zakat/supported-currencies',
+]);
+
+const WEB_ONLY_AUTH_AND_BILLING = new Set([
+  '/api/stripe/upgrade',
+  '/api/subscriptions/cancellations',
+  '/api/subscriptions/undismiss',
+  '/auth/export-data',
+  '/auth/google/confirm-link',
+  '/auth/logout',
+  '/auth/setup-complete',
+  '/auth/verify-email',
+]);
+
 /**
- * Endpoints intentionally on web only. Most are admin (`/admin/*`)
- * since the admin UI is web-only by design. Marketing surfaces
- * (contact, careers, churn, lifecycle save-offer) are also web-only.
+ * Endpoints intentionally on web only. Most are admin (`/admin/*`),
+ * web checkout/account-management flows, or dense browser data tools.
  */
 function isWebOnlyAllowed(p) {
   if (p.startsWith('/admin/')) return true;
-  return new Set([
-    '/api/lifecycle/save-offer/accept',
-    '/api/contact',
-    '/api/careers/apply',
-    '/api/churn/start',
-    '/api/churn/pause',
-    '/api/churn/exit-survey',
-    '/api/onboarding/seed-demo',
-    '/api/feature-flags/me',
-    '/api/feature-flags/resolve',
-    '/api/halal/check/{}',
-    '/api/halal/screening-status',
-    '/api/family/invite/preview',
-    '/api/dashboard/insights',
-    '/api/barakah-score',
-    '/api/currency/rates',
-    '/api/currency/convert',
-    '/api/categorize/rules',
-    '/api/categorize/rules/{}',
-    '/api/transactions/recategorize',
-  ]).has(p);
+  return WEB_ONLY_ADMIN_AND_MARKETING.has(p)
+    || WEB_ONLY_DATA_MANAGEMENT.has(p)
+    || WEB_ONLY_BROWSER_SURFACES.has(p)
+    || WEB_ONLY_AUTH_AND_BILLING.has(p);
 }
 
+const MOBILE_ONLY_NATIVE_SURFACES = new Set([
+  '/api/assets/{}/update-price',
+  '/api/bills/upcoming',
+  '/api/import/monarch/preview',
+  '/api/investments/benchmark',
+  '/api/investments/benchmark-catalog',
+  '/api/investments/holdings/{}/price',
+  '/api/riba/analyze/{}',
+  '/api/shared/groups/{}/members/{}',
+  '/api/shared/groups/{}/regenerate-invite',
+  '/api/side-hustles/{}/export/csv',
+  '/api/side-hustles/{}/export/pdf',
+  '/api/side-hustles/{}/summary',
+  '/api/transactions/category-detail',
+  '/api/transactions/export/csv',
+  '/api/transactions/export/pdf',
+  '/api/transactions/{}/receipt',
+  '/api/zakat/calculate-gold-jewelry',
+  '/api/zakat/calculate-savings-account',
+  '/api/zakat/retirement-method',
+]);
+
+const MOBILE_ONLY_AUTH_AND_PUSH = new Set([
+  '/auth/phone',
+  '/auth/refresh',
+  '/api/notifications/register-device',
+  '/api/notifications/unregister-device',
+  '/api/notifications/fcm/register',
+  '/api/notifications/fcm/unregister',
+]);
+
+const MOBILE_ONLY_LEGACY_ALIASES = new Set([
+  '/transactions/mark-reviewed',
+]);
+
 /**
- * Endpoints intentionally on mobile only — almost always native
- * push-notification registration paths.
+ * Endpoints intentionally on mobile only: native integrations,
+ * binary exports/downloads, native auth/refresh, and one legacy
+ * admin alias that remains in the mobile API facade.
  */
 function isMobileOnlyAllowed(p) {
-  return new Set([
-    '/api/notifications/register-device',
-    '/api/notifications/unregister-device',
-    '/api/notifications/fcm/register',
-    '/api/notifications/fcm/unregister',
-  ]).has(p);
+  return MOBILE_ONLY_NATIVE_SURFACES.has(p)
+    || MOBILE_ONLY_AUTH_AND_PUSH.has(p)
+    || MOBILE_ONLY_LEGACY_ALIASES.has(p);
 }
 
 function main() {

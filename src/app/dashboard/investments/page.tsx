@@ -251,7 +251,7 @@ export default function InvestmentsPage() {
         if (res?.series) setBenchmarks(res.series);
       }).catch(() => { if (!cancelled.current) setBenchmarks(null); }),
     ]).finally(() => { if (!cancelled.current) setLoading(false); });
-  }, [historyDays]);
+  }, [historyDays, t]);
 
   useEffect(() => {
     const cancelled = { current: false };

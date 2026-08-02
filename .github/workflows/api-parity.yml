@@ -5,9 +5,8 @@ name: API Parity Check
 # checked-out copy of the mobile repo (`barakah_app`) and surfaces
 # any new endpoint divergence in the PR's job summary.
 #
-# Default mode is REPORT-ONLY — drift items are listed in the summary
-# but the workflow exits 0. To make this gating, change the script
-# invocation to `--strict`.
+# CI runs in STRICT mode. Known one-platform endpoints live in
+# `scripts/check-api-parity.mjs`; new untriaged drift fails the job.
 #
 # Mobile repo access:
 #   The mobile repo is PRIVATE. The default GITHUB_TOKEN scoped to
@@ -97,7 +96,7 @@ jobs:
           set +e
           cd barakah-web
           MOBILE_REPO=$GITHUB_WORKSPACE/barakah_app \
-            node scripts/check-api-parity.mjs > /tmp/parity.out 2>&1
+            node scripts/check-api-parity.mjs --strict > /tmp/parity.out 2>&1
           status=$?
           cat /tmp/parity.out
           {
@@ -107,8 +106,4 @@ jobs:
             cat /tmp/parity.out
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          # Report-only — exit 0 regardless of drift. Drift is surfaced
-          # in the summary above for human triage. Promote to
-          # `exit $status` (with --strict in the script call) when we
-          # want to block PRs on new drift.
-          exit 0
+          exit $status

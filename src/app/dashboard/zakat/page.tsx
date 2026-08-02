@@ -226,7 +226,7 @@ export default function ZakatPage() {
     setLoadingFitr(false);
   }, [householdSize, currency]);
 
-  const loadScholarlyReferences = async () => {
+  const loadScholarlyReferences = useCallback(async () => {
     setLoadingReferences(true);
     try {
       const references = await api.getScholarlyReferences();
@@ -237,9 +237,9 @@ export default function ZakatPage() {
       logError(err, { context: 'Failed to load scholarly references' });
     }
     setLoadingReferences(false);
-  };
+  }, []);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!mountedRef.current) return;
     setLoading(true);
     setLoadError(null);
@@ -334,7 +334,7 @@ export default function ZakatPage() {
     }
     if (!mountedRef.current) return;
     setLoading(false);
-  };
+  }, [t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -347,7 +347,7 @@ export default function ZakatPage() {
       cancelled = true;
       mountedRef.current = false;
     };
-  }, []);
+  }, [load]);
 
   // Use effectiveZakatAmount (locked amount) if available, otherwise use zakatDue
   const zakatDue = data && !data.error
