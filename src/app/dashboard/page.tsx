@@ -28,7 +28,7 @@ import { WeeklyRecap } from '../../components/dashboard/WeeklyRecap';
 import { TopPriorities } from '../../components/dashboard/TopPriorities';
 import { AdviceQueue } from '../../components/dashboard/AdviceQueue';
 import { getLastVisit, labelForRoute, type LastVisit } from '../../lib/lastVisit';
-import { Coins, ArrowLeftRight, Upload, PieChart, type LucideIcon } from 'lucide-react';
+import { Coins, ArrowLeftRight, Upload, PieChart, LineChart, type LucideIcon } from 'lucide-react';
 import { CategoryIcon } from '../../lib/categoryIcon';
 import { Badge } from '../../components/ui/badge';
 import HeroLink from '../../components/HeroLink';
@@ -507,6 +507,7 @@ export default function DashboardPage() {
     { href: '/dashboard/transactions', icon: ArrowLeftRight,  label: t('dashAddTransaction'),    desc: t('dashAddTransactionDesc') },
     { href: '/dashboard/import',       icon: Upload,          label: t('dashConnectAccounts'),   desc: t('dashConnectAccountsDesc') },
     { href: '/dashboard/budget',       icon: PieChart,        label: t('dashViewBudget'),        desc: t('dashViewBudgetDesc') },
+    { href: '/dashboard/forecasting',  icon: LineChart,       label: t('dashOpenForecasting'),   desc: t('dashOpenForecastingDesc') },
   ];
 
   const hasInvestmentPulse = (portfolioSummary?.totalValue || 0) > 0;
@@ -1744,7 +1745,7 @@ export default function DashboardPage() {
           was leading with a feature catalog.") */}
       <div className="mb-6">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t('quickActions')}</h2>
-        <div className="stagger-fade grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="stagger-fade grid grid-cols-2 md:grid-cols-5 gap-3">
           {quickActions.map(c => {
             const Icon = c.icon;
             return (

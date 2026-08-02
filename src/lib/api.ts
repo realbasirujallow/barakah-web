@@ -1596,6 +1596,21 @@ export const api = {
       API_TIMEOUT,
       true,
     ),
+  getForecastBaseline: (months = 12) =>
+    apiFetch(`/api/forecasting/baseline?months=${encodeURIComponent(String(months))}`, {}, API_TIMEOUT, true),
+  getForecastRunway: (months = 6, startingCash?: number) => {
+    const params = new URLSearchParams({ months: String(months) });
+    if (startingCash !== undefined) params.set('startingCash', String(startingCash));
+    return apiFetch(`/api/forecasting/runway?${params.toString()}`, {}, API_TIMEOUT, true);
+  },
+  getForecastScenarioComparison: (initialNetWorth: number, years = 35, scenarioIds?: number[]) => {
+    const params = new URLSearchParams({
+      initialNetWorth: String(initialNetWorth),
+      years: String(years),
+    });
+    if (scenarioIds && scenarioIds.length > 0) params.set('scenarioIds', scenarioIds.join(','));
+    return apiFetch(`/api/forecasting/scenarios/compare?${params.toString()}`, {}, API_TIMEOUT, true);
+  },
   // Forecast events (income/expense entries with growth modes).
   // Returns ForecastEventDTO[] (unwrapped from {events:[...]}).
   getForecastEvents: async (scenarioId: number) => {

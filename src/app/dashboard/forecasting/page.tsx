@@ -62,6 +62,128 @@ interface ForecastEventDTO {
   sortOrder: number;
 }
 
+
+interface ForecastBaseline {
+  monthsAnalyzed: number;
+  firstMonth: string;
+  lastMonth: string;
+  avgMonthlyIncome: number;
+  avgMonthlySpending: number;
+  avgMonthlySavings: number;
+  avgMonthlyGiving: number;
+  avgMonthlyNetAfterSavings: number;
+  categories?: Array<{
+    category: string;
+    total: number;
+    averageMonthly: number;
+    medianMonthly: number;
+    kind: string;
+  }>;
+  leakOpportunities?: Array<{
+    category: string;
+    averageMonthly: number;
+    suggestedMonthlyCap: number;
+    monthlyOpportunity: number;
+    reason: string;
+  }>;
+}
+
+interface ForecastRunway {
+  startingCash: number;
+  cashSource: string;
+  avgMonthlyIncome: number;
+  avgMonthlyOutflow: number;
+  avgMonthlyNet: number;
+  runwayMonths: number;
+  firstShortfallMonth?: string | null;
+  months?: Array<{
+    month: string;
+    startingCash: number;
+    projectedIncome: number;
+    projectedOutflow: number;
+    projectedNet: number;
+    endingCash: number;
+    status: 'ok' | 'watch' | 'shortfall';
+  }>;
+}
+
+interface ForecastAccountRow {
+  name: string;
+  type: string;
+  source: string;
+  startingBalance: number;
+  annualGrowthPct: number;
+  annualContribution: number;
+  projectedBalance: number;
+}
+
+interface ForecastLiabilityRow {
+  name: string;
+  type: string;
+  source: string;
+  startingBalance: number;
+  projectedBalance: number;
+  monthlyPayment: number;
+  aprPct: number;
+  ribaFree: boolean;
+  payoffYear: number | null;
+}
+
+interface ForecastCashFlowRow {
+  year: number;
+  age: number;
+  income: number;
+  expenses: number;
+  giving: number;
+  plannedSavings: number;
+  netCashFlow: number;
+  endingNetWorth: number | null;
+}
+
+interface ForecastMilestones {
+  hajj?: { year: number; targetCost: number; monthlyReserve: number };
+  umrah?: { year: number; targetCost: number; monthlyReserve: number };
+  zakat?: { annualEstimate: number; monthlyReserve: number; basis: string };
+  sadaqah?: { monthlyActualAverage: number; annualActualAverage: number };
+  ribaPayoff?: { ribaBearingDebt: number; monthlyPayment: number; priority: string };
+  familyPlanning?: { mode: string; note: string };
+}
+
+interface ForecastInsight {
+  type: string;
+  severity: 'ok' | 'info' | 'warning' | 'danger';
+  title: string;
+  body: string;
+}
+
+interface ForecastProjectionDetails {
+  baseline?: ForecastBaseline;
+  runway?: ForecastRunway;
+  accounts?: ForecastAccountRow[];
+  liabilities?: ForecastLiabilityRow[];
+  cashFlow?: ForecastCashFlowRow[];
+  milestones?: ForecastMilestones;
+  insights?: ForecastInsight[];
+  assumptions?: Record<string, unknown>;
+}
+
+interface ScenarioComparison {
+  years: number;
+  initialNetWorth: number;
+  scenarios: Array<{
+    id: number;
+    name: string;
+    isActive: boolean;
+    monthlyContribution: number;
+    annualReturnPct: number;
+    finalRealBalance: number;
+    finalNominalBalance: number;
+    hajjBalance: number | null;
+    retirementBalance: number;
+    eventCount: number;
+  }>;
+}
+
 interface ProjectionPoint {
   year: number;
   age: number;
@@ -82,8 +204,22 @@ const DEFAULTS = {
   monthlyContribution: 1500,
   annualReturnPct: 6,
   inflationMode: 'today' as const,
-  inflationRate: 3,
+  inflationRate: 0.03,
 };
+
+function normalizeDecimalRate(value: number | null | undefined, fallback = 0.03): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
+  if (Math.abs(value) > 1) return value / 100;
+  return value;
+}
+
+function rateToPercent(value: number | null | undefined, fallback = 0.03): number {
+  return normalizeDecimalRate(value, fallback) * 100;
+}
+
+function percentToDecimal(value: number): number {
+  return value / 100;
+}
 
 // ─── Client-side fallback projection (same math as before) ────────────────────
 
@@ -337,6 +473,7 @@ interface InflationToggleProps {
 
 function InflationToggle({ inflationMode, inflationRate, onModeChange, onRateChange }: InflationToggleProps) {
   const { t } = useI18n();
+  const displayRate = rateToPercent(inflationRate);
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
       <p className="text-xs uppercase tracking-wide text-gray-500 font-medium mb-2">{t('forecastingInflationToggleLabel')}</p>
@@ -361,9 +498,9 @@ function InflationToggle({ inflationMode, inflationRate, onModeChange, onRateCha
         <label className="text-xs text-gray-500 shrink-0">{t('forecastingInflationRateLabel')}</label>
         <input
           type="number"
-          value={inflationRate}
-          onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) onRateChange(Math.max(0, Math.min(20, v))); }}
-          step={0.5}
+          value={Number(displayRate.toFixed(2))}
+          onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) onRateChange(percentToDecimal(Math.max(0, Math.min(20, v)))); }}
+          step={0.1}
           min={0}
           max={20}
           className="w-16 text-sm font-bold tabular-nums text-gray-900 border border-gray-200 rounded-lg px-2 py-1 bg-transparent focus:outline-none focus:ring-1 focus:ring-emerald-500"
@@ -399,7 +536,7 @@ function EventForm({ type, initial, onSave, onCancel, saveError }: EventFormProp
   const [label, setLabel] = useState(initial?.label ?? '');
   const [annualAmount, setAnnualAmount] = useState(initial?.annualAmount ?? 0);
   const [growthMode, setGrowthMode] = useState<'inflation' | 'custom' | 'flat'>(initial?.growthMode ?? 'inflation');
-  const [customGrowthRate, setCustomGrowthRate] = useState<number>(initial?.customGrowthRate ?? 2);
+  const [customGrowthRate, setCustomGrowthRate] = useState<number>(rateToPercent(initial?.customGrowthRate, 0.02));
   const [startYearOffset, setStartYearOffset] = useState(initial?.startYearOffset ?? 0);
   const [endYearOffset, setEndYearOffset] = useState(initial?.endYearOffset ?? 10);
   const [busy, setBusy] = useState(false);
@@ -413,7 +550,7 @@ function EventForm({ type, initial, onSave, onCancel, saveError }: EventFormProp
         type,
         annualAmount,
         growthMode,
-        customGrowthRate: growthMode === 'custom' ? customGrowthRate : null,
+        customGrowthRate: growthMode === 'custom' ? percentToDecimal(customGrowthRate) : null,
         startYearOffset,
         endYearOffset,
       });
@@ -579,7 +716,7 @@ function ForecastEventsList({ scenarioId, events, onEventsChange }: ForecastEven
   const growthLabel = (e: ForecastEventDTO) => {
     if (e.growthMode === 'inflation') return t('forecastingEventsGrowthInflation');
     if (e.growthMode === 'flat') return t('forecastingEventsGrowthFlat');
-    return `${e.customGrowthRate ?? 0}%/yr`;
+    return rateToPercent(e.customGrowthRate, 0).toFixed(1) + '%/yr';
   };
 
   return (
@@ -667,6 +804,133 @@ function ForecastEventsList({ scenarioId, events, onEventsChange }: ForecastEven
   );
 }
 
+
+function ForecastIntelligenceCards({
+  baseline,
+  runway,
+  milestones,
+  insights,
+  fmt,
+}: {
+  baseline: ForecastBaseline | null;
+  runway: ForecastRunway | null;
+  milestones?: ForecastMilestones;
+  insights?: ForecastInsight[];
+  fmt: (n: number) => string;
+}) {
+  const topLeak = baseline?.leakOpportunities?.[0];
+  const hajj = milestones?.hajj;
+  const zakat = milestones?.zakat;
+  const riba = milestones?.ribaPayoff;
+  const runwayLabel = runway?.firstShortfallMonth
+    ? 'Shortfall risk in ' + runway.firstShortfallMonth
+    : runway?.runwayMonths === 99
+      ? 'Positive through the forecast'
+      : String(runway?.runwayMonths ?? 0) + ' months of runway';
+
+  return (
+    <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+        <p className="text-xs uppercase tracking-wide text-gray-500 font-medium">Actuals baseline</p>
+        <p className="text-2xl font-bold text-gray-900 mt-1">{baseline ? fmt(baseline.avgMonthlyNetAfterSavings) : '...'}</p>
+        <p className="text-xs text-gray-500 mt-1">
+          {baseline ? baseline.monthsAnalyzed + ' complete months · ' + fmt(baseline.avgMonthlyIncome) + ' in / ' + fmt(baseline.avgMonthlySpending) + ' out' : 'Loading actuals'}
+        </p>
+      </div>
+      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+        <p className="text-xs uppercase tracking-wide text-gray-500 font-medium">Cash runway</p>
+        <p className={'text-2xl font-bold mt-1 ' + (runway?.firstShortfallMonth ? 'text-rose-700' : 'text-emerald-700')}>
+          {runway ? fmt(runway.startingCash) : '...'}
+        </p>
+        <p className="text-xs text-gray-500 mt-1">{runway ? runwayLabel + ' · ' + runway.cashSource : 'Loading cash balances'}</p>
+      </div>
+      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+        <p className="text-xs uppercase tracking-wide text-gray-500 font-medium">Budget leak guard</p>
+        <p className="text-2xl font-bold text-amber-700 mt-1">{topLeak ? fmt(topLeak.monthlyOpportunity) : fmt(0)}</p>
+        <p className="text-xs text-gray-500 mt-1">
+          {topLeak ? topLeak.category + ' above suggested cap of ' + fmt(topLeak.suggestedMonthlyCap) + '/mo' : 'No obvious swing leak detected'}
+        </p>
+      </div>
+      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+        <p className="text-xs uppercase tracking-wide text-gray-500 font-medium">Islamic reserves</p>
+        <p className="text-2xl font-bold text-[#1B5E20] mt-1">{hajj ? fmt(hajj.monthlyReserve) : '...'}</p>
+        <p className="text-xs text-gray-500 mt-1">
+          {hajj ? 'Hajj/mo · zakat reserve ' + (zakat ? fmt(zakat.monthlyReserve) : fmt(0)) + '/mo' : 'Loading milestones'}
+        </p>
+      </div>
+      {(insights && insights.length > 0) && (
+        <div className="md:col-span-2 xl:col-span-4 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+          <div className="grid md:grid-cols-2 gap-3">
+            {insights.slice(0, 4).map(item => (
+              <div key={item.type} className="flex gap-3">
+                <span
+                  className={
+                    'mt-1 h-2.5 w-2.5 rounded-full flex-shrink-0 ' +
+                    (item.severity === 'danger' ? 'bg-rose-600' :
+                     item.severity === 'warning' ? 'bg-amber-500' :
+                     item.severity === 'ok' ? 'bg-emerald-600' :
+                     'bg-sky-500')
+                  }
+                  aria-hidden="true"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                  <p className="text-xs text-gray-600">{item.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          {riba && riba.ribaBearingDebt > 0 && (
+            <p className="text-xs text-emerald-900 mt-3">
+              Riba payoff plan: {fmt(riba.ribaBearingDebt)} balance with {fmt(riba.monthlyPayment)}/mo minimums.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ForecastTables({ cashFlow, accounts, liabilities, comparison, fmt }: { cashFlow?: ForecastCashFlowRow[]; accounts?: ForecastAccountRow[]; liabilities?: ForecastLiabilityRow[]; comparison: ScenarioComparison | null; fmt: (n: number) => string; }) {
+  const visibleCashFlow = (cashFlow ?? []).slice(0, 12);
+  const visibleAccounts = (accounts ?? []).slice(0, 8);
+  const visibleLiabilities = (liabilities ?? []).slice(0, 8);
+  const visibleComparison = comparison?.scenarios?.slice(0, 5) ?? [];
+  if (!visibleCashFlow.length && !visibleAccounts.length && !visibleLiabilities.length && !visibleComparison.length) return null;
+
+  return (
+    <div className="grid xl:grid-cols-2 gap-6 mb-6">
+      {visibleComparison.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+          <div className="flex items-baseline justify-between mb-3"><h2 className="text-lg font-semibold text-primary">Scenario comparison</h2><span className="text-xs text-gray-500">{comparison?.years} years</span></div>
+          <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="text-xs text-gray-500 uppercase tracking-wide"><tr><th className="text-left py-2 pr-3">Scenario</th><th className="text-right py-2 px-3">Retirement</th><th className="text-right py-2 px-3">Final</th><th className="text-right py-2 pl-3">Events</th></tr></thead><tbody className="divide-y divide-gray-100">{visibleComparison.map(row => (<tr key={row.id}><td className="py-2 pr-3 font-medium text-gray-900">{row.name}{row.isActive && <span className="ml-2 text-[10px] uppercase text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full">Active</span>}</td><td className="py-2 px-3 text-right tabular-nums">{fmt(row.retirementBalance)}</td><td className="py-2 px-3 text-right tabular-nums">{fmt(row.finalRealBalance)}</td><td className="py-2 pl-3 text-right tabular-nums">{row.eventCount}</td></tr>))}</tbody></table></div>
+        </div>
+      )}
+
+      {visibleCashFlow.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+          <div className="flex items-baseline justify-between mb-3"><h2 className="text-lg font-semibold text-primary">Year-by-year cash flow</h2><span className="text-xs text-gray-500">Real dollars</span></div>
+          <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="text-xs text-gray-500 uppercase tracking-wide"><tr><th className="text-left py-2 pr-3">Year</th><th className="text-right py-2 px-3">Income</th><th className="text-right py-2 px-3">Expenses</th><th className="text-right py-2 px-3">Giving</th><th className="text-right py-2 pl-3">Net worth</th></tr></thead><tbody className="divide-y divide-gray-100">{visibleCashFlow.map(row => (<tr key={row.year}><td className="py-2 pr-3 text-gray-700">Yr {row.year} · age {row.age}</td><td className="py-2 px-3 text-right tabular-nums">{fmt(row.income)}</td><td className="py-2 px-3 text-right tabular-nums">{fmt(row.expenses)}</td><td className="py-2 px-3 text-right tabular-nums">{fmt(row.giving)}</td><td className="py-2 pl-3 text-right tabular-nums font-medium text-gray-900">{row.endingNetWorth == null ? '...' : fmt(row.endingNetWorth)}</td></tr>))}</tbody></table></div>
+        </div>
+      )}
+
+      {visibleAccounts.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+          <h2 className="text-lg font-semibold text-primary mb-3">Account assumptions</h2>
+          <div className="space-y-2">{visibleAccounts.map(row => (<div key={row.source + '-' + row.name} className="flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-3 py-2.5"><div className="min-w-0"><p className="text-sm font-medium text-gray-900 truncate">{row.name}</p><p className="text-xs text-gray-500 truncate">{row.type} · {row.source} · {row.annualGrowthPct}%/yr</p></div><div className="text-right flex-shrink-0"><p className="text-sm font-semibold tabular-nums">{fmt(row.projectedBalance)}</p><p className="text-[11px] text-gray-400">from {fmt(row.startingBalance)}</p></div></div>))}</div>
+        </div>
+      )}
+
+      {visibleLiabilities.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+          <h2 className="text-lg font-semibold text-primary mb-3">Debt payoff assumptions</h2>
+          <div className="space-y-2">{visibleLiabilities.map(row => (<div key={row.source + '-' + row.name} className="flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-3 py-2.5"><div className="min-w-0"><p className="text-sm font-medium text-gray-900 truncate">{row.name}</p><p className="text-xs text-gray-500 truncate">{row.ribaFree ? 'Riba-free' : String(row.aprPct) + '% APR'} · {fmt(row.monthlyPayment)}/mo</p></div><div className="text-right flex-shrink-0"><p className="text-sm font-semibold tabular-nums">{fmt(row.projectedBalance)}</p><p className="text-[11px] text-gray-400">{row.payoffYear ? 'paid in yr ' + row.payoffYear : 'still active'}</p></div></div>))}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main page content ────────────────────────────────────────────────────────
 
 function ForecastingPageContent() {
@@ -702,6 +966,10 @@ function ForecastingPageContent() {
 
   // ── Server projection ──────────────────────────────────────────────────────
   const [serverProjection, setServerProjection] = useState<ProjectionPoint[] | null>(null);
+  const [projectionDetails, setProjectionDetails] = useState<ForecastProjectionDetails | null>(null);
+  const [baseline, setBaseline] = useState<ForecastBaseline | null>(null);
+  const [runway, setRunway] = useState<ForecastRunway | null>(null);
+  const [comparison, setComparison] = useState<ScenarioComparison | null>(null);
   const projectionAbortRef = useRef<AbortController | null>(null);
 
   // ── Forecast events ────────────────────────────────────────────────────────
@@ -716,7 +984,7 @@ function ForecastingPageContent() {
     setMonthlyContribution(s.monthlyContribution);
     setAnnualReturnPct(s.annualReturnPct);
     setInflationMode(s.inflationMode ?? 'today');
-    setInflationRate(s.inflationRate ?? DEFAULTS.inflationRate);
+    setInflationRate(normalizeDecimalRate(s.inflationRate, DEFAULTS.inflationRate));
   }, []);
 
   // ── Initial load — net worth + scenario list + active scenario ────────────
@@ -724,9 +992,11 @@ function ForecastingPageContent() {
     let cancelled = false;
     (async () => {
       try {
-        const [nwResult, scenariosResult] = await Promise.allSettled([
+        const [nwResult, scenariosResult, baselineResult, runwayResult] = await Promise.allSettled([
           api.getNetWorthHistory('6m'),
           api.getForecastScenarios(),
+          api.getForecastBaseline(12),
+          api.getForecastRunway(6),
         ]);
         if (cancelled) return;
 
@@ -754,6 +1024,13 @@ function ForecastingPageContent() {
           }
         }
 
+        if (baselineResult.status === 'fulfilled' && baselineResult.value && typeof baselineResult.value === 'object') {
+          setBaseline(baselineResult.value as ForecastBaseline);
+        }
+        if (runwayResult.status === 'fulfilled' && runwayResult.value && typeof runwayResult.value === 'object') {
+          setRunway(runwayResult.value as ForecastRunway);
+        }
+
         if (!cancelled) setScenarioLoaded(true);
         setScenariosLoading(false);
       } catch {
@@ -775,6 +1052,7 @@ function ForecastingPageContent() {
     if (!scenario) return;
     applyScenario(scenario);
     setServerProjection(null);
+    setProjectionDetails(null);
     try {
       const evts = await api.getForecastEvents(id);
       setEvents(Array.isArray(evts) ? (evts as ForecastEventDTO[]) : []);
@@ -894,7 +1172,7 @@ function ForecastingPageContent() {
           inflationMode: 'today' | 'future';
           inflationRate: number;
           points: { year: number; age: number; nominalBalance: number; realBalance: number }[];
-        } | null;
+        } & ForecastProjectionDetails | null;
         if (controller.signal.aborted) return;
         if (!result) return; // null = 403 (not on Plus) or empty; fall back to client-side
         const useReal = inflationMode === 'today';
@@ -907,10 +1185,14 @@ function ForecastingPageContent() {
           return { year: p.year, age: p.age, value, milestone };
         });
         setServerProjection(mapped);
+        setProjectionDetails(result);
+        if (result.baseline) setBaseline(result.baseline);
+        if (result.runway) setRunway(result.runway);
       } catch {
         if (!controller.signal.aborted) {
           // Fall back to client-side — serverProjection stays null
           setServerProjection(null);
+          setProjectionDetails(null);
         }
       }
     })();
@@ -921,6 +1203,24 @@ function ForecastingPageContent() {
     // on monthlyContribution too), so omitting it here left the chart stale
     // when only the contribution slider changed.
   }, [scenarioId, startingValue, currentAge, retirementAge, hajjYearsFromNow, monthlyContribution, annualReturnPct, inflationMode, inflationRate]);
+
+
+  useEffect(() => {
+    const nw = startingValue;
+    if (nw == null || scenarios.length === 0) return;
+    const yearsToRetirement = Math.max(0, retirementAge - currentAge);
+    const years = Math.max(MIN_HORIZON, Math.min(MAX_HORIZON, yearsToRetirement + 2));
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await api.getForecastScenarioComparison(nw, years) as ScenarioComparison | null;
+        if (!cancelled && result && Array.isArray(result.scenarios)) setComparison(result);
+      } catch {
+        if (!cancelled) setComparison(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [scenarios, startingValue, currentAge, retirementAge]);
 
   // ── Client-side projection (fallback) ─────────────────────────────────────
   const clientProjection = useMemo(() => {
@@ -936,6 +1236,10 @@ function ForecastingPageContent() {
   }, [startingValue, monthlyContribution, annualReturnPct, currentAge, retirementAge, hajjYearsFromNow]);
 
   const projection = serverProjection ?? clientProjection;
+  const richBaseline = projectionDetails?.baseline ?? baseline;
+  const richRunway = projectionDetails?.runway ?? runway;
+  const richMilestones = projectionDetails?.milestones;
+  const richInsights = projectionDetails?.insights;
 
   const finalValue = projection.length ? projection[projection.length - 1].value : 0;
   const retirementPoint = projection.find(p => p.age === retirementAge);
@@ -1023,6 +1327,14 @@ function ForecastingPageContent() {
           </p>
         )}
       </div>
+
+      <ForecastIntelligenceCards
+        baseline={richBaseline}
+        runway={richRunway}
+        milestones={richMilestones}
+        insights={richInsights}
+        fmt={fmt}
+      />
 
       {/* Projection chart */}
       <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
@@ -1181,6 +1493,14 @@ function ForecastingPageContent() {
           onEventsChange={setEvents}
         />
       )}
+
+      <ForecastTables
+        cashFlow={projectionDetails?.cashFlow}
+        accounts={projectionDetails?.accounts}
+        liabilities={projectionDetails?.liabilities}
+        comparison={comparison}
+        fmt={fmt}
+      />
 
       {/* Tip */}
       <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-sm text-emerald-900 leading-relaxed mb-6">

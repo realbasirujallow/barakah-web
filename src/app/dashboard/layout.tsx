@@ -58,6 +58,7 @@ const navItems: { href: string; icon: LucideIcon; label: string; gate?: 'plus' |
   { href: '/dashboard/family', icon: Users, label: 'Family', gate: 'family' },
   { href: '/dashboard/faraid', icon: Scale, label: 'Inheritance Calculator', gate: 'plus' },
   { href: '/dashboard/fiqh', icon: BookMarked, label: 'Fiqh Settings' },
+  { href: '/dashboard/forecasting', icon: LineChart, label: 'Forecasting', gate: 'plus' },
   { href: '/dashboard/hawl', icon: CalendarClock, label: 'Zakat Anniversary' },
   { href: '/dashboard/ibadah', icon: Heart, label: 'Ibadah Finance' },
   { href: '/dashboard/import', icon: Upload, label: 'Import Data' },
@@ -116,6 +117,7 @@ const NAV_LABEL_KEYS: Record<string, string> = {
   'Family': 'navFamily',
   'Inheritance Calculator': 'navInheritanceCalculator',
   'Fiqh Settings': 'navFiqhSettings',
+  'Forecasting': 'navForecasting',
   'Zakat Anniversary': 'navZakatAnniversary',
   'Ibadah Finance': 'navIbadahFinance',
   'Import Data': 'navImportData',
@@ -209,7 +211,7 @@ const sectionConfig: Record<SidebarSection, { label: string; items: string[] }> 
   },
   plan: {
     label: 'Plan',
-    items: ['Savings Goals', 'Debts', 'Bills', 'Retirement Zakat', 'Assets', 'Side Hustles', 'Net Worth', 'Investments', 'Stock Screener', 'Market Prices', 'Barakah Score', 'Financial Summary', 'Reports', 'Import Data'],
+    items: ['Savings Goals', 'Forecasting', 'Debts', 'Bills', 'Retirement Zakat', 'Assets', 'Side Hustles', 'Net Worth', 'Investments', 'Stock Screener', 'Market Prices', 'Barakah Score', 'Financial Summary', 'Reports', 'Import Data'],
   },
   islamic: {
     label: 'Islamic',
