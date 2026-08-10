@@ -542,6 +542,11 @@ export default function DashboardPage() {
     return 'none';
   })();
   const hasNoData = !loading && netWorthValue === 0 && !widgets?.recentTransactions?.transactions?.length;
+  const hasRealData = !loading && (
+    netWorthValue > 0
+    || (widgets?.recentTransactions?.totalCount ?? widgets?.recentTransactions?.transactions?.length ?? 0) > 0
+    || (widgets?.budgetOverview?.totalBudgeted ?? 0) > 0
+  );
 
   // Phase 11 (2026-04-30): Daily Ritual — derived from data the dashboard
   // already has loaded. No new endpoints, no extra fetches. Returns
@@ -621,7 +626,7 @@ export default function DashboardPage() {
       {/* REF-1 (2026-05-21): don't ask for referrals before the user has
           experienced any value. Gated on !hasNoData so a brand-new empty
           account never sees the modal; it surfaces once they have data. */}
-      {!showOnboarding && !hasNoData && showReferralPrompt && <ReferralPromptModal onDismiss={dismissReferralPrompt} />}
+      {!showOnboarding && !hasNoData && !hasRealData && showReferralPrompt && <ReferralPromptModal onDismiss={dismissReferralPrompt} />}
 
       {/* Trial Expired Banner */}
       {isTrialExpired && (
@@ -824,7 +829,7 @@ export default function DashboardPage() {
           a 50% discount on their FIRST PAID month after the trial.
           Founder feedback: "this is fake since everyone gets 1 month
           free of family plan." Closing the dishonesty gap. */}
-      {!referralBannerDismissed && !showReferralPrompt && !hasNoData && (
+      {!referralBannerDismissed && !showReferralPrompt && !hasNoData && !hasRealData && (
         // 2026-05-12 overnight QA (UI-005): the floating "Ask Barakah" +
         // "Feedback" FAB pills at fixed bottom-right used to overlap the
         // banner's right-edge Share button + dismiss × on shorter
@@ -1015,7 +1020,7 @@ export default function DashboardPage() {
           for users who picked 'household' in onboarding but aren't on
           Family plan, OR Family-plan users who haven't invited a member
           yet. Hides for everyone else. */}
-      {!hasNoData && (
+      {!hasNoData && !hasRealData && (
         <HouseholdPromoBanner
           variant={householdBannerVariant}
           onDismiss={dismissHouseholdBanner}
@@ -1034,6 +1039,7 @@ export default function DashboardPage() {
           it makes all 5 onboarding milestones visible at once. The
           empty-state card below only covers one of them. */}
       {!gettingStartedDismissed
+        && !hasRealData
         && gettingStartedItems.filter((i) => i.done).length < 4 && (
         <GettingStartedChecklist
           items={gettingStartedItems}

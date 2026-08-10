@@ -40,6 +40,11 @@ interface TransactionRule {
   businessId?: number | null;
 }
 
+interface ReviewStats {
+  scannedCount: number;
+  totalTransactions: number;
+}
+
 interface SavingsGoal {
   id: number;
   name: string;
@@ -73,6 +78,15 @@ const TYPE_OPTIONS = [
 import { TRANSACTION_CATEGORIES } from '../../../lib/constants';
 import EmptyState from '../../../components/EmptyState';
 const CATEGORY_OPTIONS = ['', ...TRANSACTION_CATEGORIES];
+const STARTER_RULE_TEMPLATES = [
+  { name: 'Payroll deposits', matchField: 'any_text', matchOperator: 'regex', matchValue: 'payroll|direct deposit|salary|adp|gusto|workday', typeOverride: 'income', categoryOverride: 'salary', priority: 90 },
+  { name: 'Mortgage or rent', matchField: 'any_text', matchOperator: 'regex', matchValue: 'mortgage|rocket mortgage|mr cooper|rent', typeOverride: 'expense', categoryOverride: 'housing', priority: 95 },
+  { name: 'Amazon purchases', matchField: 'any_text', matchOperator: 'contains', matchValue: 'amazon', typeOverride: 'expense', categoryOverride: 'shopping', priority: 110 },
+  { name: 'Apple subscriptions', matchField: 'any_text', matchOperator: 'contains', matchValue: 'apple', typeOverride: 'expense', categoryOverride: 'subscriptions', priority: 110 },
+  { name: 'Groceries', matchField: 'any_text', matchOperator: 'regex', matchValue: 'whole foods|costco|kroger|walmart|aldi|trader joe|safeway', typeOverride: 'expense', categoryOverride: 'groceries', priority: 100 },
+  { name: 'Sadaqah and masjid giving', matchField: 'any_text', matchOperator: 'regex', matchValue: 'masjid|islamic center|zakat|sadaqah|donation', typeOverride: 'expense', categoryOverride: 'sadaqah', priority: 100 },
+  { name: 'Internal transfers', matchField: 'any_text', matchOperator: 'regex', matchValue: 'transfer|zelle|venmo|cash app|ach transfer', typeOverride: 'transfer', categoryOverride: 'transfer', priority: 80 },
+] as const;
 
 const DEFAULT_RULE_FORM = {
   name: '',
@@ -106,12 +120,14 @@ export default function CategorizePage() {
     }
   };
   const [suggestions, setSuggestions] = useState<CategorySuggestion[]>([]);
+  const [scanStats, setScanStats] = useState<ReviewStats>({ scannedCount: 0, totalTransactions: 0 });
   const [rules, setRules] = useState<TransactionRule[]>([]);
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
   const [sideHustles, setSideHustles] = useState<SideHustle[]>([]);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [savingRule, setSavingRule] = useState(false);
+  const [creatingStarterRule, setCreatingStarterRule] = useState<string | null>(null);
   const [editingRuleId, setEditingRuleId] = useState<number | null>(null);
   const [confirming, setConfirming] = useState<number | null>(null);
   const [minConfidence, setMinConfidence] = useState(60);
@@ -131,8 +147,19 @@ export default function CategorizePage() {
       api.getSideHustles(),  // suppressUnauthorized=true; Family-gated → locked payload for non-Family
     ]);
     if (reviewResult.status === 'fulfilled') {
-      setSuggestions(reviewResult.value?.transactions || []);
+      const review = reviewResult.value as {
+        transactions?: CategorySuggestion[];
+        scannedCount?: number;
+        totalTransactions?: number;
+      } | null | undefined;
+      const transactions = review?.transactions || [];
+      setSuggestions(transactions);
+      setScanStats({
+        scannedCount: Number(review?.scannedCount ?? transactions.length ?? 0),
+        totalTransactions: Number(review?.totalTransactions ?? review?.scannedCount ?? transactions.length ?? 0),
+      });
     } else {
+      setScanStats({ scannedCount: 0, totalTransactions: 0 });
       const msg = reviewResult.reason instanceof Error
         ? reviewResult.reason.message
         : t('catLoadSuggestionsFallback');
@@ -212,6 +239,32 @@ export default function CategorizePage() {
       toast(err instanceof Error ? err.message : t('catRuleSaveError'), 'error');
     } finally {
       setSavingRule(false);
+    }
+  };
+
+  const starterRuleSuggestions = useMemo(() => {
+    const existing = new Set(
+      rules.flatMap(rule => [
+        rule.name.toLowerCase(),
+        `${rule.matchField}:${rule.matchOperator}:${rule.matchValue ?? ''}`.toLowerCase(),
+      ])
+    );
+    return STARTER_RULE_TEMPLATES.filter(template => {
+      const key = `${template.matchField}:${template.matchOperator}:${template.matchValue}`.toLowerCase();
+      return !existing.has(template.name.toLowerCase()) && !existing.has(key);
+    });
+  }, [rules]);
+
+  const createStarterRule = async (template: (typeof STARTER_RULE_TEMPLATES)[number]) => {
+    setCreatingStarterRule(template.name);
+    try {
+      await api.createTransactionRule({ enabled: true, ...template });
+      toast(`${template.name} rule added`, 'success');
+      await loadAll();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('catRuleSaveError'), 'error');
+    } finally {
+      setCreatingStarterRule(null);
     }
   };
 
@@ -311,6 +364,7 @@ export default function CategorizePage() {
     () => suggestions.filter(s => s.wouldChange && s.confidence >= minConfidence),
     [minConfidence, suggestions],
   );
+  const scannedDisplay = scanStats.scannedCount || suggestions.length;
 
   // Pagination for the Review Suggestions list. Was silently sliced to
   // first 75 with no UI indicator that more existed; users with bigger
@@ -359,7 +413,7 @@ export default function CategorizePage() {
         <div className="flex justify-between items-start gap-6 flex-wrap">
           <div>
             <p className="text-indigo-100 mb-1">{t('catScannedLabel')}</p>
-            <p className="text-4xl font-bold">{suggestions.length}</p>
+            <p className="text-4xl font-bold">{scannedDisplay.toLocaleString()}</p>
             <p className="text-indigo-100 text-sm mt-2">
               {tFmt('catReadyMsgFmt', [actionableSuggestions.length, minConfidence])}
             </p>
@@ -428,6 +482,28 @@ export default function CategorizePage() {
               </button>
             )}
           </div>
+
+          {starterRuleSuggestions.length > 0 && (
+            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-5">
+              <div className="mb-3">
+                <p className="font-semibold text-emerald-900">Starter rules</p>
+                <p className="text-sm text-emerald-700">Add common rules for payroll, mortgage, Amazon, Apple, groceries, sadaqah, and internal transfers.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {starterRuleSuggestions.map(template => (
+                  <button
+                    key={template.name}
+                    type="button"
+                    onClick={() => createStarterRule(template)}
+                    disabled={creatingStarterRule !== null}
+                    className="px-3 py-1.5 rounded-lg bg-white border border-emerald-200 text-emerald-800 text-sm font-medium hover:bg-emerald-100 disabled:opacity-50"
+                  >
+                    {creatingStarterRule === template.name ? 'Adding…' : template.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="grid md:grid-cols-2 gap-4">
             <Field label={t('catFieldRuleName')}>
@@ -585,7 +661,9 @@ export default function CategorizePage() {
           </div>
           <span className="text-sm text-gray-500">
             {suggestions.length === 0
-              ? t('catScannedFmt')
+              ? scannedDisplay > 0
+                ? `${scannedDisplay.toLocaleString()} scanned · no changes found`
+                : t('catScannedFmt')
               : tFmt('catShowingFmt', [visibleStart, visibleEnd, suggestions.length])}
           </span>
         </div>

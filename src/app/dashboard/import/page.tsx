@@ -106,6 +106,20 @@ interface PlaidAccount {
   lastSyncError?: string | null;
 }
 
+interface LinkedMirrorAccount {
+  id: number;
+  linkedAccountId?: number | null;
+  kind: 'asset' | 'debt';
+  institutionName: string;
+  accountName: string;
+  accountType: string;
+  accountSubtype?: string | null;
+  accountMask?: string | null;
+  balance: number | null;
+  currencyCode: string;
+  lastSyncedAt?: number | null;
+}
+
 interface SubscriptionStatus {
   plan: 'free' | 'plus' | 'family';
   status: string;
@@ -186,6 +200,7 @@ function ImportPageInner() {
   // ── Plaid Bank Linking ──────────────────────────────────────────────────
   const [plaidLinkToken, setPlaidLinkToken] = useState<string | null>(null);
   const [plaidAccounts, setPlaidAccounts] = useState<PlaidAccount[]>([]);
+  const [linkedMirrorAccounts, setLinkedMirrorAccounts] = useState<LinkedMirrorAccount[]>([]);
   const [plaidSyncing, setPlaidSyncing] = useState<number | null>(null);
   const [plaidSyncingAll, setPlaidSyncingAll] = useState(false);
   const [plaidMessage, setPlaidMessage] = useState('');
@@ -199,11 +214,60 @@ function ImportPageInner() {
   }, []);
 
   const loadPlaidAccounts = useCallback(async () => {
-    try {
-      const data = await api.plaidGetAccounts();
-      if (!mountedRef.current) return;
-      setPlaidAccounts(data?.accounts || []);
-    } catch { /* silent */ }
+    const [plaidResult, assetsResult, debtsResult] = await Promise.allSettled([
+      api.plaidGetAccounts(),
+      api.getAssets(),
+      api.getDebts(),
+    ]);
+    if (!mountedRef.current) return;
+
+    if (plaidResult.status === 'fulfilled') {
+      setPlaidAccounts(plaidResult.value?.accounts || []);
+    } else {
+      setPlaidAccounts([]);
+    }
+
+    const mirrors = new Map<string, LinkedMirrorAccount>();
+    const addMirror = (raw: unknown, kind: LinkedMirrorAccount['kind']) => {
+      const r = raw as Record<string, unknown>;
+      const linkedAccountId = Number(r.linkedAccountId ?? 0) || null;
+      const linkedSource = String(r.linkedSource ?? '').toLowerCase();
+      const readOnly = Boolean(r.readOnly);
+      const institutionName = String((r.institutionName ?? (kind === 'debt' ? r.lender : '') ?? '') || '').trim();
+      const hasPlaidIdentity = linkedSource === 'plaid' || readOnly || linkedAccountId != null || institutionName.length > 0;
+      if (!hasPlaidIdentity) return;
+
+      const rowId = Number(r.id ?? linkedAccountId ?? 0);
+      const accountName = String((r.name ?? r.accountName ?? '') || '').trim();
+      const accountType = String((r.type ?? '') || '').trim();
+      const accountSubtype = typeof r.accountSubtype === 'string' ? r.accountSubtype : null;
+      const accountMask = typeof r.accountMask === 'string' ? r.accountMask : null;
+      const currencyCode = typeof r.currency === 'string' ? r.currency : 'USD';
+      const balance = Number(kind === 'asset' ? r.value : r.remainingAmount);
+      const lastSyncedAt = Number(r.lastSyncedAt ?? 0) || null;
+      const key = `${kind}:${linkedAccountId ?? rowId}:${accountName}:${accountMask ?? ''}`;
+      mirrors.set(key, {
+        id: rowId || Number(linkedAccountId ?? mirrors.size + 1),
+        linkedAccountId,
+        kind,
+        institutionName: institutionName || 'Linked account',
+        accountName: accountName || (kind === 'asset' ? 'Linked asset account' : 'Linked debt account'),
+        accountType: accountType || (kind === 'asset' ? 'asset' : 'debt'),
+        accountSubtype,
+        accountMask,
+        balance: Number.isFinite(balance) ? balance : null,
+        currencyCode,
+        lastSyncedAt,
+      });
+    };
+
+    if (assetsResult.status === 'fulfilled') {
+      ((assetsResult.value as { assets?: unknown[] })?.assets ?? []).forEach((asset) => addMirror(asset, 'asset'));
+    }
+    if (debtsResult.status === 'fulfilled') {
+      ((debtsResult.value as { debts?: unknown[] })?.debts ?? []).forEach((debt) => addMirror(debt, 'debt'));
+    }
+    setLinkedMirrorAccounts(Array.from(mirrors.values()));
   }, []);
 
   const loadSubscriptionStatus = useCallback(async () => {
@@ -718,6 +782,45 @@ function ImportPageInner() {
                     {t('importUnlink')}
                   </button>
                 </div>
+              </div>
+            ))}
+          </div>
+        ) : linkedMirrorAccounts.length > 0 ? (
+          <div className="space-y-3">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
+              <p className="font-semibold">Already linked through Plaid</p>
+              <p className="mt-1 text-emerald-700">
+                These accounts are visible on Net Worth and Transactions. The Plaid account list is catching up, so Barakah keeps them shown here instead of saying no accounts are linked.
+              </p>
+            </div>
+            {linkedMirrorAccounts.map(acct => (
+              <div key={`${acct.kind}-${acct.id}-${acct.linkedAccountId ?? 'manual'}`} className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                <div>
+                  <p className="font-semibold text-gray-900">{acct.institutionName}</p>
+                  <p className="text-sm text-gray-500">
+                    {acct.accountName} {acct.accountMask ? `••${acct.accountMask}` : ''} · {acct.accountType}{acct.accountSubtype ? `/${acct.accountSubtype}` : ''}
+                  </p>
+                  <p className="text-xs text-emerald-700 mt-1 font-medium capitalize">
+                    {acct.kind === 'debt' ? t('importAcctRoleDebt') : t('importAcctRoleAsset')}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-900 mt-2">
+                    {tFmt('importAcctCurrentBalanceFmt', [formatPlaidBalance(acct.balance, acct.currencyCode) ?? t('importAcctUnavailable')])}
+                  </p>
+                  {acct.lastSyncedAt ? (
+                    <p className="text-xs text-gray-400">
+                      {tFmt('importAcctSyncedRelFmt', [safeDate(acct.lastSyncedAt)?.toLocaleDateString(dateLocale) ?? ''])}
+                    </p>
+                  ) : null}
+                </div>
+                {acct.linkedAccountId && (
+                  <button
+                    onClick={() => handlePlaidSync(acct.linkedAccountId as number)}
+                    disabled={plaidSyncing === acct.linkedAccountId || plaidSyncingAll || !plaidAccess}
+                    className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition disabled:opacity-50"
+                  >
+                    {plaidSyncing === acct.linkedAccountId ? t('importSyncing') : plaidAccess ? t('importSync') : t('importUpgradeToSync')}
+                  </button>
+                )}
               </div>
             ))}
           </div>

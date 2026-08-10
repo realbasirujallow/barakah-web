@@ -2386,6 +2386,21 @@ export default function TransactionsPage() {
               )}
             </div>
             <div className="flex gap-3 mt-6">
+              {editTx && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const id = editTx.id;
+                    setShowForm(false);
+                    setEditTx(null);
+                    setFormError(null);
+                    handleDelete(id);
+                  }}
+                  className="border border-red-200 text-red-600 rounded-lg px-4 py-2 hover:bg-red-50"
+                >
+                  {t('txnDelete')}
+                </button>
+              )}
               <button aria-label={t('txnCloseAddModalAria')} onClick={() => { setShowForm(false); setEditTx(null); setFormError(null); }} className="flex-1 border border-gray-300 rounded-lg py-2 text-gray-700 hover:bg-gray-50">{t('txnCancel')}</button>
               {/* Description is @NotBlank on ADD (not on edit) — block submit when
                   blank on add so the user isn't bounced by an opaque 400. */}

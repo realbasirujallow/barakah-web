@@ -410,6 +410,7 @@ export default function InvestmentsPage() {
     .reduce((sum, row) => sum + row.value, 0);
   const reviewValue = Math.max(0, trackedHoldingValue - halalValue);
   const halalCoveragePct = trackedHoldingValue > 0 ? (halalValue / trackedHoldingValue) * 100 : 0;
+  const hasInvestmentBalances = accounts.length > 0 || additiveAssets.length > 0 || combinedTotal > 0;
   const largestPosition = [
     ...holdingRows.map(row => ({ name: row.symbol || row.name, value: row.value })),
     ...additiveAssets.map(asset => ({
@@ -433,9 +434,15 @@ export default function InvestmentsPage() {
     },
     {
       label: 'Halal coverage',
-      value: trackedHoldingValue > 0 ? `${formatCompactPct(halalCoveragePct)} screened halal` : 'No screened holdings',
+      value: trackedHoldingValue > 0
+        ? `${formatCompactPct(halalCoveragePct)} screened halal`
+        : hasInvestmentBalances ? 'Holdings not itemized' : 'No investment accounts',
       tone: trackedHoldingValue === 0 ? 'slate' : reviewValue / trackedHoldingValue > 0.25 ? 'amber' : 'emerald',
-      note: trackedHoldingValue === 0 ? 'Add holdings to unlock screening coverage.' : `${fmt(reviewValue)} still needs review or failed screening.`,
+      note: trackedHoldingValue === 0
+        ? hasInvestmentBalances
+          ? 'Balances are tracked; sync or add holdings for halal coverage.'
+          : 'Add an investment account to unlock screening coverage.'
+        : `${fmt(reviewValue)} still needs review or failed screening.`,
     },
     {
       label: 'Crypto / alternative',

@@ -76,6 +76,15 @@ const PERIODS = [
   { key: 'all', labelKey: 'netWorthPeriodAll' },
 ];
 
+const ACCOUNT_TABS = [
+  { key: 'net-worth', label: 'Net Worth', groups: null },
+  { key: 'cash', label: 'Cash', groups: ['Cash'] },
+  { key: 'investments', label: 'Investments', groups: ['Investments', 'Precious Metals'] },
+  { key: 'real-estate', label: 'Real Estate', groups: ['Real Estate'] },
+  { key: 'credit-cards', label: 'Credit Cards', groups: ['Credit Cards'] },
+  { key: 'loans', label: 'Loans', groups: ['Mortgages', 'Student Loans', 'Auto Loans', 'Loans'] },
+] as const;
+
 export default function NetWorthPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
@@ -102,6 +111,7 @@ export default function NetWorthPage() {
   const [assets, setAssets] = useState<AssetItem[]>([]);
   const [debts, setDebts] = useState<DebtRow[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [accountTab, setAccountTab] = useState<(typeof ACCOUNT_TABS)[number]['key']>('net-worth');
 
   const mountedRef = useRef(true);
   // 2026-05-09 (B-N-W fix): React 18 strict-mode runs effects + their
@@ -318,6 +328,12 @@ export default function NetWorthPage() {
 
   const totalLiabilities = debts.reduce((s, d) => s + d.remainingAmount, 0);
   const totalAssetsVal = assets.reduce((s, a) => s + a.value, 0);
+  const visibleAccountGroups = useMemo(() => {
+    const tab = ACCOUNT_TABS.find(item => item.key === accountTab) ?? ACCOUNT_TABS[0];
+    if (!tab.groups) return accountGroups;
+    const tabGroups = tab.groups as readonly string[];
+    return accountGroups.filter(group => tabGroups.includes(group.key));
+  }, [accountGroups, accountTab]);
   // Monarch-style Assets-vs-Liabilities composition toggle.
   const [compMode, setCompMode] = useState<'totals' | 'percent'>('totals');
 
@@ -338,8 +354,8 @@ export default function NetWorthPage() {
   return (
     <div>
       <PageHeader
-        title={t('netWorthTitle')}
-        subtitle={t('netWorthSubtitle')}
+        title="Accounts"
+        subtitle="Net worth, cash, investments, cards, and loans by bucket."
         actions={
           <button
             onClick={takeSnapshot}
@@ -537,9 +553,32 @@ export default function NetWorthPage() {
           account groups, right Assets/Liabilities summary panel.
           Visual reference: Monarch's `/accounts` page. */}
       {(assets.length > 0 || debts.length > 0) && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <>
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-1" aria-label="Account buckets">
+            {ACCOUNT_TABS.map(tab => {
+              const tabGroups = tab.groups as readonly string[] | null;
+              const groups = tabGroups ? accountGroups.filter(group => tabGroups.includes(group.key)) : accountGroups;
+              const count = groups.reduce((sum, group) => sum + group.items.length, 0);
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setAccountTab(tab.key)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition ${
+                    accountTab === tab.key
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-white text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {tab.label}
+                  <span className="ml-2 text-xs opacity-75">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           <div className="lg:col-span-2 space-y-2">
-            {accountGroups.map((g) => {
+            {visibleAccountGroups.length > 0 ? visibleAccountGroups.map((g) => {
               const isOpen = expanded[g.key] ?? true;
               return (
                 <div key={g.key} className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -595,7 +634,11 @@ export default function NetWorthPage() {
                   )}
                 </div>
               );
-            })}
+            }) : (
+              <div className="bg-white rounded-2xl shadow-sm p-8 text-center text-sm text-gray-500">
+                No accounts in this bucket yet.
+              </div>
+            )}
           </div>
 
           {/* Side panel: Assets vs Liabilities (Monarch parity) */}
@@ -659,6 +702,7 @@ export default function NetWorthPage() {
             )}
           </aside>
         </div>
+        </>
       )}
 
       {/* Breakdown card */}

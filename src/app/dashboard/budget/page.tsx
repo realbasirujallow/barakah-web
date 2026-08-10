@@ -32,6 +32,27 @@ interface BudgetItem {
   rolloverStrategy?: RolloverStrategy;
   categoryKind?: CategoryKind;
 }
+
+interface BudgetSuggestion {
+  category: string;
+  monthlyLimit: number;
+  averageSpent: number;
+  bucket: 'Fixed' | 'Flexible' | 'Non-monthly' | 'Goals';
+  categoryKind: CategoryKind;
+  rolloverStrategy: RolloverStrategy;
+}
+
+interface CashflowBreakdownRow {
+  key?: string;
+  label?: string;
+  amount?: number;
+}
+
+interface CashflowBreakdownResponse {
+  expenses?: CashflowBreakdownRow[];
+  sadaqahZakat?: CashflowBreakdownRow[];
+}
+
 const CATEGORIES = [
   'food', 'dining', 'groceries', 'coffee',
   'transportation', 'fuel', 'parking',
@@ -45,8 +66,29 @@ const CATEGORIES = [
   'business', 'other',
 ];
 const MONTH_KEYS = ['budgetMonJan', 'budgetMonFeb', 'budgetMonMar', 'budgetMonApr', 'budgetMonMay', 'budgetMonJun', 'budgetMonJul', 'budgetMonAug', 'budgetMonSep', 'budgetMonOct', 'budgetMonNov', 'budgetMonDec'];
+const FIXED_BUDGET_CATEGORIES = new Set(['housing', 'rent', 'utilities', 'insurance', 'subscriptions', 'childcare', 'debt_payment']);
+const NON_MONTHLY_BUDGET_CATEGORIES = new Set(['travel', 'gifts', 'home_maintenance', 'taxes', 'education', 'healthcare', 'vehicle', 'car_maintenance']);
+const GOAL_BUDGET_CATEGORIES = new Set(['savings', 'charity', 'zakat', 'sadaqah']);
 
 function catLabel(cat: string) { return cat.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase()); }
+
+function monthKey(month: number, year: number, offsetBack: number) {
+  const d = new Date(Date.UTC(year, month - 1 - offsetBack, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+function suggestionMeta(category: string): Pick<BudgetSuggestion, 'bucket' | 'categoryKind' | 'rolloverStrategy'> {
+  if (GOAL_BUDGET_CATEGORIES.has(category)) {
+    return { bucket: 'Goals', categoryKind: 'FLEX', rolloverStrategy: 'ACCUMULATE' };
+  }
+  if (NON_MONTHLY_BUDGET_CATEGORIES.has(category)) {
+    return { bucket: 'Non-monthly', categoryKind: 'FLEX', rolloverStrategy: 'ACCUMULATE' };
+  }
+  if (FIXED_BUDGET_CATEGORIES.has(category)) {
+    return { bucket: 'Fixed', categoryKind: 'FIXED', rolloverStrategy: 'REFILL' };
+  }
+  return { bucket: 'Flexible', categoryKind: 'FLEX', rolloverStrategy: 'REFILL' };
+}
 
 function getCategoryIcon(cat: string): string {
   const categoryMap: Record<string, string> = {
@@ -96,6 +138,9 @@ export default function BudgetPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [copyingMonth, setCopyingMonth] = useState(false);
+  const [budgetSuggestions, setBudgetSuggestions] = useState<BudgetSuggestion[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [creatingSuggestions, setCreatingSuggestions] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
   // Monthly navigation — view budgets for a specific month
   const [viewMonth, setViewMonth] = useState(now.getMonth() + 1); // 1-indexed
@@ -154,6 +199,58 @@ export default function BudgetPage() {
 
   // 2026-06-08 (UX-WEB-LISTS-NORETRY-1): persistent error + retry UI.
   const [loadError, setLoadError] = useState<string | null>(null);
+  const loadBudgetSuggestions = async (items: BudgetItem[]) => {
+    setSuggestionsLoading(true);
+    try {
+      const existingCategories = new Set(
+        items
+          .filter(b => b.month === viewMonth && b.year === viewYear)
+          .map(b => (b.category ?? '').toLowerCase())
+      );
+      const months = [1, 2, 3].map(offset => monthKey(viewMonth, viewYear, offset));
+      const responses = await Promise.all(
+        months.map(month => api.getCashflowBreakdown(month, 'category').catch(() => null))
+      );
+      const totals = new Map<string, number>();
+      responses.forEach((response) => {
+        const data = response as CashflowBreakdownResponse | null;
+        const rows = [...(data?.expenses ?? []), ...(data?.sadaqahZakat ?? [])];
+        rows.forEach(row => {
+          const rawKey = String(row.key || row.label || '').toLowerCase().trim();
+          const category = rawKey.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+          if (!category || category === 'uncategorized' || category === 'transfer') return;
+          if (!CATEGORIES.includes(category) || existingCategories.has(category)) return;
+          const amount = Math.abs(Number(row.amount ?? 0));
+          if (!Number.isFinite(amount) || amount <= 0) return;
+          totals.set(category, (totals.get(category) ?? 0) + amount);
+        });
+      });
+      const suggestions = Array.from(totals.entries())
+        .map(([category, total]) => {
+          const averageSpent = total / 3;
+          const monthlyLimit = Math.max(25, Math.ceil(averageSpent / 10) * 10);
+          return {
+            category,
+            averageSpent,
+            monthlyLimit,
+            ...suggestionMeta(category),
+          };
+        })
+        .filter(suggestion => suggestion.monthlyLimit > 0)
+        .sort((a, b) => {
+          const bucketOrder = ['Fixed', 'Flexible', 'Non-monthly', 'Goals'];
+          const bucketDiff = bucketOrder.indexOf(a.bucket) - bucketOrder.indexOf(b.bucket);
+          return bucketDiff || b.monthlyLimit - a.monthlyLimit;
+        })
+        .slice(0, 10);
+      setBudgetSuggestions(suggestions);
+    } catch {
+      setBudgetSuggestions([]);
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
+
   const load = () => {
     setLoading(true);
     setLoadError(null);
@@ -170,6 +267,7 @@ export default function BudgetPage() {
         const items: BudgetItem[] = Array.isArray(d?.budgets) ? d.budgets : Array.isArray(d) ? d : [];
         setBudgets(items);
         checkBudgetAlerts(items);
+        void loadBudgetSuggestions(items);
       })
       .catch(() => {
         const msg = t('budgetLoadError');
@@ -282,6 +380,32 @@ export default function BudgetPage() {
     });
   };
 
+  const handleCreateSuggestedBudgets = async () => {
+    if (budgetSuggestions.length === 0) return;
+    setCreatingSuggestions(true);
+    try {
+      let created = 0;
+      for (const suggestion of budgetSuggestions) {
+        const result = await api.addBudget({
+          category: suggestion.category,
+          monthlyLimit: suggestion.monthlyLimit,
+          month: viewMonth,
+          year: viewYear,
+          rolloverStrategy: suggestion.rolloverStrategy,
+          categoryKind: suggestion.categoryKind,
+        });
+        if (result?.error) throw new Error(String(result.error));
+        created += 1;
+      }
+      toast(`Created ${created} suggested budget${created === 1 ? '' : 's'}.`, 'success');
+      load();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Could not create suggested budgets.', 'error');
+    } finally {
+      setCreatingSuggestions(false);
+    }
+  };
+
   // ── Skeleton loading ────────────────────────────────────────────────────────
   if (loading) return <SkeletonPage summaryCount={3} listCount={4} />;
 
@@ -312,6 +436,7 @@ export default function BudgetPage() {
     });
   const totalBudget = filteredBudgets.reduce((s, b) => s + b.monthlyLimit, 0);
   const totalSpent  = filteredBudgets.reduce((s, b) => s + b.spent, 0);
+  const suggestedTotal = budgetSuggestions.reduce((sum, suggestion) => sum + suggestion.monthlyLimit, 0);
 
   return (
     <div>
@@ -357,7 +482,7 @@ export default function BudgetPage() {
           Budget Overview card so the morph completes when arriving
           from /dashboard. */}
       <div
-        className="grid md:grid-cols-3 gap-4 mb-6"
+        className="grid md:grid-cols-4 gap-4 mb-6"
         style={{ viewTransitionName: 'budget-hero' }}
       >
         {/* 2026-05-11 (Bug-A3): when both Budget and Spent are 0 (empty
@@ -379,7 +504,44 @@ export default function BudgetPage() {
                 : 'text-red-600'
           }`}>{fmt(totalBudget - totalSpent)}</p>
         </div>
+        <div className="bg-white rounded-xl p-5">
+          <p className="text-gray-500 text-sm">Left to budget</p>
+          <p className="text-2xl font-bold text-primary">{suggestionsLoading ? '…' : fmt(suggestedTotal)}</p>
+          <p className="text-xs text-gray-400 mt-1">From recent unbudgeted categories</p>
+        </div>
       </div>
+
+      {budgetSuggestions.length > 0 && (
+        <div className="bg-white rounded-xl p-5 border border-emerald-100 mb-6">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-primary">Suggested budgets from the last 3 months</h2>
+              <p className="text-sm text-gray-500">Barakah found categories with real spending that are not budgeted for {mon(viewMonth - 1)}.</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleCreateSuggestedBudgets}
+              disabled={creatingSuggestions}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-semibold"
+            >
+              {creatingSuggestions ? 'Creating…' : 'Create suggested budgets'}
+            </button>
+          </div>
+          <div className="grid md:grid-cols-2 gap-3">
+            {budgetSuggestions.map(suggestion => (
+              <div key={suggestion.category} className="rounded-lg border border-gray-100 p-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 truncate">{getCategoryIcon(suggestion.category)} {catLabel(suggestion.category)}</p>
+                  <p className="text-xs text-gray-500">
+                    {suggestion.bucket} · avg {fmt(suggestion.averageSpent)}/mo
+                  </p>
+                </div>
+                <p className="font-bold text-primary tabular-nums">{fmt(suggestion.monthlyLimit)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Budget list or empty state ──────────────────────────────────────── */}
       {filteredBudgets.length > 0 ? (
