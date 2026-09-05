@@ -21,6 +21,60 @@ interface PlanGateProps {
   children: ReactNode;
 }
 
+type PaywallCopy = {
+  headline: string;
+  description: string;
+  bullets: string[];
+};
+
+const PAYWALL_COPY: Record<string, PaywallCopy> = {
+  'Savings Goals': {
+    headline: 'Keep every goal on track',
+    description: 'Plan zakat, debt payoff, emergency savings, and family goals without losing the history you already entered.',
+    bullets: ['Unlimited savings goals', 'Progress history over time', 'Shared goals on Family'],
+  },
+  'Net Worth': {
+    headline: 'See your full financial picture',
+    description: 'Track assets, debts, and net worth history in one place so every decision starts from a clear snapshot.',
+    bullets: ['Assets minus debts over time', 'Account-level history', 'Works with manual and linked data'],
+  },
+  'Net Worth Tracker': {
+    headline: 'See your full financial picture',
+    description: 'Track assets, debts, and net worth history in one place so every decision starts from a clear snapshot.',
+    bullets: ['Assets minus debts over time', 'Account-level history', 'Works with manual and linked data'],
+  },
+  'Investments': {
+    headline: 'Track investments with halal context',
+    description: 'Follow portfolio value, allocation, and performance while keeping halal screening close to the numbers.',
+    bullets: ['Holdings and allocation views', 'Portfolio history', 'Halal-screening context for stocks'],
+  },
+  'Forecasting': {
+    headline: 'Forecast before money gets tight',
+    description: 'Model income, bills, savings, and debt so you can see pressure points before they become emergencies.',
+    bullets: ['Cash-flow projections', 'Debt payoff scenarios', 'Plan changes before they hit'],
+  },
+  'Halal Screener': {
+    headline: 'Know what you own',
+    description: 'Screen stocks for Sharia-compliance signals and keep watch on portfolios that change over time.',
+    bullets: ['Large stock universe', 'Compliance reasons, not just labels', 'Portfolio watchlist support'],
+  },
+  'Halal Finance Check': {
+    headline: 'Catch riba risk earlier',
+    description: 'Review accounts and transactions for interest-bearing patterns that are easy to miss manually.',
+    bullets: ['Transaction-level flags', 'Account-level review', 'Clear next steps for cleanup'],
+  },
+  'Transaction Rules': {
+    headline: 'Stop re-sorting the same transactions',
+    description: 'Create rules once so groceries, sadaqah, halal/riba review, and recurring items stay organized.',
+    bullets: ['Automatic categorization', 'Recurring patterns', 'Less manual cleanup each month'],
+  },
+  'Debt Projections': {
+    headline: 'Choose the debt plan with eyes open',
+    description: 'Compare payoff strategies and see when each debt can realistically be cleared.',
+    bullets: ['Snowball and avalanche views', 'Debt-free date estimates', 'Monthly payment planning'],
+  },
+};
+
 /**
  * Wrap any premium dashboard page with <PlanGate required="plus" featureName="...">
  * Free users see a comparison of Plus vs Family plans. Paid users see the children normally.
@@ -37,6 +91,9 @@ export function PlanGate({ required, featureName, description, children }: PlanG
   // during the call (prior to this, eager users would click twice and
   // double-fire the backend sync).
   const [syncingPlan, setSyncingPlan] = useState(false);
+  const paywallCopy = PAYWALL_COPY[featureName];
+  const featureDescription = description ?? paywallCopy?.description ?? `${featureName} comes with every other Plus feature — unlimited transactions, bank sync, halal screener, Barakah Score, and more.`;
+  const featureBullets = paywallCopy?.bullets ?? ['Unlimited transactions', 'Bank sync and premium reports', 'Built-in halal finance tools'];
   const handleSyncPlan = async () => {
     if (syncingPlan) return;
     setSyncingPlan(true);
@@ -108,23 +165,6 @@ export function PlanGate({ required, featureName, description, children }: PlanG
     }
   };
 
-  // Feature-specific descriptions for better conversion copy
-  const featureDescriptions: Record<string, string> = {
-    'Financial Insights': 'See your Barakah Score, spending trends, halal ratio, and month-over-month analytics.',
-    'Halal Screener': 'Screen 30,000+ stocks for Sharia compliance. Know exactly where your money is going.',
-    'Halal Finance Check': 'Screen 30,000+ stocks for Sharia compliance and detect interest-bearing transactions in your accounts.',
-    'Investments': 'Track your full portfolio — accounts, holdings, P&L, and allocation breakdown.',
-    'Net Worth': 'See your complete financial picture — assets minus debts, tracked over time.',
-    'Wasiyyah': 'Plan your Islamic will with automatic Faraid calculation and 1/3 cap enforcement. Export as PDF.',
-    'Waqf': 'Track Islamic endowments, manage beneficiaries, and plan charitable distributions.',
-    'Analytics': 'Spending trends, category breakdown, and month-over-month financial analysis.',
-    'Transaction Rules': 'Transactions sort themselves into categories (groceries, halal/riba, recurring) so your records stay clean without manual triaging.',
-    'Riba Detector': 'Automatically flag interest-bearing transactions and accounts in your finances.',
-    'Subscription Detection': 'Auto-detect recurring subscriptions you may have forgotten about.',
-    'Subscription Detector': 'Auto-detect recurring subscriptions from your transactions and flag non-halal services.',
-    'Debt Projections': "See exactly when you'll be debt-free with snowball and avalanche payoff strategies.",
-  };
-
   // Plan features data
   const planFeatures = {
     free: [
@@ -172,13 +212,23 @@ export function PlanGate({ required, featureName, description, children }: PlanG
             🔒 {featureName} is a Plus feature
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Unlock <span className="text-[#1B5E20]">{featureName}</span> and the rest of Plus
+            <span className="text-[#1B5E20]">{paywallCopy?.headline ?? `Unlock ${featureName}`}</span>
           </h1>
           <p className="text-gray-600 text-lg">
-            {description ?? featureDescriptions[featureName] ?? `${featureName} comes with every other Plus feature — unlimited transactions, bank sync, halal screener, Barakah Score, and more.`}
+            {featureDescription}
           </p>
+          <div className="mt-5 grid gap-2 sm:grid-cols-3 text-left">
+            {featureBullets.map(item => (
+              <div key={item} className="rounded-lg border border-green-100 bg-white px-3 py-2 text-sm font-medium text-gray-700">
+                {item}
+              </div>
+            ))}
+          </div>
           <p className="text-sm text-[#1B5E20] font-semibold mt-4">
-            New accounts get {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Family free &mdash; no card required. Already past your trial? Keep going for less than the cost of a coffee a week.
+            New accounts get {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Family free &mdash; no card required. To keep premium after the trial, choose Plus or Family before access ends.
+          </p>
+          <p className="text-xs text-gray-500 mt-2">
+            Annual plans are {PRICING.plus.yearly}/year for Plus or {PRICING.family.yearly}/year for Family.
           </p>
         </div>
 
@@ -228,7 +278,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
               >
                 {startingTrial === 'plus'
                   ? 'Redirecting to Stripe...'
-                  : `Start free trial — no charge for ${CARD_ON_FILE_TRIAL_DAYS} days`}
+                  : `Start Plus trial — no charge for ${CARD_ON_FILE_TRIAL_DAYS} days`}
               </button>
               <button
                 onClick={() => handleUpgrade('plus')}
@@ -309,10 +359,20 @@ export function PlanGate({ required, featureName, description, children }: PlanG
             🔒 Premium Feature
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Upgrade to <span className="text-[#1B5E20]">Family Plan</span>
+            Upgrade to <span className="text-[#1B5E20]">Family</span>
           </h1>
           <p className="text-gray-600 text-lg">
-            {description ?? `${featureName} is a Family plan exclusive. Upgrade now to share with your family and unlock advanced features.`}
+            {description ?? `${featureName} works best when the household can share plans, budgets, goals, and estate visibility.`}
+          </p>
+          <div className="mt-5 grid gap-2 sm:grid-cols-3 text-left">
+            {featureBullets.map(item => (
+              <div key={item} className="rounded-lg border border-green-100 bg-white px-3 py-2 text-sm font-medium text-gray-700">
+                {item}
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500 mt-4">
+            Family is {PRICING.family.monthly}/mo or {PRICING.family.yearly}/year.
           </p>
         </div>
 
@@ -359,7 +419,7 @@ export function PlanGate({ required, featureName, description, children }: PlanG
             disabled={upgrading === 'family'}
             className="w-full bg-[#1B5E20] hover:bg-[#2E7D32] text-white py-3 rounded-xl font-semibold text-base transition disabled:opacity-60 mb-8"
           >
-            {upgrading === 'family' ? 'Redirecting to Stripe...' : 'Upgrade to Family'}
+            {upgrading === 'family' ? 'Redirecting to Stripe...' : `Upgrade to Family ${billing === 'yearly' ? PRICING.family.yearly : PRICING.family.monthly}`}
           </button>
 
           <div className="border-t pt-8">

@@ -44,6 +44,7 @@ import type {
   UserActivityFilter,
   UsersResponse,
   Overview,
+  ConversionQueuesResponse,
   AdminTab,
   UserFilter,
 } from '../../../components/admin/adminTypes';
@@ -141,6 +142,7 @@ export default function AdminPage() {
   const [usersData, setUsersData] = useState<UsersResponse | null>(null);
   const [featureUsage, setFeatureUsage] = useState<Record<string, number> | null>(null);
   const [analytics, setAnalytics] = useState<{ growthByMonth: { month: string; signups: number }[] } | null>(null);
+  const [conversionQueues, setConversionQueues] = useState<ConversionQueuesResponse | null>(null);
 
   // UI state
   const [page, setPage] = useState(0);
@@ -208,6 +210,7 @@ export default function AdminPage() {
         api.getAdminAnalytics().catch(() => null),
         api.getAdminFeatureUsage().catch(() => null),
         api.getAdminOnboardingTrialSettings().catch(() => null),
+        api.getAdminConversionQueues(30, 5).catch(() => null),
         api.adminGetEmailLog('all', 0, 1).catch(() => null),  // just for stats
       ]);
 
@@ -236,13 +239,15 @@ export default function AdminPage() {
       const analyticsRes = results[2].status === 'fulfilled' ? results[2].value : null;
       const featureRes = results[3].status === 'fulfilled' ? results[3].value : null;
       const onboardingTrialRes = results[4].status === 'fulfilled' ? results[4].value : null;
-      const emailLogStatsRes = results[5].status === 'fulfilled' ? results[5].value : null;
+      const conversionQueuesRes = results[5].status === 'fulfilled' ? results[5].value : null;
+      const emailLogStatsRes = results[6].status === 'fulfilled' ? results[6].value : null;
 
       if (overviewRes) setOverview(overviewRes);
       setUsersData(usersRes);
       if (analyticsRes) setAnalytics(analyticsRes);
       if (featureRes) setFeatureUsage(featureRes);
       if (onboardingTrialRes) setOnboardingTrial(onboardingTrialRes as OnboardingTrialSettings);
+      if (conversionQueuesRes) setConversionQueues(conversionQueuesRes as ConversionQueuesResponse);
       if (emailLogStatsRes) setEmailLogStats({ totalSent: emailLogStatsRes.totalSent ?? 0, totalFailed: emailLogStatsRes.totalFailed ?? 0, totalElements: emailLogStatsRes.totalElements ?? 0 });
       setLastRefreshed(new Date());
     } catch (err) {
@@ -741,6 +746,7 @@ export default function AdminPage() {
           overview={overview}
           featureUsage={featureUsage}
           analytics={analytics}
+          conversionQueues={conversionQueues}
           emailLogStats={emailLogStats}
           onboardingTrial={onboardingTrial}
           setOnboardingTrial={setOnboardingTrial}

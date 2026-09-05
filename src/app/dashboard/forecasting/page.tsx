@@ -32,6 +32,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { useI18n } from '../../../lib/i18n';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import { PlanGate } from '../../../components/PlanGate';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1583,8 +1584,10 @@ function ScenarioCard({
 
 export default function ForecastingPage() {
   return (
-    <ErrorBoundary>
-      <ForecastingPageContent />
-    </ErrorBoundary>
+    <PlanGate required="plus" featureName="Forecasting">
+      <ErrorBoundary>
+        <ForecastingPageContent />
+      </ErrorBoundary>
+    </PlanGate>
   );
 }

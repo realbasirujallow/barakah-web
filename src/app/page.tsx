@@ -223,7 +223,7 @@ export default function HomeV2() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/signup"
+              href="/signup?utm_source=homepage&utm_medium=web&utm_campaign=hero_start_free"
               className="inline-flex items-center justify-center bg-[#1B5E20] text-white px-7 py-3.5 rounded-xl font-bold hover:bg-[#2E7D32] transition shadow-lg"
             >
               {t('homeV2HeroCtaPrimary')}
@@ -322,20 +322,20 @@ export default function HomeV2() {
             <h3 className="font-bold text-lg text-gray-900 mb-1">{t('pricingPlanFreeName')}</h3>
             <p className="text-3xl font-extrabold text-gray-900 mb-1">$0</p>
             <p className="text-xs text-gray-500 mb-5">{t('pricingForeverSuffix').replace(/^\//, '')}</p>
-            <Link href="/signup" className="block text-center bg-gray-900 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-gray-800 transition text-sm">{t('homeV2HeroCtaPrimary')}</Link>
+            <Link href="/signup?utm_source=homepage&utm_medium=web&utm_campaign=pricing_free" className="block text-center bg-gray-900 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-gray-800 transition text-sm">{t('homeV2HeroCtaPrimary')}</Link>
           </div>
           <div className="bg-white rounded-2xl p-6 border-2 border-[#1B5E20] relative">
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#1B5E20] text-white text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold">{t('pricingMostPopular')}</span>
             <h3 className="font-bold text-lg text-[#1B5E20] mb-1">{t('pricingPlanPlusName')}</h3>
             <p className="text-3xl font-extrabold text-[#1B5E20] mb-1">{PRICING.plus.monthly}<span className="text-sm font-normal text-gray-500">{t('pricingPerMonthSuffix')}</span></p>
             <p className="text-xs text-gray-500 mb-5">{PRICING.plus.yearly} {t('annual').toLowerCase()}</p>
-            <Link href="/signup" className="block text-center bg-[#1B5E20] text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm">{t('homeV2HeroCtaPrimary')}</Link>
+            <Link href="/signup?utm_source=homepage&utm_medium=web&utm_campaign=pricing_plus" className="block text-center bg-[#1B5E20] text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-[#2E7D32] transition text-sm">{t('homeV2HeroCtaPrimary')}</Link>
           </div>
           <div className="bg-white rounded-2xl p-6 border border-gray-200">
             <h3 className="font-bold text-lg text-blue-700 mb-1">{t('pricingPlanFamilyName')}</h3>
             <p className="text-3xl font-extrabold text-blue-700 mb-1">{PRICING.family.monthly}<span className="text-sm font-normal text-gray-500">{t('pricingPerMonthSuffix')}</span></p>
             <p className="text-xs text-gray-500 mb-5">{t('pricingFamilyFeat2')}</p>
-            <Link href="/signup" className="block text-center bg-blue-700 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-blue-800 transition text-sm">{t('pricingStartFamily')}</Link>
+            <Link href="/signup?utm_source=homepage&utm_medium=web&utm_campaign=pricing_family" className="block text-center bg-blue-700 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-blue-800 transition text-sm">{t('pricingStartFamily')}</Link>
           </div>
         </div>
         <p className="text-center text-xs text-gray-500 mt-6">

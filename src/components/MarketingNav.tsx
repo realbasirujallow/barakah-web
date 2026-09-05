@@ -35,6 +35,7 @@ const NAV_ITEMS: Array<{ key: 'navFeatures' | 'navPricing' | 'navCompare' | 'nav
   { key: 'navLearn', href: '/learn' },
   { key: 'navMethodology', href: '/methodology' },
 ];
+const NAV_SIGNUP_HREF = '/signup?utm_source=site_nav&utm_medium=web&utm_campaign=start_free';
 
 export function MarketingNav() {
   const { t } = useI18n();
@@ -77,7 +78,7 @@ export function MarketingNav() {
             {t('navSignIn')}
           </Link>
           <Link
-            href="/signup"
+            href={NAV_SIGNUP_HREF}
             className="text-sm font-semibold bg-[#1B5E20] text-white px-4 py-2 rounded-lg hover:bg-[#2E7D32] transition"
           >
             {t('navGetStarted')}
@@ -122,7 +123,7 @@ export function MarketingNav() {
                 {t('navSignIn')}
               </Link>
               <Link
-                href="/signup"
+                href={NAV_SIGNUP_HREF}
                 className="px-3 py-2.5 rounded-lg bg-[#1B5E20] text-white text-center font-semibold hover:bg-[#2E7D32] transition"
                 onClick={() => setOpen(false)}
               >

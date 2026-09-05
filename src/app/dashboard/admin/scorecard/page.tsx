@@ -38,7 +38,10 @@ import type { GrowthResponse } from '../../../../components/admin/GrowthSnapshot
 
 interface FunnelResponse {
   windowDays: number;
+  mode?: string;
+  stageNote?: string;
   stages: { name: string; label: string; count: number; dropFromPrev?: number }[];
+  rollingStages?: { name: string; label: string; count: number; dropFromPrev?: number }[];
   conversionRates: {
     signupToActivated: number;
     activatedToPaid: number;
@@ -249,9 +252,14 @@ export default function ScorecardPage() {
             {/* ── Funnel snapshot ──────────────────────────────────────── */}
             <section className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 shadow-sm">
               <div className="flex justify-between items-baseline mb-4">
-                <h2 className="text-lg font-bold text-primary">
-                  Funnel (last 30 days)
-                </h2>
+                <div>
+                  <h2 className="text-lg font-bold text-primary">
+                    Signup cohort funnel (last 30 days)
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Users who signed up in the window and reached each milestone before the window ended.
+                  </p>
+                </div>
                 <Link
                   href="/dashboard/admin/funnel"
                   className="text-sm text-primary underline"

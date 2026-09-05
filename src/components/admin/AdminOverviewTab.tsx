@@ -18,6 +18,7 @@ import type {
   AdminTab,
   EmailLogStats,
   UserActivityFilter,
+  ConversionQueuesResponse,
 } from './adminTypes';
 import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDateMs, formatCountry, formatLocation } from './adminFormatting';
 import AdminJobHealthCard from './AdminJobHealthCard';
@@ -26,6 +27,7 @@ export interface AdminOverviewTabProps {
   overview: Overview | null;
   featureUsage: Record<string, number> | null;
   analytics: { growthByMonth: { month: string; signups: number }[] } | null;
+  conversionQueues?: ConversionQueuesResponse | null;
   emailLogStats?: EmailLogStats | null;
   onboardingTrial: OnboardingTrialSettings | null;
   setOnboardingTrial: (updater: (prev: OnboardingTrialSettings | null) => OnboardingTrialSettings | null) => void;
@@ -43,6 +45,7 @@ export function AdminOverviewTab({
   overview,
   featureUsage,
   analytics,
+  conversionQueues,
   emailLogStats,
   onboardingTrial,
   setOnboardingTrial,
@@ -65,6 +68,10 @@ export function AdminOverviewTab({
   const expiringTrials = overview?.expiringTrials ?? [];
   const recentNoLogin = (overview?.recentSignups ?? [])
     .filter(u => (u.loginCount ?? 0) === 0 || (!u.lastLoginAt && !u.lastSeenAt));
+  const queueByKey = (key: string) => conversionQueues?.queues?.find(q => q.key === key);
+  const newNoLoginQueue = queueByKey('new_no_login');
+  const expiringActiveQueue = queueByKey('trial_expiring_active');
+  const expiringInactiveQueue = queueByKey('trial_expiring_inactive');
 
   const openUsersQueue = (filter: UserFilter = 'all', activity?: UserActivityFilter) => {
     setActiveTab('users');
@@ -73,6 +80,32 @@ export function AdminOverviewTab({
     if (activity && onUsersQueryChange) {
       onUsersQueryChange({ activity, sort: 'createdAt', dir: 'desc' });
     }
+  };
+
+  const openConversionQueue = (key: string) => {
+    if (key === 'unverified_recent') {
+      setActiveTab('unverified');
+      setUserFilter('unverified');
+      setSearch('');
+      return;
+    }
+    if (key.startsWith('trial_expiring')) {
+      setActiveTab('alerts');
+      setUserFilter('trialing');
+      setSearch('');
+      return;
+    }
+    if (key === 'new_no_login') {
+      openUsersQueue('all', 'new_no_login_7d');
+      return;
+    }
+    openUsersQueue('all', 'seen_30d');
+  };
+
+  const priorityTone = (priority: string) => {
+    if (priority === 'P0') return 'border-red-200 bg-red-50 text-red-900';
+    if (priority === 'P1') return 'border-amber-200 bg-amber-50 text-amber-900';
+    return 'border-slate-200 bg-slate-50 text-slate-800';
   };
 
   return (
@@ -180,7 +213,7 @@ export function AdminOverviewTab({
               },
               {
                 label: 'Trials expiring',
-                value: overview.expiringTrialsCount ?? 0,
+                value: overview.expiringTrialsCount ?? ((expiringActiveQueue?.count ?? 0) + (expiringInactiveQueue?.count ?? 0)),
                 priority: (overview.expiringTrialsCount ?? 0) > 0 ? 'P1' : 'OK',
                 hint: 'Conversion follow-up before the trial goes cold',
                 action: () => setActiveTab('alerts'),
@@ -204,11 +237,11 @@ export function AdminOverviewTab({
               },
               {
                 label: 'New with no login',
-                value: recentNoLogin.length,
-                priority: recentNoLogin.length > 0 ? 'P2' : 'OK',
+                value: newNoLoginQueue?.count ?? recentNoLogin.length,
+                priority: (newNoLoginQueue?.count ?? recentNoLogin.length) > 0 ? 'P1' : 'OK',
                 hint: 'Fresh signups who may be stuck after account creation',
                 action: () => openUsersQueue('all', 'new_no_login_7d'),
-                tone: recentNoLogin.length > 0 ? 'border-purple-200 bg-purple-50 text-purple-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800',
+                tone: (newNoLoginQueue?.count ?? recentNoLogin.length) > 0 ? 'border-purple-200 bg-purple-50 text-purple-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800',
               },
               {
                 label: 'Paid inactive',
@@ -266,6 +299,72 @@ export function AdminOverviewTab({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {conversionQueues?.queues && conversionQueues.queues.length > 0 && (
+        <div className="bg-white rounded-2xl p-5 border">
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <h2 className="font-semibold text-gray-800 text-sm">Conversion Queues</h2>
+              <p className="text-xs text-gray-400 mt-1">
+                Server-backed worklists for the last {conversionQueues.windowDays} days. Counts are full-DB; samples open the user detail modal.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('lifecycle')}
+              className="text-xs font-semibold text-[#1B5E20] hover:underline"
+            >
+              Lifecycle tools
+            </button>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {conversionQueues.queues.map(queue => (
+              <div key={queue.key} className={`rounded-xl border p-4 ${priorityTone(queue.priority)}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => openConversionQueue(queue.key)}
+                    className="text-left min-w-0"
+                    title="Open the closest matching admin queue"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-white/75 px-2 py-0.5 text-[10px] font-bold">{queue.priority}</span>
+                      <h3 className="text-sm font-bold truncate">{queue.label}</h3>
+                    </div>
+                    <p className="text-xs mt-2 opacity-80 leading-snug">{queue.description}</p>
+                  </button>
+                  <p className="text-3xl font-bold shrink-0">{queue.count.toLocaleString()}</p>
+                </div>
+                <p className="mt-3 rounded-lg bg-white/70 px-3 py-2 text-xs leading-snug">
+                  {queue.recommendedAction}
+                </p>
+                {queue.users.length > 0 && (
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {queue.users.slice(0, 4).map(u => {
+                      const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
+                      return (
+                        <button
+                          key={`${queue.key}-${u.id}`}
+                          type="button"
+                          onClick={() => openUser(u, queue.users)}
+                          className="rounded-lg border border-white/70 bg-white/80 px-3 py-2 text-left transition hover:bg-white hover:shadow-sm"
+                        >
+                          <p className="text-sm font-semibold text-gray-900 truncate">{u.name || 'Unnamed user'}</p>
+                          <p className="text-xs text-gray-500 truncate">{u.email}</p>
+                          <div className="mt-1 flex flex-wrap items-center gap-1">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${planInfo.color}`}>{planInfo.label}</span>
+                            <span className="text-[10px] text-gray-500">{u.lastActivityAt ? `Active ${fmtDateMs(u.lastActivityAt)}` : `Joined ${fmtDateMs(u.createdAt)}`}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

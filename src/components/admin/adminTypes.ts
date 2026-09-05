@@ -144,6 +144,24 @@ export interface UsersResponse {
   totalPages: number;
 }
 
+export interface ConversionQueue {
+  key: string;
+  label: string;
+  priority: 'P0' | 'P1' | 'P2' | string;
+  description: string;
+  recommendedAction: string;
+  count: number;
+  users: AdminUser[];
+}
+
+export interface ConversionQueuesResponse {
+  windowDays: number;
+  generatedAt: number;
+  limit: number;
+  queues: ConversionQueue[];
+  totals?: Record<string, number>;
+}
+
 export interface Overview {
   totalUsers: number;
   freeUsers: number;

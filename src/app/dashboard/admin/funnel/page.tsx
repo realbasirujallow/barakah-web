@@ -12,8 +12,8 @@ import DataFreshness from '../../../../components/admin/DataFreshness';
 import FunnelStageDrilldown from '../../../../components/admin/FunnelStageDrilldown';
 
 /**
- * Conversion funnel dashboard — distinct-user counts at each lifecycle
- * stage within a rolling window, plus drop-off and top paywall triggers.
+ * Conversion funnel dashboard — signup-cohort counts at each lifecycle
+ * stage, plus rolling-event diagnostics and top paywall triggers.
  *
  * Backend: GET /admin/funnel?days=<N>   (admin-only, 403 otherwise)
  */
@@ -29,7 +29,10 @@ interface FunnelResponse {
   windowDays: number;
   windowStartMs: number;
   windowEndMs: number;
+  mode?: string;
+  stageNote?: string;
   stages: Stage[];
+  rollingStages?: Stage[];
   conversionRates: {
     signupToActivated: number;
     activatedToPaid: number;
@@ -174,7 +177,7 @@ export default function FunnelPage() {
           <div>
             <h1 className="text-3xl font-bold text-primary">Conversion Funnel</h1>
             <p className="text-sm text-gray-600 mt-1">
-              Distinct users reaching each lifecycle stage in the rolling window. Drop-off shows how many fell off between adjacent stages.
+              Signup cohort view: users who signed up in the selected window, then reached each milestone before the window ended.
             </p>
             <DataFreshness fetchedAt={fetchedAt} className="mt-2" />
           </div>
@@ -241,7 +244,17 @@ export default function FunnelPage() {
 
             {/* Funnel stages with bars */}
             <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
-              <h2 className="text-lg font-semibold text-primary mb-4">Stages</h2>
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-primary">Signup Cohort Stages</h2>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {data.stageNote ?? 'Counts follow the selected signup cohort instead of mixing unrelated rolling events.'}
+                  </p>
+                </div>
+                <span className="rounded-full bg-emerald-50 text-emerald-700 px-2.5 py-1 text-xs font-semibold">
+                  {data.mode === 'signup_cohort' ? 'Cohort true' : 'Funnel'}
+                </span>
+              </div>
               <div className="space-y-3">
                 {data.stages.map((stage, idx) => {
                   const widthPct = (stage.count / maxCount) * 100;
@@ -282,6 +295,42 @@ export default function FunnelPage() {
                 })}
               </div>
             </div>
+
+            {data.rollingStages && data.rollingStages.length > 0 && (
+              <details className="bg-white rounded-xl p-5 shadow-sm mb-6">
+                <summary className="cursor-pointer text-lg font-semibold text-primary">
+                  Rolling event activity
+                </summary>
+                <p className="text-sm text-gray-600 mt-2 mb-3">
+                  Raw distinct users who fired each event during the same window. Use this for activity diagnostics, not stage-to-stage conversion math.
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs text-gray-500 uppercase tracking-wide border-b border-gray-200">
+                        <th className="py-2">Stage</th>
+                        <th className="py-2 text-right">Users</th>
+                        <th className="py-2 text-right">Delta from prior</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.rollingStages.map(stage => (
+                        <tr key={stage.name} className="border-b border-gray-100 last:border-b-0">
+                          <td className="py-2">
+                            <p className="font-medium text-gray-800">{stage.label}</p>
+                            <p className="font-mono text-xs text-gray-400">{stage.name}</p>
+                          </td>
+                          <td className="py-2 text-right font-bold text-primary">{stage.count.toLocaleString()}</td>
+                          <td className="py-2 text-right text-xs text-gray-500">
+                            {stage.dropFromPrev != null ? stage.dropFromPrev.toLocaleString() : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            )}
 
             {/* Top paywall triggers — tells you which Plus features are most
                 "wanted" by Free users; prioritize contextual upgrade prompts here. */}

@@ -67,14 +67,16 @@ export function captureAcquisitionFromUrl() {
   try {
     const url = new URL(window.location.href);
     const qs = url.searchParams;
-    const newSource = qs.get('utm_source');
+    const sourceParam = qs.get('source');
+    const newSource = qs.get('utm_source') ?? sourceParam;
+    const newCampaign = qs.get('utm_campaign') ?? qs.get('campaign');
     const existing = readAcquisition();
-    // Re-capture only if we have no record OR a fresh utm_source just arrived.
+    // Re-capture only if we have no record OR a fresh source just arrived.
     if (existing.utmSource && !newSource) return;
     const payload: AcquisitionPayload = {
       utmSource: newSource ?? existing.utmSource,
-      utmMedium: qs.get('utm_medium') ?? existing.utmMedium,
-      utmCampaign: qs.get('utm_campaign') ?? existing.utmCampaign,
+      utmMedium: qs.get('utm_medium') ?? (sourceParam ? 'web' : existing.utmMedium),
+      utmCampaign: newCampaign ?? existing.utmCampaign,
       utmContent: qs.get('utm_content') ?? existing.utmContent,
       utmTerm: qs.get('utm_term') ?? existing.utmTerm,
       landingPath: existing.landingPath ?? url.pathname,
@@ -2052,6 +2054,8 @@ export const api = {
   getAdminAnalytics: () => apiFetch('/admin/analytics', {}, API_TIMEOUT, true),
   getAdminFunnel: (days = 30) =>
     apiFetch(`/admin/funnel?days=${days}`, {}, API_TIMEOUT, true),
+  getAdminConversionQueues: (days = 30, limit = 8) =>
+    apiFetch(`/admin/conversion-queues?days=${days}&limit=${limit}`, {}, API_TIMEOUT, true),
   /**
    * 2026-05-18 release-polish (admin gap #7): drill into a funnel stage to
    * see which users are sitting there. Returns up to `limit` user IDs +

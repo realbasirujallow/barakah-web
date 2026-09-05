@@ -278,9 +278,9 @@ export const en: Translations = {
   // substituted at render time via .replace(). Mirror keys exist in all
   // four dictionaries below.
   trialBannerTitle: 'Your Barakah {plan} trial — {time}',
-  trialBannerBody: "Your trial is active. When it ends, you'll move to Free automatically — no charge, no card needed. Upgrade only if you want to keep bank sync and unlimited transactions.",
-  trialBannerUrgentBody: 'Upgrade now so you don’t lose unlimited transactions, bank sync, and {plan} reports.',
-  trialBannerKeepPlan: 'See plans',
+  trialBannerBody: "Your trial is active. When it ends, you'll move to Free automatically — no charge, no card needed. Choose a plan before then if you want to keep bank sync, unlimited transactions, reports, and premium tools.",
+  trialBannerUrgentBody: 'Your trial is almost done. Pick Plus or Family now to keep unlimited transactions, bank sync, and {plan} reports without losing momentum.',
+  trialBannerKeepPlan: 'Keep {plan}',
   trialBannerCancel: 'Cancel trial',
   // Navigation
   dashboard: 'Dashboard',
@@ -3379,12 +3379,12 @@ export const en: Translations = {
   reportsCsvExportedToast: "CSV exported",
   reportsExportFailedToast: "Export failed. Please try again.",
   savingsGateTitle: "Savings Goals",
-  savingsGateIntro: "Set goals for Hajj, emergency fund, education, and more — and track your progress toward each one. Available on Barakah Plus.",
+  savingsGateIntro: "Keep Hajj, emergency savings, zakat, education, and family goals on track with unlimited goals, milestones, and progress history.",
   savingsGateFeature1: "✓ Set unlimited savings goals",
   savingsGateFeature2: "✓ Track progress with milestone alerts",
   savingsGateFeature3: "✓ Categories: Hajj, Umrah, Education, Home, and more",
   savingsGateFeature4: "✓ Contribute and see remaining balance at a glance",
-  savingsGateUpgradeBtn: "Upgrade to Plus — from $9.99/mo",
+  savingsGateUpgradeBtn: "Keep Goals with Plus",
   savingsTrialNoCardFmt: "{0} free trial · No credit card or debit card required",
   savingsMilestone100ToastFmt: "🎉 \"{0}\" goal achieved! Alhamdulillah! 🕌",
   savingsMilestone75ToastFmt: "🎯 \"{0}\" is 75% complete — almost there!",
