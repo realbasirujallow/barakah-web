@@ -17,6 +17,7 @@ import type {
   UserFilter,
   AdminTab,
   EmailLogStats,
+  ActivationSummary,
   UserActivityFilter,
   ConversionQueuesResponse,
 } from './adminTypes';
@@ -28,6 +29,7 @@ export interface AdminOverviewTabProps {
   featureUsage: Record<string, number> | null;
   analytics: { growthByMonth: { month: string; signups: number }[] } | null;
   conversionQueues?: ConversionQueuesResponse | null;
+  activationSummary?: ActivationSummary | null;
   emailLogStats?: EmailLogStats | null;
   onboardingTrial: OnboardingTrialSettings | null;
   setOnboardingTrial: (updater: (prev: OnboardingTrialSettings | null) => OnboardingTrialSettings | null) => void;
@@ -46,6 +48,7 @@ export function AdminOverviewTab({
   featureUsage,
   analytics,
   conversionQueues,
+  activationSummary,
   emailLogStats,
   onboardingTrial,
   setOnboardingTrial,
@@ -64,7 +67,8 @@ export function AdminOverviewTab({
   const truePaidConversion = overview && overview.totalUsers > 0
     ? ((truePaidAccounts / overview.totalUsers) * 100).toFixed(1)
     : '0.0';
-  const failedEmails = emailLogStats?.totalFailed ?? 0;
+  const failedEmails = emailLogStats?.failedLast24h ?? emailLogStats?.totalFailed ?? 0;
+  const staleFailedEmails = emailLogStats?.staleFailed ?? 0;
   const expiringTrials = overview?.expiringTrials ?? [];
   const recentNoLogin = (overview?.recentSignups ?? [])
     .filter(u => (u.loginCount ?? 0) === 0 || (!u.lastLoginAt && !u.lastSeenAt));
@@ -196,10 +200,12 @@ export function AdminOverviewTab({
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
             {[
               {
-                label: 'Failed emails',
+                label: 'Failed emails (24h)',
                 value: failedEmails,
                 priority: failedEmails > 0 ? 'P0' : 'OK',
-                hint: 'Delivery issues blocking verification, resets, or billing',
+                hint: staleFailedEmails > 0
+                  ? `${staleFailedEmails.toLocaleString()} older failures are stale history`
+                  : 'Delivery issues blocking verification, resets, or billing',
                 action: () => setActiveTab('email-log'),
                 tone: failedEmails > 0 ? 'border-red-200 bg-red-50 text-red-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800',
               },
@@ -477,6 +483,61 @@ export function AdminOverviewTab({
       {/* 2026-05-18 — Cross-job failure feed (admin-robustness gap #5).
           Renders nothing for non-admin viewers. */}
       <AdminJobHealthCard />
+
+      {activationSummary && (
+        <div className="bg-white rounded-2xl p-5 border">
+          <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+            <div>
+              <h2 className="font-semibold text-gray-800 text-sm">Activation Bottleneck ({activationSummary.windowDays}d)</h2>
+              <p className="text-xs text-gray-400 mt-1">Distinct users, not row counts. Use this to decide who needs help before trial expiry.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => openUsersQueue('all', 'new_no_login_7d')}
+              className="text-xs font-semibold text-[#1B5E20] hover:underline"
+            >
+              Open no-login queue
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+            {[
+              ['Signups', activationSummary.signupsWindow],
+              ['Verified', activationSummary.verifiedWindow],
+              ['Never logged in', activationSummary.neverLoggedInWindow],
+              ['Verified, no setup', activationSummary.verifiedNoSetupWindow],
+              ['Setup, no transaction', activationSummary.setupNoTransactionWindow],
+              ['Transactions', activationSummary.usersWithTransactionsWindow],
+              ['Active Plaid', activationSummary.usersWithActivePlaidWindow],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                <p className="text-[11px] font-medium text-gray-500">{label}</p>
+                <p className="mt-1 text-2xl font-bold text-gray-900">{Number(value).toLocaleString()}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
+            {[
+              ['Login rate', activationSummary.signupToLoginRate],
+              ['Verify rate', activationSummary.signupToVerifyRate],
+              ['Setup rate', activationSummary.signupToSetupRate],
+              ['Transaction rate', activationSummary.signupToTransactionRate],
+              ['Plaid rate', activationSummary.signupToPlaidRate],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="rounded-lg bg-[#F1F8E9] px-3 py-2 text-center">
+                <p className="text-[11px] font-medium text-[#1B5E20]">{label}</p>
+                <p className="text-lg font-bold text-[#1B5E20]">{Number(value).toFixed(1)}%</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Recommended focus</p>
+            <p className="mt-1 text-sm text-amber-900">{activationSummary.recommendedFocus}</p>
+          </div>
+        </div>
+      )}
 
       {onboardingTrial && (
         <div className="bg-white rounded-2xl p-5 border">

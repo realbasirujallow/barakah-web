@@ -31,8 +31,58 @@ export const IS_ANDROID_PUBLICLY_LAUNCHED = true;
  *  2026-04-21. */
 export const ANDROID_FALLBACK_URL = '/open';
 
+export interface StoreAttribution {
+  source?: string;
+  medium?: string;
+  campaign?: string;
+  content?: string;
+}
+
+const DEFAULT_STORE_ATTRIBUTION: Required<StoreAttribution> = {
+  source: 'web',
+  medium: 'store_cta',
+  campaign: 'app_install',
+  content: 'generic',
+};
+
+function attribution(overrides: StoreAttribution = {}): Required<StoreAttribution> {
+  return {
+    ...DEFAULT_STORE_ATTRIBUTION,
+    ...overrides,
+  };
+}
+
+/**
+ * Apple Search Ads attribution accepts `ct` as campaign/link content. It is
+ * not as rich as Play's install referrer, but it keeps App Store clicks out of
+ * the unhelpful "direct" bucket in Apple-side reporting.
+ */
+export function iosAppStoreUrl(overrides: StoreAttribution = {}): string {
+  const a = attribution(overrides);
+  const url = new URL(IOS_APP_STORE_URL);
+  url.searchParams.set('ct', `barakah_${a.source}_${a.medium}_${a.campaign}_${a.content}`);
+  url.searchParams.set('mt', '8');
+  return url.toString();
+}
+
+/**
+ * Google Play preserves UTM values through the `referrer` parameter so Android
+ * installs can be attributed after first app open.
+ */
+export function androidPlayStoreUrl(overrides: StoreAttribution = {}): string {
+  const a = attribution(overrides);
+  const url = new URL(ANDROID_PLAY_STORE_URL);
+  url.searchParams.set('referrer', new URLSearchParams({
+    utm_source: a.source,
+    utm_medium: a.medium,
+    utm_campaign: a.campaign,
+    utm_content: a.content,
+  }).toString());
+  return url.toString();
+}
+
 /** The URL a Google Play CTA should link to today. Resolves to the Play
  *  Store listing after public launch, or the /open page otherwise. */
 export const ANDROID_CTA_URL: string = IS_ANDROID_PUBLICLY_LAUNCHED
-  ? ANDROID_PLAY_STORE_URL
+  ? androidPlayStoreUrl({ content: 'default_cta' })
   : ANDROID_FALLBACK_URL;

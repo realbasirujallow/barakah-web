@@ -40,6 +40,7 @@ import type {
   AdminUser,
   OnboardingTrialSettings,
   EmailLogStats,
+  ActivationSummary,
   UserActivity,
   UserActivityFilter,
   UsersResponse,
@@ -112,6 +113,55 @@ function matchesUserFilter(u: AdminUser, userFilter: UserFilter): boolean {
   }
 }
 
+function normalizeEmailLogStats(raw: unknown): EmailLogStats {
+  const v = (raw ?? {}) as Partial<EmailLogStats>;
+  return {
+    totalSent: v.totalSent ?? 0,
+    totalFailed: v.totalFailed ?? 0,
+    totalElements: v.totalElements ?? 0,
+    failedLast24h: v.failedLast24h ?? 0,
+    failedLast7d: v.failedLast7d ?? 0,
+    staleFailed: v.staleFailed ?? 0,
+    pendingRetries: v.pendingRetries ?? 0,
+    abandonedRetries: v.abandonedRetries ?? 0,
+    oldestFailedAt: v.oldestFailedAt,
+    newestFailedAt: v.newestFailedAt,
+  };
+}
+
+function normalizeActivationSummary(raw: unknown): ActivationSummary | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const v = raw as Partial<ActivationSummary> & { error?: unknown };
+  if (v.error) return null;
+  return {
+    windowDays: v.windowDays ?? 30,
+    generatedAt: v.generatedAt ?? Date.now(),
+    totalUsers: v.totalUsers ?? 0,
+    signupsWindow: v.signupsWindow ?? 0,
+    verifiedWindow: v.verifiedWindow ?? 0,
+    unverifiedWindow: v.unverifiedWindow ?? 0,
+    neverLoggedInWindow: v.neverLoggedInWindow ?? 0,
+    verifiedNoSetupWindow: v.verifiedNoSetupWindow ?? 0,
+    setupCompletedWindow: v.setupCompletedWindow ?? 0,
+    setupNoTransactionWindow: v.setupNoTransactionWindow ?? 0,
+    usersWithTransactions: v.usersWithTransactions ?? 0,
+    usersWithTransactionsWindow: v.usersWithTransactionsWindow ?? 0,
+    usersWithAssets: v.usersWithAssets ?? 0,
+    usersWithBudgets: v.usersWithBudgets ?? 0,
+    usersWithSavingsGoals: v.usersWithSavingsGoals ?? 0,
+    usersWithDebts: v.usersWithDebts ?? 0,
+    usersWithActivePlaid: v.usersWithActivePlaid ?? 0,
+    activePlaidAccounts: v.activePlaidAccounts ?? 0,
+    usersWithActivePlaidWindow: v.usersWithActivePlaidWindow ?? 0,
+    signupToLoginRate: v.signupToLoginRate ?? 0,
+    signupToVerifyRate: v.signupToVerifyRate ?? 0,
+    signupToSetupRate: v.signupToSetupRate ?? 0,
+    signupToTransactionRate: v.signupToTransactionRate ?? 0,
+    signupToPlaidRate: v.signupToPlaidRate ?? 0,
+    recommendedFocus: v.recommendedFocus ?? 'Activation summary unavailable.',
+  };
+}
+
 export default function AdminPage() {
   // Round 21: gate loadData behind user.isAdmin so non-admin visitors
   // don't fire six admin-API calls before the 403 handler kicks in.
@@ -143,6 +193,7 @@ export default function AdminPage() {
   const [featureUsage, setFeatureUsage] = useState<Record<string, number> | null>(null);
   const [analytics, setAnalytics] = useState<{ growthByMonth: { month: string; signups: number }[] } | null>(null);
   const [conversionQueues, setConversionQueues] = useState<ConversionQueuesResponse | null>(null);
+  const [activationSummary, setActivationSummary] = useState<ActivationSummary | null>(null);
 
   // UI state
   const [page, setPage] = useState(0);
@@ -212,6 +263,7 @@ export default function AdminPage() {
         api.getAdminOnboardingTrialSettings().catch(() => null),
         api.getAdminConversionQueues(30, 5).catch(() => null),
         api.adminGetEmailLog('all', 0, 1).catch(() => null),  // just for stats
+        api.getAdminActivationSummary(30).catch(() => null),
       ]);
 
       // Check for auth errors from any result
@@ -241,6 +293,7 @@ export default function AdminPage() {
       const onboardingTrialRes = results[4].status === 'fulfilled' ? results[4].value : null;
       const conversionQueuesRes = results[5].status === 'fulfilled' ? results[5].value : null;
       const emailLogStatsRes = results[6].status === 'fulfilled' ? results[6].value : null;
+      const activationSummaryRes = results[7].status === 'fulfilled' ? results[7].value : null;
 
       if (overviewRes) setOverview(overviewRes);
       setUsersData(usersRes);
@@ -248,7 +301,8 @@ export default function AdminPage() {
       if (featureRes) setFeatureUsage(featureRes);
       if (onboardingTrialRes) setOnboardingTrial(onboardingTrialRes as OnboardingTrialSettings);
       if (conversionQueuesRes) setConversionQueues(conversionQueuesRes as ConversionQueuesResponse);
-      if (emailLogStatsRes) setEmailLogStats({ totalSent: emailLogStatsRes.totalSent ?? 0, totalFailed: emailLogStatsRes.totalFailed ?? 0, totalElements: emailLogStatsRes.totalElements ?? 0 });
+      if (emailLogStatsRes) setEmailLogStats(normalizeEmailLogStats(emailLogStatsRes));
+      setActivationSummary(normalizeActivationSummary(activationSummaryRes));
       setLastRefreshed(new Date());
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load admin data';
@@ -334,25 +388,22 @@ export default function AdminPage() {
    */
   const refreshBadgeCounts = useCallback(async () => {
     try {
-      const [overviewRes, emailLogStatsRes] = await Promise.allSettled([
+      const [overviewRes, emailLogStatsRes, activationSummaryRes] = await Promise.allSettled([
         api.getAdminOverview().catch(() => null),
         api.adminGetEmailLog('all', 0, 1).catch(() => null),
+        api.getAdminActivationSummary(30).catch(() => null),
       ]);
       if (overviewRes.status === 'fulfilled' && overviewRes.value) {
         setOverview(overviewRes.value as Overview);
       }
       if (emailLogStatsRes.status === 'fulfilled' && emailLogStatsRes.value) {
-        const v = emailLogStatsRes.value as {
-          totalSent?: number;
-          totalFailed?: number;
-          totalElements?: number;
-        };
-        setEmailLogStats({
-          totalSent: v.totalSent ?? 0,
-          totalFailed: v.totalFailed ?? 0,
-          totalElements: v.totalElements ?? 0,
-        });
+        setEmailLogStats(normalizeEmailLogStats(emailLogStatsRes.value));
       }
+      setActivationSummary(
+        activationSummaryRes.status === 'fulfilled'
+          ? normalizeActivationSummary(activationSummaryRes.value)
+          : null,
+      );
     } catch {
       // Silent — badge accuracy is nice-to-have, not critical to page function.
     }
@@ -722,8 +773,10 @@ export default function AdminPage() {
             {tab === 'email-log' && (
               <>
                 Email Log
-                {(emailLogStats?.totalFailed ?? 0) > 0 && (
-                  <span className="ml-1.5 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">{emailLogStats!.totalFailed}</span>
+                {((emailLogStats?.failedLast24h ?? emailLogStats?.totalFailed ?? 0) > 0) && (
+                  <span className="ml-1.5 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                    {emailLogStats?.failedLast24h ?? emailLogStats?.totalFailed ?? 0}
+                  </span>
                 )}
               </>
             )}
@@ -747,6 +800,7 @@ export default function AdminPage() {
           featureUsage={featureUsage}
           analytics={analytics}
           conversionQueues={conversionQueues}
+          activationSummary={activationSummary}
           emailLogStats={emailLogStats}
           onboardingTrial={onboardingTrial}
           setOnboardingTrial={setOnboardingTrial}

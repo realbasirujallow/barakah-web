@@ -48,6 +48,13 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast, openU
         page?: number;
         totalSent?: number;
         totalFailed?: number;
+        failedLast24h?: number;
+        failedLast7d?: number;
+        staleFailed?: number;
+        pendingRetries?: number;
+        abandonedRetries?: number;
+        oldestFailedAt?: number;
+        newestFailedAt?: number;
       } | null;
       setEmailLog(typed?.entries ?? []);
       setTotalPages(typed?.totalPages ?? 0);
@@ -57,6 +64,13 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast, openU
         totalSent: typed?.totalSent ?? 0,
         totalFailed: typed?.totalFailed ?? 0,
         totalElements: typed?.totalElements ?? 0,
+        failedLast24h: typed?.failedLast24h ?? 0,
+        failedLast7d: typed?.failedLast7d ?? 0,
+        staleFailed: typed?.staleFailed ?? 0,
+        pendingRetries: typed?.pendingRetries ?? 0,
+        abandonedRetries: typed?.abandonedRetries ?? 0,
+        oldestFailedAt: typed?.oldestFailedAt,
+        newestFailedAt: typed?.newestFailedAt,
       });
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to load email log', 'error');
@@ -76,11 +90,12 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast, openU
   }, [emailLogFilter]);
 
   useEffect(() => {
-    if (emailLog === null && (emailLogStats?.totalFailed ?? 0) > 0) {
+    const currentFailures = emailLogStats?.failedLast24h ?? emailLogStats?.totalFailed ?? 0;
+    if (emailLog === null && currentFailures > 0) {
       setEmailLogFilter('failed');
       void loadPage(0, 'failed');
     }
-  }, [emailLog, emailLogStats?.totalFailed, loadPage]);
+  }, [emailLog, emailLogStats?.failedLast24h, emailLogStats?.totalFailed, loadPage]);
 
   const openDetail = async (entry: EmailLogEntry) => {
     setSelected({ ...entry });
@@ -144,8 +159,10 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast, openU
                 }`}
               >
                 {f === 'all' ? 'All' : f === 'sent' ? '✓ Sent' : '✗ Failed'}
-                {f === 'failed' && (emailLogStats?.totalFailed ?? 0) > 0 && (
-                  <span className="ml-1 bg-red-100 text-red-700 px-1 rounded">{emailLogStats!.totalFailed}</span>
+                {f === 'failed' && ((emailLogStats?.failedLast24h ?? emailLogStats?.totalFailed ?? 0) > 0) && (
+                  <span className="ml-1 bg-red-100 text-red-700 px-1 rounded">
+                    {emailLogStats?.failedLast24h ?? emailLogStats!.totalFailed}
+                  </span>
                 )}
               </button>
             ))}
@@ -188,13 +205,24 @@ export function AdminEmailLogTab({ emailLogStats, setEmailLogStats, toast, openU
               <p className="text-xs text-gray-500">Sent Successfully</p>
             </div>
             <div className="bg-red-50 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-red-600">{emailLogStats.totalFailed.toLocaleString()}</p>
-              <p className="text-xs text-gray-500">Failed</p>
+              <p className="text-2xl font-bold text-red-600">{(emailLogStats.failedLast24h ?? emailLogStats.totalFailed).toLocaleString()}</p>
+              <p className="text-xs text-gray-500">Failed Last 24h</p>
             </div>
             <div className="bg-gray-50 rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-gray-800">{emailLogStats.totalElements.toLocaleString()}</p>
               <p className="text-xs text-gray-500">Total Records</p>
             </div>
+          </div>
+        )}
+
+        {emailLogStats && (
+          <div className="mb-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-xs text-gray-600">
+            <span className="font-semibold text-gray-800">Delivery health:</span>{' '}
+            {(emailLogStats.failedLast24h ?? 0) === 0 ? 'No failed emails in the last 24 hours.' : `${emailLogStats.failedLast24h} failed in the last 24 hours.`}
+            {' '}Retry queue: {(emailLogStats.pendingRetries ?? 0).toLocaleString()} pending, {(emailLogStats.abandonedRetries ?? 0).toLocaleString()} abandoned.
+            {(emailLogStats.staleFailed ?? 0) > 0 && (
+              <> {(emailLogStats.staleFailed ?? 0).toLocaleString()} older failed log entr{emailLogStats.staleFailed === 1 ? 'y is' : 'ies are'} stale history and can be cleaned after review.</>
+            )}
           </div>
         )}
 

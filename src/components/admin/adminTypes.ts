@@ -89,6 +89,41 @@ export interface EmailLogStats {
   totalSent: number;
   totalFailed: number;
   totalElements: number;
+  failedLast24h?: number;
+  failedLast7d?: number;
+  staleFailed?: number;
+  pendingRetries?: number;
+  abandonedRetries?: number;
+  oldestFailedAt?: number;
+  newestFailedAt?: number;
+}
+
+export interface ActivationSummary {
+  windowDays: number;
+  generatedAt: number;
+  totalUsers: number;
+  signupsWindow: number;
+  verifiedWindow: number;
+  unverifiedWindow: number;
+  neverLoggedInWindow: number;
+  verifiedNoSetupWindow: number;
+  setupCompletedWindow: number;
+  setupNoTransactionWindow: number;
+  usersWithTransactions: number;
+  usersWithTransactionsWindow: number;
+  usersWithAssets: number;
+  usersWithBudgets: number;
+  usersWithSavingsGoals: number;
+  usersWithDebts: number;
+  usersWithActivePlaid: number;
+  activePlaidAccounts: number;
+  usersWithActivePlaidWindow: number;
+  signupToLoginRate: number;
+  signupToVerifyRate: number;
+  signupToSetupRate: number;
+  signupToTransactionRate: number;
+  signupToPlaidRate: number;
+  recommendedFocus: string;
 }
 
 export interface UserLifecycleSummary {

@@ -2123,6 +2123,8 @@ export const api = {
   getAdminAbandonedCheckout: (days = 30, limit = 100) =>
     apiFetch(`/admin/abandoned-checkout?days=${days}&limit=${limit}`, {}, API_TIMEOUT, true),
   getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
+  getAdminActivationSummary: (days = 30) =>
+    apiFetch(`/admin/activation-summary?days=${days}`, {}, API_TIMEOUT, true),
   getAdminOverview: () => apiFetch('/admin/overview', {}, API_TIMEOUT, true),
   /**
    * Halal-screening run history. Religious-trust observability — admins

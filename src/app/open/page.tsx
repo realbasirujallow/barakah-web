@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import {
-  IOS_APP_STORE_URL,
-  ANDROID_PLAY_STORE_URL,
   IS_ANDROID_PUBLICLY_LAUNCHED,
+  androidPlayStoreUrl,
+  iosAppStoreUrl,
 } from '../../lib/appStore';
 
-const IOS_URL     = IOS_APP_STORE_URL;
-const ANDROID_URL = ANDROID_PLAY_STORE_URL;
+const IOS_URL = iosAppStoreUrl({ source: 'web', medium: 'open_page', campaign: 'app_install', content: 'ios_fallback' });
+const ANDROID_URL = androidPlayStoreUrl({ source: 'web', medium: 'open_page', campaign: 'app_install', content: 'android_fallback' });
 const WEB_URL     = '/dashboard';
 const DEEP_LINK   = 'barakah://open';
 

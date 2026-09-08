@@ -49,10 +49,16 @@ interface UnverifiedResponse {
   count: number;
 }
 
+const BULK_RESEND_DELAY_MS = 750;
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export function AdminUnverifiedTab({ toast, loadData, page = 0, openUser }: AdminUnverifiedTabProps) {
   const [unverified, setUnverified] = useState<AdminUser[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [bulkResending, setBulkResending] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ sent: number; failed: number; total: number } | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -87,16 +93,35 @@ export function AdminUnverifiedTab({ toast, loadData, page = 0, openUser }: Admi
 
   const handleResendAll = async () => {
     if (!unverified || unverified.length === 0) return;
+    const targets = [...unverified];
+    setBulkResending(true);
+    setBulkProgress({ sent: 0, failed: 0, total: targets.length });
+    let sent = 0;
+    let failed = 0;
+    for (const [index, u] of targets.entries()) {
+      try {
+        await api.adminResendVerification(u.id);
+        sent++;
+      } catch {
+        failed++;
+      }
+      setBulkProgress({ sent, failed, total: targets.length });
+      if (index < targets.length - 1) {
+        await sleep(BULK_RESEND_DELAY_MS);
+      }
+    }
     try {
-      await Promise.all(unverified.map(u => api.adminResendVerification(u.id)));
       toast(
-        `Sent verification emails to ${unverified.length} user${unverified.length > 1 ? 's' : ''}`,
-        'success',
+        failed > 0
+          ? `Sent ${sent}; ${failed} failed. Open Email Log for details.`
+          : `Sent verification emails to ${sent} user${sent === 1 ? '' : 's'}`,
+        failed > 0 ? 'error' : 'success',
       );
       await refresh();
       if (loadData) await loadData(page);
-    } catch (err) {
-      toast(err instanceof Error ? err.message : 'Failed to resend verification emails', 'error');
+    } finally {
+      setBulkResending(false);
+      setBulkProgress(null);
     }
   };
 
@@ -117,7 +142,7 @@ export function AdminUnverifiedTab({ toast, loadData, page = 0, openUser }: Admi
           <div className="flex items-center gap-2">
             <button
               onClick={refresh}
-              disabled={loading}
+              disabled={loading || bulkResending}
               className="px-3 py-2 text-xs font-semibold border border-amber-300 text-amber-700 rounded-lg hover:bg-amber-100 disabled:opacity-50 transition"
             >
               {loading ? 'Refreshing…' : 'Refresh'}
@@ -125,14 +150,21 @@ export function AdminUnverifiedTab({ toast, loadData, page = 0, openUser }: Admi
             {(unverified?.length ?? 0) > 0 && (
               <button
                 onClick={handleResendAll}
-                className="px-4 py-2 bg-amber-500 text-white text-sm rounded-lg font-semibold hover:bg-amber-600 transition"
+                disabled={bulkResending}
+                className="px-4 py-2 bg-amber-500 text-white text-sm rounded-lg font-semibold hover:bg-amber-600 disabled:opacity-50 transition"
               >
-                Resend All
+                {bulkResending ? 'Sending…' : 'Resend All'}
               </button>
             )}
           </div>
         </div>
       </div>
+
+      {bulkProgress && (
+        <div className="mx-4 mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Sending verification emails at a safe pace: {bulkProgress.sent} sent, {bulkProgress.failed} failed, {bulkProgress.total - bulkProgress.sent - bulkProgress.failed} remaining.
+        </div>
+      )}
 
       {loading && unverified === null ? (
         <div className="p-8 text-center text-gray-400 text-sm">
@@ -196,6 +228,7 @@ export function AdminUnverifiedTab({ toast, loadData, page = 0, openUser }: Admi
                 <div className="flex items-center gap-2">
                   <button
                     onClick={(e) => { e.stopPropagation(); handleResendOne(u); }}
+                    disabled={bulkResending}
                     className="px-3 py-1.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition"
                   >
                     Resend
