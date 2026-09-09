@@ -17,6 +17,7 @@ import { trackFirstAccountLink, trackOnce } from '../../../lib/analytics';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import GenericCsvImport from './GenericCsvImport';
 import { useI18n, t as tStandalone } from '../../../lib/i18n';
+import { useToast } from '../../../lib/toast';
 
 /* -- Asset / Debt type options (match the assets + debts pages) ------------ */
 const ASSET_TYPES: ReadonlyArray<{ value: string; labelKey: string }> = [
@@ -176,6 +177,7 @@ function formatPlaidBalance(value: number | null | undefined, currencyCode = 'US
 function ImportPageInner() {
   const { fmt, locale: dateLocale } = useCurrency();
   const { t, tFmt } = useI18n();
+  const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -372,7 +374,7 @@ function ImportPageInner() {
       }
       const cleaned = answer.trim().toUpperCase();
       if (!/^[A-Z]{2}$/.test(cleaned)) {
-        window.alert(tStandalone('importInvalidCountry'));
+        toast(tStandalone('importInvalidCountry'), 'error');
         resolve(null);
         return;
       }
