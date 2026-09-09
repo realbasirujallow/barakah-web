@@ -269,12 +269,22 @@ const nextConfig: NextConfig = {
         destination: "/learn/nisab",
         permanent: true,
       },
+      {
+        source: "/learn/what-is-nisab",
+        destination: "/learn/nisab",
+        permanent: true,
+      },
       // Week 9 conceptual pages — the definitive treatments ship under
       // /fiqh-terms/* (scholar-aligned, DefinedTerm schema, cross-linked).
       // These short /learn/ slugs redirect to the canonical glossary
       // entries so any external backlinks consolidate rather than compete.
       {
         source: "/learn/riba",
+        destination: "/fiqh-terms/riba",
+        permanent: true,
+      },
+      {
+        source: "/learn/what-is-riba",
         destination: "/fiqh-terms/riba",
         permanent: true,
       },
