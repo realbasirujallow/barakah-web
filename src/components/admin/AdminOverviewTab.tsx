@@ -618,6 +618,7 @@ export function AdminOverviewTab({
           <div className="bg-white rounded-xl p-4 border">
             <p className="text-xs text-gray-400 mb-1">Sadaqah Records</p>
             <p className="text-2xl font-bold text-emerald-600">{overview.totalDonationRecords ?? 0}</p>
+            <p className="text-xs text-gray-400 mt-1">giving entries tracked</p>
           </div>
           <div className="bg-white rounded-xl p-4 border">
             <p className="text-xs text-gray-400 mb-1">Expiring Trials</p>

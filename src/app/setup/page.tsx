@@ -636,6 +636,29 @@ function SetupPageInner() {
                       {t('setupTrialSyncNote')}
                     </div>
                   )}
+
+                  <div className="mt-6 border-t border-green-100 pt-5">
+                    <p className="text-sm font-semibold text-gray-900">{t('setupManualStartTitle')}</p>
+                    <p className="mt-1 text-xs leading-5 text-gray-500">{t('setupManualStartDesc')}</p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() => finishSetup('/dashboard/import')}
+                        className="rounded-xl border border-green-200 bg-[#F7FAF7] px-4 py-3 text-left transition hover:border-[#1B5E20] hover:bg-green-50"
+                      >
+                        <span className="block text-sm font-semibold text-[#1B5E20]">{t('setupManualCsvTitle')}</span>
+                        <span className="mt-1 block text-xs leading-5 text-gray-600">{t('setupManualCsvDesc')}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => finishSetup('/dashboard/transactions')}
+                        className="rounded-xl border border-green-200 bg-[#F7FAF7] px-4 py-3 text-left transition hover:border-[#1B5E20] hover:bg-green-50"
+                      >
+                        <span className="block text-sm font-semibold text-[#1B5E20]">{t('setupManualTxnTitle')}</span>
+                        <span className="mt-1 block text-xs leading-5 text-gray-600">{t('setupManualTxnDesc')}</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="rounded-3xl border border-gray-200 p-6">
