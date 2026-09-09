@@ -136,6 +136,14 @@ function applyCsp(response: NextResponse, csp?: string): NextResponse {
 
 const STALE_GSC_URL_REDIRECTS = new Map<string, string>([
   [
+    '/learn/what-is-nisab',
+    '/learn/nisab',
+  ],
+  [
+    '/learn/what-is-riba',
+    '/fiqh-terms/riba',
+  ],
+  [
     '/enh1rEfty+X37BXpLw2tQ==',
     '/compare/barakah-vs-acorns',
   ],
