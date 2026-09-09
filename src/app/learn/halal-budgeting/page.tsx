@@ -363,7 +363,7 @@ export default function HalalBudgetingPage() {
                 { href: '/learn/what-is-zakat', title: 'What is Zakat?', desc: 'Complete guide — rules, calculation, who must pay.' },
                 { href: '/learn/muslim-household-budget', title: 'Muslim Household Budget', desc: 'Free template for family budgeting the Islamic way.' },
                 { href: '/learn/sadaqah-vs-zakat', title: 'Sadaqah vs Zakat', desc: "What's the difference between obligatory and voluntary giving?" },
-                { href: '/learn/what-is-riba', title: 'What is Riba?', desc: 'Understanding and eliminating interest from your finances.' },
+                { href: '/fiqh-terms/riba', title: 'What is Riba?', desc: 'Understanding and eliminating interest from your finances.' },
                 { href: '/learn/mint-alternative-for-muslims', title: 'Mint Alternative', desc: 'The best Islamic replacement for Mint money tracker.' },
               ].map((link) => (
                 <Link key={link.href} href={link.href} className="block p-4 border border-gray-200 rounded-xl hover:border-green-600 transition-colors dark:border-gray-700">

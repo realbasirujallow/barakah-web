@@ -450,7 +450,7 @@ export default function IslamicFinanceAppPage() {
                 { href: '/learn/halal-investing-guide', title: 'Halal Investing Guide', desc: 'AAOIFI Standard 21 screening and Islamic investment types.' },
                 { href: '/learn/islamic-budgeting-app', title: 'Islamic Budgeting App', desc: 'Best halal budgeting apps for Muslim households in 2026.' },
                 { href: '/learn/mint-alternative-for-muslims', title: 'Mint Alternative for Muslims', desc: 'What to use after Mint shut down in January 2024.' },
-                { href: '/learn/what-is-riba', title: 'What is Riba?', desc: "Understanding Islam's prohibition on interest." },
+                { href: '/fiqh-terms/riba', title: 'What is Riba?', desc: "Understanding Islam's prohibition on interest." },
                 { href: '/compare', title: 'Full App Comparison', desc: 'Barakah vs Zoya vs Wahed vs YNAB — feature breakdown.' },
               ].map((link) => (
                 <Link

@@ -594,12 +594,12 @@ export default function IslamicBudgetingAppPage() {
                   desc: 'Why Mint failed Muslim users and the best Islamic replacement.',
                 },
                 {
-                  href: '/learn/what-is-nisab',
+                  href: '/learn/nisab',
                   title: 'What is Nisab?',
                   desc: 'Understand the gold and silver nisab threshold for 2026.',
                 },
                 {
-                  href: '/learn/what-is-riba',
+                  href: '/fiqh-terms/riba',
                   title: 'What is Riba?',
                   desc: "Islam's prohibition on interest and how to become riba-free.",
                 },

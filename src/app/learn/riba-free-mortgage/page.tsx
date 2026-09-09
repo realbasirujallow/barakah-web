@@ -287,7 +287,7 @@ export default function RibaFreeMortgagePage() {
                 { href: '/learn/is-my-mortgage-halal', title: 'Is My Mortgage Halal?', desc: 'Checking your existing mortgage against Islamic criteria.' },
                 { href: '/learn/riba-elimination', title: 'Riba Elimination Guide', desc: 'Step-by-step plan to remove riba from your finances.' },
                 { href: '/learn/halal-investing-guide', title: 'Halal Investing Guide', desc: 'How to invest your savings in Sharia-compliant assets.' },
-                { href: '/learn/what-is-riba', title: 'What is Riba?', desc: "Islam's complete prohibition on interest explained." },
+                { href: '/fiqh-terms/riba', title: 'What is Riba?', desc: "Islam's complete prohibition on interest explained." },
                 { href: '/learn/halal-budgeting', title: 'Halal Budgeting', desc: 'Building a budget that avoids riba in all forms.' },
                 { href: '/learn/islamic-finance-basics', title: 'Islamic Finance Basics', desc: 'The foundations of Islamic financial principles.' },
               ].map((link) => (
