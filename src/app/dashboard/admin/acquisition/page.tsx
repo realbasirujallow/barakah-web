@@ -35,9 +35,30 @@ interface AcquisitionResponse {
   windowEndMs: number;
   windowDays: number;
   channels: ChannelRow[];
+  platforms: { label: string; signups: number }[];
+  countries: { label: string; signups: number }[];
   totalSignups: number;
   totalUpgrades: number;
   overallUpgradeRate: number;
+}
+
+function BreakdownTable({ title, rows }: { title: string; rows: { label: string; signups: number }[] }) {
+  const total = rows.reduce((sum, row) => sum + row.signups, 0);
+  return (
+    <section className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <h2 className="px-4 py-3 font-semibold text-primary border-b border-gray-100">{title}</h2>
+      <table className="w-full text-sm">
+        <thead className="bg-gray-50 text-gray-600"><tr><th className="text-left p-3">Source</th><th className="text-right p-3">Signups</th><th className="text-right p-3">Share</th></tr></thead>
+        <tbody>{rows.map(row => (
+          <tr key={row.label} className="border-t border-gray-100">
+            <td className="p-3 font-medium">{row.label === 'UNKNOWN' ? 'Unknown / legacy blank' : row.label}</td>
+            <td className="p-3 text-right">{row.signups}</td>
+            <td className="p-3 text-right text-gray-500">{total ? `${((row.signups / total) * 100).toFixed(1)}%` : '0%'}</td>
+          </tr>
+        ))}</tbody>
+      </table>
+    </section>
+  );
 }
 
 interface CohortResponse {
@@ -268,6 +289,10 @@ export default function AcquisitionPage() {
                 </table>
               </div>
             )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              <BreakdownTable title="Signup platform" rows={data.platforms ?? []} />
+              <BreakdownTable title="Signup country" rows={(data.countries ?? []).slice(0, 15)} />
+            </div>
           </>
         )}
 

@@ -543,7 +543,7 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
     setSendingCampaignId(campaignId);
     try {
       await api.sendAdminLifecycleCampaign(campaignId);
-      toast('Campaign sent.', 'success');
+      toast('Campaign queued. Check delivery counts as the provider processes it.', 'success');
       await loadData();
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to send campaign.', 'error');
@@ -670,7 +670,7 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
           setLastBroadcastId(bid);
           setTimeout(() => loadBroadcastStats(bid), 4000);
         }
-        toast('Campaign sent.', 'success');
+        toast('Campaign queued. Check delivery counts as the provider processes it.', 'success');
       } else {
         toast('Saved but could not send — find it in the list below.', 'error');
       }
@@ -1270,12 +1270,14 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
                       {' · '}
                       <span className="text-green-700">Sent: {Number(campaign.sentCount || 0).toLocaleString()}</span>
                       {' · '}
+                      <span className="text-blue-700">Queued: {Number(campaign.queuedCount || 0).toLocaleString()}</span>
+                      {' · '}
                       <span className="text-amber-700">Skipped: {Number(campaign.skippedCount || 0).toLocaleString()}</span>
                       {' · '}
                       <span className="text-red-700">Failed: {Number(campaign.failedCount || 0).toLocaleString()}</span>
                     </p>
                     <p className="text-[10px] text-gray-400 mt-1">
-                      Skipped = users who opted out of marketing push or don&apos;t have the app installed. Failed = actual delivery errors.
+                      Queued = handed to the delivery worker but not yet accepted by the provider. Skipped = opted out or unreachable. Failed = no longer queued and not delivered.
                     </p>
                     {campaign.scheduledAt ? (
                       <p className="text-xs text-gray-400 mt-1">Scheduled: {toLocalDateTime(Number(campaign.scheduledAt)) || '—'}</p>

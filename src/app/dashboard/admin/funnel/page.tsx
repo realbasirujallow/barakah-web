@@ -177,7 +177,7 @@ export default function FunnelPage() {
           <div>
             <h1 className="text-3xl font-bold text-primary">Conversion Funnel</h1>
             <p className="text-sm text-gray-600 mt-1">
-              Signup cohort view: users who signed up in the selected window, then reached each milestone before the window ended.
+              Signup-cohort milestone adoption. Account-state milestones come from the user and finance tables; behavioral milestones come from lifecycle events.
             </p>
             <DataFreshness fetchedAt={fetchedAt} className="mt-2" />
           </div>
@@ -242,11 +242,12 @@ export default function FunnelPage() {
               </div>
             </div>
 
-            {/* Funnel stages with bars */}
+            {/* Cohort milestones. Several are optional branches rather than a
+                strict sequence, so do not describe count differences as loss. */}
             <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
               <div className="flex items-start justify-between gap-3 mb-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-primary">Signup Cohort Stages</h2>
+                  <h2 className="text-lg font-semibold text-primary">Signup Cohort Milestones</h2>
                   <p className="text-xs text-gray-500 mt-1">
                     {data.stageNote ?? 'Counts follow the selected signup cohort instead of mixing unrelated rolling events.'}
                   </p>
@@ -264,11 +265,6 @@ export default function FunnelPage() {
                         <div className="flex items-baseline gap-2">
                           <span className="text-xs text-gray-400 font-mono w-5 text-right">{idx + 1}.</span>
                           <span className="text-sm font-medium text-gray-900">{stage.label}</span>
-                          {stage.dropFromPrev != null && stage.dropFromPrev > 0 && (
-                            <span className="text-xs text-red-500">
-                              ↓ {stage.dropFromPrev.toLocaleString()} lost
-                            </span>
-                          )}
                         </div>
                         <div className="flex items-baseline gap-3">
                           <button
