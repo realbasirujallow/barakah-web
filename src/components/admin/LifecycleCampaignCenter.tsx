@@ -8,6 +8,8 @@ type Filters = {
   plans: string[];
   subscriptionStatuses: string[];
   emailVerified?: boolean;
+  neverLoggedIn?: boolean;
+  excludeLoginPrompted?: boolean;
   hasCompletedSetup?: boolean;
   hasLinkedAccounts?: boolean;
   hasTransactions?: boolean;
@@ -1108,6 +1110,9 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
+                    ['emailVerified', 'Verified Email'],
+                    ['neverLoggedIn', 'Never Logged In'],
+                    ['excludeLoginPrompted', 'Not Previously Prompted'],
                     ['hasCompletedSetup', 'Completed Setup'],
                     ['hasLinkedAccounts', 'Linked Accounts'],
                     ['hasTransactions', 'Has Transactions'],
