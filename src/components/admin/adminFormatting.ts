@@ -201,9 +201,11 @@ export const ACTIVITY_FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: 'seen_30d',         label: 'Seen last 30d' },
   { value: 'never_logged_in',  label: 'Never logged in' },
   { value: 'new_no_login_24h', label: 'New / no login 24h' },
+  { value: 'login_help_24h',   label: 'Login-help calls 24h' },
   { value: 'new_no_login_7d',  label: 'New / no login 7d' },
   { value: 'inactive_30d',     label: 'Inactive 30d+' },
   { value: 'inactive_90d',     label: 'Inactive 90d+' },
+  { value: 'cleanup_candidate_90d', label: 'Cleanup candidate 90d' },
   { value: 'paid_inactive_30d',label: 'Paid inactive 30d' },
   { value: 'trial_inactive_3d',label: 'Trial inactive 3d' },
 ];

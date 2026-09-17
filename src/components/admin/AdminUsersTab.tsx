@@ -408,6 +408,22 @@ export function AdminUsersTab({
           </div>
         </div>
 
+        {activityFilter === 'cleanup_candidate_90d' && (
+          <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+            <strong>Cleanup review only:</strong> unverified, 90+ days old, never logged in,
+            setup incomplete, free, no paid source, no active trial, and not a family member.
+            Export the filtered CSV before selecting accounts. Deletion remains permanent.
+          </div>
+        )}
+
+        {activityFilter === 'login_help_24h' && (
+          <div className="border-b border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-900">
+            <strong>Founder call list:</strong> verified in the last 24 hours, supplied a phone
+            number, and never logged in. Export the filtered CSV and contact a small sample to
+            learn what blocked the first login.
+          </div>
+        )}
+
         {/* Bulk delete action bar — appears when ≥1 row is selected */}
         {selected.size > 0 && (
           <div className="flex items-center gap-3 px-4 py-2.5 bg-red-50 border-b border-red-100">

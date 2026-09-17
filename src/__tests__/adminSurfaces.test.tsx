@@ -179,7 +179,7 @@ describe('admin-specific surface behavior', () => {
     );
 
     expect(screen.getByText('Today Queue')).toBeInTheDocument();
-    expect(screen.getByText('Failed emails')).toBeInTheDocument();
+    expect(screen.getByText('Failed emails (24h)')).toBeInTheDocument();
     expect(screen.getByText('Refund / offer lookup')).toBeInTheDocument();
     expect(screen.getByText('Trial User')).toBeInTheDocument();
   });
