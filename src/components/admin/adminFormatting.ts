@@ -205,7 +205,7 @@ export const ACTIVITY_FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: 'new_no_login_7d',  label: 'New / no login 7d' },
   { value: 'inactive_30d',     label: 'Inactive 30d+' },
   { value: 'inactive_90d',     label: 'Inactive 90d+' },
-  { value: 'cleanup_candidate_90d', label: 'Cleanup candidate 90d' },
+  { value: 'cleanup_candidate_90d', label: 'Dormant prospects 90d' },
   { value: 'paid_inactive_30d',label: 'Paid inactive 30d' },
   { value: 'trial_inactive_3d',label: 'Trial inactive 3d' },
 ];

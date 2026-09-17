@@ -410,9 +410,10 @@ export function AdminUsersTab({
 
         {activityFilter === 'cleanup_candidate_90d' && (
           <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
-            <strong>Cleanup review only:</strong> unverified, 90+ days old, never logged in,
+            <strong>Dormant prospect archive:</strong> unverified, 90+ days old, never logged in,
             setup incomplete, free, no paid source, no active trial, and not a family member.
-            Export the filtered CSV before selecting accounts. Deletion remains permanent.
+            Keep these accounts intact. Export the filtered CSV when you need a reviewed outreach
+            cohort, and honor each user&apos;s current marketing preferences and unsubscribe status.
           </div>
         )}
 
