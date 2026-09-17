@@ -773,7 +773,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Fire GA4 sign_up event. Backend also fires USER_SIGNED_UP; this covers
     // the client-side side of the funnel (e.g., for ads/attribution).
     try { trackSignUp('email'); } catch { /* GA4 may be blocked or unavailable */ }
-    // Every Barakah signup auto-grants a 30-day Plus trial (see
+    // Every Barakah signup auto-grants a 7-day Family trial (see
     // AppSettingsService.getOnboardingTrialDefault). Fire the GA4
     // trial_started event here so paid-acquisition channels can report on
     // trial-start rates, not just sign-up rates — the gap between those

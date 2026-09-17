@@ -164,7 +164,7 @@ export default function DashboardPage() {
   const [spendingDrillOpen, setSpendingDrillOpen] = useState(false);
   // Phase 6.2 (2026-04-27): KPI-row period selector. Drives the visual
   // window of the sparkline; the underlying widget data is server-side
-  // computed (currently 30 days). When the backend exposes additional
+  // computed from the server-provided trial end. When the backend exposes additional
   // ranges this state becomes the request param. Defaults to "30D"
   // because that's what every Monarch/Rocket-Money user sees first.
   const [kpiPeriod, setKpiPeriod] = useState<Period>('30d');

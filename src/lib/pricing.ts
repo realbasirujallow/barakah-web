@@ -135,10 +135,10 @@ export const COMPETITOR_COMPARISON = [
   // inventing a fake monthly-billed SKU.
   { feature: 'Monthly price',          barakah: '$9.99',   monarch: '$14.99',    ynab: '$14.99',  zoya: '$14.99', copilot: 'annual only' },
   { feature: 'Annual price',           barakah: '$99/yr',  monarch: '$99.99/yr', ynab: '$109/yr', zoya: '$119.99/yr', copilot: '$95/yr' },
-  // Free-trial row added 2026-04-22 sweep. Barakah's 30-day no-card is
+  // Free-trial row added 2026-04-22 sweep. Barakah's 7-day no-card trial is
   // the most generous of the set and should carry weight on the pricing
   // page — don't forget to surface it in the table UI.
-  { feature: 'Free trial',             barakah: '30 days (no card)', monarch: '7 days (card)', ynab: '34 days (no card)', zoya: '—',       copilot: 'free trial*' },
+  { feature: 'Free trial',             barakah: '7 days (no card)', monarch: '7 days (card)', ynab: '34 days (no card)', zoya: '—',       copilot: 'free trial*' },
   { feature: 'Bank account sync',      barakah: true,  monarch: true,  ynab: true,  zoya: false, copilot: true  },
   { feature: 'Budgeting & bills',      barakah: true,  monarch: true,  ynab: true,  zoya: false, copilot: true  },
   { feature: 'Safe-to-spend',          barakah: true,  monarch: true,  ynab: true,  zoya: false, copilot: true  },

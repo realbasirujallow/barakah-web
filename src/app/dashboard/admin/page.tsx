@@ -219,7 +219,7 @@ export default function AdminPage() {
   const [draftPlan, setDraftPlan] = useState('');
   const [trialModalOpen, setTrialModalOpen] = useState(false);
   const [trialPlan, setTrialPlan] = useState('plus');
-  const [trialDurationDays, setTrialDurationDays] = useState(30);
+  const [trialDurationDays, setTrialDurationDays] = useState(7);
   const [trialSendEmail, setTrialSendEmail] = useState(true);
   const [trialGranting, setTrialGranting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
@@ -511,7 +511,7 @@ export default function AdminPage() {
     loadData(page);
   };
 
-  const openTrialModal = () => { setTrialPlan('plus'); setTrialDurationDays(30); setTrialSendEmail(true); setTrialModalOpen(true); };
+  const openTrialModal = () => { setTrialPlan('plus'); setTrialDurationDays(7); setTrialSendEmail(true); setTrialModalOpen(true); };
   const closeTrialModal = () => setTrialModalOpen(false);
 
   const handleGrantTrial = async () => {

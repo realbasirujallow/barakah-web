@@ -63,8 +63,8 @@ describe('competitor table stays consistent with PRICING (no public-number drift
     expect(String(row('Annual price')?.barakah)).toContain(dollars(PRICING.plus.yearly).toString()); // 99
   });
 
-  it('the comparison advertises the 30-day no-card trial', () => {
-    expect(String(row('Free trial')?.barakah)).toMatch(/30 days/);
+  it('the comparison advertises the 7-day no-card trial', () => {
+    expect(String(row('Free trial')?.barakah)).toMatch(/7 days/);
     expect(String(row('Free trial')?.barakah)).toMatch(/no card/i);
   });
 });
