@@ -67,6 +67,20 @@ export function AdminUsersTab({
   const [exporting, setExporting] = useState(false);
   const [copyingEmails, setCopyingEmails] = useState(false);
 
+  const startGlobalSearch = (value: string) => {
+    // The placeholder promises a full-database search. Clear persisted queue
+    // filters when a new search begins so an old activity/country selection
+    // cannot silently hide an exact email or user ID. Filters can still be
+    // reapplied after the search starts for intentional refinement.
+    if (!search && value.trim()) {
+      setUserFilter('all');
+      if (countryFilter || (activityFilter && activityFilter !== 'all')) {
+        onQueryChange({ country: '', activity: 'all' });
+      }
+    }
+    setSearch(value);
+  };
+
   // Clear selection when the user list changes (page turn, search, filter)
   useEffect(() => { setSelected(new Set()); setBulkConfirm(false); }, [filteredUsers]);
 
@@ -264,7 +278,7 @@ export function AdminUsersTab({
                   type="text"
                   placeholder="Search by name, email, location, plan… (searches all users)"
                   value={search}
-                  onChange={e => setSearch(e.target.value)}
+                  onChange={e => startGlobalSearch(e.target.value)}
                   className="w-full px-4 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none pr-8"
                 />
                 {searchLoading && (
