@@ -70,7 +70,7 @@ interface CohortResponse {
   count: number;
 }
 
-const WINDOW_OPTIONS = [7, 30, 90, 180, 365] as const;
+const WINDOW_OPTIONS = [1, 7, 30, 90, 180, 365] as const;
 
 function pct(n: number) {
   if (!Number.isFinite(n)) return '—';
