@@ -139,7 +139,10 @@ export default function ProfilePage() {
   const loadProfile = useCallback(() => {
     setLoading(true);
     Promise.allSettled([
-      api.getProfile(),
+      // This is a foreground account screen. If refresh proves the session is
+      // genuinely expired, redirect to login instead of showing a misleading
+      // "Failed to load profile" toast while the shell remains visible.
+      api.getProfile(false),
       api.getSupportedCurrencies().catch(() => []),
       api.getPreferences().catch(() => null),
     ])

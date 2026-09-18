@@ -482,12 +482,36 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, time
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   let res: Response;
   try {
-    res = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers,
-      credentials: 'include',
-      signal: controller.signal,
-    });
+    const request = () => fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers,
+        credentials: 'include',
+        signal: controller.signal,
+      });
+
+    // Railway service swaps and short upstream restarts can briefly return a
+    // 502/503/504. Retrying safe reads prevents one infrastructure blip from
+    // turning every dashboard navigation into a stack of load-error toasts.
+    // Never replay writes here; POST idempotency is handled separately and
+    // PUT/DELETE may have committed before the connection failed.
+    const retryableStatuses = new Set([502, 503, 504]);
+    const delays = method === 'GET' ? [250, 750] : [];
+    let lastNetworkError: unknown = null;
+    let response: Response | null = null;
+    for (let attempt = 0; attempt <= delays.length; attempt += 1) {
+      try {
+        response = await request();
+        lastNetworkError = null;
+        if (!retryableStatuses.has(response.status) || attempt === delays.length) break;
+      } catch (err: unknown) {
+        if ((err as Record<string, unknown>).name === 'AbortError') throw err;
+        lastNetworkError = err;
+        if (attempt === delays.length) throw err;
+      }
+      await new Promise(resolve => setTimeout(resolve, delays[attempt]));
+    }
+    if (!response) throw lastNetworkError ?? new Error('No response');
+    res = response;
   } catch (err: unknown) {
     if ((err as Record<string, unknown>).name === 'AbortError') {
       throw new Error('Server unavailable, please try again later.');

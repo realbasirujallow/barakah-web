@@ -79,7 +79,9 @@ export default function HouseholdSection() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.getHousehold() as HouseholdResponse;
+      // Foreground profile content: allow apiFetch to route a genuinely
+      // expired session to login instead of stacking another load-error toast.
+      const res = await api.getHousehold(false) as HouseholdResponse;
       setData(res);
       setGender(res.gender ?? '');
       setDob(fmtDob(res.dateOfBirth));
