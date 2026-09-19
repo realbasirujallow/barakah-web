@@ -11,9 +11,8 @@
  * Behaves like the mobile widget:
  *   - Hidden entirely if `NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID` is unset
  *     (stock dev builds that never configured GIS stay clean).
- *   - On a successful sign-in, navigates to /onboarding/locale-confirm
- *     when the backend signals `requiresPhoneCapture` (matches mobile's
- *     post-SSO phone-capture flow), otherwise to /dashboard.
+ *   - On a successful sign-in, sends genuinely new users to guided setup
+ *     and returning users directly to the dashboard.
  *   - When the backend returns SEC-AUTH-1's link-confirmation 202
  *     response, the button shows the message inline and does NOT
  *     navigate.
@@ -158,10 +157,10 @@ export default function GoogleSignInButton({ ctaLabel = 'continue_with' }: Props
               setInfo(result.message);
               return;
             }
-            // signed_in — match mobile's post-SSO phone-capture branch.
-            router.replace(
-              result.requiresPhoneCapture ? '/onboarding/locale-confirm' : '/dashboard',
-            );
+            // Account preferences are persisted and editable in Profile.
+            // New users still need guided setup; returning users should not
+            // be forced through a browser-local preference prompt again.
+            router.replace(result.isNewUser ? '/setup' : '/dashboard');
           } catch (e) {
             setError(
               e instanceof Error ? e.message : t('googleSignInError'),
