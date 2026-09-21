@@ -544,7 +544,7 @@ export function AdminOverviewTab({
           <div className="flex items-center justify-between gap-3 mb-4">
             <div>
               <h2 className="font-semibold text-gray-700 text-sm">New Member Trial</h2>
-              <p className="text-xs text-gray-400 mt-1">Control the automatic access every newly verified account receives.</p>
+              <p className="text-xs text-gray-400 mt-1">Control the trial verified members receive after completing guided setup.</p>
             </div>
             <button
               type="button"
@@ -559,7 +559,7 @@ export function AdminOverviewTab({
             <label className="rounded-xl border border-gray-200 px-4 py-3 flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-gray-900">Enabled</p>
-                <p className="text-xs text-gray-500 mt-1">Automatically grant access after email verification.</p>
+                <p className="text-xs text-gray-500 mt-1">Grant access after a verified member completes guided setup.</p>
               </div>
               <input
                 type="checkbox"
