@@ -159,7 +159,7 @@ export default function MintAlternativeForMuslimsPage() {
           {/* CTA box */}
           <div className="bg-[#1B5E20] text-white rounded-2xl p-6 mb-10">
             <p className="font-bold text-xl mb-1">🌙 Start Free Today — No Credit Card</p>
-            <p className="text-green-200 text-sm mb-4">{DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Family free with every signup. Full zakat calculator, halal screener, bank sync — all included.</p>
+            <p className="text-green-200 text-sm mb-4">Complete setup to unlock {DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL} of Family free. Full zakat calculator, halal screener, and bank sync included.</p>
             <Link href="/signup" className="inline-block bg-white text-[#1B5E20] font-bold px-6 py-3 rounded-xl hover:bg-green-50 transition dark:bg-gray-800">
               Create Free Account →
             </Link>

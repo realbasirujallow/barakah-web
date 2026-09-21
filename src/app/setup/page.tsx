@@ -13,7 +13,9 @@ import {
   trackUpgradeStarted,
   trackFirstAccountLink,
   trackOnce,
+  trackTrialStarted,
 } from '../../lib/analytics';
+import { DEFAULT_ONBOARDING_TRIAL_DAYS } from '../../lib/trial';
 import {
   clearPendingPlaidLinkToken,
   getPlaidUiErrorMessage,
@@ -365,12 +367,18 @@ function SetupPageInner() {
         trackSetupComplete(currentPlan);
       }
     } catch { /* GA4 unavailable */ }
-    markGuidedSetupComplete(user.id);
-    // Round 23: record server-side completion too. Fire-and-forget:
-    // the local flag is set above so a failed POST still unblocks the
-    // user on this device. Other devices will pick up the timestamp
-    // on their next /auth/profile call.
-    api.markSetupComplete().catch(() => { /* silent — local flag is enough */ });
+    try {
+      const result = await api.markSetupComplete();
+      markGuidedSetupComplete(user.id);
+      if (result.trialGranted) {
+        trackOnce('trial_started', () =>
+          trackTrialStarted(result.plan ?? 'family', DEFAULT_ONBOARDING_TRIAL_DAYS));
+      }
+      await refreshPlan();
+    } catch {
+      setError("We couldn't finish setup right now. Please try again so your trial starts correctly.");
+      return;
+    }
     router.replace(href);
   };
 

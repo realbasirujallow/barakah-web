@@ -1745,7 +1745,14 @@ export const api = {
   // the user row and returns the timestamp. Idempotent — re-submits
   // don't change the first-recorded time.
   markSetupComplete: () =>
-    apiFetch('/auth/setup-complete', { method: 'POST', body: JSON.stringify({}) }),
+    apiFetch('/auth/setup-complete', { method: 'POST', body: JSON.stringify({}) }) as Promise<{
+      success: boolean;
+      setupCompletedAt: number;
+      trialGranted?: boolean;
+      plan?: string;
+      subscriptionStatus?: string;
+      planExpiresAt?: number | null;
+    }>,
   // 2026-05-10 (SEC-001 v2): account deletion requires the typed
   // phrase "DELETE" only. NO password — Apple App Store §5.1.1(v)
   // and Google Play's data-deletion policy reject apps that gate
