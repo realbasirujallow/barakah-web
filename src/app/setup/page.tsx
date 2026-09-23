@@ -350,7 +350,7 @@ function SetupPageInner() {
   const finishSetup = async (href: string, options?: { skipped?: boolean; skipFromStep?: string }) => {
     if (!user) return;
     try {
-      await api.lifecycleTrackEvent('setup_completed', {
+      await api.lifecycleTrackEvent(options?.skipped ? 'setup_skipped' : 'setup_completed', {
         destination: href,
         plan: currentPlan,
         linkedAccounts: plaidAccounts.length,
@@ -368,7 +368,7 @@ function SetupPageInner() {
       }
     } catch { /* GA4 unavailable */ }
     try {
-      const result = await api.markSetupComplete();
+      const result = await api.markSetupComplete({ skipped: options?.skipped ?? false });
       markGuidedSetupComplete(user.id);
       if (result.trialGranted) {
         trackOnce('trial_started', () =>

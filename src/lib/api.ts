@@ -1744,8 +1744,8 @@ export const api = {
   // when the setup flow finishes; backend sets setup_completed_at on
   // the user row and returns the timestamp. Idempotent — re-submits
   // don't change the first-recorded time.
-  markSetupComplete: () =>
-    apiFetch('/auth/setup-complete', { method: 'POST', body: JSON.stringify({}) }) as Promise<{
+  markSetupComplete: (options?: { skipped?: boolean }) =>
+    apiFetch('/auth/setup-complete', { method: 'POST', body: JSON.stringify(options ?? {}) }) as Promise<{
       success: boolean;
       setupCompletedAt: number;
       trialGranted?: boolean;

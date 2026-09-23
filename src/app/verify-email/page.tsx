@@ -75,8 +75,11 @@ function VerifyEmailContent() {
     let cancelled = false;
 
     api.verifyEmail(token)
-      .then((data: { message?: string }) => {
+      .then((data: { message?: string; email?: string }) => {
         if (cancelled) return;
+        if (data.email) {
+          try { sessionStorage.setItem('barakah_verified_email', data.email); } catch { /* storage unavailable */ }
+        }
         setStatus('success');
         setMessage(data?.message || t('verifyEmailDefaultSuccess'));
       })
@@ -124,18 +127,18 @@ function VerifyEmailContent() {
               <div className="text-5xl mb-4">✅</div>
               <h2 className="text-xl font-bold text-[#1B5E20] mb-2">{t('verifyEmailSuccessTitle')}</h2>
               <p className="text-gray-600 mb-6">{message}</p>
-              <a
-                href="barakah://login"
-                className="inline-block w-full bg-[#1B5E20] text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition"
-              >
-                {t('verifyEmailSignInCta')}
-              </a>
               <Link
                 href="/login"
-                className="mt-3 inline-block text-sm font-semibold text-[#1B5E20] underline"
+                className="inline-block w-full bg-[#1B5E20] text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition"
               >
                 {t('verifyEmailGoToLoginCta')}
               </Link>
+              <a
+                href="barakah://login"
+                className="mt-3 inline-block text-sm font-semibold text-[#1B5E20] underline"
+              >
+                {t('verifyEmailSignInCta')}
+              </a>
             </>
           )}
 

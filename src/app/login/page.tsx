@@ -36,10 +36,12 @@ function LoginForm() {
   // Restore remembered email on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(REMEMBERED_EMAIL_KEY);
+      const verified = sessionStorage.getItem('barakah_verified_email');
+      if (verified) sessionStorage.removeItem('barakah_verified_email');
+      const saved = verified || localStorage.getItem(REMEMBERED_EMAIL_KEY);
       if (saved) {
         setEmail(saved);
-        setRememberMe(true);
+        setRememberMe(!verified);
       }
     } catch { /* SSR / incognito safety */ }
   }, []);
