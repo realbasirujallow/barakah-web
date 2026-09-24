@@ -301,9 +301,9 @@ export default function GenericCsvImport({ onImported }: { onImported?: () => vo
     <div className="bg-white rounded-2xl border border-gray-200 p-6">
       <div className="flex items-center gap-3 mb-1">
         <FileSpreadsheet className="w-5 h-5 text-primary" />
-        <h2 className="font-bold text-gray-900">{t('genericCsvTitle')}</h2>
+        <h2 className="font-bold text-gray-900">Import a bank or payment-app CSV</h2>
       </div>
-      <p className="text-sm text-gray-500 mb-4">{t('genericCsvSubtitle')}</p>
+      <p className="text-sm text-gray-500 mb-4">Works with exports from banks, brokerages, UPI/payment apps, Monarch, Mint, and similar services. Map the columns and review rows before saving.</p>
 
       {error && <p className="text-sm text-red-600 mb-3" role="alert">{error}</p>}
 

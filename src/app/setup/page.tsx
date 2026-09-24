@@ -579,6 +579,13 @@ function SetupPageInner() {
                   <p className="text-gray-600 mt-3 max-w-xl">
                     {t('setupConnectIntro')}
                   </p>
+                  {user?.country && !['US','USA','UNITED STATES','UNITED STATES OF AMERICA','CA','CAN','CANADA','GB','GBR','UK','UNITED KINGDOM','AT','BE','DK','EE','FI','FR','DE','IE','IT','LV','LT','NL','NO','PL','PT','ES','SE'].includes(String(user.country).trim().toUpperCase()) && (
+                    <div className="mt-5 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                      <p className="font-semibold">Use a statement from your bank or payment app</p>
+                      <p className="mt-1">Automatic bank connection is not available in your country yet. Import CSV, OFX, QFX, MT940, CAMT.053/XML, or a text-based PDF instead.</p>
+                      {String(user.country).toUpperCase() === 'IN' && <p className="mt-1">For India, export activity from your bank or from Google Pay, PhonePe, or Paytm when the app offers it.</p>}
+                    </div>
+                  )}
 
                   <div className="grid gap-3 sm:grid-cols-3 mt-6">
                     <div className="rounded-2xl bg-white border border-green-100 px-4 py-4">
@@ -654,8 +661,8 @@ function SetupPageInner() {
                         onClick={() => finishSetup('/dashboard/import')}
                         className="rounded-xl border border-green-200 bg-[#F7FAF7] px-4 py-3 text-left transition hover:border-[#1B5E20] hover:bg-green-50"
                       >
-                        <span className="block text-sm font-semibold text-[#1B5E20]">{t('setupManualCsvTitle')}</span>
-                        <span className="mt-1 block text-xs leading-5 text-gray-600">{t('setupManualCsvDesc')}</span>
+                        <span className="block text-sm font-semibold text-[#1B5E20]">Import a bank or payment-app statement</span>
+                        <span className="mt-1 block text-xs leading-5 text-gray-600">CSV, OFX, QFX, MT940, CAMT.053/XML, or a text-based PDF. Review rows before saving.</span>
                       </button>
                       <button
                         type="button"

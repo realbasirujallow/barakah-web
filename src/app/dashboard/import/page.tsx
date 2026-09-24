@@ -16,6 +16,7 @@ import { useCurrency } from '../../../lib/useCurrency';
 import { trackFirstAccountLink, trackOnce } from '../../../lib/analytics';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import GenericCsvImport from './GenericCsvImport';
+import StatementFileImport from './StatementFileImport';
 import { useI18n, t as tStandalone } from '../../../lib/i18n';
 import { useToast } from '../../../lib/toast';
 
@@ -88,6 +89,18 @@ interface PreviewTransaction {
 }
 
 type CsvFormat = 'balances' | 'transactions';
+
+const PLAID_COUNTRIES = new Set([
+  'US', 'USA', 'UNITED STATES', 'UNITED STATES OF AMERICA',
+  'CA', 'CAN', 'CANADA', 'GB', 'GBR', 'UK', 'UNITED KINGDOM',
+  'AT', 'BE', 'DK', 'EE', 'FI', 'FR', 'DE', 'IE', 'IT', 'LV', 'LT',
+  'NL', 'NO', 'PL', 'PT', 'ES', 'SE',
+]);
+
+function supportsPlaid(rawCountry?: string | null) {
+  const country = String(rawCountry || '').trim().toUpperCase();
+  return !country || PLAID_COUNTRIES.has(country);
+}
 type Step = 'upload' | 'preview' | 'done';
 
 interface PlaidAccount {
@@ -179,6 +192,8 @@ function ImportPageInner() {
   const { t, tFmt } = useI18n();
   const { toast } = useToast();
   const { user } = useAuth();
+  const country = String(user?.country || '').trim();
+  const plaidAvailable = supportsPlaid(country);
   const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>('upload');
@@ -642,12 +657,20 @@ function ImportPageInner() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <PageHeader
-        title={t('importTitle')}
-        subtitle={t('importSubtitle')}
+        title="Add financial data"
+        subtitle="Connect a supported bank, import a bank or payment-app statement, or add an account manually."
         className="mb-0"
       />
 
+      {!plaidAvailable && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+          <p className="font-semibold">Automatic bank connection is not available in {country} yet.</p>
+          <p className="mt-1">Import a statement below to get started now. In India, download a CSV, OFX, or text-based PDF from your bank; UPI apps such as Google Pay, PhonePe, and Paytm may also provide activity or statement exports.</p>
+        </div>
+      )}
+
       {/* ── Plaid Bank Linking ──────────────────────────────────────────── */}
+      {plaidAvailable && (
       <div className="bg-white border border-green-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -830,10 +853,24 @@ function ImportPageInner() {
           <p className="text-sm text-gray-400">{t('importNoAccountsLinked')}</p>
         )}
       </div>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Link href="/dashboard/assets" className="rounded-xl border border-gray-200 bg-white p-4 hover:border-primary">
+          <span className="font-semibold text-gray-900">Add a manual asset account</span>
+          <span className="mt-1 block text-sm text-gray-500">Cash, savings, investments, property, gold, crypto, and more.</span>
+        </Link>
+        <Link href="/dashboard/debts" className="rounded-xl border border-gray-200 bg-white p-4 hover:border-primary">
+          <span className="font-semibold text-gray-900">Add a manual debt account</span>
+          <span className="mt-1 block text-sm text-gray-500">Credit cards, financing, mortgages, and personal debts.</span>
+        </Link>
+      </div>
+
+      {step === 'upload' && <StatementFileImport />}
 
       {/* ── CSV Import ─────────────────────────────────────────────────── */}
       <div className="border-t pt-6">
-        <h2 className="text-lg font-bold text-gray-700 mb-2">{t('importOrCsv')}</h2>
+        <h2 className="text-lg font-bold text-gray-700 mb-2">Import a recognized finance-app CSV</h2>
         <p className="text-gray-600 text-sm mb-4">
           {t('importCsvUploadHelp')}
         </p>

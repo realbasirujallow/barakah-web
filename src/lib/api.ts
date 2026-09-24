@@ -2404,6 +2404,8 @@ export const api = {
   // Import (Monarch Money — Balances or Transactions CSV)
   monarchPreview: (file: File) =>
     apiUpload('/api/import/monarch/preview', file),
+  statementPreview: (file: File) =>
+    apiUpload('/api/import/statement/preview', file),
   monarchExecute: (payload: Record<string, unknown>) =>
     apiFetch('/api/import/monarch/execute', { method: 'POST', body: JSON.stringify(payload) }, IMPORT_TIMEOUT),
 
