@@ -65,6 +65,7 @@ export function AdminUsersTab({
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(false);
   const [showSecurityDetails, setShowSecurityDetails] = useState(false);
+  const [showRecentSignups, setShowRecentSignups] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [copyingEmails, setCopyingEmails] = useState(false);
 
@@ -226,23 +227,33 @@ export function AdminUsersTab({
     <div className="space-y-4">
       {recentSignups && recentSignups.length > 0 && (
         <div className="bg-white rounded-2xl border p-5">
-          <div className="flex items-center justify-between gap-3 mb-4">
+          <div className={`flex flex-wrap items-center justify-between gap-3 ${showRecentSignups ? 'mb-4' : ''}`}>
             <div>
               <h2 className="font-semibold text-gray-800 text-sm">Last Joiners</h2>
-              <p className="text-xs text-gray-400 mt-1">Recent signups kept above the user table for quicker troubleshooting.</p>
+              <p className="text-xs text-gray-500 mt-1">{recentSignups.length} recent signups available for quick troubleshooting.</p>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setSearch('');
-                setUserFilter('all');
-              }}
-              className="text-xs text-[#1B5E20] font-medium hover:underline"
-            >
-              Reset user view
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('');
+                  setUserFilter('all');
+                }}
+                className="text-xs text-gray-600 font-medium hover:text-gray-900"
+              >
+                Reset user view
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowRecentSignups(v => !v)}
+                className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-[#1B5E20] hover:bg-green-50"
+                aria-expanded={showRecentSignups}
+              >
+                {showRecentSignups ? 'Hide recent signups' : 'Show recent signups'}
+              </button>
+            </div>
           </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {showRecentSignups && <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {recentSignups.map(u => {
               const planInfo = PLAN_LABELS[u.plan] ?? PLAN_LABELS.free;
               return (
@@ -266,7 +277,7 @@ export function AdminUsersTab({
                 </button>
               );
             })}
-          </div>
+          </div>}
         </div>
       )}
 
