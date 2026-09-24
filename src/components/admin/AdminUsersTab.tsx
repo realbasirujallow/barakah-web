@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { Search, X } from 'lucide-react';
 import type { AdminUser, UsersResponse, UserFilter, UserActivityFilter } from './adminTypes';
 import {
   PLAN_LABELS, SUB_STATUS_LABELS, cadenceLabel, fmtDateMs, fmtFullTs, formatLocation,
@@ -270,24 +271,52 @@ export function AdminUsersTab({
       )}
 
       <div className="bg-white rounded-2xl overflow-hidden border">
-        <div className="p-4 border-b bg-gray-50">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex-1 flex flex-col gap-3 lg:flex-row lg:items-center">
-              <div className="relative flex-1">
+        <div className="border-b bg-gray-50">
+          <div className="border-b border-gray-200 p-4">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="admin-users-search" className="text-sm font-semibold text-gray-900">
+                Find a user
+              </label>
+              <div className="relative max-w-3xl">
+                <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                 <input
+                  id="admin-users-search"
                   type="text"
-                  placeholder="Search by name, email, location, plan… (searches all users)"
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-describedby="admin-users-search-help"
+                  placeholder="Type a name, email, user ID, phone, or location"
                   value={search}
                   onChange={e => startGlobalSearch(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#1B5E20] focus:ring-1 focus:ring-[#1B5E20] outline-none pr-8"
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-24 text-sm text-gray-950 shadow-sm outline-none placeholder:text-gray-500 focus:border-[#1B5E20] focus:ring-2 focus:ring-[#1B5E20]/20"
                 />
                 {searchLoading && (
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs animate-pulse">
-                    …
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-500 animate-pulse" role="status">
+                    Searching…
                   </span>
                 )}
+                {search && !searchLoading && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch('')}
+                    className="absolute right-2 top-1/2 inline-flex h-8 items-center gap-1 -translate-y-1/2 rounded-md px-2 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    aria-label="Clear user search"
+                  >
+                    <X aria-hidden="true" className="h-3.5 w-3.5" />
+                    Clear
+                  </button>
+                )}
               </div>
-              <div className="flex flex-wrap gap-2">
+              <p id="admin-users-search-help" className="text-xs text-gray-600" aria-live="polite">
+                {search.trim().length >= 2
+                  ? `${filteredUsers.length} result${filteredUsers.length !== 1 ? 's' : ''} for “${search.trim()}”`
+                  : 'Searches the full user database. Existing country and activity filters clear when you begin a new search.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3 p-4">
+            <div className="flex flex-wrap gap-2" aria-label="User filters">
                 {[
                   ['all', 'All Users'],
                   ['plus', 'Plus'],
@@ -320,18 +349,10 @@ export function AdminUsersTab({
                     Clear Filter
                   </button>
                 )}
-              </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              {search && (
-                <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600 text-sm px-2 py-1">
-                  Clear Search
-                </button>
-              )}
-              <span className="text-xs text-gray-400">
-                {search.trim().length >= 2
-                  ? `${filteredUsers.length} result${filteredUsers.length !== 1 ? 's' : ''} for "${search.trim()}"`
-                  : `${usersData?.totalElements ?? 0} total`}
+              <span className="mr-1 text-xs font-medium text-gray-600">
+                {usersData?.totalElements ?? 0} total
                 {countryFilter ? ` · ${formatEffectiveCountry(countryFilter)}` : ''}
                 {activityFilter && activityFilter !== 'all' ? ` · ${activityLabel(activityFilter)}` : ''}
               </span>
