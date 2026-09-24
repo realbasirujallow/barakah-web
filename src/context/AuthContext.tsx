@@ -144,6 +144,8 @@ export interface User {
    * and related hooks. Not shown in UI directly.
    */
   country?: string;
+  phoneNumber?: string;
+  requiresProfileCompletion?: boolean;
   /**
    * 2026-05-08 (Bug A): user's preferred display currency, set at signup
    * from the country (GB→GBP, FR→EUR, SA→SAR, PK→PKR, etc.) and editable
@@ -331,6 +333,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isAdmin: d.isAdmin === true,
           isSuperAdmin: d.isSuperAdmin === true,
           country: typeof d.country === 'string' ? (d.country as string) : undefined,
+          phoneNumber: typeof d.phoneNumber === 'string' ? (d.phoneNumber as string) : undefined,
+          requiresProfileCompletion: d.requiresProfileCompletion === true,
           preferredCurrency: typeof d.preferredCurrency === 'string'
               ? (d.preferredCurrency as string) : 'USD',
           setupCompletedAt: typeof d.setupCompletedAt === 'number'
@@ -418,7 +422,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const planMissing = parsed != null && !parsed.plan;
     const isAdminMissing = parsed != null && typeof parsed.isAdmin === 'undefined';
     const isAdminClaimed = parsed != null && parsed.isAdmin === true;
-    const needsSync = planMissing || isAdminMissing || isAdminClaimed;
+    const profileCompletionMissing = typeof parsed?.phoneNumber !== 'string'
+      || typeof parsed?.country !== 'string'
+      || typeof parsed?.requiresProfileCompletion !== 'boolean';
+    const needsSync = planMissing || isAdminMissing || isAdminClaimed || profileCompletionMissing;
     if (planMissing) {
       // Temporary safe placeholder (type-safe) — overwritten below immediately.
       parsed!.plan = 'free';
@@ -446,6 +453,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // always have the latest truth across devices.
             setupCompletedAt: (data.setupCompletedAt as number | null | undefined) ?? null,
             country: (data.country as string | undefined) ?? u.country,
+            phoneNumber: (data.phoneNumber as string | undefined) ?? u.phoneNumber,
+            requiresProfileCompletion: data.requiresProfileCompletion === true,
           };
           localStorage.setItem(USER_KEY, JSON.stringify(updated));
           return updated;
@@ -695,6 +704,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // the cached profile JSON.
       setupCompletedAt: (data.setupCompletedAt as number | null | undefined) ?? null,
       country: (data.country as string | undefined) ?? undefined,
+      phoneNumber: (data.phoneNumber as string | undefined) ?? undefined,
+      requiresProfileCompletion: data.requiresProfileCompletion === true,
       // 2026-05-08 (Bug A): pull preferredCurrency from login response so
       // the locale-sync useEffect fires immediately on the very first
       // dashboard paint after login. Falls back to undefined for legacy
@@ -748,6 +759,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isSuperAdmin: data.isSuperAdmin === true,
       setupCompletedAt: (data.setupCompletedAt as number | null | undefined) ?? null,
       country: (data.country as string | undefined) ?? undefined,
+      phoneNumber: (data.phoneNumber as string | undefined) ?? undefined,
+      requiresProfileCompletion: data.requiresProfileCompletion === true,
       preferredCurrency: (data.preferredCurrency as string | undefined) ?? undefined,
     };
     localStorage.setItem(USER_KEY, JSON.stringify(profile));

@@ -1740,6 +1740,8 @@ export const api = {
   getProfile: (suppressUnauthorized = true) => apiFetch('/auth/profile', {}, API_TIMEOUT, suppressUnauthorized),
   updateProfile: (data: Record<string, unknown>) =>
     apiFetch('/auth/update-profile', { method: 'PUT', body: JSON.stringify(data) }),
+  completeProfile: (phoneNumber: string, country: string) =>
+    apiFetch('/auth/phone', { method: 'POST', body: JSON.stringify({ phoneNumber, country }) }),
   // Round 23: server-side guided-setup completion. Client POSTs here
   // when the setup flow finishes; backend sets setup_completed_at on
   // the user row and returns the timestamp. Idempotent — re-submits

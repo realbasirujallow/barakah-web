@@ -338,6 +338,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (isLoading || !user) return;
+    const inSupportMode = (() => {
+      try { return Boolean(sessionStorage.getItem('barakah_support_token')); } catch { return false; }
+    })();
+    if (!user.isAdmin && !inSupportMode && (user.requiresProfileCompletion || !user.phoneNumber?.trim() || !user.country?.trim())) {
+      router.replace('/onboarding/profile-completion');
+      return;
+    }
     // Round 23: server-side `setupCompletedAt` is the canonical flag;
     // fall back to localStorage only for pre-migration accounts. This
     // kills the cross-device redirect ping-pong that the old
