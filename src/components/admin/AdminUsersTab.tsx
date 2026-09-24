@@ -34,7 +34,7 @@ export interface AdminUsersTabProps {
   sortDir: 'asc' | 'desc';
   countryFilter: string;
   activityFilter: string;
-  onQueryChange: (q: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter }) => void;
+  onQueryChange: (q: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter; status?: string }) => void;
   openUser: (u: AdminUser, listContext?: AdminUser[]) => void;
   loadExportUsers?: () => Promise<AdminUser[]>;
   onBulkDelete?: (ids: number[]) => Promise<void>;
@@ -335,9 +335,11 @@ export function AdminUsersTab({
                   ['free', 'Free'],
                   ['monthly', 'Monthly'],
                   ['annual', 'Annual'],
+                  ['active', 'Active'],
                   ['trialing', 'Trials'],
-                  ['paying', 'Paying'],
                   ['past_due', 'Past Due'],
+                  ['canceled', 'Canceled'],
+                  ['inactive', 'Inactive'],
                   ['unverified', 'Unverified'],
                   ['missing_phone', 'Missing Phone'],
                   ['missing_location', 'Missing Location'],

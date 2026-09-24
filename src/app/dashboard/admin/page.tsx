@@ -84,6 +84,12 @@ function readStoredAdminUsersQuery(): AdminUsersQueryPrefs {
 
 function matchesUserFilter(u: AdminUser, userFilter: UserFilter): boolean {
   switch (userFilter) {
+    case 'active':
+      return u.subscriptionStatus === 'active';
+    case 'canceled':
+      return u.subscriptionStatus === 'canceled';
+    case 'inactive':
+      return !u.subscriptionStatus || u.subscriptionStatus === 'inactive';
     case 'unverified':
       return u.emailVerified === false;
     case 'past_due':
@@ -204,6 +210,7 @@ export default function AdminPage() {
   const [usersCountry, setUsersCountry] = useState(initialUsersQuery.country);
   // Server-side recent/last-login activity filter for the Users table (P0.5).
   const [usersActivity, setUsersActivity] = useState<UserActivityFilter>(initialUsersQuery.activity);
+  const [usersStatus, setUsersStatus] = useState('');
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
@@ -245,7 +252,7 @@ export default function AdminPage() {
   /* ── Data loading ── */
   const loadData = useCallback(async (
     p: number,
-    override?: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter },
+    override?: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter; status?: string },
   ) => {
     // Explicit overrides win over state so a just-changed sort/filter isn't
     // read stale (React state updates are async).
@@ -253,11 +260,12 @@ export default function AdminPage() {
     const dir = override?.dir ?? usersDir;
     const country = override?.country ?? usersCountry;
     const activity = override?.activity ?? usersActivity;
+    const status = override?.status ?? usersStatus;
     setLoading(true);
     try {
       const results = await Promise.allSettled([
         api.getAdminOverview().catch(() => null),
-        api.getAdminUsers(p, 50, sort, dir, country, activity),
+        api.getAdminUsers(p, 50, sort, dir, country, activity, status),
         api.getAdminAnalytics().catch(() => null),
         api.getAdminFeatureUsage().catch(() => null),
         api.getAdminOnboardingTrialSettings().catch(() => null),
@@ -316,21 +324,32 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  }, [toast, usersSort, usersDir, usersCountry, usersActivity]);
+  }, [toast, usersSort, usersDir, usersCountry, usersActivity, usersStatus]);
 
   // Apply a new Users-table sort/country/activity filter: reset to page 0 and
   // reload with explicit params (avoids reading the just-set state stale).
   const onUsersQueryChange = useCallback(
-    (q: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter }) => {
+    (q: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter; status?: string }) => {
       if (q.sort !== undefined) setUsersSort(q.sort);
       if (q.dir !== undefined) setUsersDir(q.dir);
       if (q.country !== undefined) setUsersCountry(q.country);
       if (q.activity !== undefined) setUsersActivity(q.activity);
+      if (q.status !== undefined) setUsersStatus(q.status);
       setPage(0);
       loadData(0, q);
     },
     [loadData],
   );
+
+  const handleUserFilter = useCallback((filter: UserFilter) => {
+    setUserFilter(filter);
+    const exactStatus = ['active', 'trialing', 'past_due', 'canceled', 'inactive'].includes(filter)
+      ? filter
+      : '';
+    setUsersStatus(exactStatus);
+    setPage(0);
+    void loadData(0, { status: exactStatus });
+  }, [loadData]);
 
   // Round 21: only fire loadData when the user is known to be admin.
   // For non-admins the isAdmin redirect effect above handles the
@@ -588,7 +607,7 @@ export default function AdminPage() {
     const loadPageForExport = async (targetPage: number) => {
       const res = q.length >= 2
         ? await api.adminSearchUsers(q, targetPage, pageSize, usersCountry, usersActivity)
-        : await api.getAdminUsers(targetPage, pageSize, usersSort, usersDir, usersCountry, usersActivity);
+        : await api.getAdminUsers(targetPage, pageSize, usersSort, usersDir, usersCountry, usersActivity, usersStatus);
       return res as UsersResponse;
     };
 
@@ -600,7 +619,7 @@ export default function AdminPage() {
       all.push(...(next.users ?? []));
     }
     return all.filter(u => matchesUserFilter(u, userFilter));
-  }, [search, usersActivity, usersCountry, usersDir, usersSort, userFilter]);
+  }, [search, usersActivity, usersCountry, usersDir, usersSort, usersStatus, userFilter]);
 
   /* ── Loading / error states ── */
   //
@@ -808,7 +827,7 @@ export default function AdminPage() {
           onSaveOnboardingTrial={handleSaveOnboardingTrial}
           fmtMoney={fmtMoney}
           setActiveTab={setActiveTab}
-          setUserFilter={setUserFilter}
+          setUserFilter={handleUserFilter}
           setSearch={setSearch}
           onUsersQueryChange={onUsersQueryChange}
           openUser={openUser}
@@ -824,7 +843,7 @@ export default function AdminPage() {
           setSearch={setSearch}
           searchLoading={searchLoading}
           userFilter={userFilter}
-          setUserFilter={setUserFilter}
+          setUserFilter={handleUserFilter}
           page={page}
           setPage={setPage}
           loadData={loadData}

@@ -1865,10 +1865,12 @@ export const api = {
     dir: 'asc' | 'desc' = 'desc',
     country = '',
     activity = '',
+    status = '',
   ) => {
     const qs = new URLSearchParams({ page: String(page), size: String(size), sort, dir });
     if (country) qs.set('country', country);
     if (activity && activity !== 'all') qs.set('activity', activity);
+    if (status) qs.set('status', status);
     return apiFetch(`/admin/active-users?${qs.toString()}`, {}, API_TIMEOUT, true);
   },
   /**

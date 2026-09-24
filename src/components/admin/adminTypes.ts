@@ -246,6 +246,9 @@ export interface Overview {
 
 export type UserFilter =
   | 'all'
+  | 'active'
+  | 'canceled'
+  | 'inactive'
   | 'unverified'
   | 'past_due'
   | 'trialing'

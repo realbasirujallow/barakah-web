@@ -405,10 +405,20 @@ export function AdminOverviewTab({
               {Object.entries(overview.subscriptionStatus).map(([status, count]) => {
                 const info = SUB_STATUS_LABELS[status] ?? { label: status, color: 'bg-gray-100 text-gray-500' };
                 return (
-                  <div key={status} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => {
+                      setSearch('');
+                      setUserFilter((status === 'trial' ? 'trialing' : status) as UserFilter);
+                      setActiveTab('users');
+                    }}
+                    className="flex w-full items-center justify-between rounded-lg bg-gray-50 p-3 text-left transition hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-[#1B5E20]"
+                    title={`Show all ${info.label.toLowerCase()} users`}
+                  >
                     <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${info.color}`}>{info.label}</span>
                     <span className="font-bold text-gray-800">{count}</span>
-                  </div>
+                  </button>
                 );
               })}
             </div>
