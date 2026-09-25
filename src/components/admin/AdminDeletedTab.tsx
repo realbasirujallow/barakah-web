@@ -23,6 +23,7 @@ export function AdminDeletedTab({ toast }: AdminDeletedTabProps) {
   const [deletedUsers, setDeletedUsers] = useState<any[] | null>(null);
   const [deletedUsersLoading, setDeletedUsersLoading] = useState(false);
   const [churnData, setChurnData] = useState<Record<string, number> | null>(null);
+  const [remarketingExcludedTestRecords, setRemarketingExcludedTestRecords] = useState(0);
   const [lastLoadedAt, setLastLoadedAt] = useState<number | null>(null);
 
   const loadDeletedUsers = useCallback(async () => {
@@ -33,6 +34,7 @@ export function AdminDeletedTab({ toast }: AdminDeletedTabProps) {
         api.adminGetChurnAnalysis(),
       ]);
       setDeletedUsers(usersRes?.users ?? []);
+      setRemarketingExcludedTestRecords(Number(usersRes?.remarketingExcludedTestRecords ?? 0));
       setChurnData(churnRes ?? null);
       setLastLoadedAt(Date.now());
     } catch (err) {
@@ -62,6 +64,11 @@ export function AdminDeletedTab({ toast }: AdminDeletedTabProps) {
           <p className="text-sm text-gray-500">
             Recent deletions, churn reasons, and privacy-safe archive rows. Some self-serve deletions intentionally redact PII by default.
           </p>
+          {remarketingExcludedTestRecords > 0 && (
+            <p className="text-xs text-amber-700 mt-1">
+              {remarketingExcludedTestRecords} test or probe record{remarketingExcludedTestRecords === 1 ? '' : 's'} excluded from all automated win-back audiences.
+            </p>
+          )}
           {lastLoadedAt && (
             <p className="text-xs text-gray-400 mt-1">Last refreshed {new Date(lastLoadedAt).toLocaleString()}</p>
           )}

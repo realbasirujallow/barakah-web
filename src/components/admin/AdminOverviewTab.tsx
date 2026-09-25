@@ -62,7 +62,7 @@ export function AdminOverviewTab({
   openUser,
 }: AdminOverviewTabProps) {
   const truePaidAccounts = overview
-    ? (overview.activePlus ?? 0) + (overview.activeFamily ?? 0)
+    ? (overview.activePaidSubscriptions ?? ((overview.activePlus ?? 0) + (overview.activeFamily ?? 0)))
     : 0;
   const truePaidConversion = overview && overview.totalUsers > 0
     ? ((truePaidAccounts / overview.totalUsers) * 100).toFixed(1)
@@ -160,13 +160,15 @@ export function AdminOverviewTab({
             title="Open Users tab"
             className="bg-white rounded-2xl p-5 border text-left transition hover:shadow-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
           >
-            <p className="text-gray-400 text-xs font-medium mb-1">Nominal Access Seats</p>
-            <p className="text-3xl font-bold text-gray-800">{overview.paidUsers}</p>
+            <p className="text-gray-400 text-xs font-medium mb-1">Non-revenue Access</p>
+            <p className="text-3xl font-bold text-gray-800">
+              {((overview.activeTrials ?? 0) + (overview.activeManualCompAccess ?? 0) + (overview.activeInheritedFamilySeats ?? 0)).toLocaleString()}
+            </p>
             <p className="text-gray-400 text-xs mt-1">
-              {overview.conversionRate}% of users on trial, paid, or inherited access
+              Trials {(overview.activeTrials ?? 0).toLocaleString()} · grants {(overview.activeManualCompAccess ?? 0).toLocaleString()}
             </p>
             <p className="text-gray-400 text-[11px] mt-0.5 italic">
-              Includes active trials + inherited family seats; not true paid accounts
+              + {(overview.activeInheritedFamilySeats ?? 0).toLocaleString()} inherited Family seats · never counted as revenue
             </p>
           </button>
           <button

@@ -107,6 +107,9 @@ type BroadcastStats = {
 
 type RetentionSettings = {
   enabled: boolean;
+  requestedEnabled?: boolean;
+  couponConfigured?: boolean;
+  configurationError?: string;
   percentOff: number;
   durationMonths: number;
   label: string;
@@ -331,7 +334,10 @@ const FALLBACK_TEMPLATES: Array<Record<string, unknown>> = [
 ];
 
 const defaultRetentionSettings = (): RetentionSettings => ({
-  enabled: true,
+  enabled: false,
+  requestedEnabled: false,
+  couponConfigured: false,
+  configurationError: 'Add a valid Stripe coupon ID before enabling this offer.',
   percentOff: 50,
   durationMonths: 3,
   label: 'Stay with Barakah at 50% off for 3 months',
@@ -434,7 +440,10 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
       if (retentionResult.status === 'fulfilled') {
         const raw = (retentionResult.value ?? {}) as Record<string, unknown>;
         setRetentionSettings({
-          enabled: Boolean(raw.enabled ?? true),
+          enabled: Boolean(raw.enabled ?? false),
+          requestedEnabled: Boolean(raw.requestedEnabled ?? raw.enabled ?? false),
+          couponConfigured: Boolean(raw.couponConfigured ?? raw.stripeCouponId),
+          configurationError: String(raw.configurationError ?? ''),
           percentOff: Number(raw.percentOff ?? 50),
           durationMonths: Number(raw.durationMonths ?? 3),
           label: String(raw.label ?? defaultRetentionSettings().label),
@@ -698,9 +707,15 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
   const saveRetentionSettings = async () => {
     setSavingRetention(true);
     try {
-      const updated = await api.updateAdminRetentionOfferSettings(retentionSettings);
+      const updated = await api.updateAdminRetentionOfferSettings({
+        ...retentionSettings,
+        enabled: retentionSettings.requestedEnabled ?? retentionSettings.enabled,
+      });
       setRetentionSettings({
-        enabled: Boolean(updated?.enabled ?? true),
+        enabled: Boolean(updated?.enabled ?? false),
+        requestedEnabled: Boolean(updated?.requestedEnabled ?? updated?.enabled ?? false),
+        couponConfigured: Boolean(updated?.couponConfigured ?? updated?.stripeCouponId),
+        configurationError: String(updated?.configurationError ?? ''),
         percentOff: Number(updated?.percentOff ?? retentionSettings.percentOff),
         durationMonths: Number(updated?.durationMonths ?? retentionSettings.durationMonths),
         label: String(updated?.label ?? retentionSettings.label),
@@ -1165,6 +1180,11 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
         <div className="rounded-2xl border bg-white p-5">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Retention Offer</h2>
           <div className="space-y-4">
+            {!retentionSettings.couponConfigured && (
+              <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                {retentionSettings.configurationError || 'This offer is disabled until a valid Stripe coupon ID is configured. It will not be shown to customers.'}
+              </p>
+            )}
             {retentionStatus && (
               <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
                 {retentionStatus}
@@ -1177,8 +1197,12 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
               </div>
               <input
                 type="checkbox"
-                checked={retentionSettings.enabled}
-                onChange={e => setRetentionSettings(prev => ({ ...prev, enabled: e.target.checked }))}
+                checked={retentionSettings.requestedEnabled ?? retentionSettings.enabled}
+                onChange={e => setRetentionSettings(prev => ({
+                  ...prev,
+                  enabled: e.target.checked && Boolean(prev.couponConfigured),
+                  requestedEnabled: e.target.checked,
+                }))}
                 className="h-4 w-4 rounded border-gray-300 text-[#1B5E20]"
               />
             </label>
@@ -1279,6 +1303,16 @@ export function LifecycleCampaignCenter({ active }: { active: boolean }) {
                     <p className="text-[10px] text-gray-400 mt-1">
                       Queued = handed to the delivery worker but not yet accepted by the provider. Skipped = opted out or unreachable. Failed = no longer queued and not delivered.
                     </p>
+                    {Array.isArray(campaign.failureReasons) && campaign.failureReasons.length > 0 && (
+                      <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-900">
+                        <span className="font-semibold">Final provider failures:</span>{' '}
+                        {campaign.failureReasons.map((item: unknown) => {
+                          const reason = item && typeof item === 'object' ? String((item as Record<string, unknown>).reason ?? 'Unknown failure') : 'Unknown failure';
+                          const recipients = item && typeof item === 'object' ? Number((item as Record<string, unknown>).recipients ?? 0) : 0;
+                          return `${recipients.toLocaleString()} recipient${recipients === 1 ? '' : 's'}: ${reason}`;
+                        }).join(' · ')}
+                      </div>
+                    )}
                     {campaign.scheduledAt ? (
                       <p className="text-xs text-gray-400 mt-1">Scheduled: {toLocalDateTime(Number(campaign.scheduledAt)) || '—'}</p>
                     ) : null}

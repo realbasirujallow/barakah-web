@@ -204,8 +204,18 @@ export interface Overview {
   familyUsers: number;
   subscriptionStatus: Record<string, number>;
   paidUsers: number;
+  /** Legacy access-seat aggregate: paid + trial + grants/inherited seats. */
+  accessSeats?: number;
   activePlus: number;
   activeFamily: number;
+  /** Current billed subscriptions only (Stripe or RevenueCat). */
+  activePaidSubscriptions?: number;
+  /** Active trials; no payment has been collected yet. */
+  activeTrials?: number;
+  /** Staff-granted access; never counted in MRR or paid conversion. */
+  activeManualCompAccess?: number;
+  /** Household seats inherited from a paying owner; never independent revenue. */
+  activeInheritedFamilySeats?: number;
   /** Users who once completed a paid upgrade but no longer have paid access. */
   formerPaidUsers?: number;
   subscribedPlus: number;
