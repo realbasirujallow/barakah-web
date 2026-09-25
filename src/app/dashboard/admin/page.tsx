@@ -220,6 +220,10 @@ export default function AdminPage() {
   const [searchLoading, setSearchLoading] = useState(false);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRequestRef = useRef(0);
+  // A slow earlier refresh must never overwrite rows from a newer filter/sort
+  // request. Search already has this protection; the main admin loader needs it
+  // too because it fetches the table alongside several independent dashboards.
+  const loadRequestRef = useRef(0);
   const [userFilter, setUserFilter] = useState<UserFilter>('all');
   const [selected, setSelected] = useState<AdminUser | null>(null);
   const [resetting, setResetting] = useState(false);
@@ -256,6 +260,7 @@ export default function AdminPage() {
     p: number,
     override?: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter; status?: string },
   ) => {
+    const requestId = ++loadRequestRef.current;
     // Explicit overrides win over state so a just-changed sort/filter isn't
     // read stale (React state updates are async).
     const sort = override?.sort ?? usersSort;
@@ -275,6 +280,10 @@ export default function AdminPage() {
         api.adminGetEmailLog('all', 0, 1).catch(() => null),  // just for stats
         api.getAdminActivationSummary(30).catch(() => null),
       ]);
+
+      // Filter/sort changes can start a second request while this aggregate
+      // refresh is still in flight. Ignore the stale response completely.
+      if (requestId !== loadRequestRef.current) return;
 
       // Check for auth errors from any result
       for (const r of results) {
@@ -315,6 +324,7 @@ export default function AdminPage() {
       setActivationSummary(normalizeActivationSummary(activationSummaryRes));
       setLastRefreshed(new Date());
     } catch (err) {
+      if (requestId !== loadRequestRef.current) return;
       const msg = err instanceof Error ? err.message : 'Failed to load admin data';
       if (msg.toLowerCase().includes('admin access') || msg.includes('403')) {
         setForbidden(true);
@@ -324,7 +334,7 @@ export default function AdminPage() {
         toast(msg, 'error');
       }
     } finally {
-      setLoading(false);
+      if (requestId === loadRequestRef.current) setLoading(false);
     }
   }, [toast, usersSort, usersDir, usersCountry, usersActivity, usersStatus]);
 
