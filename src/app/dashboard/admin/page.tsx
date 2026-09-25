@@ -219,6 +219,7 @@ export default function AdminPage() {
   const [searchResults, setSearchResults] = useState<UsersResponse | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchRequestRef = useRef(0);
   const [userFilter, setUserFilter] = useState<UserFilter>('all');
   const [selected, setSelected] = useState<AdminUser | null>(null);
   const [resetting, setResetting] = useState(false);
@@ -568,8 +569,10 @@ export default function AdminPage() {
   };
 
   // Server-side search: debounce 400ms, fires when query >= 2 chars.
-  // Clears results when query is cleared so the normal paginated view resumes.
+  // The request sequence prevents a slower, earlier lookup from replacing the
+  // results for what the admin has typed most recently.
   useEffect(() => {
+    const requestId = ++searchRequestRef.current;
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     const q = search.trim();
     if (q.length < 2) {
@@ -577,20 +580,31 @@ export default function AdminPage() {
       setSearchLoading(false);
       return;
     }
-    setSearchLoading(true); // show spinner immediately when debounce is armed (≥2 chars)
+    setSearchResults(null);
+    setSearchLoading(true); // show spinner immediately when debounce is armed (>=2 chars)
     searchDebounceRef.current = setTimeout(async () => {
       try {
         // P0.5: search honours the same effective-country + activity filters as
         // the list, so a filtered search stays full-database (not page-only).
-        const res = await api.adminSearchUsers(q, 0, 200, usersCountry, usersActivity);
-        setSearchResults(res as UsersResponse);
+        // Fifty focused matches keeps interactive lookup quick. CSV export still
+        // walks every result page when the admin explicitly requests it.
+        const res = await api.adminSearchUsers(q, 0, 50, usersCountry, usersActivity);
+        if (searchRequestRef.current === requestId) {
+          setSearchResults(res as UsersResponse);
+        }
       } catch {
-        // silently keep old results if search fails
+        // A superseded lookup is intentionally silent. The current lookup keeps
+        // its spinner/error behavior instead of showing stale people.
       } finally {
-        setSearchLoading(false);
+        if (searchRequestRef.current === requestId) {
+          setSearchLoading(false);
+        }
       }
     }, 400);
-    return () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current); };
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+      if (searchRequestRef.current === requestId) searchRequestRef.current += 1;
+    };
   }, [search, usersCountry, usersActivity]);
 
   // When a search query is active, use server results; otherwise use the

@@ -13,7 +13,7 @@ import { useToast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 import OnboardingWizard from '../../components/OnboardingWizard';
-import ReferralPromptModal, { useReferralPrompt } from '../../components/ReferralPromptModal';
+import ReferralPromptModal, { isReferralPromptEligible, useReferralPrompt } from '../../components/ReferralPromptModal';
 import { TransactionUsageMeter } from '../../components/TransactionUsageMeter';
 import { PRICING } from '../../lib/pricing';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -547,6 +547,11 @@ export default function DashboardPage() {
     || (widgets?.recentTransactions?.totalCount ?? widgets?.recentTransactions?.transactions?.length ?? 0) > 0
     || (widgets?.budgetOverview?.totalBudgeted ?? 0) > 0
   );
+  // Referral sharing is useful after a member has seen their own financial
+  // picture. The previous condition accidentally rendered the prompt only in
+  // the loading gap: both data flags are false while requests are in flight,
+  // then one becomes true and React immediately unmounted the modal.
+  const referralEligible = isReferralPromptEligible(loading, hasRealData);
 
   // Phase 11 (2026-04-30): Daily Ritual — derived from data the dashboard
   // already has loaded. No new endpoints, no extra fetches. Returns
@@ -626,7 +631,7 @@ export default function DashboardPage() {
       {/* REF-1 (2026-05-21): don't ask for referrals before the user has
           experienced any value. Gated on !hasNoData so a brand-new empty
           account never sees the modal; it surfaces once they have data. */}
-      {!showOnboarding && !hasNoData && !hasRealData && showReferralPrompt && <ReferralPromptModal onDismiss={dismissReferralPrompt} />}
+      {!showOnboarding && referralEligible && showReferralPrompt && <ReferralPromptModal onDismiss={dismissReferralPrompt} />}
 
       {/* Trial Expired Banner */}
       {isTrialExpired && (
@@ -829,7 +834,7 @@ export default function DashboardPage() {
           a 50% discount on their FIRST PAID month after the trial.
           Founder feedback: "this is fake since everyone gets 1 month
           free of family plan." Closing the dishonesty gap. */}
-      {!referralBannerDismissed && !showReferralPrompt && !hasNoData && !hasRealData && (
+      {!referralBannerDismissed && !showReferralPrompt && referralEligible && (
         // 2026-05-12 overnight QA (UI-005): the floating "Ask Barakah" +
         // "Feedback" FAB pills at fixed bottom-right used to overlap the
         // banner's right-edge Share button + dismiss × on shorter

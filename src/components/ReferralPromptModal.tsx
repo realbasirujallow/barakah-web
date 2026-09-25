@@ -7,6 +7,11 @@ import { useI18n } from '../lib/i18n';
 
 const STORAGE_KEY = 'barakah_referral_prompted';
 
+/** Keep the referral prompt out of the dashboard's initial loading gap. */
+export function isReferralPromptEligible(loading: boolean, hasRealData: boolean): boolean {
+  return !loading && hasRealData;
+}
+
 function safeGetItem(key: string): string | null {
   try { return localStorage.getItem(key); } catch { return null; }
 }
