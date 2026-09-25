@@ -2160,6 +2160,20 @@ export const api = {
   getAdminFeatureUsage: () => apiFetch('/admin/feature-usage', {}, API_TIMEOUT, true),
   getAdminActivationSummary: (days = 30) =>
     apiFetch(`/admin/activation-summary?days=${days}`, {}, API_TIMEOUT, true),
+  getAdminPlaidProspects: (params: { page?: number; size?: number; filter?: string; outreach?: string; q?: string } = {}) => {
+    const qs = new URLSearchParams();
+    qs.set('page', String(params.page ?? 0));
+    qs.set('size', String(params.size ?? 50));
+    qs.set('filter', params.filter ?? 'all');
+    qs.set('outreach', params.outreach ?? 'all');
+    if (params.q?.trim()) qs.set('q', params.q.trim());
+    return apiFetch(`/admin/plaid-prospects?${qs.toString()}`, {}, API_TIMEOUT, true);
+  },
+  updateAdminPlaidOutreach: (userId: number, status: string) =>
+    apiFetch(`/admin/plaid-prospects/${userId}/outreach`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    }, API_TIMEOUT, true),
   getAdminOverview: () => apiFetch('/admin/overview', {}, API_TIMEOUT, true),
   /**
    * Halal-screening run history. Religious-trust observability — admins

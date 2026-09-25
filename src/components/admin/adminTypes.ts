@@ -283,6 +283,7 @@ export type UserActivityFilter =
 export type AdminTab =
   | 'overview'
   | 'users'
+  | 'plaid-prospects'
   | 'alerts'
   | 'unverified'
   | 'lifecycle'
@@ -290,6 +291,52 @@ export type AdminTab =
   | 'deleted'
   | 'email-log'
   | 'locale-audit';
+
+export type PlaidOutreachStatus =
+  | 'not_contacted'
+  | 'sent'
+  | 'replied'
+  | 'interested'
+  | 'converted'
+  | 'do_not_contact';
+
+export interface PlaidProspect {
+  userId: number;
+  fullName?: string;
+  email: string;
+  phoneNumber?: string;
+  country?: string;
+  state?: string;
+  plan: string;
+  subscriptionStatus: string;
+  subscriptionSource?: string;
+  planExpiresAt?: number;
+  lastLoginAt?: number;
+  lastSeenAt?: number;
+  firstConnectedAt?: number;
+  lastSyncedAt?: number;
+  accountCount: number;
+  activeAccountCount: number;
+  connectionHealthy: boolean;
+  needsReconnect: boolean;
+  lastSyncError?: string;
+  importedTransactionCount: number;
+  lastImportedTransactionAt?: number;
+  lastPaywallAt?: number;
+  lastCheckoutAt?: number;
+  outreachStatus: PlaidOutreachStatus;
+  outreachUpdatedAt?: number;
+}
+
+export interface PlaidProspectsResponse {
+  prospects: PlaidProspect[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  filter: string;
+  outreach: string;
+}
 
 /** Feature flag metadata returned by /admin/feature-flags. */
 export interface AdminFeatureFlag {

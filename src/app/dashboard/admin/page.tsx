@@ -27,6 +27,7 @@ import { LifecycleCampaignCenter } from '../../../components/admin/LifecycleCamp
 import { AdminOverviewTab } from '../../../components/admin/AdminOverviewTab';
 import DataFreshness from '../../../components/admin/DataFreshness';
 import { AdminUsersTab } from '../../../components/admin/AdminUsersTab';
+import { AdminPlaidProspectsTab } from '../../../components/admin/AdminPlaidProspectsTab';
 import { AdminAlertsTab } from '../../../components/admin/AdminAlertsTab';
 import { AdminUnverifiedTab } from '../../../components/admin/AdminUnverifiedTab';
 import { AdminDeletedTab } from '../../../components/admin/AdminDeletedTab';
@@ -756,7 +757,7 @@ export default function AdminPage() {
 
       {/* ── Tab Navigation ── */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 overflow-x-auto">
-        {(['overview', 'users', 'alerts', 'unverified', 'lifecycle', 'experiments', 'deleted', 'email-log', 'locale-audit'] as const).map(tab => (
+        {(['overview', 'users', 'plaid-prospects', 'alerts', 'unverified', 'lifecycle', 'experiments', 'deleted', 'email-log', 'locale-audit'] as const).map(tab => (
           <button
             key={tab}
             type="button"
@@ -769,6 +770,7 @@ export default function AdminPage() {
           >
             {tab === 'overview' && 'Overview'}
             {tab === 'users' && 'Users'}
+            {tab === 'plaid-prospects' && 'Plaid Prospects'}
             {tab === 'alerts' && (
               <>
                 Alerts
@@ -856,6 +858,10 @@ export default function AdminPage() {
           loadExportUsers={loadUsersForExport}
           onBulkDelete={handleBulkDelete}
         />
+      )}
+
+      {activeTab === 'plaid-prospects' && (
+        <AdminPlaidProspectsTab openUser={openUser} />
       )}
 
       {activeTab === 'alerts' && (
