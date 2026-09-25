@@ -206,6 +206,8 @@ export interface Overview {
   paidUsers: number;
   activePlus: number;
   activeFamily: number;
+  /** Users who once completed a paid upgrade but no longer have paid access. */
+  formerPaidUsers?: number;
   subscribedPlus: number;
   subscribedFamily: number;
   /** TRUE paid MRR — only counts subscription_source in (stripe, revenuecat).
@@ -278,6 +280,7 @@ export type UserActivityFilter =
   | 'new_no_login_24h'
   | 'new_no_login_7d'
   | 'paid_inactive_30d'
+  | 'former_paid'
   | 'trial_inactive_3d';
 
 export type AdminTab =

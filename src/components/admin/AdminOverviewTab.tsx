@@ -258,6 +258,14 @@ export function AdminOverviewTab({
                 tone: 'border-slate-200 bg-slate-50 text-slate-700',
               },
               {
+                label: 'Former paid customers',
+                value: overview.formerPaidUsers ?? 0,
+                priority: (overview.formerPaidUsers ?? 0) > 0 ? 'P1' : 'OK',
+                hint: 'Previously paid via Stripe or app stores; separate from current MRR',
+                action: () => openUsersQueue('all', 'former_paid'),
+                tone: (overview.formerPaidUsers ?? 0) > 0 ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800',
+              },
+              {
                 label: 'Refund / offer lookup',
                 value: 'Guide',
                 priority: 'Ops',
