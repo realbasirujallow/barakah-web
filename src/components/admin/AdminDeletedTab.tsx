@@ -152,7 +152,9 @@ export function AdminDeletedTab({ toast }: AdminDeletedTabProps) {
                       ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-700">Returned</span>
                       : u.remarketingOptedOut
                         ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-500">Opted Out</span>
-                        : <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">Remarket</span>
+                        : u.marketingEligible
+                          ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">Remarket</span>
+                          : <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800">Excluded</span>
                     }
                   </td>
                 </tr>
