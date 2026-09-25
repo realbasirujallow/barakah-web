@@ -127,17 +127,10 @@ export function AdminOverviewTab({
             <p className="text-emerald-200 text-xs font-medium mb-1">Monthly Revenue (MRR)</p>
             <p className="text-3xl font-bold">{fmtMoney(overview.mrr)}</p>
             <p className="text-emerald-200 text-xs mt-1">ARR: {fmtMoney(overview.arr)}</p>
-            {/* Surface the phantom-MRR gap so the "true paid" vs "nominal"
-                distinction is visible. Hidden when there's no gap (no family
-                inheritance / trials counted as active), which is the healthy
-                state we want the app to eventually reach. */}
-            {typeof overview.phantomMrr === 'number' && overview.phantomMrr > 0 && (
-              <p className="text-emerald-200/70 text-[11px] mt-1 leading-tight">
-                Nominal {fmtMoney(overview.nominalMrr ?? 0)} · phantom{' '}
-                {fmtMoney(overview.phantomMrr)} from{' '}
-                {overview.phantomSeats ?? 0} inherited seats
-              </p>
-            )}
+            <p className="text-emerald-200/70 text-[11px] mt-1 leading-tight">
+              Subscription revenue only. Trials, manual grants, and inherited
+              Family seats are reported separately below.
+            </p>
           </button>
           <button
             type="button"
@@ -149,7 +142,7 @@ export function AdminOverviewTab({
             <p className="text-3xl font-bold">{overview.totalUsers.toLocaleString()}</p>
             <p
               className="text-green-200 text-xs mt-1"
-              title="'Truly paid' = users on a Stripe or RevenueCat plan that has actually charged. Excludes active trials and family-plan inherited seats. So 0.0% with 55 'Active' subs means everyone active is currently on a trial or family-inherited seat — not zero conversion."
+              title="'Truly paid' = users on a Stripe or RevenueCat plan that has actually charged. Excludes active trials, manual grants, and inherited Family seats."
             >
               {truePaidConversion}% truly paid
             </p>
