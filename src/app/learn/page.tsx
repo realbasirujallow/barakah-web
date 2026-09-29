@@ -32,6 +32,13 @@ interface ArticleCard {
 }
 
 const articles: ArticleCard[] = [
+  {
+    slug: 'dangote-refinery-ipo-guide',
+    category: 'Halal Investing',
+    title: 'Dangote Refinery IPO: Questions to Ask Before You Invest',
+    description: 'A practical due-diligence checklist for verifying the offer, managing risk, and planning an IPO decision responsibly.',
+    readTime: 6,
+  },
   // ── Zakat ──────────────────────────────────────────────────────────────
   {
     slug: 'what-is-zakat',

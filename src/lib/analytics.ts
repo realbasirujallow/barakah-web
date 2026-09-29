@@ -14,6 +14,7 @@
  */
 
 import posthog from 'posthog-js';
+import { getAcquisitionAnalyticsContext } from './api';
 
 declare global {
   interface Window {
@@ -34,12 +35,16 @@ function sanitizeForPostHog(params?: Record<string, unknown>): Record<string, un
  *  GA4 receives the full params; PostHog receives the event minus monetary/PII
  *  fields (privacy). No-op for whichever provider isn't configured. */
 export function trackEvent(eventName: string, params?: Record<string, unknown>) {
+  // Keep first-touch attribution on activation events (setup, first account
+  // link, first zakat calculation) without collecting any financial or PII.
+  // Explicit call-site values win so feature-specific events stay intact.
+  const enriched = { ...getAcquisitionAnalyticsContext(), ...params };
   if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', eventName, params);
+    window.gtag('event', eventName, enriched);
   }
   try {
     if ((posthog as unknown as { __loaded?: boolean }).__loaded) {
-      posthog.capture(eventName, sanitizeForPostHog(params));
+      posthog.capture(eventName, sanitizeForPostHog(enriched));
     }
   } catch {
     // Analytics must never break the user flow.

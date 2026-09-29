@@ -182,6 +182,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // ── App comparison / acquisition pages ───────────────────────────────────
     { url: `${baseUrl}/learn/islamic-finance-app`,        changeFrequency: 'monthly', priority: 0.90, lastModified: now },
+    { url: `${baseUrl}/learn/dangote-refinery-ipo-guide`, changeFrequency: 'weekly',  priority: 0.88, lastModified: now },
+    { url: `${baseUrl}/why-barakah`,                      changeFrequency: 'monthly', priority: 0.86, lastModified: now },
     { url: `${baseUrl}/learn/mint-alternative-for-muslims`, changeFrequency: 'monthly', priority: 0.92, lastModified: now },
     { url: `${baseUrl}/learn/islamic-budgeting-app`,      changeFrequency: 'monthly', priority: 0.90, lastModified: now },
 

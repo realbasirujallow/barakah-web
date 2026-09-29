@@ -53,6 +53,24 @@ function readAcquisition(): AcquisitionPayload {
   }
 }
 
+/**
+ * Non-identifying first-touch context for client analytics. Signup already
+ * forwards the same source fields to the backend; mirroring them on later
+ * activation events lets us compare communities by value reached, not merely
+ * by registrations. Never include referrer URLs here because they can carry
+ * personal query data.
+ */
+export function getAcquisitionAnalyticsContext(): Record<string, string> {
+  const a = readAcquisition();
+  const context: Record<string, string> = {};
+  if (a.utmSource) context.acquisition_source = a.utmSource;
+  if (a.utmMedium) context.acquisition_medium = a.utmMedium;
+  if (a.utmCampaign) context.acquisition_campaign = a.utmCampaign;
+  if (a.utmContent) context.acquisition_content = a.utmContent;
+  if (a.landingPath) context.acquisition_landing_path = a.landingPath;
+  return context;
+}
+
 function writeAcquisition(payload: AcquisitionPayload) {
   if (typeof window === 'undefined') return;
   try {
