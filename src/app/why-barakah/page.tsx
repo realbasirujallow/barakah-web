@@ -5,6 +5,36 @@ export const metadata: Metadata = {
   title: 'Why Barakah | Islamic Finance Tools You Can Inspect',
   description: 'Barakah brings Islamic inheritance planning, explainable financial alerts, and a public methodology together in one household finance workspace.',
   alternates: { canonical: 'https://trybarakah.com/why-barakah' },
+  openGraph: {
+    title: 'Why Barakah | Islamic Finance Tools You Can Inspect',
+    description: 'Islamic inheritance planning, explainable alerts, and an inspectable methodology for household finances.',
+    url: 'https://trybarakah.com/why-barakah',
+    siteName: 'Barakah',
+    type: 'website',
+    images: [{ url: 'https://trybarakah.com/og-image.png', width: 1200, height: 630, alt: 'Barakah Islamic finance tools' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Why Barakah | Financial tools that show their work',
+    description: 'Inheritance planning, explainable alerts, and inspectable methodology for Muslim households.',
+    images: ['https://trybarakah.com/og-image.png'],
+  },
+};
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Why Barakah | Islamic Finance Tools You Can Inspect',
+  description: 'Islamic inheritance planning, explainable financial alerts, and a public methodology for household finances.',
+  url: 'https://trybarakah.com/why-barakah',
+  isPartOf: { '@type': 'WebSite', name: 'Barakah', url: 'https://trybarakah.com' },
+  breadcrumb: {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trybarakah.com' },
+      { '@type': 'ListItem', position: 2, name: 'Why Barakah', item: 'https://trybarakah.com/why-barakah' },
+    ],
+  },
 };
 
 const pillars = [
@@ -53,6 +83,7 @@ export default function WhyBarakahPage() {
           <Link href="/signup?utm_source=us_muslim_finance_community&utm_medium=community&utm_campaign=trust_sprint_2026&utm_content=why_barakah_cta" className="shrink-0 rounded-md bg-white px-5 py-3 text-center text-sm font-bold text-[#1B5E20] hover:bg-green-50">Start free</Link>
         </section>
       </section>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
     </main>
   );
 }

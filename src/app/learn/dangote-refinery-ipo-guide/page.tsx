@@ -14,6 +14,18 @@ export const metadata: Metadata = {
     url: 'https://trybarakah.com/learn/dangote-refinery-ipo-guide',
     siteName: 'Barakah',
     type: 'article',
+    images: [{
+      url: 'https://trybarakah.com/og-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'Dangote Refinery IPO due-diligence guide from Barakah',
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Dangote Refinery IPO: Questions to Ask Before You Invest',
+    description: 'A careful decision checklist for Nigerian investors before an IPO application.',
+    images: ['https://trybarakah.com/og-image.png'],
   },
 };
 
@@ -27,6 +39,16 @@ const questions = [
   ['How will I record and revisit the decision?', 'Keep the application confirmation, allocation, fees, purchase price, and the reason you invested. Revisit the position as financial statements and circumstances change, rather than treating an IPO as a one-time decision.'],
 ];
 
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trybarakah.com' },
+    { '@type': 'ListItem', position: 2, name: 'Learn', item: 'https://trybarakah.com/learn' },
+    { '@type': 'ListItem', position: 3, name: 'Dangote Refinery IPO guide', item: 'https://trybarakah.com/learn/dangote-refinery-ipo-guide' },
+  ],
+};
+
 export default function DangoteRefineryIpoGuidePage() {
   const articleSchema = {
     '@context': 'https://schema.org',
@@ -35,8 +57,14 @@ export default function DangoteRefineryIpoGuidePage() {
     datePublished: '2026-09-29',
     dateModified: '2026-09-29',
     author: { '@type': 'Organization', name: 'Barakah' },
-    publisher: { '@type': 'Organization', name: 'Barakah' },
-    mainEntityOfPage: 'https://trybarakah.com/learn/dangote-refinery-ipo-guide',
+    image: 'https://trybarakah.com/og-image.png',
+    mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://trybarakah.com/learn/dangote-refinery-ipo-guide' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Barakah',
+      url: 'https://trybarakah.com',
+      logo: { '@type': 'ImageObject', url: 'https://trybarakah.com/icon.png' },
+    },
   };
 
   return (
@@ -81,10 +109,21 @@ export default function DangoteRefineryIpoGuidePage() {
           </ul>
         </section>
 
+        <section className="mt-10 rounded-lg border border-green-200 bg-green-50 p-6">
+          <h2 className="text-2xl font-bold text-[#1B5E20]">Keep the wider financial picture visible</h2>
+          <p className="mt-3 text-sm leading-6 text-gray-700">An investment decision sits alongside your household cash flow, obligations, zakat planning, and approach to halal investing. These practical guides can help you document those pieces before making a decision.</p>
+          <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-sm font-bold text-[#1B5E20]">
+            <Link href="/learn/halal-investing-guide" className="hover:underline">Halal investing guide</Link>
+            <Link href="/learn/aaoifi-halal-screening" className="hover:underline">How halal screening works</Link>
+            <Link href="/methodology" className="hover:underline">Read Barakah&apos;s methodology</Link>
+          </div>
+        </section>
+
         <DangoteIpoGuideClient />
         <p className="mt-8 text-xs leading-5 text-gray-500">Barakah provides educational and organisational tools only. It does not provide investment, legal, tax, or personal Shariah advice. Consult regulated professionals and qualified scholars for your circumstances.</p>
       </article>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     </main>
   );
 }
