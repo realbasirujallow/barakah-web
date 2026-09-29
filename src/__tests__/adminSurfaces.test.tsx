@@ -117,10 +117,10 @@ describe('admin-specific surface behavior', () => {
       />,
     );
 
-    expect(screen.getByText('Nominal Access Seats')).toBeInTheDocument();
+    expect(screen.getByText('Non-revenue Access')).toBeInTheDocument();
     expect(screen.getByText(/truly paid/i)).toBeInTheDocument();
-    expect(screen.getByText(/on trial, paid, or inherited access/i)).toBeInTheDocument();
-    expect(screen.getByText(/not true paid accounts/i)).toBeInTheDocument();
+    expect(screen.getByText(/Trials 0.*grants 0/i)).toBeInTheDocument();
+    expect(screen.getByText(/never counted as revenue/i)).toBeInTheDocument();
   });
 
   it('shows a founder Today Queue with email and support triage items', () => {

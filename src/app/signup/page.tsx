@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { api, readCapturedReferralCode, clearCapturedReferralCode } from '../../lib/api';
+import { api, readCapturedReferralCode, clearCapturedReferralCode, getAcquisitionAnalyticsContext, setSelfReportedSource as captureSelfReportedSource } from '../../lib/api';
 import { DEFAULT_ONBOARDING_TRIAL_DAYS_LABEL } from '../../lib/trial';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
@@ -25,6 +25,8 @@ function SignupContent() {
   const [state, setState] = useState('');
   const [referralCode, setReferralCode] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [selfReportedSource, setSelfReportedSource] = useState('');
+  const [showSelfReportedSource, setShowSelfReportedSource] = useState(false);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -57,6 +59,16 @@ function SignupContent() {
       }
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    // Ask only when a campaign/referral/referrer has not already explained
+    // acquisition. This fills the organic-install gap without adding friction
+    // for visitors whose source is already reliable.
+    const context = getAcquisitionAnalyticsContext();
+    setShowSelfReportedSource(
+      !context.acquisition_source && !context.acquisition_campaign && !document.referrer,
+    );
+  }, []);
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -511,6 +523,7 @@ function SignupContent() {
 
     setLoading(true);
     try {
+      captureSelfReportedSource(selfReportedSource);
       const result = await api.signup(name, email, password, state, country, referralCode.trim().toUpperCase() || undefined, phoneNumber.trim());
       setEmailSent(result?.emailSent !== false);
       setSignupSuccess(true);
@@ -816,6 +829,28 @@ function SignupContent() {
               <p className="text-xs text-gray-400 mt-1">{t('signupReferralHint')} 🎁</p>
             )}
           </div>
+
+          {showSelfReportedSource && (
+            <div className="mb-4">
+              <label htmlFor="signup-source" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('signupSourceLabel')} <span className="text-gray-400 font-normal">{t('signupSourceOptional')}</span>
+              </label>
+              <select
+                id="signup-source"
+                value={selfReportedSource}
+                onChange={e => setSelfReportedSource(e.target.value)}
+                className="w-full border rounded-lg px-3 py-2 text-gray-900"
+              >
+                <option value="">{t('signupSourceSelect')}</option>
+                <option value="google_search">{t('signupSourceGoogle')}</option>
+                <option value="app_store_search">{t('signupSourceAppStore')}</option>
+                <option value="friend_or_family">{t('signupSourceFriendFamily')}</option>
+                <option value="mosque_or_community">{t('signupSourceMosqueCommunity')}</option>
+                <option value="social_media">{t('signupSourceSocial')}</option>
+                <option value="other">{t('signupSourceOther')}</option>
+              </select>
+            </div>
+          )}
 
           <p className="text-center text-xs text-gray-600 mb-6">
             {t('signupTermsPrefix')}{' '}

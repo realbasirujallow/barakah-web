@@ -26,7 +26,32 @@ export const metadata: Metadata = {
     description: 'AAOIFI-screened halal stocks — AAPL, MSFT, NVDA, GOOGL, META, TSLA, KO, PG, UL, NSRGY and more — with the 3 ratios and purification guidance.',
     url: 'https://trybarakah.com/learn/halal-stocks',
     type: 'article',
+    siteName: 'Barakah',
+    images: [{ url: 'https://trybarakah.com/og-image.png', width: 1200, height: 630, alt: 'Halal stocks screening guide' }],
   },
+  twitter: { card: 'summary_large_image', title: 'Halal Stocks List 2026: How to Screen for Shariah Compliance', description: 'Understand the methodology, then verify each ticker with a current screen.', images: ['https://trybarakah.com/og-image.png'] },
+};
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: 'Halal Stocks List 2026: How to Screen for Shariah Compliance',
+  description: 'A practical guide to the business-activity and financial-ratio checks used for Shariah screening.',
+  datePublished: '2026-04-01',
+  dateModified: '2026-09-29',
+  mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://trybarakah.com/learn/halal-stocks' },
+  author: { '@type': 'Organization', name: 'Barakah' },
+  publisher: { '@type': 'Organization', name: 'Barakah', url: 'https://trybarakah.com', logo: { '@type': 'ImageObject', url: 'https://trybarakah.com/icon.png' } },
+  image: 'https://trybarakah.com/og-image.png',
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trybarakah.com' },
+    { '@type': 'ListItem', position: 2, name: 'Learn', item: 'https://trybarakah.com/learn' },
+    { '@type': 'ListItem', position: 3, name: 'Halal stocks', item: 'https://trybarakah.com/learn/halal-stocks' },
+  ],
 };
 
 const FaqSchema = {
@@ -83,6 +108,8 @@ export default function HalalStocksPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(FaqSchema) }}
       />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="min-h-screen bg-[#FFF8E1] flex flex-col">
         {/* Header */}
 
@@ -110,7 +137,7 @@ export default function HalalStocksPage() {
               <div className="flex items-center gap-4 text-sm text-gray-600 border-t border-gray-200 pt-4 dark:text-gray-400 dark:border-gray-700">
                 <span>By Barakah Editorial Team</span>
                 <span>12 min read</span>
-                <span>Published: April 2026</span>
+                <span>Updated: September 29, 2026</span>
               </div>
             </header>
 
