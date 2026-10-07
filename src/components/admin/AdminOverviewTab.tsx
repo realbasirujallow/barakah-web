@@ -23,6 +23,7 @@ import type {
 } from './adminTypes';
 import { PLAN_LABELS, SUB_STATUS_LABELS, fmtDateMs, formatCountry, formatLocation } from './adminFormatting';
 import AdminJobHealthCard from './AdminJobHealthCard';
+import Link from 'next/link';
 
 export interface AdminOverviewTabProps {
   overview: Overview | null;
@@ -504,13 +505,12 @@ export function AdminOverviewTab({
               <h2 className="font-semibold text-gray-800 text-sm">Activation Bottleneck ({activationSummary.windowDays}d)</h2>
               <p className="text-xs text-gray-400 mt-1">Distinct users, not row counts. Use this to decide who needs help before trial expiry.</p>
             </div>
-            <button
-              type="button"
-              onClick={() => openUsersQueue('all', 'new_no_login_7d')}
+            <Link
+              href="/dashboard/admin/funnel"
               className="text-xs font-semibold text-[#1B5E20] hover:underline"
             >
-              Open no-login queue
-            </button>
+              Inspect activation funnel
+            </Link>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">

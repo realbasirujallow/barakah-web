@@ -39,6 +39,7 @@ interface FunnelResponse {
     signupToPaid: number;
   };
   topPaywallEndpoints: { endpoint: string; count: number }[];
+  billingDiagnostics?: Record<string, number>;
 }
 
 interface AbandonedUser {
@@ -331,9 +332,19 @@ export default function FunnelPage() {
             {/* Top paywall triggers — tells you which Plus features are most
                 "wanted" by Free users; prioritize contextual upgrade prompts here. */}
             <div className="bg-white rounded-xl p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-primary mb-2">Top paywall triggers</h2>
+              <h2 className="text-lg font-semibold text-primary mb-2">Mobile billing readiness</h2>
+              <p className="text-sm text-gray-600 mb-3">Distinct users reported by instrumented mobile builds. Zero can mean no diagnostic data yet; ready and failed counts may overlap after recovery.</p>
+              <dl className="grid grid-cols-2 gap-3 mb-6">
+                {Object.entries(data.billingDiagnostics ?? {}).map(([key, count]) => (
+                  <div key={key}>
+                    <dt className="text-xs text-gray-500">{({ sdkReady: 'SDK ready', sdkFailed: 'SDK failed', purchaseFailed: 'Purchase failed', purchaseCanceled: 'Purchase canceled' } as Record<string, string>)[key] ?? key}</dt>
+                    <dd className="font-semibold">{count}</dd>
+                  </div>
+                ))}
+              </dl>
+              <h2 className="text-lg font-semibold text-primary mb-2">API access denials</h2>
               <p className="text-sm text-gray-600 mb-3">
-                Endpoints that most often returned 403 Plus-required in this window. High-traffic paywalls = best places to put contextual upgrade prompts.
+                Background requests can appear here. These are blocked API calls, not proof users saw upgrade options or intended to buy.
               </p>
               {data.topPaywallEndpoints.length === 0 ? (
                 <p className="text-sm text-gray-400 italic">No paywall hits in this window.</p>
@@ -366,7 +377,7 @@ export default function FunnelPage() {
             <div className="bg-white rounded-xl p-5 shadow-sm">
               <h2 className="text-lg font-semibold text-primary mb-2">Abandoned checkout — outreach list</h2>
               <p className="text-sm text-gray-600 mb-3">
-                Users who clicked Upgrade and reached checkout but never completed payment in this window. Highest-intent segment — reach out 1:1.
+                Users who started an upgrade but have no completed-payment event. A store purchase sheet may not have loaded; inspect billing errors before reaching out.
               </p>
               {!abandoned ? (
                 <p className="text-sm text-gray-400 italic">Loading…</p>
