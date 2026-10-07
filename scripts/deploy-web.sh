@@ -90,8 +90,10 @@ attempts=10
 sleep_s=12
 found=0
 for i in $(seq 1 "${attempts}"); do
-  # Cache-bust query param to dodge Cloudflare HTML caching where possible.
-  html="$(curl -fsSL --max-time 20 "${DEPLOY_URL}/?_v=${LOCAL_BUILD_ID}" 2>/dev/null || true)"
+  # Next serializes searchParams into HTML. Never echo the expected ID in
+  # the request URL, or an old deployment can falsely match the new ID.
+  nonce="$(date +%s)-${i}"
+  html="$(curl -fsSL --max-time 20 "${DEPLOY_URL}/?_v=${nonce}" 2>/dev/null || true)"
   if printf '%s' "${html}" | grep -q "${LOCAL_BUILD_ID}"; then
     found=1
     break
