@@ -809,7 +809,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
         if (!k) continue;
-        if (k.startsWith('barakah_') && k !== 'barakah_locale' && k !== 'barakah_locale_manual_override') {
+        if (k.startsWith('barakah_') && k !== 'barakah_locale' && k !== 'barakah_locale_manual_override'
+          && k !== 'barakah_referral_prompted' && k !== 'barakah_referral_prompt_last_shown') {
           keysToWipe.push(k);
         } else if (k.includes('watchlist') || k.includes('dismiss') || k.includes('_lastSeen') || k.includes('userScopedNav')) {
           keysToWipe.push(k);

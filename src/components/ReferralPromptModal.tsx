@@ -6,6 +6,18 @@ import { REFEREE_FIRST_MONTH_PRICE } from '../lib/referralCopy';
 import { useI18n } from '../lib/i18n';
 
 const STORAGE_KEY = 'barakah_referral_prompted';
+export const REFERRAL_PROMPT_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
+const LAST_SHOWN_KEY = 'barakah_referral_prompt_last_shown';
+let sessionLastShown = 0;
+
+export function isReferralPromptDue(lastShown: number, now = Date.now()): boolean {
+  return lastShown <= 0 || now - lastShown >= REFERRAL_PROMPT_COOLDOWN_MS;
+}
+
+function recordPromptSeen() {
+  sessionLastShown = Date.now();
+  safeSetItem(LAST_SHOWN_KEY, String(sessionLastShown));
+}
 
 /** Keep the referral prompt out of the dashboard's initial loading gap. */
 export function isReferralPromptEligible(loading: boolean, hasRealData: boolean): boolean {
@@ -22,14 +34,24 @@ function safeSetItem(key: string, value: string) {
 export function useReferralPrompt() {
   const [show, setShow] = useState(false);
   useEffect(() => {
-    if (safeGetItem(STORAGE_KEY) !== 'true') {
-      // Small delay so dashboard renders first
-      const t = setTimeout(() => setShow(true), 1200);
+    let lastShown = Number(safeGetItem(LAST_SHOWN_KEY)) || sessionLastShown;
+    // Migrate previous dismissals without surprising returning members.
+    if (!lastShown && safeGetItem(STORAGE_KEY) === 'true') {
+      recordPromptSeen();
+      lastShown = sessionLastShown;
+    }
+    if (isReferralPromptDue(lastShown)) {
+      const t = setTimeout(() => {
+        // Another tab may have shown it while this dashboard was loading.
+        const latest = Number(safeGetItem(LAST_SHOWN_KEY)) || sessionLastShown;
+        if (isReferralPromptDue(latest)) setShow(true);
+      }, 15000);
       return () => clearTimeout(t);
     }
   }, []);
   const dismiss = useCallback(() => {
     setShow(false);
+    recordPromptSeen();
     safeSetItem(STORAGE_KEY, 'true');
   }, []);
   return { show, dismiss };
@@ -60,6 +82,8 @@ export default function ReferralPromptModal({ onDismiss }: Props) {
   useEffect(() => { onDismissRef.current = onDismiss; }, [onDismiss]);
 
   useEffect(() => {
+    // Count an impression even when the member leaves without dismissing.
+    recordPromptSeen();
     api.getReferralCode().then((data: Record<string, unknown>) => {
       if (data?.referralCode) setCode(data.referralCode as string);
       if (data?.shareUrl) setShareUrl(data.shareUrl as string);
