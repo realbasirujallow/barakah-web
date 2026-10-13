@@ -149,7 +149,7 @@ export default function TransactionsPage() {
   const [summary, setSummary] = useState<{ totalIncome: number; totalExpenses: number; totalTransfers: number; period: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(() => searchParams?.get('add') === '1');
   const [editTx, setEditTx]     = useState<Tx | null>(null);
   // 2026-05-10 — split transaction state. When non-null, the split modal
   // is open and editing this parent transaction.

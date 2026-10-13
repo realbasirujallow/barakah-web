@@ -666,7 +666,7 @@ function SetupPageInner() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => finishSetup('/dashboard/transactions')}
+                        onClick={() => finishSetup('/dashboard/transactions?add=1')}
                         className="rounded-xl border border-green-200 bg-[#F7FAF7] px-4 py-3 text-left transition hover:border-[#1B5E20] hover:bg-green-50"
                       >
                         <span className="block text-sm font-semibold text-[#1B5E20]">{t('setupManualTxnTitle')}</span>

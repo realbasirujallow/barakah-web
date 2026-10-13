@@ -256,9 +256,11 @@ export default function AdminPage() {
   }, [usersSort, usersDir, usersCountry, usersActivity]);
 
   /* ── Data loading ── */
+  const initialLoadRequestedRef = useRef(false);
   const loadData = useCallback(async (
     p: number,
     override?: { sort?: string; dir?: 'asc' | 'desc'; country?: string; activity?: UserActivityFilter; status?: string },
+    usersOnly = false,
   ) => {
     const requestId = ++loadRequestRef.current;
     // Explicit overrides win over state so a just-changed sort/filter isn't
@@ -271,14 +273,14 @@ export default function AdminPage() {
     setLoading(true);
     try {
       const results = await Promise.allSettled([
-        api.getAdminOverview().catch(() => null),
+        usersOnly ? Promise.resolve(null) : api.getAdminOverview().catch(() => null),
         api.getAdminUsers(p, 50, sort, dir, country, activity, status),
-        api.getAdminAnalytics().catch(() => null),
-        api.getAdminFeatureUsage().catch(() => null),
-        api.getAdminOnboardingTrialSettings().catch(() => null),
-        api.getAdminConversionQueues(30, 5).catch(() => null),
-        api.adminGetEmailLog('all', 0, 1).catch(() => null),  // just for stats
-        api.getAdminActivationSummary(30).catch(() => null),
+        usersOnly ? Promise.resolve(null) : api.getAdminAnalytics().catch(() => null),
+        usersOnly ? Promise.resolve(null) : api.getAdminFeatureUsage().catch(() => null),
+        usersOnly ? Promise.resolve(null) : api.getAdminOnboardingTrialSettings().catch(() => null),
+        usersOnly ? Promise.resolve(null) : api.getAdminConversionQueues(30, 5).catch(() => null),
+        usersOnly ? Promise.resolve(null) : api.adminGetEmailLog('all', 0, 1).catch(() => null),
+        usersOnly ? Promise.resolve(null) : api.getAdminActivationSummary(30).catch(() => null),
       ]);
 
       // Filter/sort changes can start a second request while this aggregate
@@ -321,8 +323,10 @@ export default function AdminPage() {
       if (onboardingTrialRes) setOnboardingTrial(onboardingTrialRes as OnboardingTrialSettings);
       if (conversionQueuesRes) setConversionQueues(conversionQueuesRes as ConversionQueuesResponse);
       if (emailLogStatsRes) setEmailLogStats(normalizeEmailLogStats(emailLogStatsRes));
-      setActivationSummary(normalizeActivationSummary(activationSummaryRes));
-      setLastRefreshed(new Date());
+      if (!usersOnly) {
+        setActivationSummary(normalizeActivationSummary(activationSummaryRes));
+        setLastRefreshed(new Date());
+      }
     } catch (err) {
       if (requestId !== loadRequestRef.current) return;
       const msg = err instanceof Error ? err.message : 'Failed to load admin data';
@@ -348,7 +352,7 @@ export default function AdminPage() {
       if (q.activity !== undefined) setUsersActivity(q.activity);
       if (q.status !== undefined) setUsersStatus(q.status);
       setPage(0);
-      loadData(0, q);
+      loadData(0, q, true);
     },
     [loadData],
   );
@@ -360,7 +364,7 @@ export default function AdminPage() {
       : '';
     setUsersStatus(exactStatus);
     setPage(0);
-    void loadData(0, { status: exactStatus });
+    void loadData(0, { status: exactStatus }, true);
   }, [loadData]);
 
   // Round 21: only fire loadData when the user is known to be admin.
@@ -368,6 +372,8 @@ export default function AdminPage() {
   // bounce; we stop spamming six 403s on every visit.
   useEffect(() => {
     if (isAuthLoading || !isAdminKnown || !isAdmin) return;
+    if (initialLoadRequestedRef.current) return;
+    initialLoadRequestedRef.current = true;
     loadData(0);
   }, [isAuthLoading, isAdminKnown, isAdmin, loadData]);
 
@@ -663,7 +669,7 @@ export default function AdminPage() {
     return null;
   }
 
-  if (loading) {
+  if (loading && !overview && !usersData) {
     return (
       <div className="flex justify-center py-20">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -872,7 +878,7 @@ export default function AdminPage() {
           setUserFilter={handleUserFilter}
           page={page}
           setPage={setPage}
-          loadData={loadData}
+          loadData={(p) => loadData(p, undefined, true)}
           sortBy={usersSort}
           sortDir={usersDir}
           countryFilter={usersCountry}
