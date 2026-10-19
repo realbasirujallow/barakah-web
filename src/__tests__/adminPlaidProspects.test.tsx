@@ -15,6 +15,7 @@ vi.mock('../lib/toast', () => ({ useToast: () => ({ toast }) }));
 const result = {
   prospects: [{ userId: 2061, fullName: 'Paid customer', email: 'paid@example.com', plan: 'plus',
     subscriptionStatus: 'active', subscriptionSource: 'stripe', createdAt: 1700000000000,
+    emailVerified: true, emailVerifiedAt: 1700000001000, billingInterval: 'monthly', locale: 'en', hasStripe: true,
     planExpiresAt: 1900000000, accountCount: 0, activeAccountCount: 0,
     connectionHealthy: false, needsReconnect: false, hasEverPaid: true,
     importedTransactionCount: 0, outreachStatus: 'not_contacted', lastLinkAttemptAt: 1700000000000 }],
@@ -44,7 +45,8 @@ describe('Plaid support queue', () => {
   it('opens the real signup date rather than the date of first bank connection', async () => {
     const open = vi.fn(); render(<AdminPlaidProspectsTab openUser={open} />);
     fireEvent.click(await screen.findByRole('button', { name: 'View user' }));
-    expect(open.mock.calls[0][0]).toMatchObject({ id: 2061, createdAt: 1700000000000 });
+    expect(open.mock.calls[0][0]).toMatchObject({ id: 2061, createdAt: 1700000000000,
+      emailVerified: true, emailVerifiedAt: 1700000001000, billingInterval: 'monthly', locale: 'en', hasStripe: true });
   });
   it('queries paid and unfinished-connection filters server-side', async () => {
     render(<AdminPlaidProspectsTab openUser={vi.fn()} />);

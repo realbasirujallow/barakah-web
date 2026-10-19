@@ -315,6 +315,11 @@ export type PlaidOutreachStatus =
 
 export interface PlaidProspect {
   userId: number;
+  emailVerified?: boolean;
+  emailVerifiedAt?: number;
+  billingInterval?: string;
+  locale?: string;
+  hasStripe?: boolean;
   createdAt?: number;
   firstLinkAttemptAt?: number;
   lastLinkAttemptAt?: number;
