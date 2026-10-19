@@ -104,7 +104,9 @@ function matchesUserFilter(u: AdminUser, userFilter: UserFilter): boolean {
         ? u.effectiveCountry === 'UNKNOWN'
         : (!u.state?.trim() && !u.country?.trim());
     case 'paying':
-      return u.subscriptionStatus === 'active' || u.subscriptionStatus === 'trialing' || u.subscriptionStatus === 'trial';
+      return u.subscriptionStatus === 'active' && ['stripe', 'revenuecat'].includes(u.subscriptionSource ?? '')
+        && ['plus', 'family'].includes(u.plan ?? '')
+        && (!u.planExpiresAt || u.planExpiresAt > Date.now() / 1000);
     case 'plus':
       return u.plan === 'plus';
     case 'family':
@@ -112,9 +114,9 @@ function matchesUserFilter(u: AdminUser, userFilter: UserFilter): boolean {
     case 'free':
       return !u.plan || u.plan === 'free';
     case 'monthly':
-      return u.billingInterval === 'month';
+      return u.billingInterval === 'month' || u.billingInterval === 'monthly';
     case 'annual':
-      return u.billingInterval === 'year';
+      return u.billingInterval === 'year' || u.billingInterval === 'yearly';
     default:
       return true;
   }
@@ -359,9 +361,7 @@ export default function AdminPage() {
 
   const handleUserFilter = useCallback((filter: UserFilter) => {
     setUserFilter(filter);
-    const exactStatus = ['active', 'trialing', 'past_due', 'canceled', 'inactive'].includes(filter)
-      ? filter
-      : '';
+    const exactStatus = filter === 'all' ? '' : filter;
     setUsersStatus(exactStatus);
     setPage(0);
     void loadData(0, { status: exactStatus }, true);
@@ -604,7 +604,7 @@ export default function AdminPage() {
         // the list, so a filtered search stays full-database (not page-only).
         // Fifty focused matches keeps interactive lookup quick. CSV export still
         // walks every result page when the admin explicitly requests it.
-        const res = await api.adminSearchUsers(q, 0, 50, usersCountry, usersActivity);
+        const res = await api.adminSearchUsers(q, 0, 50, usersCountry, usersActivity, usersStatus);
         if (searchRequestRef.current === requestId) {
           setSearchResults(res as UsersResponse);
         }
@@ -621,7 +621,7 @@ export default function AdminPage() {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
       if (searchRequestRef.current === requestId) searchRequestRef.current += 1;
     };
-  }, [search, usersCountry, usersActivity]);
+  }, [search, usersCountry, usersActivity, usersStatus]);
 
   // When a search query is active, use server results; otherwise use the
   // paginated usersData (client-side filter for plan/status chips still applied).
@@ -637,7 +637,7 @@ export default function AdminPage() {
     const q = search.trim();
     const loadPageForExport = async (targetPage: number) => {
       const res = q.length >= 2
-        ? await api.adminSearchUsers(q, targetPage, pageSize, usersCountry, usersActivity)
+        ? await api.adminSearchUsers(q, targetPage, pageSize, usersCountry, usersActivity, usersStatus)
         : await api.getAdminUsers(targetPage, pageSize, usersSort, usersDir, usersCountry, usersActivity, usersStatus);
       return res as UsersResponse;
     };

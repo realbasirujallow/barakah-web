@@ -1898,10 +1898,11 @@ export const api = {
    * Honours the same effective-country + activity filters as the list (P0.5)
    * so filtered search stays full-database, not current-page only.
    */
-  adminSearchUsers: (q: string, page = 0, size = 50, country = '', activity = '') => {
+  adminSearchUsers: (q: string, page = 0, size = 50, country = '', activity = '', status = '') => {
     const qs = new URLSearchParams({ q, page: String(page), size: String(size) });
     if (country) qs.set('country', country);
     if (activity && activity !== 'all') qs.set('activity', activity);
+    if (status) qs.set('status', status);
     return apiFetch(`/admin/users/search?${qs.toString()}`, {}, API_TIMEOUT, true);
   },
   /**

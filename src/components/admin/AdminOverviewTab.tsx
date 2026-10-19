@@ -66,8 +66,8 @@ export function AdminOverviewTab({
     ? (overview.activePaidSubscriptions ?? ((overview.activePlus ?? 0) + (overview.activeFamily ?? 0)))
     : 0;
   const truePaidConversion = overview && overview.totalUsers > 0
-    ? ((truePaidAccounts / overview.totalUsers) * 100).toFixed(1)
-    : '0.0';
+    ? ((truePaidAccounts / overview.totalUsers) * 100).toFixed(2)
+    : '0.00';
   const failedEmails = emailLogStats?.failedLast24h ?? emailLogStats?.totalFailed ?? 0;
   const staleFailedEmails = emailLogStats?.staleFailed ?? 0;
   const expiringTrials = overview?.expiringTrials ?? [];
@@ -121,8 +121,8 @@ export function AdminOverviewTab({
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <button
             type="button"
-            onClick={() => setActiveTab('lifecycle')}
-            title="Open Lifecycle tab"
+            onClick={() => openUsersQueue('paying')}
+            title="View paid subscribers"
             className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-5 text-white text-left transition hover:shadow-lg hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-emerald-300"
           >
             <p className="text-emerald-200 text-xs font-medium mb-1">Monthly Revenue (MRR)</p>
@@ -145,7 +145,7 @@ export function AdminOverviewTab({
               className="text-green-200 text-xs mt-1"
               title="'Truly paid' = users on a Stripe or RevenueCat plan that has actually charged. Excludes active trials, manual grants, and inherited Family seats."
             >
-              {truePaidConversion}% truly paid
+              {truePaidAccounts} paid subscriber{truePaidAccounts === 1 ? '' : 's'} · {truePaidConversion}% truly paid
             </p>
           </button>
           <button

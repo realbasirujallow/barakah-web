@@ -24,8 +24,8 @@ export function cadenceLabel(
   plan: string | undefined,
 ): { label: string; color: string } | null {
   if (plan === 'free' || !plan) return null;
-  if (interval === 'year')  return { label: 'Annual',  color: 'bg-emerald-100 text-emerald-700' };
-  if (interval === 'month') return { label: 'Monthly', color: 'bg-sky-100 text-sky-700' };
+  if (interval === 'year' || interval === 'yearly') return { label: 'Annual', color: 'bg-emerald-100 text-emerald-700' };
+  if (interval === 'month' || interval === 'monthly') return { label: 'Monthly', color: 'bg-sky-100 text-sky-700' };
   return null;
 }
 

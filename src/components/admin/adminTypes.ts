@@ -315,6 +315,10 @@ export type PlaidOutreachStatus =
 
 export interface PlaidProspect {
   userId: number;
+  createdAt?: number;
+  firstLinkAttemptAt?: number;
+  lastLinkAttemptAt?: number;
+  hasEverPaid?: boolean;
   fullName?: string;
   email: string;
   phoneNumber?: string;
@@ -349,6 +353,7 @@ export interface PlaidProspectsResponse {
   totalPages: number;
   filter: string;
   outreach: string;
+  summary?: { total: number; needsConnection: number; activeConnections: number; needsReconnect: number };
 }
 
 /** Feature flag metadata returned by /admin/feature-flags. */
