@@ -9,11 +9,13 @@ import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n, t as tStandalone, tFmt as tFmtStandalone } from '../../../lib/i18n';
 import { useFocusTrap } from '../../../lib/useFocusTrap';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
+import { BillCoverageNotice } from '../../../components/dashboard/BillCoverageNotice';
 
 interface BillItem {
   id: number; name: string; category: string; amount: number;
   frequency: string; dueDay: number; paid: boolean; nextDueDate: number;
   readOnly?: boolean; linkedSource?: string | null; description?: string;
+  reminderEnabled?: boolean; currency?: string;
   sourceLabel?: string; minimumPaymentDue?: number; statementBalance?: number;
   // 2026-05-13: backend now exposes the subscription detector's bucket
   // key (with "::CCY" suffix) separately from the clean displayName.
@@ -72,7 +74,7 @@ function formatDueDate(bill: BillItem): string {
   return dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
-const emptyForm = { name: '', category: 'utilities', amount: '', frequency: 'monthly', dueDay: '1' };
+const emptyForm = { name: '', category: 'utilities', amount: '', frequency: 'monthly', dueDay: '1', reminderEnabled: true, currency: '' };
 
 // ─── BillRow ── hoisted to module scope to prevent React from treating it as a
 // new component type on every parent re-render (which would unmount/remount all
@@ -88,10 +90,10 @@ interface BillRowProps {
   onDismissDetected: (b: BillItem) => void;
 }
 
-function BillRow({ b, now, deletingId, dismissingName, onPaid, onEdit, onDelete, onDismissDetected }: BillRowProps) {
+function BillRow({ b, deletingId, dismissingName, onPaid, onEdit, onDelete, onDismissDetected }: BillRowProps) {
   const { fmt } = useCurrency();
   const days = getDaysUntilDue(b);
-  const isOverdue  = b.nextDueDate && b.nextDueDate < now && !b.paid;
+  const isOverdue  = days !== null && days < 0 && !b.paid;
   const isUpcoming = !isOverdue && days !== null && days <= 7 && !b.paid;
   // 2026-05-13: detected-subscription rows can be dismissed by the user
   // ("this isn't actually a subscription"). Other read-only rows (e.g.
@@ -213,7 +215,7 @@ interface BillsCalendarProps {
   onEdit: (b: BillItem) => void;
 }
 
-function BillsCalendar({ bills, year, month, now, dateLocale, fmt, onPrev, onNext, onEdit }: BillsCalendarProps) {
+function BillsCalendar({ bills, year, month, dateLocale, fmt, onPrev, onNext, onEdit }: BillsCalendarProps) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstWeekday = new Date(year, month, 1).getDay(); // 0 = Sunday
   // Weekday headers in the user's locale — 2024-01-07 is a Sunday, so
@@ -292,7 +294,7 @@ function BillsCalendar({ bills, year, month, now, dateLocale, fmt, onPrev, onNex
                   <div className="space-y-0.5">
                     {dayBills.slice(0, MAX_CHIPS).map(b => {
                       const days = getDaysUntilDue(b);
-                      const isOverdue = b.nextDueDate && b.nextDueDate < now && !b.paid;
+                      const isOverdue = days !== null && days < 0 && !b.paid;
                       const isUpcoming = !isOverdue && days !== null && days <= 7 && !b.paid;
                       // Mirrors the list rows' border accents: red for
                       // overdue, orange ≤7 days out, green when paid.
@@ -412,7 +414,7 @@ function FrequencyBreakdownCard({
 }
 
 export default function BillsPage() {
-  const { fmt, locale: dateLocale } = useCurrency();
+  const { fmt, locale: dateLocale, currency } = useCurrency();
   const [bills, setBills]           = useState<BillItem[]>([]);
   // 2026-06-11 Monarch parity: list/calendar toggle (default stays list)
   // plus the month the calendar grid is currently showing.
@@ -494,7 +496,7 @@ export default function BillsPage() {
 
   const openEdit = (b: BillItem) => {
     setEditBill(b);
-    setForm({ name: b.name, category: b.category, amount: String(b.amount), frequency: b.frequency, dueDay: String(b.dueDay) });
+    setForm({ name: b.name, category: b.category, amount: String(b.amount), frequency: b.frequency, dueDay: String(b.dueDay), reminderEnabled: b.reminderEnabled !== false, currency: b.currency ?? '' });
     setShowForm(true);
   };
 
@@ -514,7 +516,7 @@ export default function BillsPage() {
       }
       const day = parseInt(form.dueDay, 10);
       if (isNaN(day) || day < 1 || day > 31) { toast(t('billsDueDayError'), 'error'); setSaving(false); return; }
-      const payload = { ...form, amount: amt, dueDay: day };
+      const payload = { ...form, currency: form.currency || currency, amount: amt, dueDay: day };
       if (editBill) {
         await api.updateBill(editBill.id, payload);
         toast(t('billsUpdated'), 'success');
@@ -606,16 +608,14 @@ export default function BillsPage() {
   const paid   = bills.filter(b => b.paid);
 
   // Overdue: nextDueDate in the past and not paid
-  const overdue  = unpaid.filter(b => b.nextDueDate && b.nextDueDate < now);
+  const overdue  = unpaid.filter(b => { const days = getDaysUntilDue(b); return days !== null && days < 0; });
   // Upcoming: due within 7 days (but not overdue)
   const upcoming = unpaid.filter(b => {
-    if (!b.nextDueDate || b.nextDueDate < now) return false;
     const days = getDaysUntilDue(b);
-    return days !== null && days <= 7;
+    return days !== null && days >= 0 && days <= 7;
   });
   // Future: due > 7 days away
   const future   = unpaid.filter(b => {
-    if (!b.nextDueDate || b.nextDueDate < now) return false;
     const days = getDaysUntilDue(b);
     return days !== null && days > 7;
   });
@@ -672,6 +672,12 @@ export default function BillsPage() {
           <button type="button" onClick={openAdd} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium">{t('billsAddBtn')}</button>
         }
       />
+
+      <BillCoverageNotice onAdd={(name, accountCurrency) => {
+        setEditBill(null);
+        setForm({ ...emptyForm, name: name.slice(0, 200), category: 'debt', dueDay: '', currency: accountCurrency ?? currency });
+        setShowForm(true);
+      }} />
 
       {/* 2026-06-08 (UX-WEB-LISTS-NORETRY-1): persistent error + retry. */}
       {loadError && (
@@ -881,6 +887,10 @@ export default function BillsPage() {
                 </div>
               </div>
             </div>
+            <label className="flex items-start gap-2 mt-4 text-sm text-gray-700">
+              <input type="checkbox" checked={form.reminderEnabled} onChange={event => setForm({ ...form, reminderEnabled: event.target.checked })} className="mt-1" />
+              <span>{t('billsReminderSchedule')}</span>
+            </label>
             <div className="flex gap-3 mt-6">
               <button
                 type="button"

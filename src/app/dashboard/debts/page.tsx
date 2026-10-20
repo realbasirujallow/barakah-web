@@ -518,7 +518,7 @@ export default function DebtsPage() {
                 a.institutionName ?? t('debtLiabReconnectGenericInst')
               ))).join(', '),
             ])}{' '}
-            <Link href="/dashboard/import" className="font-semibold underline whitespace-nowrap">
+            <Link href="/dashboard/bills" className="font-semibold underline whitespace-nowrap">
               {t('debtLiabReconnectCta')}
             </Link>
           </p>
