@@ -2968,6 +2968,7 @@ export const fr: Translations = {
   investmentsAddHoldingSubmit: "Ajouter un avoir",
   investmentsCloseConfirmModal: "Fermer la fenêtre de confirmation",
   investmentsLoadError: "Impossible de charger le portefeuille. Assurez-vous d'avoir des comptes d'investissement configurés.",
+  investmentsFxUnavailable: "Les taux de change actuels sont indisponibles. Vos soldes n'ont pas changé. Réessayez pour afficher le total converti.",
   investmentsAddAccountError: "Échec de l'ajout du compte",
   investmentsDeleteAccountConfirm: "Supprimer ce compte et tous ses avoirs ?",
   investmentsDeleteAccountError: "Échec de la suppression du compte",

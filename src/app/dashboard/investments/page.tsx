@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { RefreshCw } from 'lucide-react';
 import { api } from '../../../lib/api';
 import { logError } from '../../../lib/logError';
 import { useToast } from '../../../lib/toast';
@@ -12,8 +13,10 @@ import { useFocusTrap } from '../../../lib/useFocusTrap';
 import { useBodyScrollLock } from '../../../lib/useBodyScrollLock';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n } from '../../../lib/i18n';
+import { convertInvestmentAmount as convertToUserCurrency, normalizeInvestmentAmounts, type InvestmentFxRates } from '../../../lib/investmentCurrency';
 
 interface Account {
+  currency?: string;
   id: number;
   name: string;
   assetId?: number | null; // silo unification: FK to the mirror Asset (for dedup)
@@ -27,6 +30,7 @@ interface Account {
 }
 
 interface Holding {
+  currency?: string;
   id: number;
   symbol: string;
   name: string;
@@ -40,6 +44,7 @@ interface Holding {
 }
 
 interface Portfolio {
+  currency?: string;
   totalValue: number;
   totalContributed: number;     // backend: totalContributed (not totalCost)
   totalGainLoss: number;
@@ -72,40 +77,7 @@ interface AssetAccount {
   notes?: string;
 }
 
-interface FxRates { base: string; rates: Record<string, number> }
-
-/**
- * Convert a value from `fromCurrency` to `toCurrency` using the provided
- * FX-rate snapshot. Returns the original value unchanged when rates are
- * unavailable or the currencies match.
- */
-function convertToUserCurrency(
-  value: number,
-  fromCurrency: string | undefined,
-  toCurrency: string,
-  rates: FxRates | null,
-): number {
-  if (!fromCurrency || fromCurrency === toCurrency) return value;
-  if (!rates?.rates) return value; // no rates yet — preserve raw value rather than silently mis-sum
-  // All rates are relative to `rates.base` (typically USD).
-  // To convert from → to:  value / rate[from] * rate[to]
-  // When from === base the rate is implicitly 1.
-  const baseIsFrom = rates.base === fromCurrency;
-  const baseIsTo   = rates.base === toCurrency;
-  if (baseIsFrom && baseIsTo) return value;
-  if (baseIsFrom) {
-    const r = rates.rates[toCurrency];
-    return r ? value * r : value;
-  }
-  if (baseIsTo) {
-    const r = rates.rates[fromCurrency];
-    return r ? value / r : value;
-  }
-  const fromRate = rates.rates[fromCurrency];
-  const toRate   = rates.rates[toCurrency];
-  if (!fromRate || !toRate) return value;
-  return (value / fromRate) * toRate;
-}
+type FxRates = InvestmentFxRates;
 
 // label resolved via t() at render time (keys added centrally to i18n.ts)
 const ACCOUNT_TYPES = [
@@ -153,13 +125,13 @@ export default function InvestmentsPage() {
   const { fmt, currency } = useCurrency();
   const { t, tFmt } = useI18n();
   const [confirmAction, setConfirmAction] = useState<{ message: string; action: () => void } | null>(null);
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [assetAccounts, setAssetAccounts] = useState<AssetAccount[]>([]);
+  const [rawPortfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [rawAssetAccounts, setAssetAccounts] = useState<AssetAccount[]>([]);
   const [fxRates, setFxRates] = useState<FxRates | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedAccount, setExpandedAccount] = useState<number | null>(null);
-  const [portfolioHistory, setPortfolioHistory] = useState<PortfolioHistorySnapshot[]>([]);
+  const [rawPortfolioHistory, setPortfolioHistory] = useState<PortfolioHistorySnapshot[]>([]);
 
   // 2026-05-03 (Monarch parity): benchmark comparison series. Pulled
   // from /api/investments/benchmarks. Each series is { date, percentChange }
@@ -226,7 +198,7 @@ export default function InvestmentsPage() {
           INVESTMENT_ASSET_TYPES.includes(a.type)
         );
         setAssetAccounts(investmentAssets);
-      }).catch(() => { /* graceful — don't block portfolio load */ }),
+      }).catch(() => { if (!cancelled.current) setError(t('investmentsLoadError')); }),
       // Fetch FX rates so we can convert non-Plaid asset values to the user's
       // preferred currency before summing. Failure is non-blocking — we fall
       // back to raw values (which at least don't silently mis-sum for same-
@@ -325,6 +297,43 @@ export default function InvestmentsPage() {
     </div>
   );
 
+  let portfolio = rawPortfolio;
+  let assetAccounts = rawAssetAccounts;
+  let portfolioHistory = rawPortfolioHistory;
+  let currencyError = false;
+  try {
+    if (rawPortfolio) {
+      portfolio = {
+        ...normalizeInvestmentAmounts(rawPortfolio, ['totalValue', 'totalContributed', 'totalGainLoss', 'dayGainLoss'], rawPortfolio.currency || 'USD', currency, fxRates),
+        currency,
+        accounts: (rawPortfolio.accounts || []).map(account => ({
+          ...normalizeInvestmentAmounts(account, ['totalValue', 'totalContributed', 'totalGainLoss'], account.currency || 'USD', currency, fxRates),
+          currency,
+          holdings: (account.holdings || []).map(holding => ({
+            ...normalizeInvestmentAmounts(holding, ['avgCostPerShare', 'currentPrice', 'marketValue', 'gainLoss'], holding.currency || account.currency || 'USD', currency, fxRates),
+            currency,
+          })),
+        })),
+      };
+    }
+    assetAccounts = rawAssetAccounts.map(asset => ({
+      ...normalizeInvestmentAmounts(asset, ['value'], asset.currency || 'USD', currency, fxRates), currency,
+    }));
+    portfolioHistory = rawPortfolioHistory.map(point => normalizeInvestmentAmounts(point,
+      ['totalValue', 'totalCost', 'dayGainLoss', 'totalGainLoss'], 'USD', currency, fxRates));
+  } catch {
+    currencyError = true;
+  }
+  if (error || currencyError) return (
+    <section role="alert" className="space-y-3 py-8">
+      <h1 className="text-xl font-semibold">{t('investmentsTitle')}</h1>
+      <p>{error || t('investmentsFxUnavailable')}</p>
+      <button onClick={() => load({ current: false })} className="inline-flex items-center gap-2 border px-3 py-2 rounded">
+        <RefreshCw size={16} aria-hidden="true" />
+        {t('txnRetry')}
+      </button>
+    </section>
+  );
   const accounts: Account[] = portfolio?.accounts || [];
   const totalValue       = portfolio?.totalValue || 0;
   const totalGainLoss    = portfolio?.totalGainLoss ?? 0;
@@ -354,10 +363,7 @@ export default function InvestmentsPage() {
   // (the DATA-CUR-1 bug). Now each asset.value is converted using live FX
   // rates from /api/currency/rates before the reduce.
   //
-  // The Plaid portfolio summary (totalValue) is NOT touched here — it is
-  // already backend-converted to the user's preferred currency (the backend
-  // portfolio endpoint returns a single-currency aggregate). Only the
-  // manually-entered / CSV-imported asset accounts go through the FX path.
+  // Every amount above is normalized exactly once to the display currency.
   const assetTotal = additiveAssets.reduce((sum, a) => {
     const converted = convertToUserCurrency(a.value || 0, a.currency, currency, fxRates);
     return sum + converted;

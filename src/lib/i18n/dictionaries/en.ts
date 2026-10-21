@@ -3028,6 +3028,7 @@ export const en: Translations = {
   investmentsAddHoldingSubmit: "Add Holding",
   investmentsCloseConfirmModal: "Close confirmation modal",
   investmentsLoadError: "Could not load portfolio. Make sure you have investment accounts set up.",
+  investmentsFxUnavailable: "Current exchange rates are unavailable. Your balances have not changed. Retry to display a converted total.",
   investmentsAddAccountError: "Failed to add account",
   investmentsDeleteAccountConfirm: "Delete this account and all its holdings?",
   investmentsDeleteAccountError: "Failed to delete account",

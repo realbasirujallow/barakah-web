@@ -2966,6 +2966,7 @@ export const ur: Translations = {
   investmentsAddHoldingSubmit: "اثاثہ شامل کریں",
   investmentsCloseConfirmModal: "تصدیقی موڈل بند کریں",
   investmentsLoadError: "پورٹ فولیو لوڈ نہیں ہو سکا۔ یقینی بنائیں کہ آپ کے سرمایہ کاری اکاؤنٹس ترتیب دیے گئے ہیں۔",
+  investmentsFxUnavailable: "موجودہ شرحِ تبادلہ دستیاب نہیں۔ آپ کے بیلنس تبدیل نہیں ہوئے۔ تبدیل شدہ کل رقم دیکھنے کے لیے دوبارہ کوشش کریں۔",
   investmentsAddAccountError: "اکاؤنٹ شامل کرنے میں ناکامی",
   investmentsDeleteAccountConfirm: "یہ اکاؤنٹ اور اس کے تمام اثاثے حذف کریں؟",
   investmentsDeleteAccountError: "اکاؤنٹ حذف کرنے میں ناکامی",

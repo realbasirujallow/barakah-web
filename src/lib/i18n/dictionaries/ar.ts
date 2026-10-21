@@ -2966,6 +2966,7 @@ export const ar: Translations = {
   investmentsAddHoldingSubmit: "إضافة أصل",
   investmentsCloseConfirmModal: "إغلاق نافذة التأكيد",
   investmentsLoadError: "تعذّر تحميل المحفظة. تأكّد من إعداد حسابات استثمارية.",
+  investmentsFxUnavailable: "أسعار الصرف الحالية غير متاحة. لم تتغير أرصدتك. أعد المحاولة لعرض الإجمالي المحوّل.",
   investmentsAddAccountError: "فشل في إضافة الحساب",
   investmentsDeleteAccountConfirm: "حذف هذا الحساب وكل أصوله؟",
   investmentsDeleteAccountError: "فشل في حذف الحساب",
