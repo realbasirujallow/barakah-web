@@ -1,11 +1,8 @@
 name: E2E (Playwright)
 
-# Catches regressions against production that unit tests can't see —
-# auth flow, dashboard data fetch, plan-gated endpoints, etc.
-#
-# Required GitHub repository secrets (settings → Secrets and variables → Actions):
-#   - E2E_EMAIL    : applereview@trybarakah.com
-#   - E2E_PASSWORD : (the App Store reviewer account password)
+# Read-only public-page and API-health smoke checks against production.
+# No reviewer credentials, signups, authenticated mutations, or persona writes.
+# See docs/testing-safety.md for isolated authenticated testing.
 #
 # The workflow runs:
 #   - on every PR that touches src/, e2e/, or this workflow file
@@ -40,8 +37,7 @@ jobs:
     name: Playwright suite
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Don't fail PRs from forks where the secrets aren't injected — the suite
-    # would just skip everything anyway and produce confusing red Xs.
+    # Restrict production traffic from pull requests to this repository.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v4
@@ -58,13 +54,11 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright tests
+      - name: Run read-only production smoke tests
         env:
           E2E_BASE_URL: ${{ inputs.target_url || 'https://trybarakah.com' }}
           E2E_API_URL:  ${{ inputs.target_url || 'https://trybarakah.com' }}
-          E2E_EMAIL:    ${{ secrets.E2E_EMAIL }}
-          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
-        run: npx playwright test --reporter=list
+        run: npx playwright test e2e/public-pages.spec.ts e2e/api-health.spec.ts --project=chromium --project=mobile-chrome --grep-invert @mutation --reporter=list,json
 
       - name: Upload Playwright report on failure
         if: failure()

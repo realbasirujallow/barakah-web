@@ -1,5 +1,5 @@
 /**
- * Script 29 — Deep CRUD UI interactions (real browser writes, prod).
+ * Deep CRUD UI interactions: isolated, explicitly seeded local accounts only.
  *
  * Logs in through the real /login UI as the seeded QA personas and performs
  * actual write interactions through the UI (not API):
@@ -9,22 +9,28 @@
  *   P10 — add a transaction with Arabic text, verify it renders, delete it
  *
  * Selectors discovered from source. Each step screenshots to the audit evidence
- * folder and records a structured outcome. Run serial (--workers=1) to respect
- * the prod login rate-limit (~10/IP/15min).
+ * folder and records a structured outcome. Run serial (--workers=1) against
+ * an isolated local environment with explicitly seeded accounts.
  *
  * Run:
- *   E2E_EMAIL= E2E_PASSWORD= E2E_BASE_URL=https://trybarakah.com \
- *   E2E_API_URL=https://api.trybarakah.com \
+ *   E2E_TEN_PERSONAS_SEEDED=1 E2E_PERSONA_RUN_ID=<seed-run> \
+ *   E2E_PERSONA_SECRETS_PATH=<private-manifest> E2E_BASE_URL=http://localhost:3000 \
+ *   E2E_API_URL=http://localhost:8080 \
  *   npx playwright test e2e/ten-persona-crud-interactions.spec.ts --project=chromium --workers=1 --reporter=line
  */
 import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const RUN_ID = 'qa20260630_mr00cdbr';
-const SECRETS_PATH = join(process.cwd(), '..', 'audits', 'ten-persona-edge-gauntlet-2026-06-30', 'tools', '.persona-secrets.json');
-const SECRETS: Record<string, string> = JSON.parse(readFileSync(SECRETS_PATH, 'utf8'));
-const EVIDENCE = join(process.cwd(), '..', 'audits', 'ui-only-ten-persona-gauntlet-2026-06-30', 'evidence', 'crud');
+const ENABLED = process.env.E2E_TEN_PERSONAS_SEEDED === '1';
+const BASE = process.env.E2E_BASE_URL || 'http://localhost:3000';
+if (ENABLED && !['localhost', '127.0.0.1', '[::1]'].includes(new URL(BASE).hostname)) throw new Error('Mutation suites require an isolated local target');
+const RUN_ID = process.env.E2E_PERSONA_RUN_ID || '';
+const SECRETS_PATH = process.env.E2E_PERSONA_SECRETS_PATH || '';
+if (ENABLED && (!RUN_ID || !SECRETS_PATH)) throw new Error('Configure E2E_PERSONA_RUN_ID and E2E_PERSONA_SECRETS_PATH for seeded local accounts');
+const SECRETS: Record<string, string> = ENABLED ? JSON.parse(readFileSync(SECRETS_PATH, 'utf8')) : {};
+test.skip(!ENABLED, 'Explicit isolated seeded-persona opt-in required');
+const EVIDENCE = process.env.E2E_EVIDENCE_DIR || join(process.cwd(), 'test-results', 'personas-crud');
 const CSV_FIXTURE = join(process.cwd(), 'e2e', 'fixtures', 'p06_csv_chaos.csv');
 const ARABIC = 'قهوة الصباح';
 
@@ -32,7 +38,7 @@ const emailFor = (slug: string) => `qa+${RUN_ID}+${slug}@trybarakah.test`;
 const results: Record<string, unknown>[] = [];
 
 async function loginViaUI(browser: Browser, key: string, slug: string): Promise<{ ctx: BrowserContext; page: Page; ok: boolean; reason?: string }> {
-  const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 }, baseURL: process.env.E2E_BASE_URL || 'https://trybarakah.com' });
+  const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 }, baseURL: BASE });
   const page = await ctx.newPage();
   await page.goto('/login', { waitUntil: 'networkidle' }).catch(() => {});
   await page.waitForSelector('input[type="email"]', { state: 'visible', timeout: 20_000 }).catch(() => {});
@@ -70,7 +76,7 @@ function record(persona: string, outcome: string, detail: string, extra: Record<
 test('CRUD p03 — record zakat payment', async ({ browser }) => {
   test.setTimeout(180_000);
   const { ctx, page, ok, reason } = await loginViaUI(browser, 'p03', 'p03-zakat-heavy');
-  if (!ok) { await shot(page, 'p03', 'LOGIN_FAIL'); record('p03', 'LOGIN_FAIL', reason || ''); await ctx.close(); test.skip(true, reason); return; }
+  if (!ok) { await shot(page, 'p03', 'LOGIN_FAIL'); record('p03', 'LOGIN_FAIL', reason || ''); await ctx.close(); throw new Error(reason || 'Required login failed'); }
   await page.goto('/dashboard/zakat', { waitUntil: 'networkidle' }).catch(() => {});
   await page.waitForTimeout(1500);
   await shot(page, 'p03', '01_zakat_overview');
@@ -114,7 +120,7 @@ test('CRUD p03 — record zakat payment', async ({ browser }) => {
 test('CRUD p06 — CSV import via file chooser', async ({ browser }) => {
   test.setTimeout(180_000);
   const { ctx, page, ok, reason } = await loginViaUI(browser, 'p06', 'p06-csv-chaos');
-  if (!ok) { await shot(page, 'p06', 'LOGIN_FAIL'); record('p06', 'LOGIN_FAIL', reason || ''); await ctx.close(); test.skip(true, reason); return; }
+  if (!ok) { await shot(page, 'p06', 'LOGIN_FAIL'); record('p06', 'LOGIN_FAIL', reason || ''); await ctx.close(); throw new Error(reason || 'Required login failed'); }
   await page.goto('/dashboard/import', { waitUntil: 'networkidle' }).catch(() => {});
   await page.waitForTimeout(1200);
   await shot(page, 'p06', '01_import_page');
@@ -149,7 +155,7 @@ test('CRUD p06 — CSV import via file chooser', async ({ browser }) => {
 test('CRUD p09 — create side-hustle', async ({ browser }) => {
   test.setTimeout(180_000);
   const { ctx, page, ok, reason } = await loginViaUI(browser, 'p09', 'p09-sidehustle');
-  if (!ok) { await shot(page, 'p09', 'LOGIN_FAIL'); record('p09', 'LOGIN_FAIL', reason || ''); await ctx.close(); test.skip(true, reason); return; }
+  if (!ok) { await shot(page, 'p09', 'LOGIN_FAIL'); record('p09', 'LOGIN_FAIL', reason || ''); await ctx.close(); throw new Error(reason || 'Required login failed'); }
   await page.goto('/dashboard/side-hustles', { waitUntil: 'networkidle' }).catch(() => {});
   await page.waitForTimeout(1500);
   await shot(page, 'p09', '01_side_hustles');
@@ -180,7 +186,7 @@ test('CRUD p09 — create side-hustle', async ({ browser }) => {
 test('CRUD p10 — add Arabic transaction + delete', async ({ browser }) => {
   test.setTimeout(180_000);
   const { ctx, page, ok, reason } = await loginViaUI(browser, 'p10', 'p10-intl-rtl');
-  if (!ok) { await shot(page, 'p10', 'LOGIN_FAIL'); record('p10', 'LOGIN_FAIL', reason || ''); await ctx.close(); test.skip(true, reason); return; }
+  if (!ok) { await shot(page, 'p10', 'LOGIN_FAIL'); record('p10', 'LOGIN_FAIL', reason || ''); await ctx.close(); throw new Error(reason || 'Required login failed'); }
   await page.goto('/dashboard/transactions', { waitUntil: 'networkidle' }).catch(() => {});
   await page.waitForTimeout(1500);
   await shot(page, 'p10', '01_transactions');

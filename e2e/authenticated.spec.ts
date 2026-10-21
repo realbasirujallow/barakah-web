@@ -77,7 +77,7 @@ test.afterAll(async () => {
 });
 
 test.beforeEach(() => {
-  test.skip(!sessionReady, `Session not established — ${sessionError || 'unknown reason'}`);
+  expect(sessionReady, `Required session not established: ${sessionError || 'unknown reason'}`).toBe(true);
 });
 
 function writeHeaders() {

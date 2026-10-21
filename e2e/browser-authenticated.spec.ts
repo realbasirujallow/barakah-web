@@ -74,7 +74,7 @@ test.describe('Browser Authenticated Flows', () => {
   });
 
   test.beforeEach(() => {
-    test.skip(!loggedIn, 'Login failed or rate-limited');
+    expect(loggedIn, 'Required configured account failed to log in').toBe(true);
   });
 
   // ── Dashboard ──────────────────────────────────────────────────────────────

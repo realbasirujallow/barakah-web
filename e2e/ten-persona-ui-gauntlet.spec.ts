@@ -1,14 +1,15 @@
 /**
- * Script 29 — UI-ONLY ten-persona gauntlet (real browser, prod).
+ * UI-only ten-persona gauntlet for an explicitly seeded local environment.
  *
  * Logs in through the actual /login UI as each seeded Script-28 QA account,
  * walks that persona's feature pages, screenshots each to the audit evidence
  * folder, and asserts visible-bug invariants (rendered Error/NaN/undefined/raw
- * JSON, blank critical panel, horizontal scroll, console errors). API is used
- * ONLY to read credentials — every PASS here is a UI pass.
+ * JSON, blank critical panel, horizontal scroll, console errors). Credentials
+ * come from an explicit private local manifest, not a production API.
  *
  * Run:
- *   E2E_BASE_URL=https://trybarakah.com npx playwright test \
+ *   E2E_TEN_PERSONAS_SEEDED=1 E2E_PERSONA_RUN_ID=<seed-run> \
+ *   E2E_PERSONA_SECRETS_PATH=<private-manifest> E2E_BASE_URL=http://localhost:3000 npx playwright test \
  *     e2e/ten-persona-ui-gauntlet.spec.ts --project=chromium --trace=on --screenshot=on
  *   ...--project=mobile-chrome ...
  */
@@ -16,10 +17,15 @@ import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const RUN_ID = 'qa20260630_mr00cdbr';
-const SECRETS_PATH = join(process.cwd(), '..', 'audits', 'ten-persona-edge-gauntlet-2026-06-30', 'tools', '.persona-secrets.json');
-const SECRETS: Record<string, string> = JSON.parse(readFileSync(SECRETS_PATH, 'utf8'));
-const EVIDENCE = join(process.cwd(), '..', 'audits', 'ui-only-ten-persona-gauntlet-2026-06-30', 'evidence');
+const ENABLED = process.env.E2E_TEN_PERSONAS_SEEDED === '1';
+const BASE = process.env.E2E_BASE_URL || 'http://localhost:3000';
+if (ENABLED && !['localhost', '127.0.0.1', '[::1]'].includes(new URL(BASE).hostname)) throw new Error('Persona suites require an isolated local target');
+const RUN_ID = process.env.E2E_PERSONA_RUN_ID || '';
+const SECRETS_PATH = process.env.E2E_PERSONA_SECRETS_PATH || '';
+if (ENABLED && (!RUN_ID || !SECRETS_PATH)) throw new Error('Configure E2E_PERSONA_RUN_ID and E2E_PERSONA_SECRETS_PATH for seeded local accounts');
+const SECRETS: Record<string, string> = ENABLED ? JSON.parse(readFileSync(SECRETS_PATH, 'utf8')) : {};
+test.skip(!ENABLED, 'Explicit isolated seeded-persona opt-in required');
+const EVIDENCE = process.env.E2E_EVIDENCE_DIR || join(process.cwd(), 'test-results', 'personas-ui');
 
 const emailFor = (slug: string) => `qa+${RUN_ID}+${slug}@trybarakah.test`;
 
@@ -46,7 +52,7 @@ async function loginViaUI(browser: Browser, p: Persona): Promise<{ ctx: BrowserC
   const ctx = await browser.newContext({
     ...(isMobile ? { viewport: du.viewport ?? { width: 412, height: 915 }, userAgent: du.userAgent, deviceScaleFactor: du.deviceScaleFactor, hasTouch: du.hasTouch ?? true }
                  : { viewport: { width: 1366, height: 900 } }),
-    baseURL: process.env.E2E_BASE_URL || 'https://trybarakah.com',
+    baseURL: BASE,
   });
   const page = await ctx.newPage();
   await page.goto('/login', { waitUntil: 'networkidle' }).catch(() => {});
@@ -106,14 +112,13 @@ for (const p of PERSONAS) {
       await page.screenshot({ path: join(EVIDENCE, test.info().project.name, p.key, 'LOGIN_FAIL.png'), fullPage: true }).catch(() => null);
       results.push({ persona: p.key, project: test.info().project.name, path: '/login', loginFailed: true, reason });
       await ctx.close();
-      test.skip(true, `login did not complete: ${reason}`);
-      return;
+      throw new Error(`Required persona login did not complete: ${reason}`);
     }
     const allIssues: string[] = [];
     for (const path of p.paths) { const iss = await checkPage(page, p, path); if (iss.length) allIssues.push(`${path}: ${iss.join(',')}`); }
     await ctx.close();
     // Don't hard-fail on console-errors alone (noisy 3rd-party); fail on real breakage.
-    const hard = allIssues.filter((s) => /http5xx|NaN|undefined-shown|error-text|raw-json/.test(s));
+    const hard = allIssues.filter((s) => /http5xx|NaN|undefined-shown|error-text|raw-json|horizontal-scroll/.test(s));
     expect(hard, `UI breakage for ${p.key}:\n${allIssues.join('\n')}`).toEqual([]);
   });
 }

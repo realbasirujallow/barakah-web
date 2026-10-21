@@ -23,7 +23,7 @@ test.describe('API Health', () => {
     expect(res.status()).toBe(401);
   });
 
-  test('signup rejects invalid email format', async ({ request }) => {
+  test('signup rejects invalid email format', { tag: '@mutation' }, async ({ request }) => {
     const res = await request.post(`${API}/auth/signup`, {
       data: { email: 'invalid', password: 'Test1234', fullName: 'Test', phoneNumber: '+1234567890' },
     });
@@ -32,7 +32,7 @@ test.describe('API Health', () => {
     expect(data.error).toContain('valid email');
   });
 
-  test('signup rejects weak password', async ({ request }) => {
+  test('signup rejects weak password', { tag: '@mutation' }, async ({ request }) => {
     const res = await request.post(`${API}/auth/signup`, {
       data: { email: 'test@example.com', password: 'weak', fullName: 'Test', phoneNumber: '+1234567890' },
     });
@@ -41,7 +41,7 @@ test.describe('API Health', () => {
     expect(data.error.toLowerCase()).toMatch(/8\s?[–-]\s?72 characters/);
   });
 
-  test('login rejects nonexistent user', async ({ request }) => {
+  test('login rejects nonexistent user', { tag: '@mutation' }, async ({ request }) => {
     const res = await request.post(`${API}/auth/login`, {
       data: { email: `nobody-${Date.now()}@nowhere.com`, password: 'WrongPass1' },
     });
