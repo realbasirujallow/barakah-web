@@ -3,11 +3,19 @@ import { test, expect } from '@playwright/test';
 const API = process.env.E2E_API_URL
   || process.env.E2E_BASE_URL
   || 'http://localhost:3000';
+const READINESS_URL = process.env.E2E_READINESS_URL || `${API}/actuator/health`;
 
 test.describe('API Health', () => {
   test('health endpoint returns ok', async ({ request }) => {
     const res = await request.get(`${API}/health`);
     expect(res.ok()).toBeTruthy();
+  });
+
+  test('backend dependencies report ready', async ({ request }) => {
+    const res = await request.get(READINESS_URL, { timeout: 25_000 });
+    expect(res.status(), 'Readiness must succeed; liveness alone does not prove dependencies work').toBe(200);
+    const data = await res.json();
+    expect(data.status).toBe('UP');
   });
 
   test('zakat info endpoint is public and returns data', async ({ request }) => {

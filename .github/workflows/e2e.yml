@@ -31,6 +31,10 @@ on:
         description: 'Override base URL (default https://trybarakah.com)'
         required: false
         default: 'https://trybarakah.com'
+      readiness_url:
+        description: 'Dependency-aware backend health URL (set this too when targeting staging)'
+        required: false
+        default: 'https://api.trybarakah.com/actuator/health'
 
 jobs:
   playwright:
@@ -58,6 +62,7 @@ jobs:
         env:
           E2E_BASE_URL: ${{ inputs.target_url || 'https://trybarakah.com' }}
           E2E_API_URL:  ${{ inputs.target_url || 'https://trybarakah.com' }}
+          E2E_READINESS_URL: ${{ inputs.readiness_url || 'https://api.trybarakah.com/actuator/health' }}
         run: npx playwright test e2e/public-pages.spec.ts e2e/api-health.spec.ts --project=chromium --project=mobile-chrome --grep-invert @mutation --reporter=list,json
 
       - name: Upload Playwright report on failure
