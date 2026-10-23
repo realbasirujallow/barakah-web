@@ -26,6 +26,14 @@ beforeEach(() => { vi.clearAllMocks(); getProspects.mockResolvedValue(result); u
 afterEach(cleanup);
 
 describe('Plaid support queue', () => {
+  it('does not ask customers to reconnect for an upstream sync failure', async () => {
+    getProspects.mockResolvedValue({ ...result, prospects: [{ ...result.prospects[0],
+      accountCount: 1, activeAccountCount: 1, syncIssue: true, needsReconnect: false,
+      lastSyncError: 'Circuit breaker open for upstream: plaid' }] });
+    render(<AdminPlaidProspectsTab openUser={vi.fn()} />);
+    expect(await screen.findByText('Sync issue — investigate')).toBeInTheDocument();
+    expect(screen.queryByText('Needs reconnect', { selector: 'span' })).not.toBeInTheDocument();
+  });
   it.each([['month','Monthly'],['monthly','Monthly'],['year','Annual'],['yearly','Annual']])('recognizes stored cadence %s', (interval, label) => {
     expect(cadenceLabel(interval,'plus')?.label).toBe(label);
   });

@@ -108,5 +108,5 @@ export function AdminPlaidProspectsTab({ openUser }: { openUser: (u: AdminUser, 
 }
 
 function Metric({ label, value }: { label: string; value: number }) { return <div className="bg-white border border-gray-200 rounded-lg p-3"><p className="text-2xl font-semibold text-gray-900">{value}</p><p className="text-xs text-gray-500">{label}</p></div>; }
-function connectionLabel(p: PlaidProspect) { return p.accountCount === 0 ? 'Needs first connection' : p.needsReconnect ? 'Needs reconnect' : p.connectionHealthy ? 'Active' : 'Inactive'; }
+function connectionLabel(p: PlaidProspect) { return p.accountCount === 0 ? 'Needs first connection' : p.needsReconnect ? 'Needs reconnect' : p.syncIssue ? 'Sync issue — investigate' : p.connectionHealthy ? 'Active' : 'Inactive'; }
 function toAdminUser(p: PlaidProspect): AdminUser { return { id:p.userId,email:p.email,name:p.fullName || p.email,phoneNumber:p.phoneNumber,country:p.country,state:p.state,plan:p.plan,subscriptionStatus:p.subscriptionStatus,subscriptionSource:p.subscriptionSource,planExpiresAt:p.planExpiresAt,emailVerified:p.emailVerified,emailVerifiedAt:p.emailVerifiedAt,billingInterval:p.billingInterval,locale:p.locale,hasStripe:p.hasStripe,lastLoginAt:p.lastLoginAt,lastSeenAt:p.lastSeenAt,createdAt:p.createdAt ?? 0 }; }

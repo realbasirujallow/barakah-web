@@ -341,6 +341,7 @@ export interface PlaidProspect {
   activeAccountCount: number;
   connectionHealthy: boolean;
   needsReconnect: boolean;
+  syncIssue?: boolean;
   lastSyncError?: string;
   importedTransactionCount: number;
   lastImportedTransactionAt?: number;
