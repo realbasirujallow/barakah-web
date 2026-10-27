@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, type ReactNode, type MouseEvent } from 'react';
+import { useBodyScrollLock } from '../../lib/useBodyScrollLock';
 
 /**
  * Standard modal backdrop: closes on outside-click and Escape; clicks inside
@@ -42,6 +43,7 @@ export default function ModalShell({
 }) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const restoreFocusToRef = useRef<HTMLElement | null>(null);
+  useBodyScrollLock(true);
 
   // 2026-06-08 (FREEZE-MODAL-1, founder report — clicking a few txn rows
   // then scrolling froze /dashboard/transactions): the prior effect's
@@ -90,11 +92,6 @@ export default function ModalShell({
     };
     document.addEventListener('keydown', onKey);
 
-    // Lock body scroll while the dialog is open — preserves the pre-open
-    // value so a nested modal doesn't accidentally re-enable scroll on close.
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
     // Move focus into the dialog. Try to focus the first interactive child;
     // fall back to the dialog root itself (tabIndex={-1} makes that legal).
     const focusables = dialogRef.current?.querySelectorAll<HTMLElement>(
@@ -108,7 +105,6 @@ export default function ModalShell({
 
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
       // Restore focus to the trigger on close so keyboard users don't get
       // dumped at the top of the document.
       // 2026-06-08 (DESIGN-MODAL-1): guard against restoring focus to a
