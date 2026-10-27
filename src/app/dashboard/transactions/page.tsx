@@ -12,7 +12,7 @@ import EmptyState from '../../../components/EmptyState';
 import ModalShell from '../../../components/ui/ModalShell';
 import { PageHeader } from '../../../components/dashboard/PageHeader';
 import { useI18n, t as tStandalone } from '../../../lib/i18n';
-import { CATEGORIES, categoriesForType, txPresentation } from '../../../lib/transactionPresentation';
+import { CATEGORIES, categoriesForType, txPresentation, countsInTransactionTotals } from '../../../lib/transactionPresentation';
 import { Pencil, Trash2, RefreshCw, Search, CheckCircle2, Split as SplitIcon, EyeOff, Landmark, Columns3, Briefcase, Paperclip, Download } from 'lucide-react';
 import { type ReceiptMeta, isLocked as isLockedReceipt, isAcceptedReceiptType, formatReceiptSize, RECEIPT_MAX_BYTES, RECEIPT_ACCEPT } from '../../../lib/receipts';
 import { TransactionUsageMeter } from '../../../components/TransactionUsageMeter';
@@ -1050,11 +1050,12 @@ export default function TransactionsPage() {
   // without FX conversion. Show a note if other-currency transactions exist.
   const sameCurrencyTxns = txs.filter(t => (t.currency || 'USD') === (preferredCurrency || 'USD'));
   const mixedCurrencyCount = txs.length - sameCurrencyTxns.length;
+  const reportableTxns = txs.filter(t => countsInTransactionTotals(t, preferredCurrency));
   // Use server-side summary aggregates (whole month) when available;
   // fall back to current-page sums only if the summary fetch failed.
-  const income  = summary?.totalIncome    ?? sameCurrencyTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-  const expense = summary?.totalExpenses  ?? sameCurrencyTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-  const transfers = summary?.totalTransfers ?? sameCurrencyTxns.filter(t => t.type === 'transfer').reduce((s, t) => s + t.amount, 0);
+  const income  = summary?.totalIncome    ?? reportableTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const expense = summary?.totalExpenses  ?? reportableTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const transfers = summary?.totalTransfers ?? reportableTxns.filter(t => t.type === 'transfer').reduce((s, t) => s + t.amount, 0);
   const allPageSelected = txs.length > 0 && selectedIds.size === txs.length;
   // 2026-06-11 (Monarch parity): the bulk exclude button flips to "Include
   // in reports" when every selected row is already excluded.
@@ -1666,8 +1667,10 @@ export default function TransactionsPage() {
             // Running daily net: income +, expense −, transfer skipped.
             // Mirrors how Monarch's date-section totals net out for the
             // user — no double-counting transfer in/out within the day.
-            if (t.type === 'income') g.net += t.amount;
-            else if (t.type === 'expense') g.net -= t.amount;
+            if (countsInTransactionTotals(t, preferredCurrency)) {
+              if (t.type === 'income') g.net += t.amount;
+              else if (t.type === 'expense') g.net -= t.amount;
+            }
           }
 
           // Running flat index across all groups; incremented per row.

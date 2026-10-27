@@ -45,6 +45,13 @@ export interface TxPresentation {
   sign: string;
 }
 
+export function countsInTransactionTotals(
+  tx: { excludedFromReports?: boolean | null; currency?: string | null },
+  displayCurrency?: string | null,
+): boolean {
+  return !tx.excludedFromReports && (tx.currency || 'USD') === (displayCurrency || 'USD');
+}
+
 export function txPresentation(tx: TxPresentationInput): TxPresentation {
   if (tx.type === 'income') {
     return { amountClass: 'text-green-600', badgeClass: 'bg-green-100 text-green-700', badge: tStandalone('txnBadgeIncome'), sign: '+' };

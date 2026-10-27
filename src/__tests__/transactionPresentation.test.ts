@@ -1,5 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import { categoriesForType, txPresentation, TRANSFER_CATEGORIES } from '@/lib/transactionPresentation';
+import { categoriesForType, txPresentation, TRANSFER_CATEGORIES, countsInTransactionTotals } from '@/lib/transactionPresentation';
+
+describe('transaction total eligibility', () => {
+  it('counts a retained deposit once and ignores its excluded duplicate', () => {
+    const rows = [
+      { amount: 1999, currency: 'USD', excludedFromReports: true },
+      { amount: 1999, currency: 'USD', excludedFromReports: false },
+    ];
+    expect(rows.filter(t => countsInTransactionTotals(t, 'USD')).reduce((sum, t) => sum + t.amount, 0)).toBe(1999);
+  });
+  it('does not silently add another currency', () => {
+    expect(countsInTransactionTotals({currency: 'SAR'}, 'USD')).toBe(false);
+    expect(countsInTransactionTotals({currency: null}, null)).toBe(true);
+  });
+});
 
 /**
  * Characterization tests for the income-vs-transfer DISPLAY logic
