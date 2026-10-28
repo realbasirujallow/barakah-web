@@ -166,6 +166,16 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Cloudflare email rewriting injected crawlable /cdn-cgi/ 404 links.
+        // Preserve origin HTML on public pages with intentional contact emails.
+        source: '/:contactPage(careers|scholars|security|press|support|ambassadors|contact|privacy|terms)',
+        headers: [{ key: 'Cache-Control', value: 'no-cache, no-transform' }],
+      },
+      {
+        source: '/:contactPage(about/founder|learn/sadaqah-distribution|learn/zakat-recipients-2026)',
+        headers: [{ key: 'Cache-Control', value: 'no-cache, no-transform' }],
+      },
+      {
         // Apply security headers to every route served by Next.js
         source: "/(.*)",
         headers: securityHeaders,
