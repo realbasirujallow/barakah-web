@@ -2381,6 +2381,9 @@ export const api = {
     apiFetch('/api/plaid/exchange-token', { method: 'POST', body: JSON.stringify({ publicToken, institutionName }) }),
   plaidSync: (linkedAccountId: number) =>
     apiFetch(`/api/plaid/sync/${linkedAccountId}`, { method: 'POST', body: JSON.stringify({}) }),
+  plaidRepair: (linkedAccountId: number) =>
+    apiFetch(`/api/plaid/repair/${linkedAccountId}`, { method: 'POST', body: JSON.stringify({}) }, 90_000),
+  plaidDisconnectedAccounts: () => apiFetch('/api/plaid/accounts/disconnected'),
   plaidSyncAll: () =>
     apiFetch('/api/plaid/sync-all', { method: 'POST', body: JSON.stringify({}) }),
   // SYNC-1: sync-all is now async (returns 202 + {status:"started"}).

@@ -3,6 +3,7 @@ import { Suspense, useState, useRef, useEffect, useCallback, DragEvent } from 'r
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePlaidLink } from 'react-plaid-link';
+import { History } from 'lucide-react';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import {
@@ -217,6 +218,7 @@ function ImportPageInner() {
   // ── Plaid Bank Linking ──────────────────────────────────────────────────
   const [plaidLinkToken, setPlaidLinkToken] = useState<string | null>(null);
   const [plaidAccounts, setPlaidAccounts] = useState<PlaidAccount[]>([]);
+  const [disconnectedAccounts, setDisconnectedAccounts] = useState<PlaidAccount[]>([]);
   const [linkedMirrorAccounts, setLinkedMirrorAccounts] = useState<LinkedMirrorAccount[]>([]);
   const [plaidSyncing, setPlaidSyncing] = useState<number | null>(null);
   const [plaidSyncingAll, setPlaidSyncingAll] = useState(false);
@@ -231,12 +233,14 @@ function ImportPageInner() {
   }, []);
 
   const loadPlaidAccounts = useCallback(async () => {
-    const [plaidResult, assetsResult, debtsResult] = await Promise.allSettled([
+    const [plaidResult, assetsResult, debtsResult, disconnectedResult] = await Promise.allSettled([
       api.plaidGetAccounts(),
       api.getAssets(),
       api.getDebts(),
+      api.plaidDisconnectedAccounts(),
     ]);
     if (!mountedRef.current) return;
+    setDisconnectedAccounts(disconnectedResult.status === 'fulfilled' ? disconnectedResult.value?.accounts || [] : []);
 
     if (plaidResult.status === 'fulfilled') {
       setPlaidAccounts(plaidResult.value?.accounts || []);
@@ -444,12 +448,14 @@ function ImportPageInner() {
     open();
   }, [open, plaidLinkToken, ready]);
 
-  const handlePlaidSync = async (accountId: number) => {
+  const handlePlaidSync = async (accountId: number, repair = false) => {
     setPlaidSyncing(accountId);
     setPlaidMessage('');
+    setError('');
     try {
-      const result = await api.plaidSync(accountId);
-      setPlaidMessage(tFmt('importImportedTxnCountFmt', [result?.added || 0]));
+      const result = repair ? await api.plaidRepair(accountId) : await api.plaidSync(accountId);
+      setPlaidMessage(tFmt(repair ? 'importRepairedTxnCountFmt' : 'importImportedTxnCountFmt', [result?.added || 0]));
+      if (repair && result?.complete === false) setError(t('importRepairPartial'));
       loadPlaidAccounts();
     } catch (err) {
       setError(getPlaidUiErrorMessage(err, 'sync'));
@@ -749,6 +755,18 @@ function ImportPageInner() {
           </div>
         )}
 
+        {disconnectedAccounts.length > 0 && (
+          <div role="status" className="mb-4 border-l-4 border-amber-500 bg-amber-50 p-3 text-sm text-amber-900">
+            <p className="font-semibold">{t('importDisconnectedTitle')}</p>
+            <ul className="my-2 space-y-1">
+              {disconnectedAccounts.map(account => <li key={account.id}>{account.institutionName} · {account.accountName} · ••{account.accountMask}</li>)}
+            </ul>
+            <button onClick={handlePlaidConnect} disabled={plaidLoading || !plaidAccess} className="font-semibold underline disabled:opacity-50">
+              {t('importReconnectBank')}
+            </button>
+          </div>
+        )}
+
         {plaidMessage && (
           <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg p-3 mb-4 text-sm">{plaidMessage}</div>
         )}
@@ -756,8 +774,8 @@ function ImportPageInner() {
         {plaidAccounts.length > 0 ? (
           <div className="space-y-3">
                     {plaidAccounts.map(acct => (
-                      <div key={acct.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
-                        <div>
+                      <div key={acct.id} className="flex flex-col gap-3 justify-between bg-gray-50 rounded-lg p-4 sm:flex-row sm:items-start">
+                        <div className="min-w-0 flex-1 break-words">
                           <p className="font-semibold text-gray-900">{acct.institutionName}</p>
                           <p className="text-sm text-gray-500">
                             {(acct.officialName || acct.accountName)} {acct.accountMask ? `••${acct.accountMask}` : ''} · {acct.accountType}{acct.accountSubtype ? `/${acct.accountSubtype}` : ''}
@@ -792,10 +810,21 @@ function ImportPageInner() {
                             ) : null;
                           })()}
                         </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {['credit', 'credit_card', 'depository', 'checking', 'savings', 'loan'].includes(acct.accountType?.toLowerCase()) && (
+                  <button
+                    onClick={() => handlePlaidSync(acct.id, true)}
+                    disabled={plaidSyncing !== null || plaidSyncingAll || !plaidAccess}
+                    title={t('importRepairHistory')}
+                    aria-label={`${t('importRepairHistory')} — ${acct.institutionName} ${acct.accountName}`}
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:bg-accent disabled:opacity-50"
+                  >
+                    <History className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                  )}
                   <button
                     onClick={() => handlePlaidSync(acct.id)}
-                    disabled={plaidSyncing === acct.id || plaidSyncingAll || !plaidAccess}
+                    disabled={plaidSyncing !== null || plaidSyncingAll || !plaidAccess}
                     className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition disabled:opacity-50"
                   >
                     {plaidSyncing === acct.id ? t('importSyncing') : plaidAccess ? t('importSync') : t('importUpgradeToSync')}
